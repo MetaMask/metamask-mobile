@@ -101,6 +101,28 @@ describe('Name', () => {
       );
       expect(wrapper).toMatchSnapshot();
     });
+
+    it('renders account wallet name', () => {
+      const mockAccountWalletName = 'My Wallet Account';
+      mockUseDisplayName.mockReturnValue({
+        variant: DisplayNameVariant.Recognized,
+        name: KNOWN_NAME_MOCK,
+        subtitle: mockAccountWalletName,
+      });
+
+      const wrapper = render(
+        <Provider store={store}>
+          <Name
+            type={NameType.EthereumAddress}
+            value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
+          />
+        </Provider>,
+      );
+
+      expect(wrapper.getByText(mockAccountWalletName)).toBeTruthy();
+      expect(wrapper).toMatchSnapshot();
+    });
   });
 
   it('displays the TooltipModal when the component is pressed', async () => {

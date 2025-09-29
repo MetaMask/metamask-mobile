@@ -43,8 +43,8 @@
       "message": "以前の取引がまだ署名中または送信中です。"
     },
     "signed_or_submitted_perps_deposit": {
-      "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "title": "入金処理中",
+      "message": "すでに入金処理が行われています。処理が完了するのを待ってから、追加の入金を行ってください。"
     },
     "pending_transaction": {
       "title": "保留中のトランザクション",
@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "資金不足"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -72,8 +72,8 @@
       "message": "この決済ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。"
     },
     "perps_hardware_account": {
-      "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "title": "未対応のウォレットです",
+      "message": "パーペチュアルはハードウェアウォレットに対応していません。\n入金を行うには、アカウントを切り替えてください。"
     }
   },
   "blockaid_banner": {
@@ -846,6 +846,14 @@
       "title": "エラーが発生しました",
       "description": "入金処理中にエラーが発生しました。問題が解決しない場合は、サポートまでご連絡ください。",
       "try_again": "再試行"
+    },
+    "errors": {
+      "fetch_regions": "There was an issue fetching the regions.",
+      "fetch_tokens": "There was an issue fetching the tokens.",
+      "fetch_payment_methods": "There was an issue fetching the payment methods.",
+      "try_again": "Try Again",
+      "error_details_title": "Error Details",
+      "see_more": "See more"
     }
   },
   "perps": {
@@ -857,11 +865,13 @@
     "available_balance": "利用可能残高",
     "margin_used": "利用中証拠金",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
-      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
+      "title": "パーペチュアルが登場",
+      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "後で",
-      "try_now": "Get started"
+      "try_now": "開始"
     },
+    "today": "Today",
+    "yesterday": "Yesterday",
     "unrealized_pnl": "含み損益",
     "withdraw": "出金",
     "refresh_balance": "残高を更新",
@@ -936,16 +946,16 @@
         "view_balance": "残高を表示",
         "view_transaction": "トランザクションを表示"
       },
-      "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
-      "funds_are_ready_to_trade": "Funds are ready to trade",
-      "error_toast": "Transaction failed",
-      "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to Perps",
-      "estimated_processing_time": "Est. {{time}}",
-      "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade",
-      "track": "Track"
+      "success_toast": "パーペチュアルアカウントに入金されました",
+      "success_message": "{{amount}}を取引に利用できます",
+      "funds_are_ready_to_trade": "取引用の資金が準備できました",
+      "error_toast": "トランザクション失敗",
+      "error_generic": "資金が返金されました",
+      "in_progress": "パーペチュアルに入金中",
+      "estimated_processing_time": "推定所要時間: {{time}}",
+      "funds_available_momentarily": "資金はすぐに利用可能になります",
+      "your_funds_are_available_to_trade": "資金を取引に利用できます",
+      "track": "追跡"
     },
     "withdrawal": {
       "title": "出金",
@@ -958,7 +968,7 @@
       "amount_too_low": "手数料を支払うために、金額は${{minAmount}}より大きい必要があります",
       "confirm": "出金を確定",
       "processing_title": "出金開始",
-      "eta_will_be_shared_shortly": "ETA will be shared shortly",
+      "eta_will_be_shared_shortly": "予定着金時刻はまもなく通知されます",
       "success_title": "出金完了",
       "success_description": "{{amount}} USDCがHyperliquidから出金されました",
       "network_fee": "ネットワーク手数料",
@@ -971,8 +981,8 @@
       "wait_time_message": "資金は5分以内に着金します",
       "submitting": "送信中...",
       "error": "出金失敗",
-      "success_toast": "Withdrawal confirmed",
-      "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
+      "success_toast": "出金が確定しました",
+      "success_toast_description": "5分以内に{{networkName}}で{{amount}} {{symbol}}をお受け取りになれます",
       "bridge_info": "HyperLiquidのバリデーターが出金を処理しています",
       "error_generic": "出金中にエラーが発生しました",
       "invalid_amount": "有効な金額を入力してください",
@@ -1003,6 +1013,7 @@
       "trigger_price": "トリガー価格",
       "liquidation_price": "清算価格",
       "fees": "手数料",
+      "estimated_points": "推定ポイント数",
       "market": "マーケット",
       "limit": "リミット",
       "open_orders": "注文",
@@ -1021,7 +1032,7 @@
         "failed": "注文の検証に失敗しました",
         "amount_required": "注文金額は0より大きい数字にしてください",
         "minimum_amount": "最低注文サイズは${{amount}}です",
-        "insufficient_funds": "Insufficient funds",
+        "insufficient_funds": "資金不足",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
         "high_leverage_warning": "レバレッジが高くなると清算リスクが高まります",
@@ -1029,10 +1040,10 @@
         "invalid_stop_loss": "{{positionType}}ポジションの損切りラインは、現在の価格より{{direction}}である必要があります",
         "liquidation_warning": "ポジションの清算リスクが高まっています",
         "limit_price_required": "リミット注文のリミット価格を設定してください",
-        "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "please_set_a_limit_price": "リミット価格を設定してください",
+        "limit_price_must_be_set_before_configuring_tpsl": "リミット価格の設定はTP/SLの設定前に行う必要があります",
         "only_hyperliquid_usdc": "現在、HyperliquidのUSDCだけが支払いに使用できます",
-        "limit_price_far_warning": "Limit price is far from current market price"
+        "limit_price_far_warning": "リミット価格が現在の市場価格から離れすぎています"
       },
       "error": {
         "placement_failed": "注文に失敗しました",
@@ -1050,6 +1061,8 @@
       "take_profit": "利益確定",
       "stop_loss": "ストップロス",
       "tp_sl": "TP/SL",
+      "tp": "TP",
+      "sl": "SL",
       "button": {
         "long": "{{asset}}をロング",
         "short": "{{asset}}をショート"
@@ -1072,8 +1085,8 @@
         "ask_price": "買値",
         "bid_price": "売値",
         "difference_from_market": "市場価格との差:",
-        "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_above": "リミット価格が現在の価格を上回っています",
+        "limit_price_below": "リミット価格が現在の価格を下回っています"
       },
       "leverage_modal": {
         "title": "レバレッジ",
@@ -1081,7 +1094,11 @@
         "entry_price": "エントリー価格",
         "current_price": "現在の価格",
         "liquidation_price": "清算価格",
-        "liquidation_distance": "清算価格との距離"
+        "liquidation_distance": "清算価格との距離",
+        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
+        "drops": "drops",
+        "rises": "rises",
+        "set_leverage": "Set {{leverage}}x"
       },
       "type": {
         "title": "注文タイプ",
@@ -1107,35 +1124,38 @@
       },
       "submitted": "注文が送信されました",
       "confirmed": "注文が確定しました",
-      "cancelling_order": "Cancelling order",
+      "cancelling_order": "注文を取り消しています",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "{{detailedOrderType}}の注文を取り消しています",
       "order_cancelled": "注文がキャンセルされました",
-      "failed_to_cancel_order": "Failed to cancel order",
-      "funds_have_been_returned_to_you": "Funds have been returned to you",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "close_order_still_active": "Close order still active",
-      "order_submitted": "Order submitted",
-      "order_filled": "Order filled",
-      "order_placed": "Order placed",
+      "failed_to_cancel_order": "注文を取り消すことができませんでした",
+      "order_still_active": "注文は引き続き有効です",
+      "funds_have_been_returned_to_you": "資金が返金されました",
+      "funds_are_available_to_trade": "資金を取引に利用できます",
+      "close_order_still_active": "クローズ注文は引き続き有効です",
+      "order_submitted": "注文が送信されました",
+      "order_filled": "注文が約定しました",
+      "order_placed": "注文が発注されました",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "注文に失敗しました",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "資金が返金されました",
+      "order_cancelled_success": "{{detailedOrderType}}の注文が取り消されました"
     },
     "close_position": {
       "title": "ポジションのクローズ",
       "button": "ポジションをクローズ",
       "closing": "ポジションをクローズ中...",
-      "position_close_order_placed": "Placed order to close position",
-      "partially_closing_position": "Partially closing position",
-      "partial_close_submitted": "Partial close submitted",
-      "position_partially_closed": "Position partially closed",
+      "position_close_order_placed": "ポジションのクローズ注文が発注されました",
+      "partially_closing_position": "ポジションを一部クローズしています",
+      "partial_close_submitted": "一部クローズの注文が送信されました",
+      "position_partially_closed": "ポジションが一部クローズされました",
       "closing_position": "ポジションをクローズ中",
-      "limit_close_order_cancelled": "Limit close order cancelled",
+      "limit_close_order_cancelled": "リミットクローズ注文が取り消されました",
       "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
-      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
+      "your_funds_will_be_available_momentarily": "資金はすぐに利用可能になります",
       "cancel": "キャンセル",
       "margin": "証拠金",
-      "includes_pnl": "includes P&L",
+      "includes_pnl": "損益込み",
       "pnl": "損益",
       "estimated_pnl": "予想損益",
       "fees": "手数料",
@@ -1144,25 +1164,26 @@
       "select_amount": "クローズする金額を選択してください",
       "error_unknown": "ポジションをクローズできませんでした",
       "success_title": "ポジションがクローズされました",
-      "position_closed": "Position closed",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "ポジションをクローズできませんでした",
+      "position_closed": "ポジションがクローズされました",
+      "funds_are_available_to_trade": "資金を取引に利用できます",
+      "failed_to_close_position": "ポジションをクローズできませんでした",
+      "failed_to_partially_close_position": "ポジションを部分的にクローズできませんでした",
+      "your_position_is_still_active": "ポジションは引き続き有効です",
       "fox_points_earned": "{{points}}フォックスポイントを獲得しました！",
       "minimum_remaining_warning": "残りのポジションは{{minimum}}以上必要です。現在: ${{remaining}}",
       "minimum_remaining_error": "部分的にクローズできません: 残りのポジション (${{remaining}}) が最小注文サイズ (${{minimum}}) を下回ります。代わりに100%クローズしてください。",
       "must_close_full_below_minimum": "ポジション評価額が$10を下回ります。ポジションを100%クローズする必要があります。",
       "negative_receive_amount": "手数料がポジション評価額を上回ります",
       "no_amount_selected": "クローズする金額を選択してください",
-      "order_type_reverted_to_market_order": "Changed to market order",
-      "you_need_set_price_limit_order": "You need to set a price for a limit order."
+      "order_type_reverted_to_market_order": "成行注文に変更されました",
+      "you_need_set_price_limit_order": "リミット注文の価格を設定する必要があります。"
     },
     "tpsl": {
       "title": "利益確定とストップロス",
       "description": "損益の割合を選択するか、ポジションを自動的にクローズするトリガー価格をカスタムで入力してください。",
-      "set": "設定",
-      "updating": "更新中...",
       "off": "オフ",
       "current_price": "現在の価格",
+      "entry_price": "Entry price",
       "leverage": "レバレッジ",
       "margin": "証拠金",
       "liquidation_price": "清算価格",
@@ -1176,12 +1197,13 @@
       "profit_roe_placeholder": "利益率",
       "loss_roe_placeholder": "損失率",
       "usd_label": "($)",
-      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
-      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
-      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
-      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
-      "above": "above",
-      "below": "below"
+      "take_profit_invalid_price": "利益確定は{{priceType}}価格よりも{{direction}}に設定する必要があります",
+      "stop_loss_invalid_price": "ストップロスは{{priceType}}価格よりも{{direction}}に設定する必要があります",
+      "stop_loss_beyond_liquidation_error": "ストップロスは清算価格よりも{{direction}}に設定する必要があります",
+      "stop_loss_order_view_warning": "ストップロスが清算価格よりも{{direction}}に設定されています",
+      "above": "上",
+      "below": "下",
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "使用可能なトークンがありません"
@@ -1235,7 +1257,7 @@
       "connectionRequired": "PerpsConnectionProvider内でusePerpsConnectionを使用する必要があります",
       "assetMappingFailed": "資産マッピングを構築できませんでした",
       "depositFailed": "デポジット失敗",
-      "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "orderLeverageReductionFailed": "レバレッジを下げることはできません",
       "connectionFailed": {
         "title": "パーペチュアルが一時的にオフラインです",
         "description": "すぐにオンラインに戻せるように対応しています",
@@ -1265,8 +1287,8 @@
         "not_set": "未設定",
         "edit_tpsl": "利確 / 損切を編集",
         "close_position": "ポジションをクローズ",
-        "tpsl_count_multiple": "{{count}} orders",
-        "tpsl_count_single": "{{count}} order"
+        "tpsl_count_multiple": "{{count}}件の注文",
+        "tpsl_count_single": "{{count}}件の注文"
       },
       "list": {
         "loading": "ポジションを読み込み中...",
@@ -1274,7 +1296,7 @@
         "empty_title": "保有中のポジションはありません",
         "empty_description": "まだポジションはありません。\n取引を開始すると、こちらに表示されます。",
         "first_time_title": "パーペチュアル",
-        "first_time_description": "価格の変動を予想して、レバレッジは最大40倍。",
+        "first_time_description": "Bet on price movements with up to 40x leverage.",
         "start_trading": "取引を開始",
         "start_new_trade": "新規取引を開始",
         "open_positions": "保有中のポジション",
@@ -1295,7 +1317,7 @@
       },
       "tpsl": {
         "update_success": "TP/SLが更新されました",
-        "update_failed": "Failed to update TP/SL"
+        "update_failed": "TP/SLを更新できませんでした"
       }
     },
     "markets": {
@@ -1306,7 +1328,7 @@
         "title": "市場詳細",
         "error_message": "市場データが見つかりません。前の画面に戻り、もう一度お試しください。"
       },
-      "statistics": "Overview",
+      "statistics": "概要",
       "24hr_high": "24時間の最高値",
       "24hr_low": "24時間の最安値",
       "24h_volume": "24時間の取引高",
@@ -1315,7 +1337,9 @@
       "countdown": "カウントダウン",
       "long": "ロング",
       "short": "ショート",
-      "add_funds": "Add funds",
+      "long_lowercase": "long",
+      "short_lowercase": "short",
+      "add_funds": "資金を追加",
       "add_funds_to_start_trading_perps": "資金を追加してパーペチュアルの取引を開始します",
       "position": "ポジション",
       "orders": "注文"
@@ -1346,7 +1370,8 @@
         "content": "取引手数料は、ポジションのオープンまたはクローズ時に請求されます。",
         "metamask_fee": "MetaMaskの手数料",
         "provider_fee": "プロバイダーの手数料",
-        "total": "合計手数料"
+        "total": "合計手数料",
+        "discount_message": "MetaMaskリワードで{{percentage}}%の節約になります。"
       },
       "closing_fees": {
         "title": "クロージング手数料",
@@ -1375,19 +1400,19 @@
       },
       "receive": {
         "title": "受取",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
+        "content": "出金後にウォレットで受け取るUSDCの金額です。USDCの受取りはArbitrumネットワーク上で行われます。"
       },
       "withdrawal_fees": {
         "title": "プロバイダーの手数料",
-        "content": "A flat fee charged by the provider on each withdrawal."
+        "content": "出金ごとにプロバイダーから課される固定手数料。"
       },
       "tp_sl": {
         "title": "利益確定 & ストップロス",
         "content": "利益確定 (TP) は、目標利益に達したときに自動的にポジションをクローズします。ストップロス (SL) は、価格が不利に動いた場合にポジションをクローズして損失を制限します。"
       },
       "close_position_you_receive": {
-        "title": "Receive amount",
-        "content": "Your receive amount is estimated and may change slightly due to slippage."
+        "title": "受取額",
+        "content": "受取額は推定金額であり、スリッページにより若干変動する場合があります。"
       },
       "notifications": {
         "title": "通知をオンにする",
@@ -1396,10 +1421,14 @@
       },
       "got_it_button": "了解",
       "tpsl_count_warning": {
-        "title": "Multiple TP/SL orders are active",
-        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
-        "view_orders_button": "View orders",
-        "got_it_button": "Got it"
+        "title": "複数のTP/SL注文が有効です",
+        "content": "ポジション全体にTP/SLを設定するには、まず既存のTP/SL注文を取り消す必要があります。",
+        "view_orders_button": "注文を見る",
+        "got_it_button": "了解"
+      },
+      "points": {
+        "title": "ポイント",
+        "content": "ポイントは、スワップ、ブリッジ、パーペチュアル取引など、トランザクションを完了したことによるMetaMaskリワードの獲得状況を示します。"
       }
     },
     "connection": {
@@ -1408,13 +1437,18 @@
       "retry_connection": "接続を再試行する",
       "retrying_connection": "接続中...",
       "connecting_to_perps": "パーペチュアルに接続中",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "接続に想定よりも時間がかかっています"
     },
     "chart": {
       "no_data": "利用可能なチャートデータがありません",
       "candle_intervals": "ローソク足の間隔",
       "candle_period_selector": {
         "show_more": "さらに表示"
+      },
+      "time_periods": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
       }
     },
     "perps_markets": "パーペチュアル市場",
@@ -1435,14 +1469,14 @@
         "trades": "取引",
         "orders": "注文",
         "funding": "入金",
-        "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
+        "funding_description": "資金調達履歴は、保有中のポジションに適用される資金調達率によって決まる手数料の支払い・受取り状況をまとめたものです。"
       },
       "not_found": "トランザクションが見つかりません",
       "position": {
         "date": "日付",
         "size": "サイズ",
         "entry_price": "エントリー価格",
-        "close_price": "Close price",
+        "close_price": "決済価格",
         "points": "ポイント",
         "fees": "合計手数料",
         "pnl": "純損益"
@@ -1467,7 +1501,7 @@
         "history_will_appear": "ここに取引履歴が表示されます"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "パーペチュアル取引はリスクを伴い、証拠金がすべて突然、通知なしで失われる可能性があります。取引はすべてお客様の責任で行うこととなります。市場データはHyperliquidにより提供されています。価格チャートは次のプロバイダーにより提供されています: ",
     "tutorial": {
       "continue": "続行",
       "skip": "スキップ",
@@ -1479,12 +1513,12 @@
       },
       "go_long_or_short": {
         "title": "トークンのロングまたはショート",
-        "description": "Pick a token to long or short, then set your order size.",
+        "description": "ロングまたはショートするトークンを選び、注文数量を設定します。",
         "subtitle": "価格が上がる場合はロングで利益を生み、下がる場合はショートで利益を得ます。"
       },
       "choose_leverage": {
         "title": "レバレッジの選択",
-        "description": "レバレッジを利用すると、利益も損失も大きくなります。レバレッジが10倍の場合、価格が1%変動すると、証拠金に対して10%の利益または損失が生まれます。"
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 1% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "清算に注意",
@@ -1492,15 +1526,66 @@
       },
       "close_anytime": {
         "title": "いつでもクローズ可能",
-        "description": "いつでも好きなときに取引を終了でき、証拠金に利益を足した額、または損失を引いた額が返金されます。"
+        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
       },
       "ready_to_trade": {
         "title": "取引の準備はできましたか？",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
-        "description": "任意のトークンでパーペチュアルアカウントに入金すれば、数秒で最初の取引ができます。"
+        "description": "任意のトークンでパーペチュアルアカウントに入金すれば、数秒で最初の取引ができます。",
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
       "got_it": "了解"
-    }
+    },
+    "points": "ポイント",
+    "unable_to_load": "読み込ませんでした",
+    "points_error": "現在、ポイントを読み込めません",
+    "points_error_content": "ポイントは獲得できていますのでご心配なく。ポイントはすぐにアカウントに表示されます。または、後ほど「リワード」タブでご確認ください。",
+    "tp_on_chart": "TPをチャートに表示",
+    "sl_on_chart": "SLをチャートに表示"
+  },
+  "predict": {
+    "title": "MetaMask Predict",
+    "prediction_markets": "Prediction Markets",
+    "market_list": "Market List",
+    "market_details": "Market Details",
+    "tab": {
+      "no_predictions": "No predictions yet",
+      "no_predictions_description": "Open a prediction to get started.",
+      "explore": "Explore markets",
+      "new_prediction": "New prediction"
+    },
+    "sell_position": "Sell Position",
+    "cash_out": "Cash Out",
+    "buy_yes": "Yes",
+    "buy_no": "No",
+    "outcomes": "outcomes",
+    "volume_abbreviated": "Vol.",
+    "recurrence": {
+      "none": "None",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "quarterly": "Quarterly"
+    },
+    "outcomes_singular": "more outcome",
+    "outcomes_plural": "more outcomes",
+    "category": {
+      "trending": "Trending",
+      "new": "New",
+      "sports": "Sports",
+      "crypto": "Crypto",
+      "politics": "Politics"
+    },
+    "search_placeholder": "Search prediction markets",
+    "search_cancel": "Cancel",
+    "claim_button": "Claim",
+    "markets_won": "Markets won",
+    "won_markets_text": "Won {{count}} market{{s}}",
+    "won_markets_text_singular": "Won {{count}} market",
+    "won_markets_text_plural": "Won {{count}} markets",
+    "claim_amount_text": "Claim ${{amount}}",
+    "unrealized_pnl_label": "Unrealized P&L",
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "受取"
@@ -1571,6 +1656,7 @@
     "collectibles": "NFT",
     "defi": "DeFi",
     "perps": "パーペチュアル",
+    "predict": "Predictions",
     "transactions": "トランザクション",
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
@@ -1616,7 +1702,6 @@
     "buy_asset": "{{asset}}を購入",
     "no_tokens": "トークンがありません！",
     "show_tokens_without_balance": "残高なしでトークンを表示",
-    "no_nfts_yet": "まだNFTがありません",
     "nfts_autodetection_title": "NFTの検出",
     "nfts_autodetection_desc": "MetaMaskによるウォレット内のNFTの自動検出と表示を許可します。",
     "network_details_check": "ネットワーク情報の確認",
@@ -1636,6 +1721,8 @@
     "nfts_autodetection_cta": "設定でNFTの検出をオンにしてください",
     "learn_more": "詳細",
     "add_collectibles": "NFTをインポート",
+    "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
+    "discover_nfts": "Import NFTs",
     "no_transactions": "トランザクションがありません！",
     "switch_network_to_view_transactions": "トランザクションを表示するにはネットワークを切り替えてください",
     "send_button": "送信",
@@ -1745,8 +1832,10 @@
   },
   "defi_positions": {
     "loading_positions": "DeFiポジションを読み込んでいます...",
-    "no_visible_positions": "お探しのものが見つかりませんか？",
-    "not_supported": "ご希望のプロトコルがまだサポートされていない可能性があります。",
+    "empty_state": {
+      "description": "Lend, borrow, and trade, right in your wallet.",
+      "explore_defi": "Explore DeFi"
+    },
     "error_cannot_load_page": "このページを読み込めませんでした。",
     "error_visit_again": "後でまたアクセスしてみてください。",
     "single_token": "{{symbol}}のみ",
@@ -2429,10 +2518,9 @@
     "disconnect_confirm": "接続解除",
     "cancel": "キャンセル"
   },
-  "sdk_return_to_app_modal": {
-    "title": "アプリに戻る",
-    "postNetworkSwitchTitle": "ネットワークの切り替え完了",
-    "description": "サービスの使用を続けるには、アプリに戻ってください。"
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Now you can return to app",
+    "networkSwitchMethodLabel": "Network successfully switched"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -2538,6 +2626,7 @@
     "deposit_button": "入金",
     "earn_button": "獲得",
     "perps_button": "パーペチュアル",
+    "predict_button": "Predictions",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
@@ -2571,6 +2660,7 @@
     "receive_description": "仮想通貨を受け取ります",
     "earn_description": "トークンに対してリワードを獲得します",
     "perps_description": "パーペチュアル契約を取引します",
+    "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "今日",
       "7d": "過去7日間",
@@ -3032,6 +3122,8 @@
     "request_from": "要求元",
     "network_fee": "ネットワーク手数料",
     "network_fee_tooltip": "ネットワーク上でのトランザクションの処理に支払われた金額です。",
+    "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
+    "confirm_gas_fee_token_metamask_fee": "Includes {{metamaskFeeFiat}} fee",
     "smart_account_upgrade": "スマートアカウントにアップグレード",
     "smart_account_downgrade": "スタンダードアカウントに切り替える",
     "batched_transactions": "一括トランザクション",
@@ -3729,7 +3821,7 @@
     "list": {
       "0": "すべて",
       "1": "ウォレット",
-      "2": "お知らせ"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "クリップボードにコピーされました",
     "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
@@ -4054,6 +4146,11 @@
     "change_cash_destination": "現金の送金先を変更してください",
     "try_different_region": "他の地域を試す",
     "return_home": "ホーム画面に戻る",
+    "incompatible_token_account_modal": {
+      "title": "Incompatible Account",
+      "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
+      "cta": "Got it"
+    },
     "region": {
       "buy_crypto_tokens": "クリプトトークンを購入",
       "sell_crypto_tokens": "クリプトトークンを売却",
@@ -4948,7 +5045,7 @@
     "earn_eth_rewards": "ETHの報酬を獲得。",
     "earn_eth_rewards_description": "ステーキングすればすぐに収益が得られます。報酬は自動的に複利で支払われます。",
     "flexible_unstaking": "柔軟にステーキングを解除可能.",
-    "flexible_unstaking_description": "いつでもステーキングを解除できます。処理は通常3日以内で完了しますが、最大11日かかる場合もあります。",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "ステーキングは報酬を保証するものではなく、資金の喪失を含むリスクを伴います。",
     "learn_more": "詳細",
     "got_it": "了解",
@@ -4984,7 +5081,7 @@
       "geo_blocked": "ステーキングの解除またはステーキングが許可されていない地域にいます。",
       "approximately": "約"
     },
-    "unstake_input_banner_description": "ステーキングが解除されたETHは平均3日未満で請求可能になりますが、最長11日かかる場合もあります.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "最大額",
     "staking_from": "ステーキング元",
     "advanced_details": "高度な詳細",
@@ -5008,7 +5105,7 @@
       }
     },
     "use_max": "最大額を使用",
-    "estimated_unstaking_time": "1～11日",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "承知の上で続ける",
     "gas_cost_impact": "ガス代の影響",
     "select_a_token_to_deposit": "デポジットするトークンを選択",
@@ -5115,7 +5212,7 @@
     },
     "unstaking_time": {
       "title": "ステーキングの解除時間",
-      "tooltip": "通常、ETHのステーキング解除は3日以内で完了しますが、処理に最大11日かかる場合もあります。正確な処理期間は、ステーキングを解除する金額とETHのステーキング状況によって異なります。"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5177,7 +5274,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "Metamaskは、HyperEVM (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCに交換します。スワッププロバイダーは手数料を請求することがありますが、MetaMaskなら無料です。"
       },
       "title": {
         "transaction_fee": "手数料"
@@ -5325,9 +5422,10 @@
     "quote_info_title": "レート",
     "network_fee_info_title": "ネットワーク手数料",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "ポイント",
+    "points": "Est. points",
     "points_tooltip": "ポイント",
-    "points_tooltip_content": "この取引で獲得するMetaMaskリワードポイントの見積もりです。ポイントがリワード残高に反映されるまでに最大1時間かかる場合があります。",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5339,10 +5437,14 @@
     "select_amount": "アカウントを選択",
     "bridge_to": "ブリッジ先:",
     "swap_to": "スワップ先",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "ブリッジ",
     "submitting_transaction": "送信中",
     "fetching_quote": "クォートを取得中",
-    "fee_disclaimer": "0.875% のMM手数料込み",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "price_impact_info_title": "プライスインパクト",
@@ -5486,11 +5588,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
       "view_accounts_button": "View accounts",
-      "learn_more_button": "Learn more"
+      "learn_more_button": "Learn more",
+      "setting_up_accounts": "Setting up your accounts"
     },
     "learn_more": {
       "title": "Learn more",
@@ -5500,6 +5603,7 @@
     },
     "add_wallet": "ウォレットを追加",
     "add_hardware_wallet": "ハードウェアウォレットを追加",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "アカウント情報",
       "account_name": "アカウント名",
@@ -5544,8 +5648,8 @@
       "reveal_recovery_phrase_with_index": "リカバリーフレーズ{{index}}を確認"
     },
     "smart_account": {
-      "title": "スマートアカウントを有効にする",
-      "description": "サポートされているネットワークでスマートアカウント機能を有効にすることができます。",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "詳細"
     },
     "edit_account_name": {
@@ -5674,6 +5778,52 @@
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "近日追加予定",
     "not_implemented_season_summary": "セッションサマリーが近日利用可能になります",
+    "optin_error": {
+      "title": "Opt-in failed",
+      "description": "Check your connection and try again."
+    },
+    "season_status_error": {
+      "error_fetching_title": "Season balance couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "active_boosts_error": {
+      "error_fetching_title": "Boosts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "unlocked_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "upcoming_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_details_error": {
+      "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_validation_unknown_error": {
+      "title": "Referral code couldn’t be validated",
+      "description": "Check your connection and try again."
+    },
+    "active_activity_error": {
+      "error_fetching_title": "Activity couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "claim_reward_error": {
+      "title": "Failed to claim reward"
+    },
+    "accounts_opt_in_state_error": {
+      "error_fetching_title": "Accounts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "referral_rewards_title": "紹介",
     "points": "ポイント",
     "point": "ポイント",
@@ -5693,8 +5843,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
-    "toast_dismiss": "Dismiss",
     "events": {
+      "to": "to",
       "type": {
         "swap": "スワップ",
         "perps": "パーペチュアル",
@@ -5713,22 +5863,30 @@
     "onboarding": {
       "not_supported_region_title": "未対応の地域です",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_account_needed_title": "Ethereum account needed",
-      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
-      "not_supported_confirm": "了解",
+      "not_supported_hardware_account_title": "Account not supported",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_confirm_go_back": "Go back",
+      "not_supported_confirm_retry": "Retry",
+      "auth_fail_title": "Authentication Failed",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "geo_check_fail_title": "Cannot determine opt-in eligibility",
+      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking opt-in for accounts...",
-      "redirecting_to_dashboard": "Redirecting to dashboard...",
+      "checking_opt_in": "Checking accounts...",
+      "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "後で",
       "step_confirm": "次へ",
+      "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+      "step1_description": "MetaMaskでスワップやパーペチュアル取引を行うたびに、リワード獲得のチャンスが近づきます。アカウントを追加して、ポイントが貯まる様子をご覧ください。",
       "step2_title": "Level up for bigger perks",
-      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+      "step2_description": "ポイント数のマイルストーンに達すると、パーペチュアル手数料50%オフ、限定トークン、無料のMetaMaskメタルカードといった特典を獲得できます。",
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
@@ -5736,87 +5894,124 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Linking additional accounts...",
+      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "詳細を見る。"
+      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Linked Accounts",
-      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
-      "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
-      "no_linked_accounts": "No linked accounts",
-      "all_accounts_linked_title": "All accounts are linked",
-      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
-      "link_account_success_title": "Account {{accountName}} successfully linked",
-      "link_account_error_title": "Failed to link account",
-      "link_account_button": "Link"
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "tab_linked_accounts": "Added ({{count}})",
+      "tab_unlinked_accounts": "Not added ({{count}})",
+      "no_linked_accounts": "No accounts opted in",
+      "all_accounts_linked_title": "All accounts opted in",
+      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
+      "link_account_success_title": "{{accountName}} successfully added",
+      "link_account_error_title": "Failed to add account",
+      "link_account_button": "Add",
+      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will erase your points and progress. You won't be able to undo this.",
+      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
       "confirm": "Opt out",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
         "cancel": "Cancel",
         "confirm": "Confirm",
-        "error_message": "Failed to opt out of rewards program. Please try again.",
+        "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
       }
     },
     "unlinked_accounts_info": {
-      "title": "There are unlinked accounts",
-      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
+      "title": "Accounts not earning points",
+      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
       "go_to_settings": "Go to settings"
     },
     "unlinked_account_info": {
-      "title": "Account not linked",
-      "description": "This account's activity is not being tracked for this season."
+      "title": "Account not earning points",
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
-    "link_account": "Link account",
-    "linking_account": "Linking...",
+    "link_account": "Add account",
+    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
       "swap": {
         "title": "Swap",
-        "sheet_title": "Swap tokens",
-        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-        "points": "80 points per $100",
-        "cta_label": "Start a swap"
+        "description": "80 points per $100",
+        "sheet": {
+          "title": "Swap tokens",
+          "points": "80 points per $100",
+          "description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+          "cta_label": "Start a swap"
+        }
       },
       "perps": {
-        "title": "Perps",
-        "sheet_title": "Trade perps",
-        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-        "points": "10 points per $100",
-        "cta_label": "Start a trade"
+        "title": "パーペチュアル",
+        "description": "10 points per $100",
+        "sheet": {
+          "title": "Trade perps",
+          "points": "10 points per $100",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "cta_label": "Start a trade"
+        }
       },
       "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
+        "title": "Refer friends",
+        "description": "10 points per 50 from friends"
+      },
+      "loyalty": {
+        "title": "Loyalty bonus",
+        "description": "Earn points from past trades",
+        "sheet": {
+          "title": "Loyalty bonus",
+          "points": "250 points per $1250",
+          "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
+          "cta_label": "Add accounts"
+        }
       }
     },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
       "actions": {
         "share_referral_link": "友達を紹介",
         "share_referral_subject": "MetaMaskリワードにご参加ください"
       },
       "info": {
         "title": "コードを共有してさらに収入を得ましょう",
-        "description": "友達はボーナスポイントを獲得し、紹介した人は友達の報酬の20%を獲得できます。"
+        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
-    "active_boosts_title": "Active Boosts",
-    "season_1": "Season 1"
+    "active_boosts_title": "Active boosts",
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
+    }
   },
   "time": {
     "minutes_format": "{{count}}分",
@@ -5836,10 +6031,17 @@
     "summary_title": {
       "bridge": "{{sourceSymbol}}から{{targetSymbol}}にブリッジ",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "トランザクション",
       "perps_deposit": "資金を追加",
       "swap": "トークンをスワップ",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }

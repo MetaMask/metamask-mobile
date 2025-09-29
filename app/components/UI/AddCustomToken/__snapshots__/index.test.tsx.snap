@@ -69,9 +69,8 @@ exports[`AddCustomToken render correctly 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 30,
-                "fontWeight": "400",
                 "marginVertical": 2,
               },
               undefined,
@@ -160,9 +159,8 @@ exports[`AddCustomToken render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
               }
             }
           >
@@ -219,8 +217,7 @@ exports[`AddCustomToken render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontWeight": "400",
+              "fontFamily": "Geist Regular",
             }
           }
         >
@@ -241,8 +238,7 @@ exports[`AddCustomToken render correctly 1`] = `
               "borderRadius": 8,
               "borderWidth": 1,
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontWeight": "400",
+              "fontFamily": "Geist Regular",
               "paddingHorizontal": 16,
               "paddingVertical": 12,
             }
@@ -254,8 +250,7 @@ exports[`AddCustomToken render correctly 1`] = `
           style={
             {
               "color": "#ca3542",
-              "fontFamily": "CentraNo1-Book",
-              "fontWeight": "400",
+              "fontFamily": "Geist Regular",
               "marginTop": 0,
               "paddingBottom": 8,
             }
@@ -280,9 +275,8 @@ exports[`AddCustomToken render correctly 1`] = `
         "borderRadius": 12,
         "color": "#4459ff",
         "flexDirection": "row",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 18,
-        "fontWeight": "400",
         "height": 48,
         "justifyContent": "center",
         "opacity": 0.5,

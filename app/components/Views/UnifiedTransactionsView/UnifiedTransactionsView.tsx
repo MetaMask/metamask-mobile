@@ -20,6 +20,8 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/m
 import {
   selectChainId,
   selectIsPopularNetwork,
+  selectEvmNetworkConfigurationsByChainId,
+  selectProviderType,
 } from '../../../selectors/networkController';
 import {
   selectEVMEnabledNetworks,
@@ -34,7 +36,10 @@ import {
   sortTransactions,
 } from '../../../util/activity';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  getBlockExplorerAddressUrl,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { useTheme } from '../../../util/theme';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
@@ -50,6 +55,9 @@ import TransactionActionModal from '../../UI/TransactionActionModal';
 import TransactionElement from '../../UI/TransactionElement';
 import RetryModal from '../../UI/Transactions/RetryModal';
 import { filterDuplicateOutgoingTransactions } from '../../UI/Transactions/utils';
+import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
+import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
+import { getAddressUrl } from '../../../core/Multichain/utils';
 import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx';
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
@@ -115,6 +123,20 @@ const UnifiedTransactionsView = ({
   );
   const selectedAccountGroupInternalAccountsAddresses =
     selectedAccountGroupInternalAccounts.map((account) => account.address);
+  const selectedAccountGroupEvmAddress = useMemo(() => {
+    const evmAccount = selectedAccountGroupInternalAccounts.find(
+      (account) =>
+        account.type === 'eip155:eoa' || account.type === 'eip155:erc4337',
+    );
+    return evmAccount?.address ?? '';
+  }, [selectedAccountGroupInternalAccounts]);
+
+  const selectedAccountGroupSolanaAddress = useMemo(() => {
+    const solanaAccount = selectedAccountGroupInternalAccounts.find(
+      (account) => account.type === 'solana:data-account',
+    );
+    return solanaAccount?.address ?? '';
+  }, [selectedAccountGroupInternalAccounts]);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
   const enabledEVMChainIds = useMemo(
@@ -126,12 +148,19 @@ const UnifiedTransactionsView = ({
     () => enabledNonEVMNetworks ?? [],
     [enabledNonEVMNetworks],
   );
+  const providerType = useSelector(selectProviderType);
+  const evmNetworkConfigurationsByChainId = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   // TODO: This should be deleted once we deprecate the global network selector,
   // we need to use the selected account group chain ids
   const currentEvmChainId = useSelector(selectChainId);
 
-  const data: UnifiedItem[] = useMemo(() => {
+  const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
+    data: UnifiedItem[];
+    nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
+  }>(() => {
     // Build EVM submitted/confirmed with full filtering pipeline
     let accountAddedTimeInsertPointFound = false;
     const addedAccountTime = selectedInternalAccount?.metadata?.importTime;
@@ -274,7 +303,7 @@ const UnifiedTransactionsView = ({
       filterDuplicateOutgoingTransactions(allConfirmedFiltered);
 
     // Non-EVM: filter by enabled chains
-    const nonEvmTransactionsForSelectedChain = nonEvmTransactions
+    const filteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
       .filter((tx) => enabledNonEVMChainIds.includes(tx.chain))
       // deduplicate by id
       .filter(
@@ -290,7 +319,7 @@ const UnifiedTransactionsView = ({
       tx,
     }));
     const nonEvmItems: UnifiedItem[] = (
-      nonEvmTransactionsForSelectedChain ?? []
+      filteredNonEvmTransactionsForSelectedChain ?? []
     ).map((tx) => ({
       kind: TransactionKind.NonEvm,
       tx,
@@ -311,7 +340,11 @@ const UnifiedTransactionsView = ({
       },
     );
 
-    return [...evmPendingItems, ...confirmedUnified];
+    return {
+      data: [...evmPendingItems, ...confirmedUnified],
+      nonEvmTransactionsForSelectedChain:
+        filteredNonEvmTransactionsForSelectedChain,
+    };
   }, [
     evmTransactions,
     nonEvmTransactions,
@@ -322,6 +355,145 @@ const UnifiedTransactionsView = ({
     selectedInternalAccount,
     tokens,
     currentEvmChainId,
+  ]);
+
+  const blockExplorerUrl = useMemo(() => {
+    // When using the per-dapp/multiselect network selector, only return a block
+    // explorer if exactly one EVM chain is selected. Otherwise, undefined.
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      if (!enabledEVMChainIds?.length || enabledEVMChainIds.length !== 1) {
+        return undefined;
+      }
+      const selectedChainId = enabledEVMChainIds[0];
+      const config = evmNetworkConfigurationsByChainId?.[selectedChainId];
+      if (!config) return undefined;
+      const index = config.defaultBlockExplorerUrlIndex ?? 0;
+      return config.blockExplorerUrls?.[index];
+    }
+
+    const config = evmNetworkConfigurationsByChainId?.[enabledEVMChainIds[0]];
+    if (!config) return undefined;
+    const index = config.defaultBlockExplorerUrlIndex ?? 0;
+    return config.blockExplorerUrls?.[index];
+  }, [enabledEVMChainIds, evmNetworkConfigurationsByChainId]);
+
+  const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
+  const hasNonEvmChainsEnabled = enabledNonEVMChainIds.length > 0;
+
+  const showEvmFooter = hasEvmChainsEnabled && !hasNonEvmChainsEnabled;
+  const showNonEvmFooter = hasNonEvmChainsEnabled && !hasEvmChainsEnabled;
+
+  const onViewBlockExplorer = useCallback(() => {
+    if (!selectedAccountGroupEvmAddress) {
+      return;
+    }
+
+    const { url, title } = getBlockExplorerAddressUrl(
+      providerType,
+      selectedAccountGroupEvmAddress,
+      blockExplorerUrl,
+    );
+
+    if (!url) {
+      return;
+    }
+
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title,
+      },
+    });
+  }, [
+    navigation,
+    providerType,
+    blockExplorerUrl,
+    selectedAccountGroupEvmAddress,
+  ]);
+
+  const allNonEvmChainsAreSolana = useMemo(
+    () =>
+      enabledNonEVMChainIds.every((chain) =>
+        chain.toLowerCase().startsWith('solana:'),
+      ),
+    [enabledNonEVMChainIds],
+  );
+
+  const nonEvmExplorerChainId = useMemo(() => {
+    if (enabledNonEVMChainIds.length) {
+      return enabledNonEVMChainIds[0];
+    }
+    if (chainId?.includes(':')) {
+      return chainId;
+    }
+    return undefined;
+  }, [enabledNonEVMChainIds, chainId]);
+
+  const nonEvmExplorerUrl = useMemo(() => {
+    if (!selectedAccountGroupSolanaAddress || !nonEvmExplorerChainId) {
+      return '';
+    }
+    return getAddressUrl(
+      selectedAccountGroupSolanaAddress,
+      nonEvmExplorerChainId as SupportedCaipChainId,
+    );
+  }, [nonEvmExplorerChainId, selectedAccountGroupSolanaAddress]);
+
+  const showNonEvmExplorerLink =
+    showNonEvmFooter && allNonEvmChainsAreSolana && Boolean(nonEvmExplorerUrl);
+
+  const onViewNonEvmExplorer = useCallback(() => {
+    if (!nonEvmExplorerUrl) {
+      return;
+    }
+
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: nonEvmExplorerUrl,
+      },
+    });
+  }, [navigation, nonEvmExplorerUrl]);
+
+  const footerComponent = useMemo(() => {
+    if (showEvmFooter) {
+      return (
+        <TransactionsFooter
+          chainId={enabledEVMChainIds[0]}
+          providerType={providerType}
+          rpcBlockExplorer={blockExplorerUrl}
+          onViewBlockExplorer={onViewBlockExplorer}
+        />
+      );
+    }
+
+    if (showNonEvmFooter) {
+      return (
+        <MultichainTransactionsFooter
+          url={nonEvmExplorerUrl}
+          hasTransactions={
+            (nonEvmTransactionsForSelectedChain?.length ?? 0) > 0
+          }
+          showDisclaimer
+          showExplorerLink={showNonEvmExplorerLink}
+          onViewMore={onViewNonEvmExplorer}
+        />
+      );
+    }
+
+    return null;
+  }, [
+    enabledEVMChainIds,
+    nonEvmTransactionsForSelectedChain?.length,
+    onViewBlockExplorer,
+    onViewNonEvmExplorer,
+    providerType,
+    blockExplorerUrl,
+    nonEvmExplorerUrl,
+    showEvmFooter,
+    showNonEvmExplorerLink,
+    showNonEvmFooter,
   ]);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -442,7 +614,7 @@ const UnifiedTransactionsView = ({
               }
               ListHeaderComponent={header}
               ListEmptyComponent={renderEmptyList}
-              ListFooterComponent={null}
+              ListFooterComponent={footerComponent}
               style={baseStyles.flexGrow}
               refreshControl={
                 <RefreshControl

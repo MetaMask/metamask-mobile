@@ -10,11 +10,34 @@ import useBalance from './useBalance';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { hexToBN } from '../../../../../util/number';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectMultichainBalances } from '../../../../../selectors/multichain';
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+}));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/multichain', () => ({
+  selectMultichainBalances: jest.fn(),
+}));
 
 const MOCK_ADDRESS_1 = '0x0';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE =
   createMockAccountsControllerStateWithSnap([MOCK_ADDRESS_1]);
+
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
+  >;
+const mockSelectMultichainBalances =
+  selectMultichainBalances as jest.MockedFunction<
+    typeof selectMultichainBalances
+  >;
 
 const initialState = {
   engine: {
@@ -99,6 +122,7 @@ describe('useBalance', () => {
         useBalance({
           address: NATIVE_ADDRESS,
           decimals: 18,
+          chainId: '0x1',
         }),
       {
         state: initialState,
@@ -118,6 +142,7 @@ describe('useBalance', () => {
         useBalance({
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           decimals: 6,
+          chainId: '0x1',
         }),
       {
         state: initialState,
@@ -130,6 +155,25 @@ describe('useBalance', () => {
   });
 
   it('returns non-evm token balances', async () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue((scope) => {
+      if (scope === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
+        return {
+          ...MOCK_SOLANA_ACCOUNT,
+          scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        };
+      }
+      return undefined;
+    });
+
+    mockSelectMultichainBalances.mockReturnValue({
+      [MOCK_SOLANA_ACCOUNT.id]: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+          amount: '5.5',
+          unit: 'SOL',
+        },
+      },
+    });
+
     const { result } = renderHookWithProvider(
       () =>
         useBalance({
@@ -148,8 +192,29 @@ describe('useBalance', () => {
                 internalAccounts: {
                   selectedAccount: MOCK_SOLANA_ACCOUNT.id,
                   accounts: {
-                    [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+                    [MOCK_SOLANA_ACCOUNT.id]: {
+                      ...MOCK_SOLANA_ACCOUNT,
+                      scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+                    },
                   },
+                },
+              },
+              AccountTreeController: {
+                accountTree: {
+                  wallets: {
+                    'entropy:test-wallet': {
+                      id: 'entropy:test-wallet',
+                      metadata: { name: 'Test Wallet' },
+                      groups: {
+                        'entropy:test-wallet/0': {
+                          id: 'entropy:test-wallet/0',
+                          accounts: [MOCK_SOLANA_ACCOUNT.id],
+                          metadata: { name: 'Test Group' },
+                        },
+                      },
+                    },
+                  },
+                  selectedAccountGroup: 'entropy:test-wallet/0',
                 },
               },
             },

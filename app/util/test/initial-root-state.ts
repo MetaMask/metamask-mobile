@@ -6,6 +6,7 @@ import { initialState as initialInpageProvider } from '../../core/redux/slices/i
 import { initialState as confirmationMetrics } from '../../core/redux/slices/confirmationMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
+import { initialState as initialQrKeyringScannerState } from '../../core/redux/slices/qrKeyringScanner';
 import { initialState as initialCardState } from '../../core/redux/slices/card';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
@@ -15,6 +16,7 @@ import { initialState as initialPerformanceState } from '../../core/redux/slices
 import { initialState as initialSampleCounterState } from '../../features/SampleFeature/reducers/sample-counter';
 import { isTest } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
+import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -44,6 +46,7 @@ const initialRootState: RootState = {
   networkOnboarded: undefined,
   security: initialSecurityState,
   signatureRequest: undefined,
+  qrKeyringScanner: initialQrKeyringScannerState,
   sdk: {
     connections: {},
     approvedHosts: {},
@@ -64,6 +67,7 @@ const initialRootState: RootState = {
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
   rewards: initialRewardsState,
+  networkConnectionBanner: initialNetworkConnectionBannerState,
 };
 
 if (isTest) {

@@ -141,6 +141,9 @@ const PerpsScreenStack = () => (
         <Stack.Screen
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
           component={Confirm}
+          options={{
+            title: '',
+          }}
         />
       </Stack.Navigator>
     </PerpsStreamProvider>

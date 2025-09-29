@@ -58,6 +58,9 @@ jest.mock('react-native-quick-crypto', () => ({
       );
     }),
   },
+  randomUUID: jest.fn(
+    () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9),
+  ),
 }));
 
 jest.mock('react-native-blob-jsi-helper', () => ({}));
@@ -447,6 +450,37 @@ global.crypto = {
     return arr;
   },
 };
+
+// Mock Sentry to prevent initialization issues in tests
+jest.mock('@sentry/react-native', () => ({
+  // Core methods
+  init: jest.fn(),
+  wrap: (component) => component,
+
+  // Capture methods
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  captureUserFeedback: jest.fn(),
+
+  // Breadcrumb and context methods
+  addBreadcrumb: jest.fn(),
+  configureScope: jest.fn(),
+  setContext: jest.fn(),
+  setTag: jest.fn(),
+  setUser: jest.fn(),
+
+  // Scope methods
+  withScope: jest.fn(),
+
+  // Performance/tracing methods
+  setMeasurement: jest.fn(),
+  startSpan: jest.fn(),
+  startSpanManual: jest.fn(),
+  startTransaction: jest.fn(),
+
+  // User feedback
+  lastEventId: jest.fn(),
+}));
 
 jest.mock('@react-native-firebase/messaging', () => {
   const module = () => {

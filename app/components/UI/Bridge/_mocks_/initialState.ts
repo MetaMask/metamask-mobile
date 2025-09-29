@@ -1,8 +1,15 @@
 import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
-import { SolScope } from '@metamask/keyring-api';
+import {
+  SolScope,
+  EthScope,
+  EthAccountType,
+  SolAccountType,
+} from '@metamask/keyring-api';
+import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
+import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 jest.mock(
   '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -280,7 +287,8 @@ export const initialState = {
               id: evmAccountId,
               address: evmAccountAddress,
               name: 'Account 1',
-              type: 'eip155:eoa' as const,
+              type: EthAccountType.Eoa,
+              scopes: [EthScope.Eoa],
               metadata: {
                 lastSelected: 0,
               },
@@ -289,7 +297,8 @@ export const initialState = {
               id: solanaAccountId,
               address: solanaAccountAddress,
               name: 'Account 2',
-              type: 'solana:data-account' as const,
+              type: SolAccountType.DataAccount,
+              scopes: [SolScope.Mainnet],
               metadata: {
                 lastSelected: 0,
               },
@@ -299,8 +308,35 @@ export const initialState = {
       },
       AccountTreeController: {
         accountTree: {
-          wallets: {},
-        },
+          selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
+          wallets: {
+            [`${AccountWalletType.Entropy}:wallet1`]: {
+              id: `${AccountWalletType.Entropy}:wallet1`,
+              type: AccountWalletType.Entropy,
+              metadata: {
+                name: 'Test Wallet 1',
+                entropy: {
+                  id: 'wallet1',
+                },
+              },
+              groups: {
+                [`${AccountWalletType.Entropy}:wallet1/0`]: {
+                  id: `${AccountWalletType.Entropy}:wallet1/0`,
+                  type: AccountGroupType.MultichainAccount,
+                  metadata: {
+                    name: 'Test Group 1',
+                    pinned: false,
+                    hidden: false,
+                    entropy: {
+                      groupIndex: 0,
+                    },
+                  },
+                  accounts: [evmAccountId, solanaAccountId],
+                },
+              },
+            },
+          },
+        } as AccountTreeControllerState['accountTree']['wallets'],
       },
       SmartTransactionsController: {
         smartTransactionsState: {
@@ -363,8 +399,8 @@ export const initialState = {
           order: 'dsc' as const,
         },
         tokenNetworkFilter: {
-          [ethChainId]: 'true',
-          [optimismChainId]: 'true',
+          [ethChainId]: true,
+          [optimismChainId]: true,
         },
       },
       TokenListController: {

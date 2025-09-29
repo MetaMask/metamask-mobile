@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 
+import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
@@ -30,6 +31,7 @@ export const Asset = () => {
     useState<AssetType[]>(tokens);
   const [selectedNetworkFilter, setSelectedNetworkFilter] =
     useState<string>('all');
+  const theme = useTheme();
 
   const {
     searchQuery,
@@ -103,6 +105,9 @@ export const Asset = () => {
           size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
+          style={{
+            borderColor: theme.colors.border.muted,
+          }}
         />
       </Box>
       <NetworkFilter

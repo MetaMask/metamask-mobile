@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import React, { useRef, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import BottomSheet, {
@@ -22,6 +23,23 @@ import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
+/**
+ * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
+ * Wrap the PerpsBottomSheetTooltip in a <Modal> (react-native) component.
+ *
+ * Known compatibility issue:
+ * - On Android, the PerpsBottomSheetTooltip is not rendered correctly when wrapped in a <Modal> component.
+ * Fixed by wrapping the <Modal> in a plain <View> component.
+ *
+ * Example:
+ * {isEligibilityModalVisible && (
+ *   <View>
+ *     <Modal visible transparent animationType="fade">
+ *       <PerpsBottomSheetTooltip isVisible onClose={() => setIsEligibilityModalVisible(false)} contentKey={'geo_block'} />
+ *     </Modal>
+ *   </View>
+ * )}
+ */
 const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
   ({
     isVisible,

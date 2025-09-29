@@ -672,7 +672,7 @@ describe('WalletConnect2Session', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.MODAL.ROOT_MODAL_FLOW,
           {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+            screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
           },
         );
         expect(Linking.openURL).not.toHaveBeenCalled();
@@ -706,7 +706,7 @@ describe('WalletConnect2Session', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.MODAL.ROOT_MODAL_FLOW,
           {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+            screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
           },
         );
         expect(DevLogger.log).toHaveBeenLastCalledWith(

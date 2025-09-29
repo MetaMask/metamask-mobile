@@ -1,8 +1,8 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { ARBITRUM_USDC_ADDRESS } from '../../external/perps-temp/hooks/usePerpsDepositInit';
 import { TokenFiatRateRequest, useTokenFiatRates } from './useTokenFiatRates';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 jest.mock('../../../../../util/address', () => ({
   toChecksumAddress: jest.fn((address) => address),

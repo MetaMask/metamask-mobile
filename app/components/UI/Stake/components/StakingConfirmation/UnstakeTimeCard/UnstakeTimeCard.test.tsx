@@ -24,7 +24,7 @@ describe('UnstakingTimeCard', () => {
     expect(
       getByText(strings('tooltip_modal.unstaking_time.title')),
     ).toBeDefined();
-    expect(getByText(estimatedUnstakingTime)).toBeDefined(); // 1 to 11 days
+    expect(getByText(estimatedUnstakingTime)).toBeDefined(); // 1 to 44 days
 
     expect(toJSON()).toMatchSnapshot();
   });

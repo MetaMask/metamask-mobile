@@ -26,9 +26,9 @@ const GetStarted: React.FC = () => {
     getStarted,
     setGetStarted,
     sdkError,
-    selectedChainId,
     isBuy,
     setIntent,
+    selectedAsset,
   } = useRampSDK();
   const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
@@ -38,18 +38,21 @@ const GetStarted: React.FC = () => {
   const { colors } = useTheme();
 
   const handleCancelPress = useCallback(() => {
+    const chainId = selectedAsset?.network?.chainId;
+    if (!chainId) return;
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [isBuy, trackEvent, selectedAsset]);
 
   useEffect(() => {
     if (params) {
@@ -84,21 +87,6 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     if (getStarted) {
-      // Redirects to Network Switcher view if the current network is not supported by Ramp
-      // or if the chainId from the URL params doesn't match the selected chainId.
-      // The Network Switcher handles adding or switching to the network specified in the URL params
-      // and continues the intent with any additional params (like token and amount).
-      if (
-        !isNetworkRampSupported ||
-        (params?.chainId && params.chainId !== selectedChainId)
-      ) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
-        });
-        return;
-      }
-
       if (selectedRegion) {
         navigation.reset({
           index: 0,
@@ -116,14 +104,7 @@ const GetStarted: React.FC = () => {
         });
       }
     }
-  }, [
-    getStarted,
-    isNetworkRampSupported,
-    navigation,
-    selectedChainId,
-    selectedRegion,
-    params,
-  ]);
+  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);
 
   if (sdkError) {
     return (

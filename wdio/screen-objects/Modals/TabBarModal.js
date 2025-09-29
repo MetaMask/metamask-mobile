@@ -38,6 +38,14 @@ class TabBarModal {
     }
   }
 
+  get tradeButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.TRADE);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.TRADE);
+    }
+  }
+
   get settingsButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.SETTING);
@@ -80,8 +88,18 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.browserButton);
     } else {
-      const browserIcon = await this.browserButton;
-      await browserIcon.tap();
+      try {
+        const browserIcon = await this.browserButton;
+        await browserIcon.tap();
+      } catch (error) {
+        if (error.message.includes('not found')) {
+          console.log('Browser button not found, retrying...');
+          const browserIcon = await this.browserButton;
+          await browserIcon.tap();
+        } else {
+          throw error;
+        }
+      }
     }
   }
 
@@ -95,6 +113,15 @@ class TabBarModal {
       const actionButton = await this.actionButton;
       await appwrightExpect(actionButton).toBeVisible();
       await actionButton.tap();
+    }
+  }
+
+  async tapTradeButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.tradeButton);
+    } else {
+      const tradeButton = await this.tradeButton;
+      await tradeButton.tap();
     }
   }
 

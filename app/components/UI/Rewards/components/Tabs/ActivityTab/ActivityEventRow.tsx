@@ -1,7 +1,4 @@
 import React from 'react';
-import { Image } from 'react-native';
-import { SvgUri } from 'react-native-svg';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
@@ -13,21 +10,50 @@ import {
   BoxJustifyContent,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
-}> = ({ event }) => {
-  const tw = useTailwind();
+  accountName: string | undefined;
+}> = ({ event, accountName }) => {
   const eventDetails = React.useMemo(
-    () => (event ? getEventDetails(event) : undefined),
-    [event],
+    () => (event ? getEventDetails(event, accountName) : undefined),
+    [event, accountName],
   );
 
-  if (!event || !eventDetails) return <></>;
+  // Extract network icon from event asset
+  const networkImageSource = React.useMemo(() => {
+    if (!event?.payload) return;
 
-  const isSVG = eventDetails?.badgeImageUri?.includes('.svg');
+    try {
+      let assetType: CaipAssetType | undefined;
+      if (event.type === 'SWAP' && event.payload.srcAsset?.type) {
+        assetType = event.payload.srcAsset.type as CaipAssetType;
+      } else if (event.type === 'PERPS' && event.payload.asset?.type) {
+        assetType = event.payload.asset.type as CaipAssetType;
+      } else {
+        return;
+      }
+
+      const { chainId } = parseCaipAssetType(assetType);
+
+      return getNetworkImageSource({ chainId });
+    } catch (error) {
+      return;
+    }
+  }, [event]);
+
+  if (!event || !eventDetails) return <></>;
 
   return (
     <Box
@@ -37,36 +63,31 @@ export const ActivityEventRow: React.FC<{
       twClassName="w-full"
       gap={3}
     >
-      <Box
-        twClassName="bg-muted rounded-full items-center justify-center size-12 relative"
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          networkImageSource ? (
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+              size={AvatarSize.Sm}
+            />
+          ) : null
+        }
       >
-        <Icon
-          name={eventDetails.icon}
-          size={IconSize.Lg}
-          twClassName="text-icon-alternative"
-        />
-        {eventDetails.badgeImageUri && (
-          <Box twClassName="absolute -bottom-1 -right-1 bg-muted items-center justify-center size-5 z-10">
-            {isSVG ? (
-              <SvgUri
-                uri={eventDetails.badgeImageUri}
-                width="100%"
-                height="100%"
-                style={tw.style('size-4')}
-              />
-            ) : (
-              <Image
-                source={{ uri: eventDetails.badgeImageUri }}
-                style={tw.style('size-4')}
-                resizeMode="contain"
-              />
-            )}
-          </Box>
-        )}
-      </Box>
+        <Box
+          twClassName="bg-muted rounded-full items-center justify-center size-12"
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+        >
+          <Icon
+            name={eventDetails.icon}
+            size={IconSize.Lg}
+            twClassName="text-icon-alternative"
+          />
+        </Box>
+      </BadgeWrapper>
       <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -101,7 +122,10 @@ export const ActivityEventRow: React.FC<{
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative max-w-[60%]"
+          >
             {eventDetails.details}
           </Text>
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">

@@ -79,5 +79,5 @@ export const useAssetMetadata = (
     return undefined;
   }, [shouldFetchMetadata, searchQuery]);
 
-  return { assetMetadata, pending };
+  return { assetMetadata, pending: pending && Boolean(searchQuery) };
 };

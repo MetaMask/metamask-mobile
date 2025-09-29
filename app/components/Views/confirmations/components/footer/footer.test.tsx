@@ -134,7 +134,7 @@ describe('Footer', () => {
 
   it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isQRSigningInProgress: true,
+      isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -356,6 +356,30 @@ describe('Footer', () => {
         state: personalSignatureConfirmationState,
       });
       expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders standard button label even if alerts if quotes loading', async () => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        ...baseMockUseAlerts,
+        hasUnconfirmedDangerAlerts: true,
+      });
+
+      const { getByText } = renderWithProvider(<Footer />, {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          {
+            confirmationMetrics: {
+              isTransactionBridgeQuotesLoadingById: {
+                [transactionIdMock]: true,
+              },
+            },
+          },
+        ),
+      });
+
+      expect(getByText('Confirm')).toBeDefined();
     });
   });
 });

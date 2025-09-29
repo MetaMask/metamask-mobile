@@ -202,10 +202,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       }
     }
 
-    if (
-      !displayNftMedia ||
-      (!isIpfsGatewayEnabled && !collectible.error?.startsWith('Both'))
-    ) {
+    if (!displayNftMedia || !isIpfsGatewayEnabled) {
       return renderFallback(true);
     }
 
@@ -214,7 +211,6 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     displayNftMedia,
     isIpfsGatewayEnabled,
     sourceUri,
-    collectible.error,
     collectible.animation,
     renderFallback,
     renderAnimation,

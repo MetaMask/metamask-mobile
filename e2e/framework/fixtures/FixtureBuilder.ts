@@ -624,6 +624,7 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
+          multichainAccountsIntroModalSeen: true,
         },
         onboarding: {
           events: [],

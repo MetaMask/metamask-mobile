@@ -1,33 +1,36 @@
 import { useState, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { resetRewardsState } from '../../../../reducers/rewards';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ToastRef,
-  ToastVariants,
-} from '../../../../component-library/components/Toast/Toast.types';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import useRewardsToast from './useRewardsToast';
+import { useRewardDashboardModals } from './useRewardDashboardModals';
 
 interface UseOptoutResult {
-  optout: () => Promise<void>;
+  optout: () => Promise<boolean>;
   isLoading: boolean;
   showOptoutBottomSheet: (dismissRoute?: string) => void;
 }
 
-export const useOptout = (
-  toastRef?: React.RefObject<ToastRef>,
-): UseOptoutResult => {
+export const useOptout = (): UseOptoutResult => {
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const {
+    resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,
+  } = useRewardDashboardModals();
 
-  const optout = useCallback(async () => {
-    if (isLoading) return;
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+
+  const optout = useCallback(async (): Promise<boolean> => {
+    if (isLoading || !subscriptionId) return false;
 
     setIsLoading(true);
 
@@ -36,69 +39,78 @@ export const useOptout = (
 
       const success = await Engine.controllerMessenger.call(
         'RewardsController:optOut',
+        subscriptionId,
       );
 
       if (success) {
-        Logger.log(
-          'useOptout: Opt-out successful, resetting state and navigating',
-        );
+        Logger.log('useOptout: Opt-out successful, resetting state');
 
         // Clear rewards Redux state back to initial state
         dispatch(resetRewardsState());
-
-        // Navigate back to rewards view
-        navigation.navigate('RewardsView');
-      } else {
-        Logger.log('useOptout: Opt-out failed - controller returned false');
-
-        // Show error toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: strings('rewards.optout.modal.error_message'),
-              isBold: true,
-            },
-          ],
-          hasNoTimeout: false,
-        });
+        resetAllSessionTrackingForRewardsDashboardModals();
+        return true;
       }
+      Logger.log('useOptout: Opt-out failed - controller returned false');
+
+      // Show error toast
+      showToast(
+        RewardsToastOptions.error(
+          strings('rewards.optout.modal.error_message'),
+        ),
+      );
+      return false;
     } catch (error) {
       Logger.log('useOptout: Opt-out failed with exception:', error);
 
       // Show error toast
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: strings('rewards.optout.error_message'),
-            isBold: true,
-          },
-        ],
-        hasNoTimeout: false,
-      });
+      showToast(
+        RewardsToastOptions.error(
+          strings('rewards.optout.modal.error_message'),
+        ),
+      );
+      return false;
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, dispatch, navigation, toastRef]);
+  }, [
+    isLoading,
+    subscriptionId,
+    showToast,
+    RewardsToastOptions,
+    dispatch,
+    resetAllSessionTrackingForRewardsDashboardModals,
+  ]);
 
   const showOptoutBottomSheet = useCallback(
     (dismissRoute?: string) => {
-      const dismissModal = () => {
+      const handleOptoutSuccess = () => {
+        navigation.navigate(Routes.WALLET_VIEW);
+      };
+
+      const handleOptoutCancel = () => {
         // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
         navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
+      };
+
+      const handleOptoutConfirm = async () => {
+        const success = await optout();
+        // Only navigate on successful opt-out (when state is reset)
+        if (success) {
+          handleOptoutSuccess();
+        }
+        // If failed, keep modal open to show error toast
       };
 
       navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
         title: strings('rewards.optout.modal.confirmation_title'),
         description: strings('rewards.optout.modal.confirmation_description'),
         type: ModalType.Danger,
-        onCancel: dismissModal,
+        onCancel: handleOptoutCancel,
         confirmAction: {
           label: isLoading
             ? strings('rewards.optout.modal.processing')
             : strings('rewards.optout.modal.confirm'),
-          onPress: optout,
+          onPress: handleOptoutConfirm,
           variant: ButtonVariant.Primary,
           disabled: isLoading,
         },

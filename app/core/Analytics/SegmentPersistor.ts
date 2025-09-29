@@ -30,6 +30,30 @@ export const segmentPersistor: Persistor = {
       }
 
       const parsed = JSON.parse(value);
+
+      if (key.endsWith('-pendingEvents')) {
+        // Handle data format migration for pending events
+        // Fixes: https://github.com/segmentio/analytics-react-native/issues/1085
+        // Issue: Pending events stored as object {"events": [...]} instead of array [...]
+        // This causes "TypeError: iterator method is not callable" in Segment client initialization
+        // TODO: Remove this once the issue is fixed in the Segment SDK
+        if (parsed && typeof parsed === 'object' && parsed.events) {
+          // Old format: {"events": [...]} - extract the events array
+          // eslint-disable-next-line no-console
+          console.debug(
+            'SegmentPersistor: Migrating from object format to array format',
+          );
+          return (Array.isArray(parsed.events) ? parsed.events : []) as T;
+        } else if (Array.isArray(parsed)) {
+          // New format: [...] - return as is
+          return parsed as T;
+        }
+        // Fallback: return empty array
+        // eslint-disable-next-line no-console
+        console.debug('SegmentPersistor: Using fallback empty array');
+        return [] as T;
+      }
+
       return parsed as T;
     } catch (error) {
       Logger.error(

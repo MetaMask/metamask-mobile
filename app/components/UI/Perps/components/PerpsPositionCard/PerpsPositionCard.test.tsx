@@ -32,6 +32,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'perps.position.card.tpsl_count_single' && params?.count) {
       return `${params.count} order`;
     }
+    if (key === 'perps.market.long_lowercase') {
+      return 'long';
+    }
+    if (key === 'perps.market.short_lowercase') {
+      return 'short';
+    }
     return key;
   }),
 }));

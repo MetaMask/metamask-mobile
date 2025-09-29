@@ -131,9 +131,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -380,7 +379,15 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -661,9 +668,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -1412,9 +1418,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -1434,7 +1439,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1578,9 +1583,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1827,7 +1831,15 @@ exports[`OrderDetails renders a completed order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2126,9 +2138,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -2877,9 +2888,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -2899,7 +2909,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3043,9 +3053,8 @@ exports[`OrderDetails renders a created order 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3292,7 +3301,15 @@ exports[`OrderDetails renders a created order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3606,9 +3623,8 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -4326,7 +4342,7 @@ exports[`OrderDetails renders a created order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4470,9 +4486,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -4719,7 +4734,15 @@ exports[`OrderDetails renders a failed order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5000,9 +5023,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -5751,9 +5773,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -5773,7 +5794,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -5917,9 +5938,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -6166,7 +6186,15 @@ exports[`OrderDetails renders a pending order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -6480,9 +6508,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -7200,7 +7227,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -7344,9 +7371,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -7593,7 +7619,15 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7611,7 +7645,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                           ]
                         }
                       />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -7755,9 +7789,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -8004,7 +8037,15 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -8101,9 +8142,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -8126,9 +8166,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -8207,9 +8246,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -8229,7 +8267,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -8373,9 +8411,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -8622,7 +8659,15 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -8951,9 +8996,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -9714,9 +9758,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "CentraNo1-Bold",
+                                              "fontFamily": "Geist Bold",
                                               "fontSize": 14,
-                                              "fontWeight": "600",
                                               "textAlign": "center",
                                             },
                                             {
@@ -9737,7 +9780,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -9881,9 +9924,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -10130,7 +10172,15 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -10456,9 +10506,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -11226,9 +11275,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -11248,7 +11296,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -11392,9 +11440,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -11641,7 +11688,15 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -11955,9 +12010,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -12675,7 +12729,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -12819,9 +12873,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -13068,7 +13121,15 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -13397,9 +13458,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   {
@@ -14117,7 +14177,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

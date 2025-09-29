@@ -41,12 +41,6 @@ describe('BridgeTimeRow', () => {
     jest.resetAllMocks();
   });
 
-  afterEach(() => {
-    // Clean up any running animations to prevent Jest teardown issues
-    jest.clearAllTimers();
-    jest.useRealTimers();
-  });
-
   it('renders total estimated time', async () => {
     const { getByText } = render({
       quotes: [

@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
@@ -22,6 +22,12 @@ import { usePerpsTrading, usePerpsNetworkManagement } from '../../hooks';
 import createStyles from './PerpsBalanceModal.styles';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 interface PerpsBalanceModalProps {}
 
@@ -32,6 +38,14 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { navigateToConfirmation } = useConfirmNavigation();
+  const { track } = usePerpsEventTracking();
+
+  // Track balance modal viewed on mount
+  useEffect(() => {
+    track(MetaMetricsEvents.PERPS_BALANCE_MODAL_VIEWED, {
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+    });
+  }, [track]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();

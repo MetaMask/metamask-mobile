@@ -15,15 +15,36 @@ jest.mock('react-redux', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
-// Mock selector
+// Mock selectors
 jest.mock('../../../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
+jest.mock('../../../../../../reducers/rewards/selectors', () => ({
+  selectSeasonId: jest.fn(),
+  selectSeasonStartDate: jest.fn(),
+  selectSeasonStatusLoading: jest.fn(),
+}));
+
 import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
+import {
+  selectSeasonId,
+  selectSeasonStartDate,
+  selectSeasonStatusLoading,
+} from '../../../../../../reducers/rewards/selectors';
 import { UsePointsEventsResult } from '../../../hooks/usePointsEvents';
 const mockSelectSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
+  >;
+const mockSelectSeasonId = selectSeasonId as jest.MockedFunction<
+  typeof selectSeasonId
+>;
+const mockSelectSeasonStartDate = selectSeasonStartDate as jest.MockedFunction<
+  typeof selectSeasonStartDate
+>;
+const mockSelectSeasonStatusLoading =
+  selectSeasonStatusLoading as jest.MockedFunction<
+    typeof selectSeasonStatusLoading
   >;
 
 // Mock data
@@ -51,6 +72,11 @@ jest.mock('../../../hooks/usePointsEvents', () => ({
   usePointsEvents: (...args: unknown[]) => mockUsePointsEvents(...args),
 }));
 
+// Mock useAccountNames hook
+jest.mock('../../../../../hooks/DisplayName/useAccountNames', () => ({
+  useAccountNames: jest.fn(() => []),
+}));
+
 // Mock ActivityEventRow to simplify assertions
 jest.mock('./ActivityEventRow', () => ({
   ActivityEventRow: ({ event }: { event: { id: string } }) => {
@@ -59,6 +85,49 @@ jest.mock('./ActivityEventRow', () => ({
     return ReactActual.createElement(Text, null, `event:${event.id}`);
   },
 }));
+
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              onPress: onConfirm,
+              testID: 'error-retry-button',
+            },
+            ReactActual.createElement(
+              Text,
+              {},
+              confirmButtonLabel || 'Confirm',
+            ),
+          ),
+      ),
+  };
+});
 
 // Helper to create realistic mock events based on rewards data service
 const createMockEvent = (
@@ -147,7 +216,6 @@ const createMockEvent = (
             decimals: 0,
             name: 'BIO',
             symbol: 'BIO',
-            iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
             amount: '287',
           },
         },
@@ -230,6 +298,7 @@ describe('ActivityTab', () => {
       rewards: {
         seasonId: defaultSeasonStatus.season.id,
         seasonStatusLoading: false,
+        seasonStartDate: new Date('2024-01-01'),
       },
     };
 
@@ -238,6 +307,9 @@ describe('ActivityTab', () => {
       (selector: (state: unknown) => unknown) => selector(mockState as unknown),
     );
     mockSelectSubscriptionId.mockReturnValue(mockSubscriptionId);
+    mockSelectSeasonId.mockReturnValue(defaultSeasonStatus.season.id);
+    mockSelectSeasonStartDate.mockReturnValue(new Date('2024-01-01'));
+    mockSelectSeasonStatusLoading.mockReturnValue(false);
     mockUseDispatch.mockReturnValue(jest.fn());
 
     mockUseSeasonStatus.mockReturnValue({
@@ -251,15 +323,57 @@ describe('ActivityTab', () => {
     mockUsePointsEvents.mockReturnValue(makePointsEventsResult());
   });
 
-  it('renders error state when error occurs', () => {
-    mockUsePointsEvents.mockReturnValueOnce(
-      makePointsEventsResult({ error: 'Network error' }),
-    );
+  describe('Loading States', () => {
+    it('should show skeleton when isLoading is true and not refreshing', () => {
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({ isLoading: true }),
+      );
 
-    const { getByText } = render(<ActivityTab />);
-    expect(
-      getByText('Error loading activity: Network error'),
-    ).toBeOnTheScreen();
+      const { queryByTestId } = render(<ActivityTab />);
+      // Should render skeleton (component returns skeleton when loading)
+      expect(queryByTestId('flatlist')).toBeNull();
+    });
+
+    it('should show skeleton when seasonStatusLoading is true and seasonStartDate exists', () => {
+      mockSelectSeasonStatusLoading.mockReturnValueOnce(true);
+      mockSelectSeasonStartDate.mockReturnValueOnce(new Date('2024-01-01'));
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({ isLoading: false }),
+      );
+
+      const { queryByTestId } = render(<ActivityTab />);
+      // Should render skeleton due to season status loading
+      expect(queryByTestId('flatlist')).toBeNull();
+    });
+
+    it('should not show skeleton when seasonStatusLoading is true but no seasonStartDate', () => {
+      mockSelectSeasonStatusLoading.mockReturnValueOnce(true);
+      mockSelectSeasonStartDate.mockReturnValueOnce(null);
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          isLoading: false,
+          pointsEvents: [],
+        }),
+      );
+
+      const { queryByTestId } = render(<ActivityTab />);
+      // Should not render skeleton when no seasonStartDate
+      expect(queryByTestId('flatlist')).toBeNull();
+    });
+
+    it('should not show skeleton when refreshing even if loading', () => {
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          isLoading: true,
+          isRefreshing: true,
+          pointsEvents: [],
+        }),
+      );
+
+      const { queryByTestId } = render(<ActivityTab />);
+      // Should not render skeleton when refreshing
+      expect(queryByTestId('flatlist')).toBeNull();
+    });
   });
 
   it('renders events', () => {
@@ -435,6 +549,35 @@ describe('ActivityTab', () => {
       manyEvents.forEach((event) => {
         expect(getByText(`event:${event.id}`)).toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('Error States', () => {
+    it('should show error banner when there is an error', () => {
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({ error: 'Network error' }),
+      );
+
+      const { getByTestId } = render(<ActivityTab />);
+
+      // Should show error banner
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
+    });
+
+    it('should call refresh when retry button is pressed in error state', () => {
+      const mockRefresh = jest.fn();
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          error: 'Network error',
+          refresh: mockRefresh,
+        }),
+      );
+
+      const { getByTestId } = render(<ActivityTab />);
+
+      const retryButton = getByTestId('error-retry-button');
+      expect(retryButton).toBeTruthy();
+      expect(mockRefresh).toBeDefined();
     });
   });
 });

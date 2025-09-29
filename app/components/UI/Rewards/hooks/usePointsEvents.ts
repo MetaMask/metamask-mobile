@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
+import { useFocusEffect } from '@react-navigation/native';
 
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
@@ -8,7 +10,7 @@ export interface UsePointsEventsOptions {
 }
 
 export interface UsePointsEventsResult {
-  pointsEvents: PointsEventDto[];
+  pointsEvents: PointsEventDto[] | null;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -23,12 +25,15 @@ export const usePointsEvents = (
 ): UsePointsEventsResult => {
   const { seasonId, subscriptionId } = options;
 
-  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[]>([]);
+  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[] | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(!!seasonId && !!subscriptionId);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null);
+  const isLoadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPointsEvents = useCallback(
@@ -36,6 +41,10 @@ export const usePointsEvents = (
       isInitial: boolean,
       currentCursor: string | null = null,
     ): Promise<void> => {
+      if (isLoadingRef.current) {
+        return;
+      }
+      isLoadingRef.current = true;
       if (isInitial) {
         setIsLoading(true);
         setError(null);
@@ -44,7 +53,7 @@ export const usePointsEvents = (
       }
 
       try {
-        if (!seasonId) return;
+        if (!seasonId || !subscriptionId) return;
         const pointsEventsData = await Engine.controllerMessenger.call(
           'RewardsController:getPointsEvents',
           {
@@ -57,7 +66,11 @@ export const usePointsEvents = (
         if (isInitial) {
           setPointsEvents(pointsEventsData.results);
         } else {
-          setPointsEvents((prev) => [...prev, ...pointsEventsData.results]);
+          setPointsEvents((prev) =>
+            prev
+              ? [...prev, ...pointsEventsData.results]
+              : pointsEventsData.results,
+          );
         }
 
         setCursor(pointsEventsData.cursor);
@@ -72,6 +85,7 @@ export const usePointsEvents = (
           setPointsEvents([]);
         }
       } finally {
+        isLoadingRef.current = false;
         if (isInitial) {
           setIsLoading(false);
         } else {
@@ -96,12 +110,17 @@ export const usePointsEvents = (
     setIsRefreshing(false);
   }, [fetchPointsEvents]);
 
-  // Initial data fetch
-  useEffect(() => {
-    if (seasonId && subscriptionId) {
+  useFocusEffect(
+    useCallback(() => {
       fetchPointsEvents(true);
-    }
-  }, [seasonId, subscriptionId, fetchPointsEvents]);
+    }, [fetchPointsEvents]),
+  );
+
+  // Listen for reward claimed events to trigger refetch
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    refresh,
+  );
 
   return {
     pointsEvents,

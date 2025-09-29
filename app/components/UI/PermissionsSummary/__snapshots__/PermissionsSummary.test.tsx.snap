@@ -1053,9 +1053,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -1114,9 +1113,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -1775,9 +1773,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -1836,9 +1833,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -2441,9 +2437,8 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -2502,9 +2497,8 @@ exports[`PermissionsSummary should render only the account permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -2619,9 +2613,8 @@ exports[`PermissionsSummary should render only the network permissions card when
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 24,
-                      "fontWeight": "400",
                       "textAlign": "center",
                       "textTransform": "uppercase",
                     },
@@ -3020,9 +3013,8 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -3081,9 +3073,8 @@ exports[`PermissionsSummary should render only the network permissions card when
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -4157,9 +4148,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -4218,9 +4208,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -5294,9 +5283,8 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
@@ -5355,9 +5343,8 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {

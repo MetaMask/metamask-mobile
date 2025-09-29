@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -57,7 +58,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const selectedDestToken = useSelector(selectDestToken);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
-  const { tokens: tokensList, pending } = useTokens({
+  const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
@@ -69,6 +70,16 @@ export const BridgeDestTokenSelector: React.FC = () => {
     },
     [dispatch, navigation],
   );
+
+  const debouncedTokenPress = useMemo(
+    () => debounce(handleTokenPress, 500),
+    [handleTokenPress],
+  );
+
+  // Cleanup debounced function on unmount and dependency changes
+  useEffect(() => () => {
+      debouncedTokenPress.cancel();
+    }, [debouncedTokenPress]);
 
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
@@ -112,7 +123,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       return (
         <TokenSelectorItem
           token={item}
-          onPress={handleTokenPress}
+          onPress={debouncedTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({
             chainId: item.chainId as Hex,
@@ -134,7 +145,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       );
     },
     [
-      handleTokenPress,
+      debouncedTokenPress,
       networkConfigurations,
       selectedDestToken,
       navigation,
@@ -151,9 +162,11 @@ export const BridgeDestTokenSelector: React.FC = () => {
         ) : undefined
       }
       renderTokenItem={renderToken}
-      tokensList={tokensList}
+      allTokens={allTokens}
+      tokensToRender={tokensToRender}
       pending={pending}
       chainIdToFetchMetadata={selectedDestChainId}
+      scrollResetKey={selectedDestChainId}
     />
   );
 };

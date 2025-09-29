@@ -9,12 +9,12 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import {
-  usePerpsAccount,
   usePerpsTrading,
   usePerpsTPSLUpdate,
   usePerpsClosePosition,
   usePerpsLivePositions,
 } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import type { Position } from '../../controllers/types';
 
 // Mock component types
@@ -31,10 +31,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock PerpsStreamManager
-jest.mock('../../providers/PerpsStreamManager');
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(),
+}));
 
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsTPSLUpdate: jest.fn(() => ({
     handleUpdateTPSL: jest.fn(),
@@ -168,7 +169,10 @@ describe('PerpsPositionsView', () => {
 
     // Setup default mocks with stable references
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (usePerpsAccount as jest.Mock).mockReturnValue(mockAccountState);
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+      account: mockAccountState,
+      isInitialLoading: false,
+    });
     (usePerpsTrading as jest.Mock).mockReturnValue({
       getPositions: jest.fn(),
     });
@@ -368,10 +372,13 @@ describe('PerpsPositionsView', () => {
   describe('Account Summary Calculations', () => {
     it('handles missing account state values', async () => {
       // Arrange
-      (usePerpsAccount as jest.Mock).mockReturnValue({
-        totalBalance: null,
-        availableBalance: undefined,
-        marginUsed: '',
+      (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+        account: {
+          totalBalance: null,
+          availableBalance: undefined,
+          marginUsed: '',
+        },
+        isInitialLoading: false,
       });
 
       // Act

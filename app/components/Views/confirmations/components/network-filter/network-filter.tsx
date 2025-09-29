@@ -42,7 +42,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
       onPress={onPress}
       style={({ pressed }) =>
         tw.style(
-          'flex-row items-center px-3 py-2 mr-2 rounded-lg min-h-8',
+          'flex-row items-center px-3 py-2 mr-2 rounded-lg min-h-8 border border-border-muted',
           isSelected ? 'bg-background-pressed' : 'bg-transparent',
           pressed && 'opacity-70',
         )

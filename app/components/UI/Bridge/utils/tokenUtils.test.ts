@@ -163,8 +163,8 @@ describe('tokenUtils', () => {
       const result = getDefaultDestToken(caipChainId);
 
       expect(result).toBeDefined();
-      expect(result?.symbol).toBe('USDC');
-      expect(result?.name).toBe('USD Coin');
+      expect(result?.symbol).toBe('mUSD');
+      expect(result?.name).toBe('MetaMask USD');
       expect(result?.chainId).toBe(caipChainId); // Should return with original CAIP format
     });
 

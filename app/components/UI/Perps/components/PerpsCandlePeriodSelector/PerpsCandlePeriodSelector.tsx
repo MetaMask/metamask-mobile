@@ -65,7 +65,9 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
                 : styles.periodButtonUnselected,
               pressed && styles.periodButtonPressed,
             ]}
-            onPress={() => onPeriodChange?.(period.value)}
+            onPress={() => {
+              onPeriodChange?.(period.value);
+            }}
             testID={
               testID
                 ? getPerpsCandlePeriodSelector.periodButton(

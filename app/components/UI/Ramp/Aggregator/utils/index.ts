@@ -6,6 +6,7 @@ import {
 } from '@consensys/on-ramp-sdk';
 import {
   AggregatorNetwork,
+  CryptoCurrency,
   OrderOrderTypeEnum,
   QuoteSortMetadata,
   SellOrder,
@@ -22,6 +23,16 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import Logger from '../../../../../util/Logger';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -364,3 +375,62 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
     }
   }
 };
+
+export function getCaipChainIdFromCryptoCurrency(
+  cryptoCurrency: CryptoCurrency | null,
+): CaipChainId | null {
+  if (!cryptoCurrency?.network?.chainId) {
+    return null;
+  }
+
+  if (isCaipChainId(cryptoCurrency.network.chainId)) {
+    return cryptoCurrency.network.chainId;
+  }
+
+  try {
+    return toEvmCaipChainId(toHex(cryptoCurrency.network.chainId));
+  } catch (error) {
+    Logger.error(
+      new Error(
+        `getCaipChainIdFromCryptoCurrency: Invalid chainId format: ${cryptoCurrency.network.chainId}`,
+      ),
+      {
+        context: 'getCaipChainIdFromCryptoCurrency',
+        cryptoCurrency,
+      },
+    );
+    return null;
+  }
+}
+
+export function getHexChainIdFromCryptoCurrency(
+  cryptoCurrency: CryptoCurrency | null,
+): Hex | undefined {
+  if (!cryptoCurrency?.network?.chainId) {
+    return;
+  }
+
+  let assetDecimalChainId = cryptoCurrency.network.chainId;
+
+  if (isCaipChainId(cryptoCurrency.network.chainId)) {
+    const { namespace, reference } = parseCaipChainId(
+      cryptoCurrency.network.chainId,
+    );
+
+    if (namespace === KnownCaipNamespace.Eip155) {
+      assetDecimalChainId = reference;
+    }
+  }
+
+  try {
+    return toHex(assetDecimalChainId);
+  } catch (error) {
+    Logger.error(
+      new Error(
+        `getHexChainIdFromCryptoCurrency: Invalid chainId format: ${assetDecimalChainId}`,
+      ),
+      assetDecimalChainId,
+    );
+    return;
+  }
+}

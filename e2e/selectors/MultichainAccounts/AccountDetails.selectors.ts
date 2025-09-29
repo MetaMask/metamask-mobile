@@ -9,4 +9,5 @@ export const AccountDetailsIds = {
   SMART_ACCOUNT_LINK: 'account-details-smart-account-link',
   BACK_BUTTON: 'account-details-back-button',
   REMOVE_ACCOUNT_BUTTON: 'remove-account-button',
+  ACCOUNT_GROUP_DETAILS_AVATAR: 'account-group-details-avatar',
 };

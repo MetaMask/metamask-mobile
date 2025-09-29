@@ -8,6 +8,7 @@ import { CaipAccountId, CaipChainId, CaipNamespace } from '@metamask/utils';
 import { useMemo } from 'react';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 import { hasChainIdSupport, hasNamespaceSupport } from './utils';
+import { getCaip25AccountFromAccountGroupAndScope } from '../../../util/multichain/getCaip25AccountFromAccountGroupAndScope';
 import {
   selectAccountGroupWithInternalAccounts,
   selectSelectedAccountGroupId,
@@ -111,6 +112,10 @@ const hasRequestedAccountIds = (
  * @param requestedNamespacesWithoutWallet - Array of CAIP namespaces being requested (excluding wallet namespace)
  * @returns Object containing connected account groups, supported account groups, and existing connected CAIP account IDs.
  * Account groups that fulfill requestedCaipAccountIds appear first in both arrays.
+ *
+ * **Important**: `updatedCaipAccountIdsToConnect` includes both explicitly requested account IDs
+ * and existing connected account IDs. Consuming components should validate that requested
+ * account IDs are actually supported by available account groups before attempting to connect them.
  */
 export const useAccountGroupsForPermissions = (
   existingPermission: Caip25CaveatValue,
@@ -135,6 +140,8 @@ export const useAccountGroupsForPermissions = (
     // Priority groups are groups that fulfill the requested account IDs and should be shown first
     const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
     const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
+    const connectedAccountGroupWithRequested: AccountGroupWithInternalAccounts[] =
+      [];
 
     let accountGroupsWithSelectedAccountGroup: AccountGroupWithInternalAccounts[] =
       [];
@@ -169,17 +176,43 @@ export const useAccountGroupsForPermissions = (
         } else {
           connectedAccountGroups.push(accountGroup);
         }
+        connectedAccountGroupWithRequested.push(accountGroup);
       }
       if (isSupported || fulfillsRequestedAccounts) {
         if (fulfillsRequestedAccounts) {
           prioritySupportedGroups.push(accountGroup);
+          connectedAccountGroupWithRequested.push(accountGroup);
         } else if (isSupported) {
           supportedAccountGroups.push(accountGroup);
         }
       }
     });
 
+    // This are caip account ids of connected account groups with the requested chains/namespaces
+    // It would also include newly requested chain requests.
+    const caipAccountIdsOfConnectedAccountGroupWithRequested = Array.from(
+      new Set([
+        ...getCaip25AccountFromAccountGroupAndScope(
+          connectedAccountGroupWithRequested,
+          requestedCaipChainIds,
+        ),
+      ]),
+    );
+
+    // If there are no supported account groups, then return an empty array because the selected account group is not supported
+    const selectedOrFirstSupportedAccountGroup =
+      supportedAccountGroups.length > 0
+        ? [selectedAccountGroup || supportedAccountGroups[0]]
+        : [];
+    const selectedAndRequestedAccountGroups = Array.from(
+      new Set([
+        ...prioritySupportedGroups,
+        ...selectedOrFirstSupportedAccountGroup,
+      ]),
+    );
+
     return {
+      selectedAndRequestedAccountGroups,
       supportedAccountGroups: Array.from(
         new Set([...prioritySupportedGroups, ...supportedAccountGroups]),
       ),
@@ -187,6 +220,8 @@ export const useAccountGroupsForPermissions = (
         new Set([...priorityConnectedGroups, ...connectedAccountGroups]),
       ),
       connectedCaipAccountIds: connectedAccountIds,
+      connectedAccountGroupWithRequested,
+      caipAccountIdsOfConnectedAccountGroupWithRequested,
     };
   }, [
     existingPermission,
@@ -204,5 +239,13 @@ export const useAccountGroupsForPermissions = (
     supportedAccountGroups: result.supportedAccountGroups,
     /** CAIP account IDs that are already connected via existing permissions */
     existingConnectedCaipAccountIds: result.connectedCaipAccountIds,
+    /** Account groups that fulfill the requested account IDs */
+    connectedAccountGroupWithRequested:
+      result.connectedAccountGroupWithRequested,
+    /** CAIP account IDs that should be connected */
+    caipAccountIdsOfConnectedAccountGroupWithRequested:
+      result.caipAccountIdsOfConnectedAccountGroupWithRequested,
+    /** Account groups that support the requested chains/namespaces incl the selected account group if not already requested */
+    selectedAndRequestedAccountGroups: result.selectedAndRequestedAccountGroups,
   };
 };

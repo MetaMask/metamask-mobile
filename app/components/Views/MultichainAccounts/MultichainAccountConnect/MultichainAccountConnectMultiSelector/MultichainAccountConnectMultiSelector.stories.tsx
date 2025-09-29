@@ -126,7 +126,7 @@ const mockStore = configureStore({
         },
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
-            enableMultichainAccounts: {
+            enableMultichainAccountsState2: {
               enabled: true,
               featureVersion: '2',
               minimumVersion: '0.0.0',

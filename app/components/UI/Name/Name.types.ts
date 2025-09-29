@@ -16,4 +16,5 @@ export interface NameProperties extends ViewProps {
   value: string;
   variation: string;
   style?: ViewStyle;
+  maxCharLength?: number;
 }

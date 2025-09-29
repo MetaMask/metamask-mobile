@@ -23,6 +23,8 @@ import {
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { selectPredictEnabledFlag } from '../../UI/Predict';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -35,6 +37,10 @@ jest.mock('../../UI/Perps', () => ({
 
 jest.mock('../../UI/Perps/selectors/perpsController', () => ({
   selectIsFirstTimePerpsUser: jest.fn(),
+}));
+
+jest.mock('../../UI/Predict', () => ({
+  selectPredictEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
@@ -87,6 +93,11 @@ jest.mock('../../../selectors/networkController', () => ({
 
 jest.mock('../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  ...jest.requireActual('../../../selectors/multichainNetworkController'),
+  selectIsEvmNetworkSelected: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/accountsController', () => {
@@ -325,6 +336,10 @@ describe('TradeWalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeNull();
+    // Feature flag is disabled by default
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeNull();
   });
 
   it('should render earn button if the stablecoin lending feature is enabled', () => {
@@ -483,7 +498,29 @@ describe('TradeWalletActions', () => {
     ).toBeDefined();
   });
 
-  it.skip('should navigate to Perps markets when returning user presses Perpetuals button', async () => {
+  it('should render the Predict button if the Predict feature flag is enabled', () => {
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('should set up perps navigation to markets for returning users', () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -505,20 +542,16 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    const perpsButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
     );
 
-    // Wait for the bottom sheet close callback to execute
-    // closeBottomSheetAndNavigate wraps navigation in a callback
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsMarketListView',
-    });
+    // Verify button exists and is enabled for returning users
+    expect(perpsButton).toBeDefined();
+    expect(perpsButton.props.accessibilityState?.disabled).toBeFalsy();
   });
 
-  it.skip('should navigate to Perps tutorial when first-time user presses Perpetuals button', async () => {
+  it('should set up perps navigation to tutorial for first-time users', () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -540,16 +573,44 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    fireEvent.press(
+    expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+  });
+
+  it.skip('should navigate to Predict markets when user presses Predict button', async () => {
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     );
 
     // Wait for the bottom sheet close callback to execute
     // closeBottomSheetAndNavigate wraps navigation in a callback
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsTutorial',
+    expect(mockNavigate).toHaveBeenCalledWith('WalletView', {
+      screen: 'WalletTabStackFlow',
+      params: {
+        screen: 'Predict',
+        params: {
+          screen: 'PredictMarketListView',
+        },
+      },
     });
   });
 
@@ -562,6 +623,16 @@ describe('TradeWalletActions', () => {
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
         typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
       >
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
@@ -609,12 +680,51 @@ describe('TradeWalletActions', () => {
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
+    const perpsButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+    );
+    const predictButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+    );
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
     fireEvent.press(earnButton);
+    fireEvent.press(perpsButton);
+    fireEvent.press(predictButton);
 
     // Since buttons are disabled, none of the mock functions should be called
     expect(mockOnDismiss).not.toHaveBeenCalled();
+  });
+
+  it('should not show Predict button on non-EVM networks', () => {
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectIsEvmNetworkSelected as jest.MockedFunction<
+        typeof selectIsEvmNetworkSelected
+      >
+    ).mockReturnValue(false);
+
+    const mockNonEvmState: DeepPartial<RootState> = {
+      ...mockInitialState,
+    };
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockNonEvmState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeNull();
   });
 });

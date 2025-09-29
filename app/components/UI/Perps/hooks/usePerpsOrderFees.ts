@@ -10,7 +10,10 @@ import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
+import {
+  DEVELOPMENT_CONFIG,
+  PERFORMANCE_CONFIG,
+} from '../constants/perpsConfig';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 // Cache for fee discount to avoid repeated API calls
@@ -160,12 +163,12 @@ export function usePerpsOrderFees({
           discountBips,
         });
 
-        // Cache the discount for 30 minutes
+        // Cache the discount for configured duration
         feeDiscountCache = {
           address,
           discountBips,
           timestamp: Date.now(),
-          ttl: 30 * 60 * 1000, // 30 minutes
+          ttl: PERFORMANCE_CONFIG.FEE_DISCOUNT_CACHE_DURATION_MS,
         };
 
         return { discountBips };
@@ -395,14 +398,16 @@ export function usePerpsOrderFees({
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
               timestamp: now,
-              ttl: 30 * 60 * 1000,
+              ttl: PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
             };
 
             DevLogger.log('Rewards: Cached points calculation parameters', {
               address: userAddress,
               bonusBips: pointsData.bonusBips,
               basePointsPerDollar,
-              cacheExpiry: new Date(now + 30 * 60 * 1000).toISOString(),
+              cacheExpiry: new Date(
+                now + PERFORMANCE_CONFIG.POINTS_CALCULATION_CACHE_DURATION_MS,
+              ).toISOString(),
             });
           }
 

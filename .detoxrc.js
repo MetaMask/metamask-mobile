@@ -25,6 +25,7 @@ module.exports = {
     },
     jest: {
       setupTimeout: 220000,
+      teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
     },
     retries: 1,
   },

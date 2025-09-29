@@ -129,7 +129,7 @@ exports[`Regions View renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -153,30 +153,6 @@ exports[`Regions View renders correctly 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -209,9 +185,8 @@ exports[`Regions View renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -404,7 +379,15 @@ exports[`Regions View renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -438,9 +421,8 @@ exports[`Regions View renders correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -485,9 +467,8 @@ exports[`Regions View renders correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -715,9 +696,8 @@ exports[`Regions View renders correctly 1`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -740,7 +720,7 @@ exports[`Regions View renders correctly 1`] = `
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -882,7 +862,7 @@ exports[`Regions View renders correctly while loading 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -906,30 +886,6 @@ exports[`Regions View renders correctly while loading 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -962,9 +918,8 @@ exports[`Regions View renders correctly while loading 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1157,7 +1112,15 @@ exports[`Regions View renders correctly while loading 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1343,7 +1306,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1485,7 +1448,7 @@ exports[`Regions View renders correctly with error 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -1509,30 +1472,6 @@ exports[`Regions View renders correctly with error 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1565,9 +1504,8 @@ exports[`Regions View renders correctly with error 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1760,7 +1698,15 @@ exports[`Regions View renders correctly with error 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1857,9 +1803,8 @@ exports[`Regions View renders correctly with error 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -1882,9 +1827,8 @@ exports[`Regions View renders correctly with error 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -1963,9 +1907,8 @@ exports[`Regions View renders correctly with error 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -1985,7 +1928,7 @@ exports[`Regions View renders correctly with error 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2127,7 +2070,7 @@ exports[`Regions View renders correctly with no data 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -2151,30 +2094,6 @@ exports[`Regions View renders correctly with no data 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2207,9 +2126,8 @@ exports[`Regions View renders correctly with no data 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -2402,7 +2320,15 @@ exports[`Regions View renders correctly with no data 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2588,7 +2514,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2730,7 +2656,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -2754,30 +2680,6 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2810,9 +2712,8 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3005,7 +2906,15 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3102,9 +3011,8 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -3127,9 +3035,8 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -3208,9 +3115,8 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -3230,7 +3136,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3372,7 +3278,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -3396,30 +3302,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3452,9 +3334,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3647,7 +3528,15 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3681,9 +3570,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -3728,9 +3616,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -3958,9 +3845,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       null,
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -3981,7 +3867,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4123,7 +4009,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -4147,30 +4033,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -4203,9 +4065,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -4398,7 +4259,15 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -4432,9 +4301,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -4479,9 +4347,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -4709,9 +4576,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -4944,16 +4810,14 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
                                             undefined,
                                             {
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontWeight": "600",
+                                              "fontFamily": "Geist Bold",
                                             },
                                             undefined,
                                             undefined,
@@ -4990,9 +4854,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -5040,9 +4903,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
-                                                "fontWeight": "400",
                                                 "marginVertical": 2,
                                               },
                                               undefined,
@@ -5085,9 +4947,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
-                                                "fontWeight": "400",
                                                 "marginVertical": 2,
                                               },
                                               undefined,
@@ -5137,7 +4998,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         </View>
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -5279,7 +5140,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -5303,30 +5164,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                 >
                   Sell Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -5359,9 +5196,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -5554,7 +5390,15 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5588,9 +5432,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -5635,9 +5478,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -5865,9 +5707,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -6100,16 +5941,14 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
                                             undefined,
                                             {
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontWeight": "600",
+                                              "fontFamily": "Geist Bold",
                                             },
                                             undefined,
                                             undefined,
@@ -6146,9 +5985,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -6196,9 +6034,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
-                                                "fontWeight": "400",
                                                 "marginVertical": 2,
                                               },
                                               undefined,
@@ -6241,9 +6078,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
-                                                "fontWeight": "400",
                                                 "marginVertical": 2,
                                               },
                                               undefined,
@@ -6293,7 +6129,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                         </View>
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -6435,7 +6271,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -6459,30 +6295,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                 >
                   Buy Crypto Tokens
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -6515,9 +6327,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -6710,7 +6521,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -6744,9 +6563,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -6791,9 +6609,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 {
@@ -7021,9 +6838,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -7192,7 +7008,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 swipeDirection="down"
                                 swipeThreshold={100}
                               >
-                                <RCTSafeAreaView
+                                <RNCSafeAreaView
+                                  edges={
+                                    {
+                                      "bottom": "additive",
+                                      "left": "additive",
+                                      "right": "additive",
+                                      "top": "additive",
+                                    }
+                                  }
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
@@ -7228,7 +7052,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       }
                                     />
                                   </View>
-                                  <RCTSafeAreaView
+                                  <RNCSafeAreaView
+                                    edges={
+                                      {
+                                        "bottom": "additive",
+                                        "left": "additive",
+                                        "right": "additive",
+                                        "top": "off",
+                                      }
+                                    }
                                     style={
                                       {
                                         "flex": 1,
@@ -7262,9 +7094,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
-                                                "fontWeight": "400",
                                                 "marginVertical": 2,
                                               },
                                               {
@@ -7272,8 +7103,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               },
                                               undefined,
                                               {
-                                                "fontFamily": "CentraNo1-Bold",
-                                                "fontWeight": "600",
+                                                "fontFamily": "Geist Bold",
                                               },
                                               undefined,
                                               {
@@ -7312,9 +7142,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             [
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 30,
-                                                "fontWeight": "400",
                                                 "marginVertical": 2,
                                               },
                                               {
@@ -7422,8 +7251,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               {
                                                 "color": "#121314",
                                                 "flex": 1,
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontWeight": "400",
+                                                "fontFamily": "Geist Regular",
                                               }
                                             }
                                             testID="region-modal-search-input"
@@ -7755,15 +7583,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         </View>
                                       </View>
                                     </View>
-                                  </RCTSafeAreaView>
+                                  </RNCSafeAreaView>
                                   <View />
-                                </RCTSafeAreaView>
+                                </RNCSafeAreaView>
                               </View>
                             </View>
                           </Modal>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

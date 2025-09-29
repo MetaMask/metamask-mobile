@@ -129,7 +129,7 @@ exports[`GetStarted renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -153,30 +153,6 @@ exports[`GetStarted renders correctly 1`] = `
                 >
                   What to Expect
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -209,9 +185,8 @@ exports[`GetStarted renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -404,7 +379,15 @@ exports[`GetStarted renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -480,9 +463,8 @@ exports[`GetStarted renders correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -490,8 +472,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontWeight": "600",
+                                        "fontFamily": "Geist Bold",
                                       },
                                       undefined,
                                       undefined,
@@ -536,9 +517,8 @@ exports[`GetStarted renders correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -546,8 +526,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontWeight": "600",
+                                        "fontFamily": "Geist Bold",
                                       },
                                       undefined,
                                       undefined,
@@ -626,9 +605,8 @@ exports[`GetStarted renders correctly 1`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
-                                        "fontWeight": "600",
                                         "textAlign": "center",
                                       },
                                       {
@@ -646,7 +624,7 @@ exports[`GetStarted renders correctly 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -788,7 +766,7 @@ exports[`GetStarted renders correctly 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -812,30 +790,6 @@ exports[`GetStarted renders correctly 2`] = `
                 >
                   What to Expect
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -868,9 +822,8 @@ exports[`GetStarted renders correctly 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1063,7 +1016,15 @@ exports[`GetStarted renders correctly 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1139,9 +1100,8 @@ exports[`GetStarted renders correctly 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -1149,8 +1109,7 @@ exports[`GetStarted renders correctly 2`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontWeight": "600",
+                                        "fontFamily": "Geist Bold",
                                       },
                                       undefined,
                                       undefined,
@@ -1195,9 +1154,8 @@ exports[`GetStarted renders correctly 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -1205,8 +1163,7 @@ exports[`GetStarted renders correctly 2`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontWeight": "600",
+                                        "fontFamily": "Geist Bold",
                                       },
                                       undefined,
                                       undefined,
@@ -1285,9 +1242,8 @@ exports[`GetStarted renders correctly 2`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
-                                        "fontWeight": "600",
                                         "textAlign": "center",
                                       },
                                       {
@@ -1305,7 +1261,7 @@ exports[`GetStarted renders correctly 2`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1447,7 +1403,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -1471,30 +1427,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 >
                   What to Expect
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1527,9 +1459,8 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1722,7 +1653,15 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1740,7 +1679,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                           ]
                         }
                       />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1882,7 +1821,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -1906,30 +1845,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 >
                   What to Expect
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1962,9 +1877,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -2157,7 +2071,15 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2254,9 +2176,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -2279,9 +2200,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -2360,9 +2280,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -2382,7 +2301,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

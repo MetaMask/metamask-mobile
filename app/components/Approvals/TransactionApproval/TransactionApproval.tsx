@@ -5,8 +5,8 @@ import Approval from '../../Views/confirmations/legacy/Approval';
 import Approve from '../../Views/confirmations/legacy/ApproveView/Approve';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
-import { IQRState } from '../../UI/QRHardware/types';
 import { useConfirmationRedesignEnabled } from '../../Views/confirmations/hooks/useConfirmationRedesignEnabled';
+import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 export enum TransactionModalType {
   Transaction = 'transaction',
@@ -19,15 +19,22 @@ export interface TransactionApprovalProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   onComplete: () => void;
-  QRState?: IQRState;
+  pendingScanRequest?: QrScanRequest;
   isSigningQRObject?: boolean;
 }
 
 const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-  const { onComplete: propsOnComplete } = props;
-  const isQRSigning = props.isSigningQRObject && !props.transactionType;
+  const {
+    onComplete: propsOnComplete,
+    pendingScanRequest,
+    isSigningQRObject,
+  } = props;
+  const isQRSigning =
+    isSigningQRObject &&
+    pendingScanRequest?.type === QrScanRequestType.SIGN &&
+    !props.transactionType;
 
   const onComplete = useCallback(() => {
     propsOnComplete();
@@ -64,9 +71,7 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
     return (
       <QRSigningModal
         isVisible
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        QRState={props.QRState as any}
+        pendingScanRequest={pendingScanRequest}
         onSuccess={onComplete}
         onCancel={onComplete}
         onFailure={onComplete}

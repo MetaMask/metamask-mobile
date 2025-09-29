@@ -85,7 +85,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     flashListContent: {
-      paddingBottom: 16,
+      paddingBottom: 120, // Increased to account for balance component (~80px) + tab bar + safe area
     },
     skeletonContainer: {
       flexDirection: 'row',

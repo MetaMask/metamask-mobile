@@ -26,7 +26,7 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
 
   const locale = I18n.locale;
   const nativeFeeToken = useNativeGasFeeToken();
-  const { gasFeeTokens } = transactionMeta || {};
+  const { gasFeeTokens, chainId } = transactionMeta || {};
 
   let gasFeeToken = gasFeeTokens?.find(
     (token) => token.tokenAddress.toLowerCase() === tokenAddress?.toLowerCase(),
@@ -47,10 +47,17 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
     new BigNumber(amount).shiftedBy(-decimals),
   );
 
-  const amountFiat = useFiatTokenValue(gasFeeToken, gasFeeToken?.amount);
-
-  const balanceFiat = useFiatTokenValue(gasFeeToken, gasFeeToken?.balance);
-  const metamaskFeeFiat = useFiatTokenValue(gasFeeToken, metaMaskFee);
+  const amountFiat = useFiatTokenValue(
+    gasFeeToken,
+    gasFeeToken?.amount,
+    chainId,
+  );
+  const balanceFiat = useFiatTokenValue(
+    gasFeeToken,
+    gasFeeToken?.balance,
+    chainId,
+  );
+  const metamaskFeeFiat = useFiatTokenValue(gasFeeToken, metaMaskFee, chainId);
 
   const transferTransaction =
     tokenAddress === NATIVE_TOKEN_ADDRESS
@@ -101,7 +108,7 @@ function useNativeGasFeeToken(): GasFeeToken {
   const { gas, maxFeePerGas, maxPriorityFeePerGas } = txParams ?? {};
 
   return {
-    amount: estimatedFeeNativeHex as Hex,
+    amount: (estimatedFeeNativeHex as Hex) ?? '0x0',
     balance,
     decimals: 18,
     gas: gas as Hex,
@@ -118,6 +125,7 @@ function useNativeGasFeeToken(): GasFeeToken {
 function useFiatTokenValue(
   gasFeeToken: GasFeeToken | undefined,
   tokenValue: Hex | undefined,
+  chainId?: string,
 ) {
   const { decimals, rateWei } = gasFeeToken ?? { decimals: 0, rateWei: '0x0' };
 
@@ -127,7 +135,12 @@ function useFiatTokenValue(
 
   const nativeEth = nativeWei.shiftedBy(-18);
 
-  const fiatValue = useEthFiatAmount(nativeEth, { showFiat: true }, true);
+  const fiatValue = useEthFiatAmount(
+    nativeEth,
+    { showFiat: true },
+    true,
+    chainId,
+  );
 
   return gasFeeToken ? fiatValue : '';
 }

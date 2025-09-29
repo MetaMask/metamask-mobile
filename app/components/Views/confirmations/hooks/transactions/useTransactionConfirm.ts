@@ -20,8 +20,10 @@ import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TransactionBridgeQuote } from '../../utils/bridge';
-import { Hex } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+
+const log = createProjectLogger('transaction-confirm');
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
@@ -77,17 +79,24 @@ export function useTransactionConfirm() {
       updatedMetadata.batchTransactionsOptions = {};
     }
 
-    await onRequestConfirm(
-      {
-        deleteAfterResult: true,
-        handleErrors: false,
-        waitForResult,
-      },
-      { txMeta: updatedMetadata },
-    );
+    try {
+      await onRequestConfirm(
+        {
+          deleteAfterResult: true,
+          // Intentionally not hiding errors so we can log
+          handleErrors: false,
+          waitForResult,
+        },
+        { txMeta: updatedMetadata },
+      );
+    } catch (error) {
+      log('Error confirming transaction', error);
+    }
 
     if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
     } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {

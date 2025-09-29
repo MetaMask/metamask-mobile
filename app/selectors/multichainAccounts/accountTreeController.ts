@@ -18,6 +18,7 @@ import {
 import { CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupWithInternalAccounts } from './accounts.type';
+import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 
 // Stable empty references to prevent unnecessary re-renders
 const EMPTY_ARR: readonly never[] = Object.freeze([]);
@@ -390,3 +391,31 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
     return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
   },
 );
+
+/**
+ * Returns an array with the formatted addresses of the internal accounts
+ * of the selected account group.
+ *
+ */
+export const selectSelectedAccountGroupWithInternalAccountsAddresses =
+  createSelector(
+    selectSelectedAccountGroup,
+    selectInternalAccounts,
+    (selectedAccountGroup, internalAccounts) => {
+      if (!selectedAccountGroup) return EMPTY_ARR as readonly string[];
+
+      return selectedAccountGroup.accounts
+        .map((accountId: string) => {
+          const accountGroupInternalAccount = internalAccounts.find(
+            (internalAccount) => internalAccount.id === accountId,
+          );
+          if (accountGroupInternalAccount?.address) {
+            return getFormattedAddressFromInternalAccount(
+              accountGroupInternalAccount,
+            );
+          }
+          return null;
+        })
+        .filter(Boolean);
+    },
+  );

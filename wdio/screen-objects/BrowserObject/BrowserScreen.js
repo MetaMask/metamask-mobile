@@ -3,16 +3,33 @@ import Selectors from '../../helpers/Selectors';
 import  {
   BrowserViewSelectorsIDs,
 } from '../../../e2e/selectors/Browser/BrowserView.selectors';
-
+import { expect } from 'appwright';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 
 
 class BrowserScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get container() {
-    return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+    }
   }
 
   get urlBarTitle() {
-    return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.URL_INPUT);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.URL_INPUT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, BrowserViewSelectorsIDs.URL_INPUT);
+    }
   }
 
   get accountIconButton() {
@@ -52,15 +69,25 @@ class BrowserScreen {
   }
 
   async isScreenContentDisplayed() {
-    const screen = await this.container;
-    await screen.waitForDisplayed();
+    if (!this._device) {
+      const screen = await this.container;
+      await screen.waitForDisplayed();
+    } else {
+      const screen = await this.container;
+      await expect(screen).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async tapUrlBar() {
-    await driver.pause(500);
-    const urlBarTitle = await this.urlBarTitle;
-    await urlBarTitle.waitForEnabled();
-    await Gestures.waitAndTap(this.urlBarTitle);
+    if (!this._device) {
+      await driver.pause(500);
+      const urlBarTitle = await this.urlBarTitle;
+      await urlBarTitle.waitForEnabled();
+      await Gestures.waitAndTap(this.urlBarTitle);
+    } else {
+      const urlBarTitle = await this.urlBarTitle;
+      await urlBarTitle.tap();
+    }
   }
 
   async tapAccountButton() {

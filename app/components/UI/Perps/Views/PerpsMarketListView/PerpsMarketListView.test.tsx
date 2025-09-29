@@ -29,23 +29,107 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-jest.mock('../../hooks', () => ({
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
+jest.mock('../../hooks/usePerpsOrderFees', () => ({
+  usePerpsOrderFees: jest.fn(() => ({
+    totalFee: 0,
+    protocolFee: 0,
+    metamaskFee: 0,
+    protocolFeeRate: 0,
+    metamaskFeeRate: 0,
+    isLoadingMetamaskFee: false,
+    error: null,
   })),
+  formatFeeRate: jest.fn((rate) => `${((rate || 0) * 100).toFixed(3)}%`),
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
   selectRewardsEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn(() => ({})),
+// Mock PerpsMarketBalanceActions dependencies
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '10.57',
+      marginUsed: '0.00',
+      totalUSDBalance: 10.57,
+      positions: [],
+      orders: [],
+    },
+    isLoading: false,
+    error: null,
   })),
+}));
+
+jest.mock('../../hooks', () => ({
+  useColorPulseAnimation: jest.fn(() => ({
+    startPulseAnimation: jest.fn(),
+    getAnimatedStyle: jest.fn(() => ({})),
+    stopAnimation: jest.fn(),
+  })),
+  useBalanceComparison: jest.fn(() => ({
+    compareAndUpdateBalance: jest.fn(() => 'increase'),
+  })),
+  usePerpsTrading: jest.fn(() => ({
+    depositWithConfirmation: jest.fn().mockResolvedValue({}),
+  })),
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue({}),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
+  usePerpsAccount: jest.fn(() => ({
+    account: null,
+    isLoading: false,
+    error: null,
+  })),
+  usePerpsNetwork: jest.fn(() => ({
+    network: null,
+    isLoading: false,
+    error: null,
+  })),
+  formatFeeRate: jest.fn((rate) => `${((rate || 0) * 100).toFixed(3)}%`),
+}));
+
+jest.mock('../../components/PerpsMarketBalanceActions', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return function PerpsMarketBalanceActions() {
+    return MockReact.createElement(
+      View,
+      { testID: 'perps-market-balance-actions' },
+      MockReact.createElement(Text, null, 'Balance Actions Mock'),
+    );
+  };
+});
+
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: jest.fn(() => ({
+    navigateToConfirmation: jest.fn(),
+  })),
+}));
+
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => true),
+}));
+
+jest.mock('../../utils/formatUtils', () => ({
+  formatPerpsFiat: jest.fn((amount) => `$${amount}`),
+}));
+
+jest.mock('../../../../../images/image-icons', () => ({
+  HL: 'mock-hl-image',
+}));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {

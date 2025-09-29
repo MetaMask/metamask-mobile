@@ -27,7 +27,7 @@ export const ConfirmationContextProvider: React.FC<
   const [isTransactionValueUpdating, setIsTransactionValueUpdating] =
     useState(false);
 
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const [isFooterVisible, setIsFooterVisible] = useState<boolean>();
 
   const contextValue = useMemo(
     () => ({

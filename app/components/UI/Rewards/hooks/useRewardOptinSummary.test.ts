@@ -5,6 +5,9 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -14,12 +17,31 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
+
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
+// Mock useDebouncedValue hook
+jest.mock('../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: jest.fn(),
+}));
+
+// Mock useAccountsOperationsLoadingStates hook
+jest.mock(
+  '../../../../util/accounts/useAccountsOperationsLoadingStates',
+  () => ({
+    useAccountsOperationsLoadingStates: jest.fn(),
+  }),
+);
 
 describe('useRewardOptinSummary', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -29,6 +51,16 @@ describe('useRewardOptinSummary', () => {
     typeof Engine.controllerMessenger.call
   >;
   const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
+  const mockUseDebouncedValue = useDebouncedValue as jest.MockedFunction<
+    typeof useDebouncedValue
+  >;
+  const mockUseAccountsOperationsLoadingStates =
+    useAccountsOperationsLoadingStates as jest.MockedFunction<
+      typeof useAccountsOperationsLoadingStates
+    >;
 
   const mockAccount1: InternalAccount = {
     id: 'account-1',
@@ -85,6 +117,30 @@ describe('useRewardOptinSummary', () => {
     mockUseSelector
       .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
       .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+
+    // Mock useDebouncedValue to return accounts by default
+    mockUseDebouncedValue.mockReturnValue(mockAccounts);
+
+    // Mock useAccountsOperationsLoadingStates to return not syncing by default
+    mockUseAccountsOperationsLoadingStates.mockReturnValue({
+      areAnyOperationsLoading: false,
+      isAccountSyncingInProgress: false,
+      loadingMessage: null,
+    });
+
+    // Mock RewardsController:isOptInSupported to return true for all accounts by default
+    mockEngineCall.mockImplementation((method: string, ..._args) => {
+      if (method === 'RewardsController:isOptInSupported') {
+        return true; // Default: all accounts are supported
+      }
+      if (method === 'RewardsController:getOptInStatus') {
+        return Promise.resolve({ ois: [true, false, true] }); // Default response
+      }
+      return Promise.resolve();
+    });
+
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockClear();
   });
 
   describe('initial state', () => {
@@ -99,12 +155,27 @@ describe('useRewardOptinSummary', () => {
 
       const { result } = renderHook(() => useRewardOptinSummary());
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Assert
       expect(result.current.linkedAccounts).toEqual([]);
       expect(result.current.unlinkedAccounts).toEqual([]);
       expect(result.current.isLoading).toBe(true);
       expect(result.current.hasError).toBe(false);
       expect(result.current.currentAccountOptedIn).toBeNull();
+      expect(result.current.currentAccountSupported).toBeNull();
+      expect(typeof result.current.refresh).toBe('function');
+    });
+
+    it('should return a refresh function', () => {
+      const { result } = renderHook(() => useRewardOptinSummary());
+
+      expect(result.current.refresh).toBeDefined();
       expect(typeof result.current.refresh).toBe('function');
     });
   });
@@ -115,11 +186,27 @@ describe('useRewardOptinSummary', () => {
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true], // Account1: true, Account2: false, Account3: true
       };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Wait for the effect to complete
       await waitForNextUpdate();
@@ -128,6 +215,7 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
       expect(result.current.currentAccountOptedIn).toBe(true); // Account1 is selected and opted in
+      expect(result.current.currentAccountSupported).toBe(true); // Account1 is supported
 
       // Check linked accounts (opted in)
       expect(result.current.linkedAccounts).toHaveLength(2);
@@ -147,6 +235,20 @@ describe('useRewardOptinSummary', () => {
         hasOptedIn: false,
       });
 
+      // Verify that isOptInSupported was called for each account
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount1,
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount2,
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount3,
+      );
+
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getOptInStatus',
         {
@@ -164,11 +266,27 @@ describe('useRewardOptinSummary', () => {
       const mockResponse: OptInStatusDto = {
         ois: [false, false, false],
       };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -176,6 +294,7 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.linkedAccounts).toHaveLength(0);
       expect(result.current.unlinkedAccounts).toHaveLength(3);
       expect(result.current.currentAccountOptedIn).toBe(false);
+      expect(result.current.currentAccountSupported).toBe(true);
     });
 
     it('should handle all accounts opted in', async () => {
@@ -183,11 +302,27 @@ describe('useRewardOptinSummary', () => {
       const mockResponse: OptInStatusDto = {
         ois: [true, true, true],
       };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -195,6 +330,7 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.linkedAccounts).toHaveLength(3);
       expect(result.current.unlinkedAccounts).toHaveLength(0);
       expect(result.current.currentAccountOptedIn).toBe(true);
+      expect(result.current.currentAccountSupported).toBe(true);
     });
 
     it('should handle selected account not in accounts list', async () => {
@@ -213,16 +349,33 @@ describe('useRewardOptinSummary', () => {
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
       };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       await waitForNextUpdate();
 
       // Assert
       expect(result.current.currentAccountOptedIn).toBe(false); // Should default to false
+      expect(result.current.currentAccountSupported).toBe(false); // Different account not in supported list
     });
   });
 
@@ -230,11 +383,27 @@ describe('useRewardOptinSummary', () => {
     it('should handle API errors and set error state', async () => {
       // Arrange
       const mockError = new Error('Network error');
-      mockEngineCall.mockRejectedValueOnce(mockError);
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.reject(mockError);
+        }
+        return Promise.resolve();
+      });
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -244,11 +413,44 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.linkedAccounts).toEqual([]);
       expect(result.current.unlinkedAccounts).toEqual([]);
       expect(result.current.currentAccountOptedIn).toBeNull();
+      expect(result.current.currentAccountSupported).toBeNull();
 
       expect(mockLoggerLog).toHaveBeenCalledWith(
         'useRewardOptinSummary: Failed to fetch opt-in status',
         mockError,
       );
+    });
+
+    it('should set loading to true at start and false after error', async () => {
+      // Arrange
+      const mockError = new Error('Network error');
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.reject(mockError);
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert - loading should be true initially when there's data to fetch
+      expect(result.current.isLoading).toBe(true);
+
+      await waitForNextUpdate();
+
+      // Assert - loading should be false after error
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(true);
     });
   });
 
@@ -256,77 +458,14 @@ describe('useRewardOptinSummary', () => {
     it('should not fetch data when disabled', () => {
       renderHook(() => useRewardOptinSummary({ enabled: false }));
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       expect(mockEngineCall).not.toHaveBeenCalled();
-    });
-
-    it('should not refetch when enabled changes from true to false', async () => {
-      // Arrange
-      const mockResponse: OptInStatusDto = {
-        ois: [true, false, true],
-      };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
-
-      const { rerender, waitForNextUpdate } = renderHook(
-        ({ enabled }) => useRewardOptinSummary({ enabled }),
-        {
-          initialProps: { enabled: true },
-        },
-      );
-
-      await waitForNextUpdate();
-
-      // Assert initial call
-      expect(mockEngineCall).toHaveBeenCalledTimes(1);
-
-      // Act - disable
-      rerender({ enabled: false });
-
-      // Assert - no additional calls
-      expect(mockEngineCall).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('account changes', () => {
-    it('should refetch data when accounts change', async () => {
-      // Arrange - initial call
-      const initialResponse: OptInStatusDto = {
-        ois: [true, false, true],
-      };
-      mockEngineCall.mockResolvedValueOnce(initialResponse);
-
-      const { rerender, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      await waitForNextUpdate();
-
-      expect(mockEngineCall).toHaveBeenCalledTimes(1);
-
-      // Arrange - accounts change
-      const newAccounts = [mockAccount1, mockAccount2]; // Remove account3
-      const newResponse: OptInStatusDto = {
-        ois: [true, false],
-      };
-
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(newAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
-
-      mockEngineCall.mockResolvedValueOnce(newResponse);
-
-      // Act - rerender to trigger useEffect
-      rerender();
-      await waitForNextUpdate();
-
-      // Assert - should call API again with new accounts
-      expect(mockEngineCall).toHaveBeenCalledTimes(2);
-      expect(mockEngineCall).toHaveBeenLastCalledWith(
-        'RewardsController:getOptInStatus',
-        {
-          addresses: ['0x123456789abcdef', '0xabcdef123456789'],
-        },
-      );
     });
   });
 
@@ -341,6 +480,13 @@ describe('useRewardOptinSummary', () => {
       const { result, rerender, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -357,64 +503,6 @@ describe('useRewardOptinSummary', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle empty accounts array', () => {
-      // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce([]) // selectInternalAccounts - empty
-        .mockReturnValueOnce(null); // selectSelectedInternalAccount
-
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Assert
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.linkedAccounts).toEqual([]);
-      expect(result.current.unlinkedAccounts).toEqual([]);
-      expect(result.current.currentAccountOptedIn).toBeNull();
-      expect(mockEngineCall).not.toHaveBeenCalled();
-    });
-
-    it('should handle null internal accounts selector', () => {
-      // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(null) // selectInternalAccounts - null
-        .mockReturnValueOnce(null); // selectSelectedInternalAccount
-
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Assert
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.linkedAccounts).toEqual([]);
-      expect(result.current.unlinkedAccounts).toEqual([]);
-      expect(mockEngineCall).not.toHaveBeenCalled();
-    });
-
-    it('should handle single account', async () => {
-      // Arrange
-      const singleAccount = [mockAccount1];
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(singleAccount) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
-
-      const mockResponse: OptInStatusDto = {
-        ois: [true],
-      };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      await waitForNextUpdate();
-
-      // Assert
-      expect(result.current.linkedAccounts).toHaveLength(1);
-      expect(result.current.unlinkedAccounts).toHaveLength(0);
-      expect(result.current.currentAccountOptedIn).toBe(true);
-    });
-
     it('should handle no selected account', async () => {
       // Arrange
       mockUseSelector
@@ -425,16 +513,315 @@ describe('useRewardOptinSummary', () => {
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
       };
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true; // All accounts are supported
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      await waitForNextUpdate();
+
+      // Assert
+      expect(result.current.currentAccountOptedIn).toBe(false); // Should default to false
+      expect(result.current.currentAccountSupported).toBe(false); // No selected account
+    });
+  });
+
+  describe('account support filtering', () => {
+    it('should only fetch opt-in status for supported accounts', async () => {
+      // Arrange - Only account1 and account3 are supported
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false], // Only 2 accounts supported: account1 (true), account3 (false)
+      };
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          const [account] = args as [InternalAccount];
+          // Only account1 and account3 are supported
+          return (
+            account.address === mockAccount1.address ||
+            account.address === mockAccount3.address
+          );
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      await waitForNextUpdate();
+
+      // Assert
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
+      expect(result.current.currentAccountOptedIn).toBe(true); // Account1 is selected and opted in
+      expect(result.current.currentAccountSupported).toBe(true); // Account1 is supported
+
+      // Should only have 2 accounts total (account2 was filtered out)
+      expect(result.current.linkedAccounts).toHaveLength(1); // Only account1 opted in
+      expect(result.current.unlinkedAccounts).toHaveLength(1); // Only account3 not opted in
+
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+      expect(result.current.unlinkedAccounts[0]).toMatchObject({
+        ...mockAccount3,
+        hasOptedIn: false,
+      });
+
+      // Verify that getOptInStatus was called with only supported account addresses
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getOptInStatus',
+        {
+          addresses: [mockAccount1.address, mockAccount3.address],
+        },
+      );
+    });
+
+    it('should handle when selected account is unsupported but others are supported', async () => {
+      // Arrange - Account1 (selected) is unsupported, but account2 and account3 are supported
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false], // account2 (true), account3 (false)
+      };
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          const [account] = args as [InternalAccount];
+          // Only account2 and account3 are supported (not account1)
+          return (
+            account.address === mockAccount2.address ||
+            account.address === mockAccount3.address
+          );
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      await waitForNextUpdate();
+
+      // Assert
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
+      expect(result.current.currentAccountOptedIn).toBe(false); // Account1 is selected but unsupported
+      expect(result.current.currentAccountSupported).toBe(false); // Account1 is not supported
+
+      // Should have data for the 2 supported accounts
+      expect(result.current.linkedAccounts).toHaveLength(1); // account2 opted in
+      expect(result.current.unlinkedAccounts).toHaveLength(1); // account3 not opted in
+
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount2,
+        hasOptedIn: true,
+      });
+      expect(result.current.unlinkedAccounts[0]).toMatchObject({
+        ...mockAccount3,
+        hasOptedIn: false,
+      });
+
+      // Verify that getOptInStatus was called with only supported account addresses
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getOptInStatus',
+        {
+          addresses: [mockAccount2.address, mockAccount3.address],
+        },
+      );
+    });
+  });
+
+  describe('useDebouncedValue behavior', () => {
+    it('should use debounced value when account syncing is not in progress', () => {
+      // Arrange - not syncing
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        areAnyOperationsLoading: false,
+        isAccountSyncingInProgress: false,
+        loadingMessage: null,
+      });
+
+      // Act
+      renderHook(() => useRewardOptinSummary());
+
+      // Assert - should call useDebouncedValue with 0ms delay when not syncing
+      expect(mockUseDebouncedValue).toHaveBeenCalledWith(mockAccounts, 0);
+    });
+
+    it('should use debounced value with 10s delay when account syncing is in progress', () => {
+      // Arrange - syncing in progress
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        areAnyOperationsLoading: true,
+        isAccountSyncingInProgress: true,
+        loadingMessage: 'Syncing accounts...',
+      });
+
+      // Act
+      renderHook(() => useRewardOptinSummary());
+
+      // Assert - should call useDebouncedValue with 10000ms delay when syncing
+      expect(mockUseDebouncedValue).toHaveBeenCalledWith(mockAccounts, 10000);
+    });
+
+    it('should refetch when debounced accounts change', async () => {
+      // Arrange - initial accounts
+      const initialAccounts = [mockAccount1];
+      const updatedAccounts = [mockAccount1, mockAccount2];
+
+      mockUseDebouncedValue
+        .mockReturnValueOnce(initialAccounts)
+        .mockReturnValueOnce(updatedAccounts);
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true],
+      };
+      mockEngineCall
+        .mockResolvedValueOnce(mockResponse)
+        .mockResolvedValueOnce({ ois: [true, false] });
+
+      // Act - first render
+      const { rerender, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger initial fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Clear previous calls
+      jest.clearAllMocks();
+      mockUseDebouncedValue.mockReturnValue(updatedAccounts);
+      mockEngineCall.mockResolvedValueOnce({ ois: [true, false] });
+
+      // Act - rerender with updated accounts
+      rerender();
+
+      // Trigger fetch again
+      const newFocusCallback = mockUseFocusEffect.mock.calls[0][0];
+      newFocusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should call with updated accounts
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getOptInStatus',
+        {
+          addresses: [mockAccount1.address, mockAccount2.address],
+        },
+      );
+    });
+  });
+
+  describe('focus effect registration', () => {
+    it('should register focus effect callback', () => {
+      renderHook(() => useRewardOptinSummary());
+
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('should register focus effect callback even when disabled', () => {
+      renderHook(() => useRewardOptinSummary({ enabled: false }));
+
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+    });
+  });
+
+  describe('loading state management', () => {
+    it('should show loading false when accounts are already populated', async () => {
+      // Arrange - accounts already exist
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true],
+      };
       mockEngineCall.mockResolvedValueOnce(mockResponse);
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
 
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
       await waitForNextUpdate();
 
-      // Assert
-      expect(result.current.currentAccountOptedIn).toBe(false); // Should default to false
+      // Assert - loading should be false because optedInAccounts has data
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
+    });
+
+    it('should show loading true when no accounts are populated yet', () => {
+      // Arrange - loading state with no resolved accounts
+      mockEngineCall.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Never resolves
+          }),
+      );
+
+      const { result } = renderHook(() => useRewardOptinSummary());
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert - should show loading when no accounts populated
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.hasError).toBe(false);
+    });
+
+    it('should set loading to true at start and false after successful completion', async () => {
+      // Arrange
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true],
+      };
+      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert - loading should be true initially
+      expect(result.current.isLoading).toBe(true);
+
+      await waitForNextUpdate();
+
+      // Assert - loading should be false after completion
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
   });
 });

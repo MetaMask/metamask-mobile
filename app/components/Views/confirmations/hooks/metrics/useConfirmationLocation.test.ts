@@ -136,6 +136,7 @@ describe('useConfirmationLocation', () => {
     [TransactionType.simpleSend],
     [TransactionType.tokenMethodTransfer],
     [TransactionType.tokenMethodTransferFrom],
+    [TransactionType.tokenMethodSafeTransferFrom],
   ])('returns TRANSFER location for %s transactions', (transactionType) => {
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({

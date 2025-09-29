@@ -13,7 +13,6 @@ export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 
 // State hooks (Redux selectors)
-export { usePerpsAccount } from './usePerpsAccount';
 // Portfolio balance hook (for wallet integration)
 export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 

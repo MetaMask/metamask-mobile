@@ -129,9 +129,8 @@ exports[`Confirm should render correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                     }
                   }
                   testID="send-back-button"
@@ -206,9 +205,8 @@ exports[`Confirm should render correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -441,9 +439,8 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -701,9 +698,8 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -837,9 +833,8 @@ exports[`Confirm should render correctly 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           }
@@ -906,9 +901,8 @@ exports[`Confirm should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -936,9 +930,8 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "marginVertical": 3,
                                     "textAlign": "center",
                                     "textTransform": "uppercase",
@@ -953,9 +946,8 @@ exports[`Confirm should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -983,9 +975,8 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 44,
-                                    "fontWeight": "300",
                                     "textAlign": "center",
                                   },
                                 ]
@@ -997,9 +988,8 @@ exports[`Confirm should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -1027,9 +1017,8 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "marginVertical": 3,
                                     "textAlign": "center",
                                     "textTransform": "uppercase",
@@ -1094,16 +1083,14 @@ exports[`Confirm should render correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         undefined,
                                         undefined,
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontWeight": "600",
+                                          "fontFamily": "Geist Bold",
                                         },
                                         undefined,
                                         undefined,
@@ -1356,16 +1343,14 @@ exports[`Confirm should render correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         undefined,
                                         undefined,
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontWeight": "600",
+                                          "fontFamily": "Geist Bold",
                                         },
                                         undefined,
                                         undefined,
@@ -1517,9 +1502,8 @@ exports[`Confirm should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -1548,9 +1532,8 @@ exports[`Confirm should render correctly 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                     },
                                   ]
                                 }
@@ -1617,9 +1600,8 @@ exports[`Confirm should render correctly 1`] = `
                                 },
                                 [
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 14,
-                                    "fontWeight": "600",
                                     "textAlign": "center",
                                   },
                                   {
