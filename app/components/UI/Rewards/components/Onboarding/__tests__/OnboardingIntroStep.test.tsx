@@ -104,6 +104,21 @@ jest.mock('../../../../../../core/Engine/Engine', () => ({
   },
 }));
 
+// Mock metrics
+jest.mock('../../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnValue({
+        build: jest.fn(),
+      }),
+    }),
+  }),
+  MetaMetricsEvents: {
+    REWARDS_ONBOARDING: 'REWARDS_ONBOARDING',
+  },
+}));
+
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => `mocked_${key}`,
