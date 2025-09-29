@@ -6,6 +6,7 @@ import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import TokenSelectModal from '../components/TokenSelectModal/TokenSelectModal';
+import RegionSelectorModal from '../components/RegionSelectorModal';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -66,6 +67,10 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
       component={IncompatibleAccountTokenModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
     />
   </ModalsStack.Navigator>
 );

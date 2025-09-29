@@ -23,6 +23,7 @@ const Routes = {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
+      REGION_SELECTOR: 'RampRegionSelectorModal',
     },
   },
   DEPOSIT: {
