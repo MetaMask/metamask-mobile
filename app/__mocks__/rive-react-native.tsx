@@ -43,22 +43,14 @@ const createMockedMethods = (overrides?: MockedMethods): RiveRef => ({
 
 let lastMockedMethods: RiveRef | undefined;
 
+const updateLastMockedMethods = (methods: RiveRef) => {
+  lastMockedMethods = methods;
+};
+
 const RiveMock = forwardRef<RiveRef, MockRiveProps>(
-  (
-    {
-      testID = DEFAULT_TEST_ID,
-      mockedMethods,
-      source,
-      fit,
-      alignment,
-      autoplay,
-      stateMachineName,
-      ...viewProps
-    },
-    ref,
-  ) => {
+  ({ testID = DEFAULT_TEST_ID, mockedMethods, ...viewProps }, ref) => {
     const methods = createMockedMethods(mockedMethods);
-    lastMockedMethods = methods;
+    updateLastMockedMethods(methods);
 
     useImperativeHandle(ref, () => methods, [methods]);
 
