@@ -704,7 +704,7 @@ export class RewardsController extends BaseController<
               internalAccount,
               timestamp,
             );
-            return executeLogin(timestamp, signature);
+            return await executeLogin(timestamp, signature);
           }
           throw error;
         }
@@ -1733,7 +1733,7 @@ export class RewardsController extends BaseController<
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
             signature = await this.#signRewardsMessage(account, timestamp);
-            return executeMobileJoin(timestamp, signature);
+            return await executeMobileJoin(timestamp, signature);
           }
           throw error;
         }
