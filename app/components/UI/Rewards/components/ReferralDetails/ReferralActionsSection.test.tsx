@@ -52,6 +52,7 @@ describe('ReferralActionsSection', () => {
   const defaultProps = {
     referralCode: 'TEST123',
     referralCodeLoading: false,
+    referralCodeError: false,
     onCopyCode: jest.fn(),
     onCopyLink: jest.fn(),
     onShareLink: jest.fn(),
@@ -201,6 +202,99 @@ describe('ReferralActionsSection', () => {
     });
   });
 
+  describe('error handling', () => {
+    it('should return null when error occurs and not loading with no referral code', () => {
+      // Arrange
+      const { queryByTestId } = render(
+        <ReferralActionsSection
+          {...defaultProps}
+          referralCodeError
+          referralCodeLoading={false}
+          referralCode={null}
+        />,
+      );
+
+      // Assert - Component should not render anything
+      expect(
+        queryByTestId('copyable-field-rewards.referral.referral_code'),
+      ).toBeNull();
+      expect(
+        queryByTestId('copyable-field-rewards.referral.referral_link'),
+      ).toBeNull();
+    });
+
+    it('should render normally when error occurs but still loading', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ReferralActionsSection
+          {...defaultProps}
+          referralCodeError
+          referralCodeLoading
+          referralCode={null}
+        />,
+      );
+
+      // Assert - Component should render despite error because it's loading
+      expect(
+        getByTestId('copyable-field-rewards.referral.referral_code'),
+      ).toBeTruthy();
+    });
+
+    it('should render normally when error occurs but referral code exists', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ReferralActionsSection
+          {...defaultProps}
+          referralCodeError
+          referralCodeLoading={false}
+          referralCode="ERROR123"
+        />,
+      );
+
+      // Assert - Component should render despite error because referral code exists
+      expect(
+        getByTestId('copyable-field-rewards.referral.referral_code'),
+      ).toBeTruthy();
+    });
+
+    it('should render normally when no error regardless of other props', () => {
+      // Arrange
+      const { getByTestId } = render(
+        <ReferralActionsSection
+          {...defaultProps}
+          referralCodeError={false}
+          referralCodeLoading={false}
+          referralCode={null}
+        />,
+      );
+
+      // Assert - Component should render when no error
+      expect(
+        getByTestId('copyable-field-rewards.referral.referral_code'),
+      ).toBeTruthy();
+    });
+
+    it('should handle undefined referral code with error gracefully', () => {
+      // Arrange
+      const { queryByTestId } = render(
+        <ReferralActionsSection
+          {...defaultProps}
+          referralCodeError
+          referralCodeLoading={false}
+          referralCode={undefined}
+        />,
+      );
+
+      // Assert - Component should not render anything
+      expect(
+        queryByTestId('copyable-field-rewards.referral.referral_code'),
+      ).toBeNull();
+      expect(
+        queryByTestId('copyable-field-rewards.referral.referral_link'),
+      ).toBeNull();
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle special characters in referral code', () => {
       const specialCode = 'TEST-123_ABC';
@@ -223,6 +317,47 @@ describe('ReferralActionsSection', () => {
       expect(getByText(longCode)).toBeTruthy();
       expect(
         getByText(`link.metamask.io/rewards?referral=${longCode}`),
+      ).toBeTruthy();
+    });
+
+    it('should handle combination of error conditions correctly', () => {
+      // Arrange - All conditions that should trigger early return
+      const { queryByTestId } = render(
+        <ReferralActionsSection
+          referralCode={null}
+          referralCodeLoading={false}
+          referralCodeError
+          onCopyCode={jest.fn()}
+          onCopyLink={jest.fn()}
+          onShareLink={jest.fn()}
+        />,
+      );
+
+      // Assert - Component should not render anything
+      expect(
+        queryByTestId('copyable-field-rewards.referral.referral_code'),
+      ).toBeNull();
+      expect(
+        queryByTestId('copyable-field-rewards.referral.referral_link'),
+      ).toBeNull();
+    });
+
+    it('should render when only one condition is met for early return', () => {
+      // Arrange - Only error is true, but other conditions prevent early return
+      const { getByTestId } = render(
+        <ReferralActionsSection
+          referralCode="TEST123"
+          referralCodeLoading={false}
+          referralCodeError
+          onCopyCode={jest.fn()}
+          onCopyLink={jest.fn()}
+          onShareLink={jest.fn()}
+        />,
+      );
+
+      // Assert - Should render because referralCode exists
+      expect(
+        getByTestId('copyable-field-rewards.referral.referral_code'),
       ).toBeTruthy();
     });
   });

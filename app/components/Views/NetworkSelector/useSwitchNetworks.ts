@@ -4,7 +4,6 @@ import Engine from '../../../core/Engine';
 import {
   getDecimalChainId,
   isPerDappSelectedNetworkEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
@@ -38,11 +37,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import {
-  NetworkType,
-  useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
@@ -84,12 +78,6 @@ export function useSwitchNetworks({
     selectEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { networks } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
-  const { selectNetwork } = useNetworkSelection({
-    networks,
-  });
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isSolanaAccountAlreadyCreated = useSelector(
@@ -110,11 +98,8 @@ export function useSwitchNetworks({
           [chainId]: true,
         });
       }
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        selectNetwork(chainId);
-      }
     },
-    [isAllNetwork, selectNetwork],
+    [isAllNetwork],
   );
 
   /**

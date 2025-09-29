@@ -37,7 +37,8 @@ export const WalletViewSelectorsIDs = {
   SORT_BUTTON: 'token-sort-button',
   SORT_BY: 'sort-by',
   NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
-  TOKEN_NETWORK_FILTER: 'token-network-filter',
+  TOKEN_NETWORK_FILTER: 'tokens-network-filter',
+  COLLECTIBLES_NETWORK_FILTER: 'collectibles-network-filter',
   TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
   TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
   NAVBAR_TITLE_TEXT: 'navbar-title-text',
@@ -95,8 +96,10 @@ export const WalletViewSelectorsText = {
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
-  DEFI_NO_VISIBLE_POSITIONS: enContent.defi_positions.no_visible_positions,
-  DEFI_NOT_SUPPORTED: enContent.defi_positions.not_supported,
+  DEFI_EMPTY_STATE_DESCRIPTION:
+    enContent.defi_positions.empty_state.description,
+  DEFI_EMPTY_STATE_EXPLORE_BUTTON:
+    enContent.defi_positions.empty_state.explore_defi,
   DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 } as const;

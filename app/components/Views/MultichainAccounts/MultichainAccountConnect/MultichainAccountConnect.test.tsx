@@ -24,6 +24,7 @@ import {
 } from '../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -60,7 +61,7 @@ jest.mock('../../../hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('react-native-scrollable-tab-view', () => ({
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
@@ -429,16 +430,47 @@ const createMockState = (): DeepPartial<RootState> => ({
         },
       },
       NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: { status: NetworkStatus.Available, EIPS: {} },
+        },
         networkConfigurationsByChainId: {
           '0x1': {
-            chainId: '0x1',
-            name: 'Ethereum',
-            rpcEndpoints: [{ url: 'https://mainnet.infura.io/v3/test' }],
             blockExplorerUrls: ['https://etherscan.io'],
+            chainId: '0x1' as `0x${string}`,
+            defaultRpcEndpointIndex: 0,
+            name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Infura,
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+            ],
           },
         },
-        selectedNetworkClientId: '1',
+      },
+      PreferencesController: {
+        privacyMode: false,
+        ipfsGateway: 'https://ipfs.io',
+        useNftDetection: true,
+        showMultiRpcModal: false,
+        useTokenDetection: true,
+        displayNftMedia: false,
+        useSafeChainsListValidation: true,
+        tokenSortConfig: {
+          key: 'tokenFiatAmount',
+          order: 'dsc' as const,
+          sortCallback: 'stringNumeric',
+        },
+        tokenNetworkFilter: {},
+        isMultiAccountBalancesEnabled: true,
+        showTestNetworks: true,
+        isIpfsGatewayEnabled: true,
+        securityAlertsEnabled: true,
+        smartTransactionsOptInStatus: true,
+        useTransactionSimulations: true,
       },
       NetworkEnablementController: {
         enabledNetworkMap: {
@@ -1193,29 +1225,35 @@ describe('MultichainAccountConnect', () => {
   });
 
   it('handles malformed CAIP account IDs', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: ['invalid-caip-account-id'],
-                },
-              }),
-            },
-            permissionRequestId: 'test-malformed-caip',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
+    // Mock console.error to prevent error logs during test execution
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(() => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: ['invalid-caip-account-id'],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-malformed-caip',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+    }).toThrow('Invalid CAIP account ID.');
+
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
   });
 
   describe('Account group selection logic', () => {
