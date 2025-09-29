@@ -98,7 +98,7 @@ jobs:
         env:
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
         run: |
-          .github/scripts/ai-e2e-analysis.sh \
+          node .github/scripts/ai-e2e-analysis.mjs \
             "${{ github.event_name }}" \
             "${{ github.event.inputs.base_branch }}" \
             "${{ github.event.inputs.include_main_changes }}" \
