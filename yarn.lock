@@ -7820,19 +7820,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/network-enablement-controller@npm:1.2.0"
+"@metamask/network-enablement-controller@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/network-enablement-controller@npm:2.1.0"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/controller-utils": ^11.14.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/utils": ^11.8.1
     reselect: ^5.1.1
   peerDependencies:
-    "@metamask/multichain-network-controller": ^0.11.0
+    "@metamask/multichain-network-controller": ^1.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: da89146cadabb11a312561f6ac5f068220d567a6f21e1be51ded2750eb642b62a8f12659926168a254e9ffd8f3b26581d738730377ab3ac0c6bd05cd28809634
+  checksum: d415eeb27e59e5d4c97c1fbebcc78df22df3a541d332cfc6974d2f0f06dbbbb9396d3f37e9d33247e43bba75d34e7a2c89061b78ed47fd714ac4687637e9b77f
   languageName: node
   linkType: hard
 
@@ -33750,7 +33751,7 @@ __metadata:
     "@metamask/multichain-network-controller": ^0.12.0
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
-    "@metamask/network-enablement-controller": ^1.2.0
+    "@metamask/network-enablement-controller": ^2.1.0
     "@metamask/notification-services-controller": ^18.1.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
