@@ -87,17 +87,6 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     if (getStarted) {
-      // Redirects to Network Switcher view if the current network is not supported by Ramp
-      // The Network Switcher handles adding or switching to the network specified in the URL params
-      // and continues the intent with any additional params (like token and amount).
-      if (!isNetworkRampSupported) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
-        });
-        return;
-      }
-
       if (selectedRegion) {
         navigation.reset({
           index: 0,

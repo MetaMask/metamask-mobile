@@ -178,19 +178,6 @@ describe('GetStarted', () => {
     });
   });
 
-  it('navigates to network switcher on unsupported network when getStarted is true', async () => {
-    mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
-      getStarted: true,
-    };
-    mockUseRampNetworkValue = [false];
-    render(GetStarted);
-    expect(mockReset).toBeCalledWith({
-      index: 0,
-      routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
-    });
-  });
-
   it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
     (useRegions as jest.Mock).mockReturnValue({
       selectedRegion: null,
