@@ -206,10 +206,13 @@ const PerpsClosePositionView: React.FC = () => {
     orderAmount: closingValueString,
   });
 
-  // Calculate what user will receive (initial margin - fees)
+  // Calculate what user will receive (initial margin + P&L - fees)
   // P&L is already shown separately in the margin section as "includes P&L"
-  const receiveAmount =
-    (closePercentage / 100) * initialMargin - feeResults.totalFee;
+  const receiveAmount = useMemo(() => {
+    const marginPortion = (closePercentage / 100) * initialMargin;
+    const pnlPortion = effectivePnL * (closePercentage / 100);
+    return marginPortion + pnlPortion - feeResults.totalFee;
+  }, [closePercentage, initialMargin, effectivePnL, feeResults.totalFee]);
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -499,9 +502,13 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(initialMargin * (closePercentage / 100), {
-              maximumDecimals: 2,
-            })}
+            {formatPrice(
+              (closePercentage / 100) * initialMargin +
+                effectivePnL * (closePercentage / 100),
+              {
+                maximumDecimals: 2,
+              },
+            )}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
