@@ -16,6 +16,8 @@ import {
   ButtonVariant,
   IconName,
   IconSize,
+  IconColor,
+  ButtonIcon,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -31,6 +33,7 @@ export interface ModalAction {
   onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 interface RewardsBottomSheetModalProps {
@@ -44,7 +47,9 @@ interface RewardsBottomSheetModalProps {
       onCancel?: () => void;
       cancelLabel?: string;
       showCancelButton?: boolean;
+      cancelMode?: 'cta-button' | 'top-right-cross-icon';
       showIcon?: boolean;
+      customIcon?: React.ReactNode;
     };
   };
 }
@@ -61,7 +66,9 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     onCancel,
     cancelLabel = 'Cancel',
     showCancelButton = false,
+    cancelMode = 'cta-button',
     showIcon = true,
+    customIcon,
   } = route.params;
 
   const handleDismiss = useCallback(() => {
@@ -77,6 +84,20 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
   }, [onCancel, handleDismiss]);
 
   const renderIcon = () => {
+    // If custom icon is provided, use it
+    if (customIcon) {
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="mb-4"
+        >
+          {customIcon}
+        </Box>
+      );
+    }
+
+    // Default icon handling
     let iconName = IconName.Danger;
     let iconStyle = 'text-warning-default';
 
@@ -148,7 +169,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     // Default actions based on modal type and props
     const hasCancel = showCancelButton || onCancel;
 
-    if (hasCancel) {
+    if (hasCancel && cancelMode === 'cta-button') {
       // Two buttons side by side
       return (
         <Box
@@ -161,6 +182,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
               size={ButtonSize.Lg}
               onPress={confirmAction.onPress}
               disabled={confirmAction.disabled}
+              isLoading={confirmAction.isLoading}
               isDanger={type === ModalType.Danger}
               twClassName="w-full"
             >
@@ -207,6 +229,17 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         justifyContent={BoxJustifyContent.Center}
         twClassName="p-4"
       >
+        {cancelMode === 'top-right-cross-icon' && (
+          <Box twClassName="w-full flex-row justify-end">
+            <ButtonIcon
+              onPress={handleCancel}
+              iconName={IconName.Close}
+              iconProps={{
+                color: IconColor.IconDefault,
+              }}
+            />
+          </Box>
+        )}
         {showIcon && renderIcon()}
         {renderTitle()}
         {renderDescription()}

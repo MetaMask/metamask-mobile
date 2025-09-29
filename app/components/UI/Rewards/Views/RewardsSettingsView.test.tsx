@@ -215,9 +215,7 @@ jest.mock('../components/Settings/RewardSettingsTabs', () => {
 });
 
 // Mock selectors
-jest.mock('../../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
-}));
+jest.mock('../../../../selectors/rewards', () => ({}));
 
 // Mock hooks
 jest.mock('../hooks/useOptout', () => ({
@@ -237,16 +235,11 @@ jest.mock('../hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
 }));
 
-// Import mocked selectors and hooks for setup
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
+// Import mocked hooks for setup
 import { useOptout } from '../hooks/useOptout';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
 const mockUseAccountsOperationsLoadingStates =
   useAccountsOperationsLoadingStates as jest.MockedFunction<
@@ -298,7 +291,6 @@ describe('RewardsSettingsView', () => {
     store = createMockStore();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
     mockUseOptout.mockReturnValue({
       optout: jest.fn(),
       isLoading: false,
@@ -349,10 +341,7 @@ describe('RewardsSettingsView', () => {
   });
 
   describe('Initial tab determination', () => {
-    it('starts with linked tab (index 0) when account is opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-
+    it('starts with linked tab (index 0) by default', () => {
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
         <RewardsSettingsView />,
@@ -363,24 +352,7 @@ describe('RewardsSettingsView', () => {
       expect(getByText('Tab Index: 0')).toBeOnTheScreen();
     });
 
-    it('starts with unlinked tab (index 1) when account is not opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
-      expect(getByText('Tab Index: 1')).toBeOnTheScreen();
-    });
-
-    it('starts with unlinked tab (index 1) when account status is null', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
-
+    it('starts with linked tab (index 0) regardless of account status', () => {
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
         <RewardsSettingsView />,
@@ -398,7 +370,6 @@ describe('RewardsSettingsView', () => {
       mockUseRoute.mockReturnValue({
         params: { focusUnlinkedTab: true },
       });
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
 
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
@@ -532,7 +503,6 @@ describe('RewardsSettingsView', () => {
 
     it('shows syncing banner when account syncing is in progress', () => {
       // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         areAnyOperationsLoading: true,
         isAccountSyncingInProgress: true,
@@ -587,14 +557,6 @@ describe('RewardsSettingsView', () => {
 
       // Assert
       expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('uses selectRewardsActiveAccountHasOptedIn selector', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
     });
   });
 

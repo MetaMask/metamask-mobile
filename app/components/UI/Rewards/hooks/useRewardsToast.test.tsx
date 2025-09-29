@@ -4,6 +4,7 @@ import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import useRewardsToast, { RewardsToastOptions } from './useRewardsToast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 // Mock dependencies
 jest.mock('react', () => ({
@@ -22,6 +23,13 @@ jest.mock('expo-haptics', () => ({
   },
 }));
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    if (key === 'rewards.toast_dismiss') return 'Dismiss';
+    return key;
+  }),
+}));
+
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
@@ -29,23 +37,32 @@ jest.mock('../../../../util/theme', () => ({
         default: '#4459ff',
         muted: '#4459ff1a',
       },
+      background: {
+        muted: '#3c4d9d0f',
+      },
+      error: {
+        default: '#ca3542',
+      },
     },
   }),
 }));
 
 describe('useRewardsToast', () => {
   let mockShowToast: jest.Mock;
+  let mockCloseToast: jest.Mock;
   let mockToastRef: {
-    current: { showToast: jest.Mock };
+    current: { showToast: jest.Mock; closeToast: jest.Mock };
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockShowToast = jest.fn();
+    mockCloseToast = jest.fn();
     mockToastRef = {
       current: {
         showToast: mockShowToast,
+        closeToast: mockCloseToast,
       },
     };
 
@@ -83,14 +100,19 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: '#3c4d9d0f',
-        backgroundColor: '#4459ff',
+        iconColor: '#4459ff',
+        backgroundColor: '#4459ff1a',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
         { label: 'Test Title', isBold: true },
       ]);
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonVariants.Primary,
+        endIconName: IconName.CircleX,
+        label: 'Dismiss',
+      });
     });
 
     it('returns success configuration with title and subtitle', () => {
@@ -103,13 +125,80 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
+        iconColor: '#4459ff',
+        backgroundColor: '#4459ff1a',
         hapticsType: NotificationFeedbackType.Success,
+        hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
         { label: 'Test Title', isBold: true },
         { label: '\n', isBold: false },
         { label: 'Test Subtitle', isBold: false },
       ]);
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonVariants.Primary,
+        endIconName: IconName.CircleX,
+        label: 'Dismiss',
+      });
+    });
+
+    it('returns error configuration with title only', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.error('Error Title');
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Error,
+        iconColor: '#3c4d9d0f',
+        backgroundColor: '#ca3542',
+        hapticsType: NotificationFeedbackType.Error,
+        hasNoTimeout: false,
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Error Title', isBold: true },
+      ]);
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonVariants.Primary,
+        endIconName: IconName.CircleX,
+        label: 'Dismiss',
+      });
+    });
+
+    it('returns error configuration with title and subtitle', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.error(
+        'Error Title',
+        'Error Subtitle',
+      );
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Error,
+        iconColor: '#3c4d9d0f',
+        backgroundColor: '#ca3542',
+        hapticsType: NotificationFeedbackType.Error,
+        hasNoTimeout: false,
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Error Title', isBold: true },
+        { label: '\n', isBold: false },
+        { label: 'Error Subtitle', isBold: false },
+      ]);
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonVariants.Primary,
+        endIconName: IconName.CircleX,
+        label: 'Dismiss',
+      });
+    });
+
+    it('calls closeToast when close button is pressed', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.success('Test Title');
+
+      // Call the close button's onPress function
+      config.closeButtonOptions?.onPress?.();
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -143,6 +232,39 @@ describe('useRewardsToast', () => {
       });
       expect(config.labelOptions[2]).toEqual({
         label: 'Test Subtitle',
+        isBold: false,
+      });
+    });
+
+    it('formats error labels correctly with title only', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.error('Error Title');
+
+      expect(config.labelOptions).toHaveLength(1);
+      expect(config.labelOptions[0]).toEqual({
+        label: 'Error Title',
+        isBold: true,
+      });
+    });
+
+    it('formats error labels correctly with title and subtitle', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.error(
+        'Error Title',
+        'Error Subtitle',
+      );
+
+      expect(config.labelOptions).toHaveLength(3);
+      expect(config.labelOptions[0]).toEqual({
+        label: 'Error Title',
+        isBold: true,
+      });
+      expect(config.labelOptions[1]).toEqual({
+        label: '\n',
+        isBold: false,
+      });
+      expect(config.labelOptions[2]).toEqual({
+        label: 'Error Subtitle',
         isBold: false,
       });
     });

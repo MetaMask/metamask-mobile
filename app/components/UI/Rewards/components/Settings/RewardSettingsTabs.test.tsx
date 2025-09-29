@@ -127,7 +127,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactForDesignSystem = jest.requireActual('react');
-  const { Text: RNText, View } = jest.requireActual('react-native');
+  const {
+    Text: RNText,
+    View,
+    TouchableOpacity,
+  } = jest.requireActual('react-native');
 
   return {
     Box: ({
@@ -154,6 +158,29 @@ jest.mock('@metamask/design-system-react-native', () => {
         { testID: 'text', ...props },
         children,
       ),
+    Button: ({
+      children,
+      onPress,
+      disabled,
+      isLoading,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      disabled?: boolean;
+      isLoading?: boolean;
+      [key: string]: unknown;
+    }) =>
+      ReactForDesignSystem.createElement(
+        TouchableOpacity,
+        {
+          testID: 'button',
+          onPress: disabled || isLoading ? undefined : onPress,
+          disabled,
+          ...props,
+        },
+        children,
+      ),
     Icon: ({ name, ...props }: { name: string; [key: string]: unknown }) =>
       ReactForDesignSystem.createElement(View, {
         testID: `icon-${name}`,
@@ -164,6 +191,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: {
       Medium: 'Medium',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
     BoxFlexDirection: {
       Row: 'row',
@@ -664,34 +701,6 @@ describe('RewardSettingsTabs', () => {
       fireEvent.press(linkButton);
 
       expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
-    });
-
-    it('should prevent double-press on link button when isLoading is true', async () => {
-      const mockLinkAccount = jest.fn().mockResolvedValue(true);
-      mockUseLinkAccount.mockReturnValue({
-        linkAccount: mockLinkAccount,
-        isLoading: true, // Simulate already linking
-      });
-      mockUseRewardOptinSummary.mockReturnValue({
-        linkedAccounts: [],
-        unlinkedAccounts: [mockAccount1],
-        isLoading: false,
-        hasError: false,
-        refresh: jest.fn(),
-        currentAccountOptedIn: false,
-      });
-
-      const { getByText } = renderWithProvider(
-        <RewardSettingsTabs initialTabIndex={0} />,
-      );
-
-      const linkButton = getByText(
-        'mocked_rewards.settings.link_account_button',
-      );
-      fireEvent.press(linkButton);
-      fireEvent.press(linkButton); // Second press should be ignored
-
-      expect(mockLinkAccount).not.toHaveBeenCalled();
     });
 
     it('should show activity indicator when linking specific account', async () => {

@@ -38,13 +38,17 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
 
     // Provide a properly typed forwardRef and children prop
-    return React.forwardRef(
+    return ReactActual.forwardRef(
       (props: { children?: React.ReactNode }, _ref: React.Ref<unknown>) =>
-        React.createElement(View, { testID: 'bottom-sheet' }, props.children),
+        ReactActual.createElement(
+          View,
+          { testID: 'bottom-sheet' },
+          props.children,
+        ),
     );
   },
 );
@@ -58,6 +62,13 @@ interface ButtonProps extends ComponentProps {
   onPress?: () => void;
   disabled?: boolean;
   isDanger?: boolean;
+  isLoading?: boolean;
+}
+
+interface ButtonIconProps extends ComponentProps {
+  onPress?: () => void;
+  iconName?: string;
+  iconProps?: Record<string, unknown>;
 }
 
 interface IconProps {
@@ -66,19 +77,20 @@ interface IconProps {
 }
 
 // Mock design system components
+const { Text: RNText } = jest.requireActual('react-native');
 jest.mock('@metamask/design-system-react-native', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const {
-    Text: RNText,
+    Text: RNTextActual,
     View,
     TouchableOpacity,
   } = jest.requireActual('react-native');
 
   return {
     Text: ({ children, ...props }: ComponentProps) =>
-      React.createElement(RNText, props, children),
+      ReactActual.createElement(RNTextActual, props, children),
     Box: ({ children, ...props }: ComponentProps) =>
-      React.createElement(View, props, children),
+      ReactActual.createElement(View, props, children),
     Button: ({
       children,
       onPress,
@@ -86,7 +98,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       disabled,
       ...props
     }: ButtonProps) =>
-      React.createElement(
+      ReactActual.createElement(
         TouchableOpacity,
         {
           onPress,
@@ -94,25 +106,43 @@ jest.mock('@metamask/design-system-react-native', () => {
           disabled,
           ...props,
         },
-        React.createElement(
-          RNText,
+        ReactActual.createElement(
+          RNTextActual,
           {
             // Put the test-relevant props on the Text element since that's what getByText finds
             isDanger,
             disabled,
+            isLoading: props.isLoading,
             accessibilityState: disabled ? { disabled: true } : undefined,
           },
           children,
         ),
       ),
+    ButtonIcon: ({ onPress, iconName, iconProps, ...props }: ButtonIconProps) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        {
+          onPress,
+          testID: 'button-icon',
+          ...props,
+        },
+        ReactActual.createElement(
+          View,
+          {
+            testID: `button-icon-${iconName}`,
+            ...iconProps,
+          },
+          ReactActual.createElement(RNTextActual, {}, 'ButtonIcon'),
+        ),
+      ),
     Icon: ({ name, ...props }: IconProps) =>
-      React.createElement(
+      ReactActual.createElement(
         View,
         {
           testID: `icon-${name}`,
           ...props,
         },
-        React.createElement(RNText, {}, 'Icon'),
+        ReactActual.createElement(RNTextActual, {}, 'Icon'),
       ),
     TextVariant: {
       HeadingMd: 'HeadingMd',
@@ -141,6 +171,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     IconSize: {
       Xl: 'xl',
+    },
+    IconColor: {
+      IconDefault: 'icon-default',
     },
   };
 });
@@ -374,5 +407,120 @@ describe('RewardsBottomSheetModal', () => {
 
     const confirmButton = getByText('Confirm');
     expect(confirmButton.props.isDanger).toBe(false);
+  });
+
+  it('should render close button when cancelMode is top-right-cross-icon', () => {
+    const routeWithCrossIcon = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        confirmAction: mockConfirmAction,
+        cancelMode: 'top-right-cross-icon' as const,
+      },
+    };
+
+    const { getByTestId } = render(
+      <RewardsBottomSheetModal route={routeWithCrossIcon} />,
+    );
+
+    expect(getByTestId('button-icon')).toBeOnTheScreen();
+  });
+
+  it('should call onCancel when close button is pressed with top-right-cross-icon mode', () => {
+    const mockOnCancel = jest.fn();
+    const routeWithCrossIcon = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        confirmAction: mockConfirmAction,
+        cancelMode: 'top-right-cross-icon' as const,
+        onCancel: mockOnCancel,
+      },
+    };
+
+    const { getByTestId } = render(
+      <RewardsBottomSheetModal route={routeWithCrossIcon} />,
+    );
+
+    const closeButton = getByTestId('button-icon');
+    fireEvent.press(closeButton);
+
+    expect(mockOnCancel).toHaveBeenCalled();
+  });
+
+  it('should render custom icon when customIcon prop is provided', () => {
+    const CustomIcon = () => <RNText testID="custom-icon">Custom</RNText>;
+
+    const routeWithCustomIcon = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        confirmAction: mockConfirmAction,
+        customIcon: <CustomIcon />,
+      },
+    };
+
+    const { getByTestId } = render(
+      <RewardsBottomSheetModal route={routeWithCustomIcon} />,
+    );
+
+    expect(getByTestId('custom-icon')).toBeOnTheScreen();
+  });
+
+  it('should not render icon when showIcon is false', () => {
+    const routeWithoutIcon = {
+      params: {
+        title: 'Test Title',
+        description: 'Test Description',
+        confirmAction: mockConfirmAction,
+        showIcon: false,
+      },
+    };
+
+    const { queryByTestId } = render(
+      <RewardsBottomSheetModal route={routeWithoutIcon} />,
+    );
+
+    expect(queryByTestId('icon-danger')).not.toBeOnTheScreen();
+  });
+
+  it('should render React node as title when title is not a string', () => {
+    const CustomTitle = () => (
+      <RNText testID="custom-title">Custom Title</RNText>
+    );
+
+    const routeWithCustomTitle = {
+      params: {
+        title: <CustomTitle />,
+        description: 'Test Description',
+        confirmAction: mockConfirmAction,
+      },
+    };
+
+    const { getByTestId } = render(
+      <RewardsBottomSheetModal route={routeWithCustomTitle} />,
+    );
+
+    expect(getByTestId('custom-title')).toBeOnTheScreen();
+  });
+
+  it('should render React node as description when description is not a string', () => {
+    const CustomDescription = () => (
+      <RNText testID="custom-description">Custom Description</RNText>
+    );
+
+    const routeWithCustomDescription = {
+      params: {
+        title: 'Test Title',
+        description: <CustomDescription />,
+        confirmAction: mockConfirmAction,
+      },
+    };
+
+    const { getByTestId } = render(
+      <RewardsBottomSheetModal route={routeWithCustomDescription} />,
+    );
+
+    expect(getByTestId('custom-description')).toBeOnTheScreen();
   });
 });

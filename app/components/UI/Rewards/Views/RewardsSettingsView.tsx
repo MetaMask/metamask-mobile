@@ -6,7 +6,6 @@ import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
-import { useSelector } from 'react-redux';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
@@ -16,7 +15,6 @@ import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
@@ -33,7 +31,6 @@ const RewardsSettingsView: React.FC = () => {
     | RewardsSettingsViewRouteParams
     | undefined;
   const { colors } = useTheme();
-  const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
 
@@ -64,13 +61,9 @@ const RewardsSettingsView: React.FC = () => {
     if (routeParams?.focusUnlinkedTab) {
       return 1;
     }
-    // If current account is not opted in, start with unlinked tab (index 1)
-    if (hasAccountOptedIn === false) {
-      return 1;
-    }
     // Otherwise, start with linked tab (index 0)
     return 0;
-  }, [hasAccountOptedIn, routeParams?.focusUnlinkedTab]);
+  }, [routeParams?.focusUnlinkedTab]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
