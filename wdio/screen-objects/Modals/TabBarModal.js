@@ -117,7 +117,7 @@ class TabBarModal extends AppwrightGestures {
       await Gestures.waitAndTap(this.tradeButton);
     } else {
       const tradeButton = await this.tradeButton;
-      await this.tap(tradeButton);
+      await tradeButton.tap();
     }
   }
 

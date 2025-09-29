@@ -87,7 +87,7 @@ class WalletActionModal extends AppwrightGestures {
       await Gestures.waitAndTap(this.perpsButton);
     } else {
       const element = await this.perpsButton;
-      await this.tap(element);
+      await element.tap();
     }
   }
 }
