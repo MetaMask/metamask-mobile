@@ -9,8 +9,7 @@ const styleSheet = () =>
   StyleSheet.create({
     emptyView: {
       alignItems: 'center',
-      height: '100%',
-      justifyContent: 'center',
+      marginVertical: 8,
     },
     wrapper: {
       flex: 1,
