@@ -408,7 +408,9 @@ export const getRpcMethodMiddleware = ({
   analytics,
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
-  hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+  hostname = hostname
+    .replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
+    .replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
   const origin = channelId ?? hostname;
   const hooks = getRpcMethodMiddlewareHooks(origin);
 
