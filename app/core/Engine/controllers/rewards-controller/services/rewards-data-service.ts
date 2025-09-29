@@ -377,7 +377,7 @@ export class RewardsDataService {
         // Retry signing with a new timestamp
         throw new InvalidTimestampError(
           'Invalid timestamp. Please try again with a new timestamp.',
-          Number(errorData.serverTimestamp) / 1000,
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
       throw new Error(`Login failed: ${response.status}`);
@@ -673,7 +673,7 @@ export class RewardsDataService {
         // Retry signing with a new timestamp
         throw new InvalidTimestampError(
           'Invalid timestamp. Please try again with a new timestamp.',
-          Number(errorData.serverTimestamp) / 1000,
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
         );
       }
       throw new Error(

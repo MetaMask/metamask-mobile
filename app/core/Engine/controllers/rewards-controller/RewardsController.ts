@@ -1699,7 +1699,7 @@ export class RewardsController extends BaseController<
 
     try {
       // Generate timestamp and sign the message for mobile join
-      let timestamp = Math.floor(Date.now()) / 1000;
+      let timestamp = Math.floor(Date.now() / 1000);
       let signature = await this.#signRewardsMessage(account, timestamp);
       let retryAttempt = 0;
       const MAX_RETRY_ATTEMPTS = 1;
