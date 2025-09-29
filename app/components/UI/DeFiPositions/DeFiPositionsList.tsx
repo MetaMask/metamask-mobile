@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, FlatList } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, VirtualizedList } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -144,27 +144,57 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     );
   }
 
+  const getItem = useCallback(
+    (data: typeof formattedDeFiPositions, index: number) => data[index],
+    [],
+  );
+
+  const getItemCount = useCallback(
+    (data: typeof formattedDeFiPositions) => data.length,
+    [],
+  );
+
+  const keyExtractor = useCallback(
+    (protocolChainAggregate: (typeof formattedDeFiPositions)[0]) =>
+      `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`,
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({
+      item: { chainId, protocolId, protocolAggregate },
+    }: {
+      item: (typeof formattedDeFiPositions)[0];
+    }) => (
+      <DeFiPositionsListItem
+        chainId={chainId}
+        protocolId={protocolId}
+        protocolAggregate={protocolAggregate}
+        privacyMode={privacyMode}
+      />
+    ),
+    [privacyMode],
+  );
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
-      <FlatList
+      <VirtualizedList
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
         data={formattedDeFiPositions}
-        renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
-          <DeFiPositionsListItem
-            chainId={chainId}
-            protocolId={protocolId}
-            protocolAggregate={protocolAggregate}
-            privacyMode={privacyMode}
-          />
-        )}
-        keyExtractor={(protocolChainAggregate) =>
-          `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
-        }
+        initialNumToRender={10}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        getItemCount={getItemCount}
+        getItem={getItem}
         scrollEnabled={false}
+        removeClippedSubviews
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
       />
     </View>
   );

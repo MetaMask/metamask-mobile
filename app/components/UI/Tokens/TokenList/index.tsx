@@ -1,12 +1,8 @@
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { View, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import React, { useCallback, useRef } from 'react';
+import { View, RefreshControl, VirtualizedList } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
-import {
-  selectIsTokenNetworkFilterEqualCurrentNetwork,
-  selectPrivacyMode,
-} from '../../../../selectors/preferencesController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
 import TextComponent, {
   TextColor,
@@ -20,6 +16,13 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 
+export interface VirtualizedListAssetKey {
+  address: string;
+  chainId: string | undefined;
+  isStaked: boolean | undefined;
+}
+
+// Keep the old export for backward compatibility
 export interface FlashListAssetKey {
   address: string;
   chainId: string | undefined;
@@ -27,7 +30,7 @@ export interface FlashListAssetKey {
 }
 
 interface TokenListProps {
-  tokenKeys: FlashListAssetKey[];
+  tokenKeys: VirtualizedListAssetKey[];
   refreshing: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
@@ -45,9 +48,6 @@ const TokenListComponent = ({
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
-  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
-    selectIsTokenNetworkFilterEqualCurrentNetwork,
-  );
 
   // BIP44 MAINTENANCE: Once stable, only use TokenListItemBip44
   const isMultichainAccountsState2Enabled = useSelector(
@@ -57,14 +57,10 @@ const TokenListComponent = ({
     ? TokenListItemBip44
     : TokenListItem;
 
-  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
+  const listRef = useRef<VirtualizedList<VirtualizedListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
-
-  useLayoutEffect(() => {
-    listRef.current?.recomputeViewableItems();
-  }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -73,7 +69,7 @@ const TokenListComponent = ({
   };
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: FlashListAssetKey }) => (
+    ({ item }: { item: VirtualizedListAssetKey }) => (
       <TokenListItemComponent
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
@@ -91,22 +87,31 @@ const TokenListComponent = ({
     ],
   );
 
+  const getItem = useCallback(
+    (data: VirtualizedListAssetKey[], index: number) => data[index],
+    [],
+  );
+
+  const getItemCount = useCallback(
+    (data: VirtualizedListAssetKey[]) => data.length,
+    [],
+  );
+
+  const keyExtractor = useCallback((item: VirtualizedListAssetKey) => {
+    const staked = item.isStaked ? 'staked' : 'unstaked';
+    return `${item.address}-${item.chainId}-${staked}`;
+  }, []);
+
   return tokenKeys?.length ? (
-    <FlashList
+    <VirtualizedList
       ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
-      removeClippedSubviews={false}
-      viewabilityConfig={{
-        itemVisiblePercentThreshold: 50,
-        minimumViewTime: 1000,
-      }}
-      decelerationRate={0}
+      initialNumToRender={10}
       renderItem={renderTokenListItem}
-      keyExtractor={(item) => {
-        const staked = item.isStaked ? 'staked' : 'unstaked';
-        return `${item.address}-${item.chainId}-${staked}`;
-      }}
+      keyExtractor={keyExtractor}
+      getItemCount={getItemCount}
+      getItem={getItem}
       ListFooterComponent={<TokenListFooter />}
       refreshControl={
         <RefreshControl
@@ -116,8 +121,11 @@ const TokenListComponent = ({
           onRefresh={onRefresh}
         />
       }
-      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
       scrollEnabled={false}
+      removeClippedSubviews
+      maxToRenderPerBatch={10}
+      updateCellsBatchingPeriod={50}
+      windowSize={10}
     />
   ) : (
     <View style={styles.emptyView}>

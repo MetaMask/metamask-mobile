@@ -11,9 +11,9 @@ import {
   View,
   RefreshControl,
   ActivityIndicator,
+  VirtualizedList,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -512,9 +512,20 @@ const CollectibleContracts = ({
     [goToAddCollectible, tw, isAddNFTEnabled],
   );
 
+  const getItem = useCallback((data, index) => data[index], []);
+
+  const getItemCount = useCallback((data) => data.length, []);
+
+  const keyExtractor = useCallback((item, index) => index.toString(), []);
+
+  const renderListItem = useCallback(
+    ({ item, index }) => renderCollectibleContract(item, index),
+    [renderCollectibleContract],
+  );
+
   const renderList = useCallback(
     () => (
-      <FlashList
+      <VirtualizedList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -526,8 +537,11 @@ const CollectibleContracts = ({
           </>
         }
         data={filteredCollectibleContracts}
-        renderItem={({ item, index }) => renderCollectibleContract(item, index)}
-        keyExtractor={(_, index) => index.toString()}
+        initialNumToRender={10}
+        renderItem={renderListItem}
+        keyExtractor={keyExtractor}
+        getItemCount={getItemCount}
+        getItem={getItem}
         testID={RefreshTestId}
         refreshControl={
           <RefreshControl
@@ -539,8 +553,11 @@ const CollectibleContracts = ({
         }
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
-        estimatedItemSize={100}
         scrollEnabled={false}
+        removeClippedSubviews
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
       />
     ),
     [
@@ -550,7 +567,10 @@ const CollectibleContracts = ({
       colors.icon.default,
       refreshing,
       onRefresh,
-      renderCollectibleContract,
+      renderListItem,
+      keyExtractor,
+      getItemCount,
+      getItem,
       renderFooter,
       renderEmpty,
       isCollectionDetectionBannerVisible,
