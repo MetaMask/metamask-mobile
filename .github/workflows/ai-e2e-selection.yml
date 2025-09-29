@@ -2,7 +2,7 @@ name: AI E2E Selection
 
 on:
   pull_request:
-    types: [labeled, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -42,7 +42,7 @@ jobs:
   analyze-and-plan:
     name: 'AI Analysis & Test Planning'
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ai-e2e') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-analysis')
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     outputs:
       selected-tags: ${{ steps.ai-analysis.outputs.tags }}
       selected-tags-display: ${{ steps.ai-analysis.outputs.tags_display }}
@@ -155,8 +155,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Check if analysis-only mode
+          # Check if analysis-only mode or no test labels present
           ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
+          SHOULD_BUILD_IOS="${{ needs.platform-conditions.outputs.should-build-ios }}"
+          SHOULD_BUILD_ANDROID="${{ needs.platform-conditions.outputs.should-build-android }}"
+
+          # If neither platform is enabled, treat as analysis-only
+          if [[ "$SHOULD_BUILD_IOS" == "false" && "$SHOULD_BUILD_ANDROID" == "false" ]]; then
+            ANALYSIS_ONLY="true"
+          fi
 
           # Generate the PR comment content
           if [[ "$ANALYSIS_ONLY" == "true" ]]; then
@@ -171,6 +178,11 @@ jobs:
           **📊 Analysis Results:**
           - **Mode:** Analysis-Only ✅ (no builds or tests)
           - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+
+          **🏷️ To run E2E tests, add one of these labels:**
+          - \`ai-e2e\` - Run tests on both iOS and Android
+          - \`ai-e2e-ios\` - Run tests on iOS only
+          - \`ai-e2e-android\` - Run tests on Android only
 
           _🔍 [View complete analysis](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis completed successfully_
 
@@ -231,13 +243,18 @@ jobs:
             IOS_ENABLED="${{ github.event.inputs.enable_ios }}"
             ANDROID_ENABLED="${{ github.event.inputs.enable_android }}"
           else
+            # For PR events, only enable platforms if specific labels are present
             IOS_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
             ANDROID_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
           fi
 
-          # Calculate final conditions - skip builds/tests if analysis-only mode
+          # Calculate final conditions - skip builds/tests if analysis-only mode OR no test labels present
           if [[ "$ANALYSIS_ONLY" == "true" ]]; then
             echo "🔍 Analysis-only mode: skipping all builds and tests"
+            SHOULD_BUILD_IOS="false"
+            SHOULD_BUILD_ANDROID="false"
+          elif [[ "$IOS_ENABLED" == "false" && "$ANDROID_ENABLED" == "false" ]]; then
+            echo "🔍 No test labels present: running analysis-only mode"
             SHOULD_BUILD_IOS="false"
             SHOULD_BUILD_ANDROID="false"
           elif [[ "$TESTS_NEEDED" == "true" && "$MATRIX_LENGTH" -gt 0 ]]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { execSync, spawn } from 'child_process';
-import { writeFileSync, appendFileSync } from 'fs';
+import { execSync } from 'child_process';
+import { appendFileSync } from 'fs';
 
 /**
  * AI E2E Analysis Script
@@ -12,8 +12,6 @@ const args = process.argv.slice(2);
 const EVENT_NAME = args[0];
 const BASE_BRANCH = args[1] || '';
 const INCLUDE_MAIN_CHANGES = args[2] || 'false';
-const IOS_ENABLED = args[3] || 'false';
-const ANDROID_ENABLED = args[4] || 'false';
 const HAS_ANALYSIS_LABEL = args[5] || 'false';
 
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
