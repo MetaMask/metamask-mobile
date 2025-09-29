@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
 
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import SendView from '../../pages/Send/SendView';
+import SendView from '../../pages/Send/RedesignedSendView';
 import WalletView from '../../pages/wallet/WalletView';
 import { DappVariants } from '../../framework/Constants';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
