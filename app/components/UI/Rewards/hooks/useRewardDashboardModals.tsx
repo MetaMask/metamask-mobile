@@ -291,6 +291,10 @@ export const useRewardDashboardModals = () => {
     }
   }, [selectedAccount, trackingKey]);
 
+  const resetAllSessionTracking = useCallback(() => {
+    sessionTracker.current.reset();
+  }, []);
+
   return {
     showUnlinkedAccountsModal,
     showNotOptedInModal,
@@ -298,5 +302,6 @@ export const useRewardDashboardModals = () => {
     resetSessionTracking,
     resetSessionTrackingForCurrentAccountGroup,
     hasShownModal,
+    resetAllSessionTracking,
   };
 };

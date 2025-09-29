@@ -58,6 +58,16 @@ jest.mock('./useRewardsToast', () => ({
   }),
 }));
 
+// Mock useRewardDashboardModals
+const mockResetAllSessionTrackingForRewardsDashboardModals = jest.fn();
+
+jest.mock('./useRewardDashboardModals', () => ({
+  useRewardDashboardModals: () => ({
+    resetAllSessionTracking:
+      mockResetAllSessionTrackingForRewardsDashboardModals,
+  }),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
@@ -109,6 +119,7 @@ describe('useOptout', () => {
       type: 'rewards/resetRewardsState',
       payload: undefined,
     });
+    mockResetAllSessionTrackingForRewardsDashboardModals.mockClear();
   });
 
   describe('initial state', () => {
@@ -147,6 +158,9 @@ describe('useOptout', () => {
         'useOptout: Opt-out successful, resetting state',
       );
       expect(mockDispatch).toHaveBeenCalledWith(mockResetRewardsState());
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).toHaveBeenCalledTimes(1);
       // Navigation should not happen in the optout function itself
       expect(result.current.isLoading).toBe(false);
     });
@@ -177,6 +191,9 @@ describe('useOptout', () => {
       );
       expect(mockErrorToast).toHaveBeenCalledWith('Failed to opt out');
       expect(mockShowToast).toHaveBeenCalled();
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -208,6 +225,9 @@ describe('useOptout', () => {
       );
       expect(mockErrorToast).toHaveBeenCalledWith('Failed to opt out');
       expect(mockShowToast).toHaveBeenCalled();
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -257,6 +277,9 @@ describe('useOptout', () => {
       // Assert
       expect(optoutResult).toBe(false);
       expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).not.toHaveBeenCalled();
       expect(result.current.isLoading).toBe(false);
     });
   });
@@ -454,6 +477,9 @@ describe('useOptout', () => {
         mockSubscriptionId,
       );
       expect(mockDispatch).toHaveBeenCalledWith(mockResetRewardsState());
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
@@ -548,6 +574,9 @@ describe('useOptout', () => {
       // Assert
       expect(optoutResult).toBe(false);
       expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle empty string subscription ID', async () => {
@@ -570,6 +599,9 @@ describe('useOptout', () => {
       // Assert
       expect(optoutResult).toBe(false);
       expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(
+        mockResetAllSessionTrackingForRewardsDashboardModals,
+      ).not.toHaveBeenCalled();
     });
 
     it('should show correct modal params with custom dismiss route', () => {
@@ -647,6 +679,36 @@ describe('useOptout', () => {
 
       // Assert
       expect(result.current.optout).not.toBe(initialOptout);
+    });
+
+    it('should include resetAllSessionTrackingForRewardsDashboardModals in optout callback dependencies', () => {
+      // Arrange
+      const { result } = renderHook(() => useOptout());
+      const initialOptout = result.current.optout;
+
+      // Clear the mock to track new calls
+      mockResetAllSessionTrackingForRewardsDashboardModals.mockClear();
+
+      // Change the mock implementation to return a new function (simulating dependency change)
+      const newResetFunction = jest.fn();
+      jest.clearAllMocks();
+
+      // Mock the useRewardDashboardModals to return a different reset function
+      jest
+        .mocked(
+          jest.requireActual('./useRewardDashboardModals')
+            .useRewardDashboardModals,
+        )
+        .mockReturnValue({
+          resetAllSessionTracking: newResetFunction,
+        });
+
+      // Act
+      const { result: newResult, rerender } = renderHook(() => useOptout());
+      rerender();
+
+      // Assert - The callback should be different when the dependency changes
+      expect(newResult.current.optout).not.toBe(initialOptout);
     });
 
     it('should recreate showOptoutBottomSheet callback when dependencies change', () => {

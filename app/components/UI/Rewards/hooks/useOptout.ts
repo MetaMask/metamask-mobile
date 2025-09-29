@@ -10,6 +10,7 @@ import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
+import { useRewardDashboardModals } from './useRewardDashboardModals';
 
 interface UseOptoutResult {
   optout: () => Promise<boolean>;
@@ -22,6 +23,10 @@ export const useOptout = (): UseOptoutResult => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const {
+    resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,
+  } = useRewardDashboardModals();
+
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const optout = useCallback(async (): Promise<boolean> => {
@@ -42,6 +47,7 @@ export const useOptout = (): UseOptoutResult => {
 
         // Clear rewards Redux state back to initial state
         dispatch(resetRewardsState());
+        resetAllSessionTrackingForRewardsDashboardModals();
         return true;
       }
       Logger.log('useOptout: Opt-out failed - controller returned false');
@@ -66,7 +72,14 @@ export const useOptout = (): UseOptoutResult => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, subscriptionId, dispatch, showToast, RewardsToastOptions]);
+  }, [
+    isLoading,
+    subscriptionId,
+    showToast,
+    RewardsToastOptions,
+    dispatch,
+    resetAllSessionTrackingForRewardsDashboardModals,
+  ]);
 
   const showOptoutBottomSheet = useCallback(
     (dismissRoute?: string) => {
