@@ -71,7 +71,7 @@ export const useOptout = (): UseOptoutResult => {
   const showOptoutBottomSheet = useCallback(
     (dismissRoute?: string) => {
       const handleOptoutSuccess = () => {
-        navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
+        navigation.navigate(Routes.WALLET_VIEW);
       };
 
       const handleOptoutCancel = () => {
