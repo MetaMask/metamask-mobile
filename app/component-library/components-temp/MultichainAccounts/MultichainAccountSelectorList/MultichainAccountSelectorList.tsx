@@ -41,6 +41,7 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
+  setKeyboardAvoidingViewEnabled,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -201,6 +202,16 @@ const MultichainAccountSelectorList = ({
     }
   }, [lastCreatedAccountId, flattenedData, listRefToUse]);
 
+  // Enable keyboard avoiding view when list has 2 or fewer items
+  useEffect(() => {
+    if (setKeyboardAvoidingViewEnabled) {
+      const accountCellsCount = flattenedData.filter(
+        (item) => item.type === 'cell',
+      ).length;
+
+      setKeyboardAvoidingViewEnabled(accountCellsCount <= 2);
+    }
+  }, [flattenedData, setKeyboardAvoidingViewEnabled]);
   // Handle account creation callback
   const handleAccountCreated = useCallback((newAccountId: string) => {
     setLastCreatedAccountId(newAccountId);
