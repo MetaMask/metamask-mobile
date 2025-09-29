@@ -130,7 +130,6 @@ export const useRewardDashboardModals = () => {
         ),
         onPress: () => {
           dispatch(setHideUnlinkedAccountsBanner(true));
-          navigation.goBack();
           navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         },
         variant: ButtonVariant.Primary,
@@ -138,7 +137,7 @@ export const useRewardDashboardModals = () => {
 
       onCancel: () => {
         dispatch(setHideUnlinkedAccountsBanner(true));
-        navigation.goBack();
+        navigation.navigate(Routes.REWARDS_DASHBOARD);
       },
       type: ModalType.Confirmation,
       showCancelButton: true,
