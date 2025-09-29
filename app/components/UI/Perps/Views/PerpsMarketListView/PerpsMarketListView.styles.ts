@@ -39,9 +39,6 @@ const styleSheet = (params: { theme: Theme }) => {
     titleButtonsRightContainer: {
       flexDirection: 'row',
     },
-    tutorialButton: {
-      padding: 4,
-    },
     searchButton: {
       padding: 4,
       marginRight: 4,

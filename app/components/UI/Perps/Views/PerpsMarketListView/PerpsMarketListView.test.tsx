@@ -720,23 +720,6 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to tutorial when tutorial button is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
-
-      // Find the tutorial button
-      const tutorialButton = screen.getByTestId(
-        PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON,
-      );
-      act(() => {
-        fireEvent.press(tutorialButton);
-      });
-
-      // Should navigate to tutorial screen
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.TUTORIAL,
-      );
-    });
-
     it('navigates back when close button is pressed', () => {
       renderWithProvider(<PerpsMarketListView />);
 

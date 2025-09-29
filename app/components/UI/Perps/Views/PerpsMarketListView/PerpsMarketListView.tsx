@@ -332,10 +332,6 @@ const PerpsMarketListView = ({
     );
   };
 
-  const handleTutorialClick = () => {
-    navigation.navigate(Routes.PERPS.TUTORIAL);
-  };
-
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 
@@ -475,13 +471,6 @@ const PerpsMarketListView = ({
               name={isSearchVisible ? IconName.Close : IconName.Search}
               size={IconSize.Lg}
             />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleTutorialClick()}
-            testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
-            style={styles.tutorialButton}
-          >
-            <Icon name={IconName.Question} size={IconSize.Lg} />
           </TouchableOpacity>
         </View>
       </View>
