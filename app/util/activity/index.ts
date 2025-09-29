@@ -115,7 +115,10 @@ export const filterByAddressAndNetwork = (
   const isInBatchWithPerpsDeposit =
     type !== TransactionType.perpsDeposit &&
     allTransactions?.some(
-      (t) => t.batchId === batchId && t.type === TransactionType.perpsDeposit,
+      (t) =>
+        batchId &&
+        t.batchId === batchId &&
+        t.type === TransactionType.perpsDeposit,
     );
 
   if (isInBatchWithPerpsDeposit) {
