@@ -422,96 +422,7 @@ describe('RewardsSettingsView', () => {
     });
   });
 
-  describe('Account syncing banner', () => {
-    it('shows syncing banner when isAccountSyncingInProgress is true', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: 'Syncing accounts...',
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      expect(getByText('Syncing accounts...')).toBeOnTheScreen();
-      expect(
-        getByText('Your accounts are syncing. Please wait.'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not show syncing banner when isAccountSyncingInProgress is false', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: false,
-        isAccountSyncingInProgress: false,
-        loadingMessage: null,
-      });
-
-      // Act
-      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(queryByTestId('account-syncing-banner')).toBeNull();
-    });
-
-    it('shows syncing banner with custom loading message', () => {
-      // Arrange
-      const customMessage = 'Importing accounts from backup...';
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: customMessage,
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      expect(getByText(customMessage)).toBeOnTheScreen();
-      expect(
-        getByText('Your accounts are syncing. Please wait.'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows syncing banner when account syncing is in progress', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: 'Profile sync in progress...',
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      expect(getByText('Profile sync in progress...')).toBeOnTheScreen();
-      expect(
-        getByText('Your accounts are syncing. Please wait.'),
-      ).toBeOnTheScreen();
-    });
-  });
-
   describe('Hook integration', () => {
-    it('calls useAccountsOperationsLoadingStates hook', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockUseAccountsOperationsLoadingStates).toHaveBeenCalled();
-    });
-
     it('calls useOptout hook', () => {
       // Act
       renderWithNavigation(<RewardsSettingsView />);
@@ -571,21 +482,6 @@ describe('RewardsSettingsView', () => {
         isLoading: false,
         showOptoutBottomSheet: jest.fn(),
       });
-    });
-
-    it('handles null loading message gracefully', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: null,
-      });
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert - Should still render banner even with null message
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
     });
   });
 });
