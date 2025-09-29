@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { RefreshTestId } from '../CollectibleContracts/constants';
@@ -12,6 +18,8 @@ import NftGridItem from './NftGridItem';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
+import { useNavigation } from '@react-navigation/native';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 const NftGridList = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -48,6 +56,19 @@ const NftGridList = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+
+  const goToAddCollectible = useCallback(() => {
+    setIsAddNFTEnabled(false);
+    navigation.navigate('AddAsset', { assetType: 'collectible' });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+    );
+    setIsAddNFTEnabled(true);
+  }, [navigation, trackEvent, createEventBuilder]);
+
   return (
     <>
       {!isInitialLoading && (
@@ -60,13 +81,23 @@ const NftGridList = () => {
           keyExtractor={(_, index) => index.toString()}
           testID={RefreshTestId}
           refreshControl={<NftGridListRefreshControl />}
-          ListEmptyComponent={NftGridEmpty}
+          ListEmptyComponent={
+            <NftGridEmpty
+              isAddNFTEnabled={isAddNFTEnabled}
+              goToAddCollectible={goToAddCollectible}
+            />
+          }
           scrollEnabled={false}
           numColumns={3}
         />
       )}
 
-      <NftGridFooter />
+      {allFilteredCollectibles.length > 0 && (
+        <NftGridFooter
+          isAddNFTEnabled={isAddNFTEnabled}
+          goToAddCollectible={goToAddCollectible}
+        />
+      )}
 
       <NftGridItemActionSheet
         actionSheetRef={actionSheetRef}

@@ -1,44 +1,87 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
 import NftGridEmpty from './NftGridEmpty';
-import AppConstants from '../../../core/AppConstants';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
+const mockStore = configureMockStore();
 
 describe('NftGridEmpty', () => {
+  const mockGoToAddCollectible = jest.fn();
+  const defaultProps = {
+    isAddNFTEnabled: true,
+    goToAddCollectible: mockGoToAddCollectible,
+  };
+
+  const initialState = {
+    user: {
+      appTheme: 'os',
+    },
+    engine: {
+      backgroundState,
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders correctly', () => {
-    const { toJSON } = render(<NftGridEmpty />);
+    const store = mockStore(initialState);
+    const { toJSON } = render(
+      <Provider store={store}>
+        <NftGridEmpty {...defaultProps} />
+      </Provider>,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays empty state content', () => {
-    const { getByText, getByTestId } = render(<NftGridEmpty />);
-
-    const container = getByTestId('nft-empty-container');
-    expect(container).toBeDefined();
-    expect(getByText('No NFTs yet')).toBeDefined();
-    expect(getByText('Learn more')).toBeDefined();
+  it('renders with disabled add NFT button when isAddNFTEnabled is false', () => {
+    const store = mockStore(initialState);
+    const { toJSON } = render(
+      <Provider store={store}>
+        <NftGridEmpty {...defaultProps} isAddNFTEnabled={false} />
+      </Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to learn more when pressed', () => {
-    const { getByText } = render(<NftGridEmpty />);
+  it('calls goToAddCollectible when discover button is pressed', () => {
+    const store = mockStore(initialState);
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGridEmpty {...defaultProps} />
+      </Provider>,
+    );
 
-    const learnMoreButton = getByText('Learn more');
-    fireEvent.press(learnMoreButton);
+    const discoverButton = getByTestId('import-collectible-button');
+    fireEvent.press(discoverButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: { url: AppConstants.URLS.NFT },
-    });
+    expect(mockGoToAddCollectible).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders disabled button when isAddNFTEnabled is false', () => {
+    const store = mockStore(initialState);
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGridEmpty {...defaultProps} isAddNFTEnabled={false} />
+      </Provider>,
+    );
+
+    const discoverButton = getByTestId('import-collectible-button');
+    expect(discoverButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('renders enabled button when isAddNFTEnabled is true', () => {
+    const store = mockStore(initialState);
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGridEmpty {...defaultProps} />
+      </Provider>,
+    );
+
+    const discoverButton = getByTestId('import-collectible-button');
+    expect(discoverButton.props.accessibilityState.disabled).toBe(false);
   });
 });

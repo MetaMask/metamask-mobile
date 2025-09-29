@@ -4,7 +4,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { isNftFetchingProgressSelector } from '../../../reducers/collectibles';
 import TextComponent from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
@@ -14,8 +14,6 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { ThemeColors } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
-import { useNavigation } from '@react-navigation/native';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -39,23 +37,17 @@ const createStyles = (colors: ThemeColors) =>
     },
   });
 
-const NftGridFooter = () => {
+const NftGridFooter = ({
+  isAddNFTEnabled,
+  goToAddCollectible,
+}: {
+  isAddNFTEnabled: boolean;
+  goToAddCollectible: () => void;
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
-  const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const goToAddCollectible = useCallback(() => {
-    setIsAddNFTEnabled(false);
-    navigation.navigate('AddAsset', { assetType: 'collectible' });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
-    );
-    setIsAddNFTEnabled(true);
-  }, [navigation, trackEvent, createEventBuilder]);
 
   return (
     <View style={styles.footer} key={'collectible-contracts-footer'}>

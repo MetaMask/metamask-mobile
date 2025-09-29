@@ -27,7 +27,7 @@ exports[`NftGridFooter renders correctly without spinner 1`] = `
   </Text>
   <TouchableOpacity
     disabled={false}
-    onPress={[Function]}
+    onPress={[MockFunction]}
     testID="import-collectible-button"
   >
     <Text
