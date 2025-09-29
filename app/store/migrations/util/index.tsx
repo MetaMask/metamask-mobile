@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import Logger from '../../../util/Logger';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 
 export interface ValidState {
   engine: {
@@ -65,6 +66,16 @@ export function ensureValidState<T>(
         'Is vault defined at KeyringController at migration when existingUser',
         hasVault,
       );
+
+      // Track vault corruption if existing user has no vault
+      if (!hasVault) {
+        const errorMessage = `Migration ${migrationNumber}: Existing user missing vault in KeyringController`;
+        trackVaultCorruption(errorMessage, {
+          error_type: 'migration_missing_vault',
+          context: 'migration_existing_user_validation',
+          migration_number: migrationNumber,
+        });
+      }
     } catch (error) {
       Logger.error(
         new Error(
