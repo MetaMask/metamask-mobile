@@ -27,17 +27,15 @@ import { createAccountGroupDetailsNavigationDetails } from '../../../../componen
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
-  isSelected: boolean;
   hideMenu?: boolean;
 }
 
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
-  isSelected,
   hideMenu = false,
 }: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, { isSelected });
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {

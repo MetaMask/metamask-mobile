@@ -31,12 +31,11 @@ const AccountListCell = memo(
         style={styles.accountItem}
         onPress={handlePress}
         activeOpacity={0.7}
-        testID="list-item-select"
+        testID={`account-list-cell-${accountGroup.id}`}
       >
         <AccountCell
           accountGroup={accountGroup}
           avatarAccountType={avatarAccountType}
-          isSelected={isSelected}
         />
       </WrapperComponent>
     );
