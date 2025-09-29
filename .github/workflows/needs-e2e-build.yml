@@ -118,11 +118,20 @@ jobs:
       - name: Set final outputs
         id: set-outputs
         run: |
-          {
-            echo "changed_files<<EOF"
-            echo "${{ steps.filter.outputs.catch_all_files }}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          # On scheduled runs there is no diff; avoid emitting a huge changed_files payload
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            {
+              echo "changed_files<<EOF"
+              echo ""
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "changed_files<<EOF"
+              echo "${{ steps.filter.outputs.catch_all_files }}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
 
           # Skip if [skip-e2e] tag found or label exists on PR
           if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then

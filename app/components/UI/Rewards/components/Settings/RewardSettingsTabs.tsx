@@ -1,15 +1,12 @@
-import React, { useCallback, useState, useMemo } from 'react';
-import {
-  FlatList,
-  ListRenderItem,
-  View,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useCallback, memo, useState } from 'react';
+import { FlatList, ListRenderItem, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   TextVariant,
   FontWeight,
   BoxFlexDirection,
@@ -20,10 +17,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../locales/i18n';
 import { TabsList } from '../../../../../component-library/components-temp/Tabs';
 import AccountDisplayItem from '../AccountDisplayItem/AccountDisplayItem';
-import Banner, {
-  BannerVariant,
-  BannerAlertSeverity,
-} from '../../../../../component-library/components/Banners/Banner';
+import RewardsInfoBanner from '../RewardsInfoBanner';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMarketTabs.types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
@@ -38,6 +32,76 @@ interface RewardSettingsTabsProps {
   initialTabIndex: number;
 }
 
+// Memoized component for linked accounts - no button, just display
+const LinkedAccountItem = memo(
+  ({ account }: { account: AccountWithOptInStatus }) => (
+    <Box
+      twClassName="flex-row items-center justify-between rounded-lg"
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+    >
+      <Box twClassName="flex-1">
+        <AccountDisplayItem account={account} />
+      </Box>
+    </Box>
+  ),
+  (prevProps, nextProps) =>
+    // Only re-render if the account ID or hasOptedIn status changes
+    prevProps.account.id === nextProps.account.id &&
+    prevProps.account.hasOptedIn === nextProps.account.hasOptedIn,
+);
+
+// Memoized component for unlinked accounts - includes the link button
+const UnlinkedAccountItem = memo(
+  ({
+    account,
+    onSuccess,
+  }: {
+    account: AccountWithOptInStatus;
+    onSuccess: () => void;
+  }) => {
+    const { linkAccount, isLoading: isLinkingAccount } = useLinkAccount();
+
+    const handleLinkAccount = useCallback(async () => {
+      const success = await linkAccount(account);
+      if (success) {
+        onSuccess();
+      }
+    }, [account, onSuccess, linkAccount]);
+
+    return (
+      <Box
+        twClassName="flex-row items-center justify-between rounded-lg"
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+      >
+        <Box twClassName="flex-1">
+          <AccountDisplayItem account={account} />
+        </Box>
+
+        <Button
+          variant={ButtonVariant.Secondary}
+          isLoading={isLinkingAccount}
+          size={ButtonSize.Md}
+          disabled={isLinkingAccount}
+          onPress={handleLinkAccount}
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('rewards.settings.link_account_button')}
+          </Text>
+        </Button>
+      </Box>
+    );
+  },
+  (prevProps, nextProps) =>
+    // Only re-render if the account ID changes or onSuccess function changes
+    // Note: onSuccess should be memoized in the parent to prevent unnecessary re-renders
+    prevProps.account.id === nextProps.account.id &&
+    prevProps.onSuccess === nextProps.onSuccess,
+);
+
 const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   initialTabIndex,
 }) => {
@@ -51,116 +115,114 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   } = useRewardOptinSummary();
   const tw = useTailwind();
 
-  // Local state to track accounts that have been linked but not yet refetched from server
-  const [locallyLinkedAccounts, setLocallyLinkedAccounts] = useState<
-    Set<string>
-  >(new Set());
-  // Track the specific account being linked for overlay display
-  const [linkingAccount, setLinkingAccount] = useState<InternalAccount | null>(
-    null,
-  );
-  const { linkAccount, isLoading: isLinkingAccount } = useLinkAccount();
+  // State to track the current active tab
+  const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
 
-  // Compute final account lists with local state applied
-  const computedLinkedAccounts = useMemo(() => {
-    // Add locally linked accounts to the linked accounts list
-    const locallyLinkedAccountObjects = unlinkedAccounts.filter((account) =>
-      locallyLinkedAccounts.has(account.address),
-    );
-    return [...linkedAccounts, ...locallyLinkedAccountObjects];
-  }, [linkedAccounts, unlinkedAccounts, locallyLinkedAccounts]);
-
-  const computedUnlinkedAccounts = useMemo(
-    () =>
-      // Remove locally linked accounts from the unlinked accounts list
-      unlinkedAccounts.filter(
-        (account) => !locallyLinkedAccounts.has(account.address),
-      ),
-    [unlinkedAccounts, locallyLinkedAccounts],
-  );
-
-  // Handle link account press with double-press prevention
-  const handleLinkAccountPress = useCallback(
-    async (account: InternalAccount) => {
-      // Prevent double-press - check if this account or any account is currently linking
-      if (isLinkingAccount) {
-        return;
-      }
-
-      setLinkingAccount(account);
-
-      try {
-        const success = await linkAccount(account);
-        if (success) {
-          // Add account to local state to immediately remove from unlinked list
-          setLocallyLinkedAccounts((prev) =>
-            new Set(prev).add(account.address),
-          );
-        }
-      } finally {
-        setLinkingAccount(null);
-      }
-    },
-    [isLinkingAccount, linkAccount],
-  );
-
-  // Shared account item component
-  const renderAccountItem = useCallback(
-    (account: AccountWithOptInStatus, showLinkButton: boolean = false) => (
-      <Box
-        twClassName="flex-row items-center justify-between rounded-lg"
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        <Box twClassName="flex-1">
-          <AccountDisplayItem account={account} />
-        </Box>
-
-        {showLinkButton && (
-          <Pressable
-            disabled={isLinkingAccount}
-            onPress={() => handleLinkAccountPress(account)}
-            style={() =>
-              tw.style(
-                'px-4 py-2 rounded-lg bg-pressed min-h-[32px] justify-center items-center',
-                isLinkingAccount && 'opacity-90',
-              )
-            }
-          >
-            <Box
-              twClassName="flex-row items-center gap-2"
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              {linkingAccount === account ? (
-                <ActivityIndicator size="small" color={tw.color('primary')} />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-primary"
-                >
-                  {strings('rewards.settings.link_account_button')}
-                </Text>
-              )}
-            </Box>
-          </Pressable>
-        )}
-      </Box>
-    ),
-    [isLinkingAccount, linkingAccount, tw, handleLinkAccountPress],
-  );
+  // Memoize the onSuccess callback to prevent unnecessary re-renders
+  const onLinkSuccess = useCallback(() => {
+    fetchOptInStatus();
+  }, [fetchOptInStatus]);
 
   // Render individual account item for linked accounts
-  const renderLinkedAccountItem: ListRenderItem<AccountWithOptInStatus> = ({
-    item: account,
-  }) => renderAccountItem(account, false);
+  const renderLinkedAccountItem: ListRenderItem<AccountWithOptInStatus> =
+    useCallback(
+      ({ item: account }) => <LinkedAccountItem account={account} />,
+      [],
+    );
 
   // Render individual account item for unlinked accounts
-  const renderUnlinkedAccountItem: ListRenderItem<AccountWithOptInStatus> = ({
-    item: account,
-  }) => renderAccountItem(account, true);
+  const renderUnlinkedAccountItem: ListRenderItem<AccountWithOptInStatus> =
+    useCallback(
+      ({ item: account }) => (
+        <UnlinkedAccountItem account={account} onSuccess={onLinkSuccess} />
+      ),
+      [onLinkSuccess],
+    );
+
+  // Handle tab change
+  const handleTabChange = useCallback((changeTabProperties: { i: number }) => {
+    setActiveTabIndex(changeTabProperties.i);
+  }, []);
+
+  // Separate content components
+  const LinkedAccountsContent = useCallback(
+    () => (
+      <>
+        {linkedAccounts.length > 0 ? (
+          <FlatList
+            data={linkedAccounts}
+            keyExtractor={(item) => `linked-${item.id}`}
+            renderItem={renderLinkedAccountItem}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('gap-3 pt-4')}
+          />
+        ) : (
+          <Box twClassName="py-8 items-center">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-alternative text-center"
+            >
+              {strings('rewards.settings.no_linked_accounts')}
+            </Text>
+          </Box>
+        )}
+      </>
+    ),
+    [linkedAccounts, renderLinkedAccountItem, tw],
+  );
+
+  const UnlinkedAccountsContent = useCallback(
+    () => (
+      <>
+        {unlinkedAccounts.length > 0 ? (
+          <Box twClassName="flex-1 relative">
+            <FlatList
+              data={unlinkedAccounts}
+              keyExtractor={(item) => `unlinked-${item.id}`}
+              renderItem={renderUnlinkedAccountItem}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+              getItemLayout={(_, index) => ({
+                length: 50,
+                offset: 50 * index,
+                index,
+              })}
+              contentContainerStyle={tw.style('gap-3 pt-4')}
+            />
+          </Box>
+        ) : (
+          <Box twClassName="py-8">
+            <RewardsInfoBanner
+              title={strings('rewards.settings.all_accounts_linked_title')}
+              description={strings(
+                'rewards.settings.all_accounts_linked_description',
+              )}
+            />
+          </Box>
+        )}
+      </>
+    ),
+    [unlinkedAccounts, renderUnlinkedAccountItem, tw],
+  );
+
+  // Tab configurations
+  const tabConfigs = [
+    {
+      key: 'linked',
+      label: strings('rewards.settings.tab_linked_accounts', {
+        count: linkedAccounts.length,
+      }),
+      content: <LinkedAccountsContent />,
+    },
+    {
+      key: 'unlinked',
+      label: strings('rewards.settings.tab_unlinked_accounts', {
+        count: unlinkedAccounts.length,
+      }),
+      content: <UnlinkedAccountsContent />,
+    },
+  ];
 
   if (isLoadingOptInSummary) {
     // Create an array of unique identifiers for skeleton items
@@ -210,76 +272,23 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     );
   }
 
-  // Tab-based account list
+  // Tab-based account list - only render active tab content
   return (
-    <TabsList initialActiveIndex={initialTabIndex}>
-      {/* Linked Accounts Tab */}
-      <View
-        key="linked"
-        {...({
-          tabLabel: strings('rewards.settings.tab_linked_accounts', {
-            count: computedLinkedAccounts.length,
-          }),
-          isDisabled: isLinkingAccount,
-        } as TabViewProps)}
-        style={tw.style('flex-1')}
-      >
-        {computedLinkedAccounts.length > 0 ? (
-          <FlatList
-            data={computedLinkedAccounts}
-            keyExtractor={(item) => item.id}
-            renderItem={renderLinkedAccountItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('gap-3 pt-4')}
-          />
-        ) : (
-          <Box twClassName="py-8 items-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-alternative text-center"
-            >
-              {strings('rewards.settings.no_linked_accounts')}
-            </Text>
-          </Box>
-        )}
-      </View>
-
-      {/* Unlinked Accounts Tab */}
-      <View
-        key="unlinked"
-        {...({
-          tabLabel: strings('rewards.settings.tab_unlinked_accounts', {
-            count: computedUnlinkedAccounts.length,
-          }),
-          isDisabled: false,
-        } as TabViewProps)}
-        style={tw.style('flex-1')}
-      >
-        {computedUnlinkedAccounts.length > 0 ? (
-          <Box twClassName="flex-1 relative">
-            <FlatList
-              data={computedUnlinkedAccounts}
-              keyExtractor={(item) => item.id}
-              renderItem={renderUnlinkedAccountItem}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={tw.style('gap-3 pt-4')}
-            />
-          </Box>
-        ) : (
-          <Box twClassName="py-8">
-            <Banner
-              variant={BannerVariant.Alert}
-              severity={BannerAlertSeverity.Info}
-              title={strings('rewards.settings.all_accounts_linked_title')}
-              description={strings(
-                'rewards.settings.all_accounts_linked_description',
-              )}
-            />
-          </Box>
-        )}
-      </View>
+    <TabsList
+      initialActiveIndex={initialTabIndex}
+      onChangeTab={handleTabChange}
+    >
+      {tabConfigs.map((tab, index) => (
+        <View
+          key={tab.key}
+          {...({
+            tabLabel: tab.label,
+          } as TabViewProps)}
+          style={tw.style('flex-1')}
+        >
+          {index === activeTabIndex ? tab.content : null}
+        </View>
+      ))}
     </TabsList>
   );
 };
