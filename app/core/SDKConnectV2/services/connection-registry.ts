@@ -87,7 +87,6 @@ export class ConnectionRegistry {
    * 6. Hide loading indicator
    */
   public async handleConnectDeeplink(url: string): Promise<void> {
-    await this.ready;
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
@@ -111,6 +110,7 @@ export class ConnectionRegistry {
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
     } finally {
+      setTimeout(() => this.deeplinks.delete(url), 60 * 1000);
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
   }
