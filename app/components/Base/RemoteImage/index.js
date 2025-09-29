@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -48,6 +48,15 @@ const createStyles = () =>
     },
     detailedImageStyle: {
       borderRadius: 8,
+    },
+    textWrapper: {
+      textAlign: 'center',
+      marginTop: 16,
+    },
+    textWrapperIcon: {
+      textAlign: 'center',
+      fontSize: 18,
+      marginTop: 16,
     },
   });
 
@@ -128,6 +137,13 @@ const RemoteImage = (props) => {
     }
   }, [props.source.uri, ipfsGateway]);
 
+  const formatTokenId = (tokenId) => {
+    if (tokenId.toString().length > 9) {
+      return tokenId.toString().replace(/^(..).*?(.{4})$/, '$1...$2');
+    }
+    return tokenId;
+  };
+
   const NetworkBadgeSource = useCallback(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
@@ -184,16 +200,30 @@ const RemoteImage = (props) => {
                     />
                   }
                 >
-                  <ExpoImage
-                    source={{ uri }}
-                    style={{
-                      width: dimensions.width,
-                      height: dimensions.height,
-                      ...styles.detailedImageStyle,
-                    }}
-                    onLoad={onImageLoad}
-                    onError={onError}
-                  />
+                  {props.tokenId ? (
+                    <View
+                      style={{
+                        width: dimensions.width,
+                        height: dimensions.height,
+                        ...styles.detailedImageStyle,
+                      }}
+                    >
+                      <Text style={styles.textWrapperIcon}>
+                        {` #${formatTokenId(parseInt(props.tokenId, 10))}`}
+                      </Text>
+                    </View>
+                  ) : (
+                    <ExpoImage
+                      source={{ uri }}
+                      style={{
+                        width: dimensions.width,
+                        height: dimensions.height,
+                        ...styles.detailedImageStyle,
+                      }}
+                      onLoad={onImageLoad}
+                      onError={onError}
+                    />
+                  )}
                 </BadgeWrapper>
               ) : (
                 <BadgeWrapper
@@ -210,14 +240,22 @@ const RemoteImage = (props) => {
                   }
                 >
                   <View style={style}>
-                    <ExpoImage
-                      style={styles.imageStyle}
-                      {...restProps}
-                      source={{ uri }}
-                      onLoad={onImageLoad}
-                      onError={onError}
-                      contentFit={'cover'}
-                    />
+                    {props.tokenId ? (
+                      <View style={styles.imageStyle}>
+                        <Text style={styles.textWrapper}>
+                          {` #${formatTokenId(parseInt(props.tokenId, 10))}`}
+                        </Text>
+                      </View>
+                    ) : (
+                      <ExpoImage
+                        style={styles.imageStyle}
+                        {...restProps}
+                        source={{ uri }}
+                        onLoad={onImageLoad}
+                        onError={onError}
+                        contentFit={'cover'}
+                      />
+                    )}
                   </View>
                 </BadgeWrapper>
               )}
@@ -278,6 +316,8 @@ RemoteImage.propTypes = {
   address: PropTypes.string,
 
   isTokenImage: PropTypes.bool,
+
+  tokenId: PropTypes.string,
 
   isFullRatio: PropTypes.bool,
   chainId: PropTypes.string,
