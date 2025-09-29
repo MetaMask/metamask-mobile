@@ -14,7 +14,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
-  SdkEnvironment,
   Context,
   DepositPaymentMethod,
   DepositRegion,
@@ -25,6 +24,7 @@ import {
   resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
+import { getSdkEnvironment } from './getSdkEnvironment';
 import {
   fiatOrdersGetStartedDeposit,
   setFiatOrdersGetStartedDeposit,
@@ -58,16 +58,7 @@ export interface DepositSDK {
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
 }
 
-const isDevelopment =
-  process.env.NODE_ENV !== 'production' ||
-  process.env.RAMP_DEV_BUILD === 'true';
-const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
-const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
-
-let environment = SdkEnvironment.Production;
-if (isDevelopmentOrInternalBuild) {
-  environment = SdkEnvironment.Staging;
-}
+const environment = getSdkEnvironment();
 
 const context =
   Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid;
