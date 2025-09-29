@@ -321,7 +321,7 @@ class OptinMetrics extends PureComponent {
       await setupSentry(); // Re-setup Sentry with enabled: false
       discardBufferedTraces();
       updateCachedConsent(false);
-    }, 200);
+    }, 50);
     this.continue();
   };
 
