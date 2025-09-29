@@ -2,7 +2,6 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Regions from '../Views/Regions';
 import Quotes from '../Views/Quotes';
-import NetworkSwitcher from '../Views/NetworkSwitcher';
 import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
@@ -11,6 +10,8 @@ import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { colors } from '../../../../../styles/common';
+import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
+
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
 
@@ -26,11 +27,6 @@ const MainRoutes = () => (
     headerMode="screen"
   >
     <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
-    <Stack.Screen
-      name={Routes.RAMP.NETWORK_SWITCHER}
-      component={NetworkSwitcher}
-      options={{ animationEnabled: false }}
-    />
     <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
@@ -66,6 +62,10 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
       component={TokenSelectModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
+      component={IncompatibleAccountTokenModal}
     />
   </ModalsStack.Navigator>
 );

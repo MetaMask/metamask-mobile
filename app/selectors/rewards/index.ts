@@ -27,18 +27,13 @@ export const selectRewardsSubscriptionId = createSelector(
     if (
       candidateSubscriptionId &&
       candidateSubscriptionId !== 'pending' &&
-      candidateSubscriptionId !== 'error'
+      candidateSubscriptionId !== 'error' &&
+      candidateSubscriptionId !== 'retry'
     ) {
       return candidateSubscriptionId;
     }
     return null;
   },
-);
-
-export const selectRewardsActiveAccountHasOptedIn = createSelector(
-  selectRewardsControllerState,
-  (rewardsControllerState): boolean | null =>
-    rewardsControllerState.activeAccount?.hasOptedIn ?? null,
 );
 
 export const selectRewardsActiveAccountAddress = createSelector(
@@ -53,3 +48,6 @@ export const selectRewardsActiveAccountAddress = createSelector(
 
 export const selectHideUnlinkedAccountsBanner = (state: RootState): boolean =>
   state.rewards.hideUnlinkedAccountsBanner;
+
+export const selectSeasonStatusError = (state: RootState): string | null =>
+  state.rewards.seasonStatusError;

@@ -11,6 +11,11 @@ import AddressSelector from './AddressSelector';
 import { AddressSelectorParams } from './AddressSelector.types';
 import { setReloadAccounts } from '../../../actions/accounts';
 import Engine from '../../../core/Engine';
+import {
+  BASE_DISPLAY_NAME,
+  LINEA_MAINNET_DISPLAY_NAME,
+  MAINNET_DISPLAY_NAME,
+} from '../../../core/Engine/constants';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -125,7 +130,11 @@ describe('AccountSelector', () => {
       'multichain-address-row-network-name',
     ).map((node) => node.props.children);
 
-    expect(networkNames).toEqual(['Ethereum Mainnet', 'Linea', 'Base Mainnet']);
+    expect(networkNames).toEqual([
+      MAINNET_DISPLAY_NAME,
+      LINEA_MAINNET_DISPLAY_NAME,
+      BASE_DISPLAY_NAME,
+    ]);
     expect(networkNames).not.toContain('Solana');
   });
 
@@ -137,8 +146,11 @@ describe('AccountSelector', () => {
     const networkNames = queryAllByTestId(
       'multichain-address-row-network-name',
     ).map((node) => node.props.children);
-    expect(networkNames).toEqual(['Linea', 'Base Mainnet']);
-    expect(networkNames).not.toContain('Ethereum Mainnet');
+    expect(networkNames).toEqual([
+      LINEA_MAINNET_DISPLAY_NAME,
+      BASE_DISPLAY_NAME,
+    ]);
+    expect(networkNames).not.toContain(MAINNET_DISPLAY_NAME);
     expect(networkNames).not.toContain('Solana');
   });
 

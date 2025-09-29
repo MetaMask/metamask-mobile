@@ -105,6 +105,7 @@ import {
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
+import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
 
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
@@ -1219,8 +1220,12 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    // Get the name either from chainToMatch or networkList
-    const name = chainToMatch?.name || networkList?.name || null;
+    // Get the name either from NETWORK_TO_NAME_MAP or chainToMatch or networkList
+    const name =
+      NETWORK_TO_NAME_MAP[chainId] ||
+      chainToMatch?.name ||
+      networkList?.name ||
+      null;
 
     // Determine nameToUse based on chainId and nickname comparison
     const nameToUse = isValidNetworkName(chainId, name, nickname)

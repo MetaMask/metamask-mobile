@@ -33,7 +33,6 @@ const TabEmptyStateMeta = {
 
 export default TabEmptyStateMeta;
 
-// Default story with themed perps icon
 export const Default = {
   args: {
     icon: <ThemedPerpsIcon />,

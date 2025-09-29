@@ -70,7 +70,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
-import ReturnToAppModal from '../../Views/ReturnToAppModal';
+import ReturnToAppToast from '../../Views/ReturnToAppToast';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
@@ -154,6 +154,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -461,11 +462,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ResetNotificationsModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-      component={ReturnToAppModal}
-      initialParams={{ ...props.route.params }}
-    />
-    <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
       component={AmbiguousAddressSheet}
     />
@@ -545,6 +541,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SDK.RETURN_TO_DAPP_TOAST}
+      component={ReturnToAppToast}
+      initialParams={{ ...props.route.params }}
     />
   </Stack.Navigator>
 );
@@ -1124,6 +1125,12 @@ const App: React.FC = () => {
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+
+        // Track vault corruption with enabled state checking
+        trackVaultCorruption(errorMessage, {
+          error_type: 'app_startup_authentication_failure',
+          context: 'app_initialization_unlock_failed',
+        });
 
         // Only call lockApp if there is an existing user to prevent unnecessary calls
         await Authentication.lockApp({ reset: false, locked });
