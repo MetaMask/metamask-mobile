@@ -1340,7 +1340,10 @@ export class RewardsController extends BaseController<
     let retryAttempt = 0;
     const MAX_RETRY_ATTEMPTS = 1;
 
-    const executeMobileOptin = async (ts: number, sig: string) => {
+    const executeMobileOptin = async (
+      ts: number,
+      sig: string,
+    ): Promise<LoginResponseDto> => {
       try {
         return await this.messagingSystem.call(
           'RewardsDataService:mobileOptin',
