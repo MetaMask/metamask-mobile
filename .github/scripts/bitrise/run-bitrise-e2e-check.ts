@@ -93,6 +93,16 @@ async function main(): Promise<void> {
   console.log(`Has smoke test label: ${flags.hasSmokeTestLabel}`);
 
   const [shouldRun, reason] = shouldRunBitriseE2E(flags);
+
+  const isLabelTrigger =
+    triggerAction === PullRequestTriggerType.Labeled &&
+    context.payload?.label?.name === e2eLabel;
+
+  const isAutoTrigger =
+    triggerAction === PullRequestTriggerType.Opened ||
+    triggerAction === PullRequestTriggerType.Reopened ||
+    triggerAction === PullRequestTriggerType.Synchronize;
+
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
 
@@ -107,10 +117,7 @@ async function main(): Promise<void> {
   }
 
   // Kick off E2E smoke tests if E2E smoke label is applied
-  if (
-    triggerAction === PullRequestTriggerType.Labeled &&
-    context.payload?.label?.name === e2eLabel
-  ) {
+  if (isLabelTrigger || isAutoTrigger) {
 
     console.log(`Starting Bitrise build for commit ${latestCommitHash}`);
     // Configure Bitrise configuration for API call
@@ -126,7 +133,7 @@ async function main(): Promise<void> {
           },
           {
             mapped_to: 'TRIGGERED_BY_PR_LABEL',
-            value: `true`,
+            value: `${isLabelTrigger}`,
             is_expand: true,
           },
           {
