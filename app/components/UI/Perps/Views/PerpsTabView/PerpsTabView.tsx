@@ -246,7 +246,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
-                onStartTrading={handleNewTrade}
+                onAction={handleNewTrade}
                 testID="perps-empty-state"
                 twClassName="mx-auto"
               />
