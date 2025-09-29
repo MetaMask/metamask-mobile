@@ -1,4 +1,5 @@
 import { HostApplicationAdapter } from './host-application-adapter';
+import { ConnectionInfo } from '../types/connection-info';
 import { Connection } from '../services/connection';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
@@ -19,21 +20,20 @@ jest.mock('../../../actions/sdk', () => ({
   })),
 }));
 
-const createMockConnection = (id: string, name: string): Connection =>
-  ({
-    id,
-    metadata: {
-      dapp: {
-        name: `${name} DApp`,
-        url: `https://testdapp${id}.com`,
-        icon: `https://testdapp${id}.com/icon.png`,
-      },
-      sdk: {
-        version: '2.1.0',
-        platform: 'JavaScript',
-      },
+const createMockConnection = (id: string, name: string): ConnectionInfo => ({
+  id,
+  metadata: {
+    dapp: {
+      name: `${name} DApp`,
+      url: `https://testdapp${id}.com`,
+      icon: `https://testdapp${id}.com/icon.png`,
     },
-  } as Connection);
+    sdk: {
+      version: '2.1.0',
+      platform: 'JavaScript',
+    },
+  },
+});
 
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
@@ -57,23 +57,25 @@ describe('HostApplicationAdapter', () => {
 
   describe('syncConnectionList', () => {
     it('should correctly transform a single Connection object and dispatch it to the Redux store', () => {
-      const mockConnection = createMockConnection('conn1', 'Test');
-      const connections: Connection[] = [mockConnection];
+      const mockConnectionInfo = createMockConnection('conn1', 'Test');
+      const connections = [
+        { id: mockConnectionInfo.id, info: mockConnectionInfo },
+      ] as unknown as Connection[];
 
       adapter.syncConnectionList(connections);
 
       const expectedSessions = {
-        [mockConnection.id]: {
-          id: mockConnection.id,
+        [mockConnectionInfo.id]: {
+          id: mockConnectionInfo.id,
           otherPublicKey: '',
-          origin: mockConnection.metadata.dapp.url,
+          origin: mockConnectionInfo.metadata.dapp.url,
           originatorInfo: {
-            title: mockConnection.metadata.dapp.name,
-            url: mockConnection.metadata.dapp.url,
-            icon: mockConnection.metadata.dapp.icon,
-            dappId: mockConnection.metadata.dapp.name,
-            apiVersion: mockConnection.metadata.sdk.version,
-            platform: mockConnection.metadata.sdk.platform,
+            title: mockConnectionInfo.metadata.dapp.name,
+            url: mockConnectionInfo.metadata.dapp.url,
+            icon: mockConnectionInfo.metadata.dapp.icon,
+            dappId: mockConnectionInfo.metadata.dapp.name,
+            apiVersion: mockConnectionInfo.metadata.sdk.version,
+            platform: mockConnectionInfo.metadata.sdk.platform,
           },
           isV2: true,
         },
@@ -100,38 +102,41 @@ describe('HostApplicationAdapter', () => {
     });
 
     it('should correctly transform an array of multiple Connection objects', () => {
-      const mockConnection1 = createMockConnection('conn1', 'Test1');
-      const mockConnection2 = createMockConnection('conn2', 'Test2');
-      const connections: Connection[] = [mockConnection1, mockConnection2];
+      const mockConnectionInfo1 = createMockConnection('conn1', 'Test1');
+      const mockConnectionInfo2 = createMockConnection('conn2', 'Test2');
+      const connections = [
+        { id: mockConnectionInfo1.id, info: mockConnectionInfo1 },
+        { id: mockConnectionInfo2.id, info: mockConnectionInfo2 },
+      ] as unknown as Connection[];
 
       adapter.syncConnectionList(connections);
 
       const expectedSessions = {
-        [mockConnection1.id]: {
-          id: mockConnection1.id,
+        [mockConnectionInfo1.id]: {
+          id: mockConnectionInfo1.id,
           otherPublicKey: '',
-          origin: mockConnection1.metadata.dapp.url,
+          origin: mockConnectionInfo1.metadata.dapp.url,
           originatorInfo: {
-            title: mockConnection1.metadata.dapp.name,
-            url: mockConnection1.metadata.dapp.url,
-            icon: mockConnection1.metadata.dapp.icon,
-            dappId: mockConnection1.metadata.dapp.name,
-            apiVersion: mockConnection1.metadata.sdk.version,
-            platform: mockConnection1.metadata.sdk.platform,
+            title: mockConnectionInfo1.metadata.dapp.name,
+            url: mockConnectionInfo1.metadata.dapp.url,
+            icon: mockConnectionInfo1.metadata.dapp.icon,
+            dappId: mockConnectionInfo1.metadata.dapp.name,
+            apiVersion: mockConnectionInfo1.metadata.sdk.version,
+            platform: mockConnectionInfo1.metadata.sdk.platform,
           },
           isV2: true,
         },
-        [mockConnection2.id]: {
-          id: mockConnection2.id,
+        [mockConnectionInfo2.id]: {
+          id: mockConnectionInfo2.id,
           otherPublicKey: '',
-          origin: mockConnection2.metadata.dapp.url,
+          origin: mockConnectionInfo2.metadata.dapp.url,
           originatorInfo: {
-            title: mockConnection2.metadata.dapp.name,
-            url: mockConnection2.metadata.dapp.url,
-            icon: mockConnection2.metadata.dapp.icon,
-            dappId: mockConnection2.metadata.dapp.name,
-            apiVersion: mockConnection2.metadata.sdk.version,
-            platform: mockConnection2.metadata.sdk.platform,
+            title: mockConnectionInfo2.metadata.dapp.name,
+            url: mockConnectionInfo2.metadata.dapp.url,
+            icon: mockConnectionInfo2.metadata.dapp.icon,
+            dappId: mockConnectionInfo2.metadata.dapp.name,
+            apiVersion: mockConnectionInfo2.metadata.sdk.version,
+            platform: mockConnectionInfo2.metadata.sdk.platform,
           },
           isV2: true,
         },

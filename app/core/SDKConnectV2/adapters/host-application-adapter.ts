@@ -33,23 +33,23 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     return Promise.resolve();
   }
 
-  syncConnectionList(connections: Connection[]): void {
-    const v2Sessions: SDKSessions = connections.reduce((acc, connection) => {
-      const connectionProps: ConnectionProps & { isV2: boolean } = {
-        id: connection.id,
+  syncConnectionList(conns: Connection[]): void {
+    const v2Sessions: SDKSessions = conns.reduce((acc, conn) => {
+      const props: ConnectionProps & { isV2: boolean } = {
+        id: conn.id,
         otherPublicKey: '',
-        origin: connection.metadata.dapp.url,
+        origin: conn.info.metadata.dapp.url,
         originatorInfo: {
-          title: connection.metadata.dapp.name,
-          url: connection.metadata.dapp.url,
-          icon: connection.metadata.dapp.icon,
-          dappId: connection.metadata.dapp.name,
-          apiVersion: connection.metadata.sdk.version,
-          platform: connection.metadata.sdk.platform,
+          title: conn.info.metadata.dapp.name,
+          url: conn.info.metadata.dapp.url,
+          icon: conn.info.metadata.dapp.icon,
+          dappId: conn.info.metadata.dapp.name,
+          apiVersion: conn.info.metadata.sdk.version,
+          platform: conn.info.metadata.sdk.platform,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };
-      acc[connection.id] = connectionProps;
+      acc[conn.id] = props;
       return acc;
     }, {} as SDKSessions);
 

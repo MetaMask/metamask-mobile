@@ -81,9 +81,18 @@ export const showWalletConnectNotification = (
     const isWCOrigin = origin.startsWith(
       WALLET_CONNECT_ORIGIN.replaceAll(':', '').toLowerCase(),
     );
-    const isSDKOrigin = origin.startsWith(
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN.replaceAll(':', '').toLowerCase(),
-    );
+
+    // Check for both V1 and V2 SDK origins
+    const v1OriginPrefix = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN.replaceAll(
+      ':',
+      '',
+    ).toLowerCase();
+    const v2OriginPrefix = AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN.replaceAll(
+      ':',
+      '',
+    ).toLowerCase();
+    const isSDKOrigin =
+      origin.startsWith(v1OriginPrefix) || origin.startsWith(v2OriginPrefix);
 
     if (isWCOrigin || isSDKOrigin) {
       NotificationManager.showSimpleNotification({
