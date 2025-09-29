@@ -25,8 +25,8 @@ const catchAllFiles = process.env.CATCH_ALL_FILES || '';
  * These variables are used to store the build outputs
  * @type {boolean}
  */
-let willBuildAndroid = 'false';
-let willBuildIos = 'false';
+let willBuildAndroid = false;
+let willBuildIos = false;
 let message = '';
 
 /**
@@ -34,12 +34,12 @@ let message = '';
  */
 if (hasSharedFilesChanges) {
     message = 'Building both platforms (shared files changes)';
-    willBuildAndroid = 'true';
-    willBuildIos = 'true';
+    willBuildAndroid = true;
+    willBuildIos = true;
 } else if (!catchAllFiles || hasIgnoreFiles === catchAllFiles) {
   message = 'Ignoring - no mobile-impacting changes (pure ignore)';
-  willBuildAndroid = 'false';
-  willBuildIos = 'false';
+  willBuildAndroid = false;
+  willBuildIos = false;
 } else {
   message = 'Building both platforms (mixed changes)';
   willBuildAndroid = hasAndroidChanges;
@@ -50,7 +50,7 @@ if (hasSharedFilesChanges) {
  * Aggregate the build outputs
  * @type {boolean}
  */
-const willBuild = willBuildAndroid === 'true' || willBuildIos === 'true' ? 'true' : 'false';
+const willBuild = willBuildAndroid || willBuildIos ? 'true' : 'false';
 
 console.log(message);
 
