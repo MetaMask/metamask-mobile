@@ -6647,9 +6647,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^0.18.1":
-  version: 0.18.1
-  resolution: "@metamask/account-tree-controller@npm:0.18.1"
+"@metamask/account-tree-controller@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@metamask/account-tree-controller@npm:1.3.0"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/snaps-sdk": ^9.0.0
@@ -6662,12 +6662,12 @@ __metadata:
     "@metamask/account-api": ^0.12.0
     "@metamask/accounts-controller": ^33.0.0
     "@metamask/keyring-controller": ^23.0.0
-    "@metamask/multichain-account-service": ^0.8.0
+    "@metamask/multichain-account-service": ^1.0.0
     "@metamask/profile-sync-controller": ^25.0.0
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 1347e50abac65318d9fc37cfe50427cae77f6937622249563093bb989f31575566a8abf6ef876c1b0fe17fc9f99c5b72a67b3a12bc050838b151ffb9c4161f28
+  checksum: db9c6bf0c91d3afbcfecb41759066cac4ab527101c1a9698a0c5fef4c96fd3ed33e3481e17543e64de40ae9a817f97c5081ab5b19b53e543d3e26eaad0ccfd9c
   languageName: node
   linkType: hard
 
@@ -6739,9 +6739,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^75.2.0":
-  version: 75.2.0
-  resolution: "@metamask/assets-controllers@npm:75.2.0"
+"@metamask/assets-controllers@npm:^77.0.0":
+  version: 77.0.0
+  resolution: "@metamask/assets-controllers@npm:77.0.0"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -6773,19 +6773,19 @@ __metadata:
     single-call-balance-checker-abi: ^1.0.0
     uuid: ^8.3.2
   peerDependencies:
-    "@metamask/account-tree-controller": ^0.7.0
+    "@metamask/account-tree-controller": ^1.0.0
     "@metamask/accounts-controller": ^33.0.0
     "@metamask/approval-controller": ^7.0.0
     "@metamask/keyring-controller": ^23.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/permission-controller": ^11.0.0
-    "@metamask/phishing-controller": ^13.0.0
-    "@metamask/preferences-controller": ^19.0.0
+    "@metamask/phishing-controller": ^14.0.0
+    "@metamask/preferences-controller": ^20.0.0
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 610fe92e1d1b073f60da6ea17ad231c298eb0e7f20309c93d49222e2692f6b98c4edb33270e72c6101e5c6be4be21054a94cc04821f46b999cba0dc63c9e78c7
+  checksum: 4efb072819a150ec4b4b9b878c8a7495c9a2eac4c0e039616bba51709a47b7481a8d67daebf7197034ea4b0dbfaf6f7a6b2e12808b6d82610371e7bc6cc886a6
   languageName: node
   linkType: hard
 
@@ -6825,8 +6825,8 @@ __metadata:
   linkType: hard
 
 "@metamask/bridge-controller@npm:^43.2.0":
-  version: 43.2.0
-  resolution: "@metamask/bridge-controller@npm:43.2.0"
+  version: 43.2.1
+  resolution: "@metamask/bridge-controller@npm:43.2.1"
   dependencies:
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -6851,7 +6851,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 47cc0a8b1274703ae3e1c20785228bfb36a2904a8531a7dc2fa50f857515012e1bb5a4cffbabc78bd9a2b90e443eab9b21f1481bc0379650cf79c802b4c74b00
+  checksum: 1221a2c4725b0401628dd92034868bca2d722a8e1d91c84e1ed3158b79b5909106964c14f17d8bea507bab3415bd6c6fdaa401aeb9e8ea304266839629313f0a
   languageName: node
   linkType: hard
 
@@ -7680,9 +7680,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "@metamask/multichain-account-service@npm:0.10.0"
+"@metamask/multichain-account-service@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@metamask/multichain-account-service@npm:1.2.0"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@metamask/base-controller": ^8.4.0
@@ -7704,7 +7704,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 2e25658d1a713091ab45a7a1c9f54b88393b61c29994dba01f83f90bb26e461163b819e721e346e058ba74025912fa00512c23cbc455317188248ea35c87bdf9
+  checksum: ddc22d016ddabf85265238f2b89d8547a604c0e704df8244eefcb6782211f6ee636edb2d956e0a2132adddc5167c70ca8dfc993d531d85d34e7f15fae246c00a
   languageName: node
   linkType: hard
 
@@ -7960,15 +7960,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preferences-controller@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "@metamask/preferences-controller@npm:19.0.0"
+"@metamask/preferences-controller@npm:^20.0.1":
+  version: 20.0.1
+  resolution: "@metamask/preferences-controller@npm:20.0.1"
   dependencies:
-    "@metamask/base-controller": ^8.1.0
-    "@metamask/controller-utils": ^11.12.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
   peerDependencies:
     "@metamask/keyring-controller": ^23.0.0
-  checksum: dea4ada4614b70d3b8f219e1cd178eea99644cc0071828646720f41315226237e787a51aaa6aa9df1032a225fa8889e59fa5460880bc20b006231e6fafd9aacb
+  checksum: c3e6ee8fe2143240c40cd4f382a1cae51cd46ed277d7b75ebd8986b79a54e43a44bbb6acdce2b28d0e33e4e8c80dc78f9b123d2823b8a543dfdddd1b2e267df6
   languageName: node
   linkType: hard
 
@@ -8111,15 +8111,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "@metamask/remote-feature-flag-controller@npm:1.6.0"
+"@metamask/remote-feature-flag-controller@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "@metamask/remote-feature-flag-controller@npm:1.7.0"
   dependencies:
-    "@metamask/base-controller": ^8.0.0
-    "@metamask/controller-utils": ^11.5.0
-    "@metamask/utils": ^11.2.0
+    "@metamask/base-controller": ^8.0.1
+    "@metamask/controller-utils": ^11.11.0
+    "@metamask/utils": ^11.4.2
     uuid: ^8.3.2
-  checksum: 07dfbfaa013c9fb8ab929904303c4abda97a02935bc58802b0909d415895960e83e32da9996d1c69e42b65e7bd213b326f775681bc4dfabfc40aaf660a8c143a
+  checksum: 32145fb4eb37a2a3ae815273ad53933d263dbffd75f7e39fc6c279b18a945532367347614f6be48f7b5d7f494270c91b76b39db9eddc4de6c0dbd7cbfb4e5f20
   languageName: node
   linkType: hard
 
@@ -8408,10 +8408,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.3.11":
-  version: 2.3.11
-  resolution: "@metamask/solana-wallet-snap@npm:2.3.11"
-  checksum: 803c0150a619cc089507bdf8e9436d1dc55d286d476478bd0fcc69215ad99946feebaf9a725616b044a79f469b82ee25d55705643313d8e11ca4329f02f19dd8
+"@metamask/solana-wallet-snap@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@metamask/solana-wallet-snap@npm:2.4.0"
+  checksum: 7da03973c8d2d210df8dcdcba771edbe31f7284969f29f5b785d9ecd89ab2ab8e188e8f546a70dcd4cd6b2d643a1fa6dd1749d7aa27ad7aed5ed78e950916589
   languageName: node
   linkType: hard
 
@@ -11354,10 +11354,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/babel-plugin-component-annotate@npm:3.2.2":
-  version: 3.2.2
-  resolution: "@sentry/babel-plugin-component-annotate@npm:3.2.2"
-  checksum: 76e5ad6ff2d9184c3eec43c608f0c3c3ef8f9b9f51ebf9cfefe1e35f8c235fb46a6890932408098cb28687fed780a28c870d648e0e30e12b73e0fa03a295648e
+"@sentry/babel-plugin-component-annotate@npm:3.5.0":
+  version: 3.5.0
+  resolution: "@sentry/babel-plugin-component-annotate@npm:3.5.0"
+  checksum: c5dd3c572e4ca83db859bf3d8ba976393361631f30eb977bc00a572d9981ccaae84f42cce5bf85bc425544245ad22923a66fe96bc2355d339e12ea3aa72d3b82
   languageName: node
   linkType: hard
 
@@ -11374,66 +11374,74 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/cli-darwin@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-darwin@npm:2.42.4"
+"@sentry/cli-darwin@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-darwin@npm:2.46.0"
   conditions: os=darwin
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm64@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-linux-arm64@npm:2.42.4"
-  conditions: (os=linux | os=freebsd) & cpu=arm64
+"@sentry/cli-linux-arm64@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-linux-arm64@npm:2.46.0"
+  conditions: (os=linux | os=freebsd | os=android) & cpu=arm64
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-linux-arm@npm:2.42.4"
-  conditions: (os=linux | os=freebsd) & cpu=arm
+"@sentry/cli-linux-arm@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-linux-arm@npm:2.46.0"
+  conditions: (os=linux | os=freebsd | os=android) & cpu=arm
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-i686@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-linux-i686@npm:2.42.4"
-  conditions: (os=linux | os=freebsd) & (cpu=x86 | cpu=ia32)
+"@sentry/cli-linux-i686@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-linux-i686@npm:2.46.0"
+  conditions: (os=linux | os=freebsd | os=android) & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-x64@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-linux-x64@npm:2.42.4"
-  conditions: (os=linux | os=freebsd) & cpu=x64
+"@sentry/cli-linux-x64@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-linux-x64@npm:2.46.0"
+  conditions: (os=linux | os=freebsd | os=android) & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-i686@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-win32-i686@npm:2.42.4"
+"@sentry/cli-win32-arm64@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-win32-arm64@npm:2.46.0"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@sentry/cli-win32-i686@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-win32-i686@npm:2.46.0"
   conditions: os=win32 & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-x64@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli-win32-x64@npm:2.42.4"
+"@sentry/cli-win32-x64@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli-win32-x64@npm:2.46.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli@npm:2.42.4":
-  version: 2.42.4
-  resolution: "@sentry/cli@npm:2.42.4"
+"@sentry/cli@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@sentry/cli@npm:2.46.0"
   dependencies:
-    "@sentry/cli-darwin": 2.42.4
-    "@sentry/cli-linux-arm": 2.42.4
-    "@sentry/cli-linux-arm64": 2.42.4
-    "@sentry/cli-linux-i686": 2.42.4
-    "@sentry/cli-linux-x64": 2.42.4
-    "@sentry/cli-win32-i686": 2.42.4
-    "@sentry/cli-win32-x64": 2.42.4
+    "@sentry/cli-darwin": 2.46.0
+    "@sentry/cli-linux-arm": 2.46.0
+    "@sentry/cli-linux-arm64": 2.46.0
+    "@sentry/cli-linux-i686": 2.46.0
+    "@sentry/cli-linux-x64": 2.46.0
+    "@sentry/cli-win32-arm64": 2.46.0
+    "@sentry/cli-win32-i686": 2.46.0
+    "@sentry/cli-win32-x64": 2.46.0
     https-proxy-agent: ^5.0.0
     node-fetch: ^2.6.7
     progress: ^2.0.3
@@ -11450,13 +11458,15 @@ __metadata:
       optional: true
     "@sentry/cli-linux-x64":
       optional: true
+    "@sentry/cli-win32-arm64":
+      optional: true
     "@sentry/cli-win32-i686":
       optional: true
     "@sentry/cli-win32-x64":
       optional: true
   bin:
     sentry-cli: bin/sentry-cli
-  checksum: 0571931c18a81f4680bb27d9e9f1adc057217188bcd19e8ae706f31d92050d79e527e8ee5b8c0189e48c19796f251321380871c81d3d8c37652d28d43e50fc97
+  checksum: b4308c5746619f6a42af48f83b03592c9887cddbca242bce6a0adc28d6e1484601d110e3ee0af666046e445769780889b3c5a2dfceb4833b13309f907483085c
   languageName: node
   linkType: hard
 
@@ -11474,13 +11484,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@npm:~6.10.0":
-  version: 6.10.0
-  resolution: "@sentry/react-native@npm:6.10.0"
+"@sentry/react-native@npm:~6.15.0":
+  version: 6.15.1
+  resolution: "@sentry/react-native@npm:6.15.1"
   dependencies:
-    "@sentry/babel-plugin-component-annotate": 3.2.2
+    "@sentry/babel-plugin-component-annotate": 3.5.0
     "@sentry/browser": 8.54.0
-    "@sentry/cli": 2.42.4
+    "@sentry/cli": 2.46.0
     "@sentry/core": 8.54.0
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
@@ -11494,7 +11504,7 @@ __metadata:
       optional: true
   bin:
     sentry-expo-upload-sourcemaps: scripts/expo-upload-sourcemaps.js
-  checksum: 623185eec59028f6606997f7c449b19c6961e6884a08b36d8ebb83aa2cdca04e9ffe253ff3c88ed3a2d8c94ecc2cbbf5d7c8312bf15986da2baee2196cccc746
+  checksum: 604a9ff1a1d5d3aff3f8ebf05559669b6c5cfe403c818eddd1db3dd59d2ddd003d5a141f5a02aa499d8b3ccd4e0c841b5426ae01034c680f09bcbe1fca2f5b55
   languageName: node
   linkType: hard
 
@@ -21359,13 +21369,6 @@ __metadata:
   version: 1.0.2
   resolution: "base64-arraybuffer@npm:1.0.2"
   checksum: 15e6400d2d028bf18be4ed97702b11418f8f8779fb8c743251c863b726638d52f69571d4cc1843224da7838abef0949c670bde46936663c45ad078e89fee5c62
-  languageName: node
-  linkType: hard
-
-"base64-js@npm:1.3.1":
-  version: 1.3.1
-  resolution: "base64-js@npm:1.3.1"
-  checksum: 957b9ced0ea1b39588a117193f801b045a5fb2d6f1b9943dd304bcad46e5681bf837fe092105692b11653658e8443764139d6b11d3c4037093b96e8db4e1dbb2
   languageName: node
   linkType: hard
 
@@ -33654,12 +33657,12 @@ __metadata:
     "@ledgerhq/react-native-hw-transport-ble": ^6.34.1
     "@metamask/abi-utils": ^3.0.0
     "@metamask/account-api": ^0.12.0
-    "@metamask/account-tree-controller": ^0.18.1
+    "@metamask/account-tree-controller": ^1.3.0
     "@metamask/accounts-controller": ^33.1.0
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^75.2.0
+    "@metamask/assets-controllers": ^77.0.0
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.0.0
     "@metamask/bridge-controller": ^43.2.0
@@ -33706,7 +33709,7 @@ __metadata:
     "@metamask/mobile-provider": ^3.0.0
     "@metamask/mobile-wallet-protocol-core": ^0.1.1
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.1
-    "@metamask/multichain-account-service": ^0.10.0
+    "@metamask/multichain-account-service": ^1.2.0
     "@metamask/multichain-api-client": ^0.7.0
     "@metamask/multichain-api-middleware": 1.1.0
     "@metamask/multichain-network-controller": ^0.12.0
@@ -33719,7 +33722,7 @@ __metadata:
     "@metamask/phishing-controller": ^13.1.0
     "@metamask/post-message-stream": ^10.0.0
     "@metamask/ppom-validator": ^0.38.0
-    "@metamask/preferences-controller": ^19.0.0
+    "@metamask/preferences-controller": ^20.0.1
     "@metamask/preinstalled-example-snap": ^0.7.1
     "@metamask/profile-sync-controller": ^25.0.0
     "@metamask/providers": ^18.3.1
@@ -33729,7 +33732,7 @@ __metadata:
     "@metamask/react-native-payments": ^2.0.0
     "@metamask/react-native-search-api": 1.0.1
     "@metamask/react-native-webview": ^14.5.0
-    "@metamask/remote-feature-flag-controller": ^1.6.0
+    "@metamask/remote-feature-flag-controller": ^1.7.0
     "@metamask/rpc-errors": ^7.0.2
     "@metamask/scure-bip39": ^2.1.0
     "@metamask/sdk-analytics": 0.0.5
@@ -33744,7 +33747,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.3.11
+    "@metamask/solana-wallet-snap": ^2.4.0
     "@metamask/solana-wallet-standard": ^0.6.0
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0
@@ -33791,7 +33794,7 @@ __metadata:
     "@sentry/browser": ~8.54.0
     "@sentry/core": ~8.54.0
     "@sentry/react": ~8.54.0
-    "@sentry/react-native": ~6.10.0
+    "@sentry/react-native": ~6.15.0
     "@shopify/flash-list": 2.0.3
     "@solana/addresses": 2.0.0
     "@storybook/addon-controls": ^7.5.1
@@ -34018,7 +34021,7 @@ __metadata:
     react-native-svg-charts: ^5.4.0
     react-native-svg-transformer: ^1.0.0
     react-native-swipe-gestures: 1.0.3
-    react-native-tcp: "aprock/react-native-tcp#98fbc801f0586297f16730b2f4c75eef15dfabcd"
+    react-native-tcp-socket: ^6.3.0
     react-native-url-polyfill: ^1.3.0
     react-native-vector-icons: 10.2.0
     react-native-video: ^6.10.1
@@ -37445,7 +37448,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"process@npm:^0.11.1, process@npm:^0.11.10, process@npm:^0.11.9":
+"process@npm:^0.11.1, process@npm:^0.11.10":
   version: 0.11.10
   resolution: "process@npm:0.11.10"
   checksum: bfcce49814f7d172a6e6a14d5fa3ac92cc3d0c3b9feb1279774708a719e19acd673995226351a082a9ae99978254e320ccda4240ddc474ba31a76c79491ca7c3
@@ -38968,19 +38971,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-tcp@aprock/react-native-tcp#98fbc801f0586297f16730b2f4c75eef15dfabcd":
-  version: 4.0.0
-  resolution: "react-native-tcp@https://github.com/aprock/react-native-tcp.git#98fbc801f0586297f16730b2f4c75eef15dfabcd"
+"react-native-tcp-socket@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "react-native-tcp-socket@npm:6.3.0"
   dependencies:
-    base64-js: 1.3.1
     buffer: ^5.4.3
-    events: ^3.0.0
-    ip-regex: ^4.1.0
-    process: ^0.11.9
-    util: ^0.12.1
+    eventemitter3: ^4.0.7
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: e62913a5cd29d6bf448eca28072e6cf791a49dac4101044bd8f8ed266ae32cc704059d1d3d7484f736f859c96eb9cb3a7fa9a357828f98306521e3118312a077
+  checksum: 0cb8c8910bfcff7074bf3493723998f9f990a434f57e02d6fbaf7ee75965f00cdfdcf49e7b1ce3018ea1feb884506d613b62fa09be9f7716cec424bece164cac
   languageName: node
   linkType: hard
 
@@ -44079,7 +44078,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util@npm:^0.12.1, util@npm:^0.12.4, util@npm:^0.12.5":
+"util@npm:^0.12.4, util@npm:^0.12.5":
   version: 0.12.5
   resolution: "util@npm:0.12.5"
   dependencies:

@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import {
   Hex,
@@ -78,11 +79,56 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       : undefined;
   }
 
-  const { tokens: tokensList, pending } = useTokens({
+  const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedSourceToken?.chainId,
     balanceChainIds,
     tokensToExclude: selectedDestToken ? [selectedDestToken] : [],
   });
+
+  const handleTokenPress = useCallback(
+    async (token: BridgeToken) => {
+      // Navigate back to the previous screen immediately so we unmount the component
+      // And don't refetch the top tokens
+      // The chain switching will still happen in the background
+      // Chain switching is important for calling /suggestedGasFees endpoint for the right chain
+      // and also the next time you open up the token selector to fetch top tokens for the right chain
+      navigation.goBack();
+      dispatch(setSourceToken(token));
+
+      // Switch to the chain of the selected token
+      const evmNetworkConfiguration =
+        evmNetworkConfigurations[token.chainId as Hex];
+
+      if (evmNetworkConfiguration) {
+        await onSetRpcTarget(evmNetworkConfiguration);
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      if (!evmNetworkConfiguration) {
+        await onNonEvmNetworkChange(token.chainId as CaipChainId);
+      }
+      ///: END:ONLY_INCLUDE_IF
+    },
+    [
+      navigation,
+      dispatch,
+      evmNetworkConfigurations,
+      onSetRpcTarget,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      onNonEvmNetworkChange,
+      ///: END:ONLY_INCLUDE_IF
+    ],
+  );
+
+  const debouncedTokenPress = useMemo(
+    () => debounce(handleTokenPress, 500),
+    [handleTokenPress],
+  );
+
+  // Cleanup debounced function on unmount and dependency changes
+  useEffect(() => () => {
+      debouncedTokenPress.cancel();
+    }, [debouncedTokenPress]);
 
   const renderItem = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
@@ -92,36 +138,12 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         return <SkeletonItem />;
       }
 
-      const handleTokenPress = async (token: BridgeToken) => {
-        // Navigate back to the previous screen immediately so we unmount the component
-        // And don't refetch the top tokens
-        // The chain switching will still happen in the background
-        // Chain switching is important for calling /suggestedGasFees endpoint for the right chain
-        // and also the next time you open up the token selector to fetch top tokens for the right chain
-        navigation.goBack();
-        dispatch(setSourceToken(token));
-
-        // Switch to the chain of the selected token
-        const evmNetworkConfiguration =
-          evmNetworkConfigurations[token.chainId as Hex];
-
-        if (evmNetworkConfiguration) {
-          await onSetRpcTarget(evmNetworkConfiguration);
-        }
-
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        if (!evmNetworkConfiguration) {
-          await onNonEvmNetworkChange(token.chainId as CaipChainId);
-        }
-        ///: END:ONLY_INCLUDE_IF
-      };
-
       const networkName = allNetworkConfigurations[item.chainId]?.name;
 
       return (
         <TokenSelectorItem
           token={item}
-          onPress={handleTokenPress}
+          onPress={debouncedTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({ chainId: item.chainId })}
           isSelected={
@@ -131,17 +153,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         />
       );
     },
-    [
-      dispatch,
-      navigation,
-      allNetworkConfigurations,
-      selectedSourceToken,
-      onSetRpcTarget,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      onNonEvmNetworkChange,
-      ///: END:ONLY_INCLUDE_IF
-      evmNetworkConfigurations,
-    ],
+    [allNetworkConfigurations, selectedSourceToken, debouncedTokenPress],
   );
 
   const networksToShow = useMemo(
@@ -165,7 +177,8 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         ) : undefined
       }
       renderTokenItem={renderItem}
-      tokensList={tokensList}
+      allTokens={allTokens}
+      tokensToRender={tokensToRender}
       pending={pending}
       chainIdToFetchMetadata={selectedChainId}
     />

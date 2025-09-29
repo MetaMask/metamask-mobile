@@ -61,7 +61,7 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Season status cache threshold
-const SEASON_STATUS_CACHE_THRESHOLD_MS = 0; // no caching for now
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
@@ -329,6 +329,10 @@ export class RewardsController extends BaseController<
       'RewardsController:claimReward',
       this.claimReward.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:isOptInSupported',
+      this.isOptInSupported.bind(this),
+    );
   }
 
   /**
@@ -503,22 +507,61 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware
-    if (isHardwareAccount(address)) return true;
+  #shouldSkipSilentAuth(
+    account: CaipAccountId,
+    internalAccount: InternalAccount,
+  ): boolean {
+    // Skip if opt-in is not supported (e.g., hardware wallets, unsupported account types)
+    if (!this.isOptInSupported(internalAccount)) return true;
 
     const now = Date.now();
 
     const accountState = this.#getAccountState(account);
     if (
       accountState &&
-      accountState.hasOptedIn &&
       now - accountState.lastCheckedAuth < AUTH_GRACE_PERIOD_MS
     ) {
       return true;
     }
 
     return false;
+  }
+
+  /**
+   * Check if an internal account supports opt-in for rewards
+   * @param account - The internal account to check
+   * @returns boolean - True if the account supports opt-in, false otherwise
+   */
+  isOptInSupported(account: InternalAccount): boolean {
+    try {
+      // Try to check if it's a hardware wallet
+      const isHardware = isHardwareAccount(account.address);
+      // If it's a hardware wallet, opt-in is not supported
+      if (isHardware) {
+        return false;
+      }
+
+      // Check if it's an EVM address (not non-EVM)
+      if (!isNonEvmAddress(account.address)) {
+        return true;
+      }
+
+      // Check if it's a Solana address
+      if (isSolanaAddress(account.address)) {
+        return true;
+      }
+
+      // If it's neither Solana nor EVM, opt-in is not supported
+      return false;
+    } catch (error) {
+      // If there's an exception (e.g., checking hardware wallet status fails),
+      // assume opt-in is not supported
+      Logger.log(
+        'RewardsController: Exception checking opt-in support, assuming not supported:',
+        error,
+      );
+      return false;
+    }
   }
 
   convertInternalAccountToCaipAccountId(
@@ -557,7 +600,7 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.#shouldSkipSilentAuth(account, internalAccount.address)
+      ? this.#shouldSkipSilentAuth(account, internalAccount)
       : false;
 
     if (shouldSkip) {
@@ -656,6 +699,7 @@ export class RewardsController extends BaseController<
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('401')) {
         // Not opted in
+        Logger.log('RewardsController: Account not opt-in', account);
       } else {
         // Unknown error
         subscription = null;
@@ -808,7 +852,6 @@ export class RewardsController extends BaseController<
         params.addresses.length,
       ).fill(null);
       const addressesNeedingFresh: string[] = [];
-      const freshIndexMap: Map<string, number> = new Map();
 
       // Check storage state for each address
       for (let i = 0; i < params.addresses.length; i++) {
@@ -830,7 +873,6 @@ export class RewardsController extends BaseController<
 
         // No cached data found, need fresh API call
         addressesNeedingFresh.push(address);
-        freshIndexMap.set(address, i);
       }
 
       // Make fresh API call only for addresses without cached data
@@ -1474,7 +1516,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to validate referral code:',
         error instanceof Error ? error.message : String(error),
       );
-      return false;
+      throw error;
     }
   }
 
@@ -1505,12 +1547,16 @@ export class RewardsController extends BaseController<
         'AccountsController:listMultichainAccounts',
       );
 
-      if (!allAccounts || allAccounts.length === 0) {
+      // Extract addresses from internal accounts using isOptInSupported
+      const supportedAccounts: InternalAccount[] =
+        allAccounts?.filter((account: InternalAccount) =>
+          this.isOptInSupported(account),
+        ) || [];
+      if (!supportedAccounts || supportedAccounts.length === 0) {
         return null;
       }
 
-      // Extract addresses from internal accounts
-      const addresses = allAccounts.map(
+      const addresses = supportedAccounts.map(
         (account: InternalAccount) => account.address,
       );
 
@@ -1534,9 +1580,9 @@ export class RewardsController extends BaseController<
         optInStatusResponse.ois.length,
       );
       let silentAuthAttempts = 0;
-      for (let i = 0; i < allAccounts.length; i++) {
+      for (let i = 0; i < supportedAccounts.length; i++) {
         if (silentAuthAttempts > maxSilentAuthAttempts) break;
-        const account = allAccounts[i];
+        const account = supportedAccounts[i];
         if (!account || optInStatusResponse.ois[i] === false) continue;
         try {
           silentAuthAttempts++;
@@ -1808,7 +1854,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get active points boosts:',
         error instanceof Error ? error.message : String(error),
       );
-      return [];
+      throw error;
     }
   }
 
@@ -1883,7 +1929,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get unlocked rewards:',
         error instanceof Error ? error.message : String(error),
       );
-      return [];
+      throw error;
     }
   }
 

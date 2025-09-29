@@ -363,8 +363,8 @@ export const initialState = {
           order: 'dsc' as const,
         },
         tokenNetworkFilter: {
-          [ethChainId]: 'true',
-          [optimismChainId]: 'true',
+          [ethChainId]: true,
+          [optimismChainId]: true,
         },
       },
       TokenListController: {
