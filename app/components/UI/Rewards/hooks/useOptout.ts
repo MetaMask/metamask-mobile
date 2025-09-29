@@ -10,6 +10,7 @@ import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 interface UseOptoutResult {
   optout: () => Promise<void>;
@@ -23,6 +24,7 @@ export const useOptout = (): UseOptoutResult => {
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const optout = useCallback(async () => {
     if (isLoading || !subscriptionId) return;
@@ -38,6 +40,13 @@ export const useOptout = (): UseOptoutResult => {
       );
 
       if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+            .addProperties({
+              status: 'completed',
+            })
+            .build(),
+        );
         Logger.log(
           'useOptout: Opt-out successful, resetting state and navigating',
         );
@@ -76,6 +85,8 @@ export const useOptout = (): UseOptoutResult => {
     navigation,
     showToast,
     RewardsToastOptions,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const showOptoutBottomSheet = useCallback(
@@ -83,6 +94,13 @@ export const useOptout = (): UseOptoutResult => {
       const dismissModal = () => {
         // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
         navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+            .addProperties({
+              status: 'canceled',
+            })
+            .build(),
+        );
       };
 
       navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
@@ -100,7 +118,7 @@ export const useOptout = (): UseOptoutResult => {
         },
       });
     },
-    [navigation, isLoading, optout],
+    [navigation, isLoading, optout, trackEvent, createEventBuilder],
   );
 
   return {

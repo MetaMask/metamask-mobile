@@ -26,6 +26,9 @@ import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMar
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../../hooks/useLinkAccount';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -47,6 +50,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     refresh: fetchOptInStatus,
   } = useRewardOptinSummary();
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Local state to track accounts that have been linked but not yet refetched from server
   const [locallyLinkedAccounts, setLocallyLinkedAccounts] = useState<
@@ -76,6 +80,26 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     [unlinkedAccounts, locallyLinkedAccounts],
   );
 
+  const triggerAccountLinkingEvent = useCallback(
+    (status: 'started' | 'completed' | 'failed', account: InternalAccount) => {
+      const accountScope = isEvmAccountType(account.type)
+        ? 'evm'
+        : isSolanaAccount(account)
+        ? 'solana'
+        : 'unknown';
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_ACCOUNT_LINKING)
+          .addProperties({
+            status,
+            scope: accountScope,
+            wallet_type: account.type,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
   // Handle link account press with double-press prevention
   const handleLinkAccountPress = useCallback(
     async (account: InternalAccount) => {
@@ -86,6 +110,8 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
 
       setLinkingAccount(account);
 
+      triggerAccountLinkingEvent('started', account);
+
       try {
         const success = await linkAccount(account);
         if (success) {
@@ -93,12 +119,15 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
           setLocallyLinkedAccounts((prev) =>
             new Set(prev).add(account.address),
           );
+          triggerAccountLinkingEvent('completed', account);
         }
+      } catch (err) {
+        triggerAccountLinkingEvent('failed', account);
       } finally {
         setLinkingAccount(null);
       }
     },
-    [isLinkingAccount, linkAccount],
+    [isLinkingAccount, linkAccount, triggerAccountLinkingEvent],
   );
 
   // Shared account item component

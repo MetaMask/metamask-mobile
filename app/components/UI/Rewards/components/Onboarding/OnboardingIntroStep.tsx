@@ -39,6 +39,7 @@ import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 /**
  * OnboardingIntroStep Component
@@ -199,6 +200,9 @@ const OnboardingIntroStep: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedOnboardingStart = React.useRef(false);
+
   /**
    * Auto-redirect to dashboard if user is already opted in
    */
@@ -206,8 +210,17 @@ const OnboardingIntroStep: React.FC = () => {
     useCallback(() => {
       if (subscriptionId) {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
+      } else if (!hasTrackedOnboardingStart.current) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_ONBOARDING)
+            .addProperties({
+              status: 'started',
+            })
+            .build(),
+        );
+        hasTrackedOnboardingStart.current = true;
       }
-    }, [subscriptionId, navigation]),
+    }, [subscriptionId, navigation, trackEvent, createEventBuilder]),
   );
 
   /**

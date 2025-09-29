@@ -32,6 +32,7 @@ import TextField, {
 } from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 export interface ModalAction {
   label: string;
@@ -83,6 +84,7 @@ const RewardsClaimBottomSheetModal = ({
     inputPlaceholder,
   } = route.params;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleModalClose = useCallback(() => {
     navigation.goBack();
@@ -109,6 +111,14 @@ const RewardsClaimBottomSheetModal = ({
       await claimReward(rewardId, claimData);
       handleModalClose();
       showToast();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_REWARD_CLAIMED)
+          .addProperties({
+            reward_id: rewardId,
+            reward_name: title,
+          })
+          .build(),
+      );
     } catch (error) {
       // keep modal open to display error message
     }
@@ -119,6 +129,9 @@ const RewardsClaimBottomSheetModal = ({
     rewardId,
     rewardType,
     showToast,
+    trackEvent,
+    createEventBuilder,
+    title,
   ]);
 
   const confirmAction = useMemo(() => {

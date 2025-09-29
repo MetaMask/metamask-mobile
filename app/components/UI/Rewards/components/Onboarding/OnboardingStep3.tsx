@@ -12,17 +12,26 @@ import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const OnboardingStep3: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { colors } = useTheme();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleNext = useCallback(async () => {
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));
     navigation.navigate(Routes.REWARDS_ONBOARDING_4);
-  }, [dispatch, navigation]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_ONBOARDING)
+        .addProperties({
+          status: 'completed',
+        })
+        .build(),
+    );
+  }, [dispatch, navigation, trackEvent, createEventBuilder]);
 
   const handleSkip = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));

@@ -20,6 +20,7 @@ import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewa
 import { useOptout } from '../hooks/useOptout';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 interface RewardsSettingsViewRouteParams {
   focusUnlinkedTab?: boolean;
@@ -36,6 +37,7 @@ const RewardsSettingsView: React.FC = () => {
   const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
@@ -121,9 +123,16 @@ const RewardsSettingsView: React.FC = () => {
               isDisabled={isOptingOut}
               isDanger
               width={null as unknown as number}
-              onPress={() =>
-                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW)
-              }
+              onPress={() => {
+                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW);
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+                    .addProperties({
+                      status: 'started',
+                    })
+                    .build(),
+                );
+              }}
             />
           </Box>
         </Box>

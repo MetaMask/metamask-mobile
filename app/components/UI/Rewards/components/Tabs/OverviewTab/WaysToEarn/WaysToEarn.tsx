@@ -26,6 +26,10 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -152,6 +156,7 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -206,6 +211,21 @@ export const WaysToEarn = () => {
             label: ctaLabel,
             onPress: () => {
               handleCTAPress(wayToEarn.type);
+
+              // Metrics
+              if (wayToEarn.type === WayToEarnType.PERPS) {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.REWARDS_PERPS_BUTTON_CLICKED,
+                  ).build(),
+                );
+              } else if (wayToEarn.type === WayToEarnType.SWAPS) {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.REWARDS_SWAP_BUTTON_CLICKED,
+                  ).build(),
+                );
+              }
             },
             variant: ButtonVariant.Primary,
           },
