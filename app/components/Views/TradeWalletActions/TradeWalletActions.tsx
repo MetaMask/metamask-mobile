@@ -49,7 +49,6 @@ import {
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import BottomShape from './components/BottomShape';
@@ -278,7 +277,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+                {AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
                     label={strings('asset_overview.swap')}
                     description={strings('asset_overview.swap_description')}

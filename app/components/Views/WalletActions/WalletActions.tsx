@@ -10,7 +10,6 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
@@ -174,7 +173,7 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+        {AppConstants.SWAPS.ACTIVE && (
           <ActionListItem
             label={strings('asset_overview.swap')}
             description={strings('asset_overview.swap_description')}
