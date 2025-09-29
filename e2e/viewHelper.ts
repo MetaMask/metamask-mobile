@@ -240,7 +240,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   });
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
@@ -251,7 +250,7 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   }
 
   await device.disableSynchronization(); // Detox is hanging after wallet creation
-
+  await device.enableSynchronization();
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
