@@ -781,6 +781,14 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for checking if an account supports opt-in
+ */
+export interface RewardsControllerIsOptInSupportedAction {
+  type: 'RewardsController:isOptInSupported';
+  handler: (account: InternalAccount) => boolean;
+}
+
+/**
  * Action for linking an account to a subscription
  */
 export interface RewardsControllerLinkAccountToSubscriptionAction {
@@ -852,6 +860,7 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerIsOptInSupportedAction
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
