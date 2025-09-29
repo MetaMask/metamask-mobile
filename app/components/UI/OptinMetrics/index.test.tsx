@@ -193,21 +193,44 @@ describe('OptinMetrics', () => {
         strings('privacy_policy.gather_basic_usage_title'),
       );
 
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+      });
+
+      jest.clearAllMocks();
+
       fireEvent.press(basicUsageCheckbox);
 
-      expect(basicUsageCheckbox).toBeTruthy();
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+      });
     });
 
-    it('should toggle basic usage checkbox state when checkbox component is pressed', () => {
+    it('should toggle basic usage checkbox state when checkbox component is pressed', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       const checkboxes = screen.getAllByRole('checkbox');
       const basicUsageCheckbox = checkboxes[0];
 
-      expect(basicUsageCheckbox).toBeTruthy();
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+      });
+
+      jest.clearAllMocks();
+
       fireEvent.press(basicUsageCheckbox);
 
-      expect(basicUsageCheckbox).toBeTruthy();
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+      });
     });
 
     it('should call metrics.enable with true when basic usage is checked by default', async () => {
@@ -268,16 +291,52 @@ describe('OptinMetrics', () => {
   });
 
   describe('Marketing checkbox functionality', () => {
-    it('should toggle marketing checkbox state when touched', () => {
+    it('should toggle marketing checkbox state when touched', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
-      const marketingCheckboxes = screen.getAllByRole('checkbox');
-      const marketingCheckbox = marketingCheckboxes[1];
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
 
-      expect(marketingCheckbox).toBeTruthy();
+      // Verify initial state: isMarketingChecked should be false
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: false,
+              is_metrics_opted_in: true, // Basic usage should be true by default
+            }),
+          }),
+        );
+      });
+
+      jest.clearAllMocks();
+
+      // Press to toggle the marketing checkbox
       fireEvent.press(marketingCheckbox);
 
-      expect(marketingCheckbox).toBeTruthy();
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: true,
+              is_metrics_opted_in: true,
+            }),
+          }),
+        );
+      });
     });
   });
 
@@ -428,16 +487,42 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('should handle marketing checkbox state when pressed', () => {
+    it('should handle marketing checkbox state when pressed', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       const marketingCheckbox = screen.getByText(
         strings('privacy_policy.checkbox_marketing'),
       );
 
-      expect(marketingCheckbox).toBeTruthy();
+      // Verify initial state: marketing should be unchecked
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: false,
+            }),
+          }),
+        );
+      });
+
+      jest.clearAllMocks();
+
       fireEvent.press(marketingCheckbox);
-      expect(marketingCheckbox).toBeTruthy();
+
+      // Verify the state actually changed: marketing should now be checked
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: true,
+            }),
+          }),
+        );
+      });
     });
 
     it('should render component without errors', () => {
@@ -595,7 +680,7 @@ describe('OptinMetrics', () => {
   });
 
   describe('Checkbox Interdependency Logic', () => {
-    it('should uncheck and disable marketing checkbox when basic usage is unchecked', () => {
+    it('should uncheck and disable marketing checkbox when basic usage is unchecked', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       const basicUsageCheckbox = screen.getByText(
@@ -606,10 +691,36 @@ describe('OptinMetrics', () => {
       );
 
       fireEvent.press(marketingCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: true,
+              is_metrics_opted_in: true,
+            }),
+          }),
+        );
+      });
+
+      jest.clearAllMocks();
+
       fireEvent.press(basicUsageCheckbox);
 
-      expect(basicUsageCheckbox).toBeTruthy();
-      expect(marketingCheckbox).toBeTruthy();
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: false,
+              is_metrics_opted_in: false,
+            }),
+          }),
+        );
+      });
     });
 
     it('should prevent marketing checkbox toggle when basic usage is unchecked', () => {
