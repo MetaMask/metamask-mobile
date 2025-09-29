@@ -46,6 +46,8 @@ export default class AppwrightGestures {
    * Tap method with retry logic
    * @param elementPromise - The element promise to tap
    * @param options - Configuration options for retry behavior
+   * @param maxRetries - Maximum number of tap attempts
+   * @param retryDelay - Delay between tap attempts
    */
   async tap(
     elementPromise: Promise<Element>,
@@ -89,6 +91,8 @@ export default class AppwrightGestures {
    * @param elementPromise - The element promise to type into
    * @param text - The text to type
    * @param options - Configuration options for retry behavior
+   * @param maxRetries - Maximum number of type attempts
+   * @param retryDelay - Delay between type attempts
    */
   async typeText(
     elementPromise: Promise<Element>,
@@ -139,6 +143,9 @@ export default class AppwrightGestures {
    * Scroll element into view with platform-specific scrolling
    * @param elementPromise - The element promise to scroll into view
    * @param options - Configuration options for scrolling behavior
+   * @param maxScrollAttempts - Maximum number of scroll attempts
+   * @param scrollTimeout - Timeout for scroll attempts
+   * @param scrollParams - Parameters for scrolling behavior
    */
   async scrollIntoView(
     elementPromise: Promise<Element>,
@@ -257,6 +264,8 @@ export default class AppwrightGestures {
    * Activate the MetaMask app
    * @param deviceInstance - The device object
    * @param options - Configuration options for activation behavior
+   * @param maxRetries - Maximum number of activation attempts
+   * @param initDelay - Delay after activation to wait for app to initialize
    */
   static async activateApp(
     deviceInstance: Device,
