@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Image, ImageBackground, Text as RNText } from 'react-native';
 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -38,6 +38,8 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
+import Engine from '../../../../../core/Engine';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * OnboardingIntroStep Component
@@ -50,6 +52,14 @@ const OnboardingIntroStep: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const { bottom: bottomInsets } = useSafeAreaInsets();
+  const imageBackgroundStyle = useMemo(
+    () => [
+      tw.style('flex-grow px-4 py-8'),
+      { paddingBottom: bottomInsets + 16 },
+    ],
+    [tw, bottomInsets],
+  );
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -313,7 +323,7 @@ const OnboardingIntroStep: React.FC = () => {
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={imageBackgroundStyle}
         resizeMode="cover"
       >
         {/* Spacer */}

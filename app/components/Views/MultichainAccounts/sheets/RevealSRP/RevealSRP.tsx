@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { Box } from '../../../../UI/Box/Box';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { SafeAreaView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
@@ -70,7 +71,7 @@ export const RevealSRP = () => {
   }, [keyringId, navigate]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
       <HeaderBase
         style={styles.headerContainer}
         startAccessory={

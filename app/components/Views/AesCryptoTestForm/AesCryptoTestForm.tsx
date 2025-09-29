@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import {
@@ -145,16 +146,17 @@ const AesCryptoTestForm = () => {
   );
 
   return (
-    <ScrollView testID={aesCryptoFormScrollIdentifier}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.container}>
-          <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
-            Current selected address
-          </Text>
-          <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
-            {selectedFormattedAddress}
-          </Text>
-        </View>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        testID={aesCryptoFormScrollIdentifier}
+      >
+        <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
+          Current selected address
+        </Text>
+        <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
+          {selectedFormattedAddress}
+        </Text>
         <TestForm
           title={strings('aes_crypto_test_form.generate_random_salt')}
           buttonLabel={strings('aes_crypto_test_form.generate')}
@@ -259,8 +261,8 @@ const AesCryptoTestForm = () => {
           responseTextTestId={responseText}
           styles={{ ...styles }}
         />
-      </SafeAreaView>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
