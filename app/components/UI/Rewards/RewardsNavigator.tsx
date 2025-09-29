@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
-import { useSeasonStatus } from './hooks/useSeasonStatus';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
@@ -18,8 +17,6 @@ const RewardsNavigator: React.FC = () => {
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
-  // Fetch season status and/or invalidate cache if needed
-  useSeasonStatus();
 
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {

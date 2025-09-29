@@ -129,7 +129,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -153,30 +153,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -409,7 +385,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1583,7 +1559,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -1757,7 +1733,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -1781,30 +1757,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2037,7 +1989,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2662,7 +2614,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -2836,7 +2788,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -2860,30 +2812,6 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3116,7 +3044,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3741,7 +3669,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -3915,7 +3843,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -3939,30 +3867,6 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 >
                   Unsupported sell Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -4195,7 +4099,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -4820,7 +4724,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -4994,7 +4898,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -5018,30 +4922,6 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -5274,7 +5154,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -6337,7 +6217,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -6361,30 +6241,6 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -6617,7 +6473,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -7680,7 +7536,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -7704,30 +7560,6 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -7960,7 +7792,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8326,7 +8158,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -8350,30 +8182,6 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -8606,7 +8414,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8972,7 +8780,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -8996,30 +8804,6 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -9252,7 +9036,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

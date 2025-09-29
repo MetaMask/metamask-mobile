@@ -297,8 +297,7 @@ export function useUnifiedTxActions() {
   };
 
   const signQRTransaction = async (tx: TransactionMeta) => {
-    const { KeyringController, ApprovalController } = Engine.context;
-    await KeyringController.resetQRKeyringState();
+    const { ApprovalController } = Engine.context;
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 

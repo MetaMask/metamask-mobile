@@ -385,7 +385,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1837,7 +1837,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3307,7 +3307,7 @@ exports[`OrderDetails renders a created order 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -4740,7 +4740,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -6192,7 +6192,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -7625,7 +7625,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8043,7 +8043,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8665,7 +8665,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -10178,7 +10178,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -11694,7 +11694,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -13127,7 +13127,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

@@ -126,7 +126,8 @@ export function PayWithModal() {
         />
       }
       renderTokenItem={renderItem}
-      tokensList={tokens}
+      allTokens={tokens}
+      tokensToRender={tokens}
       title={strings('pay_with_modal.title')}
     />
   );

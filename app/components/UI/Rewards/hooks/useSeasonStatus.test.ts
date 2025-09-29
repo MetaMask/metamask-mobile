@@ -1,11 +1,21 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSeasonStatus } from './useSeasonStatus';
 import Engine from '../../../../core/Engine';
-import { setSeasonStatus } from '../../../../actions/rewards';
+import {
+  setSeasonStatus,
+  setSeasonStatusError,
+} from '../../../../actions/rewards';
 import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { useFocusEffect } from '@react-navigation/native';
+import {
+  ParamListBase,
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
+import { handleRewardsErrorMessage } from '../utils';
+import { strings } from '../../../../../locales/i18n';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -13,8 +23,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Import the actual selectors for comparison in tests
+
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
+  selectSeasonStatusError: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -27,6 +40,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../actions/rewards', () => ({
   setSeasonStatus: jest.fn(),
+  setSeasonStatusError: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
@@ -40,14 +54,44 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
 }));
 
 // Mock React Navigation hooks
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
+  useNavigation: jest.fn(),
+}));
+
+// Mock utility functions
+jest.mock('../utils', () => ({
+  handleRewardsErrorMessage: jest.fn(),
+}));
+
+// Mock constants
+jest.mock('../../../../constants/navigation/Routes', () => ({
+  MODAL: {
+    REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
+  },
+}));
+
+// Mock strings
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn(),
+}));
+
+// Mock design system
+jest.mock('@metamask/design-system-react-native', () => ({
+  ButtonVariant: {
+    Primary: 'Primary',
+  },
 }));
 
 describe('useSeasonStatus', () => {
   const mockDispatch = jest.fn();
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
+  >;
+  const mockUseNavigation = useNavigation as jest.MockedFunction<
+    typeof useNavigation
   >;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
@@ -58,21 +102,57 @@ describe('useSeasonStatus', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
+  const mockHandleRewardsErrorMessage =
+    handleRewardsErrorMessage as jest.MockedFunction<
+      typeof handleRewardsErrorMessage
+    >;
+  const mockStrings = strings as jest.MockedFunction<typeof strings>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDispatch.mockReturnValue(mockDispatch);
-    mockUseSelector.mockReturnValue('test-subscription-id'); // selectRewardsSubscriptionId
 
-    // Reset the mocked hooks
-    mockUseFocusEffect.mockClear();
+    // Reset all mocks to ensure clean state
+    mockUseDispatch.mockReset();
+    mockUseSelector.mockReset();
+    mockUseFocusEffect.mockReset();
+    mockUseNavigation.mockReset();
+    mockEngineCall.mockReset();
+    mockHandleRewardsErrorMessage.mockReset();
+    mockStrings.mockReset();
+    mockUseInvalidateByRewardEvents.mockReset();
+
+    // Set up default mock implementations
+    mockUseDispatch.mockReturnValue(mockDispatch);
+
+    // Default selector returns - using mockImplementation for consistency
+    mockUseSelector
+      .mockReturnValueOnce('test-subscription-id') // selectRewardsSubscriptionId
+      .mockReturnValueOnce(null); // selectSeasonStatusError
+
+    // Mock navigation
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    } as unknown as NavigationProp<ParamListBase>);
+
+    // Mock strings
+    mockStrings.mockImplementation((key: string) => `mocked_${key}`);
+
+    // Mock error message handler
+    mockHandleRewardsErrorMessage.mockReturnValue('Mocked error message');
+
+    // Mock the invalidate hook
     mockUseInvalidateByRewardEvents.mockImplementation(() => {
-      // Mock implementation
+      // Mock implementation - no return needed as it's a void function
     });
   });
 
   it('should skip fetch when subscriptionId is missing', () => {
-    mockUseSelector.mockReturnValue(null); // selectRewardsSubscriptionId - missing
+    // Reset and override the selector for this specific test
+    mockUseSelector
+      .mockReset()
+      .mockReturnValueOnce(null) // selectRewardsSubscriptionId - missing
+      .mockReturnValueOnce(null); // selectSeasonStatusError
 
     renderHook(() => useSeasonStatus());
 
@@ -88,7 +168,7 @@ describe('useSeasonStatus', () => {
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
-  it('should fetch season status successfully', async () => {
+  it('should fetch season status successfully and dispatch loading states', async () => {
     const mockStatusData = {
       season: {
         id: 'season-1',
@@ -138,10 +218,7 @@ describe('useSeasonStatus', () => {
 
     // Execute the focus effect callback to trigger the fetch logic
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-    focusCallback();
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await focusCallback();
 
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
     expect(mockEngineCall).toHaveBeenCalledWith(
@@ -150,10 +227,11 @@ describe('useSeasonStatus', () => {
       CURRENT_SEASON_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(mockStatusData));
+    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusError(null));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
-  it('should handle fetch errors gracefully', async () => {
+  it('should handle fetch errors gracefully and dispatch error state', async () => {
     const mockError = new Error('Fetch failed');
     mockEngineCall.mockRejectedValueOnce(mockError);
 
@@ -164,18 +242,13 @@ describe('useSeasonStatus', () => {
 
     // Execute the focus effect callback to trigger the fetch logic
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-    focusCallback();
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await focusCallback();
 
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:getSeasonStatus',
-      'test-subscription-id',
-      CURRENT_SEASON_ID,
+    expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setSeasonStatusError('Mocked error message'),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(null));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
@@ -206,5 +279,55 @@ describe('useSeasonStatus', () => {
 
     // Should only be called once despite multiple focus triggers
     expect(mockEngineCall).toHaveBeenCalledTimes(1);
+  });
+
+  describe('loading state management', () => {
+    it('should set loading to true at start of fetch', async () => {
+      const mockStatusData = { season: { id: 'test' } };
+      mockEngineCall.mockResolvedValueOnce(mockStatusData);
+
+      renderHook(() => useSeasonStatus());
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert - loading should be set to true immediately
+      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
+    });
+
+    it('should set loading to false after successful fetch', async () => {
+      const mockStatusData = { season: { id: 'test' } };
+      mockEngineCall.mockResolvedValueOnce(mockStatusData);
+
+      renderHook(() => useSeasonStatus());
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert - loading should be set to false after completion
+      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+    });
+
+    it('should set loading to false after failed fetch', async () => {
+      const mockError = new Error('Fetch failed');
+      mockEngineCall.mockRejectedValueOnce(mockError);
+
+      renderHook(() => useSeasonStatus());
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert - loading should be set to false after error
+      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+    });
   });
 });

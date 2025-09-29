@@ -11,9 +11,14 @@ import renderWithProvider, {
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
+import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_USDT_TOKEN,
+} from '../../../Deposit/testUtils/constants';
+import { AccountGroupType } from '@metamask/account-api';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
@@ -119,7 +124,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     amount: '100',
     currency: 'USD',
     data: {
-      cryptoCurrency: 'USDC',
+      cryptoCurrency: MOCK_USDC_TOKEN,
       providerOrderLink: 'https://transak.com/order/123',
     },
   },
@@ -136,14 +141,15 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     amount: '20',
     currency: 'USD',
     data: {
-      cryptoCurrency: 'USDT',
+      cryptoCurrency: MOCK_USDT_TOKEN,
     },
   },
 ];
 
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS,
-]);
+const internalAccount1 = {
+  ...createMockInternalAccount(MOCK_ADDRESS, 'Account 1'),
+  id: 'account1',
+};
 
 function render(Component: React.ReactElement, orders = testOrders) {
   return renderWithProvider(Component, {
@@ -151,6 +157,24 @@ function render(Component: React.ReactElement, orders = testOrders) {
       engine: {
         backgroundState: {
           ...backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'keyring:test-wallet': {
+                  id: 'keyring:test-wallet',
+                  metadata: { name: 'Test wallet' },
+                  groups: {
+                    'keyring:test-wallet/ethereum': {
+                      id: 'keyring:test-wallet/ethereum',
+                      type: AccountGroupType.SingleAccount,
+                      accounts: ['account1'],
+                      metadata: { name: 'Test Group' },
+                    },
+                  },
+                },
+              },
+            },
+          },
           NetworkController: {
             ...mockNetworkState({
               chainId: CHAIN_IDS.MAINNET,
@@ -159,7 +183,14 @@ function render(Component: React.ReactElement, orders = testOrders) {
               ticker: 'ETH',
             }),
           },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                account1: internalAccount1,
+              },
+              selectedAccount: 'account1',
+            },
+          },
         },
       },
       fiatOrders: {

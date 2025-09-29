@@ -11,16 +11,15 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import Banner, {
-  BannerVariant,
-} from '../../../../component-library/components/Banners/Banner';
-import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
+import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
 interface RewardsSettingsViewRouteParams {
   focusUnlinkedTab?: boolean;
@@ -36,7 +35,15 @@ const RewardsSettingsView: React.FC = () => {
   const { colors } = useTheme();
   const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
-  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout(toastRef);
+  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+
+  useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
+
+  // Check if any account operations are loading
+  const {
+    isAccountSyncingInProgress,
+    loadingMessage: accountSyncingLoadingMessage,
+  } = useAccountsOperationsLoadingStates();
 
   // Set navigation title with back button
   useEffect(() => {
@@ -86,18 +93,12 @@ const RewardsSettingsView: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Current Account Not Opted In Banner */}
-          {hasAccountOptedIn === false && (
-            <Box twClassName="-mx-4">
-              <Banner
-                variant={BannerVariant.Alert}
-                severity={BannerAlertSeverity.Info}
-                title={strings('rewards.unlinked_account_info.title')}
-                description={strings(
-                  'rewards.unlinked_account_info.description',
-                )}
-              />
-            </Box>
+          {isAccountSyncingInProgress && (
+            <RewardsInfoBanner
+              title={accountSyncingLoadingMessage}
+              description={strings('rewards.settings.accounts_syncing')}
+              testID="account-syncing-banner"
+            />
           )}
 
           {/* Section 2: Account Tabs */}
