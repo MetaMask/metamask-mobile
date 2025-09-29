@@ -99,7 +99,7 @@ class SendScreen extends AppwrightGestures {
 
   async clickOnAccountByName(accountName) {
     const account = await AppwrightSelectors.getElementByCatchAll(this._device, accountName);
-    await account.tap();
+    await this.tap(account);
   }
 
   async isSendWarningMessageVisible(message) {
@@ -177,7 +177,7 @@ class SendScreen extends AppwrightGestures {
       await Gestures.tapTextByXpath(network);
     } else {
       const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
-      await networkButton.tap();
+      await this.tap(networkButton);
     }
   }
 

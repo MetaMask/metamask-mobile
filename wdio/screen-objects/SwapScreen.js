@@ -11,6 +11,10 @@ class SwapScreen extends AppwrightGestures {
     super();
   }
 
+  get device() {
+    return this._device;
+  }
+
   set device(device) {
     this._device = device;
     super.device = device; // Set device in parent class too

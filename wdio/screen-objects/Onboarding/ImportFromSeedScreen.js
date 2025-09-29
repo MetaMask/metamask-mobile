@@ -105,7 +105,7 @@ class ImportFromSeedScreen extends AppwrightGestures {
           else
             input = await AppwrightSelectors.getElementByXpath(this.device, wordElement);
           await this.typeText(input, `${phraseArray[i]} `); // Use inherited typeText method with retry logic
-          await input.tap();
+          await this.tap(input);
         }
         const wordElement = await this.inputOfIndex(AppwrightSelectors.isAndroid(this._device) ? phraseArray.length - 1 : phraseArray.length);
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
@@ -115,7 +115,7 @@ class ImportFromSeedScreen extends AppwrightGestures {
           const wordElement = await this.inputOfIndex(i, false);
           const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           await this.typeText(input, `${phraseArray[i-1]} `); // Use inherited typeText method with retry logic
-          await input.tap();
+          await this.tap(input);
         }
       }
     }

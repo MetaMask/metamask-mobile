@@ -4,10 +4,16 @@ import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID,
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
+import Selectors from '../helpers/Selectors.js';
+import { LoginViewSelectors } from '../../e2e/selectors/LoginView.selectors';
 
 class BridgeScreen extends AppwrightGestures {
   constructor() {
     super();
+  }
+
+  get device() {
+    return this._device;
   }
 
   set device(device) {

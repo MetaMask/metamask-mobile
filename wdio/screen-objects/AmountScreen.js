@@ -15,6 +15,10 @@ class AmountScreen extends AppwrightGestures {
     super();
   }
 
+  get device() {
+    return this._device;
+  }
+
   set device(device) {
     this._device = device;
     super.device = device; // Set device in parent class too
@@ -94,8 +98,7 @@ class AmountScreen extends AppwrightGestures {
   }
 
   async tapOnNextButton() {
-    const element = await this.nextButton;
-    await element.tap();
+    await this.tap(this.nextButton);
   }
 
   async isVisible() {
