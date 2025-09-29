@@ -35,7 +35,7 @@ describe('MetaMaskDAOService', () => {
     (getProviderByChainId as jest.Mock).mockReturnValue(mockProvider);
 
     // Mock ethers Contract constructor
-    (Contract as jest.Mock).mockImplementation(() => mockContract);
+    (Contract as unknown as jest.Mock).mockImplementation(() => mockContract);
   });
 
   afterEach(() => {
