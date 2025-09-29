@@ -1,9 +1,194 @@
 import {
   handleRewardsErrorMessage,
   SOLANA_SIGNUP_NOT_SUPPORTED,
+  convertInternalAccountToCaipAccountId,
 } from './utils';
+import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
+import Logger from '../../../util/Logger';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
+// Mock external dependencies
+jest.mock('@metamask/utils', () => ({
+  parseCaipChainId: jest.fn(),
+  toCaipAccountId: jest.fn(),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
+const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
+  typeof parseCaipChainId
+>;
+const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
+  typeof toCaipAccountId
+>;
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 describe('Rewards Utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('convertInternalAccountToCaipAccountId', () => {
+    const mockAccount: InternalAccount = {
+      id: 'test-account-id',
+      address: '0x1234567890123456789012345678901234567890',
+      scopes: ['eip155:1'],
+      type: 'eip155:eoa',
+      options: {},
+      methods: [],
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    };
+
+    describe('successful conversion', () => {
+      it('should convert Ethereum account to CAIP account ID successfully', () => {
+        // Arrange
+        const expectedNamespace = 'eip155';
+        const expectedReference = '1';
+        const expectedCaipAccountId =
+          'eip155:1:0x1234567890123456789012345678901234567890';
+
+        mockParseCaipChainId.mockReturnValue({
+          namespace: expectedNamespace,
+          reference: expectedReference,
+        });
+        mockToCaipAccountId.mockReturnValue(expectedCaipAccountId);
+
+        // Act
+        const result = convertInternalAccountToCaipAccountId(mockAccount);
+
+        // Assert
+        expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
+        expect(mockToCaipAccountId).toHaveBeenCalledWith(
+          expectedNamespace,
+          expectedReference,
+          mockAccount.address,
+        );
+        expect(result).toBe(expectedCaipAccountId);
+        expect(mockLogger.log).not.toHaveBeenCalled();
+      });
+
+      it('should convert Solana account to CAIP account ID successfully', () => {
+        // Arrange
+        const solanaAccount: InternalAccount = {
+          ...mockAccount,
+          address: '11111111111111111111111111111112',
+          scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        };
+        const expectedNamespace = 'solana';
+        const expectedReference = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+        const expectedCaipAccountId =
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:11111111111111111111111111111112';
+
+        mockParseCaipChainId.mockReturnValue({
+          namespace: expectedNamespace,
+          reference: expectedReference,
+        });
+        mockToCaipAccountId.mockReturnValue(expectedCaipAccountId);
+
+        // Act
+        const result = convertInternalAccountToCaipAccountId(solanaAccount);
+
+        // Assert
+        expect(mockParseCaipChainId).toHaveBeenCalledWith(
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        );
+        expect(mockToCaipAccountId).toHaveBeenCalledWith(
+          expectedNamespace,
+          expectedReference,
+          solanaAccount.address,
+        );
+        expect(result).toBe(expectedCaipAccountId);
+        expect(mockLogger.log).not.toHaveBeenCalled();
+      });
+
+      it('should use the first scope when account has multiple scopes', () => {
+        // Arrange
+        const multiScopeAccount: InternalAccount = {
+          ...mockAccount,
+          scopes: ['eip155:1', 'eip155:137', 'eip155:56'],
+        };
+        const expectedNamespace = 'eip155';
+        const expectedReference = '1';
+        const expectedCaipAccountId =
+          'eip155:1:0x1234567890123456789012345678901234567890';
+
+        mockParseCaipChainId.mockReturnValue({
+          namespace: expectedNamespace,
+          reference: expectedReference,
+        });
+        mockToCaipAccountId.mockReturnValue(expectedCaipAccountId);
+
+        // Act
+        const result = convertInternalAccountToCaipAccountId(multiScopeAccount);
+
+        // Assert
+        expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
+        expect(mockToCaipAccountId).toHaveBeenCalledWith(
+          expectedNamespace,
+          expectedReference,
+          multiScopeAccount.address,
+        );
+        expect(result).toBe(expectedCaipAccountId);
+      });
+    });
+
+    describe('error handling', () => {
+      it('should return null and log error when parseCaipChainId throws', () => {
+        // Arrange
+        const parseError = new Error('Invalid CAIP chain ID format');
+        mockParseCaipChainId.mockImplementation(() => {
+          throw parseError;
+        });
+
+        // Act
+        const result = convertInternalAccountToCaipAccountId(mockAccount);
+
+        // Assert
+        expect(result).toBeNull();
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsUtils: Failed to convert address to CAIP-10 format:',
+          parseError,
+        );
+        expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
+        expect(mockToCaipAccountId).not.toHaveBeenCalled();
+      });
+
+      it('should return null and log error when toCaipAccountId throws', () => {
+        // Arrange
+        const convertError = new Error('Invalid account address format');
+        mockParseCaipChainId.mockReturnValue({
+          namespace: 'eip155',
+          reference: '1',
+        });
+        mockToCaipAccountId.mockImplementation(() => {
+          throw convertError;
+        });
+
+        // Act
+        const result = convertInternalAccountToCaipAccountId(mockAccount);
+
+        // Assert
+        expect(result).toBeNull();
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsUtils: Failed to convert address to CAIP-10 format:',
+          convertError,
+        );
+        expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
+        expect(mockToCaipAccountId).toHaveBeenCalledWith(
+          'eip155',
+          '1',
+          mockAccount.address,
+        );
+      });
+    });
+  });
+
   describe('SOLANA_SIGNUP_NOT_SUPPORTED constant', () => {
     it('should export the correct message for Solana signup not supported', () => {
       // Arrange & Act & Assert

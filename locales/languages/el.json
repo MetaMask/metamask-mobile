@@ -866,12 +866,12 @@
     "margin_used": "Περιθώριο που χρησιμοποιήθηκε",
     "gtm_content": {
       "title": "ΤΑ ΣΥΜΒΟΛΑΙΑ ΑΟΡΙΣΤΟΥ ΔΙΑΡΚΕΙΑΣ (PERPS) ΕΙΝΑΙ ΕΔΩ",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Επενδύστε σε θέσεις long ή short με μόχλευση έως και 40x. Χρηματοδοτήστε τον λογαριασμό σας με ένα κλικ.",
       "not_now": "Όχι τώρα",
       "try_now": "Ξεκινήστε"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Σήμερα",
+    "yesterday": "Χθες",
     "unrealized_pnl": "Μη οριστικοποιημένα κέρδη/ζημίες",
     "withdraw": "Ανάληψη",
     "refresh_balance": "Ανανέωση υπολοίπου",
@@ -1061,8 +1061,8 @@
       "take_profit": "Λήψη κέρδους (ΛΚ)",
       "stop_loss": "Περιορισμός ζημιάς (ΠΖ)",
       "tp_sl": "ΛΚ/ΠΖ",
-      "tp": "TP",
-      "sl": "SL",
+      "tp": "ΛΚ",
+      "sl": "ΠΖ",
       "button": {
         "long": "Αγορά {{asset}}",
         "short": "Πώληση {{asset}}"
@@ -1095,10 +1095,10 @@
         "current_price": "Τρέχουσα τιμή",
         "liquidation_price": "Τιμή ρευστοποίησης",
         "liquidation_distance": "Απόσταση από την τιμή ρευστοποίησης",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Η θέση σας θα ρευστοποιηθεί αν η τιμή {{direction}} κατά {{percentage}}",
+        "drops": "πέσει",
+        "rises": "ανεβεί",
+        "set_leverage": "Ορισμός μόχλευσης {{leverage}}x"
       },
       "type": {
         "title": "Τύπος εντολής",
@@ -1183,7 +1183,7 @@
       "description": "Επιλέξτε ποσοστό κέρδους ή ζημίας, ή εισάγετε μια προσαρμοσμένη τιμή ενεργοποίησης για να κλείσετε αυτόματα τη θέση σας.",
       "off": "Απεν.",
       "current_price": "Τρέχουσα τιμή",
-      "entry_price": "Entry price",
+      "entry_price": "Τιμή εισόδου",
       "leverage": "Μόχλευση",
       "margin": "Περιθώριο",
       "liquidation_price": "Τιμή ρευστοποίησης",
@@ -1295,8 +1295,8 @@
         "error_title": "Σφάλμα κατά τη φόρτωση των θέσεων",
         "empty_title": "Δεν υπάρχουν ανοιχτές θέσεις",
         "empty_description": "Δεν έχετε ακόμη καμία ανοιχτή θέση.\nΞεκινήστε τις συναλλαγές για να δείτε τις θέσεις σας εδώ.",
-        "first_time_title": "Συμβόλαια αορίστου διάρκειας",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_title": "Συμβ.αορ.",
+        "first_time_description": "Επενδύστε στις διακυμάνσεις τιμών με μόχλευση έως και 40x.",
         "start_trading": "Ξεκινήστε τις συναλλαγές",
         "start_new_trade": "Ξεκινήστε μια νέα συναλλαγή",
         "open_positions": "Ανοιχτές θέσεις",
@@ -1337,8 +1337,8 @@
       "countdown": "Χρονόμετρο αντίστροφης μέτρησης",
       "long": "Αγορά (Long)",
       "short": "Πώληση (Short)",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "άνοιγμα θέσης αγοράς (long)",
+      "short_lowercase": "επένδυση με προσδοκία πτώσης (short)",
       "add_funds": "Προσθήκη κεφαλαίων",
       "add_funds_to_start_trading_perps": "Προσθέστε κεφάλαια για να ξεκινήσετε συναλλαγές με συμβόλαια αορίστου διάρκειας",
       "position": "Θέση",
@@ -1446,9 +1446,9 @@
         "show_more": "Περισσότερα"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "Λεπτά",
+        "hours": "Ώρες",
+        "days": "Ημέρες"
       }
     },
     "perps_markets": "Αγορές συμβολαίων αορίστου διάρκειας",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "Επιλέξτε μόχλευση",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Η μόχλευση ενισχύει τόσο τα κέρδη όσο και τις ζημίες. Με μόχλευση 40x, μια μεταβολή τιμής 1% ισοδυναμεί με κέρδος ή ζημία 40% στο περιθώριό σας."
       },
       "watch_liquidation": {
         "title": "Προσέξτε τη ρευστοποίηση",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "Μπορείτε να κλείσετε όποτε θέλετε",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Κλείστε τη θέση σας όποτε θέλετε. Θα σας επιστραφεί το περιθώριό σας μαζί με τα κέρδη ή μείον τις ζημιές."
       },
       "ready_to_trade": {
         "title": "Έτοιμοι να ξεκινήσετε τις συναλλαγές;",
         "description": "Χρηματοδοτήστε τον λογαριασμό σας για συμβόλαια αορίστου διάρκειας με οποιοδήποτε token και ξεκινήστε τις πρώτες σας συναλλαγές μέσα σε δευτερόλεπτα.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "Το MetaMask θα μετατρέψει τα κεφάλαιά σας σε USDC στο δίκτυο Arbitrum και θα τα καταθέσει στο HyperEVM χωρίς επιπλέον χρέωση."
       },
       "got_it": "Κατανοητό"
     },
@@ -1655,7 +1655,7 @@
     "collectible": "Συλλεκτικά",
     "collectibles": "NFT",
     "defi": "DeFi",
-    "perps": "Συμβόλαια αορίστου διάρκειας",
+    "perps": "Συμβ.αορ.",
     "predict": "Predictions",
     "transactions": "ΣΥΝΑΛΛΑΓΈΣ",
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
@@ -5648,8 +5648,8 @@
       "reveal_recovery_phrase_with_index": "Εμφάνιση Μυστικής Φράσης Ανάκτησης {{index}}"
     },
     "smart_account": {
-      "title": "Ενεργοποίηση του Έξυπνου Λογαριασμού",
-      "description": "Μπορείτε να ενεργοποιήσετε τις λειτουργίες έξυπνου λογαριασμού σε υποστηριζόμενα δίκτυα.",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "Μάθετε περισσότερα"
     },
     "edit_account_name": {
@@ -5865,6 +5865,8 @@
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
@@ -5937,7 +5939,9 @@
     },
     "unlinked_account_info": {
       "title": "Account not earning points",
-      "description": "This account's activity is not being tracked for this season."
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
     "link_account": "Add account",
     "linking_account": "Adding...",
@@ -5956,12 +5960,12 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 πόντοι ανά $100",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Κάντε συναλλαγές με συμβόλαια αορίστου διάρκειας (perps)",
+          "points": "10 πόντοι ανά $100",
+          "description": "Κερδίστε πόντους με κάθε συναλλαγή, συμπεριλαμβανομένων των ανοιγμάτων και κλεισιμάτων θέσεων, των εντολών περιορισμού ζημιάς και λήψης κέρδους, καθώς και των προσαρμογών περιθωρίου.",
+          "cta_label": "Ξεκινήστε μια συναλλαγή"
         }
       },
       "referrals": {
@@ -6034,5 +6038,10 @@
       "swap": "Ανταλλαγή tokens",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }
