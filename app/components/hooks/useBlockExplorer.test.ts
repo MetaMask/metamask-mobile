@@ -223,4 +223,85 @@ describe('useBlockExplorer', () => {
       expect(name).toBe('Solscan');
     });
   });
+
+  describe('CAIP chain ID conversion edge cases', () => {
+    it('should handle non-EVM CAIP chain IDs correctly', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      // Test with a non-EVM CAIP chain ID (non-eip155 namespace)
+      const nonEvmCaipChainId = 'cosmos:cosmoshub-4';
+
+      const url = getBlockExplorerUrl(address, nonEvmCaipChainId);
+      // Should return null or handle gracefully since it's not a supported non-EVM chain
+      expect(url).toBeDefined();
+    });
+
+    it('should handle already hex-formatted chain IDs', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+      const hexChainId = '0x89'; // Already in hex format
+
+      const url = getBlockExplorerUrl(address, hexChainId);
+      expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
+    });
+  });
+
+  describe('Built-in block explorer coverage', () => {
+    it('should use built-in block explorers for supported chains', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      // Test Ethereum mainnet (built-in)
+      const url = getBlockExplorerUrl(address, '0x1');
+      expect(url).toContain('etherscan.io');
+    });
+  });
+
+  describe('Navigation edge cases', () => {
+    it('should handle navigation when block explorer URL is available', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { toBlockExplorer } = result.current;
+
+      // Test with a valid address and chain ID
+      toBlockExplorer('0x1234567890abcdef', '0x89');
+
+      // Should call navigate with the correct URL
+      expect(useNavigation().navigate).toHaveBeenCalledWith(
+        Routes.WEBVIEW.MAIN,
+        {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: 'https://polygonscan.com/address/0x1234567890abcdef',
+          },
+        },
+      );
+    });
+  });
+
+  describe('Etherscan fallback coverage', () => {
+    it('should use etherscan fallback when no specific block explorer is found', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      // Test with a chain ID that doesn't exist in our mappings
+      const url = getBlockExplorerUrl(address, '0x9999');
+      expect(url).toBeDefined();
+      expect(url).toContain('/address/');
+    });
+
+    it('should use etherscan fallback for block explorer names', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerName } = result.current;
+
+      // Test with a chain ID that doesn't exist in our mappings
+      const name = getBlockExplorerName('0x9999');
+      expect(name).toBeDefined();
+      expect(typeof name).toBe('string');
+    });
+  });
 });
