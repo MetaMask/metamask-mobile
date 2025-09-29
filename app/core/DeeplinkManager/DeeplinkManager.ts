@@ -11,7 +11,7 @@ import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
-import { handleHomeUrl } from './Handlers/handleHomeUrl';
+import { navigateToHomeUrl } from './Handlers/handleHomeUrl';
 import Routes from '../../constants/navigation/Routes';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
@@ -106,7 +106,7 @@ class DeeplinkManager {
 
   // NOTE: open the home screen for new subdomain
   _handleOpenHome(homePath?: string) {
-    handleHomeUrl({ homePath });
+    navigateToHomeUrl({ homePath });
   }
 
   // NOTE: this will be used for new deeplink subdomain

@@ -1,12 +1,12 @@
 import NavigationService from '../../NavigationService';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
-import { handleHomeUrl } from './handleHomeUrl';
+import { navigateToHomeUrl } from './handleHomeUrl';
 import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../NavigationService');
 jest.mock('../../../actions/notification/helpers');
 
-describe('handleHomeUrl', () => {
+describe('navigateToHomeUrl', () => {
   beforeEach(() => jest.clearAllMocks());
 
   const arrangeMocks = () => {
@@ -25,25 +25,25 @@ describe('handleHomeUrl', () => {
 
   it('navigates to home screen without sending any query params', () => {
     const mocks = arrangeMocks();
-    handleHomeUrl({ homePath: 'home' });
+    navigateToHomeUrl({ homePath: 'home' });
 
-    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
+    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('navigates to home screen and sends previewToken', () => {
+  it('sends previewToken and navigates to home screen', () => {
     const mocks = arrangeMocks();
-    handleHomeUrl({ homePath: 'home?previewToken=ABC' });
+    navigateToHomeUrl({ homePath: 'home?previewToken=ABC' });
 
-    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith('ABC');
+    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('navigates to home screen gracefully when given no homePath', () => {
+  it('falls back to navigated to home sceen when no homePath', () => {
     const mocks = arrangeMocks();
-    handleHomeUrl({ homePath: undefined });
+    navigateToHomeUrl({ homePath: undefined });
 
-    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
+    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 });
