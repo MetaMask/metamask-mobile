@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import { View, RefreshControl, VirtualizedList } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -53,24 +53,31 @@ const TokenListComponent = ({
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
-  const TokenListItemComponent = isMultichainAccountsState2Enabled
-    ? TokenListItemBip44
-    : TokenListItem;
+  const TokenListItemComponent = useMemo(
+    () =>
+      isMultichainAccountsState2Enabled ? TokenListItemBip44 : TokenListItem,
+    [isMultichainAccountsState2Enabled],
+  );
 
   const listRef = useRef<VirtualizedList<VirtualizedListAssetKey>>(null);
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
 
-  const handleLink = () => {
+  const handleLink = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.ONBOARDING.GENERAL_SETTINGS,
     });
-  };
+  }, [navigation]);
+
+  const MemoizedTokenListItem = useMemo(
+    () => React.memo(TokenListItemComponent),
+    [TokenListItemComponent],
+  );
 
   const renderTokenListItem = useCallback(
     ({ item }: { item: VirtualizedListAssetKey }) => (
-      <TokenListItemComponent
+      <MemoizedTokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
@@ -83,7 +90,7 @@ const TokenListComponent = ({
       setShowScamWarningModal,
       privacyMode,
       showPercentageChange,
-      TokenListItemComponent,
+      MemoizedTokenListItem,
     ],
   );
 
@@ -103,30 +110,32 @@ const TokenListComponent = ({
   }, []);
 
   return tokenKeys?.length ? (
-    <VirtualizedList
-      ref={listRef}
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={tokenKeys}
-      initialNumToRender={10}
-      renderItem={renderTokenListItem}
-      keyExtractor={keyExtractor}
-      getItemCount={getItemCount}
-      getItem={getItem}
-      ListFooterComponent={<TokenListFooter />}
-      refreshControl={
-        <RefreshControl
-          colors={[colors.primary.default]}
-          tintColor={colors.icon.default}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      }
-      scrollEnabled={false}
-      removeClippedSubviews
-      maxToRenderPerBatch={10}
-      updateCellsBatchingPeriod={50}
-      windowSize={10}
-    />
+    <>
+      <VirtualizedList
+        ref={listRef}
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+        data={tokenKeys}
+        initialNumToRender={6}
+        renderItem={renderTokenListItem}
+        keyExtractor={keyExtractor}
+        getItemCount={getItemCount}
+        getItem={getItem}
+        ListFooterComponent={<TokenListFooter />}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+        scrollEnabled={false}
+        removeClippedSubviews
+        maxToRenderPerBatch={6}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
+      />
+    </>
   ) : (
     <View style={styles.emptyView}>
       <View style={styles.emptyTokensView}>
@@ -145,5 +154,37 @@ const TokenListComponent = ({
   );
 };
 
-export const TokenList = React.memo(TokenListComponent);
+export const TokenList = React.memo(
+  TokenListComponent,
+  (prevProps, nextProps) => {
+    // Custom comparison to prevent unnecessary re-renders
+
+    // Check if tokenKeys array has the same length and same items
+    if (prevProps.tokenKeys.length !== nextProps.tokenKeys.length) {
+      return false;
+    }
+
+    // Check if all tokenKeys are the same (shallow comparison of each item)
+    for (let i = 0; i < prevProps.tokenKeys.length; i++) {
+      const prev = prevProps.tokenKeys[i];
+      const next = nextProps.tokenKeys[i];
+      if (
+        prev.address !== next.address ||
+        prev.chainId !== next.chainId ||
+        prev.isStaked !== next.isStaked
+      ) {
+        return false;
+      }
+    }
+
+    // Check other props
+    return (
+      prevProps.refreshing === nextProps.refreshing &&
+      prevProps.onRefresh === nextProps.onRefresh &&
+      prevProps.showRemoveMenu === nextProps.showRemoveMenu &&
+      prevProps.showPercentageChange === nextProps.showPercentageChange &&
+      prevProps.setShowScamWarningModal === nextProps.setShowScamWarningModal
+    );
+  },
+);
 TokenList.displayName = 'TokenList';

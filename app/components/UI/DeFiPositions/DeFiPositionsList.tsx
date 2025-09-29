@@ -104,6 +104,41 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     defiPositionsByEnabledNetworks,
   ]);
 
+  const getItem = useCallback(
+    (data: typeof formattedDeFiPositions, index: number) =>
+      data?.[index] ? data[index] : null,
+    [],
+  );
+
+  const getItemCount = useCallback(
+    (data: typeof formattedDeFiPositions) => (data ? data.length : 0),
+    [],
+  );
+
+  const keyExtractor = useCallback(
+    (protocolChainAggregate: any) =>
+      protocolChainAggregate
+        ? `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
+        : '',
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: any }) => {
+      if (!item) return null;
+      const { chainId, protocolId, protocolAggregate } = item;
+      return (
+        <DeFiPositionsListItem
+          chainId={chainId}
+          protocolId={protocolId}
+          protocolAggregate={protocolAggregate}
+          privacyMode={privacyMode}
+        />
+      );
+    },
+    [privacyMode],
+  );
+
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
       // Position data is still loading
@@ -144,38 +179,6 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     );
   }
 
-  const getItem = useCallback(
-    (data: typeof formattedDeFiPositions, index: number) => data[index],
-    [],
-  );
-
-  const getItemCount = useCallback(
-    (data: typeof formattedDeFiPositions) => data.length,
-    [],
-  );
-
-  const keyExtractor = useCallback(
-    (protocolChainAggregate: (typeof formattedDeFiPositions)[0]) =>
-      `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`,
-    [],
-  );
-
-  const renderItem = useCallback(
-    ({
-      item: { chainId, protocolId, protocolAggregate },
-    }: {
-      item: (typeof formattedDeFiPositions)[0];
-    }) => (
-      <DeFiPositionsListItem
-        chainId={chainId}
-        protocolId={protocolId}
-        protocolAggregate={protocolAggregate}
-        privacyMode={privacyMode}
-      />
-    ),
-    [privacyMode],
-  );
-
   return (
     <View
       style={styles.wrapper}
@@ -185,7 +188,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
       <VirtualizedList
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
         data={formattedDeFiPositions}
-        initialNumToRender={10}
+        initialNumToRender={6}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         getItemCount={getItemCount}

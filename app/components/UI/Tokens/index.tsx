@@ -235,6 +235,12 @@ const Tokens = memo(() => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
+  // Stabilize tokenKeys to prevent unnecessary re-renders
+  const stableTokenKeys = useMemo(
+    () => (isTokensLoading ? progressiveTokens : renderedTokenKeys),
+    [isTokensLoading, progressiveTokens, renderedTokenKeys],
+  );
+
   return (
     <View
       style={styles.wrapper}
@@ -253,9 +259,7 @@ const Tokens = memo(() => {
           )}
           {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
             <TokenList
-              tokenKeys={
-                isTokensLoading ? progressiveTokens : renderedTokenKeys
-              }
+              tokenKeys={stableTokenKeys}
               refreshing={refreshing}
               onRefresh={onRefresh}
               showRemoveMenu={showRemoveMenu}

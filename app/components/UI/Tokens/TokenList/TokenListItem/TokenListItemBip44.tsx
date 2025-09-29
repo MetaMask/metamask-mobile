@@ -25,7 +25,7 @@ import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
-import { FlashListAssetKey } from '..';
+import { VirtualizedListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
@@ -40,7 +40,7 @@ import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
 interface TokenListItemProps {
-  assetKey: FlashListAssetKey;
+  assetKey: VirtualizedListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
@@ -69,8 +69,13 @@ export const TokenListItemBip44 = React.memo(
     );
 
     useEffect(() => {
-      console.log('asset loaded', asset?.address);
-    }, [asset?.address]);
+      // eslint-disable-next-line no-console
+      console.log('TokenListItem MOUNTED:', assetKey.address);
+      return () => {
+        // eslint-disable-next-line no-console
+        console.log('TokenListItem UNMOUNTED:', assetKey.address);
+      };
+    }, [assetKey.address]);
 
     const chainId = asset?.chainId as Hex;
 
