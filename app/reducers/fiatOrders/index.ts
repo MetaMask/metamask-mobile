@@ -6,6 +6,7 @@ import type {
   DepositCryptoCurrency,
   DepositPaymentMethod,
 } from '@consensys/native-ramps-sdk';
+import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import {
@@ -222,11 +223,10 @@ export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
 
 export const getOrders = createSelector(
   ordersSelector,
-  selectedAddressSelector,
-  (orders, selectedAddress) =>
-    orders.filter(
-      (order) =>
-        !order.excludeFromPurchases && order.account === selectedAddress,
+  selectSelectedAccountGroupWithInternalAccountsAddresses,
+  (orders, selectedAccountGroupWithInternalAccountsAddresses) =>
+    orders.filter((order) =>
+      selectedAccountGroupWithInternalAccountsAddresses.includes(order.account),
     ),
 );
 
@@ -234,15 +234,8 @@ export const getAllDepositOrders = createSelector(ordersSelector, (orders) =>
   orders.filter((order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT),
 );
 
-export const getPendingOrders = createSelector(
-  ordersSelector,
-  selectedAddressSelector,
-  (orders, selectedAddress) =>
-    orders.filter(
-      (order) =>
-        order.account === selectedAddress &&
-        order.state === FIAT_ORDER_STATES.PENDING,
-    ),
+export const getPendingOrders = createSelector(getOrders, (orders) =>
+  orders.filter((order) => order.state === FIAT_ORDER_STATES.PENDING),
 );
 
 export const getForceUpdateOrders = createSelector(ordersSelector, (orders) =>
@@ -256,10 +249,12 @@ const customOrdersSelector: (
 
 export const getCustomOrderIds = createSelector(
   customOrdersSelector,
-  selectedAddressSelector,
-  (customOrderIds, selectedAddress) =>
-    customOrderIds.filter(
-      (customOrderId) => customOrderId.account === selectedAddress,
+  selectSelectedAccountGroupWithInternalAccountsAddresses,
+  (customOrderIds, selectedAccountGroupWithInternalAccountsAddresses) =>
+    customOrderIds.filter((customOrderId) =>
+      selectedAccountGroupWithInternalAccountsAddresses.includes(
+        customOrderId.account,
+      ),
     ),
 );
 
