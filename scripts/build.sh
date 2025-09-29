@@ -14,7 +14,7 @@ ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 IS_LOCAL=false
 SHOULD_CLEAN_WATCHER_CACHE=false
-WATCHER_PORT=8081
+WATCHER_PORT=${WATCHER_PORT:-8081}
 
 loadJSEnv(){
 	# Load JS specific env variables
