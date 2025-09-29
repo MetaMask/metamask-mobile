@@ -92,22 +92,25 @@ class LoginScreen extends AppwrightGestures {
   }
 
   async isLoginScreenVisible() {
+
     if (!this._device) {
-      const element = await this.welcomeBackText;
+      const element = await this.title;
       await element.waitForDisplayed();
     } else {
-      const element = await this.welcomeBackText;
+      const element = await this.title;
       await appwrightExpect(element).toBeVisible();
+
     }
   }
 
   async waitForScreenToDisplay() {
     if (!this._device) {
-      const element = await this.welcomeBackText;
+      const element = await this.title;
       await element.waitForDisplayed({ interval: 100 });
     } else {
-      const element = await this.welcomeBackText;
+      const element = await this.title;
       await appwrightExpect(element).toBeVisible();
+
     }
   }
 

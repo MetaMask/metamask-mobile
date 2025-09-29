@@ -56,7 +56,7 @@ export default class AppwrightGestures {
       retryDelay?: number;
     } = {},
   ): Promise<void> {
-    const { maxRetries = 1, retryDelay = 1000 } = options;
+    const { maxRetries = 2, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
     const elementToTap = await elementPromise;
 
@@ -250,7 +250,6 @@ export default class AppwrightGestures {
         const result = await deviceInstance.terminateApp(packageId);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
         return result;
-
       } catch (error) {
         console.log('Error terminating app', packageId);
         retries--;

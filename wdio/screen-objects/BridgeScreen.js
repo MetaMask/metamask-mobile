@@ -5,7 +5,7 @@ import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
-import { LoginViewSelectors } from '../../e2e/selectors/LoginView.selectors';
+import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 
 class BridgeScreen extends AppwrightGestures {
   constructor() {
