@@ -95,6 +95,13 @@ export const useValidateReferralCode = (
     [debouncedValidation],
   );
 
+  useEffect(() => {
+    if (initialValue) {
+      setReferralCode(initialValue);
+    }
+    // only run on mount or when initialValue changes
+  }, [initialValue, setReferralCode]);
+
   // Cleanup debounced function on unmount
   useEffect(() => () => debouncedValidation.cancel(), [debouncedValidation]);
 
