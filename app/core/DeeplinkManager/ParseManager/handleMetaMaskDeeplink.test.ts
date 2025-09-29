@@ -5,7 +5,6 @@ import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../SDKConnect/SDKConnect';
-import SDKConnectV2 from '../../SDKConnectV2';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
@@ -14,7 +13,6 @@ import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/SDKConnect/SDKConnect');
-jest.mock('../../../core/SDKConnectV2');
 jest.mock('../../../core/WalletConnect/WalletConnectV2');
 jest.mock('../../../core/NativeModules', () => ({
   Minimizer: {
