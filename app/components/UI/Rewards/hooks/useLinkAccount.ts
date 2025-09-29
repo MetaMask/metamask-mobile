@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import useRewardsToast from './useRewardsToast';
+import { formatAddress } from '../../../../util/address';
 
 interface UseLinkAccountResult {
   linkAccount: (account: InternalAccount) => Promise<boolean>;
@@ -34,7 +35,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
           showToast(
             RewardsToastOptions.success(
               strings('rewards.settings.link_account_success_title', {
-                accountName: account.metadata.name,
+                accountName: formatAddress(account.address, 'short'),
               }),
             ),
           );

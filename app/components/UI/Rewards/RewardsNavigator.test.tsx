@@ -136,7 +136,6 @@ jest.mock('../../../selectors/accountsController', () => ({
 }));
 
 jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -163,15 +162,8 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
 }));
 
 // Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -185,7 +177,6 @@ describe('RewardsNavigator', () => {
     jest.clearAllMocks();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
     // Create a mock store
