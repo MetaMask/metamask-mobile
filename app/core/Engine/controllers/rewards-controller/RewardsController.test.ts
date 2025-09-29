@@ -3121,30 +3121,70 @@ describe('RewardsController', () => {
         sessionId: 'test-session-id',
       };
 
-      // Mock the messaging system calls
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        const params = _args[0] as any;
-        if (method === 'RewardsDataService:mobileOptin') {
-          // Don't verify signature here as it might not be set yet
-          expect(params.account).toBe(mockSolanaInternalAccount.address);
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve();
-      });
+      // Save original mock implementations to restore later
+      const originalIsSolanaAddress =
+        mockIsSolanaAddress.getMockImplementation();
+      const originalIsNonEvmAddress =
+        mockIsNonEvmAddress.getMockImplementation();
+      const originalSignSolanaRewardsMessage =
+        mockSignSolanaRewardsMessage.getMockImplementation();
 
-      // Act
-      const result = await controller.optIn(mockSolanaInternalAccount);
+      try {
+        // Mock isSolanaAddress to return true for the Solana account
+        mockIsSolanaAddress.mockReturnValue(true);
+        mockIsNonEvmAddress.mockReturnValue(true);
 
-      // Assert
-      expect(result).toBe(mockSubscriptionId);
-      // We're not actually calling SolanaWalletSnapController:signMessage in the implementation
-      // but rather KeyringController:signPersonalMessage, so adjust the assertion
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:signPersonalMessage',
-        expect.objectContaining({
-          from: mockSolanaInternalAccount.address,
-        }),
-      );
+        // Mock signSolanaRewardsMessage
+        mockSignSolanaRewardsMessage.mockResolvedValue({
+          signedMessage: 'base64-encoded-message',
+          signature: 'solana-signature',
+          signatureType: 'ed25519',
+        });
+
+        // Mock base58.decode to return a Buffer
+        const originalBase58Decode = (
+          base58.decode as jest.Mock
+        ).getMockImplementation();
+        (base58.decode as jest.Mock).mockReturnValue(
+          Buffer.from('01020304', 'hex'),
+        );
+
+        // Mock the messaging system calls
+        const originalMessengerCall =
+          mockMessenger.call.getMockImplementation();
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          const params = _args[0] as any;
+          if (method === 'RewardsDataService:mobileOptin') {
+            // Don't verify signature here as it might not be set yet
+            expect(params.account).toBe(mockSolanaInternalAccount.address);
+            return Promise.resolve(mockOptinResponse);
+          }
+          return Promise.resolve();
+        });
+
+        // Act
+        const result = await controller.optIn(mockSolanaInternalAccount);
+
+        // Assert
+        expect(result).toBe(mockSubscriptionId);
+        // Verify that signSolanaRewardsMessage was called instead of KeyringController:signPersonalMessage
+        expect(mockSignSolanaRewardsMessage).toHaveBeenCalled();
+        expect(mockMessenger.call).not.toHaveBeenCalledWith(
+          'KeyringController:signPersonalMessage',
+          expect.any(Object),
+        );
+
+        // Restore original mocks
+        mockMessenger.call.mockImplementation(originalMessengerCall);
+        (base58.decode as jest.Mock).mockImplementation(originalBase58Decode);
+      } finally {
+        // Always restore original mocks even if test fails
+        mockIsSolanaAddress.mockImplementation(originalIsSolanaAddress);
+        mockIsNonEvmAddress.mockImplementation(originalIsNonEvmAddress);
+        mockSignSolanaRewardsMessage.mockImplementation(
+          originalSignSolanaRewardsMessage,
+        );
+      }
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:mobileOptin',
         expect.objectContaining({
@@ -3182,47 +3222,6 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(controller.optIn(mockEvmInternalAccount)).rejects.toThrow(
         'Optin failed',
-      );
-    });
-
-    it('should use Buffer fallback when toHex fails during hex message conversion', async () => {
-      // Arrange
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'REF123',
-          accounts: [],
-        },
-      };
-
-      // Mock toHex to throw an error, triggering the Buffer fallback
-      mockToHex.mockImplementation(() => {
-        throw new Error('toHex encoding error');
-      });
-
-      // Mock the challenge response
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          // We don't need to verify the exact data here, just that it was called
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      await controller.optIn(mockEvmInternalAccount);
-
-      // Assert - we know toHex was called and threw an error, so we don't need to verify the exact parameters
-
-      // Just verify the call was made with the right method and address
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:signPersonalMessage',
-        expect.objectContaining({
-          from: mockEvmInternalAccount.address,
-        }),
       );
     });
 

@@ -1241,13 +1241,38 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: false,
         status: 400,
-      } as Response;
+        json: jest.fn().mockResolvedValue({ message: 'Bad request' }),
+      } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act & Assert
       await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
         'Optin failed: 400',
       );
+    });
+
+    it('should throw InvalidTimestampError when server returns invalid timestamp error during mobileOptin', async () => {
+      // Arrange
+      const mockErrorResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid timestamp',
+          serverTimestamp: 1234567000000, // Server timestamp in milliseconds
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      // Act & Assert
+      try {
+        await service.mobileOptin(mockOptinRequest);
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
+      }
     });
 
     it('should handle network errors during optin', async () => {

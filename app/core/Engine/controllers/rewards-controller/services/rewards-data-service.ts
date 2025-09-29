@@ -482,6 +482,16 @@ export class RewardsDataService {
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      Logger.log('RewardsDataService: mobileOptin errorData', errorData);
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
       throw new Error(`Optin failed: ${response.status}`);
     }
 
