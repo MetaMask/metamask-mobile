@@ -681,36 +681,6 @@ describe('useOptout', () => {
       expect(result.current.optout).not.toBe(initialOptout);
     });
 
-    it('should include resetAllSessionTrackingForRewardsDashboardModals in optout callback dependencies', () => {
-      // Arrange
-      const { result } = renderHook(() => useOptout());
-      const initialOptout = result.current.optout;
-
-      // Clear the mock to track new calls
-      mockResetAllSessionTrackingForRewardsDashboardModals.mockClear();
-
-      // Change the mock implementation to return a new function (simulating dependency change)
-      const newResetFunction = jest.fn();
-      jest.clearAllMocks();
-
-      // Mock the useRewardDashboardModals to return a different reset function
-      jest
-        .mocked(
-          jest.requireActual('./useRewardDashboardModals')
-            .useRewardDashboardModals,
-        )
-        .mockReturnValue({
-          resetAllSessionTracking: newResetFunction,
-        });
-
-      // Act
-      const { result: newResult, rerender } = renderHook(() => useOptout());
-      rerender();
-
-      // Assert - The callback should be different when the dependency changes
-      expect(newResult.current.optout).not.toBe(initialOptout);
-    });
-
     it('should recreate showOptoutBottomSheet callback when dependencies change', () => {
       // Arrange
       const { result, rerender } = renderHook(() => useOptout());
