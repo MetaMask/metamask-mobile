@@ -1,8 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { useFocusEffect } from '@react-navigation/native';
+import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
@@ -24,6 +26,7 @@ export const usePointsEvents = (
   options: UsePointsEventsOptions,
 ): UsePointsEventsResult => {
   const { seasonId, subscriptionId } = options;
+  const activeTab = useSelector(selectActiveTab);
 
   const [pointsEvents, setPointsEvents] = useState<PointsEventDto[] | null>(
     null,
@@ -122,11 +125,19 @@ export const usePointsEvents = (
     setIsRefreshing(false);
   }, [fetchPointsEvents]);
 
+  // Listen for global navbar focus
   useFocusEffect(
     useCallback(() => {
       fetchPointsEvents({ isInitial: true });
     }, [fetchPointsEvents]),
   );
+
+  // Listen for activeTab changes to refresh when switching to activity tab
+  useEffect(() => {
+    if (activeTab === 'activity') {
+      fetchPointsEvents({ isInitial: true });
+    }
+  }, [activeTab, fetchPointsEvents]);
 
   // Listen for reward claimed events to trigger refetch
   useInvalidateByRewardEvents(
