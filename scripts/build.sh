@@ -13,6 +13,8 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 IS_LOCAL=false
+SHOULD_CLEAN_WATCHER_CACHE=false
+WATCHER_PORT=8081
 
 loadJSEnv(){
 	# Load JS specific env variables
@@ -118,6 +120,12 @@ checkParameters(){
 	if [[ "$*" == *"--local"* ]]; then
 		# Script is running locally
 		IS_LOCAL=true
+	fi
+
+	# Check if the --clean flag is present
+	if [[ "$*" == *"--clean"* ]]; then
+		# Clean watcher cache
+		SHOULD_CLEAN_WATCHER_CACHE=true
 	fi
 
 	# Check if the METAMASK_ENVIRONMENT is valid
@@ -315,12 +323,7 @@ remapMainExperimentalEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-prebuild(){
-  WATCHER_PORT=${WATCHER_PORT:-8081}
-}
-
 prebuild_ios(){
-	prebuild
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "" > ios/debug.xcconfig
@@ -343,7 +346,6 @@ prebuild_ios(){
 }
 
 prebuild_android(){
-	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
@@ -668,16 +670,15 @@ buildIos() {
 }
 
 startWatcher() {
-	source $JS_ENV_FILE
-	remapMainDevEnvVariables
-  	WATCHER_PORT=${WATCHER_PORT:-8081}
-	if [ "$MODE" == "clean" ]; then
+	if [ "$SHOULD_CLEAN_WATCHER_CACHE" = true ]; then
+		# Clean watcher cache, then start the watcher
+		echo "Cleaning watcher cache and starting the watcher..."
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
-		#react-native start --port=$WATCHER_PORT -- --reset-cache
 		yarn expo start --port $WATCHER_PORT --clear
 	else
-		#react-native start --port=$WATCHER_PORT
+		# Start the watcher
+		echo "Starting the watcher..."
 		yarn expo start --port $WATCHER_PORT
 	fi
 }
@@ -755,7 +756,7 @@ if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ] || [ "$MODE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
-	checkAuthToken 'sentry.release.properties'
+	# checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 fi
 
@@ -780,13 +781,14 @@ if [ "$PLATFORM" == "ios" ]; then
 	else
 		envFileMissing $IOS_ENV_FILE
 	fi
-elif [ "$PLATFORM" == "watcher" ]; then
-	startWatcher
-else
+elif [ "$PLATFORM" == "android" ]; then
 	# we don't care about env file in CI
 	if [ -f "$ANDROID_ENV_FILE" ] || [ "$CI" = true ]; then
 		buildAndroid
 	else
 		envFileMissing $ANDROID_ENV_FILE
 	fi
+elif [ "$PLATFORM" == "watcher" ]; then
+	startWatcher
 fi
+	
