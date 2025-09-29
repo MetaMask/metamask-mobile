@@ -2,10 +2,6 @@ import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.sel
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { BASE_DEFAULTS, Utilities } from '../../framework';
-import OnboardingSheet from './OnboardingSheet';
-const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
-  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
 
 class OnboardingView {
   get container(): DetoxElement {
