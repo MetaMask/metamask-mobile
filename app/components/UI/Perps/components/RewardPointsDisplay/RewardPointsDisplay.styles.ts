@@ -28,6 +28,12 @@ const styleSheet = (params: {
       alignItems: 'center',
       gap: 4,
     },
+    pointsContainerLoaded: {
+      opacity: 1,
+    },
+    pointsContainerLoading: {
+      opacity: 0.7,
+    },
     contentContainer: {
       flexDirection: 'row',
       alignItems: 'center',
