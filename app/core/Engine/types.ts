@@ -673,6 +673,7 @@ export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
   | 'ExecutionService'
+  | 'SelectedNetworkController'
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
