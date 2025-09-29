@@ -193,9 +193,8 @@ exports[`BrowserBottomBar should render correctly 1`] = `
             "alignSelf": "center",
             "color": "#686e7d",
             "flex": 0,
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 15,
-            "fontWeight": "400",
             "textAlign": "center",
           }
         }

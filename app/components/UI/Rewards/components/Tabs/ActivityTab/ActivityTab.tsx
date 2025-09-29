@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FlatList, ListRenderItem, ActivityIndicator } from 'react-native';
 import {
@@ -15,14 +15,16 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ActivityEventRow } from './ActivityEventRow';
 import {
   selectSeasonId,
+  selectSeasonStartDate,
   selectSeasonStatusLoading,
 } from '../../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
 import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { setActiveTab } from '../../../../../../actions/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../../../../Name/Name.types';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -31,21 +33,6 @@ const LoadingFooter: React.FC = () => (
 );
 
 const ItemSeparator: React.FC = () => <Box twClassName="h-6" />;
-
-const IntermediateState: React.FC<{ message?: string; isError?: boolean }> = ({
-  message,
-  isError = false,
-}) => (
-  <Box twClassName="flex-1 items-center justify-center relative mt-4">
-    {!isError && (
-      <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
-    )}
-
-    {isError && (
-      <BannerAlert severity={BannerAlertSeverity.Error} description={message} />
-    )}
-  </Box>
-);
 
 const EmptyState: React.FC = () => {
   const dispatch = useDispatch();
@@ -88,9 +75,11 @@ const EmptyState: React.FC = () => {
 };
 
 export const ActivityTab: React.FC = () => {
+  const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const seasonId = useSelector(selectSeasonId);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
   const {
     pointsEvents,
     isLoading,
@@ -103,9 +92,20 @@ export const ActivityTab: React.FC = () => {
     seasonId: seasonId ?? undefined,
     subscriptionId: subscriptionId || '',
   });
+  const accountNameRequests = useMemo(
+    () =>
+      pointsEvents?.map((event) => ({
+        type: NameType.EthereumAddress,
+        value: event.accountAddress ?? '',
+        variation: '',
+      })),
+    [pointsEvents],
+  );
 
-  const renderItem: ListRenderItem<PointsEventDto> = ({ item }) => (
-    <ActivityEventRow event={item} />
+  const accountNames = useAccountNames(accountNameRequests || []);
+
+  const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
+    <ActivityEventRow event={item} accountName={accountNames?.[index]} />
   );
 
   const renderFooter = () => {
@@ -115,37 +115,65 @@ export const ActivityTab: React.FC = () => {
     return null;
   };
 
-  if ((isLoading || seasonStatusLoading) && !isRefreshing) {
-    return <IntermediateState />;
+  if (
+    (isLoading || (seasonStatusLoading && !!seasonStartDate)) &&
+    !isRefreshing
+  ) {
+    return (
+      <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
+    );
+  } else if (
+    !isLoading &&
+    !error &&
+    pointsEvents &&
+    pointsEvents.length === 0
+  ) {
+    return null;
   }
 
   if (error) {
     return (
-      <IntermediateState
-        message={`${strings('rewards.error_loading_activity')}: ${error}`}
-        isError
+      <RewardsErrorBanner
+        title={strings('rewards.active_activity_error.error_fetching_title')}
+        description={strings(
+          'rewards.active_activity_error.error_fetching_description',
+        )}
+        onConfirm={refresh}
+        confirmButtonLabel={strings(
+          'rewards.active_activity_error.retry_button',
+        )}
       />
     );
   }
 
-  if (pointsEvents.length === 0) {
-    return <EmptyState />;
+  // Determine what to render based on loading state and data
+  const shouldShowLoadingSkeleton =
+    (isLoading || pointsEvents === null) && !pointsEvents?.length && !error;
+
+  const hasPointsEvents = pointsEvents?.length;
+
+  if (shouldShowLoadingSkeleton) {
+    return <Skeleton style={tw.style('h-32 bg-rounded')} />;
   }
 
-  return (
-    <FlatList
-      testID="flatlist"
-      data={pointsEvents}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      showsVerticalScrollIndicator={false}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={renderFooter}
-      ItemSeparatorComponent={ItemSeparator}
-      onRefresh={refresh}
-      refreshing={isRefreshing}
-      horizontal={false}
-    />
-  );
+  if (hasPointsEvents) {
+    return (
+      <FlatList
+        testID="flatlist"
+        data={pointsEvents}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        ItemSeparatorComponent={ItemSeparator}
+        onRefresh={refresh}
+        refreshing={isRefreshing}
+        horizontal={false}
+      />
+    );
+  }
+
+  return <EmptyState />;
 };

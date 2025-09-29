@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { ReactTestInstance } from 'react-test-renderer';
 import ActiveBoosts from './ActiveBoosts';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
@@ -41,9 +40,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.active_boosts.title': 'Active boosts',
+      'rewards.active_boosts_title': 'Active boosts',
       'rewards.season_1': 'Season 1',
-      'rewards.active_boosts.error': 'Failed to load active boosts',
+      'rewards.active_boosts_error.error_fetching_title':
+        "Boosts couldn't be loaded",
+      'rewards.active_boosts_error.error_fetching_description':
+        'Check your connection and try again.',
+      'rewards.active_boosts_error.retry_button': 'Retry',
     };
     return translations[key] || key;
   }),
@@ -85,6 +88,75 @@ jest.mock('../../../../../../component-library/components/Skeleton', () => ({
   },
 }));
 
+// Mock RewardsThemeImageComponent
+jest.mock('../../ThemeImageComponent', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
+        props: {
+          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
+          style?: unknown;
+          testID?: string;
+        },
+        ref: unknown,
+      ) =>
+        ReactActual.createElement(View, {
+          testID: props.testID || 'rewards-theme-image',
+          'data-light-mode-url': props.themeImage?.lightModeUrl,
+          'data-dark-mode-url': props.themeImage?.darkModeUrl,
+          style: props.style,
+          ref,
+        }),
+    ),
+  };
+});
+
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              onPress: onConfirm,
+              testID: 'error-retry-button',
+            },
+            ReactActual.createElement(
+              Text,
+              {},
+              confirmButtonLabel || 'Confirm',
+            ),
+          ),
+      ),
+  };
+});
+
 const mockFormatTimeRemaining = jest.requireMock(
   '../../../utils/formatUtils',
 ).formatTimeRemaining;
@@ -106,6 +178,7 @@ interface MockState {
     activeBoosts: PointsBoostDto[] | null;
     activeBoostsLoading: boolean;
     activeBoostsError: boolean;
+    seasonStartDate: Date | null;
   };
 }
 
@@ -127,8 +200,8 @@ const mockBoost: PointsBoostDto = {
   },
   boostBips: 500,
   seasonLong: false,
-  startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-12-31'),
+  startDate: '2024-01-01',
+  endDate: '2024-12-31',
   backgroundColor: '#FF6B35',
 };
 
@@ -162,6 +235,7 @@ describe('ActiveBoosts', () => {
       activeBoosts: [],
       activeBoostsLoading: false,
       activeBoostsError: false,
+      seasonStartDate: null,
     },
   };
 
@@ -169,7 +243,7 @@ describe('ActiveBoosts', () => {
     const store = createMockStore(state);
     return render(
       <Provider store={store}>
-        <ActiveBoosts />
+        <ActiveBoosts fetchActivePointsBoosts={jest.fn()} />
       </Provider>,
     );
   };
@@ -185,6 +259,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: true,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -203,6 +278,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -215,6 +291,27 @@ describe('ActiveBoosts', () => {
       // Should not show loading skeleton
       expect(queryByTestId('skeleton')).toBeNull();
     });
+
+    it('should render loading state when activeBoosts is null and seasonStartDate exists', () => {
+      const loadingWithSeasonState = {
+        rewards: {
+          activeBoosts: null,
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+          seasonStartDate: new Date('2024-01-01'),
+        },
+      };
+
+      const { getByText, getByTestId } = renderWithProvider(
+        loadingWithSeasonState,
+      );
+
+      // Should show section header with loading indicator
+      expect(getByText('Active boosts')).toBeTruthy();
+
+      // Should show loading skeleton due to seasonStartDate logic
+      expect(getByTestId('skeleton')).toBeTruthy();
+    });
   });
 
   describe('Error States', () => {
@@ -224,62 +321,17 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: true,
+          seasonStartDate: null,
         },
       };
 
-      const { getByText } = renderWithProvider(errorState);
+      const { getByText, getByTestId } = renderWithProvider(errorState);
 
       // Should show section header
       expect(getByText('Active boosts')).toBeTruthy();
 
-      // Should show error message
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
-    });
-
-    it('should render error banner and skeleton when both loading and error', () => {
-      const loadingErrorState = {
-        rewards: {
-          activeBoosts: [],
-          activeBoostsLoading: true,
-          activeBoostsError: true,
-        },
-      };
-
-      const { getByText, getByTestId } = renderWithProvider(loadingErrorState);
-
-      // Should show section header
-      expect(getByText('Active boosts')).toBeTruthy();
-
-      // Should show error message
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
-
-      // Should show loading skeleton
-      expect(getByTestId('skeleton')).toBeTruthy();
-    });
-
-    it('should render error banner but no boosts when error and boosts are available', () => {
-      const errorWithBoostsState = {
-        rewards: {
-          activeBoosts: [mockBoost],
-          activeBoostsLoading: false,
-          activeBoostsError: true,
-        },
-      };
-
-      const { getByText, queryByTestId } =
-        renderWithProvider(errorWithBoostsState);
-
-      // Should show section header with count
-      expect(getByText('Active boosts')).toBeTruthy();
-      expect(getByText('1')).toBeTruthy();
-
-      // Should show error message
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
-
-      // Should NOT show boost cards when there's an error
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD),
-      ).toBeNull();
+      // Should show error banner
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
 
     it('should not render anything when error and no boosts and not loading', () => {
@@ -288,14 +340,15 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: true,
+          seasonStartDate: null,
         },
       };
 
-      const { getByText } = renderWithProvider(errorEmptyState);
+      const { getByText, getByTestId } = renderWithProvider(errorEmptyState);
 
       // Should still show section header and error banner even with empty boosts
       expect(getByText('Active boosts')).toBeTruthy();
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
   });
 
@@ -306,6 +359,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost, mockSeasonLongBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -321,6 +375,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -346,6 +401,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -367,6 +423,7 @@ describe('ActiveBoosts', () => {
           ],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -389,6 +446,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -408,6 +466,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockSeasonLongBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -425,6 +484,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -440,6 +500,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoostWithoutEndDate],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -451,47 +512,142 @@ describe('ActiveBoosts', () => {
     });
   });
 
-  describe('Theme Integration', () => {
-    it('should use light mode icon URL in light theme', () => {
+  describe('RewardsThemeImageComponent Integration', () => {
+    it('should render RewardsThemeImageComponent for boost with icon', () => {
       const stateWithBoosts = {
         rewards: {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
       const { getByTestId } = renderWithProvider(stateWithBoosts);
 
-      const iconContainer = getByTestId(
-        REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON,
-      );
-      const imageElement = iconContainer.children[0] as ReactTestInstance;
+      expect(getByTestId('rewards-theme-image')).toBeTruthy();
+    });
 
-      expect(imageElement.props.source.uri).toBe(
+    it('should pass correct themeImage prop to RewardsThemeImageComponent', () => {
+      const stateWithBoosts = {
+        rewards: {
+          activeBoosts: [mockBoost],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+          seasonStartDate: null,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(stateWithBoosts);
+
+      const boostIcon = getByTestId('rewards-theme-image');
+      expect(boostIcon.props['data-light-mode-url']).toBe(
         'https://example.com/light-icon.png',
+      );
+      expect(boostIcon.props['data-dark-mode-url']).toBe(
+        'https://example.com/dark-icon.png',
       );
     });
 
-    it('should use correct icon URL based on theme', () => {
+    it('should pass correct style prop to RewardsThemeImageComponent', () => {
       const stateWithBoosts = {
         rewards: {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
       const { getByTestId } = renderWithProvider(stateWithBoosts);
 
-      const iconContainer = getByTestId(
-        REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON,
-      );
-      const imageElement = iconContainer.children[0] as ReactTestInstance;
+      const boostIcon = getByTestId('rewards-theme-image');
+      expect(boostIcon.props.style).toBeDefined();
+    });
 
-      // Since the mock always returns light theme, expect light mode URL
-      expect(imageElement.props.source.uri).toBe(
+    it('should not render RewardsThemeImageComponent when boost has no icon', () => {
+      const boostWithoutIcon: PointsBoostDto = {
+        ...mockBoost,
+        icon: undefined as unknown as {
+          lightModeUrl: string;
+          darkModeUrl: string;
+        },
+      };
+
+      const stateWithBoosts = {
+        rewards: {
+          activeBoosts: [boostWithoutIcon],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+          seasonStartDate: null,
+        },
+      };
+
+      const { queryByTestId, getByTestId } =
+        renderWithProvider(stateWithBoosts);
+
+      // Card should still render
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD),
+      ).toBeTruthy();
+
+      // But RewardsThemeImageComponent should not be present
+      expect(queryByTestId('rewards-theme-image')).toBeNull();
+
+      // Icon container should also not be present
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON),
+      ).toBeNull();
+    });
+
+    it('should update RewardsThemeImageComponent when boost data changes', () => {
+      const initialState = {
+        rewards: {
+          activeBoosts: [mockBoost],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+          seasonStartDate: null,
+        },
+      };
+
+      const { getByTestId, rerender } = renderWithProvider(initialState);
+
+      const initialBoostIcon = getByTestId('rewards-theme-image');
+      expect(initialBoostIcon.props['data-light-mode-url']).toBe(
         'https://example.com/light-icon.png',
+      );
+
+      // When: boost changes to different image URLs
+      const updatedBoost: PointsBoostDto = {
+        ...mockBoost,
+        icon: {
+          lightModeUrl: 'https://example.com/updated-light-icon.png',
+          darkModeUrl: 'https://example.com/updated-dark-icon.png',
+        },
+      };
+
+      const updatedState = {
+        rewards: {
+          activeBoosts: [updatedBoost],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+          seasonStartDate: null,
+        },
+      };
+
+      rerender(
+        <Provider store={createMockStore(updatedState)}>
+          <ActiveBoosts fetchActivePointsBoosts={jest.fn()} />
+        </Provider>,
+      );
+
+      // Then: new image URLs are used
+      const updatedBoostIcon = getByTestId('rewards-theme-image');
+      expect(updatedBoostIcon.props['data-light-mode-url']).toBe(
+        'https://example.com/updated-light-icon.png',
+      );
+      expect(updatedBoostIcon.props['data-dark-mode-url']).toBe(
+        'https://example.com/updated-dark-icon.png',
       );
     });
   });
@@ -503,6 +659,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -517,12 +674,13 @@ describe('ActiveBoosts', () => {
       expect(styles.length).toBeGreaterThan(0);
     });
 
-    it('should render boost icon with correct dimensions', () => {
+    it('should render boost icon container with correct testID', () => {
       const stateWithBoosts = {
         rewards: {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -531,10 +689,11 @@ describe('ActiveBoosts', () => {
       const iconContainer = getByTestId(
         REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON,
       );
-      const imageElement = iconContainer.children[0] as ReactTestInstance;
+      expect(iconContainer).toBeTruthy();
 
-      expect(imageElement.props.style).toEqual({ testID: 'tw-h-16 w-16' });
-      expect(imageElement.props.resizeMode).toBe('contain');
+      // The RewardsThemeImageComponent should be inside the container
+      const rewardsThemeImage = getByTestId('rewards-theme-image');
+      expect(rewardsThemeImage).toBeTruthy();
     });
   });
 
@@ -542,9 +701,9 @@ describe('ActiveBoosts', () => {
     it('should handle boost without icon gracefully', () => {
       const boostWithoutIcon: PointsBoostDto = {
         ...mockBoost,
-        icon: {
-          lightModeUrl: '',
-          darkModeUrl: '',
+        icon: undefined as unknown as {
+          lightModeUrl: string;
+          darkModeUrl: string;
         },
       };
 
@@ -553,6 +712,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [boostWithoutIcon],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -564,16 +724,17 @@ describe('ActiveBoosts', () => {
         getByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD),
       ).toBeTruthy();
 
-      // But icon should not be present
+      // But icon container and RewardsThemeImageComponent should not be present
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON),
       ).toBeNull();
+      expect(queryByTestId('rewards-theme-image')).toBeNull();
     });
 
     it('should handle expired boost correctly', () => {
       const expiredBoost: PointsBoostDto = {
         ...mockBoost,
-        endDate: new Date('2020-01-01'), // Past date
+        endDate: '2020-01-01', // Past date
       };
 
       // Mock formatTimeRemaining to return null for expired dates
@@ -584,6 +745,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [expiredBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -606,6 +768,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 

@@ -62,7 +62,7 @@ import useOriginSource from '../../../hooks/useOriginSource.ts';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
-  getDefaultSelectedChainIds,
+  mergeCaip25Values,
 } from '../../AccountConnect/utils.ts';
 import {
   getPhishingTestResultAsync,
@@ -109,10 +109,17 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const existingPermissionsCaip25CaveatValue = useMemo(
     () =>
-      getRequestedCaip25CaveatValue(
-        existingPermissionsForHost,
-        hostInfo?.metadata?.origin,
-      ),
+      existingPermissionsForHost
+        ? getRequestedCaip25CaveatValue(
+            existingPermissionsForHost,
+            hostInfo?.metadata?.origin,
+          )
+        : {
+            requiredScopes: {},
+            optionalScopes: {},
+            sessionProperties: {},
+            isMultichainOrigin: true,
+          },
     [existingPermissionsForHost, hostInfo?.metadata?.origin],
   );
 
@@ -123,6 +130,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         hostInfo.metadata.origin,
       ),
     [hostInfo.permissions, hostInfo.metadata.origin],
+  );
+
+  const requestedRequestWithExistingPermissions = useMemo(
+    () =>
+      mergeCaip25Values(
+        existingPermissionsCaip25CaveatValue,
+        requestedCaip25CaveatValue,
+      ),
+    [existingPermissionsCaip25CaveatValue, requestedCaip25CaveatValue],
   );
 
   const requestedCaipAccountIds = useMemo(
@@ -150,7 +166,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
+  const { origin: channelIdOrHostname } = hostInfo.metadata;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -163,39 +179,17 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
-  const defaultSelectedChainIds = useMemo(
-    () =>
-      getDefaultSelectedChainIds({
-        isEip1193Request: Boolean(isEip1193Request),
-        isOriginWalletConnect: Boolean(isOriginWalletConnect),
-        isOriginMMSDKRemoteConn: Boolean(isOriginMMSDKRemoteConn),
-        origin: channelIdOrHostname,
-        allNetworksList,
-        supportedRequestedCaipChainIds: allNetworksList,
-        requestedNamespaces,
-      }),
-    [
-      isEip1193Request,
-      isOriginWalletConnect,
-      isOriginMMSDKRemoteConn,
-      channelIdOrHostname,
-      allNetworksList,
-      requestedNamespaces,
-    ],
-  );
-
   const requestedCaipChainIdsWithDefaultSelectedChainIds = useMemo(
-    () =>
-      Array.from(
-        new Set([...requestedCaipChainIds, ...defaultSelectedChainIds]),
-      ),
-    [requestedCaipChainIds, defaultSelectedChainIds],
+    () => Array.from(new Set([...requestedCaipChainIds, ...allNetworksList])),
+    [requestedCaipChainIds, allNetworksList],
   );
 
   const {
     connectedAccountGroups,
     supportedAccountGroups,
-    existingConnectedCaipAccountIds,
+    connectedAccountGroupWithRequested,
+    caipAccountIdsOfConnectedAccountGroupWithRequested,
+    selectedAndRequestedAccountGroups,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
     requestedCaipAccountIds,
@@ -226,8 +220,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { suggestedAccountGroups, suggestedCaipAccountIds } = useMemo(() => {
     if (connectedAccountGroups.length > 0) {
       return {
-        suggestedAccountGroups: connectedAccountGroups,
-        suggestedCaipAccountIds: existingConnectedCaipAccountIds,
+        suggestedAccountGroups: connectedAccountGroupWithRequested,
+        suggestedCaipAccountIds:
+          caipAccountIdsOfConnectedAccountGroupWithRequested,
       };
     }
 
@@ -238,21 +233,33 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       };
     }
 
-    // if there are no connected account groups, show the first supported account group
-    const [firstSupportedAccountGroup] = supportedAccountGroups;
+    if (requestedCaipAccountIds.length === 0) {
+      const [defaultSelectedAccountGroup] = supportedAccountGroups;
+
+      return {
+        suggestedAccountGroups: [defaultSelectedAccountGroup],
+        suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
+          [defaultSelectedAccountGroup],
+          requestedCaipChainIdsWithDefaultSelectedChainIds,
+        ),
+      };
+    }
 
     return {
-      suggestedAccountGroups: [firstSupportedAccountGroup],
+      suggestedAccountGroups: selectedAndRequestedAccountGroups,
       suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
-        [firstSupportedAccountGroup],
+        selectedAndRequestedAccountGroups,
         requestedCaipChainIdsWithDefaultSelectedChainIds,
       ),
     };
   }, [
-    connectedAccountGroups,
+    connectedAccountGroups.length,
     supportedAccountGroups,
+    requestedCaipAccountIds.length,
+    selectedAndRequestedAccountGroups,
     requestedCaipChainIdsWithDefaultSelectedChainIds,
-    existingConnectedCaipAccountIds,
+    connectedAccountGroupWithRequested,
+    caipAccountIdsOfConnectedAccountGroupWithRequested,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
@@ -335,9 +342,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     };
   }, [dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(
-    channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
-  );
+  const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
@@ -464,7 +469,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       permissions: {
         ...hostInfo.permissions,
         ...getCaip25PermissionsResponse(
-          requestedCaip25CaveatValue,
+          requestedRequestWithExistingPermissions,
           selectedCaipAccountIds,
           selectedChainIds,
         ),
@@ -518,7 +523,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   }, [
     hostInfo,
     channelIdOrHostname,
-    requestedCaip25CaveatValue,
+    requestedRequestWithExistingPermissions,
     selectedCaipAccountIds,
     selectedChainIds,
     selectedAccountGroupIds.length,

@@ -35,18 +35,60 @@ const mockUseRewardOptinSummary = jest.fn();
 const mockUseLinkAccount = jest.fn();
 
 jest.mock('../../hooks/useRewardOptinSummary', () => ({
-  useRewardOptinSummary: () => mockUseRewardOptinSummary(),
+  useRewardOptinSummary: jest.fn(() => mockUseRewardOptinSummary()),
 }));
 
 jest.mock('../../hooks/useLinkAccount', () => ({
-  useLinkAccount: () => mockUseLinkAccount(),
+  useLinkAccount: jest.fn(() => mockUseLinkAccount()),
 }));
+
+// Mock RewardsErrorBanner
+jest.mock('../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            { testID: 'error-retry-button', onPress: onConfirm },
+            ReactActual.createElement(
+              Text,
+              null,
+              confirmButtonLabel || 'Retry',
+            ),
+          ),
+      ),
+  };
+});
 
 // Mock selectors
 const mockSelectSelectedInternalAccount = jest.fn();
+const mockSelectInternalAccounts = jest.fn();
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: (state: unknown) =>
     mockSelectSelectedInternalAccount(state),
+  selectInternalAccounts: (state: unknown) => mockSelectInternalAccounts(state),
 }));
 
 // Mock useTailwind
@@ -61,6 +103,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
       }
       return styles || {};
     }),
+    color: jest.fn(
+      () =>
+        // Return a default color value for testing
+        '#037DD6',
+    ),
   })),
 }));
 
@@ -180,50 +227,64 @@ jest.mock(
     },
 );
 
-// Mock Banner
-jest.mock('../../../../../component-library/components/Banners/Banner', () => {
+// Mock RewardsInfoBanner
+jest.mock('../RewardsInfoBanner', () => {
   const ReactForBanner = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
 
-  const Banner = ({
-    title,
-    description,
-    actionButtonProps,
-  }: {
-    title: string;
-    description: string;
-    actionButtonProps?: { label: string; onPress: () => void };
-  }) =>
-    ReactForBanner.createElement(
-      View,
-      { testID: 'banner' },
-      ReactForBanner.createElement(Text, { testID: 'banner-title' }, title),
-      ReactForBanner.createElement(
-        Text,
-        { testID: 'banner-description' },
-        description,
-      ),
-      actionButtonProps &&
-        ReactForBanner.createElement(
-          TouchableOpacity,
-          {
-            onPress: actionButtonProps.onPress,
-            testID: 'banner-action-button',
-          },
-          ReactForBanner.createElement(Text, {}, actionButtonProps.label),
-        ),
-    );
-
   return {
     __esModule: true,
-    default: Banner,
-    BannerVariant: {
-      Alert: 'Alert',
-    },
-    BannerAlertSeverity: {
-      Error: 'Error',
-      Info: 'Info',
-    },
+    default: ({
+      title,
+      description,
+      onDismiss,
+      onConfirm,
+      confirmButtonLabel,
+      onConfirmLoading,
+      testID,
+    }: {
+      title: string | React.ReactNode;
+      description: string;
+      onDismiss?: () => void;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+      onConfirmLoading?: boolean;
+      testID?: string;
+    }) =>
+      ReactForBanner.createElement(
+        View,
+        { testID: testID || 'rewards-info-banner' },
+        ReactForBanner.createElement(
+          Text,
+          { testID: 'info-banner-title' },
+          typeof title === 'string' ? title : 'Complex Title',
+        ),
+        ReactForBanner.createElement(
+          Text,
+          { testID: 'info-banner-description' },
+          description,
+        ),
+        onDismiss &&
+          ReactForBanner.createElement(
+            TouchableOpacity,
+            { testID: 'info-banner-dismiss-button', onPress: onDismiss },
+            ReactForBanner.createElement(Text, {}, 'Dismiss'),
+          ),
+        onConfirm &&
+          ReactForBanner.createElement(
+            TouchableOpacity,
+            {
+              testID: 'info-banner-confirm-button',
+              onPress: onConfirm,
+              disabled: onConfirmLoading,
+            },
+            ReactForBanner.createElement(
+              Text,
+              {},
+              confirmButtonLabel || 'Confirm',
+            ),
+          ),
+      ),
   };
 });
 
@@ -313,15 +374,17 @@ describe('RewardSettingsTabs', () => {
 
     // Default mock values
     mockSelectSelectedInternalAccount.mockReturnValue(mockAccount1);
+    mockSelectInternalAccounts.mockReturnValue([mockAccount1, mockAccount2]);
     mockUseRewardOptinSummary.mockReturnValue({
       linkedAccounts: [],
       unlinkedAccounts: [],
       isLoading: false,
       hasError: false,
       refresh: jest.fn(),
+      currentAccountOptedIn: false,
     });
     mockUseLinkAccount.mockReturnValue({
-      linkAccount: jest.fn(),
+      linkAccount: jest.fn().mockResolvedValue(true),
       isLoading: false,
     });
   });
@@ -352,6 +415,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: true,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getAllByTestId } = renderWithProvider(
@@ -361,10 +425,47 @@ describe('RewardSettingsTabs', () => {
       const skeletons = getAllByTestId('skeleton');
       expect(skeletons.length).toBeGreaterThan(0);
     });
+
+    it('should render multiple skeleton items with proper structure', () => {
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [],
+        isLoading: true,
+        hasError: false,
+        refresh: jest.fn(),
+        currentAccountOptedIn: false,
+      });
+
+      const { getAllByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const skeletons = getAllByTestId('skeleton');
+      // Should render 6 skeletons total (3 items × 2 skeletons each: avatar + name)
+      expect(skeletons).toHaveLength(6);
+    });
+
+    it('should not render tabs when loading', () => {
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [],
+        isLoading: true,
+        hasError: false,
+        refresh: jest.fn(),
+        currentAccountOptedIn: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      // Should not render tabs when loading
+      expect(queryByTestId('tabs-list-0')).toBeNull();
+    });
   });
 
   describe('error state', () => {
-    it('should render error banner when hasError is true', () => {
+    it('should render error banner when hasError is true and no accounts', () => {
       const mockRefresh = jest.fn();
       mockUseRewardOptinSummary.mockReturnValue({
         linkedAccounts: [],
@@ -372,16 +473,23 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: true,
         refresh: mockRefresh,
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      expect(getByTestId('banner')).toBeTruthy();
-      expect(getByText('mocked_rewards.settings.error_title')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
       expect(
-        getByText('mocked_rewards.settings.error_description'),
+        getByText(
+          'mocked_rewards.accounts_opt_in_state_error.error_fetching_title',
+        ),
+      ).toBeTruthy();
+      expect(
+        getByText(
+          'mocked_rewards.accounts_opt_in_state_error.error_fetching_description',
+        ),
       ).toBeTruthy();
     });
 
@@ -393,15 +501,36 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: true,
         refresh: mockRefresh,
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      const retryButton = getByTestId('banner-action-button');
+      const retryButton = getByTestId('error-retry-button');
       fireEvent.press(retryButton);
       expect(mockRefresh).toHaveBeenCalled();
+    });
+
+    it('should not render error banner when both loading and error', () => {
+      const mockRefresh = jest.fn();
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [],
+        isLoading: true,
+        hasError: true,
+        refresh: mockRefresh,
+        currentAccountOptedIn: false,
+      });
+
+      const { queryByTestId, getAllByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      // Should show skeletons instead of error banner when loading
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
+      expect(getAllByTestId('skeleton').length).toBeGreaterThan(0);
     });
   });
 
@@ -413,6 +542,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -430,6 +560,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -448,14 +579,15 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      expect(getByText('Account 1 (current)')).toBeTruthy();
-      expect(getByText('Account 2 ')).toBeTruthy();
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Account 2')).toBeTruthy();
     });
   });
 
@@ -467,6 +599,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId, getAllByText } = renderWithProvider(
@@ -489,6 +622,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -517,6 +651,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -531,40 +666,7 @@ describe('RewardSettingsTabs', () => {
       expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
     });
 
-    it('should show linking overlay when account is being linked', async () => {
-      const mockLinkAccount = jest.fn(
-        () => new Promise((resolve) => setTimeout(() => resolve(true), 100)),
-      );
-      mockUseLinkAccount.mockReturnValue({
-        linkAccount: mockLinkAccount,
-        isLoading: false,
-      });
-      mockUseRewardOptinSummary.mockReturnValue({
-        linkedAccounts: [],
-        unlinkedAccounts: [mockAccount1],
-        isLoading: false,
-        hasError: false,
-        refresh: jest.fn(),
-      });
-
-      const { getByText, getByTestId } = renderWithProvider(
-        <RewardSettingsTabs initialTabIndex={0} />,
-      );
-
-      const linkButton = getByText(
-        'mocked_rewards.settings.link_account_button',
-      );
-      fireEvent.press(linkButton);
-
-      await waitFor(() => {
-        expect(getByTestId('icon-Loading')).toBeTruthy();
-        expect(
-          getByText('mocked_rewards.linking_account_Account 1'),
-        ).toBeTruthy();
-      });
-    });
-
-    it('should prevent double-press on link button', async () => {
+    it('should prevent double-press on link button when isLoading is true', async () => {
       const mockLinkAccount = jest.fn().mockResolvedValue(true);
       mockUseLinkAccount.mockReturnValue({
         linkAccount: mockLinkAccount,
@@ -576,6 +678,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -589,6 +692,101 @@ describe('RewardSettingsTabs', () => {
       fireEvent.press(linkButton); // Second press should be ignored
 
       expect(mockLinkAccount).not.toHaveBeenCalled();
+    });
+
+    it('should show activity indicator when linking specific account', async () => {
+      const mockLinkAccount = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve(true), 100);
+          }),
+      );
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1, mockAccount2],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+        currentAccountOptedIn: false,
+      });
+
+      const { getAllByText } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButtons = getAllByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+
+      // Press the first link button
+      fireEvent.press(linkButtons[0]);
+
+      // Check if activity indicator appears for the linking account
+      // The activity indicator should be visible while linking
+      await waitFor(() => {
+        expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
+      });
+    });
+
+    it('should handle linking failure gracefully', async () => {
+      const mockLinkAccount = jest.fn().mockResolvedValue(false);
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+        currentAccountOptedIn: false,
+      });
+
+      const { getByText, getAllByText } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButton = getByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
+      });
+
+      // Should still show the link button after failed linking
+      expect(
+        getAllByText('mocked_rewards.settings.link_account_button').length,
+      ).toBeGreaterThan(0);
+    });
+
+    it('should disable tabs when linking account', () => {
+      const mockLinkAccount = jest.fn().mockResolvedValue(true);
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: true,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [mockAccount1],
+        unlinkedAccounts: [mockAccount2],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+        currentAccountOptedIn: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      // Tabs should be rendered but linked tab should be disabled
+      expect(getByTestId('tabs-list-0')).toBeTruthy();
     });
   });
 
@@ -605,6 +803,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getAllByText } = renderWithProvider(
@@ -626,6 +825,40 @@ describe('RewardSettingsTabs', () => {
         expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
       });
     });
+
+    it('should not update local state when linking fails', async () => {
+      const mockLinkAccount = jest.fn().mockResolvedValue(false);
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+        currentAccountOptedIn: false,
+      });
+
+      const { getByText, getAllByText } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButton = getByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
+      });
+
+      // Should still have the same number of link buttons after failed linking
+      expect(
+        getAllByText('mocked_rewards.settings.link_account_button').length,
+      ).toBe(1);
+    });
   });
 
   describe('edge cases', () => {
@@ -636,6 +869,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       expect(() =>
@@ -651,6 +885,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       expect(() =>
@@ -670,6 +905,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -695,6 +931,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
