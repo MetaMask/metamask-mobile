@@ -574,7 +574,8 @@
     "show_more_nfts": "Show more NFTs",
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
-    "could_not_resolve_name": "Couldn't resolve name"
+    "could_not_resolve_name": "Couldn't resolve name",
+    "invalid_address": "Invalid address"
   },
   "deposit": {
     "title": "Deposit",
@@ -884,6 +885,7 @@
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Insufficient funds",
+      "no_funds_available": "No funds available. Please deposit first.",
       "enter_amount": "Enter amount",
       "fetching_quote": "Fetching quote",
       "submitting": "Submitting transaction",
@@ -1536,6 +1538,7 @@
       "got_it": "Got it"
     },
     "points": "Points",
+    "estimated_points": "Est. Points",
     "unable_to_load": "Couldn't load",
     "points_error": "We can't load points right now",
     "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
@@ -4046,11 +4049,6 @@
     "order_status_completed": "Completed",
     "order_status_failed": "Failed",
     "order_status_cancelled": "Cancelled",
-    "network_switcher": {
-      "title": "Unsupported {{rampType}} Network",
-      "description": "To {{rampType}} crypto, you'll need to switch to a supported network",
-      "no_networks_found": "No supported networks found"
-    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
@@ -5943,8 +5941,7 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
+      "link_account_button": "Add"
     },
 
     "optout": {
@@ -5961,21 +5958,26 @@
         }
     },
 
-    "unlinked_accounts_info": {
-      "title": "Accounts not earning points",
-      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
-      "go_to_settings": "Go to settings"
-    },
+    "toast_dismiss": "Dismiss",
 
-    "unlinked_account_info": {
-      "title": "Account not earning points",
-      "title_optin_not_supported": "Account not supported",
-      "description": "This account's activity is not being tracked for this season.",
-      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
+    "dashboard_modal_info": {
+      "active_account": {
+        "title": "Don't miss out",
+        "description": "Add your account to start earning points from your activity.",
+        "confirm": "Add account"
+      },
+      "multiple_unlinked_accounts": {
+        "title": "Start earning points", 
+        "description": "Add your accounts so you can track your rewards at a glance.",
+        "confirm": "Add accounts"
+      },
+      "account_not_supported": {
+        "title": "Account not supported",
+        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
+        "confirm": "Go back"
+      }
     },
-
-    "link_account": "Add account",
-    "linking_account": "Adding...",
 
     "ways_to_earn": {
       "title": "Ways to earn",
