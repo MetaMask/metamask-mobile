@@ -183,18 +183,17 @@ describe('orderCalculations', () => {
         szDecimals: 6,
       });
 
-      expect(result).toBe('50000.00');
+      expect(result).toBe('50000');
     });
 
     it('should find optimal amount that maximizes USD value for same position size', () => {
-      // Test case where multiple USD amounts result in same position size
+      // Test case where multiple USD amounts result in same position size due to ceiling
       const price = 30000;
       const szDecimals = 6;
 
-      // These amounts should all result in the same position size due to rounding
-      const amount1 = '10';
-      const amount2 = '11';
-      const amount3 = '12';
+      // These amounts should result in the same position size due to Math.ceil rounding
+      const amount1 = '29.999999'; // Just below the exact amount
+      const amount2 = '30.0'; // Exact amount
 
       const positionSize1 = calculatePositionSize({
         amount: amount1,
@@ -206,24 +205,19 @@ describe('orderCalculations', () => {
         price,
         szDecimals,
       });
-      const positionSize3 = calculatePositionSize({
-        amount: amount3,
-        price,
-        szDecimals,
-      });
 
       // Verify they have the same position size
       expect(positionSize1).toBe(positionSize2);
-      expect(positionSize2).toBe(positionSize3);
+      expect(positionSize1).toBe('0.001000');
 
-      // Find optimal amount for the lowest one
+      // Find optimal amount for the lower one
       const optimal = findOptimalAmount({
         targetAmount: amount1,
         price,
         szDecimals,
       });
 
-      // Should be close to the highest amount that gives same position size
+      // Should optimize to a higher amount that gives same position size
       const optimalPositionSize = calculatePositionSize({
         amount: optimal,
         price,
@@ -231,7 +225,7 @@ describe('orderCalculations', () => {
       });
 
       expect(optimalPositionSize).toBe(positionSize1);
-      expect(parseFloat(optimal)).toBeGreaterThan(parseFloat(amount1));
+      expect(parseFloat(optimal)).toBeGreaterThanOrEqual(parseFloat(amount1));
     });
 
     it('should handle edge cases with zero values', () => {

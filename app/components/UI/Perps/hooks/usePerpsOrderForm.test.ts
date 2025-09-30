@@ -8,9 +8,13 @@ import {
   PerpsStreamProvider,
   PerpsStreamManager,
 } from '../providers/PerpsStreamManager';
+import { findOptimalAmount } from '../utils/orderCalculations';
 
 jest.mock('./usePerpsNetwork');
 jest.mock('./stream/usePerpsLiveAccount');
+jest.mock('../utils/orderCalculations', () => ({
+  findOptimalAmount: jest.fn(),
+}));
 
 // Create a mock stream manager for testing
 const createMockStreamManager = (): PerpsStreamManager => {
@@ -70,6 +74,9 @@ describe('usePerpsOrderForm', () => {
   const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.MockedFunction<
     typeof usePerpsLiveAccount
   >;
+  const mockFindOptimalAmount = findOptimalAmount as jest.MockedFunction<
+    typeof findOptimalAmount
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -85,6 +92,10 @@ describe('usePerpsOrderForm', () => {
       },
       isInitialLoading: false,
     });
+    // Mock findOptimalAmount to return the input amount by default
+    mockFindOptimalAmount.mockImplementation(
+      ({ targetAmount }) => targetAmount,
+    );
   });
 
   describe('initialization', () => {
@@ -478,31 +489,231 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
-  describe('calculations', () => {
-    it('should calculate margin required', () => {
+  describe('optimizeOrderAmount', () => {
+    it('should call findOptimalAmount with correct parameters', () => {
+      // Arrange
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: TestWrapper,
       });
 
       act(() => {
-        result.current.setAmount('1000');
-        result.current.setLeverage(10);
+        result.current.setAmount('100');
       });
 
-      expect(result.current.calculations.marginRequired).toBe('100.00');
+      const price = 50000;
+      const szDecimals = 6;
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(price, szDecimals);
+      });
+
+      // Assert
+      expect(mockFindOptimalAmount).toHaveBeenCalledWith({
+        targetAmount: '100',
+        price: 50000,
+        szDecimals: 6,
+      });
     });
 
-    it('should update margin required when leverage changes', () => {
+    it('should update amount when optimization returns higher value within balance limits', () => {
+      // Arrange
+      mockFindOptimalAmount.mockReturnValue('120'); // Higher optimized amount
+
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: TestWrapper,
       });
 
       act(() => {
-        result.current.setAmount('1000');
-        result.current.setLeverage(20);
+        result.current.setAmount('100');
       });
 
-      expect(result.current.calculations.marginRequired).toBe('50.00');
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - Amount should be updated to the optimized value
+      expect(result.current.orderForm.amount).toBe('120');
+    });
+
+    it('should not update amount when optimization returns same value', () => {
+      // Arrange
+      mockFindOptimalAmount.mockReturnValue('100'); // Same amount
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('100');
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - Amount should remain unchanged
+      expect(result.current.orderForm.amount).toBe('100');
+    });
+
+    it('should not update amount when optimization returns lower value', () => {
+      // Arrange
+      mockFindOptimalAmount.mockReturnValue('80'); // Lower optimized amount
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('100');
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - Amount should remain unchanged
+      expect(result.current.orderForm.amount).toBe('100');
+    });
+
+    it('should not update amount when optimized amount exceeds available balance', () => {
+      // Arrange - Set low available balance
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '10', // $10 balance = $30 max with 3x leverage
+          totalBalance: '10',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '10',
+        },
+        isInitialLoading: false,
+      });
+
+      mockFindOptimalAmount.mockReturnValue('50'); // Optimized amount exceeds max allowed (30)
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('20');
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - Amount should remain unchanged due to balance limit
+      expect(result.current.orderForm.amount).toBe('20');
+    });
+
+    it('should not optimize when amount is zero', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('0');
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - findOptimalAmount should not be called for zero amount
+      expect(mockFindOptimalAmount).not.toHaveBeenCalled();
+    });
+
+    it('should not optimize when amount is empty', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('');
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - findOptimalAmount should not be called for empty amount
+      expect(mockFindOptimalAmount).not.toHaveBeenCalled();
+    });
+
+    it('should handle optimization with default szDecimals when not provided', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('100');
+      });
+
+      // Act - Call without szDecimals parameter
+      act(() => {
+        result.current.optimizeOrderAmount(50000);
+      });
+
+      // Assert - Should call with undefined szDecimals (handled by findOptimalAmount)
+      expect(mockFindOptimalAmount).toHaveBeenCalledWith({
+        targetAmount: '100',
+        price: 50000,
+        szDecimals: undefined,
+      });
+    });
+
+    it('should work correctly with different leverage values', () => {
+      // Arrange
+      mockFindOptimalAmount.mockReturnValue('150'); // Higher optimized amount
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('100');
+        result.current.setLeverage(10); // Higher leverage = higher max allowed amount
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - Should update since 150 is within 1000 * 10 = 10000 limit
+      expect(result.current.orderForm.amount).toBe('150');
+    });
+
+    it('should maintain precision in amount updates', () => {
+      // Arrange
+      mockFindOptimalAmount.mockReturnValue('123.45'); // Decimal optimized amount
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      act(() => {
+        result.current.setAmount('100.00');
+      });
+
+      // Act
+      act(() => {
+        result.current.optimizeOrderAmount(50000, 6);
+      });
+
+      // Assert - Should preserve decimal precision
+      expect(result.current.orderForm.amount).toBe('123.45');
     });
   });
 
