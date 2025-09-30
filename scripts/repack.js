@@ -112,16 +112,90 @@ async function repackAndroid() {
 }
 
 /**
+ * Repack iOS App
+ */
+async function repackIos() {
+  const startTime = Date.now();
+  const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
+  const repackedApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app';
+  const finalApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
+  const sourcemapPath = 'sourcemaps/ios/index.js.map';
+  const workingDir = 'ios/build/repack-working-main';
+
+  try {
+    logger.info('🚀 Starting iOS E2E App repack process...');
+    logger.info(`Source App: ${sourceApp}`);
+
+    // Verify source app exists
+    if (!fs.existsSync(sourceApp)) {
+      throw new Error(`App not found: ${sourceApp}`);
+    }
+
+    // Ensure directories exist
+    fs.mkdirSync(path.dirname(sourcemapPath), { recursive: true });
+    fs.mkdirSync(workingDir, { recursive: true });
+
+    // Dynamic import for ES module compatibility
+    const { repackAppIosAsync } = await import('@expo/repack-app');
+
+    // Repack iOS App
+    logger.info('⏱️  Repacking iOS app with updated JavaScript...');
+    await repackAppIosAsync({
+      platform: 'ios',
+      projectRoot: process.cwd(),
+      sourceAppPath: sourceApp,
+      outputPath: repackedApp,
+      workingDirectory: workingDir,
+      verbose: true,
+      exportEmbedOptions: {
+        sourcemapOutput: sourcemapPath,
+      },
+      env: process.env,
+    });
+
+    // Verify and move repacked app
+    if (!fs.existsSync(repackedApp)) {
+      throw new Error(`Repacked app not found: ${repackedApp}`);
+    }
+
+    // Remove old app and move repacked app to final location
+    fs.rmSync(finalApp, { recursive: true, force: true });
+    fs.renameSync(repackedApp, finalApp);
+    fs.rmSync(workingDir, { recursive: true, force: true });
+
+    const duration = Math.round((Date.now() - startTime) / 1000);
+    logger.success(`🎉 iOS App repack completed in ${duration}s`);
+
+    if (fs.existsSync(sourcemapPath)) {
+      logger.success(`Sourcemap: ${sourcemapPath}`);
+    }
+
+  } catch (error) {
+    logger.error(`iOS repack failed: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
  * Main entry point
  */
 async function main() {
-  // This script is now Android-specific
-  logger.info(`🔧 Repack Platform: ANDROID`);
+  const platform = (process.env.PLATFORM || '').toLowerCase();
+  
+  logger.info(`🔧 Repack Platform: ${platform.toUpperCase()}`);
   logger.info(`📍 Working Directory: ${process.cwd()}`);
   logger.info(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);
 
   try {
-    await repackAndroid();
+    if (platform === 'ios') {
+      await repackIos();
+    } else if (platform === 'android') {
+      await repackAndroid();
+    } else {
+      throw new Error(
+        `Invalid or missing PLATFORM environment variable. Expected 'ios' or 'android', got: '${platform}'`
+      );
+    }
   } catch (error) {
     logger.error(`Repack process failed: ${error.message}`);
     if (error.stack) {
@@ -139,4 +213,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, repackAndroid };
+module.exports = { main, repackAndroid, repackIos };

@@ -162,10 +162,10 @@ jobs:
       - name: Repack iOS app with JS updates using @expo/repack-app
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
-          echo "Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
+          echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
           yarn build:repack:ios
-          echo "Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
+          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
         env:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: qa
