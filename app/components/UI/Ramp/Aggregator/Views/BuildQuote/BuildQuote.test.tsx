@@ -322,7 +322,6 @@ describe('BuildQuote View', () => {
     mockReset.mockClear();
     mockPop.mockClear();
     mockTrackEvent.mockClear();
-    (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
     jest.clearAllMocks();
   });
 
