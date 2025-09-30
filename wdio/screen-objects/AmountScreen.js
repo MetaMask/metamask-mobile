@@ -67,12 +67,12 @@ class AmountScreen {
     console.log('Amount digits:', digits);
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
         await numberKey.waitFor('visible',{ timeout: 30000 });
         await AppwrightGestures.tap(numberKey);
       }
       else {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         await numberKey.waitFor('visible', { timeout: 30000 });
         await AppwrightGestures.tap(numberKey); 
       }

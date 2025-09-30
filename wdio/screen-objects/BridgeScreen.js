@@ -72,18 +72,18 @@ class BridgeScreen {
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+          const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
           await numberKey.waitFor('visible',{ timeout: 30000 });
           await AppwrightGestures.tap(numberKey);
         }
         else {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
+          const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
           await numberKey.waitFor('visible',{ timeout: 30000 });
           await AppwrightGestures.tap(numberKey);
         }
       }
       else {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         await numberKey.waitFor('visible', { timeout: 30000 });
         await AppwrightGestures.tap(numberKey);
       }
@@ -91,10 +91,10 @@ class BridgeScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
-      const destinationToken = await this.destinationTokenArea;
+      const destinationToken = this.destinationTokenArea;
       await AppwrightGestures.tap(destinationToken);
       await AppwrightGestures.tap(this.getNetworkButton(network));
-      const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
+      const tokenField = AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
       await AppwrightGestures.typeText(tokenField, token); // Use static typeText method with retry logic
       let tokenNetworkId;
       if (network == 'Ethereum'){
@@ -108,18 +108,18 @@ class BridgeScreen {
       }
       let tokenButton;
       if (AppwrightSelectors.isAndroid(this._device)){
-        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
+        tokenButton = AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
       }
       else {
         // Try multiple iOS element selection strategies
         console.log(`Looking for iOS token with ID: asset-${tokenNetworkId}-${token}`);
         
         try {
-          tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
+          tokenButton = AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
           console.log('Found token button by Name');
         } catch (error) {
           console.log('Name selector failed, trying ID selector for iOS...');
-          tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+          tokenButton = AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
           console.log('Found token button by ID');
         }
       }
@@ -171,7 +171,7 @@ class BridgeScreen {
 
   async tapGetQuotes(network){
     if (network == 'Ethereum'){
-    const quotesButton = await this.getETHQuotesButton;
+    const quotesButton = this.getETHQuotesButton;
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(quotesButton);
     }
@@ -187,7 +187,7 @@ class BridgeScreen {
   }
 
   async enterDestinationTokenAmount(amount) {
-    const element = await this.destTokenInput;
+    const element = this.destTokenInput;
     await AppwrightGestures.typeText(element, amount); // Use static typeText method with retry logic
   }
 

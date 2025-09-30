@@ -15,7 +15,7 @@ export default class AppwrightGestures {
    * @param retryDelay - Delay between tap attempts
    */
   static async tap(
-    elem: Promise<AppwrightLocator>,
+    elem: Promise<AppwrightLocator> | AppwrightLocator,
     options: {
       maxRetries?: number;
       retryDelay?: number;
@@ -60,7 +60,7 @@ export default class AppwrightGestures {
    * @param retryDelay - Delay between type attempts
    */
   static async typeText(
-    elem: Promise<AppwrightLocator>,
+    elem: Promise<AppwrightLocator> | AppwrightLocator,
     text: string,
     options: {
       maxRetries?: number;
@@ -115,7 +115,7 @@ export default class AppwrightGestures {
    */
   static async scrollIntoView(
     testDevice: Device,
-    elem: Promise<AppwrightLocator>,
+    elem: Promise<AppwrightLocator> | AppwrightLocator,
     options: {
       maxScrollAttempts?: number;
       scrollTimeout?: number;
