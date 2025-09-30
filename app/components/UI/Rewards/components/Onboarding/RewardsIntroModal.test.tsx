@@ -5,7 +5,7 @@ import storageWrapper from '../../../../../store/storage-wrapper';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 
 // Mock child component to capture props
-const mockOnboardingIntroStep = jest.fn(() => {
+const mockOnboardingIntroStep = jest.fn((_props: Record<string, unknown>) => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return ReactActual.createElement(View, { testID: 'onboarding-intro-step' });
@@ -13,7 +13,7 @@ const mockOnboardingIntroStep = jest.fn(() => {
 
 jest.mock('./OnboardingIntroStep', () => ({
   __esModule: true,
-  default: () => mockOnboardingIntroStep(),
+  default: (props: Record<string, unknown>) => mockOnboardingIntroStep(props),
 }));
 
 // Mock useCandidateSubscriptionId hook
