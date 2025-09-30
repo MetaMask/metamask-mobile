@@ -7,8 +7,8 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { CommonActions } from '@react-navigation/native';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import FoxLoader from '../../UI/FoxLoader';
-
 /**
  * Main view component for the Lock screen
  */
@@ -79,6 +79,15 @@ class LockScreen extends PureComponent {
       Logger.log('Lockscreen::unlockKeychain - authentication successful');
     } catch (error) {
       this.lock();
+
+      if (error?.message) {
+        // Track vault corruption with enabled state checking
+        trackVaultCorruption(error.message, {
+          error_type: 'lockscreen_authentication_failure',
+          context: 'lockscreen_unlock_failed',
+        });
+      }
+
       trackErrorAsAnalytics(
         'Lockscreen: Authentication failed',
         error?.message,

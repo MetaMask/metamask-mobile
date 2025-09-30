@@ -40,7 +40,6 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
   isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -380,10 +379,7 @@ const NetworkSelector = () => {
     origin,
     selectedChainId,
     selectedNetworkName,
-    dismissModal: () =>
-      isRemoveGlobalNetworkSelectorEnabled()
-        ? undefined
-        : sheetRef.current?.dismissModal(),
+    dismissModal: () => sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
   });
@@ -623,7 +619,7 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getAllNetworksTyped =
       getAllNetworks() as unknown as InfuraNetworkType[];
-    const getOtherNetworks = () => getAllNetworksTyped.slice(2);
+    const getOtherNetworks = () => getAllNetworksTyped.slice(3);
     return getOtherNetworks().map((networkType: InfuraNetworkType) => {
       const TypedNetworks = Networks as unknown as Record<
         string,

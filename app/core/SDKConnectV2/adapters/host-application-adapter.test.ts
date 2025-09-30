@@ -1,12 +1,11 @@
 import { HostApplicationAdapter } from './host-application-adapter';
+import { ConnectionInfo } from '../types/connection-info';
 import { Connection } from '../services/connection';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
-import {
-  getPermittedAccounts,
-  removePermittedAccounts,
-} from '../../../core/Permissions';
+import Engine from '../../Engine';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -21,35 +20,30 @@ jest.mock('../../../actions/sdk', () => ({
   })),
 }));
 
-jest.mock('../../../core/Permissions', () => ({
-  getPermittedAccounts: jest.fn(),
-  removePermittedAccounts: jest.fn(),
-}));
-
-const createMockConnection = (id: string, name: string): Connection =>
-  ({
-    id,
-    metadata: {
-      dapp: {
-        name: `${name} DApp`,
-        url: `https://testdapp${id}.com`,
-        icon: `https://testdapp${id}.com/icon.png`,
-      },
-      sdk: {
-        version: '2.1.0',
-        platform: 'JavaScript',
-      },
+const createMockConnection = (id: string, name: string): ConnectionInfo => ({
+  id,
+  metadata: {
+    dapp: {
+      name: `${name} DApp`,
+      url: `https://testdapp${id}.com`,
+      icon: `https://testdapp${id}.com/icon.png`,
     },
-  } as Connection);
+    sdk: {
+      version: '2.1.0',
+      platform: 'JavaScript',
+    },
+  },
+});
 
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
+  const revokePermission = Engine.context.PermissionController
+    .revokePermission as jest.Mock;
 
   beforeEach(() => {
     (store.dispatch as jest.Mock).mockClear();
     (setSdkV2Connections as jest.Mock).mockClear();
-    (getPermittedAccounts as jest.Mock).mockClear();
-    (removePermittedAccounts as jest.Mock).mockClear();
+    (revokePermission as jest.Mock).mockClear();
     adapter = new HostApplicationAdapter();
   });
 
@@ -63,23 +57,25 @@ describe('HostApplicationAdapter', () => {
 
   describe('syncConnectionList', () => {
     it('should correctly transform a single Connection object and dispatch it to the Redux store', () => {
-      const mockConnection = createMockConnection('conn1', 'Test');
-      const connections: Connection[] = [mockConnection];
+      const mockConnectionInfo = createMockConnection('conn1', 'Test');
+      const connections = [
+        { id: mockConnectionInfo.id, info: mockConnectionInfo },
+      ] as unknown as Connection[];
 
       adapter.syncConnectionList(connections);
 
       const expectedSessions = {
-        [mockConnection.id]: {
-          id: mockConnection.id,
+        [mockConnectionInfo.id]: {
+          id: mockConnectionInfo.id,
           otherPublicKey: '',
-          origin: mockConnection.metadata.dapp.url,
+          origin: mockConnectionInfo.metadata.dapp.url,
           originatorInfo: {
-            title: mockConnection.metadata.dapp.name,
-            url: mockConnection.metadata.dapp.url,
-            icon: mockConnection.metadata.dapp.icon,
-            dappId: mockConnection.metadata.dapp.name,
-            apiVersion: mockConnection.metadata.sdk.version,
-            platform: mockConnection.metadata.sdk.platform,
+            title: mockConnectionInfo.metadata.dapp.name,
+            url: mockConnectionInfo.metadata.dapp.url,
+            icon: mockConnectionInfo.metadata.dapp.icon,
+            dappId: mockConnectionInfo.metadata.dapp.name,
+            apiVersion: mockConnectionInfo.metadata.sdk.version,
+            platform: mockConnectionInfo.metadata.sdk.platform,
           },
           isV2: true,
         },
@@ -106,38 +102,41 @@ describe('HostApplicationAdapter', () => {
     });
 
     it('should correctly transform an array of multiple Connection objects', () => {
-      const mockConnection1 = createMockConnection('conn1', 'Test1');
-      const mockConnection2 = createMockConnection('conn2', 'Test2');
-      const connections: Connection[] = [mockConnection1, mockConnection2];
+      const mockConnectionInfo1 = createMockConnection('conn1', 'Test1');
+      const mockConnectionInfo2 = createMockConnection('conn2', 'Test2');
+      const connections = [
+        { id: mockConnectionInfo1.id, info: mockConnectionInfo1 },
+        { id: mockConnectionInfo2.id, info: mockConnectionInfo2 },
+      ] as unknown as Connection[];
 
       adapter.syncConnectionList(connections);
 
       const expectedSessions = {
-        [mockConnection1.id]: {
-          id: mockConnection1.id,
+        [mockConnectionInfo1.id]: {
+          id: mockConnectionInfo1.id,
           otherPublicKey: '',
-          origin: mockConnection1.metadata.dapp.url,
+          origin: mockConnectionInfo1.metadata.dapp.url,
           originatorInfo: {
-            title: mockConnection1.metadata.dapp.name,
-            url: mockConnection1.metadata.dapp.url,
-            icon: mockConnection1.metadata.dapp.icon,
-            dappId: mockConnection1.metadata.dapp.name,
-            apiVersion: mockConnection1.metadata.sdk.version,
-            platform: mockConnection1.metadata.sdk.platform,
+            title: mockConnectionInfo1.metadata.dapp.name,
+            url: mockConnectionInfo1.metadata.dapp.url,
+            icon: mockConnectionInfo1.metadata.dapp.icon,
+            dappId: mockConnectionInfo1.metadata.dapp.name,
+            apiVersion: mockConnectionInfo1.metadata.sdk.version,
+            platform: mockConnectionInfo1.metadata.sdk.platform,
           },
           isV2: true,
         },
-        [mockConnection2.id]: {
-          id: mockConnection2.id,
+        [mockConnectionInfo2.id]: {
+          id: mockConnectionInfo2.id,
           otherPublicKey: '',
-          origin: mockConnection2.metadata.dapp.url,
+          origin: mockConnectionInfo2.metadata.dapp.url,
           originatorInfo: {
-            title: mockConnection2.metadata.dapp.name,
-            url: mockConnection2.metadata.dapp.url,
-            icon: mockConnection2.metadata.dapp.icon,
-            dappId: mockConnection2.metadata.dapp.name,
-            apiVersion: mockConnection2.metadata.sdk.version,
-            platform: mockConnection2.metadata.sdk.platform,
+            title: mockConnectionInfo2.metadata.dapp.name,
+            url: mockConnectionInfo2.metadata.dapp.url,
+            icon: mockConnectionInfo2.metadata.dapp.icon,
+            dappId: mockConnectionInfo2.metadata.dapp.name,
+            apiVersion: mockConnectionInfo2.metadata.sdk.version,
+            platform: mockConnectionInfo2.metadata.sdk.platform,
           },
           isV2: true,
         },
@@ -151,53 +150,49 @@ describe('HostApplicationAdapter', () => {
   describe('revokePermissions', () => {
     it('should call removePermittedAccounts when there are permitted accounts', () => {
       const connectionId = 'test-connection-id';
-      const mockAccounts = ['0x123...', '0x456...'];
-      (getPermittedAccounts as jest.Mock).mockReturnValue(mockAccounts);
-
       adapter.revokePermissions(connectionId);
 
-      expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(
+      expect(revokePermission).toHaveBeenCalledWith(
         connectionId,
-        mockAccounts,
+        Caip25EndowmentPermissionName,
       );
     });
 
-    it('should not call removePermittedAccounts when there are no permitted accounts', () => {
+    it('should gracefully handle exception if no permission exists', () => {
       const connectionId = 'test-connection-id';
-      (getPermittedAccounts as jest.Mock).mockReturnValue([]);
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      revokePermission.mockImplementation(() => {
+        throw new Error('Permission not found');
+      });
 
-      adapter.revokePermissions(connectionId);
+      expect(() => adapter.revokePermissions(connectionId)).not.toThrow();
 
-      expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).not.toHaveBeenCalled();
+      expect(revokePermission).toHaveBeenCalledWith(
+        connectionId,
+        Caip25EndowmentPermissionName,
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `[SDKConnectV2] HostApplicationAdapter.revokePermissions called but no ${Caip25EndowmentPermissionName} permission for ${connectionId}.`,
+      );
     });
 
     it('should handle single permitted account correctly', () => {
       const connectionId = 'test-connection-id';
-      const mockAccount = ['0x123...'];
-      (getPermittedAccounts as jest.Mock).mockReturnValue(mockAccount);
-
       adapter.revokePermissions(connectionId);
 
-      expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(
+      expect(revokePermission).toHaveBeenCalledWith(
         connectionId,
-        mockAccount,
+        Caip25EndowmentPermissionName,
       );
     });
 
     it('should handle multiple permitted accounts correctly', () => {
       const connectionId = 'test-connection-id';
-      const mockAccounts = ['0x123...', '0x456...', '0x789...'];
-      (getPermittedAccounts as jest.Mock).mockReturnValue(mockAccounts);
-
       adapter.revokePermissions(connectionId);
 
-      expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(
+      expect(revokePermission).toHaveBeenCalledWith(
         connectionId,
-        mockAccounts,
+        Caip25EndowmentPermissionName,
       );
     });
   });

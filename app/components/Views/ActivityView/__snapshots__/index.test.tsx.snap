@@ -384,7 +384,7 @@ exports[`ActivityView should render correctly 1`] = `
                               "paddingHorizontal": 12,
                             }
                           }
-                          testID="token-network-filter"
+                          testID="tokens-network-filter"
                         >
                           <View
                             style={
