@@ -69,7 +69,7 @@ export const useOptin = (): UseOptinResult => {
         if (subscriptionId) {
           dispatch(setCandidateSubscriptionId(subscriptionId));
           addTraitsToUser({
-            [UserProfileProperty.IS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
+            [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
           });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.REWARDS_OPTED_IN)

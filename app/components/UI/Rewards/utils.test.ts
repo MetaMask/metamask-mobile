@@ -2,6 +2,7 @@ import {
   handleRewardsErrorMessage,
   SOLANA_SIGNUP_NOT_SUPPORTED,
   convertInternalAccountToCaipAccountId,
+  formatAccountScope,
 } from './utils';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
 import Logger from '../../../util/Logger';
@@ -17,6 +18,14 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+// Mock keyring-api and Multichain utils for formatAccountScope
+jest.mock('@metamask/keyring-api', () => ({
+  isEvmAccountType: jest.fn(),
+}));
+jest.mock('../../../core/Multichain/utils', () => ({
+  isSolanaAccount: jest.fn(),
+}));
+
 const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
   typeof parseCaipChainId
 >;
@@ -24,6 +33,12 @@ const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
   typeof toCaipAccountId
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
+const { isEvmAccountType } = jest.requireMock('@metamask/keyring-api') as {
+  isEvmAccountType: jest.Mock;
+};
+const { isSolanaAccount } = jest.requireMock(
+  '../../../core/Multichain/utils',
+) as { isSolanaAccount: jest.Mock };
 
 describe('Rewards Utils', () => {
   beforeEach(() => {
@@ -469,6 +484,64 @@ describe('Rewards Utils', () => {
         // Assert
         expect(result).toBe('USER REJECTED THE REQUEST');
       });
+    });
+  });
+
+  describe('formatAccountScope', () => {
+    const baseAccount: InternalAccount = {
+      id: 'acct-1',
+      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      scopes: ['eip155:1'],
+      type: 'eip155:eoa',
+      options: {},
+      methods: [],
+      metadata: {
+        name: 'Account 1',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    };
+
+    beforeEach(() => {
+      isEvmAccountType.mockReset();
+      isSolanaAccount.mockReset();
+    });
+
+    it('returns "evm" when account is EVM type', () => {
+      isEvmAccountType.mockReturnValue(true);
+      isSolanaAccount.mockReturnValue(false);
+      const result = formatAccountScope(baseAccount);
+      expect(result).toBe('evm');
+      expect(isEvmAccountType).toHaveBeenCalledWith(baseAccount.type);
+      expect(isSolanaAccount).not.toHaveBeenCalled();
+    });
+
+    it('returns "solana" when account is not EVM but is Solana', () => {
+      isEvmAccountType.mockReturnValue(false);
+      isSolanaAccount.mockReturnValue(true);
+      // Use a valid solana account type from allowed union
+      const solAccount: InternalAccount = {
+        ...baseAccount,
+        type: 'solana:data-account',
+      };
+      const result = formatAccountScope(solAccount);
+      expect(result).toBe('solana');
+      expect(isEvmAccountType).toHaveBeenCalledWith(solAccount.type);
+      expect(isSolanaAccount).toHaveBeenCalledWith(solAccount);
+    });
+
+    it('falls back to account.type when neither EVM nor Solana', () => {
+      isEvmAccountType.mockReturnValue(false);
+      isSolanaAccount.mockReturnValue(false);
+      // Use a valid non-evm non-solana account type (e.g., Tron)
+      const customAccount: InternalAccount = {
+        ...baseAccount,
+        type: 'tron:eoa',
+      };
+      const result = formatAccountScope(customAccount);
+      expect(result).toBe('tron:eoa');
+      expect(isEvmAccountType).toHaveBeenCalledWith(customAccount.type);
+      expect(isSolanaAccount).toHaveBeenCalledWith(customAccount);
     });
   });
 });
