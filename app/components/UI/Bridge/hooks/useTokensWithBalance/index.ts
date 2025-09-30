@@ -245,6 +245,7 @@ export const useTokensWithBalance: ({
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+          aggregators: token.aggregators,
         };
       });
     return sortAssets(properTokens, tokenSortConfig);

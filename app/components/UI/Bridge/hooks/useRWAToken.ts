@@ -2,10 +2,16 @@ import { useCallback } from 'react';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeToken } from '../types';
 import { useSelector } from 'react-redux';
+import { isTokenInWorkingHours } from '../utils/ondoUtils';
 
 export function useRWAToken({ token }: { token: BridgeToken }) {
   // Check remote feature flag for RWA token enablement
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
+
+  const isTokenTradingOpen = useCallback(
+    async () => await isTokenInWorkingHours(token),
+    [token],
+  );
 
   /**
    * Checks if the token is a stock token
@@ -17,18 +23,11 @@ export function useRWAToken({ token }: { token: BridgeToken }) {
       return false;
     }
 
-    if (
-      token.name?.toLowerCase().includes('ondo') ||
-      token.name?.toLowerCase().includes('stock')
-    ) {
-      return true;
-    }
-
-    // return Boolean(token.aggregators?.includes('Ondo'));
-    return false;
+    return Boolean(token.aggregators?.includes('Ondo'));
   }, [isRWAEnabled, token]);
 
   return {
     isStockToken,
+    isTokenTradingOpen,
   };
 }
