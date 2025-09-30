@@ -12,9 +12,11 @@ import {
   useAlerts,
 } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
-import { usePerpsDepositAlerts } from '../../external/perps-temp/hooks/usePerpsDepositAlerts';
+import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
+import { Alert } from '../../types/alerts';
 
 jest.mock('../../context/alert-system-context');
+jest.mock('../alerts/usePendingAmountAlerts');
 
 const TITLE_MOCK = 'Test Title';
 const MESSAGE_MOCK = 'Test Message';
@@ -45,7 +47,7 @@ function runHook({
 
 describe('useTransactionCustomAmountAlerts', () => {
   const useAlertsMock = jest.mocked(useAlerts);
-  const usePerpsDepositAlertsMock = jest.mocked(usePerpsDepositAlerts);
+  const usePendingAmountAlertsMock = jest.mocked(usePendingAmountAlerts);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -53,6 +55,8 @@ describe('useTransactionCustomAmountAlerts', () => {
     useAlertsMock.mockReturnValue({
       alerts: [{}],
     } as AlertsContextParams);
+
+    usePendingAmountAlertsMock.mockReturnValue([]);
   });
 
   it('returns excluded keys', () => {
@@ -107,4 +111,51 @@ describe('useTransactionCustomAmountAlerts', () => {
       expect(result.current.keyboardAlertMessage).toBeUndefined();
     },
   );
+
+  it.each(ON_CHANGE_ALERTS)(
+    'returns keyboard alert message if pending alert is %s and input is changed',
+    (alertKey) => {
+      usePendingAmountAlertsMock.mockReturnValue([
+        {
+          key: alertKey,
+          title: TITLE_MOCK,
+        } as Alert,
+      ]);
+
+      const { result } = runHook({ isInputChanged: true });
+
+      expect(result.current.keyboardAlertMessage).toBe(TITLE_MOCK);
+    },
+  );
+
+  it('returns alert message if alert has title', () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: AlertKeys.SignedOrSubmitted,
+          title: TITLE_MOCK,
+          message: MESSAGE_MOCK,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook();
+
+    expect(result.current.alertMessage).toBe(MESSAGE_MOCK);
+  });
+
+  it('does not return alert message if alert does not have title', () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: AlertKeys.SignedOrSubmitted,
+          message: MESSAGE_MOCK,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook();
+
+    expect(result.current.alertMessage).toBeUndefined();
+  });
 });
