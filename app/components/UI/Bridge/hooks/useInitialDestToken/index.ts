@@ -38,7 +38,7 @@ export const useInitialDestToken = (
     }
 
     if (!initialDestToken) {
-      if (bip44DefaultPair) {
+      if (isSwap && bip44DefaultPair) {
         dispatch(setDestToken(bip44DefaultPair.destAsset));
         return;
       }
