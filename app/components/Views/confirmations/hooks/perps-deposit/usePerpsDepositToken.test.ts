@@ -8,9 +8,9 @@ import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 const NETWORK_CLIENT_ID = 'mockNetworkClientId';
 
-jest.mock('../../../../../../selectors/tokensController');
+jest.mock('../../../../../selectors/tokensController');
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),

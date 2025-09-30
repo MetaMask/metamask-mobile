@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import { PayTokenAmount } from '../../pay-token-amount';
 import InfoSection from '../../UI/info-row/info-section';
 import { PayWithRow } from '../../rows/pay-with-row';
@@ -19,7 +19,7 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AlertMessage } from '../../alerts/alert-message';
 import { CustomAmount } from '../../transactions/custom-amount';
 
-export function CustomAmountInfo() {
+export const CustomAmountInfo = memo(() => {
   useClearConfirmationOnBackSwipe();
   useAutomaticTransactionPayToken();
 
@@ -92,4 +92,4 @@ export function CustomAmountInfo() {
       )}
     </Box>
   );
-}
+});
