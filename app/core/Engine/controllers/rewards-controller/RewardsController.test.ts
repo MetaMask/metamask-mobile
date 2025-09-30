@@ -1934,7 +1934,7 @@ describe('RewardsController', () => {
         typeof base58.decode
       >;
       mockBase58Decode.mockReturnValue(
-        Buffer.from('decodedSolanaSignature', 'utf8'),
+        Buffer.from('decodedSolanaSignature', 'utf8') as unknown as Uint8Array,
       );
       mockToHex.mockReturnValue('0xdecodedSolanaSignature');
 
