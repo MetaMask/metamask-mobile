@@ -118,17 +118,17 @@ export const ActivityEventRow: React.FC<{
           </Box>
         </Box>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-        >
+        <Box flexDirection={BoxFlexDirection.Row}>
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-alternative max-w-[60%]"
+            twClassName="text-alternative flex-1 max-w-[60%]"
           >
             {eventDetails.details}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative flex-1 text-right"
+          >
             {formatRewardsDate(new Date(event.timestamp))}
           </Text>
         </Box>
