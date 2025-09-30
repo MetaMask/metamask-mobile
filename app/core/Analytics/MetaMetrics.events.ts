@@ -136,6 +136,8 @@ enum EVENT_NAME {
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
+  ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
+  ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
   REHYDRATION_COMPLETED = 'Rehydration Completed',
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
@@ -401,6 +403,7 @@ enum EVENT_NAME {
   CHANGE_DAPP_PERMISSIONS = 'Changed dapp permissions',
 
   // Vault Corruption
+  VAULT_CORRUPTION_DETECTED = 'Vault Corruption Detected',
   VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED = 'Vault Corruption Restore Wallet Screen Viewed',
   VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED = 'Vault Corruption Restore Wallet Button Pressed',
   VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED = 'Vault Corruption Wallet Successfully Restored Screen Viewed',
@@ -444,7 +447,7 @@ enum EVENT_NAME {
   IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -455,6 +458,10 @@ enum EVENT_NAME {
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
   NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
+
+  // Push Notifications
+  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
+  PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -495,6 +502,12 @@ enum EVENT_NAME {
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 
+  // NETWORK CONNECTION BANNER
+  SLOW_RPC_BANNER_SHOWN = 'Slow RPC Banner Shown',
+  UNAVAILABLE_RPC_BANNER_SHOWN = 'Unavailable RPC Banner Shown',
+  SLOW_RPC_BANNER_UPDATE_RPC_CLICKED = 'Slow RPC Banner: Update RPC Clicked',
+  UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED = 'Unavailable RPC Banner: Update RPC Clicked',
+
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
   DEEP_LINK_PUBLIC_MODAL_VIEWED = 'Deep Link Public Modal Viewed',
@@ -516,13 +529,14 @@ enum EVENT_NAME {
   PERPS_TUTORIAL_VIEWED = 'Perp Tutorial Viewed',
   PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
   PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
+  PERPS_TUTORIAL_CAROUSEL_NAVIGATED = 'Perp Tutorial Carousel Navigated',
 
   // Account Funding Flow
   PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
   PERPS_FUNDING_REVIEW_VIEWED = 'Perp Funding Review Viewed',
-  PERPS_FUNDING_INITIATED = 'Perp Funding Initiated',
-  PERPS_FUNDING_COMPLETED = 'Perp Funding Completed',
-  PERPS_FUNDING_FAILED = 'Perp Funding Failed',
+
+  // Balance Management Flow
+  PERPS_BALANCE_MODAL_VIEWED = 'Perp Balance Modal Viewed',
 
   // Account Withdrawal Flow
   PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
@@ -534,6 +548,7 @@ enum EVENT_NAME {
   PERPS_MARKETS_VIEWED = 'Perp Markets Viewed',
   PERPS_ASSET_SEARCH_BAR_CLICKED = 'Perp Asset Search Bar Clicked',
   PERPS_ASSET_SCREEN_VIEWED = 'Perp Asset Screen Viewed',
+  PERPS_CHART_CANDLE_PERIODS_VIEWED = 'Perp Chart Candle Periods Viewed',
   PERPS_CHART_INTERACTION = 'Perp Chart Interaction',
   PERPS_CHART_TIME_SERIE_CHANGED = 'Perp Chart time serie changed',
 
@@ -541,7 +556,6 @@ enum EVENT_NAME {
   PERPS_TRADING_SCREEN_VIEWED = 'Perp Trading Screen Viewed',
   PERPS_ORDER_TYPE_VIEWED = 'Perp Order Type Viewed',
   PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
-  PERPS_ORDER_SIZE_CHANGED = 'Perp Order Size Changed',
   PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
   PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
   PERPS_TRADE_TRANSACTION_INITIATED = 'Perp Trade Transaction Initiated',
@@ -553,17 +567,12 @@ enum EVENT_NAME {
   // Close Position Flow
   PERPS_HOMESCREEN_TAB_VIEWED = 'Perp Homescreen Tab Viewed',
   PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
-  PERPS_POSITION_CLOSE_VALUE_CHANGED = 'Perp Position Close Value Changed',
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_INITIATED = 'Perp Position Close Initiated',
   PERPS_POSITION_CLOSE_SUBMITTED = 'Perp Position Close Submitted',
+  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
   PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
   PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
-
-  // Push Notifications Flow
-  PERPS_PUSH_NOTIFICATION_RECEIVED = 'Perp Push Notification Received',
-  PERPS_PUSH_NOTIFICATION_CLICKED = 'Perp Push Notification Clicked',
 
   // Risk Management Flow
   PERPS_STOP_LOSS_SET = 'Stop Loss Set',
@@ -576,9 +585,14 @@ enum EVENT_NAME {
   PERPS_WARNING_DISPLAYED = 'Warning displayed',
   PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
 
+  // Full Page Modal Events
+  PERPS_FULL_PAGE_MODAL_VIEWED = 'Perp Full page modal viewed',
+  PERPS_FULL_PAGE_MODAL_TAPPED = 'Perp Full page modal tapped',
+
   // Card
   CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
+  CARD_HOME_VIEWED = 'Card Home Viewed',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
@@ -752,6 +766,12 @@ const events = {
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
+  ),
+  ACCOUNT_NOT_FOUND_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ACCOUNT_NOT_FOUND_PAGE_VIEWED,
+  ),
   WHATS_NEW_LINK_CLICKED: generateOpt(EVENT_NAME.WHATS_NEW_LINK_CLICKED),
   REHYDRATION_PASSWORD_ATTEMPTED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_ATTEMPTED,
@@ -1020,6 +1040,7 @@ const events = {
   BROWSER_SWITCH_TAB: generateOpt(EVENT_NAME.BROWSER_SWITCH_TAB),
 
   // Vault corruption
+  VAULT_CORRUPTION_DETECTED: generateOpt(EVENT_NAME.VAULT_CORRUPTION_DETECTED),
   VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
   ),
@@ -1125,6 +1146,13 @@ const events = {
   NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
     EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
+
+  // Push Notifications Flow
+  PUSH_NOTIFICATION_RECEIVED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
+  ),
+  PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
@@ -1306,6 +1334,18 @@ const events = {
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
   RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
 
+  // NETWORK CONNECTION BANNER
+  SLOW_RPC_BANNER_SHOWN: generateOpt(EVENT_NAME.SLOW_RPC_BANNER_SHOWN),
+  UNAVAILABLE_RPC_BANNER_SHOWN: generateOpt(
+    EVENT_NAME.UNAVAILABLE_RPC_BANNER_SHOWN,
+  ),
+  SLOW_RPC_BANNER_UPDATE_RPC_CLICKED: generateOpt(
+    EVENT_NAME.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
+  ),
+  UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED: generateOpt(
+    EVENT_NAME.UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED,
+  ),
+
   // Multi SRP
   IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
     EVENT_NAME.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
@@ -1348,22 +1388,27 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
-  // Perps Events - Mapped to dashboard requirements (47 events total)
-  // Tutorial Flow (3 events)
+  // Perps Events - Mapped to dashboard requirements (49 events total)
+  // Tutorial Flow (4 events)
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
   PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
   PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
+  PERPS_TUTORIAL_CAROUSEL_NAVIGATED: generateOpt(
+    EVENT_NAME.PERPS_TUTORIAL_CAROUSEL_NAVIGATED,
+  ),
 
-  // Account Funding Flow (5 events)
+  // Account Funding Flow (2 events)
   PERPS_FUNDING_INPUT_VIEWED: generateOpt(
     EVENT_NAME.PERPS_FUNDING_INPUT_VIEWED,
   ),
   PERPS_FUNDING_REVIEW_VIEWED: generateOpt(
     EVENT_NAME.PERPS_FUNDING_REVIEW_VIEWED,
   ),
-  PERPS_FUNDING_INITIATED: generateOpt(EVENT_NAME.PERPS_FUNDING_INITIATED),
-  PERPS_FUNDING_COMPLETED: generateOpt(EVENT_NAME.PERPS_FUNDING_COMPLETED),
-  PERPS_FUNDING_FAILED: generateOpt(EVENT_NAME.PERPS_FUNDING_FAILED),
+
+  // Balance Management Flow (1 event)
+  PERPS_BALANCE_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_BALANCE_MODAL_VIEWED,
+  ),
 
   // Account Withdrawal Flow (4 events)
   PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(
@@ -1383,6 +1428,9 @@ const events = {
     EVENT_NAME.PERPS_ASSET_SEARCH_BAR_CLICKED,
   ),
   PERPS_ASSET_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_ASSET_SCREEN_VIEWED),
+  PERPS_CHART_CANDLE_PERIODS_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_CHART_CANDLE_PERIODS_VIEWED,
+  ),
   PERPS_CHART_INTERACTION: generateOpt(EVENT_NAME.PERPS_CHART_INTERACTION),
   PERPS_CHART_TIME_SERIE_CHANGED: generateOpt(
     EVENT_NAME.PERPS_CHART_TIME_SERIE_CHANGED,
@@ -1394,7 +1442,6 @@ const events = {
   ),
   PERPS_ORDER_TYPE_VIEWED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_VIEWED),
   PERPS_ORDER_TYPE_SELECTED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_SELECTED),
-  PERPS_ORDER_SIZE_CHANGED: generateOpt(EVENT_NAME.PERPS_ORDER_SIZE_CHANGED),
   PERPS_LEVERAGE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
   ),
@@ -1415,15 +1462,12 @@ const events = {
     EVENT_NAME.PERPS_TRADE_TRANSACTION_FAILED,
   ),
 
-  // Close Position Flow (9 events)
+  // Close Position Flow (8 events)
   PERPS_HOMESCREEN_TAB_VIEWED: generateOpt(
     EVENT_NAME.PERPS_HOMESCREEN_TAB_VIEWED,
   ),
   PERPS_POSITION_CLOSE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
-  ),
-  PERPS_POSITION_CLOSE_VALUE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_VALUE_CHANGED,
   ),
   PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
@@ -1442,14 +1486,6 @@ const events = {
   ),
   PERPS_POSITION_CLOSE_FAILED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
-  ),
-
-  // Push Notifications Flow (2 events)
-  PERPS_PUSH_NOTIFICATION_RECEIVED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_RECEIVED,
-  ),
-  PERPS_PUSH_NOTIFICATION_CLICKED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_CLICKED,
   ),
 
   // Risk Management Flow (5 events)
@@ -1473,6 +1509,7 @@ const events = {
   // Card
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
+  CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
   CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,

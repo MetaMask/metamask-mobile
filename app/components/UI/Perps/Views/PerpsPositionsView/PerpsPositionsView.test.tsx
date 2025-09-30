@@ -4,16 +4,17 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import {
-  usePerpsAccount,
   usePerpsTrading,
   usePerpsTPSLUpdate,
   usePerpsClosePosition,
   usePerpsLivePositions,
 } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import type { Position } from '../../controllers/types';
 
 // Mock component types
@@ -30,10 +31,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock PerpsStreamManager
-jest.mock('../../providers/PerpsStreamManager');
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(),
+}));
 
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsTPSLUpdate: jest.fn(() => ({
     handleUpdateTPSL: jest.fn(),
@@ -120,6 +122,8 @@ const mockPositions: Position[] = [
     },
     takeProfitPrice: '2200',
     stopLossPrice: '1900',
+    takeProfitCount: 0,
+    stopLossCount: 0,
   },
   {
     coin: 'BTC',
@@ -140,6 +144,8 @@ const mockPositions: Position[] = [
       sinceOpen: '5',
       sinceChange: '2',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   },
 ];
 
@@ -163,7 +169,10 @@ describe('PerpsPositionsView', () => {
 
     // Setup default mocks with stable references
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (usePerpsAccount as jest.Mock).mockReturnValue(mockAccountState);
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+      account: mockAccountState,
+      isInitialLoading: false,
+    });
     (usePerpsTrading as jest.Mock).mockReturnValue({
       getPositions: jest.fn(),
     });
@@ -228,10 +237,13 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
-        expect(screen.getByText('2 positions')).toBeOnTheScreen();
-        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
-        expect(screen.getByText(/0\.5000[\s\S]*BTC/)).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('2 positions')).toBeOnTheScreen();
+        expect(within(section).getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(
+          within(section).getByText(/0\.5000[\s\S]*BTC/),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -340,7 +352,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
       });
     });
 
@@ -350,7 +363,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
       });
     });
   });
@@ -358,10 +372,13 @@ describe('PerpsPositionsView', () => {
   describe('Account Summary Calculations', () => {
     it('handles missing account state values', async () => {
       // Arrange
-      (usePerpsAccount as jest.Mock).mockReturnValue({
-        totalBalance: null,
-        availableBalance: undefined,
-        marginUsed: '',
+      (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+        account: {
+          totalBalance: null,
+          availableBalance: undefined,
+          marginUsed: '',
+        },
+        isInitialLoading: false,
       });
 
       // Act

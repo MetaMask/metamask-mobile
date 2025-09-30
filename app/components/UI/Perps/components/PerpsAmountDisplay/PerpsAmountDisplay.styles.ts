@@ -5,32 +5,39 @@ const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       alignItems: 'center',
-      paddingTop: 24,
+      paddingTop: 48,
       paddingHorizontal: 24,
     },
     label: {
       marginBottom: 8,
     },
     amountValue: {
-      fontSize: 64,
+      fontSize: 54,
       fontWeight: '600',
       color: colors.text.default,
-      lineHeight: 72,
     },
     amountValueToken: {
-      fontSize: 48,
-      fontWeight: '600',
-      color: colors.text.default,
-      lineHeight: 56,
+      fontSize: 54,
+      fontWeight: '800',
       letterSpacing: -0.5,
+      lineHeight: 74,
+    },
+    amountValueTokenAndroid: {
+      fontSize: 54,
+      fontWeight: '500',
+      letterSpacing: -0.5,
+      lineHeight: 74,
     },
     amountValueActive: {
-      color: colors.primary.default,
+      color: colors.text.default,
+    },
+    amountValueError: {
+      color: colors.error.default,
     },
     cursor: {
       width: 2,
-      height: 64,
-      backgroundColor: colors.primary.default,
+      height: 54,
+      backgroundColor: colors.text.default,
       marginLeft: 4,
     },
     amountRow: {

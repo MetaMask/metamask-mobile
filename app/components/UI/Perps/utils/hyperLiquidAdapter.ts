@@ -83,6 +83,8 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     maxLeverage: pos.maxLeverage,
     returnOnEquity: pos.returnOnEquity,
     cumulativeFunding: pos.cumFunding,
+    takeProfitCount: 0, // Default value, will be updated by provider logic
+    stopLossCount: 0, // Default value, will be updated by provider logic
   };
 }
 
@@ -92,7 +94,10 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
  * @param rawOrder - Raw order data from HyperLiquid SDK (frontendOpenOrders or webData2)
  * @returns MetaMask Perps API order object
  */
-export function adaptOrderFromSDK(rawOrder: FrontendOrder): Order {
+export function adaptOrderFromSDK(
+  rawOrder: FrontendOrder,
+  position?: Position,
+): Order {
   // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
   const symbol = rawOrder.coin;
@@ -117,12 +122,21 @@ export function adaptOrderFromSDK(rawOrder: FrontendOrder): Order {
   const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
 
   // Sizes
-  const size = rawOrder.sz;
-  const originalSize = rawOrder.origSz || size;
+  let size = rawOrder.sz;
+  let originalSize = rawOrder.origSz || size;
 
   // Calculate filled and remaining size
-  const currentSize = parseFloat(size);
-  const origSize = parseFloat(originalSize);
+  let currentSize = parseFloat(size);
+  let origSize = parseFloat(originalSize);
+
+  if (rawOrder.isPositionTpsl && origSize === 0 && position) {
+    const absPositionSize = Math.abs(parseFloat(position.size));
+    currentSize = absPositionSize;
+    origSize = absPositionSize;
+    size = absPositionSize.toString();
+    originalSize = absPositionSize.toString();
+  }
+
   const filledSize = origSize - currentSize;
 
   // Check for TP/SL in child orders (REST API feature)

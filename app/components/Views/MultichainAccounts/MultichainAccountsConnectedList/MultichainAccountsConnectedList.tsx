@@ -20,6 +20,9 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Engine from '../../../../core/Engine';
+import { useSelector } from 'react-redux';
+import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -35,19 +38,27 @@ const MultichainAccountsConnectedList = ({
     numOfAccounts: selectedAccountGroups.length,
   });
 
+  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+
+  const handleSelectAccount = useCallback(
+    (accountGroup: AccountGroupObject) => {
+      const { AccountTreeController } = Engine.context;
+      AccountTreeController.setSelectedAccountGroup(accountGroup.id);
+    },
+    [],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: AccountGroupObject }) => (
       <AccountListCell
-        isSelected
+        isSelected={selectedAccountGroup?.id === item.id}
         accountGroup={item}
-        onSelectAccount={() => {
-          // No op here because it is handled by edit accounts.
-        }}
+        onSelectAccount={handleSelectAccount}
         // @ts-expect-error - This is temporary because the account list cell is being updated in another PR.
         privacyMode={privacyMode}
       />
     ),
-    [privacyMode],
+    [privacyMode, handleSelectAccount, selectedAccountGroup],
   );
 
   return (
@@ -58,25 +69,29 @@ const MultichainAccountsConnectedList = ({
           data={selectedAccountGroups}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          removeClippedSubviews={false}
+          ListFooterComponent={
+            <TouchableOpacity
+              style={styles.editAccountsContainer}
+              onPress={handleEditAccountsButtonPress}
+              testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
+            >
+              <Avatar
+                style={styles.editAccountIcon}
+                variant={AvatarVariant.Icon}
+                name={IconName.Edit}
+              />
+              <TextComponent
+                color={TextColor.Primary}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {strings('accounts.edit_accounts_title')}
+              </TextComponent>
+            </TouchableOpacity>
+          }
         />
       </View>
-      <TouchableOpacity
-        style={styles.editAccountsContainer}
-        onPress={handleEditAccountsButtonPress}
-        testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
-      >
-        <Avatar
-          style={styles.editAccountIcon}
-          variant={AvatarVariant.Icon}
-          name={IconName.Edit}
-        />
-        <TextComponent
-          color={TextColor.Primary}
-          variant={TextVariant.BodyMDMedium}
-        >
-          {strings('accounts.edit_accounts_title')}
-        </TextComponent>
-      </TouchableOpacity>
     </View>
   );
 };

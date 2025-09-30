@@ -10,9 +10,23 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock formatPrice utility
+// Mock formatPrice and formatPerpsFiat utilities
 jest.mock('../utils/formatUtils', () => ({
   formatPrice: (price: string) => price, // Simple pass-through for testing
+  formatPerpsFiat: (price: string) => price, // Simple pass-through for testing
+  PRICE_RANGES_POSITION_VIEW: {}, // Mock the constant
+}));
+
+// Mock i18n strings
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, string>) => {
+    const strings: Record<string, string> = {
+      'perps.tpsl.take_profit_invalid_price': `Take profit must be ${params?.direction} ${params?.priceType} price`,
+      'perps.tpsl.stop_loss_invalid_price': `Stop loss must be ${params?.direction} ${params?.priceType} price`,
+      'perps.tpsl.stop_loss_beyond_liquidation_error': `Stop loss must be ${params?.direction} liquidation price`,
+    };
+    return strings[key] || key;
+  },
 }));
 
 describe('usePerpsTPSLForm', () => {
@@ -32,6 +46,8 @@ describe('usePerpsTPSLForm', () => {
       sinceOpen: '0',
       sinceChange: '0',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   const defaultParams = {
@@ -40,6 +56,7 @@ describe('usePerpsTPSLForm', () => {
     direction: 'long' as const,
     leverage: 10,
     isVisible: true,
+    liquidationPrice: '45000', // Default liquidation price for testing
   };
 
   beforeEach(() => {
@@ -71,6 +88,18 @@ describe('usePerpsTPSLForm', () => {
 
       expect(result.current.formState.takeProfitPrice).toBe('55000');
       expect(result.current.formState.stopLossPrice).toBe('45000');
+    });
+
+    it('should initialize with liquidationPrice parameter', () => {
+      const params = {
+        ...defaultParams,
+        liquidationPrice: '42000',
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Liquidation price should be used in validation
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
     });
 
     it('should calculate direction from position size when position is provided', () => {
@@ -170,7 +199,9 @@ describe('usePerpsTPSLForm', () => {
           result.current.handlers.handleTakeProfitPriceChange('55000');
         });
 
-        // Should calculate RoE percentage (10% for 5000 difference with 10x leverage)
+        // Should calculate RoE percentage based on the price change and leverage
+        // Price change: 55000 - 50000 = 5000 (10% price change)
+        // With 10x leverage: 10% * 10 = 100% RoE
         expect(result.current.formState.takeProfitPercentage).toBe('100');
       });
     });
@@ -216,6 +247,7 @@ describe('usePerpsTPSLForm', () => {
         });
 
         // Should calculate price based on 10% RoE with 10x leverage
+        // 10% RoE with 10x leverage = 1% price change = 50000 * 1.01 = 50500
         expect(result.current.formState.takeProfitPrice).not.toBe('');
         expect(result.current.formState.selectedTpPercentage).toBe(10);
       });
@@ -358,10 +390,10 @@ describe('usePerpsTPSLForm', () => {
     it('should validate TPSL prices correctly for long positions', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
 
-      // Set valid prices for long position (TP > current, SL < current)
+      // Set valid prices for long position (TP > current, SL < current but > liquidation)
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('55000'); // Above current
-        result.current.handlers.handleStopLossPriceChange('45000'); // Below current
+        result.current.handlers.handleStopLossPriceChange('46000'); // Below current but above liquidation (45000)
       });
 
       expect(result.current.validation.isValid).toBe(true);
@@ -370,13 +402,17 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should validate TPSL prices correctly for short positions', () => {
-      const shortParams = { ...defaultParams, direction: 'short' as const };
+      const shortParams = {
+        ...defaultParams,
+        direction: 'short' as const,
+        liquidationPrice: '55000', // Higher liquidation price for short position
+      };
       const { result } = renderHook(() => usePerpsTPSLForm(shortParams));
 
-      // Set valid prices for short position (TP < current, SL > current)
+      // Set valid prices for short position (TP < current, SL > current but < liquidation)
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('45000'); // Below current
-        result.current.handlers.handleStopLossPriceChange('55000'); // Above current
+        result.current.handlers.handleStopLossPriceChange('54000'); // Above current but below liquidation (55000)
       });
 
       expect(result.current.validation.isValid).toBe(true);
@@ -419,6 +455,181 @@ describe('usePerpsTPSLForm', () => {
 
       expect(result.current.validation.hasChanges).toBe(true);
     });
+
+    describe('liquidation price validation', () => {
+      it('should show no liquidation error when stop loss is valid for long position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '45000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss above liquidation price (valid for long)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('46000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should show liquidation error when stop loss is below liquidation price for long position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '45000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss below liquidation price (invalid for long)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('44000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'above',
+        );
+      });
+
+      it('should show no liquidation error when stop loss is valid for short position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'short' as const,
+          liquidationPrice: '55000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss below liquidation price (valid for short)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('54000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should show liquidation error when stop loss is above liquidation price for short position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'short' as const,
+          liquidationPrice: '55000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss above liquidation price (invalid for short)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('56000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'below',
+        );
+      });
+
+      it('should not show liquidation error when liquidationPrice is not provided', () => {
+        const params = {
+          ...defaultParams,
+          liquidationPrice: undefined,
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set any stop loss price
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('40000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should not show liquidation error when stop loss is empty', () => {
+        const params = {
+          ...defaultParams,
+          liquidationPrice: '45000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // No stop loss set
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should handle liquidation price with currency formatting', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '$45,000.00',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss below formatted liquidation price (invalid for long)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('44000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'above',
+        );
+      });
+
+      it('should consider precision when comparing stop loss to liquidation price', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '45000.001', // Very close to 45000
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss at 45000 (should be considered below liquidation due to rounding)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('45000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'above',
+        );
+      });
+    });
+
+    it('should validate overall form including liquidation price', () => {
+      const params = {
+        ...defaultParams,
+        direction: 'long' as const,
+        liquidationPrice: '45000',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set valid TP and SL prices but SL below liquidation
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000'); // Valid TP
+        result.current.handlers.handleStopLossPriceChange('44000'); // Invalid SL (below liquidation)
+      });
+
+      // Overall validation should be false due to liquidation error
+      expect(result.current.validation.isValid).toBe(false);
+      expect(result.current.validation.takeProfitError).toBe('');
+      expect(result.current.validation.stopLossError).toBe('');
+      expect(result.current.validation.stopLossLiquidationError).toContain(
+        'above',
+      );
+    });
+
+    it('should be valid when all prices are correct including liquidation', () => {
+      const params = {
+        ...defaultParams,
+        direction: 'long' as const,
+        liquidationPrice: '45000',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set all valid prices
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000'); // Valid TP
+        result.current.handlers.handleStopLossPriceChange('46000'); // Valid SL (above liquidation)
+      });
+
+      expect(result.current.validation.isValid).toBe(true);
+      expect(result.current.validation.takeProfitError).toBe('');
+      expect(result.current.validation.stopLossError).toBe('');
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
+    });
   });
 
   describe('display helpers', () => {
@@ -429,15 +640,17 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPercentageChange('10.00');
       });
 
-      // When not focused, should show clean format
-      expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
+      // When not focused, should show clean format with sign (10.00 -> + 10)
+      expect(result.current.display.formattedTakeProfitPercentage).toBe('+ 10');
 
       // When focused, should preserve user input
       act(() => {
         result.current.handlers.handleTakeProfitPercentageFocus();
       });
 
-      expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
+      expect(result.current.display.formattedTakeProfitPercentage).toBe(
+        '10.00',
+      );
     });
   });
 
@@ -564,6 +777,37 @@ describe('usePerpsTPSLForm', () => {
       expect(result.current.formState.takeProfitPrice).toBe('');
       expect(result.current.formState.takeProfitPercentage).toBe('');
     });
+
+    it('should handle invalid liquidation price gracefully', () => {
+      const params = {
+        ...defaultParams,
+        liquidationPrice: 'invalid',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('44000');
+      });
+
+      // Should not show liquidation error with invalid liquidation price
+      // The validation function should handle invalid liquidation price gracefully
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
+    });
+
+    it('should handle empty liquidation price', () => {
+      const params = {
+        ...defaultParams,
+        liquidationPrice: '',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('44000');
+      });
+
+      // Should not show liquidation error with empty liquidation price
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
+    });
   });
 
   describe('initial percentage calculation', () => {
@@ -591,6 +835,508 @@ describe('usePerpsTPSLForm', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(params));
 
       // Should not calculate when not visible
+      expect(result.current.formState.takeProfitPercentage).toBe('');
+    });
+  });
+
+  describe('entryPrice parameter functionality', () => {
+    it('should use entryPrice for calculations when provided', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000, // Different from currentPrice (50000)
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should calculate price based on entryPrice (52000) not currentPrice (50000)
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+      // The exact calculation depends on the formula, but it should be different
+      // from what it would be with currentPrice
+    });
+
+    it('should fallback to currentPrice when entryPrice is not provided', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should still work using currentPrice
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should use position entryPrice when position is provided', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000', // Different from default currentPrice
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use position's entry price for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should handle zero or invalid entryPrice gracefully', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 0,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should not crash and should fallback to currentPrice
+      expect(result.current.formState.takeProfitPrice).toBe('');
+    });
+  });
+
+  describe('reference price logic for validation', () => {
+    it('should validate against entryPrice when orderType is limit', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000, // Higher than current price
+        isVisible: true,
+        orderType: 'limit' as const,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // For long position, TP should be above entryPrice (52000), not currentPrice (50000)
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('51000'); // Between current and entry
+      });
+
+      // Should be invalid because it's below entryPrice
+      expect(result.current.validation.takeProfitError).toContain(
+        'entry price',
+      );
+    });
+
+    it('should validate against currentPrice when orderType is market', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined,
+        isVisible: true,
+        orderType: 'market' as const,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should validate against currentPrice
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000'); // Below current
+      });
+
+      expect(result.current.validation.takeProfitError).toContain('above');
+    });
+
+    it('should validate against position entry price when position exists and orderType is limit', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000',
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        currentPrice: 50000,
+        isVisible: true,
+        orderType: 'limit' as const,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should validate against position's entry price
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('50500'); // Below position entry
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'entry price',
+      );
+    });
+
+    it('should validate liquidation price against reference price for positions', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000',
+        liquidationPrice: '46000',
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        currentPrice: 50000,
+        liquidationPrice: '46000',
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set stop loss below liquidation price
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('45000');
+      });
+
+      expect(result.current.validation.stopLossLiquidationError).toContain(
+        'above',
+      );
+    });
+
+    it('should validate liquidation price against reference price for limit orders', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000,
+        liquidationPrice: '47000',
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set stop loss below liquidation price
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('46000');
+      });
+
+      expect(result.current.validation.stopLossLiquidationError).toContain(
+        'above',
+      );
+    });
+  });
+
+  describe('price type determination in error messages', () => {
+    it('should show "entry price" error for positions and orderType is limit', () => {
+      const params = {
+        asset: 'BTC',
+        position: mockPosition,
+        currentPrice: 50000,
+        isVisible: true,
+        orderType: 'limit' as const,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000'); // Invalid for long
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'entry price',
+      );
+    });
+
+    it('should show "entry price" error for actual limit orders', () => {
+      const params = {
+        ...defaultParams,
+        orderType: 'limit' as const,
+        entryPrice: 52000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('51000'); // Invalid
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'entry price',
+      );
+    });
+
+    it('should show "current price" error for market orders', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined, // No entry price = market order
+        isVisible: true,
+        orderType: 'market' as const,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000'); // Invalid for long
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'current price',
+      );
+    });
+  });
+
+  describe('formatPerpsFiat integration in button handlers', () => {
+    it('should use formatPerpsFiat for take profit button prices', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      act(() => {
+        result.current.buttons.handleTakeProfitPercentageButton(25);
+      });
+
+      // The price should be set (formatPerpsFiat is mocked to pass through)
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+      // The actual formatting is handled by the mock
+    });
+
+    it('should use formatPerpsFiat for stop loss button prices', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      act(() => {
+        result.current.buttons.handleStopLossPercentageButton(10);
+      });
+
+      // The price should be set (formatPerpsFiat is mocked to pass through)
+      expect(result.current.formState.stopLossPrice).not.toBe('');
+      // The actual formatting is handled by the mock
+    });
+
+    it('should strip non-numeric characters from formatted prices', () => {
+      // Test that the regex replacement works correctly
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      act(() => {
+        result.current.buttons.handleTakeProfitPercentageButton(25);
+      });
+
+      // Since our mock returns the input as-is, and the code strips non-numeric chars,
+      // the result should only contain numbers and decimal points
+      const price = result.current.formState.takeProfitPrice;
+      expect(price).toMatch(/^[0-9.]*$/);
+    });
+  });
+
+  describe('calculation precedence', () => {
+    it('should prioritize position entryPrice over prop entryPrice', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000',
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        entryPrice: 52000, // Different prop value
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use position's entryPrice (51000) for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should prioritize prop entryPrice over currentPrice', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000,
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use entryPrice (52000) for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should fallback to currentPrice when no entryPrice available', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined,
+        position: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use currentPrice for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+  });
+
+  describe('edge cases with entryPrice', () => {
+    it('should handle missing currentPrice and entryPrice gracefully', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 0,
+        entryPrice: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should not crash
+      expect(result.current.formState.takeProfitPrice).toBe('');
+      expect(result.current.formState.stopLossPrice).toBe('');
+    });
+
+    it('should not calculate percentages when entryPrice and currentPrice are both invalid', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 0,
+        entryPrice: 0,
+        initialTakeProfitPrice: '55000',
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should not calculate initial percentages with invalid prices
+      expect(result.current.formState.takeProfitPercentage).toBe('');
+    });
+
+    it('should handle entryPrice changes during hook lifecycle', () => {
+      let entryPrice = 50000;
+      const { result, rerender } = renderHook(() =>
+        usePerpsTPSLForm({ ...defaultParams, entryPrice, isVisible: true }),
+      );
+
+      // Set initial price
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000');
+      });
+
+      const initialPercentage = result.current.formState.takeProfitPercentage;
+
+      // Change entryPrice
+      entryPrice = 52000;
+      rerender();
+
+      // Percentage should be recalculated based on new entryPrice
+      expect(result.current.formState.takeProfitPercentage).not.toBe(
+        initialPercentage,
+      );
+    });
+  });
+
+  describe('Signed Input Handling', () => {
+    it('handles positive sign input correctly', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      // Act
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('+15');
+      });
+
+      // Assert
+      expect(result.current.formState.takeProfitPercentage).toBe('+15');
+    });
+
+    it('handles negative sign input correctly', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      // Act
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('-8');
+      });
+
+      // Assert
+      expect(result.current.formState.stopLossPercentage).toBe('-8');
+    });
+
+    it('handles duplicate signs correctly', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      // Act - Test double negative signs
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('--5');
+      });
+
+      // Assert
+      expect(result.current.formState.stopLossPercentage).toBe('-5');
+    });
+
+    it('handles en-dash and em-dash characters', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      // Act - Test en-dash (–) conversion
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('–10');
+      });
+
+      // Assert - En-dash should be converted to regular minus sign without space
+      expect(result.current.formState.stopLossPercentage).toBe('-10');
+    });
+
+    it('handles mixed signs by keeping only the first sign', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      // Act - Test mixed signs (+-) should keep first sign
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('+-15');
+      });
+
+      // Assert - Should keep only the first sign (+)
+      expect(result.current.formState.takeProfitPercentage).toBe('+15');
+
+      // Act - Test mixed signs (-+) should keep first sign
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('-+8');
+      });
+
+      // Assert - Should keep only the first sign (-)
+      expect(result.current.formState.stopLossPercentage).toBe('-8');
+    });
+
+    it('allows backspacing through signs', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      // Set initial value
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('-8');
+      });
+
+      // Act - Backspace to just the sign
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('-');
+      });
+
+      // Assert
+      expect(result.current.formState.takeProfitPercentage).toBe('-');
+
+      // Act - Backspace to empty
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('');
+      });
+
+      // Assert
       expect(result.current.formState.takeProfitPercentage).toBe('');
     });
   });

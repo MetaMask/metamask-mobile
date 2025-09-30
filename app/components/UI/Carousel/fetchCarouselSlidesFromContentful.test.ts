@@ -1,10 +1,14 @@
-// eslint-disable-next-line import/no-namespace
 import { ContentfulClientApi, createClient } from 'contentful';
+// eslint-disable-next-line import/no-namespace
+import * as DeviceInfoModule from 'react-native-device-info';
 import {
   fetchCarouselSlidesFromContentful,
+  getContentfulEnvironmentDetails,
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
+import { getContentPreviewToken } from '../../../actions/notification/helpers';
+import { isProduction } from '../../../util/environment';
 
 jest.mock('contentful', () => ({
   createClient: jest.fn(),
@@ -15,6 +19,67 @@ jest.mock('./constants', () => ({
   SPACE_ID: jest.fn().mockReturnValue('mockSpaceId'),
   ACCESS_TOKEN: jest.fn().mockReturnValue('mockAccessToken'),
 }));
+
+jest.mock('../../../actions/notification/helpers');
+
+jest.mock('../../../util/environment', () => ({
+  isProduction: jest.fn().mockReturnValue(true),
+}));
+
+describe('getContentfulEnvironmentDetails', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const arrangeMocks = () => {
+    const mockGetContentPreviewToken = jest
+      .mocked(getContentPreviewToken)
+      .mockReturnValue(undefined);
+
+    const mockIsProduction = jest.mocked(isProduction).mockReturnValue(true);
+
+    return {
+      mockGetContentPreviewToken,
+      mockIsProduction,
+    };
+  };
+
+  it('returns preview prod environment if token provided', () => {
+    const mocks = arrangeMocks();
+    mocks.mockGetContentPreviewToken.mockReturnValue('AAA');
+
+    const result = getContentfulEnvironmentDetails();
+    expect(result).toStrictEqual({
+      environment: 'master',
+      domain: 'preview.contentful.com',
+      accessToken: 'AAA',
+      spaceId: SPACE_ID(),
+    });
+  });
+
+  it('returns prod environment is using production', () => {
+    arrangeMocks();
+
+    const result = getContentfulEnvironmentDetails();
+    expect(result).toStrictEqual({
+      environment: 'master',
+      domain: 'cdn.contentful.com',
+      accessToken: ACCESS_TOKEN(),
+      spaceId: SPACE_ID(),
+    });
+  });
+
+  it('returns preview dev environment is not in production', () => {
+    const mocks = arrangeMocks();
+    mocks.mockIsProduction.mockReturnValue(false);
+
+    const result = getContentfulEnvironmentDetails();
+    expect(result).toStrictEqual({
+      environment: 'dev',
+      domain: 'preview.contentful.com',
+      accessToken: ACCESS_TOKEN(),
+      spaceId: SPACE_ID(),
+    });
+  });
+});
 
 describe('fetchCarouselSlidesFromContentful', () => {
   beforeEach(() => {
@@ -31,7 +96,7 @@ describe('fetchCarouselSlidesFromContentful', () => {
         linkUrl: 'https://example.com/priority',
         undismissable: true,
         priorityPlacement: true,
-      },
+      } as Record<string, unknown>,
     },
     {
       sys: { id: '2' },
@@ -42,7 +107,7 @@ describe('fetchCarouselSlidesFromContentful', () => {
         linkUrl: 'https://example.com/regular',
         undismissable: false,
         priorityPlacement: false,
-      },
+      } as Record<string, unknown>,
     },
   ];
 
@@ -167,6 +232,54 @@ describe('fetchCarouselSlidesFromContentful', () => {
       image: 'https://regular.image.url',
       undismissable: false,
     });
+  });
+
+  describe('minimum version number', () => {
+    const minimumVersionSchema = [
+      {
+        testName: 'shows banner if minimum version number not added',
+        minimumVersion: undefined,
+        length: 1,
+      },
+      {
+        testName: 'shows banner if current version matches > version number',
+        minimumVersion: '7.55.0',
+        length: 1,
+      },
+      {
+        testName: 'shows banner if current version matches === version number',
+        minimumVersion: '7.56.0',
+        length: 1,
+      },
+      {
+        testName:
+          'does not show banner if current version matches < version number ',
+        minimumVersion: '7.57.0',
+        length: 0,
+      },
+      {
+        testName: 'does not show banner if provided a malformed version number',
+        minimumVersion: 'malformed version number',
+        length: 0,
+      },
+    ];
+
+    it.each(minimumVersionSchema)(
+      '$testName',
+      async ({ minimumVersion, length }) => {
+        jest.spyOn(DeviceInfoModule, 'getVersion').mockReturnValue('7.56.0');
+        const response = arrangeContentfulResponse();
+        response.items[0].fields.mobileMinimumVersionNumber = minimumVersion;
+        response.items[1].fields.mobileMinimumVersionNumber = minimumVersion;
+        const { mockContentfulClientGetEntries } = arrangeMocks(response);
+
+        const result = await fetchCarouselSlidesFromContentful();
+
+        expect(mockContentfulClientGetEntries).toHaveBeenCalled();
+        expect(result.prioritySlides).toHaveLength(length);
+        expect(result.regularSlides).toHaveLength(length);
+      },
+    );
   });
 });
 

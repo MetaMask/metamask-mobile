@@ -31,12 +31,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -74,10 +71,10 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -137,12 +134,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -180,10 +174,10 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -243,12 +237,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -286,10 +277,10 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -346,23 +337,6 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
         </Text>
       </View>
     </View>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
   </View>
 </View>
 `;
@@ -398,12 +372,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -441,10 +412,10 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -504,12 +475,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -547,10 +515,10 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -610,12 +578,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -653,10 +618,10 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -713,23 +678,6 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
         </Text>
       </View>
     </View>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
   </View>
 </View>
 `;
@@ -765,12 +713,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -808,10 +753,10 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -871,12 +816,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -914,10 +856,10 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -977,12 +919,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1020,10 +959,10 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1115,12 +1054,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1158,10 +1094,11 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "opacity": 0.5,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1221,12 +1158,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1264,10 +1198,11 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "opacity": 0.5,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1327,12 +1262,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1370,10 +1302,11 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "opacity": 0.5,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1465,12 +1398,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1508,10 +1438,10 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1571,12 +1501,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1614,10 +1541,11 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "opacity": 0.5,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1677,12 +1605,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1720,10 +1645,10 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1780,23 +1705,6 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
         </Text>
       </View>
     </View>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
   </View>
 </View>
 `;
@@ -1828,25 +1736,7 @@ exports[`TabsBar Rendering handles empty tabs array gracefully 1`] = `
         undefined,
       ]
     }
-  >
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
-  </View>
+  />
 </View>
 `;
 
@@ -1881,12 +1771,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -1924,10 +1811,10 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -1987,12 +1874,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -2030,10 +1914,10 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -2093,12 +1977,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -2136,10 +2017,10 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -2196,23 +2077,6 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
         </Text>
       </View>
     </View>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
   </View>
 </View>
 `;
@@ -2248,12 +2112,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -2291,10 +2152,10 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -2354,12 +2215,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -2397,10 +2255,10 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -2460,12 +2318,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
     <View
       onLayout={[Function]}
       style={
-        [
-          {
-            "display": "flex",
-          },
-          undefined,
-        ]
+        {
+          "flexShrink": 0,
+        }
       }
     >
       <View
@@ -2503,10 +2358,10 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
-            "paddingBottom": 8,
+            "paddingBottom": 4,
             "paddingLeft": 0,
             "paddingRight": 0,
-            "paddingTop": 8,
+            "paddingTop": 4,
             "position": "relative",
           }
         }
@@ -2563,23 +2418,6 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
         </Text>
       </View>
     </View>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
   </View>
 </View>
 `;

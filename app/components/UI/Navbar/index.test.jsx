@@ -5,9 +5,9 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
+  getAddressListNavbarOptions,
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
-  getOnboardingCarouselNavbarOptions,
   getOnboardingNavbarOptions,
   getSettingsNavigationOptions,
   getTransparentOnboardingNavbarOptions,
@@ -118,6 +118,92 @@ describe('getNetworkNavbarOptions', () => {
   });
 });
 
+describe('getAddressListNavbarOptions', () => {
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with correct structure', () => {
+    const options = getAddressListNavbarOptions(
+      mockNavigation,
+      'Receiving address',
+      'test-back-button',
+    );
+
+    expect(options).toBeDefined();
+    expect(options.headerTitle).toBeInstanceOf(Function);
+    expect(options.headerLeft).toBeInstanceOf(Function);
+  });
+
+  it('renders title correctly', () => {
+    const title = 'Test Title';
+    const options = getAddressListNavbarOptions(
+      mockNavigation,
+      title,
+      'test-back-button',
+    );
+
+    const { getByText } = renderWithProvider(<options.headerTitle />, {
+      state: { engine: { backgroundState } },
+    });
+
+    expect(getByText(title)).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const options = getAddressListNavbarOptions(
+      mockNavigation,
+      'Test Title',
+      'test-back-button',
+    );
+
+    const { getByTestId } = renderWithProvider(<options.headerLeft />, {
+      state: { engine: { backgroundState } },
+    });
+
+    const backButton = getByTestId('test-back-button');
+    fireEvent.press(backButton);
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles different titles', () => {
+    const titles = ['Receiving address', 'Account Details', ''];
+
+    titles.forEach((title) => {
+      expect(() => {
+        const options = getAddressListNavbarOptions(
+          mockNavigation,
+          title,
+          'test-back-button',
+        );
+        expect(options).toBeDefined();
+        expect(options.headerTitle).toBeInstanceOf(Function);
+      }).not.toThrow();
+    });
+  });
+
+  it('handles different test IDs', () => {
+    const testIds = ['back-button', 'go-back', 'navigation-back'];
+
+    testIds.forEach((testId) => {
+      expect(() => {
+        const options = getAddressListNavbarOptions(
+          mockNavigation,
+          'Test Title',
+          testId,
+        );
+        expect(options).toBeDefined();
+        expect(options.headerLeft).toBeInstanceOf(Function);
+      }).not.toThrow();
+    });
+  });
+});
+
 describe('getDepositNavbarOptions', () => {
   const mockNavigation = {
     pop: jest.fn(),
@@ -147,18 +233,6 @@ describe('getDepositNavbarOptions', () => {
     const headerLeftComponent = options.headerLeft();
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('getOnboardingCarouselNavbarOptions', () => {
-  it('render onboarding carousel navbar options with default props', () => {
-    const options = getOnboardingCarouselNavbarOptions();
-    expect(options).toBeDefined();
-  });
-
-  it('render onboarding carousel navbar options with custom background color', () => {
-    const options = getOnboardingCarouselNavbarOptions('red');
-    expect(options.headerStyle.backgroundColor).toBe('red');
   });
 });
 
@@ -521,6 +595,9 @@ describe('getSettingsNavigationOptions', () => {
       default: '#FFFFFF',
     },
   };
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
 
   describe('Basic Functionality', () => {
     it('should return navigation options object', () => {
@@ -557,6 +634,74 @@ describe('getSettingsNavigationOptions', () => {
 
       expect(options.headerStyle.shadowColor).toBe('transparent');
       expect(options.headerStyle.elevation).toBe(0);
+    });
+  });
+
+  describe('Rewards Enabled Functionality', () => {
+    it('should show close button when rewards are enabled', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+        true,
+      );
+
+      expect(options.headerRight).toBeDefined();
+      expect(typeof options.headerRight).toBe('function');
+    });
+
+    it('should not show close button when rewards are disabled', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+        false,
+      );
+
+      expect(options.headerRight()).toBeNull();
+    });
+
+    it('should call navigation.goBack when close button is pressed', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+        true,
+      );
+
+      const HeaderRightComponent = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRightComponent />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const closeButton = getByTestId('close-network-icon');
+      fireEvent.press(closeButton);
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle missing navigation object gracefully', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        null,
+        true,
+      );
+
+      expect(options.headerRight).toBeDefined();
+      expect(typeof options.headerRight).toBe('function');
+    });
+
+    it('should handle undefined navigation object when rewards enabled', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        undefined,
+        true,
+      );
+
+      expect(options.headerRight).toBeDefined();
+      expect(typeof options.headerRight).toBe('function');
     });
   });
 
@@ -634,6 +779,30 @@ describe('getSettingsNavigationOptions', () => {
       expect(() => {
         const options = getSettingsNavigationOptions(null, mockThemeColors);
         expect(options).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it('should handle new navigation and isRewardsEnabled parameters', () => {
+      expect(() => {
+        const options = getSettingsNavigationOptions(
+          mockTitle,
+          mockThemeColors,
+          mockNavigation,
+          true,
+        );
+        expect(options).toBeDefined();
+        expect(options.headerRight).toBeDefined();
+      }).not.toThrow();
+
+      expect(() => {
+        const options = getSettingsNavigationOptions(
+          mockTitle,
+          mockThemeColors,
+          mockNavigation,
+          false,
+        );
+        expect(options).toBeDefined();
+        expect(options.headerRight()).toBeNull();
       }).not.toThrow();
     });
   });

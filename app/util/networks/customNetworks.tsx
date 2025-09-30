@@ -33,7 +33,7 @@ export function getFailoverUrlsForInfuraNetwork(
 export const PopularList = [
   {
     chainId: toHex('43114'),
-    nickname: 'Avalanche C-Chain',
+    nickname: 'Avalanche',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
     ticker: 'AVAX',
@@ -45,7 +45,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('42161'),
-    nickname: 'Arbitrum One',
+    nickname: 'Arbitrum',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
     ticker: 'ETH',
@@ -57,7 +57,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('56'),
-    nickname: 'BNB Smart Chain Mainnet',
+    nickname: 'BNB Chain',
     rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
@@ -83,7 +83,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('10'),
-    nickname: 'OP Mainnet',
+    nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
     ticker: 'ETH',
@@ -106,7 +106,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('137'),
-    nickname: 'Polygon Mainnet',
+    nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
     ticker: 'POL',
@@ -118,7 +118,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('324'),
-    nickname: 'zkSync Mainnet',
+    nickname: 'zkSync Era',
     rpcUrl: `https://mainnet.era.zksync.io`,
     ticker: 'ETH',
     warning: true,
@@ -130,7 +130,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('1329'),
-    nickname: 'Sei Mainnet',
+    nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'SEI',
@@ -147,6 +147,8 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   switch (chainId) {
     case SolScope.Mainnet:
       return require('../../images/solana-logo.png');
+    case SolScope.Devnet:
+      return require('../../images/solana-devnet.jpg');
     case BtcScope.Mainnet:
       return require('../../images/bitcoin-logo.png');
     case BtcScope.Testnet:
@@ -293,6 +295,9 @@ export const NETWORK_CHAIN_ID: {
   readonly OMNI: '0xa6';
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
+  readonly XDC: '0x32';
+  readonly MEGAETH_MAINNET: '0x10e6';
+  readonly HEMI: '0xa867';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -319,6 +324,9 @@ export const NETWORK_CHAIN_ID: {
   OMNI: '0xa6',
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
+  XDC: '0x32',
+  MEGAETH_MAINNET: '0x10e6',
+  HEMI: '0xa867',
   ...CHAIN_IDS,
 };
 
@@ -350,4 +358,8 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
+  [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
+  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
+  [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
 };

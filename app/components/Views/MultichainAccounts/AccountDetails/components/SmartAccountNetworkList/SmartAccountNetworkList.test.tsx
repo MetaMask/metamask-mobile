@@ -69,18 +69,19 @@ describe('SmartAccountNetworkList', () => {
     expect(queryByTestId('network-flat-list')).toBeNull();
   });
 
-  it('returns null when no networks available', () => {
+  it('renders empty list when no networks available', () => {
     mockUseEIP7702Networks.mockReturnValue({
       network7702List: [],
       networkSupporting7702Present: false,
       pending: false,
     });
 
-    const { queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SmartAccountNetworkList address={mockAddress} />,
       { state: mockAccountsState },
     );
 
-    expect(queryByTestId('network-flat-list')).toBeNull();
+    expect(getByTestId('network-flat-list')).toBeTruthy();
+    expect(getByTestId('network-flat-list').children).toHaveLength(0);
   });
 });

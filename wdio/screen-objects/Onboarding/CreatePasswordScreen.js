@@ -3,16 +3,22 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
-class CreatePasswordScreen {
+class CreatePasswordScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
   
   get container() {
@@ -32,7 +38,7 @@ class CreatePasswordScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Enter a strong password"]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
       }
     }
   }
@@ -46,7 +52,7 @@ class CreatePasswordScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Re-enter your password"]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');     
       }
     }
   }
@@ -76,7 +82,7 @@ class CreatePasswordScreen {
       await Gestures.setValueWithoutTap(this.newPasswordInput, password);
     } else {
       const element = await this.newPasswordInput;
-      await element.fill(password);
+      await this.typeText(element, password); // Use inherited typeText method with retry logic
     }
   }
 
@@ -85,7 +91,7 @@ class CreatePasswordScreen {
       await Gestures.setValueWithoutTap(this.confirmPasswordInput, password);
     } else {
       const element = await this.confirmPasswordInput;
-      await element.fill(password);
+      await this.typeText(element, password); // Use inherited typeText method with retry logic
     }
   }
 
@@ -93,8 +99,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.iUnderstandCheckbox);
     } else {
-      const element = await this.iUnderstandCheckbox;
-      await element.tap();
+      await this.tap(this.iUnderstandCheckbox); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -102,8 +107,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.submitButton);
     } else {
-      const element = await this.submitButton;
-      await element.tap();
+      await this.tap(this.submitButton); // Use inherited tapElement method with retry logic
     }
   }
 

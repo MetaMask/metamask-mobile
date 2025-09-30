@@ -4,22 +4,28 @@ import {
   selectSmartTransactionsForCurrentChain,
   // Add the pending selector to test it.
   selectPendingSmartTransactionsBySender,
+  selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
 import { backgroundState } from '../util/test/initial-root-state';
 import { isHardwareAccount } from '../util/address';
 import { cloneDeep } from 'lodash';
+import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts/accountTreeController';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
 
 // Stub the accounts selector so that selectSelectedInternalAccountFormattedAddress returns TEST_ADDRESS_ONE
-jest.mock('./accountsController', () => ({
-  selectSelectedInternalAccountFormattedAddress: jest.fn(
-    () => TEST_ADDRESS_ONE,
-  ),
-  selectSelectedInternalAccountAddress: jest.fn(() => TEST_ADDRESS_ONE),
-  selectHasCreatedSolanaMainnetAccount: jest.fn(() => false),
-}));
+jest.mock('./accountsController', () => {
+  const actual = jest.requireActual('./accountsController');
+  return {
+    ...actual,
+    selectSelectedInternalAccountFormattedAddress: jest.fn(
+      () => TEST_ADDRESS_ONE,
+    ),
+    selectSelectedInternalAccountAddress: jest.fn(() => TEST_ADDRESS_ONE),
+    selectHasCreatedSolanaMainnetAccount: jest.fn(() => false),
+  };
+});
 
 jest.mock('./tokensController', () => ({
   selectTokensControllerState: jest.fn(),
@@ -31,6 +37,16 @@ jest.mock('../util/address', () => ({
   ...jest.requireActual('../util/address'),
   isHardwareAccount: jest.fn(() => false),
 }));
+
+jest.mock('./multichainAccounts/accountTreeController', () => {
+  const actual = jest.requireActual(
+    './multichainAccounts/accountTreeController',
+  );
+  return {
+    ...actual,
+    selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
+  };
+});
 
 // Default state is setup to be on mainnet, with smart transactions enabled and opted into
 const getDefaultState = () => {
@@ -286,6 +302,117 @@ describe('SmartTransactionsController Selectors', () => {
           isSmartTransaction: true,
         },
       ]);
+    });
+  });
+
+  describe('selectPendingSmartTransactionsForSelectedAccountGroup', () => {
+    it('returns empty array when no selected group accounts', () => {
+      const state = getDefaultState();
+      (
+        selectSelectedAccountGroupInternalAccounts as unknown as jest.Mock
+      ).mockReturnValue([]);
+
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions[
+        '0x1'
+      ] = [
+        {
+          uuid: 'tx1',
+          txParams: { from: TEST_ADDRESS_ONE },
+          status: 'pending',
+        },
+      ];
+
+      const pending =
+        selectPendingSmartTransactionsForSelectedAccountGroup(state);
+      expect(pending).toEqual([]);
+    });
+
+    it('filters transactions to those sent from any selected group address', () => {
+      const state = getDefaultState();
+      (
+        selectSelectedAccountGroupInternalAccounts as unknown as jest.Mock
+      ).mockReturnValue([{ address: TEST_ADDRESS_ONE }]);
+
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions[
+        '0x1'
+      ] = [
+        {
+          uuid: 'tx1',
+          txParams: { from: TEST_ADDRESS_ONE },
+          status: 'pending',
+        },
+        {
+          uuid: 'tx2',
+          txParams: { from: TEST_ADDRESS_TWO },
+          status: 'pending',
+        },
+        { uuid: 'tx3', txParams: { from: undefined }, status: 'pending' },
+      ];
+
+      const pending =
+        selectPendingSmartTransactionsForSelectedAccountGroup(state);
+      expect(pending).toEqual([
+        {
+          uuid: 'tx1',
+          txParams: { from: TEST_ADDRESS_ONE },
+          status: 'pending',
+          id: 'tx1',
+          isSmartTransaction: true,
+        },
+      ]);
+    });
+
+    it('excludes SUCCESS and CANCELLED, normalizes CANCELLED_* to CANCELLED', () => {
+      const state = getDefaultState();
+      (
+        selectSelectedAccountGroupInternalAccounts as unknown as jest.Mock
+      ).mockReturnValue([{ address: TEST_ADDRESS_ONE }]);
+
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions[
+        '0x1'
+      ] = [
+        { uuid: 'a', txParams: { from: TEST_ADDRESS_ONE }, status: 'SUCCESS' },
+        {
+          uuid: 'b',
+          txParams: { from: TEST_ADDRESS_ONE },
+          status: 'CANCELLED',
+        },
+        {
+          uuid: 'c',
+          txParams: { from: TEST_ADDRESS_ONE },
+          status: 'CANCELLED_BY_USER',
+        },
+        { uuid: 'd', txParams: { from: TEST_ADDRESS_ONE }, status: 'pending' },
+      ];
+
+      const pending =
+        selectPendingSmartTransactionsForSelectedAccountGroup(state);
+
+      expect(pending).toEqual(
+        expect.arrayContaining([
+          {
+            uuid: 'a',
+            txParams: { from: TEST_ADDRESS_ONE },
+            status: 'SUCCESS',
+            id: 'a',
+            isSmartTransaction: true,
+          },
+          {
+            uuid: 'b',
+            txParams: { from: TEST_ADDRESS_ONE },
+            status: 'CANCELLED',
+            id: 'b',
+            isSmartTransaction: true,
+          },
+          {
+            uuid: 'c',
+            txParams: { from: TEST_ADDRESS_ONE },
+            status: 'CANCELLED_BY_USER',
+            id: 'c',
+            isSmartTransaction: true,
+          },
+        ]),
+      );
     });
   });
 });

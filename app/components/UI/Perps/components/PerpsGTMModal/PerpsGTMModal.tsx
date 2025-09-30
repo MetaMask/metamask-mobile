@@ -1,8 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Image, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-
+import React, { useState } from 'react';
+import { Image, View, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
@@ -16,12 +15,8 @@ import Text, {
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Fox from '../../../../../images/branding/fox.png';
+import Character from '../../../../../images/character_3x.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-import {
-  baseStyles,
-  colors as importedColors,
-} from '../../../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import { useTheme } from '../../../../../util/theme';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
@@ -33,13 +28,48 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
+import {
+  createFontScaleHandler,
+  hasNonLatinCharacters,
+} from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const theme = useTheme();
 
-  const styles = createStyles(theme);
+  const isDarkMode = useColorScheme() === 'dark';
+  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
+  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
+
+  const titleText = strings('perps.gtm_content.title');
+  const subtitleText = strings('perps.gtm_content.title_description');
+  const useSystemFont =
+    hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
+
+  const styles = createStyles(
+    theme,
+    isDarkMode,
+    titleFontSize,
+    subtitleFontSize,
+    useSystemFont,
+  );
+
+  const handleTitleLayout = createFontScaleHandler({
+    maxHeight: useSystemFont ? 100 : 120, // System fonts typically render taller
+    currentFontSize: styles.title.fontSize,
+    setter: setTitleFontSize,
+    minFontSize: useSystemFont ? 28 : 32, // Slightly smaller min for system fonts
+    currentValue: titleFontSize,
+  });
+
+  const handleSubtitleLayout = createFontScaleHandler({
+    maxHeight: useSystemFont ? 70 : 80, // System fonts typically render taller
+    currentFontSize: styles.titleDescription.fontSize,
+    setter: setSubtitleFontSize,
+    minFontSize: useSystemFont ? 12 : 14, // Slightly smaller min for system fonts
+    currentValue: subtitleFontSize,
+  });
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -80,41 +110,35 @@ const PerpsGTMModal = () => {
   };
 
   return (
-    <View
-      style={[
-        baseStyles.flexGrow,
-        { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
-      ]}
+    <SafeAreaView
+      style={styles.pageContainer}
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
     >
-      <ScrollView
-        style={baseStyles.flexGrow}
-        contentContainerStyle={styles.scroll}
-        bounces={false}
-        scrollEnabled={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.wrapper}>
-          <Text style={styles.title} variant={TextVariant.HeadingLG}>
-            {strings('perps.gtm_content.title')}
-          </Text>
-          <View style={styles.ctas}>
-            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
-              {strings('perps.gtm_content.title_description')}
-            </Text>
+      {/* Header Section */}
+      <View style={styles.headerContainer}>
+        <Text
+          style={styles.title}
+          variant={TextVariant.HeadingLG}
+          onLayout={handleTitleLayout}
+        >
+          {titleText}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMD}
+          style={styles.titleDescription}
+          onLayout={handleSubtitleLayout}
+        >
+          {subtitleText}
+        </Text>
+      </View>
 
-            <View style={styles.largeFoxWrapper}>
-              <Image
-                source={Fox}
-                style={styles.foxImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-        </View>
-      </ScrollView>
+      {/* Content Section */}
+      <View style={styles.contentImageContainer}>
+        <Image source={Character} style={styles.image} />
+      </View>
 
-      <View style={styles.createWrapper}>
+      {/* Footer Section */}
+      <View style={styles.footerContainer}>
         <ButtonBase
           onPress={() => tryPerpsNow()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}
@@ -149,7 +173,7 @@ const PerpsGTMModal = () => {
           }
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

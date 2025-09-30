@@ -26,6 +26,20 @@ import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { mockNetworkState } from '../../../../../../util/test/network';
+
+const mockSetActiveNetwork = jest.fn();
+const mockEngineContext = {
+  MultichainNetworkController: {
+    setActiveNetwork: mockSetActiveNetwork,
+  },
+};
+jest.mock('../../../../../../core/Engine', () => ({
+  get context() {
+    return mockEngineContext;
+  },
+}));
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -42,6 +56,22 @@ function render(Component: React.ComponentType) {
           backgroundState: {
             ...backgroundState,
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+            NetworkController: {
+              ...mockNetworkState(
+                {
+                  chainId: '0x1',
+                  id: 'mainnet',
+                  nickname: 'Ethereum Mainnet',
+                  ticker: 'ETH',
+                },
+                {
+                  chainId: '0x89',
+                  id: 'polygon',
+                  nickname: 'Polygon Mainnet',
+                  ticker: 'POL',
+                },
+              ),
+            },
           },
         },
       },
@@ -191,6 +221,7 @@ jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
 );
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
+  balance: '5.36385',
   balanceFiat: '$27.02',
   balanceBN: toTokenMinimalUnit('5.36385', 18) as BN4,
 };
@@ -215,8 +246,6 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
   selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
-  selectedChainId: '1',
-  selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   rampType: RampType.BUY,
@@ -271,6 +300,20 @@ jest.mock('../../../../../../util/trace', () => ({
     RampQuoteLoading: 'Ramp Quote Loading',
     LoadRampExperience: 'Load Ramp Experience',
   },
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../../selectors/accountsController'),
+}));
+
+jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/multichainAccounts/accounts',
+  ),
+}));
+
+jest.mock('../../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../../selectors/networkController'),
 }));
 
 describe('BuildQuote View', () => {
@@ -519,12 +562,13 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedAsset when selecting a crypto', async () => {
+    it('navigates to token select modal when pressing asset selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(
-        mockCryptoCurrenciesData[1],
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: mockCryptoCurrenciesData,
+        }),
       );
     });
   });

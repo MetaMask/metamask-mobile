@@ -1,12 +1,9 @@
 import { analytics } from '@metamask/sdk-analytics';
 import { isAnalyticsTrackedRpcMethod } from '@metamask/sdk-communication-layer';
-import Routes from '../../../../app/constants/navigation/Routes';
-import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
-import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
+import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 
 export const handleSendMessage = async ({
@@ -78,90 +75,8 @@ export const handleSendMessage = async ({
       connection.rpcQueueManager.remove(msgId);
     }
 
-    const canRedirect = connection.rpcQueueManager.canRedirect({ method });
-    DevLogger.log(
-      `[handleSendMessage] method=${method} trigger=${connection.trigger} id=${msgId} origin=${connection.origin} canRedirect=${canRedirect}`,
-      msg,
-    );
-
     connection.remote.sendMessage(msg).catch((err) => {
       Logger.log(err, `Connection::sendMessage failed to send`);
-    });
-
-    if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
-      DevLogger.log(
-        `[handleSendMessage] origin=${connection.origin} --- skip goBack()`,
-      );
-      return;
-    }
-
-    if (!canRedirect) {
-      DevLogger.log(
-        `[handleSendMessage] canRedirect=false method=${method} --- skip goBack()`,
-        connection.rpcQueueManager,
-      );
-      connection.setLoading(false);
-      return;
-      // const currentRoute = connection.navigation?.getCurrentRoute()?.name;
-      // if (!method && currentRoute === 'AccountConnect') {
-      //   DevLogger.log(`[handleSendMessage] remove modal`);
-      //   if (
-      //     Device.isIos() &&
-      //     parseInt(Platform.Version as string) >= 17 &&
-      //     connection.navigation?.canGoBack()
-      //   ) {
-      //     const isLastPendingRequest = connection.rpcQueueManager.isEmpty();
-      //     if (!isLastPendingRequest) {
-      //       DevLogger.log(
-      //         `[handleSendMessage] pending request --- skip goback`,
-      //       );
-      //       return;
-      //     }
-      //     try {
-      //       DevLogger.log(
-      //         `[handleSendMessage] goBack()`,
-      //         connection.navigation.getCurrentRoute(),
-      //       );
-      //       connection.navigation?.goBack();
-      //       // Make sure there are no pending permissions requests before redirecting
-
-      //       await wait(200); // delay to allow modal to close
-      //       DevLogger.log(
-      //         `[handleSendMessage] navigate to ROOT_MODAL_FLOW from ${currentRoute}`,
-      //       );
-      //     } catch (_e) {
-      //       // Ignore temporarily until next stage of permissions system implementation
-      //       DevLogger.log(`[handleSendMessage] error goBack()`, _e);
-      //     }
-      //     connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      //       screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-      //     });
-      //   }
-      // }
-      // return;
-    }
-
-    if (
-      connection.trigger !== 'deeplink' &&
-      connection.origin !== AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
-    ) {
-      DevLogger.log(`[handleSendMessage] NOT deeplink --- skip goBack()`);
-      return;
-    }
-
-    // Add delay to display UI feedback before redirecting
-    if (METHODS_TO_DELAY[method]) {
-      await wait(1200);
-    }
-
-    DevLogger.log(
-      `[handleSendMessage] method=${method} trigger=${connection.trigger} origin=${connection.origin} id=${msgId} goBack()`,
-    );
-
-    // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
-    connection.trigger = 'resume';
-    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
     });
   } catch (err) {
     Logger.log(

@@ -24,6 +24,7 @@ import {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
@@ -114,9 +115,13 @@ jest.mock(
 jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
     selectAccountTreeControllerState: jest.fn(),
     selectSelectedAccountGroupId: jest.fn(),
     selectAccountGroupsByWallet: jest.fn(),
+    selectSelectedAccountGroupInternalAccounts: jest.fn(),
     selectAccountGroupWithInternalAccounts: jest.fn(),
   }),
 );
@@ -191,7 +196,7 @@ const mockWallet = createMockWallet('1', 'Test Wallet', [
 
 const mockInitialState: Partial<RootState> = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {
@@ -253,10 +258,10 @@ describe('BaseWalletDetails', () => {
     ).mockReturnValue({
       accountTree: {
         wallets: {
-          [mockWallet.id]: {
+          [`keyring:${mockWallet.id}`]: {
             groups: {
-              group1: mockAccountGroup1,
-              group2: mockAccountGroup2,
+              [mockAccountGroup1.id]: mockAccountGroup1,
+              [mockAccountGroup2.id]: mockAccountGroup2,
             },
           },
         },

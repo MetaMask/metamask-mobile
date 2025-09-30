@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
@@ -12,7 +18,6 @@ import Text, {
 import {
   NavigationProp,
   ParamListBase,
-  useFocusEffect,
   useNavigation,
 } from '@react-navigation/native';
 import ButtonIcon, {
@@ -39,9 +44,6 @@ import { AllowanceState } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
-import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
-import Logger from '../../../../../util/Logger';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
@@ -53,14 +55,12 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { useIsCardholder } from '../../hooks/useIsCardholder';
 import {
   Skeleton,
   SkeletonProps,
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
+import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -80,10 +80,7 @@ const SkeletonLoading = (props: SkeletonProps) => {
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const { PreferencesController, NetworkController, AccountsController } =
-    Engine.context;
-  const [error, setError] = useState<boolean>(false);
-  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
+  const { PreferencesController } = Engine.context;
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -96,68 +93,13 @@ const CardHome = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectChainId);
-  const cardholderAddresses = useSelector(selectCardholderAccounts);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const isCardholder = useIsCardholder();
-
-  // Handle network and account changes
-  useFocusEffect(
-    useCallback(() => {
-      const handleNetworkAndAccountChanges = async () => {
-        // Handle network change first
-        if (selectedChainId !== LINEA_CHAIN_ID) {
-          const networkClientId =
-            NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
-
-          try {
-            if (networkClientId) {
-              await NetworkController.setActiveNetwork(networkClientId);
-            }
-          } catch (err) {
-            const mappedError =
-              err instanceof Error ? err : new Error(String(err));
-            Logger.error(mappedError, 'CardHome::Error setting active network');
-            setError(true);
-            setIsLoadingNetworkChange(false);
-            return;
-          }
-        }
-
-        setIsLoadingNetworkChange(false);
-
-        // Handle account change after network is correct
-        if (!isCardholder) {
-          const account = AccountsController.getAccountByAddress(
-            cardholderAddresses?.[0],
-          );
-
-          if (!account) {
-            setError(true);
-          } else {
-            AccountsController.setSelectedAccount(account.id);
-          }
-        }
-      };
-
-      handleNetworkAndAccountChanges();
-    }, [
-      NetworkController,
-      AccountsController,
-      selectedChainId,
-      cardholderAddresses,
-      isCardholder,
-    ]),
-  );
 
   const {
     priorityToken,
     fetchPriorityToken,
     isLoading: isLoadingPriorityToken,
-    error: errorPriorityToken,
-  } = useGetPriorityCardToken(
-    selectedAccount?.address,
-    selectedChainId === LINEA_CHAIN_ID,
-  );
+    error,
+  } = useGetPriorityCardToken();
   const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
@@ -176,11 +118,6 @@ const CardHome = () => {
     [priorityToken],
   );
 
-  const hasError = useMemo(
-    () => error || errorPriorityToken,
-    [error, errorPriorityToken],
-  );
-
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
       return mainBalance;
@@ -189,6 +126,14 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
 
+  const isPriorityTokenSupportedDeposit = useMemo(() => {
+    if (priorityToken?.symbol) {
+      return DEPOSIT_SUPPORTED_TOKENS.find(
+        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
+      );
+    }
+  }, [priorityToken]);
+
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet
@@ -196,7 +141,6 @@ const CardHome = () => {
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
         priorityToken={priorityToken ?? undefined}
         chainId={selectedChainId}
-        cardholderAddresses={cardholderAddresses}
         navigate={navigation.navigate}
       />
     ),
@@ -204,26 +148,53 @@ const CardHome = () => {
       sheetRef,
       setOpenAddFundsBottomSheet,
       priorityToken,
-      cardholderAddresses,
       selectedChainId,
       navigation,
     ],
   );
+
+  // Track event only once after priorityToken and balances are loaded
+  const hasTrackedCardHomeView = useRef(false);
+
+  useEffect(() => {
+    const hasValidMainBalance =
+      mainBalance !== undefined &&
+      mainBalance !== TOKEN_BALANCE_LOADING &&
+      mainBalance !== TOKEN_BALANCE_LOADING_UPPERCASE;
+
+    const hasValidFiatBalance =
+      balanceFiat !== undefined &&
+      balanceFiat !== TOKEN_BALANCE_LOADING &&
+      balanceFiat !== TOKEN_BALANCE_LOADING_UPPERCASE &&
+      balanceFiat !== TOKEN_RATE_UNDEFINED;
+
+    const isLoaded =
+      !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
+
+    if (isLoaded && !hasTrackedCardHomeView.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
+          .addProperties({
+            token_symbol_priority: priorityToken?.symbol,
+            token_raw_balance_priority: mainBalance,
+            token_fiat_balance_priority: balanceFiat,
+          })
+          .build(),
+      );
+      hasTrackedCardHomeView.current = true;
+    }
+  }, [trackEvent, createEventBuilder, priorityToken, mainBalance, balanceFiat]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
-    if (
-      priorityToken?.symbol &&
-      SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS.includes(priorityToken.symbol)
-    ) {
+    if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
       openSwaps({
         chainId: selectedChainId,
-        cardholderAddress: cardholderAddresses?.[0],
       });
     }
   }, [
@@ -231,19 +202,11 @@ const CardHome = () => {
     createEventBuilder,
     priorityToken,
     openSwaps,
+    isPriorityTokenSupportedDeposit,
     selectedChainId,
-    cardholderAddresses,
   ]);
 
-  const isLoading = useMemo(
-    () =>
-      isLoadingPriorityToken ||
-      isLoadingNetworkChange ||
-      (!priorityToken && !hasError),
-    [isLoadingPriorityToken, isLoadingNetworkChange, priorityToken, hasError],
-  );
-
-  if (hasError) {
+  if (error) {
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -298,7 +261,7 @@ const CardHome = () => {
             length={SensitiveTextLength.Long}
             variant={TextVariant.HeadingLG}
           >
-            {isLoading ||
+            {isLoadingPriorityToken ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
               <SkeletonLoading
@@ -364,7 +327,7 @@ const CardHome = () => {
             styles.defaultHorizontalPadding,
           ]}
         >
-          {isLoading || !priorityToken ? (
+          {isLoadingPriorityToken || !priorityToken ? (
             <SkeletonLoading
               height={50}
               width={'100%'}
@@ -382,7 +345,7 @@ const CardHome = () => {
             styles.defaultHorizontalPadding,
           ]}
         >
-          {isLoading ? (
+          {isLoadingPriorityToken ? (
             <SkeletonLoading
               height={28}
               width={'100%'}
@@ -396,7 +359,7 @@ const CardHome = () => {
               size={ButtonSize.Sm}
               onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
-              loading={isLoading}
+              loading={isLoadingPriorityToken}
               testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
             />
           )}

@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -33,7 +33,6 @@ import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
-import { USER_INTENT } from '../../../../constants/permissions';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -61,13 +60,14 @@ import Badge, {
 } from '../../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
+import { RootState } from '../../../../reducers';
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -80,8 +80,7 @@ export interface MultichainPermissionsSummaryProps {
   onBack?: () => void;
   onCancel?: () => void;
   onConfirm?: () => void;
-  onCreateAccount?: (clientType: WalletClientType, scope: SolScope) => void;
-  onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
+  onRevokeAll?: () => void;
   onAddNetwork?: () => void;
   showActionButtons?: boolean;
   isAlreadyConnected?: boolean;
@@ -99,7 +98,6 @@ export interface MultichainPermissionsSummaryProps {
   tabIndex?: number;
   showPermissionsOnly?: boolean;
   showAccountsOnly?: boolean;
-  promptToCreateSolanaAccount?: boolean;
 }
 
 const MultichainPermissionsSummary = ({
@@ -110,9 +108,10 @@ const MultichainPermissionsSummary = ({
   onBack,
   onCancel,
   onConfirm,
+  onRevokeAll,
   showActionButtons = true,
   isAlreadyConnected = true,
-  isDisconnectAllShown = true,
+  isDisconnectAllShown = false,
   isNetworkSwitch = false,
   isNonDappNetworkSwitch = false,
   selectedAccountGroupIds = [],
@@ -293,9 +292,16 @@ const MultichainPermissionsSummary = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
-    navigate('PermissionsManager');
-  }, [hostname, navigate]);
+    if (onRevokeAll) {
+      // Use custom revoke handler if provided
+      await onRevokeAll();
+    } else {
+      // Fall back to default behavior
+      await Engine.context.PermissionController.hasPermissions(hostname);
+      await Engine.context.PermissionController.revokeAllPermissions(hostname);
+      navigation.navigate(Routes.BROWSER.HOME);
+    }
+  }, [onRevokeAll, hostname, navigation]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     trace({ name: TraceName.DisconnectAllAccountPermissions });
@@ -312,36 +318,6 @@ const MultichainPermissionsSummary = ({
     });
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);
-
-  const getAccountLabel = useCallback(() => {
-    const firstAccountGroup = accountGroups.find((accountGroup) =>
-      selectedAccountGroupIds.includes(accountGroup.id),
-    );
-    if (isAlreadyConnected) {
-      if (selectedAccountGroupIds.length === 1) {
-        return `${strings('permissions.connected_to')} ${
-          firstAccountGroup?.metadata.name
-        }`;
-      }
-
-      return `${selectedAccountGroupIds.length} ${strings(
-        'accounts.accounts_connected',
-      )}`;
-    }
-
-    if (
-      selectedAccountGroupIds.length === 1 &&
-      selectedAccountGroupIds.length >= 1
-    ) {
-      return `${strings('permissions.requesting_for')}${
-        firstAccountGroup?.metadata.name
-      }`;
-    }
-
-    return strings('permissions.requesting_for_accounts', {
-      numberOfAccounts: selectedAccountGroupIds.length,
-    });
-  }, [accountGroups, selectedAccountGroupIds, isAlreadyConnected]);
 
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -370,6 +346,19 @@ const MultichainPermissionsSummary = ({
         selectedAccountGroupIds.includes(accountGroup.id),
       ),
     [accountGroups, selectedAccountGroupIds],
+  );
+
+  const iconSeedAddresses = useSelector((state: RootState) =>
+    selectIconSeedAddressesByAccountGroupIds(state, selectedAccountGroupIds),
+  );
+
+  const renderAccountAvatar = useCallback(
+    (accountGroup: AccountGroupObject) => ({
+      variant: AvatarVariant.Account as const,
+      accountAddress: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
+      size: AvatarSize.Xs,
+    }),
+    [iconSeedAddresses],
   );
 
   function renderAccountPermissionsRequestInfoCard() {
@@ -401,18 +390,14 @@ const MultichainPermissionsSummary = ({
                   ellipsizeMode="tail"
                 >
                   <TextComponent variant={TextVariant.BodySM}>
-                    {getAccountLabel()}
+                    {strings('permissions.requesting_for')}
                   </TextComponent>
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={selectedAccountGroups.map(
-                    (accountGroup) => ({
-                      variant: AvatarVariant.Account,
-                      accountAddress: accountGroup.id,
-                      size: AvatarSize.Xs,
-                    }),
+                  avatarPropsList={selectedAccountGroups.map((accountGroup) =>
+                    renderAccountAvatar(accountGroup),
                   )}
                 />
               </View>

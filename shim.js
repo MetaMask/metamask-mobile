@@ -5,6 +5,7 @@ import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
+  isE2E,
   isTest,
   enableApiCallLogs,
   testConfig,
@@ -22,6 +23,20 @@ import 'react-native-url-polyfill/auto';
 
 // Needed to polyfill browser
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+
+// Log early if running in E2E mode to help diagnose accidental js.env flags
+if (isE2E) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+  );
+  // eslint-disable-next-line no-console
+  console.warn(
+    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+      process.env.METAMASK_ENVIRONMENT || 'unset'
+    }`,
+  );
+}
 
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {

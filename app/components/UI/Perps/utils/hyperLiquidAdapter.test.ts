@@ -560,6 +560,8 @@ describe('hyperLiquidAdapter', () => {
           sinceOpen: '50',
           sinceChange: '25',
         },
+        takeProfitCount: 0,
+        stopLossCount: 0,
       });
     });
   });

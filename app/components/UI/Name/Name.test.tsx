@@ -8,6 +8,7 @@ import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
@@ -27,7 +28,7 @@ const KNOWN_NAME_MOCK = 'Known name';
 describe('Name', () => {
   const mockStore = configureMockStore();
   const initialState = {
-    settings: { useBlockieIcon: true },
+    settings: { avatarAccountType: AvatarAccountType.Maskicon },
   };
   const store = mockStore(initialState);
 
@@ -98,6 +99,28 @@ describe('Name', () => {
           />
         </Provider>,
       );
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('renders account wallet name', () => {
+      const mockAccountWalletName = 'My Wallet Account';
+      mockUseDisplayName.mockReturnValue({
+        variant: DisplayNameVariant.Recognized,
+        name: KNOWN_NAME_MOCK,
+        subtitle: mockAccountWalletName,
+      });
+
+      const wrapper = render(
+        <Provider store={store}>
+          <Name
+            type={NameType.EthereumAddress}
+            value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
+          />
+        </Provider>,
+      );
+
+      expect(wrapper.getByText(mockAccountWalletName)).toBeTruthy();
       expect(wrapper).toMatchSnapshot();
     });
   });

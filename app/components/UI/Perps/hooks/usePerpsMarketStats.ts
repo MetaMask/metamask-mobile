@@ -3,9 +3,11 @@ import Engine from '../../../../core/Engine';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
 import {
-  formatPrice,
   formatLargeNumber,
   formatFundingRate,
+  PRICE_RANGES_DETAILED_VIEW,
+  LARGE_NUMBER_RANGES_DETAILED,
+  formatPerpsFiat,
 } from '../utils/formatUtils';
 import { calculate24hHighLow } from '../utils/marketUtils';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
@@ -110,23 +112,25 @@ export const usePerpsMarketStats = (
       // 24h high/low from candlestick data, with fallback estimates
       high24h:
         high > 0
-          ? formatPrice(high, { minimumDecimals: 2, maximumDecimals: 2 })
-          : formatPrice(fallbackPrice, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
+          ? formatPerpsFiat(high, { ranges: PRICE_RANGES_DETAILED_VIEW })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_DETAILED_VIEW,
             }),
       low24h:
         low > 0
-          ? formatPrice(low, { minimumDecimals: 2, maximumDecimals: 2 })
-          : formatPrice(fallbackPrice, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
+          ? formatPerpsFiat(low, { ranges: PRICE_RANGES_DETAILED_VIEW })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_DETAILED_VIEW,
             }),
       volume24h: marketData.volume24h
-        ? `$${formatLargeNumber(marketData.volume24h)}`
+        ? `$${formatLargeNumber(marketData.volume24h, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
       openInterest: marketData.openInterest
-        ? `$${formatLargeNumber(marketData.openInterest)}`
+        ? `$${formatLargeNumber(marketData.openInterest, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
       fundingRate: formatFundingRate(marketData.funding),
       currentPrice: fallbackPrice,

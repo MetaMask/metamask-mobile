@@ -126,7 +126,14 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "cryptocurrency": "USDC",
         "currency": "USD",
         "data": {
-          "cryptoCurrency": "USDC",
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+            "name": "USD Coin",
+            "symbol": "USDC",
+          },
           "providerOrderLink": "https://transak.com/order/123",
         },
         "id": "test-deposit-order-1",
@@ -143,7 +150,14 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "cryptocurrency": "USDT",
         "currency": "USD",
         "data": {
-          "cryptoCurrency": "USDT",
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
+            "name": "Tether USD",
+            "symbol": "USDT",
+          },
         },
         "id": "test-deposit-order-2",
         "network": "1",
@@ -1664,7 +1678,7 @@ exports[`OrdersList renders correctly 1`] = `
         }
         variant="sHeadingMD"
       >
-        You don't have any orders
+        No bank or card transfers yet.
       </Text>
     </Row>
   }
@@ -1800,7 +1814,14 @@ exports[`OrdersList renders correctly 1`] = `
         "cryptocurrency": "USDC",
         "currency": "USD",
         "data": {
-          "cryptoCurrency": "USDC",
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+            "name": "USD Coin",
+            "symbol": "USDC",
+          },
           "providerOrderLink": "https://transak.com/order/123",
         },
         "id": "test-deposit-order-1",
@@ -1817,7 +1838,14 @@ exports[`OrdersList renders correctly 1`] = `
         "cryptocurrency": "USDT",
         "currency": "USD",
         "data": {
-          "cryptoCurrency": "USDT",
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
+            "name": "Tether USD",
+            "symbol": "USDT",
+          },
         },
         "id": "test-deposit-order-2",
         "network": "1",
@@ -5122,7 +5150,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         }
         variant="sHeadingMD"
       >
-        You don't have any orders
+        No bank or card transfers yet.
       </Text>
     </Row>
   }
@@ -5258,7 +5286,14 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "cryptocurrency": "USDC",
         "currency": "USD",
         "data": {
-          "cryptoCurrency": "USDC",
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+            "name": "USD Coin",
+            "symbol": "USDC",
+          },
           "providerOrderLink": "https://transak.com/order/123",
         },
         "id": "test-deposit-order-1",
@@ -5275,7 +5310,14 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "cryptocurrency": "USDT",
         "currency": "USD",
         "data": {
-          "cryptoCurrency": "USDT",
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
+            "name": "Tether USD",
+            "symbol": "USDT",
+          },
         },
         "id": "test-deposit-order-2",
         "network": "1",
