@@ -27,6 +27,7 @@ export interface AssetDetailsActionsProps {
   onReceive: () => void;
   // Asset context for fund flow
   asset?: {
+    assetId?: string;
     address?: string;
     chainId?: string;
   };

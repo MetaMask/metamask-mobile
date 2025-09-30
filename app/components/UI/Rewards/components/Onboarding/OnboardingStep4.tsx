@@ -28,10 +28,13 @@ import {
   REWARDS_ONBOARD_TERMS_URL,
 } from './constants';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
@@ -214,6 +217,17 @@ const OnboardingStep4: React.FC = () => {
     (!referralCodeIsValid && !!referralCode) ||
     !!subscriptionId ||
     isUnknownErrorReferralCode;
+
+  /**
+   * Auto-redirect to dashboard if user is already opted in
+   */
+  useFocusEffect(
+    useCallback(() => {
+      if (subscriptionId) {
+        navigation.navigate(Routes.REWARDS_DASHBOARD);
+      }
+    }, [subscriptionId, navigation]),
+  );
 
   return (
     <OnboardingStepComponent

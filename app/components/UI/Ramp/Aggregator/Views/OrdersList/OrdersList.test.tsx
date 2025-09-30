@@ -173,6 +173,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
                   },
                 },
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
           },
           NetworkController: {
