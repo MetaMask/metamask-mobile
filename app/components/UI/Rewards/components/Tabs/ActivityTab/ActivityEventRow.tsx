@@ -21,6 +21,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import Logger from '../../../../../../util/Logger';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
@@ -49,6 +50,10 @@ export const ActivityEventRow: React.FC<{
 
       return getNetworkImageSource({ chainId });
     } catch (error) {
+      Logger.error(
+        error as Error,
+        'ActivityEventRow: Failed to derive network image source from event payload',
+      );
       return;
     }
   }, [event]);
