@@ -73,8 +73,9 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
-import { BigNumber } from 'bignumber.js';
 import { RootState } from '../../../../../reducers/index.ts';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { isNullOrUndefined } from '@metamask/utils';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -153,7 +154,6 @@ const BridgeView = () => {
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
   });
 
   const {
@@ -366,9 +366,14 @@ const BridgeView = () => {
       );
     }
 
-    const hasFee =
-      activeQuote &&
-      new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
+    // TODO: remove this once controller types are updated
+    // @ts-expect-error: controller types are not up to date yet
+    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
+    const feePercentage = !isNullOrUndefined(quoteBpsFee)
+      ? quoteBpsFee / 100
+      : BRIDGE_MM_FEE_RATE;
+
+    const hasFee = activeQuote && feePercentage > 0;
 
     const isNoFeeDestinationAsset =
       destToken?.address && noFeeDestAssets?.includes(destToken.address);
@@ -412,7 +417,9 @@ const BridgeView = () => {
               color={TextColor.Alternative}
               style={styles.disclaimerText}
             >
-              {strings('bridge.fee_disclaimer')}
+              {strings('bridge.fee_disclaimer', {
+                feePercentage,
+              })}
             </Text>
           ) : null}
           {!hasFee && isNoFeeDestinationAsset ? (

@@ -11,6 +11,22 @@ import { setOnboardingActiveStep } from '../../../reducers/rewards';
 // Mock dependencies
 jest.mock('./hooks/useGeoRewardsMetadata');
 
+// Mock UnmountOnBlur
+jest.mock('../../Views/UnmountOnBlur', () => {
+  const React = jest.requireActual('react');
+  return function MockUnmountOnBlur({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return React.createElement(
+      'div',
+      { 'data-testid': 'unmount-on-blur' },
+      children,
+    );
+  };
+});
+
 // Mock onboarding step components
 jest.mock('./components/Onboarding/OnboardingIntroStep', () => {
   const React = jest.requireActual('react');
@@ -96,7 +112,6 @@ jest.mock('react-redux', () => {
 
 // Mock selectors
 jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -110,20 +125,13 @@ jest.mock('../../../selectors/accountsController', () => ({
 }));
 
 // Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
   selectOnboardingActiveStep,
   selectOptinAllowedForGeo,
 } from '../../../reducers/rewards/selectors';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -188,7 +196,6 @@ describe('OnboardingNavigator', () => {
     store = createMockStore();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
     mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
     mockSelectOptinAllowedForGeo.mockReturnValue(true);
@@ -306,15 +313,15 @@ describe('OnboardingNavigator', () => {
     });
   });
 
-  describe('Geographic restriction handling', () => {
-    it('resets to intro step when optin is not allowed for geo', async () => {
+  describe('Subscription ID handling', () => {
+    it('resets to intro step and navigates when subscription ID is null', async () => {
       // Arrange
       mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
-      mockSelectOptinAllowedForGeo.mockReturnValue(false);
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
       // Reset mocks before test
       mockDispatch.mockClear();
+      mockNavigate.mockClear();
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -324,45 +331,58 @@ describe('OnboardingNavigator', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           setOnboardingActiveStep(OnboardingStep.INTRO),
         );
+        expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboardingIntro');
       });
     });
 
-    it('does not reset step when optin is allowed for geo', async () => {
+    it('resets to intro step and navigates when subscription ID is undefined', async () => {
       // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
-      mockSelectOptinAllowedForGeo.mockReturnValue(true);
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockSelectRewardsSubscriptionId.mockReturnValue('mock-id');
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_3);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
       // Reset mocks before test
       mockDispatch.mockClear();
+      mockNavigate.mockClear();
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
 
       // Assert
       await waitFor(() => {
-        // Should not dispatch the reset action
+        expect(mockDispatch).toHaveBeenCalledWith(
+          setOnboardingActiveStep(OnboardingStep.INTRO),
+        );
+        expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboardingIntro');
+      });
+    });
+
+    it('does not reset step when subscription ID exists', async () => {
+      // Arrange
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
+      mockSelectRewardsSubscriptionId.mockReturnValue('valid-subscription-id');
+
+      // Reset mocks before test
+      mockDispatch.mockClear();
+      mockNavigate.mockClear();
+
+      // Act
+      renderWithNavigation(<OnboardingNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        // Should not dispatch the reset action or navigate
         expect(mockDispatch).not.toHaveBeenCalledWith(
           setOnboardingActiveStep(OnboardingStep.INTRO),
         );
+        expect(mockNavigate).not.toHaveBeenCalledWith('RewardsOnboardingIntro');
       });
     });
   });
 
   describe('Hook integration', () => {
-    it('calls useGeoRewardsMetadata hook', () => {
-      // Act
-      renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      expect(mockUseGeoRewardsMetadata).toHaveBeenCalled();
-    });
-
     it('uses selectors for state management', () => {
       // Arrange
       // Reset mocks
-      mockSelectRewardsActiveAccountHasOptedIn.mockClear();
       mockSelectRewardsSubscriptionId.mockClear();
       mockSelectOnboardingActiveStep.mockClear();
       mockSelectOptinAllowedForGeo.mockClear();
@@ -380,24 +400,6 @@ describe('OnboardingNavigator', () => {
   });
 
   describe('Navigation stack structure', () => {
-    it('renders all onboarding screens in stack', async () => {
-      // Arrange
-      const { getByTestId, queryByTestId } = renderWithNavigation(
-        <OnboardingNavigator />,
-      );
-
-      // Assert - Should render the initial screen (intro by default)
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-intro-step')).toBeOnTheScreen();
-      });
-
-      // Assert - Other screens should not be rendered initially but stack should be set up
-      expect(queryByTestId('rewards-onboarding-step-1')).toBeNull();
-      expect(queryByTestId('rewards-onboarding-step-2')).toBeNull();
-      expect(queryByTestId('rewards-onboarding-step-3')).toBeNull();
-      expect(queryByTestId('rewards-onboarding-step-4')).toBeNull();
-    });
-
     it('sets headerShown to false for all screens', () => {
       // Act
       const component = renderWithNavigation(<OnboardingNavigator />);
@@ -420,22 +422,6 @@ describe('OnboardingNavigator', () => {
       // Assert - Should default to intro step
       await waitFor(() => {
         expect(getByTestId('rewards-onboarding-intro-step')).toBeOnTheScreen();
-      });
-    });
-
-    it('handles auth selector returning undefined gracefully', async () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(
-        undefined as unknown as boolean | null,
-      );
-
-      // Act
-      const component = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert - Should render without errors
-      expect(component).toBeTruthy();
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalled();
       });
     });
   });

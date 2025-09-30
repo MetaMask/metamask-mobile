@@ -1,12 +1,15 @@
+import { expect } from 'appwright';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
-class PerpsTutorialScreen {
-  get device() {
-    return this._device;
+class PerpsTutorialScreen extends AppwrightGestures {
+  constructor() {
+    super();
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get addFundsButton() {
@@ -30,24 +33,22 @@ class PerpsTutorialScreen {
   }
 
   async tapAddFunds() {
-    const btn = await this.addFundsButton;
-    await btn.tap();
-}
+    await this.tap(this.addFundsButton); // Use inherited tap method with retry logic
+  }
 
   async tapSkip() {
-    const btn = await this.skipButtonTutorial;
-    await btn.tap();
+    await this.tap(this.skipButtonTutorial); // Use inherited tap method with retry logic
   }
 
   async expectFirstScreenVisible() {
     const title = await this.title;
-    await title.isVisible({ timeout: 10000 });
+    expect(await title).toBeVisible({ timeout: 10000 });
   }
 
   async flowTapContinueTutorial(times = 1) {
     const btn = await this.addFundsButton;
     for (let i = 0; i < times; i++) {
-      await btn.tap();
+      await this.tap(btn); // Use inherited tap method with retry logic
     }
   }
 }

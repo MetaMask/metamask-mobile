@@ -42,7 +42,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-large' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
@@ -94,7 +94,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@f932aba72712f44367f89f6e259ea0c8cfedcf68
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -112,7 +112,7 @@ jobs:
         if: ${{ inputs.platform == 'android' }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
-          
+
           # Create required directories
           mkdir -p android/app/build/outputs/apk/prod/release/
 
@@ -151,7 +151,7 @@ jobs:
         if: ${{ inputs.platform == 'ios' }}
         run: |
           echo "🏗 Setting up iOS artifacts from build job..."
-          
+
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
@@ -180,12 +180,12 @@ jobs:
 
           # Run tests (Detox/Jest handle retries internally)
           echo "🚀 Starting E2E tests..."
-          
+
           # Always use the splitting script (handles both split and non-split cases)
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
 
           node .github/scripts/run-e2e-tags-gha.mjs
-          
+
           echo "✅ Test execution completed"
         env:
           JOB_NAME: ${{ inputs.test-suite-name }}
@@ -199,7 +199,7 @@ jobs:
           name: ${{ inputs.test-suite-name }}-test-results
           path: e2e/reports/
           retention-days: 7
-      
+
       - name: Prepare screenshots
         if: failure()
         run: |
