@@ -198,7 +198,7 @@ function TokenSelectModal() {
               name={token.symbol}
               src={{ uri: token.logo }}
               size={AvatarTokenSize.Lg}
-              key={selectedAsset?.logo}
+              key={token.logo}
             />
           </BadgeWrapper>
         </ListItemColumn>
@@ -212,7 +212,6 @@ function TokenSelectModal() {
     ),
     [
       selectedAsset?.id,
-      selectedAsset?.logo,
       getNetworkImageForToken,
       colors.text.alternative,
       handleSelectTokenCallback,
