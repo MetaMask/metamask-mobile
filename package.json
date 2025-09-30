@@ -566,7 +566,7 @@
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
-    "eslint": "9.36.0",
+    "eslint": "^8.44.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-import-resolver-typescript": "^3.5.3",
     "eslint-plugin-import": "^2.27.5",
