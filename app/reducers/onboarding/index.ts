@@ -2,20 +2,32 @@
 
 import {
   CLEAR_EVENTS,
+  CLEAR_ONBOARDING_DEEPLINK,
   OnboardingActionTypes,
   SAVE_EVENT,
   SET_COMPLETED_ONBOARDING,
+  SET_ONBOARDING_DEEPLINK,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+
+export type OnboardingDeepLinkType = 'google' | 'apple' | 'import_srp';
+
+export const ONBOARDING_DEEPLINK_TYPES: OnboardingDeepLinkType[] = [
+  'google',
+  'apple',
+  'import_srp',
+] as const;
 
 export interface OnboardingState {
   events: [ITrackingEvent][];
   completedOnboarding: boolean;
+  onboardingDeepLink: OnboardingDeepLinkType | undefined;
 }
 
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
+  onboardingDeepLink: undefined,
 };
 
 /**
@@ -43,6 +55,18 @@ const onboardingReducer = (
         ...state,
         completedOnboarding: action.completedOnboarding,
       };
+    case SET_ONBOARDING_DEEPLINK: {
+      return {
+        ...state,
+        onboardingDeepLink: action.onboardingDeepLink,
+      };
+    }
+    case CLEAR_ONBOARDING_DEEPLINK: {
+      return {
+        ...state,
+        onboardingDeepLink: undefined,
+      };
+    }
     default:
       return state;
   }

@@ -27,12 +27,17 @@ import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
+  setOnboardingDeepLink,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import {
+  ONBOARDING_DEEPLINK_TYPES,
+  OnboardingDeepLinkType,
+} from '../../reducers/onboarding';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -170,6 +175,32 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = value.completedOnboarding;
     } else {
       completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    if (!completedOnboarding) {
+      const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
+      if (onboardingDeeplink?.includes('onboarding')) {
+        const url = new URL(onboardingDeeplink);
+        let onboardingType: OnboardingDeepLinkType | undefined;
+        url.search
+          .slice(1)
+          .split('&')
+          .forEach((param) => {
+            const [paramKey, paramValue] = param.split('=');
+            if (paramKey === 'type') {
+              onboardingType = paramValue as OnboardingDeepLinkType;
+            }
+          });
+
+        if (
+          onboardingType &&
+          ONBOARDING_DEEPLINK_TYPES.includes(onboardingType)
+        )
+          yield put(setOnboardingDeepLink(onboardingType));
+
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
     }
 
     const { KeyringController } = Engine.context;

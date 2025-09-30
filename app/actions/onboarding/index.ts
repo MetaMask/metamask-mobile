@@ -1,8 +1,11 @@
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+import { OnboardingDeepLinkType } from '../../reducers/onboarding';
 
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
+export const SET_ONBOARDING_DEEPLINK = 'SET_ONBOARDING_DEEPLINK';
+export const CLEAR_ONBOARDING_DEEPLINK = 'CLEAR_ONBOARDING_DEEPLINK';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -18,10 +21,21 @@ export interface SetCompletedOnboardingAction {
   completedOnboarding: boolean;
 }
 
+export interface SetOnboardingDeepLinkAction {
+  type: typeof SET_ONBOARDING_DEEPLINK;
+  onboardingDeepLink: OnboardingDeepLinkType | undefined;
+}
+
+export interface ClearOnboardingDeepLinkAction {
+  type: typeof CLEAR_ONBOARDING_DEEPLINK;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
-  | SetCompletedOnboardingAction;
+  | SetCompletedOnboardingAction
+  | SetOnboardingDeepLinkAction
+  | ClearOnboardingDeepLinkAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -44,5 +58,20 @@ export function setCompletedOnboarding(
   return {
     type: SET_COMPLETED_ONBOARDING,
     completedOnboarding,
+  };
+}
+
+export function setOnboardingDeepLink(
+  onboardingDeepLink: OnboardingDeepLinkType,
+): SetOnboardingDeepLinkAction {
+  return {
+    type: SET_ONBOARDING_DEEPLINK,
+    onboardingDeepLink,
+  };
+}
+
+export function clearOnboardingDeepLink(): ClearOnboardingDeepLinkAction {
+  return {
+    type: CLEAR_ONBOARDING_DEEPLINK,
   };
 }

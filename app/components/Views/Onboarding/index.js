@@ -28,7 +28,10 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  clearOnboardingDeepLink,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -267,6 +270,14 @@ class Onboarding extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * onboarding deep link type
+     */
+    onboardingDeepLink: PropTypes.string | undefined,
+    /**
+     * clear onboarding deep link
+     */
+    clearOnboardingDeepLink: PropTypes.func,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -331,6 +342,21 @@ class Onboarding extends PureComponent {
         importedColors.btnBlack,
       ),
     );
+  };
+
+  handleOnboardingDeeplink = (onboardingDeepLink) => {
+    switch (onboardingDeepLink) {
+      case 'google':
+        this.onPressContinueWithGoogle();
+        break;
+      case 'apple':
+        this.onPressContinueWithApple();
+        break;
+      case 'import_srp':
+        this.onPressImport();
+        break;
+    }
+    this.props.clearOnboardingDeepLink();
   };
 
   componentDidMount() {
@@ -746,6 +772,10 @@ class Onboarding extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    if (this.props.onboardingDeepLink) {
+      this.handleOnboardingDeeplink(this.props.onboardingDeepLink);
+    }
+
     return (
       <View style={styles.ctas}>
         <View style={styles.titleWrapper}>
@@ -904,6 +934,7 @@ const mapStateToProps = (state) => ({
   existingUser: selectExistingUser(state),
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
+  onboardingDeepLink: state.onboarding.onboardingDeepLink,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -912,6 +943,7 @@ const mapDispatchToProps = (dispatch) => ({
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+  clearOnboardingDeepLink: () => dispatch(clearOnboardingDeepLink()),
 });
 
 export default connect(
