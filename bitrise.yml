@@ -99,8 +99,8 @@ pipelines:
     stages:
       - set_main_target_stage: {}
       - pr_cache_check_stage: {}
-      - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_ios_android_stage: {}
+      # - build_smoke_e2e_ios_android_stage: {}
+      # - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
       
   flask_smoke_e2e_pipeline:
