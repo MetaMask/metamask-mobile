@@ -27,17 +27,12 @@ import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
-  setOnboardingDeepLink,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
-import {
-  ONBOARDING_DEEPLINK_TYPES,
-  OnboardingDeepLinkType,
-} from '../../reducers/onboarding';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -196,7 +191,11 @@ export function* handleDeeplinkSaga() {
           onboardingType &&
           ONBOARDING_DEEPLINK_TYPES.includes(onboardingType)
         )
-          yield put(setOnboardingDeepLink(onboardingType));
+          NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV, {
+            params: {
+              onboardingType,
+            },
+          });
 
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
