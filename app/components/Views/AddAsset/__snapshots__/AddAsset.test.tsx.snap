@@ -724,7 +724,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
       <View
         style={
           {
-            "paddingTop": 16,
+            "paddingVertical": 16,
           }
         }
       >
@@ -1007,6 +1007,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
             "fontSize": 18,
             "height": 48,
             "justifyContent": "center",
+            "marginBottom": 16,
             "opacity": 0.5,
             "overflow": "hidden",
             "paddingHorizontal": 16,

@@ -1,7 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SimpleWebview should render correctly 1`] = `
-<View
+<ForwardRef
+  edges={
+    {
+      "bottom": "additive",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -15,5 +20,5 @@ exports[`SimpleWebview should render correctly 1`] = `
       }
     }
   />
-</View>
+</ForwardRef>
 `;
