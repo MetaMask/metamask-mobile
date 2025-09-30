@@ -507,7 +507,7 @@ const PerpsMarketListView = ({
       )}
 
       {/* Balance Actions Component */}
-      <PerpsMarketBalanceActions />
+      {!isSearchVisible && <PerpsMarketBalanceActions />}
 
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 

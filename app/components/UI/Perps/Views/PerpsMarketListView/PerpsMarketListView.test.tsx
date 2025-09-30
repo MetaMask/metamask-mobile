@@ -463,6 +463,33 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('hides PerpsMarketBalanceActions when search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially balance actions should be visible
+      expect(
+        screen.getByTestId('perps-market-balance-actions'),
+      ).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Balance actions should now be hidden
+      expect(
+        screen.queryByTestId('perps-market-balance-actions'),
+      ).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+    });
+
     it('filters markets based on symbol search', () => {
       renderWithProvider(<PerpsMarketListView />);
 
