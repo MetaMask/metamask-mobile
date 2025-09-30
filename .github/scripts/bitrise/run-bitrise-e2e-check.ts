@@ -105,7 +105,6 @@ async function main(): Promise<void> {
 
   // Treat qualifying release PR auto events as eligible even without the label
   const releaseHead = prData.head?.ref || '';
-  const releaseTitleRegex = /^release\/\d+\.\d+\.\d+$/i;
   const isReleaseBranch = /^release\/\d+\.\d+\.\d+$/i.test(releaseHead);
   const isStableBase = prData.base?.ref === 'stable';
   const isReleasePR = isReleaseBranch && isStableBase;
