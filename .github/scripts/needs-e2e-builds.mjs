@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 /**
- * Convert a string to a boolean. Created to make sure the variables are 
+ * Convert a string to a boolean. Created to make sure the variables are
  * evaluated properly by checking if the trimmed, lowercased
  * string is equal to 'true'.
  * @param {string} value - The string to convert
