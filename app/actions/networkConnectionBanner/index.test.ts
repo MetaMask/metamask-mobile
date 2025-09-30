@@ -53,7 +53,7 @@ describe('networkConnectionBanner actions', () => {
 
     it('should require chainId, status, networkName and rpcUrl parameters', () => {
       const chainId = '0x1';
-      const status: NetworkConnectionBannerStatus = 'slow';
+      const status: NetworkConnectionBannerStatus = 'degraded';
       const networkName = 'Ethereum Mainnet';
       const rpcUrl = 'https://mainnet.infura.io/v3/123';
 
