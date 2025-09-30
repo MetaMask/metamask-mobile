@@ -333,6 +333,14 @@ export class RewardsController extends BaseController<
       'RewardsController:isOptInSupported',
       this.isOptInSupported.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getActualSubscriptionId',
+      this.getActualSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getFirstSubscriptionId',
+      this.getFirstSubscriptionId.bind(this),
+    );
   }
 
   /**
@@ -366,6 +374,26 @@ export class RewardsController extends BaseController<
    */
   #getAccountState(account: CaipAccountId): RewardsAccountState | null {
     return this.state.accounts[account] || null;
+  }
+
+  /**
+   * Get the actual subscription ID for a given CAIP account ID
+   * @param account - The CAIP account ID to check
+   * @returns The subscription ID or null if not found
+   */
+  getActualSubscriptionId(account: CaipAccountId): string | null {
+    const accountState = this.#getAccountState(account);
+    return accountState?.subscriptionId || null;
+  }
+
+  /**
+   * Get the first subscription ID from the subscriptions map
+   * @returns The first subscription ID or null if no subscriptions exist
+   */
+  getFirstSubscriptionId(): string | null {
+    if (!this.state.subscriptions) return null;
+    const subscriptionIds = Object.keys(this.state.subscriptions);
+    return subscriptionIds.length > 0 ? subscriptionIds[0] : null;
   }
 
   /**
@@ -586,6 +614,7 @@ export class RewardsController extends BaseController<
   async #performSilentAuth(
     internalAccount?: InternalAccount | null,
     shouldBecomeActiveAccount = true,
+    respectSkipSilentAuth = true,
   ): Promise<string | null> {
     if (!internalAccount) {
       if (shouldBecomeActiveAccount) {
@@ -603,7 +632,7 @@ export class RewardsController extends BaseController<
       ? this.#shouldSkipSilentAuth(account, internalAccount)
       : false;
 
-    if (shouldSkip) {
+    if (shouldSkip && respectSkipSilentAuth) {
       // This means that we'll have a record for this account
       let accountState = this.#getAccountState(account as CaipAccountId);
       if (accountState) {
@@ -1572,6 +1601,11 @@ export class RewardsController extends BaseController<
       return this.state.activeAccount.subscriptionId;
     }
 
+    Logger.log(
+      'RewardsController: Subscriptions map',
+      this.state.subscriptions?.length,
+    );
+
     // Fallback to the first subscription ID from the subscriptions map
     const subscriptionIds = Object.keys(this.state.subscriptions);
     if (subscriptionIds.length > 0) {
@@ -1626,6 +1660,7 @@ export class RewardsController extends BaseController<
           const subscriptionId = await this.#performSilentAuth(
             account,
             false, // shouldBecomeActiveAccount = false
+            false, // respectSkipSilentAuth = false
           );
           if (subscriptionId) {
             Logger.log(

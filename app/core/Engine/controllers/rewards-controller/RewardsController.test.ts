@@ -66,6 +66,7 @@ jest.mock('./services/rewards-data-service', () => {
       optIn: jest.fn(),
       validateReferralCode: jest.fn(),
       claimReward: jest.fn(),
+      login: jest.fn(),
     })),
     InvalidTimestampError: actual.InvalidTimestampError,
   };
@@ -8668,6 +8669,122 @@ describe('RewardsController', () => {
       // Non-EVM and Solana checks should not be called since hardware check failed
       expect(mockIsNonEvmAddress).not.toHaveBeenCalled();
       expect(mockIsSolanaAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getActualSubscriptionId', () => {
+    it('should return subscription ID for existing account', () => {
+      // Arrange
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'test-sub-123',
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: { [CAIP_ACCOUNT_1]: accountState },
+        },
+      });
+
+      // Act
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
+
+      // Assert
+      expect(result).toBe('test-sub-123');
+    });
+
+    it('should return null for non-existent account', () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Act
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null when account has no subscription ID', () => {
+      // Arrange
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: { [CAIP_ACCOUNT_1]: accountState },
+        },
+      });
+
+      // Act
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getFirstSubscriptionId', () => {
+    it('should return first subscription ID when subscriptions exist', () => {
+      // Arrange
+      const subscriptions = {
+        'sub-123': {
+          id: 'sub-123',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+        'sub-456': {
+          id: 'sub-456',
+          referralCode: 'REF456',
+          accounts: [],
+        },
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions,
+        },
+      });
+
+      // Act
+      const result = controller.getFirstSubscriptionId();
+
+      // Assert
+      expect(result).toBe('sub-123'); // First key in the object
+    });
+
+    it('should return null when no subscriptions exist', () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Act
+      const result = controller.getFirstSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
     });
   });
 });

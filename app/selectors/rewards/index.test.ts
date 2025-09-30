@@ -3,6 +3,7 @@ import {
   selectRewardsControllerState,
   selectRewardsSubscriptionId,
   selectRewardsActiveAccountAddress,
+  selectRewardsActiveAccountSubscriptionId,
   selectHideUnlinkedAccountsBanner,
 } from './index';
 
@@ -335,6 +336,64 @@ describe('Rewards Selectors', () => {
 
       // Assert
       expect(result).toBe(expectedAddress);
+    });
+  });
+
+  describe('selectRewardsActiveAccountSubscriptionId', () => {
+    it('returns subscription ID when active account has subscription', () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-123';
+      const state = createMockRootState({
+        activeAccount: {
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          subscriptionId,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        },
+      });
+
+      // Act
+      const result = selectRewardsActiveAccountSubscriptionId(state);
+
+      // Assert
+      expect(result).toBe(subscriptionId);
+    });
+
+    it('returns null when active account has no subscription', () => {
+      // Arrange
+      const state = createMockRootState({
+        activeAccount: {
+          account: 'eip155:1:0x123',
+          hasOptedIn: false,
+          subscriptionId: null,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        },
+      });
+
+      // Act
+      const result = selectRewardsActiveAccountSubscriptionId(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('returns null when no active account exists', () => {
+      // Arrange
+      const state = createMockRootState({
+        activeAccount: null,
+      });
+
+      // Act
+      const result = selectRewardsActiveAccountSubscriptionId(state);
+
+      // Assert
+      expect(result).toBeNull();
     });
   });
 

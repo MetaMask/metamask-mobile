@@ -8,6 +8,7 @@ import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-cont
 import { useFocusEffect } from '@react-navigation/native';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { convertInternalAccountToCaipAccountId } from '../utils';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -43,6 +44,11 @@ jest.mock(
   }),
 );
 
+// Mock utility functions
+jest.mock('../utils', () => ({
+  convertInternalAccountToCaipAccountId: jest.fn(),
+}));
+
 describe('useRewardOptinSummary', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -60,6 +66,10 @@ describe('useRewardOptinSummary', () => {
   const mockUseAccountsOperationsLoadingStates =
     useAccountsOperationsLoadingStates as jest.MockedFunction<
       typeof useAccountsOperationsLoadingStates
+    >;
+  const mockConvertInternalAccountToCaipAccountId =
+    convertInternalAccountToCaipAccountId as jest.MockedFunction<
+      typeof convertInternalAccountToCaipAccountId
     >;
 
   const mockAccount1: InternalAccount = {
@@ -116,7 +126,8 @@ describe('useRewardOptinSummary', () => {
     jest.clearAllMocks();
     mockUseSelector
       .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
-      .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+      .mockReturnValueOnce(mockAccount1) // selectSelectedInternalAccount
+      .mockReturnValueOnce(null); // selectRewardsActiveAccountSubscriptionId
 
     // Mock useDebouncedValue to return accounts by default
     mockUseDebouncedValue.mockReturnValue(mockAccounts);
@@ -128,13 +139,24 @@ describe('useRewardOptinSummary', () => {
       loadingMessage: null,
     });
 
-    // Mock RewardsController:isOptInSupported to return true for all accounts by default
+    // Mock utility functions
+    mockConvertInternalAccountToCaipAccountId.mockImplementation(
+      (account) => `eip155:1:${account.address}`,
+    );
+
+    // Mock RewardsController methods
     mockEngineCall.mockImplementation((method: string, ..._args) => {
       if (method === 'RewardsController:isOptInSupported') {
         return true; // Default: all accounts are supported
       }
       if (method === 'RewardsController:getOptInStatus') {
         return Promise.resolve({ ois: [true, false, true] }); // Default response
+      }
+      if (method === 'RewardsController:getFirstSubscriptionId') {
+        return 'first-subscription-id'; // Default first subscription ID
+      }
+      if (method === 'RewardsController:getActualSubscriptionId') {
+        return 'first-subscription-id'; // Default actual subscription ID
       }
       return Promise.resolve();
     });
@@ -465,7 +487,15 @@ describe('useRewardOptinSummary', () => {
       const focusCallback = mockUseFocusEffect.mock.calls[0][0];
       focusCallback();
 
-      expect(mockEngineCall).not.toHaveBeenCalled();
+      // Should not call the data fetching methods, but coercedLinkedAccounts may still call getFirstSubscriptionId
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        expect.anything(),
+      );
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:getOptInStatus',
+        expect.anything(),
+      );
     });
   });
 
@@ -822,6 +852,426 @@ describe('useRewardOptinSummary', () => {
       // Assert - loading should be false after completion
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
+    });
+  });
+
+  describe('coercedLinkedAccounts logic', () => {
+    it('should return all linked accounts when activeAccountSubscriptionId is null', async () => {
+      // Arrange
+      mockUseSelector
+        .mockReset()
+        .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
+        .mockReturnValueOnce(mockAccount1) // selectSelectedInternalAccount
+        .mockReturnValueOnce(null); // selectRewardsActiveAccountSubscriptionId (null)
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return 'first-subscription-id';
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should return all linked accounts since activeAccountSubscriptionId is null
+      expect(result.current.linkedAccounts).toHaveLength(2);
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+      expect(result.current.linkedAccounts[1]).toMatchObject({
+        ...mockAccount3,
+        hasOptedIn: true,
+      });
+
+      // Should not call getActualSubscriptionId since activeAccountSubscriptionId is null
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        expect.anything(),
+      );
+    });
+
+    it('should return all linked accounts when firstSubscriptionId is null', async () => {
+      // Arrange
+      mockUseSelector
+        .mockReset()
+        .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
+        .mockReturnValueOnce(mockAccount1) // selectSelectedInternalAccount
+        .mockReturnValueOnce('active-subscription-id'); // selectRewardsActiveAccountSubscriptionId
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return null; // firstSubscriptionId is null
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should return all linked accounts since firstSubscriptionId is null
+      expect(result.current.linkedAccounts).toHaveLength(2);
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+      expect(result.current.linkedAccounts[1]).toMatchObject({
+        ...mockAccount3,
+        hasOptedIn: true,
+      });
+
+      // Should not call getActualSubscriptionId since firstSubscriptionId is null
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        expect.anything(),
+      );
+    });
+
+    it('should return all linked accounts when activeAccountSubscriptionId equals firstSubscriptionId', async () => {
+      // Arrange
+      const subscriptionId = 'same-subscription-id';
+      mockUseSelector
+        .mockReset()
+        .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
+        .mockReturnValueOnce(mockAccount1) // selectSelectedInternalAccount
+        .mockReturnValueOnce(subscriptionId); // selectRewardsActiveAccountSubscriptionId
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return subscriptionId; // Same as activeAccountSubscriptionId
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should return all linked accounts since IDs are the same
+      expect(result.current.linkedAccounts).toHaveLength(2);
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+      expect(result.current.linkedAccounts[1]).toMatchObject({
+        ...mockAccount3,
+        hasOptedIn: true,
+      });
+
+      // Should not call getActualSubscriptionId since subscription IDs are the same
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        expect.anything(),
+      );
+    });
+
+    it('should filter linked accounts when activeAccountSubscriptionId differs from firstSubscriptionId', async () => {
+      // Arrange
+      const activeSubscriptionId = 'active-subscription-id';
+      const firstSubscriptionId = 'first-subscription-id';
+
+      let selectorCallCount = 0;
+      mockUseSelector.mockReset().mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 3 === 1) return mockAccounts; // selectInternalAccounts
+        if (selectorCallCount % 3 === 2) return mockAccount1; // selectSelectedInternalAccount
+        if (selectorCallCount % 3 === 0) return activeSubscriptionId; // selectRewardsActiveAccountSubscriptionId
+        return null;
+      });
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return firstSubscriptionId;
+        }
+        if (method === 'RewardsController:getActualSubscriptionId') {
+          const [caipAccountId] = args as [string];
+          // Account1 matches active subscription, Account3 does not
+          if (caipAccountId === `eip155:1:${mockAccount1.address}`) {
+            return activeSubscriptionId;
+          }
+          if (caipAccountId === `eip155:1:${mockAccount3.address}`) {
+            return firstSubscriptionId; // Different from active
+          }
+          return firstSubscriptionId;
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should only return Account1 since it matches the active subscription
+      expect(result.current.linkedAccounts).toHaveLength(1);
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+
+      // Should call getActualSubscriptionId for both linked accounts
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        `eip155:1:${mockAccount1.address}`,
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        `eip155:1:${mockAccount3.address}`,
+      );
+    });
+
+    it('should return empty array when no accounts match the active subscription', async () => {
+      // Arrange
+      const activeSubscriptionId = 'active-subscription-id';
+      const firstSubscriptionId = 'first-subscription-id';
+
+      let selectorCallCount = 0;
+      mockUseSelector.mockReset().mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 3 === 1) return mockAccounts; // selectInternalAccounts
+        if (selectorCallCount % 3 === 2) return mockAccount1; // selectSelectedInternalAccount
+        if (selectorCallCount % 3 === 0) return activeSubscriptionId; // selectRewardsActiveAccountSubscriptionId
+        return null;
+      });
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      mockEngineCall.mockImplementation((method: string, ..._args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return firstSubscriptionId;
+        }
+        if (method === 'RewardsController:getActualSubscriptionId') {
+          // All accounts return firstSubscriptionId (none match active)
+          return firstSubscriptionId;
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should return empty array since no accounts match active subscription
+      expect(result.current.linkedAccounts).toHaveLength(0);
+      expect(result.current.unlinkedAccounts).toHaveLength(1); // Account2 is unlinked
+    });
+
+    it('should handle convertInternalAccountToCaipAccountId returning null', async () => {
+      // Arrange
+      const activeSubscriptionId = 'active-subscription-id';
+      const firstSubscriptionId = 'first-subscription-id';
+
+      let selectorCallCount = 0;
+      mockUseSelector.mockReset().mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 3 === 1) return mockAccounts; // selectInternalAccounts
+        if (selectorCallCount % 3 === 2) return mockAccount1; // selectSelectedInternalAccount
+        if (selectorCallCount % 3 === 0) return activeSubscriptionId; // selectRewardsActiveAccountSubscriptionId
+        return null;
+      });
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      // Mock convertInternalAccountToCaipAccountId to return null for Account3
+      mockConvertInternalAccountToCaipAccountId.mockImplementation(
+        (account) => {
+          if (account.address === mockAccount3.address) {
+            return null; // Conversion fails for Account3
+          }
+          return `eip155:1:${account.address}`;
+        },
+      );
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return firstSubscriptionId;
+        }
+        if (method === 'RewardsController:getActualSubscriptionId') {
+          const [caipAccountId] = args as [string];
+          if (caipAccountId === `eip155:1:${mockAccount1.address}`) {
+            return activeSubscriptionId; // Account1 matches
+          }
+          return firstSubscriptionId;
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should only return Account1 since Account3 conversion failed
+      expect(result.current.linkedAccounts).toHaveLength(1);
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+
+      // Should only call getActualSubscriptionId for Account1
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        `eip155:1:${mockAccount1.address}`,
+      );
+      expect(mockEngineCall).not.toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        `eip155:1:${mockAccount3.address}`,
+      );
+    });
+
+    it('should handle errors from getActualSubscriptionId calls', async () => {
+      // Arrange
+      const activeSubscriptionId = 'active-subscription-id';
+      const firstSubscriptionId = 'first-subscription-id';
+
+      let selectorCallCount = 0;
+      mockUseSelector.mockReset().mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 3 === 1) return mockAccounts; // selectInternalAccounts
+        if (selectorCallCount % 3 === 2) return mockAccount1; // selectSelectedInternalAccount
+        if (selectorCallCount % 3 === 0) return activeSubscriptionId; // selectRewardsActiveAccountSubscriptionId
+        return null;
+      });
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true], // Account1 and Account3 opted in
+      };
+
+      mockEngineCall.mockImplementation((method: string, ...args) => {
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:getOptInStatus') {
+          return Promise.resolve(mockResponse);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return firstSubscriptionId;
+        }
+        if (method === 'RewardsController:getActualSubscriptionId') {
+          const [caipAccountId] = args as [string];
+          if (caipAccountId === `eip155:1:${mockAccount1.address}`) {
+            return activeSubscriptionId; // Account1 matches
+          }
+          if (caipAccountId === `eip155:1:${mockAccount3.address}`) {
+            throw new Error('Failed to get actual subscription ID'); // Account3 throws error
+          }
+          return firstSubscriptionId;
+        }
+        return Promise.resolve();
+      });
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitForNextUpdate();
+
+      // Assert - should only return Account1 since Account3 threw an error
+      expect(result.current.linkedAccounts).toHaveLength(1);
+      expect(result.current.linkedAccounts[0]).toMatchObject({
+        ...mockAccount1,
+        hasOptedIn: true,
+      });
+
+      // Should call getActualSubscriptionId for both accounts
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        `eip155:1:${mockAccount1.address}`,
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActualSubscriptionId',
+        `eip155:1:${mockAccount3.address}`,
+      );
     });
   });
 });
