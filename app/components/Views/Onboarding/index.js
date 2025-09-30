@@ -334,6 +334,8 @@ class Onboarding extends PureComponent {
   };
 
   handleOnboardingDeeplink = (onboardingDeepLink) => {
+    const params = this.props.route.params;
+    this.props.navigation.setParams({ ...params, onboardingType: undefined });
     switch (onboardingDeepLink) {
       case 'google':
         this.onPressContinueWithGoogle();

@@ -187,12 +187,25 @@ export function* handleDeeplinkSaga() {
             }
           });
 
-        if (onboardingType)
-          NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV, {
-            params: {
-              onboardingType,
-            },
-          });
+        if (onboardingType) {
+          const resetRoute = {
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.ONBOARDING,
+                    params: {
+                      onboardingType,
+                    },
+                  },
+                },
+              },
+            ],
+          };
+          NavigationService.navigation?.navigate(resetRoute.routes[0]);
+        }
 
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
