@@ -9,7 +9,7 @@ export interface AlertMessageProps {
   alertMessage: string | undefined;
 }
 
-export function AlertMessage(props: AlertMessageProps) {
+export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
   const { alertMessage } = props;
   const { styles } = useStyles(styleSheet, {});
 
@@ -22,4 +22,4 @@ export function AlertMessage(props: AlertMessageProps) {
       {alertMessage}
     </Text>
   );
-}
+});

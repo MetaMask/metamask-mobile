@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { MAX_LENGTH } from '../../components/edit-amount-2/edit-amount-2';
+import { MAX_LENGTH } from '../../components/transactions/custom-amount/edit-amount-2';
 import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';

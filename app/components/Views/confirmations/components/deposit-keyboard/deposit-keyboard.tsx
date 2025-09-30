@@ -35,7 +35,6 @@ const PERCENTAGE_BUTTONS = [
 
 export interface DepositKeyboardProps {
   alertMessage?: string;
-  hasInput: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -77,7 +76,7 @@ export const DepositKeyboard = memo(
           justifyContent={JustifyContent.spaceBetween}
           gap={10}
         >
-          {(!alertMessage || !hasInput) &&
+          {(!hasInput) &&
             PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}

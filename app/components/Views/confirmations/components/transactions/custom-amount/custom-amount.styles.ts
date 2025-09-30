@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 function getFontSize(length: number) {
   if (length <= 8) return 64;
