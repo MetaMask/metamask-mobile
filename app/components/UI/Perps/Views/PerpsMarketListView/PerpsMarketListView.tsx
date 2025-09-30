@@ -278,6 +278,34 @@ const PerpsMarketListView = ({
       );
     }
 
+    // Empty search results
+    if (searchQuery.trim() && filteredMarkets.length === 0) {
+      return (
+        <View style={styles.emptyStateContainer}>
+          <Icon
+            name={IconName.Search}
+            size={IconSize.Xl}
+            color={theme.colors.icon.muted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            No tokens found
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {`We couldn't find any tokens with the name "${searchQuery}". Try a different search.`}
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <>
         <PerpsMarketListHeader />
