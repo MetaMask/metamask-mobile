@@ -333,19 +333,6 @@ export abstract class MultichainWalletSnapClient {
   }
 }
 
-export class TronWalletSnapClient extends MultichainWalletSnapClient {
-  constructor(snapKeyringOptions: SnapKeyringOptions) {
-    super(TRON_WALLET_SNAP_ID, TRON_WALLET_NAME, snapKeyringOptions);
-  }
-
-  getClientType(): WalletClientType {
-    return WalletClientType.Tron;
-  }
-
-  protected getSnapSender(): Sender {
-    return new TronWalletSnapSender();
-  }
-}
 export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
   constructor(snapKeyringOptions: SnapKeyringOptions) {
     super(BITCOIN_WALLET_SNAP_ID, BITCOIN_WALLET_NAME, snapKeyringOptions);
