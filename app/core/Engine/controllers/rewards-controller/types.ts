@@ -17,26 +17,6 @@ export type SubscriptionDto = {
   }[];
 };
 
-export interface GenerateChallengeDto {
-  address: string;
-}
-
-export interface ChallengeResponseDto {
-  id: string;
-  message: string;
-  domain?: string;
-  address?: string;
-  issuedAt?: string;
-  expirationTime?: string;
-  nonce?: string;
-}
-
-export interface LoginDto {
-  challengeId: string;
-  signature: string;
-  referralCode?: string;
-}
-
 export interface MobileLoginDto {
   /**
    * The account of the user
@@ -55,6 +35,32 @@ export interface MobileLoginDto {
    * @example '0x...'
    */
   signature: `0x${string}`;
+}
+
+export interface MobileOptinDto {
+  /**
+   * The account of the user
+   * @example '0x... or solana address.'
+   */
+  account: string;
+
+  /**
+   * The timestamp (epoch seconds) used in the signature.
+   * @example 1
+   */
+  timestamp: number;
+
+  /**
+   * The signature of the login (hex encoded)
+   * @example '0x...'
+   */
+  signature: `0x${string}`;
+
+  /**
+   * The referral code of the user
+   * @example '123456'
+   */
+  referralCode?: string;
 }
 
 export interface EstimateAssetDto {
