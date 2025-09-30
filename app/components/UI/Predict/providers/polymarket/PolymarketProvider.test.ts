@@ -49,6 +49,7 @@ jest.mock('./utils', () => {
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
     })),
+    getParsedMarketsFromPolymarketApi: jest.fn(),
     getMarketsFromPolymarketApi: jest.fn(),
     getMarketFromPolymarketApi: jest.fn(),
     getTickSize: jest.fn(),
