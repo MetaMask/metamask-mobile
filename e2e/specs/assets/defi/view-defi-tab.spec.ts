@@ -12,6 +12,8 @@ import {
   defiPositionsWithData,
   defiPositionsWithNoData,
 } from '../../../api-mocking/mock-responses/defi-api-mocks';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkManager from '../../../pages/wallet/NetworkManager';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
@@ -115,6 +117,9 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
 
         await WalletView.tapOnDeFiTab();
 
+        await WalletView.tapOnDeFiNetworksFilter();
+        await NetworkListModal.changeNetworkTo('Ethereum Main Network');
+
         await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
         await Assertions.expectTextDisplayed('Aave V2');
@@ -127,7 +132,8 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.expectTextNotDisplayed('$8.48');
 
         await WalletView.tapOnDeFiNetworksFilter();
-        await WalletView.tapTokenNetworkFilterAll();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.closeNetworkManager();
 
         await Assertions.expectTextDisplayed('Aave V2');
         await Assertions.expectTextDisplayed('$14.74');
