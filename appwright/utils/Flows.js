@@ -12,31 +12,8 @@ import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsS
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
 import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
-import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
-import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
-import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../app/components/Views/MultichainAccounts/IntroModal/testIds.js';
-
-/**
- * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
- * @param {Object} device - The device object from Appwright
- */
-export async function dismissSystemDialogs(device) {
-  if (!AppwrightSelectors.isAndroid(device)) {
-    console.log('system alerts are accepted as expected on android');
-    return;
-  }
-  try {
-    await AppwrightSelectors.dismissAlert(device);
-  } catch (error) {
-    // Ignore "no such alert" errors - this is normal when no dialogs are present
-    if (
-      !error.message.includes('no such alert') &&
-      !error.message.includes('modal dialog when one was not open')
-    ) {
-      console.log(`Alert dismissal error: ${error.message}`);
-    }
-  }
-}
+import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
+import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -79,7 +56,6 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await tapPerpsBottomSheetGotItButton(device);
   await dismissMultichainAccountsIntroModal(device);
-  await dismissSystemDialogs(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
 }
@@ -140,34 +116,29 @@ export async function login(device, options = {}) {
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
-  await dismissSystemDialogs(device);
 
   // Only tap intro screens on first login
   if (!skipIntro) {
     await dismissMultichainAccountsIntroModal(device);
     await tapPerpsBottomSheetGotItButton(device);
-    await dismissSystemDialogs(device);
   }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
-  console.log('Looking for perps onboarding button...');
-  const button = await AppwrightSelectors.getElementByID(
-    device,
-    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
-  );
-  await button.tap();
-  console.log('Perps onboarding dismissed');
+  PerpsGTMModal.device = device;
+  const container = await PerpsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
+  }
 }
 
 export async function dismissMultichainAccountsIntroModal(
   device,
   timeout = 5000,
 ) {
-  const closeButton = await AppwrightSelectors.getElementByID(
-    device,
-    MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
-  );
+  MultichainAccountEducationModal.device = device;
+  const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
-    await closeButton.tap();
+    await MultichainAccountEducationModal.tapGotItButton();
   }
 }

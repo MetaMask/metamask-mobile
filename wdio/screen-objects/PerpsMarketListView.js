@@ -1,12 +1,18 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
-class PerpsMarketListView {
+class PerpsMarketListView extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get backButtonMarketList() {
@@ -23,8 +29,7 @@ class PerpsMarketListView {
   }
 
   async tapBackButtonMarketList() {
-    const backButtonMarketList = await this.backButtonMarketList;
-    await backButtonMarketList.tap();
+    await this.tap(this.backButtonMarketList); // Use inherited tap method with retry logic
   }
 }
 
