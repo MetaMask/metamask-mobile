@@ -420,17 +420,12 @@ exports[`NftDetails should render correctly 1`] = `
                                               ]
                                             }
                                           >
-                                            <Image
+                                            <View
+                                              contentFit="cover"
                                               fadeIn={true}
                                               isFullRatio={true}
                                               isTokenImage={true}
-                                              onError={[Function]}
-                                              resizeMode="cover"
-                                              source={
-                                                {
-                                                  "uri": "https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICr6sEjrTDK%2BhfdaXGiZnjM%2BawmNp3vHAw1Ev5N5b97XEQ%3D%3D.png?width=512",
-                                                }
-                                              }
+                                              resizeMode="contain"
                                               style={
                                                 {
                                                   "borderRadius": 8,
@@ -445,9 +440,9 @@ exports[`NftDetails should render correctly 1`] = `
                                         <View
                                           style={
                                             {
+                                              "bottom": 5,
                                               "position": "absolute",
-                                              "right": -4,
-                                              "top": -4,
+                                              "right": 5,
                                             }
                                           }
                                         >

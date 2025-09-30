@@ -1754,15 +1754,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
@@ -3615,15 +3608,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
@@ -7376,15 +7362,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
@@ -9237,15 +9216,8 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
@@ -13528,15 +13500,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
@@ -15389,15 +15354,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {

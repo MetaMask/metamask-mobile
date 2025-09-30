@@ -9,18 +9,11 @@ exports[`AssetIcon should render correctly 1`] = `
   }
   useNativeDriver={true}
 >
-  <Image
+  <View
     fadeIn={true}
-    onError={[Function]}
-    onLoadEnd={[Function]}
     placeholderStyle={
       {
         "backgroundColor": "#f3f5f9",
-      }
-    }
-    source={
-      {
-        "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
       }
     }
     style={

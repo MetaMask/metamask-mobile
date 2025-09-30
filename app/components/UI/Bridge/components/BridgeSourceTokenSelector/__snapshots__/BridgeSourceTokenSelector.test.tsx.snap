@@ -1508,15 +1508,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
@@ -2084,15 +2077,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {

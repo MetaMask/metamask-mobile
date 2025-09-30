@@ -58,13 +58,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
         }
       >
         <View>
-          <Image
-            onError={[Function]}
-            source={
-              {
-                "uri": "",
-              }
-            }
+          <View
             style={
               [
                 {
@@ -230,13 +224,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
-                  source={
-                    {
-                      "uri": "",
-                    }
-                  }
+                <View
                   style={
                     [
                       {
@@ -389,13 +377,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
-                  source={
-                    {
-                      "uri": "",
-                    }
-                  }
+                <View
                   style={
                     [
                       {
@@ -544,13 +526,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
-                  source={
-                    {
-                      "uri": "",
-                    }
-                  }
+                <View
                   style={
                     [
                       {
@@ -709,13 +685,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
-                  source={
-                    {
-                      "uri": "",
-                    }
-                  }
+                <View
                   style={
                     [
                       {

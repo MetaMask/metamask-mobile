@@ -1,19 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RemoteImage should render ipfs sources 1`] = `
-<Image
-  onError={[Function]}
-  source={
-    {
-      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
-    }
-  }
-/>
-`;
+exports[`RemoteImage should render ipfs sources 1`] = `<View />`;
 
 exports[`RemoteImage should render static sources 1`] = `
-<Image
+<MockedExpoImage
   onError={[Function]}
+  onLoad={[Function]}
   source={
     {
       "uri": "https://s3.amazonaws.com/airswap-token-images/OXT.png",
@@ -23,28 +15,15 @@ exports[`RemoteImage should render static sources 1`] = `
 `;
 
 exports[`RemoteImage should render svg correctly 1`] = `
-<ComponentErrorBoundary
-  componentLabel="RemoteImage-SVG"
->
-  <View
-    style={
-      {
-        "overflow": "hidden",
-      }
+<MockedExpoImage
+  onError={[Function]}
+  onLoad={[Function]}
+  source={
+    {
+      "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
     }
-  >
-    <SvgUri
-      height="100%"
-      source={
-        {
-          "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
-        }
-      }
-      uri="https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg"
-      width="100%"
-    />
-  </View>
-</ComponentErrorBoundary>
+  }
+/>
 `;
 
 exports[`RemoteImage should render with Solana network badge when on Solana network 1`] = `
@@ -66,16 +45,10 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
     >
       <View>
         <View>
-          <Image
+          <View
+            contentFit="cover"
             fadeIn={true}
             isTokenImage={true}
-            onError={[Function]}
-            resizeMode="cover"
-            source={
-              {
-                "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
-              }
-            }
             style={
               {
                 "borderRadius": 8,
@@ -89,9 +62,9 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
       <View
         style={
           {
+            "bottom": 5,
             "position": "absolute",
-            "right": -4,
-            "top": -4,
+            "right": 5,
           }
         }
       >

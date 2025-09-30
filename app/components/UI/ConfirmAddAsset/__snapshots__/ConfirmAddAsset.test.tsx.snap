@@ -71,19 +71,12 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                 }
                 useNativeDriver={true}
               >
-                <Image
+                <View
                   address="0xdac17f958d2ee523a2206206994597c13d831ec7"
                   fadeIn={true}
-                  onError={[Function]}
-                  onLoadEnd={[Function]}
                   placeholderStyle={
                     {
                       "backgroundColor": "#f3f5f9",
-                    }
-                  }
-                  source={
-                    {
-                      "uri": "https://example.com/usdt.png",
                     }
                   }
                   style={

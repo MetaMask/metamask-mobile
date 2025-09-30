@@ -557,8 +557,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             testID="badge-wrapper-badge"
           >
             <View>
-              <Image
-                onError={[Function]}
+              <View
                 placeholderStyle={
                   {
                     "backgroundColor": "#f3f5f9",
@@ -567,11 +566,6 @@ exports[`NotificationsDetails renders correctly 1`] = `
                     "borderWidth": 0.5,
                     "height": 32,
                     "width": 32,
-                  }
-                }
-                source={
-                  {
-                    "uri": "",
                   }
                 }
                 style={

@@ -1,12 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Image, View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
-import { SvgUri } from 'react-native-svg';
-import isUrl from 'is-url';
-import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import Identicon from '../../UI/Identicon';
@@ -27,7 +24,6 @@ import images from 'images/image-icons';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 
 import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
 import { toHex } from '@metamask/controller-utils';
@@ -38,12 +34,10 @@ import {
 } from '../../../util/networks/customNetworks';
 
 import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+import { Image as ExpoImage } from 'expo-image';
 
 const createStyles = () =>
   StyleSheet.create({
-    svgContainer: {
-      overflow: 'hidden',
-    },
     badgeWrapper: {
       flex: 1,
     },
@@ -55,13 +49,21 @@ const createStyles = () =>
     detailedImageStyle: {
       borderRadius: 8,
     },
+    textWrapper: {
+      textAlign: 'center',
+      marginTop: 16,
+    },
+    textWrapperIcon: {
+      textAlign: 'center',
+      fontSize: 18,
+      marginTop: 16,
+    },
   });
 
 const RemoteImage = (props) => {
   const [error, setError] = useState(undefined);
   // Avoid using this component with animated SVG
   const source = resolveAssetSource(props.source);
-  const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
   const currentChainId = useSelector(selectChainId);
@@ -77,7 +79,7 @@ const RemoteImage = (props) => {
       ? ''
       : source.uri);
 
-  const onError = ({ nativeEvent: { error } }) => setError(error);
+  const onError = ({ error }) => setError(error);
 
   const [dimensions, setDimensions] = useState(null);
 
@@ -99,39 +101,48 @@ const RemoteImage = (props) => {
     }
   }, [props.source.uri, ipfsGateway]);
 
-  useEffect(() => {
-    const calculateImageDimensions = (imageWidth, imageHeight) => {
-      const deviceWidth = Dimensions.get('window').width;
-      const maxWidth = deviceWidth - 32;
-      const maxHeight = 0.75 * maxWidth;
+  const calculateImageDimensions = useCallback((imageWidth, imageHeight) => {
+    const deviceWidth = Dimensions.get('window').width;
+    const maxWidth = deviceWidth - 32;
+    const maxHeight = 0.75 * maxWidth;
 
-      if (imageWidth > imageHeight) {
-        // Horizontal image
-        const width = maxWidth;
-        const height = (imageHeight / imageWidth) * maxWidth;
-        return { width, height };
-      } else if (imageHeight > imageWidth) {
-        // Vertical image
-        const height = maxHeight;
-        const width = (imageWidth / imageHeight) * maxHeight;
-        return { width, height };
-      }
-      // Square image
-      return { width: maxHeight, height: maxHeight };
-    };
+    if (imageWidth > imageHeight) {
+      // Horizontal image
+      const width = maxWidth;
+      const height = (imageHeight / imageWidth) * maxWidth;
+      return { width, height };
+    } else if (imageHeight > imageWidth) {
+      // Vertical image
+      const height = maxHeight;
+      const width = (imageWidth / imageHeight) * maxHeight;
+      return { width, height };
+    }
+    // Square image
+    return { width: maxHeight, height: maxHeight };
+  }, []);
 
-    Image.getSize(
-      uri,
-      (width, height) => {
-        const { width: calculatedWidth, height: calculatedHeight } =
-          calculateImageDimensions(width, height);
-        setDimensions({ width: calculatedWidth, height: calculatedHeight });
-      },
-      () => {
+  const onImageLoad = useCallback(
+    (event) => {
+      try {
+        const { width, height } = event.source;
+        if (width && height) {
+          const { width: calculatedWidth, height: calculatedHeight } =
+            calculateImageDimensions(width, height);
+          setDimensions({ width: calculatedWidth, height: calculatedHeight });
+        }
+      } catch (err) {
         Logger.log('Failed to get image dimensions');
-      },
-    );
-  }, [uri]);
+      }
+    },
+    [calculateImageDimensions],
+  );
+
+  const formatTokenId = (tokenId) => {
+    if (tokenId.toString().length > 9) {
+      return tokenId.toString().replace(/^(..).*?(.{4})$/, '$1...$2');
+    }
+    return tokenId;
+  };
 
   const NetworkBadgeSource = useCallback(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -160,52 +171,15 @@ const RemoteImage = (props) => {
     return undefined;
   }, [chainId]);
 
-  const isSVG =
-    source &&
-    source.uri &&
-    source.uri.match('.svg') &&
-    (isImageUrl || resolvedIpfsUrl);
-
-  const viewbox = useSvgUriViewBox(uri, isSVG);
-
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
-  }
-
-  if (isSVG) {
-    const style = props.style || {};
-    if (source.__packager_asset && typeof style !== 'number') {
-      if (!style.width) {
-        style.width = source.width;
-      }
-      if (!style.height) {
-        style.height = source.height;
-      }
-    }
-
-    return (
-      <ComponentErrorBoundary
-        onError={props.onError}
-        componentLabel="RemoteImage-SVG"
-      >
-        <View style={{ ...style, ...styles.svgContainer }}>
-          <SvgUri
-            {...props}
-            uri={uri}
-            width={'100%'}
-            height={'100%'}
-            viewBox={viewbox}
-          />
-        </View>
-      </ComponentErrorBoundary>
-    );
   }
 
   if (props.fadeIn) {
     const { style, ...restProps } = props;
     const badge = {
-      top: -4,
-      right: -4,
+      bottom: 5,
+      right: 5,
     };
     return (
       <>
@@ -226,14 +200,30 @@ const RemoteImage = (props) => {
                     />
                   }
                 >
-                  <Image
-                    source={{ uri }}
-                    style={{
-                      width: dimensions.width,
-                      height: dimensions.height,
-                      ...styles.detailedImageStyle,
-                    }}
-                  />
+                  {props.tokenId ? (
+                    <View
+                      style={{
+                        width: dimensions.width,
+                        height: dimensions.height,
+                        ...styles.detailedImageStyle,
+                      }}
+                    >
+                      <Text style={styles.textWrapperIcon}>
+                        {` #${formatTokenId(parseInt(props.tokenId, 10))}`}
+                      </Text>
+                    </View>
+                  ) : (
+                    <ExpoImage
+                      source={{ uri }}
+                      style={{
+                        width: dimensions.width,
+                        height: dimensions.height,
+                        ...styles.detailedImageStyle,
+                      }}
+                      onLoad={onImageLoad}
+                      onError={onError}
+                    />
+                  )}
                 </BadgeWrapper>
               ) : (
                 <BadgeWrapper
@@ -250,13 +240,22 @@ const RemoteImage = (props) => {
                   }
                 >
                   <View style={style}>
-                    <Image
-                      style={styles.imageStyle}
-                      {...restProps}
-                      source={{ uri }}
-                      onError={onError}
-                      resizeMode={'cover'}
-                    />
+                    {props.tokenId ? (
+                      <View style={styles.imageStyle}>
+                        <Text style={styles.textWrapper}>
+                          {` #${formatTokenId(parseInt(props.tokenId, 10))}`}
+                        </Text>
+                      </View>
+                    ) : (
+                      <ExpoImage
+                        style={styles.imageStyle}
+                        {...restProps}
+                        source={{ uri }}
+                        onLoad={onImageLoad}
+                        onError={onError}
+                        contentFit={'cover'}
+                      />
+                    )}
                   </View>
                 </BadgeWrapper>
               )}
@@ -264,14 +263,26 @@ const RemoteImage = (props) => {
           </FadeIn>
         ) : (
           <FadeIn placeholderStyle={props.placeholderStyle}>
-            <Image {...props} source={{ uri }} onError={onError} />
+            <ExpoImage
+              {...props}
+              source={{ uri }}
+              onLoad={onImageLoad}
+              onError={onError}
+            />
           </FadeIn>
         )}
       </>
     );
   }
 
-  return <Image {...props} source={{ uri }} onError={onError} />;
+  return (
+    <ExpoImage
+      {...props}
+      source={{ uri }}
+      onLoad={onImageLoad}
+      onError={onError}
+    />
+  );
 };
 
 RemoteImage.propTypes = {
@@ -305,6 +316,8 @@ RemoteImage.propTypes = {
   address: PropTypes.string,
 
   isTokenImage: PropTypes.bool,
+
+  tokenId: PropTypes.string,
 
   isFullRatio: PropTypes.bool,
   chainId: PropTypes.string,

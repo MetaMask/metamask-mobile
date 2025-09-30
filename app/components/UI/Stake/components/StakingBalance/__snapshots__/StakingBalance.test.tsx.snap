@@ -32,15 +32,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
         <View
           useNativeDriver={true}
         >
-          <Image
+          <View
             fadeIn={true}
-            onError={[Function]}
-            onLoadEnd={[Function]}
-            source={
-              {
-                "uri": "",
-              }
-            }
             style={
               [
                 {
@@ -827,15 +820,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         <View
           useNativeDriver={true}
         >
-          <Image
+          <View
             fadeIn={true}
-            onError={[Function]}
-            onLoadEnd={[Function]}
-            source={
-              {
-                "uri": "",
-              }
-            }
             style={
               [
                 {

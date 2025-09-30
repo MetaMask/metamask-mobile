@@ -1517,15 +1517,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
-                                                source={
-                                                  {
-                                                    "uri": "",
-                                                  }
-                                                }
                                                 style={
                                                   [
                                                     {
