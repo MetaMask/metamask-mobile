@@ -3,9 +3,12 @@ import { ContentfulClientApi, createClient } from 'contentful';
 import * as DeviceInfoModule from 'react-native-device-info';
 import {
   fetchCarouselSlidesFromContentful,
+  getContentfulEnvironmentDetails,
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
+import { getContentPreviewToken } from '../../../actions/notification/helpers';
+import { isProduction } from '../../../util/environment';
 
 jest.mock('contentful', () => ({
   createClient: jest.fn(),
@@ -16,6 +19,67 @@ jest.mock('./constants', () => ({
   SPACE_ID: jest.fn().mockReturnValue('mockSpaceId'),
   ACCESS_TOKEN: jest.fn().mockReturnValue('mockAccessToken'),
 }));
+
+jest.mock('../../../actions/notification/helpers');
+
+jest.mock('../../../util/environment', () => ({
+  isProduction: jest.fn().mockReturnValue(true),
+}));
+
+describe('getContentfulEnvironmentDetails', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const arrangeMocks = () => {
+    const mockGetContentPreviewToken = jest
+      .mocked(getContentPreviewToken)
+      .mockReturnValue(undefined);
+
+    const mockIsProduction = jest.mocked(isProduction).mockReturnValue(true);
+
+    return {
+      mockGetContentPreviewToken,
+      mockIsProduction,
+    };
+  };
+
+  it('returns preview prod environment if token provided', () => {
+    const mocks = arrangeMocks();
+    mocks.mockGetContentPreviewToken.mockReturnValue('AAA');
+
+    const result = getContentfulEnvironmentDetails();
+    expect(result).toStrictEqual({
+      environment: 'master',
+      domain: 'preview.contentful.com',
+      accessToken: 'AAA',
+      spaceId: SPACE_ID(),
+    });
+  });
+
+  it('returns prod environment is using production', () => {
+    arrangeMocks();
+
+    const result = getContentfulEnvironmentDetails();
+    expect(result).toStrictEqual({
+      environment: 'master',
+      domain: 'cdn.contentful.com',
+      accessToken: ACCESS_TOKEN(),
+      spaceId: SPACE_ID(),
+    });
+  });
+
+  it('returns preview dev environment is not in production', () => {
+    const mocks = arrangeMocks();
+    mocks.mockIsProduction.mockReturnValue(false);
+
+    const result = getContentfulEnvironmentDetails();
+    expect(result).toStrictEqual({
+      environment: 'dev',
+      domain: 'preview.contentful.com',
+      accessToken: ACCESS_TOKEN(),
+      spaceId: SPACE_ID(),
+    });
+  });
+});
 
 describe('fetchCarouselSlidesFromContentful', () => {
   beforeEach(() => {

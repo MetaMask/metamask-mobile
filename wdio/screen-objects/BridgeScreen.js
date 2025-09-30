@@ -1,15 +1,24 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
-class BridgeScreen {
+import Selectors from '../helpers/Selectors.js';
+import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+
+class BridgeScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
   get sourceTokenInput() {
     return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
@@ -29,6 +38,20 @@ class BridgeScreen {
   get seeAllDropDown(){
     return AppwrightSelectors.getElementByText(this._device, "See all");
 
+  }
+
+  getNetworkButton(networkName) {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+      } else {
+        return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
+      }
+    }
   }
 
   get getETHQuotesButton(){
@@ -54,29 +77,28 @@ class BridgeScreen {
         if (digit != '.') {
           const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
           await numberKey.waitFor('visible',{ timeout: 30000 });
-          await numberKey.tap();
+          await this.tap(numberKey);
         }
         else {
           const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
           await numberKey.waitFor('visible',{ timeout: 30000 });
-          await numberKey.tap();
+          await this.tap(numberKey);
         }
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         await numberKey.waitFor('visible', { timeout: 30000 });
-        await numberKey.tap();
+        await this.tap(numberKey);
       }
     }
   }
 
   async selectNetworkAndTokenTo(network, token) {
       const destinationToken = await this.destinationTokenArea;
-      await destinationToken.tap();
-      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);;
-      await networkButton.tap();
+      await this.tap(destinationToken);
+      await this.tap(this.getNetworkButton(network));
       const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
-      await tokenField.fill(token);
+      await this.typeText(tokenField, token); // Use inherited typeText method with retry logic
       let tokenNetworkId;
       if (network == 'Ethereum'){
         tokenNetworkId = `0x1`;
@@ -108,23 +130,23 @@ class BridgeScreen {
       console.log('Token button found and visible');
       
       console.log('About to hide keyboard...');
-      await AppwrightSelectors.hideKeyboard(this._device);
+      await AppwrightGestures.hideKeyboard(this._device);
       console.log('Keyboard hidden successfully');
 
       console.log('About to tap token button...');
       
       // Try multiple tap strategies for iOS
       if (AppwrightSelectors.isAndroid(this._device)) {
-        await tokenButton.tap();
+        await this.tap(tokenButton);
       } else {
         // iOS-specific tap strategy
         console.log('Using iOS-specific tap strategy...');
         try {
-          await tokenButton.tap();
+          await this.tap(tokenButton);
           console.log('iOS click() succeeded');
         } catch (error) {
           console.log('iOS click() failed, trying tap()...');
-          await tokenButton.tap();
+          await this.tap(tokenButton);
           console.log('iOS tap() succeeded');
         }
       }
@@ -143,7 +165,7 @@ class BridgeScreen {
         console.log('Number input field not visible - token tap may not have worked, trying alternative tap method...');
         
         // Try alternative tap methods for iOS
-        await tokenButton.tap(); // Try click instead of tap
+        await this.tap(tokenButton); // Try click instead of tap
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         console.log('Tried alternative tap methods');
@@ -154,7 +176,7 @@ class BridgeScreen {
     if (network == 'Ethereum'){
     const quotesButton = await this.getETHQuotesButton;
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
-    await quotesButton.tap();
+    await this.tap(quotesButton);
     }
   }
 
@@ -169,7 +191,7 @@ class BridgeScreen {
 
   async enterDestinationTokenAmount(amount) {
     const element = await this.destTokenInput;
-    await element.fill(amount);
+    await this.typeText(element, amount); // Use inherited typeText method with retry logic
   }
 
   async isVisible() {
