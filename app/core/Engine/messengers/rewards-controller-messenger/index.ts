@@ -10,8 +10,7 @@ import {
   RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
-  RewardsDataServiceGenerateChallengeAction,
-  RewardsDataServiceOptinAction,
+  RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
@@ -48,8 +47,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
-  | RewardsDataServiceGenerateChallengeAction
-  | RewardsDataServiceOptinAction
+  | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
@@ -91,8 +89,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
-      'RewardsDataService:generateChallenge',
-      'RewardsDataService:optin',
+      'RewardsDataService:mobileOptin',
       'RewardsDataService:logout',
       'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',
