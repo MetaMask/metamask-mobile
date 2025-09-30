@@ -167,6 +167,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [requestedCaip25CaveatValue],
   );
 
+  const requestedNamespacesWithoutWallet = useMemo(
+    () =>
+      requestedNamespaces.filter(
+        (namespace) => namespace !== KnownCaipNamespace.Wallet,
+      ),
+    [requestedNamespaces],
+  );
+
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -226,9 +234,21 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       ...testNetworkConfigurations,
     ].map(({ caipChainId }) => caipChainId);
 
-    const supportedRequestedCaipChainIds = requestedCaipChainIds.filter(
-      (requestedCaipChainId) =>
-        allNetworksList.includes(requestedCaipChainId as CaipChainId),
+    const namespacesToCaipChainIds = nonTestNetworkConfigurations
+      .map(({ caipChainId }) => caipChainId)
+      .filter((caipChainId) =>
+        requestedNamespacesWithoutWallet.includes(
+          parseCaipChainId(caipChainId).namespace,
+        ),
+      );
+
+    const supportedRequestedCaipChainIds = Array.from(
+      new Set([
+        ...requestedCaipChainIds.filter((requestedCaipChainId) =>
+          allNetworksList.includes(requestedCaipChainId as CaipChainId),
+        ),
+        ...namespacesToCaipChainIds,
+      ]),
     );
 
     // If globally selected network is a test network, include that in the default selected networks for connection request
@@ -266,12 +286,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
     return defaultSelectedNetworkList;
   }, [
-    alreadyConnectedCaipChainIds,
-    currentlySelectedNetwork,
-    testNetworkConfigurations,
     nonTestNetworkConfigurations,
+    testNetworkConfigurations,
     requestedCaipChainIds,
+    currentlySelectedNetwork.chainId,
     requestedNamespaces,
+    requestedNamespacesWithoutWallet,
+    alreadyConnectedCaipChainIds,
   ]);
 
   const {
@@ -284,7 +305,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     existingPermissionsCaip25CaveatValue,
     requestedCaipAccountIds,
     requestedAndAlreadyConnectedCaipChainIdsOrDefault,
-    requestedNamespaces,
+    requestedNamespacesWithoutWallet,
   );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
