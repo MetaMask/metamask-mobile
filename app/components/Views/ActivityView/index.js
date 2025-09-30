@@ -280,7 +280,7 @@ const ActivityView = () => {
                         numberOfLines={1}
                       >
                         {enabledNetworks.length > 1
-                          ? strings('wallet.all_networks')
+                          ? strings('wallet.popular_networks')
                           : currentNetworkName ??
                             strings('wallet.current_network')}
                       </TextComponent>
