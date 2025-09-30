@@ -95,7 +95,7 @@ class SendScreen {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-      await AppwrightGestures.typeText(element, address); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, address);
     }
   }
 

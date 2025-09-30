@@ -124,7 +124,7 @@ class SwapScreen {
   }
 
   async enterDestinationTokenAmount(amount) {
-    await AppwrightGestures.typeText(this.destTokenInput, amount); // Use static typeText method with retry logic
+    await AppwrightGestures.typeText(this.destTokenInput, amount);
   }
 
   async isVisible() {

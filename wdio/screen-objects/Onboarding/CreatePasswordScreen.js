@@ -79,7 +79,7 @@ class CreatePasswordScreen {
       await Gestures.setValueWithoutTap(this.newPasswordInput, password);
     } else {
       const element = await this.newPasswordInput;
-      await AppwrightGestures.typeText(element, password); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, password);
     }
   }
 
@@ -88,7 +88,7 @@ class CreatePasswordScreen {
       await Gestures.setValueWithoutTap(this.confirmPasswordInput, password);
     } else {
       const element = await this.confirmPasswordInput;
-      await AppwrightGestures.typeText(element, password); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, password);
     }
   }
 

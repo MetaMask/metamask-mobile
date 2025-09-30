@@ -95,7 +95,7 @@ class BridgeScreen {
       await AppwrightGestures.tap(destinationToken);
       await AppwrightGestures.tap(this.getNetworkButton(network));
       const tokenField = AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
-      await AppwrightGestures.typeText(tokenField, token); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(tokenField, token);
       let tokenNetworkId;
       if (network == 'Ethereum'){
         tokenNetworkId = `0x1`;
@@ -188,7 +188,7 @@ class BridgeScreen {
 
   async enterDestinationTokenAmount(amount) {
     const element = this.destTokenInput;
-    await AppwrightGestures.typeText(element, amount); // Use static typeText method with retry logic
+    await AppwrightGestures.typeText(element, amount);
   }
 
   async isVisible() {

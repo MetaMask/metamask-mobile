@@ -88,7 +88,7 @@ class ImportFromSeedScreen {
         const lastWord = phraseArray[phraseArray.length - 1];
         const form = await this.seedPhraseInput
 
-        await AppwrightGestures.typeText(form, `${firstWord} `); // Use static typeText method with retry logic
+        await AppwrightGestures.typeText(form, `${firstWord} `);
         for (let i = 1; i < phraseArray.length - 1; i++) {
           let index = i;  
           if (AppwrightSelectors.isIOS(this._device)) { // SRP fields on iOS starts from 1
@@ -101,17 +101,17 @@ class ImportFromSeedScreen {
             input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           else
             input = await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-          await AppwrightGestures.typeText(input, `${phraseArray[i]} `); // Use static typeText method with retry logic
+          await AppwrightGestures.typeText(input, `${phraseArray[i]} `);
           await AppwrightGestures.tap(input);
         }
         const wordElement = await this.inputOfIndex(AppwrightSelectors.isAndroid(this._device) ? phraseArray.length - 1 : phraseArray.length);
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-        await AppwrightGestures.typeText(lastInput, lastWord); // Use static typeText method with retry logic
+        await AppwrightGestures.typeText(lastInput, lastWord);
       } else {
         for (let i = 1; i <= phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
           const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
-          await AppwrightGestures.typeText(input, `${phraseArray[i-1]} `); // Use static typeText method with retry logic
+          await AppwrightGestures.typeText(input, `${phraseArray[i-1]} `);
           await AppwrightGestures.tap(input);
         }
       }

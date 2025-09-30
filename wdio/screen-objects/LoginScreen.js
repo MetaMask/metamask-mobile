@@ -126,7 +126,7 @@ class LoginScreen {
     } else {
       const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
-      await AppwrightGestures.typeText(element, password); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, password);
       await screenTitle.tap()
     }
   }

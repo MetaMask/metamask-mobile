@@ -230,7 +230,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await AppwrightGestures.typeText(element, text); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -247,7 +247,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await AppwrightGestures.typeText(element, text); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -266,7 +266,7 @@ class NetworksScreen {
     } else {
       await this._device.tap({ x: 399, y: 400 });
       const element = await this.inputChainIdField;
-      await AppwrightGestures.typeText(element, text); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -283,7 +283,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await AppwrightGestures.typeText(element, text); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, text);
     }
   }
 

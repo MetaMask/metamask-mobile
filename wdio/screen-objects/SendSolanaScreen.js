@@ -45,15 +45,15 @@ class SendSolanaScreen {
   async fillAddressField(address) {
     const element = await this.addressField;
     if (AppwrightSelectors.isIOS(this._device)) {
-      await AppwrightGestures.typeText(element, `${address}\n`); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, `${address}\n`);
     } else{
-      await AppwrightGestures.typeText(element, `${address}`); // Use static typeText method with retry logic
+      await AppwrightGestures.typeText(element, `${address}`);
     }
   }
 
   async fillAmountField(amount) {
     const element = await this.amountField;
-    await AppwrightGestures.typeText(element, amount); // Use static typeText method with retry logic
+    await AppwrightGestures.typeText(element, amount);
     const continueButton = await this.continueButton;
     await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
   }

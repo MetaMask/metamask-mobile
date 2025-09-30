@@ -42,7 +42,7 @@ class PerpsDepositScreen {
   }
 
   async fillUsdAmount(amount) {
-    await AppwrightGestures.typeText(this.amountInput, String(amount)); // Use static typeText method with retry logic
+    await AppwrightGestures.typeText(this.amountInput, String(amount));
   }
 
   async tapPayWith() {
