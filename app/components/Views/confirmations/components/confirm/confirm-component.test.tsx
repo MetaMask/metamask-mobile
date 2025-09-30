@@ -359,7 +359,7 @@ describe('Confirm', () => {
 
   it('displays alternate loader if specified', () => {
     useParamsMock.mockReturnValue({
-      loader: ConfirmationLoader.PerpsDeposit,
+      loader: ConfirmationLoader.CustomAmount,
     });
 
     const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);

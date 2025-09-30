@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { useAlerts } from '../../context/alert-system-context';
-import { usePerpsDepositAlerts } from '../../external/perps-temp/hooks/usePerpsDepositAlerts';
+import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
@@ -28,7 +28,7 @@ export function useTransactionCustomAmountAlerts({
   pendingTokenAmount: string;
 }) {
   const { alerts: confirmationAlerts } = useAlerts();
-  const pendingTokenAlerts = usePerpsDepositAlerts({ pendingTokenAmount });
+  const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
   const filteredConfirmationAlerts = useMemo(
     () =>
