@@ -89,7 +89,8 @@ function getBuildTypeFeatures() {
 
   // Add sample-feature only if explicitly enabled via env var
   if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
-    features.add('sample-feature');
+    // Create a new Set to avoid mutating the shared module-level Set
+    return new Set([...features, 'sample-feature']);
   }
 
   return features;
