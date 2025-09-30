@@ -12,7 +12,6 @@ import {
   defiPositionsWithData,
   defiPositionsWithNoData,
 } from '../../../api-mocking/mock-responses/defi-api-mocks';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
 import NetworkManager from '../../../pages/wallet/NetworkManager';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
@@ -118,7 +117,8 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await WalletView.tapOnDeFiTab();
 
         await WalletView.tapOnDeFiNetworksFilter();
-        await NetworkListModal.changeNetworkTo('Ethereum Main Network');
+        await NetworkManager.tapNetwork('eip155:1');
+        await NetworkManager.closeNetworkManager();
 
         await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
