@@ -235,6 +235,11 @@ jobs:
     outputs:
       test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run AI E2E Analysis
         id: ai-analysis
         uses: ./.github/actions/ai-e2e-analysis
