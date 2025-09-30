@@ -12,6 +12,15 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.section,
       borderWidth: 0,
     },
+    skeletonAvatar: {
+      borderRadius: 20,
+    },
+    skeletonButton: {
+      borderRadius: 8,
+    },
+    skeletonBalanceValue: {
+      marginBottom: 4,
+    },
   });
 
 export default styleSheet;
