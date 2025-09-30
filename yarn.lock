@@ -3635,23 +3635,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/fingerprint@npm:0.11.11":
-  version: 0.11.11
-  resolution: "@expo/fingerprint@npm:0.11.11"
+"@expo/fingerprint@npm:^0.15.0":
+  version: 0.15.1
+  resolution: "@expo/fingerprint@npm:0.15.1"
   dependencies:
     "@expo/spawn-async": ^1.7.2
     arg: ^5.0.2
     chalk: ^4.1.2
     debug: ^4.3.4
-    find-up: ^5.0.0
-    getenv: ^1.0.0
-    minimatch: ^3.0.4
+    getenv: ^2.0.0
+    glob: ^10.4.2
+    ignore: ^5.3.1
+    minimatch: ^9.0.0
     p-limit: ^3.1.0
     resolve-from: ^5.0.0
     semver: ^7.6.0
   bin:
     fingerprint: bin/cli.js
-  checksum: ef98fc8a4d7026ad409063f5a5776bf89375e4869bbcb5e4b2f3315bb1af75300d1f07107da458ff010dd71b295513e15838a0de91daed877a68dc52790b3adc
+  checksum: 39788e3acd3c1c90479acad72288102a4013294c0d8fb202c7c21860297c8ab32ca291213229366fd900aa7cd13b66c967e9c01d2c172da4bfe023b069032034
   languageName: node
   linkType: hard
 
@@ -3771,6 +3772,18 @@ __metadata:
     semver: ^7.6.0
     xml2js: 0.6.0
   checksum: 5c9d194e63cc4ec9ba3076179832ce928208e09846981cccc6f07e70742b1d7a29bf7594788543578ced75a42fbc0d4a624c4bd7af73e755d220170090f0b2e5
+  languageName: node
+  linkType: hard
+
+"@expo/repack-app@npm:^0.2.9":
+  version: 0.2.10
+  resolution: "@expo/repack-app@npm:0.2.10"
+  dependencies:
+    commander: ^13.1.0
+    picocolors: ^1.1.1
+  bin:
+    repack-app: bin/cli.js
+  checksum: ee6c6d089e5784ce60483db3f70a9268ae0faf6cf587086c31b645aa51a8dac98b1668756f490b53a194195c8182b0db6c17d03faf2b89b2a69e52717d57aacf
   languageName: node
   linkType: hard
 
@@ -7770,6 +7783,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/multichain-network-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/multichain-network-controller@npm:1.0.0"
+  dependencies:
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/keyring-internal-api": ^9.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.8.0
+    "@solana/addresses": ^2.0.0
+    lodash: ^4.17.21
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/network-controller": ^24.0.0
+  checksum: 5de679e60e39d99c5bf995a624606260babf494f16215591bbc0eca49db061f29e8920498d47f2e71034c5a7a72c69ba84d378f6c489090167034f3d8254a97e
+  languageName: node
+  linkType: hard
+
 "@metamask/multichain-transactions-controller@npm:^5.0.0":
   version: 5.0.0
   resolution: "@metamask/multichain-transactions-controller@npm:5.0.0"
@@ -7820,19 +7852,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/network-enablement-controller@npm:1.2.0"
+"@metamask/network-enablement-controller@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/network-enablement-controller@npm:2.1.0"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/controller-utils": ^11.14.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/utils": ^11.8.1
     reselect: ^5.1.1
   peerDependencies:
-    "@metamask/multichain-network-controller": ^0.11.0
+    "@metamask/multichain-network-controller": ^1.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: da89146cadabb11a312561f6ac5f068220d567a6f21e1be51ded2750eb642b62a8f12659926168a254e9ffd8f3b26581d738730377ab3ac0c6bd05cd28809634
+  checksum: d415eeb27e59e5d4c97c1fbebcc78df22df3a541d332cfc6974d2f0f06dbbbb9396d3f37e9d33247e43bba75d34e7a2c89061b78ed47fd714ac4687637e9b77f
   languageName: node
   linkType: hard
 
@@ -8436,10 +8469,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "@metamask/solana-wallet-snap@npm:2.4.0"
-  checksum: 7da03973c8d2d210df8dcdcba771edbe31f7284969f29f5b785d9ecd89ab2ab8e188e8f546a70dcd4cd6b2d643a1fa6dd1749d7aa27ad7aed5ed78e950916589
+"@metamask/solana-wallet-snap@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@metamask/solana-wallet-snap@npm:2.4.1"
+  checksum: 8943cb086cd6df7afd9fb6f054dfaa8da38a986592b961dca66c667318ac0e115e2930cdd8f3bebae14ae2ec387a52bb75ee5dbf3015f33002c0dcc780541138
   languageName: node
   linkType: hard
 
@@ -8594,6 +8627,13 @@ __metadata:
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.5.0
   checksum: 1e43062f640bd797971a141081117ac5e4044f9d3fd0adb6592b7dbe5679e79b7bee0064dc17865609d6f1652e6c49f82cc58b15af2498355ffcbfcff31154fc
+  languageName: node
+  linkType: hard
+
+"@metamask/tron-wallet-snap@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.1.0"
+  checksum: 622ea1c77aff705a04af15bb3a1df6f75663adf5518fd108adf31f5220ab8f95bf3aa2df5a0ad0d4de21633c12acd1cb6b374aa276a4a506cece3cd5705fc079
   languageName: node
   linkType: hard
 
@@ -28935,6 +28975,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"getenv@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "getenv@npm:2.0.0"
+  checksum: d5e4cd001952db17d546c8ae5961b68dd83d0a6c6027cc4c613cbe0f88ca835f661364a7eff32428953e7677af95fb0a35f035c98b661bef2fcabb5d7c711c86
+  languageName: node
+  linkType: hard
+
 "git-repo-info@npm:^2.1.1":
   version: 2.1.1
   resolution: "git-repo-info@npm:2.1.1"
@@ -33673,6 +33720,8 @@ __metadata:
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.2
+    "@expo/fingerprint": ^0.15.0
+    "@expo/repack-app": ^0.2.9
     "@img/sharp-darwin-arm64": ^0.34.3
     "@img/sharp-libvips-darwin-arm64": ^1.2.1
     "@img/sharp-libvips-linux-x64": ^1.2.1
@@ -33741,10 +33790,10 @@ __metadata:
     "@metamask/multichain-account-service": ^1.2.0
     "@metamask/multichain-api-client": ^0.7.0
     "@metamask/multichain-api-middleware": 1.1.0
-    "@metamask/multichain-network-controller": ^0.12.0
+    "@metamask/multichain-network-controller": ^1.0.0
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
-    "@metamask/network-enablement-controller": ^1.2.0
+    "@metamask/network-enablement-controller": ^2.1.0
     "@metamask/notification-services-controller": ^18.1.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
@@ -33776,7 +33825,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.4.0
+    "@metamask/solana-wallet-snap": ^2.4.1
     "@metamask/solana-wallet-standard": ^0.6.0
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0
@@ -33786,6 +33835,7 @@ __metadata:
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
     "@metamask/transaction-controller": ^60.3.0
+    "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
     "@notifee/react-native": ^9.0.0
@@ -34630,7 +34680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.1, minimatch@npm:^9.0.4":
+"minimatch@npm:^9.0.0, minimatch@npm:^9.0.1, minimatch@npm:^9.0.4":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:
