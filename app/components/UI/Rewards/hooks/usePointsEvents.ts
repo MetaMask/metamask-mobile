@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import { useFocusEffect } from '@react-navigation/native';
 import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 
 export interface UsePointsEventsOptions {
@@ -124,13 +123,6 @@ export const usePointsEvents = (
     });
     setIsRefreshing(false);
   }, [fetchPointsEvents]);
-
-  // Listen for global navbar focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchPointsEvents({ isInitial: true });
-    }, [fetchPointsEvents]),
-  );
 
   // Listen for activeTab changes to refresh when switching to activity tab
   useEffect(() => {
