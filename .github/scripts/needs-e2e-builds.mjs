@@ -56,23 +56,40 @@ async function main() {
   }
 
   // Determine the build outputs
+  const hasChanges = Boolean(catchAllFiles && String(catchAllFiles).trim().length > 0);
+  const isPureIgnore = Boolean(hasIgnoreFiles && hasIgnoreFiles === catchAllFiles);
+
   if (hasSharedFilesChanges) {
     message = 'Building both platforms (shared files changes)';
     willBuildAndroid = true;
     willBuildIos = true;
     changedFiles = catchAllFiles;
-  } else if (!catchAllFiles || hasIgnoreFiles === catchAllFiles) {
+  } else if (!hasChanges) {
+    message = 'Ignoring - no changes detected';
+    changedFiles = '';
+  } else if (isPureIgnore) {
     message = 'Ignoring - no mobile-impacting changes (pure ignore)';
     changedFiles = '';
+  } else if (hasAndroidChanges || hasIosChanges) {
+    if (hasAndroidChanges && hasIosChanges) {
+      message = 'Building both platforms (mixed changes)';
+      willBuildAndroid = true;
+      willBuildIos = true;
+    } else if (hasAndroidChanges) {
+      message = 'Building Android only (mixed changes)';
+      willBuildAndroid = true;
+      willBuildIos = false;
+    } else {
+      message = 'Building iOS only (mixed changes)';
+      willBuildAndroid = false;
+      willBuildIos = true;
+    }
+    changedFiles = catchAllFiles;
   } else {
-    const buildingBoth = hasAndroidChanges && hasIosChanges;
-    message = buildingBoth
-      ? 'Building both platforms (mixed changes)'
-      : hasAndroidChanges
-        ? 'Building Android only (mixed changes)'
-        : 'Building iOS only (mixed changes)';
-    willBuildAndroid = hasAndroidChanges;
-    willBuildIos = hasIosChanges;
+    // Conservative fallback: unclassified but non-ignored changes
+    message = 'Building both platforms (unclassified changes)';
+    willBuildAndroid = true;
+    willBuildIos = true;
     changedFiles = catchAllFiles;
   }
 
