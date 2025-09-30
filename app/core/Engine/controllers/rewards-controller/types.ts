@@ -789,6 +789,22 @@ export interface RewardsControllerIsOptInSupportedAction {
 }
 
 /**
+ * Action for getting the actual subscription ID for a CAIP account ID
+ */
+export interface RewardsControllerGetActualSubscriptionIdAction {
+  type: 'RewardsController:getActualSubscriptionId';
+  handler: (account: CaipAccountId) => string | null;
+}
+
+/**
+ * Action for getting the first subscription ID from the subscriptions map
+ */
+export interface RewardsControllerGetFirstSubscriptionIdAction {
+  type: 'RewardsController:getFirstSubscriptionId';
+  handler: () => string | null;
+}
+
+/**
  * Action for linking an account to a subscription
  */
 export interface RewardsControllerLinkAccountToSubscriptionAction {
@@ -861,6 +877,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
   | RewardsControllerIsOptInSupportedAction
+  | RewardsControllerGetActualSubscriptionIdAction
+  | RewardsControllerGetFirstSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
