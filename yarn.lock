@@ -6739,9 +6739,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^77.0.0":
-  version: 77.0.0
-  resolution: "@metamask/assets-controllers@npm:77.0.0"
+"@metamask/assets-controllers@npm:^77.0.1":
+  version: 77.0.1
+  resolution: "@metamask/assets-controllers@npm:77.0.1"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -6760,7 +6760,7 @@ __metadata:
     "@metamask/rpc-errors": ^7.0.2
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/utils": ^11.8.1
     "@types/bn.js": ^5.1.5
     "@types/uuid": ^8.3.0
     async-mutex: ^0.5.0
@@ -6785,7 +6785,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 4efb072819a150ec4b4b9b878c8a7495c9a2eac4c0e039616bba51709a47b7481a8d67daebf7197034ea4b0dbfaf6f7a6b2e12808b6d82610371e7bc6cc886a6
+  checksum: 0c827bc1a6b4f9d60b89630efb48caa6a78c95161d10a1ad83396c452d8d7d2de63468386a2a29fddecf91be5554d062c86ebaa6fccdd2e95c44e097cfe58926
   languageName: node
   linkType: hard
 
@@ -8436,10 +8436,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "@metamask/solana-wallet-snap@npm:2.4.0"
-  checksum: 7da03973c8d2d210df8dcdcba771edbe31f7284969f29f5b785d9ecd89ab2ab8e188e8f546a70dcd4cd6b2d643a1fa6dd1749d7aa27ad7aed5ed78e950916589
+"@metamask/solana-wallet-snap@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "@metamask/solana-wallet-snap@npm:2.4.1"
+  checksum: 8943cb086cd6df7afd9fb6f054dfaa8da38a986592b961dca66c667318ac0e115e2930cdd8f3bebae14ae2ec387a52bb75ee5dbf3015f33002c0dcc780541138
   languageName: node
   linkType: hard
 
@@ -33690,7 +33690,7 @@ __metadata:
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^77.0.0
+    "@metamask/assets-controllers": ^77.0.1
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.0.0
     "@metamask/bridge-controller": ^43.2.0
@@ -33776,7 +33776,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.4.0
+    "@metamask/solana-wallet-snap": ^2.4.1
     "@metamask/solana-wallet-standard": ^0.6.0
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0

@@ -69,11 +69,8 @@ export const usePerpsRewards = ({
 
   // Determine if we should show rewards row
   const shouldShowRewardsRow = useMemo(
-    () =>
-      rewardsEnabled &&
-      hasValidAmount &&
-      (feeResults.estimatedPoints !== undefined || isFeesLoading),
-    [rewardsEnabled, hasValidAmount, feeResults.estimatedPoints, isFeesLoading],
+    () => rewardsEnabled && hasValidAmount, // Show row if we have valid amount (even if there's an error or points are undefined)
+    [rewardsEnabled, hasValidAmount],
   );
 
   // Determine loading state
