@@ -1,0 +1,146 @@
+---
+globs: "**/*"
+alwaysApply: true
+---
+
+# General Coding Guidelines
+
+## Required Reading Before Development
+
+### 1. Project Guidelines
+- **ALWAYS** check `.github/guidelines/CODING_GUIDELINES.md` for coding standards
+- **ALWAYS** read the main `README.md` for project setup and development workflow
+- **ALWAYS** review relevant documentation in `/docs` before implementing features
+
+### 2. Documentation Structure
+- `/docs/readme/` - Core development documentation
+- `/docs/` - Feature-specific documentation and guides
+- `README.md` - Project overview, setup, and getting started
+
+## Development Workflow Requirements
+
+### Before Starting Any Work
+1. **Read the README.md** - Understand project structure, setup, and development workflow
+2. **Check Coding Guidelines** - Review `.github/guidelines/CODING_GUIDELINES.md` for standards
+3. **Review Relevant Docs** - Check `/docs` for feature-specific guidance
+4. **Understand Architecture** - Read `/docs/readme/architecture.md` for system design
+
+### Code Quality Standards
+- Follow TypeScript guidelines from contributor docs
+- Use functional components and hooks over classes
+- Organize related files in component folders
+- Follow PascalCase for components, camelCase for functions
+- Avoid repetitive code - create reusable components/utilities
+- Document components with TSDoc format
+- Write comprehensive tests for all new code
+- **MANDATORY**: Apply unit testing guidelines from `.cursor/rules/unit-testing-guidelines.mdc`
+
+### File Organization
+```
+ComponentName/
+├── ComponentName.constants.ts
+├── ComponentName.stories.tsx
+├── ComponentName.styles.ts
+├── ComponentName.test.tsx
+├── ComponentName.tsx
+├── ComponentName.types.ts
+├── README.md
+└── index.ts
+```
+
+## Documentation References
+
+### Core Documentation
+- **Architecture**: `/docs/readme/architecture.md`
+- **Environment Setup**: `/docs/readme/environment.md` or `/docs/readme/expo-environment.md`
+- **Testing**: `/docs/readme/testing.md`
+- **Debugging**: `/docs/readme/debugging.md`
+- **Performance**: `/docs/readme/performance.md`
+
+### Development Tools
+- **Storybook**: `/docs/readme/storybook.md`
+- **Troubleshooting**: `/docs/readme/troubleshooting.md`
+- **Miscellaneous**: `/docs/readme/miscellaneous.md`
+- **E2E Testing**: `/docs/readme/expo-e2e-testing.md`
+- **Performance Testing**: `/docs/readme/reassure.md`
+- **Release Build Profiling**: `/docs/readme/release-build-profiler.md`
+
+### Feature-Specific Docs
+- **Deeplinks**: `/docs/readme/deeplinks.md`
+- **Animations**: `/docs/readme/animations.md`
+- **Tailwind**: `/docs/tailwind.md`
+- **Confirmation Refactoring**: `/docs/confirmation-refactoring/`
+- **Adding New Confirmations**: `/docs/confirmations.md`
+- **Component Library**: `/app/component-library/README.md`
+- **E2E API Mocking**: `/e2e/MOCKING.md`
+- **Project Changelog**: `/CHANGELOG.md`
+- **Analytics**: `/app/core/Analytics/README.md`
+- **Engine**: `/app/core/Engine/README.md`
+- **PPOM**: `/ppom/README.md`
+
+## External Resources
+- [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs)
+- [TypeScript Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/typescript.md)
+- [Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
+
+## Enforcement
+- **MANDATORY**: Read relevant documentation before implementing any feature
+- **MANDATORY**: Follow coding guidelines from `.github/guidelines/`
+- **MANDATORY**: Check README.md for project-specific requirements
+- **MANDATORY**: Review architecture docs for system understanding
+- **MANDATORY**: Follow testing guidelines for all new code
+- **MANDATORY**: Apply unit testing guidelines from `.cursor/rules/unit-testing-guidelines.mdc` for all test files
+- **MANDATORY**: Use ONLY the commands defined in `.cursor/commands/` directory
+- **MANDATORY**: NEVER use npm, npx, or other package managers - ONLY use yarn
+- **MANDATORY**: NEVER use commands not defined in `.cursor/commands/` - check existing commands first
+
+## Command Usage Rules
+
+### Testing Commands
+- **ALWAYS** use `yarn jest <filename>` for single file testing (see `.cursor/commands/unit-test-file.md`)
+- **ALWAYS** use `yarn jest <filename>` for newly created test files (see `.cursor/commands/unit-test-new-file.md`)
+- **ALWAYS** use `yarn jest <filename> -t "<test-name-pattern>"` for specific test patterns (see `.cursor/commands/unit-test-specific.md`)
+- **ALWAYS** use `yarn test:unit` for all unit tests (see `.cursor/commands/unit-test-all.md`)
+- **ALWAYS** use `yarn test:unit:coverage` for coverage reports (see `.cursor/commands/unit-test-coverage.md`)
+
+### Forbidden Commands
+- ❌ `npm test` - Use `yarn jest` instead
+- ❌ `npm run test` - Use `yarn test:unit` instead
+- ❌ `npx jest` - Use `yarn jest` instead
+- ❌ Any command not defined in `.cursor/commands/` directory
+
+### Before Running Any Command
+1. **CHECK** `.cursor/commands/` directory for the correct command
+2. **READ** the command documentation in the `.md` file
+3. **USE** only the exact command format specified
+4. **VERIFY** the command exists before using it
+
+## Quick Reference
+```bash
+# Check coding guidelines
+cat .github/guidelines/CODING_GUIDELINES.md
+
+# Review main documentation
+cat README.md
+
+# Check architecture
+cat docs/readme/architecture.md
+
+# Review testing docs
+cat docs/readme/testing.md
+
+# Check unit testing guidelines
+cat .cursor/rules/unit-testing-guidelines.mdc
+
+# Check component library
+cat app/component-library/README.md
+
+# Check E2E mocking guide
+cat e2e/MOCKING.md
+
+# Check confirmations guide
+cat docs/confirmations.md
+
+# Check project changelog
+cat CHANGELOG.md
+```

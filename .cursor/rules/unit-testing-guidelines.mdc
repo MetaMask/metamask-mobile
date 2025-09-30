@@ -7,58 +7,227 @@ alwaysApply: false
 
 # Developer Best Practices
 
-- Use meaningful test names that describe the purpose, not implementation details.
+## Test Naming Rules
+
+- **NEVER use "should" in test names** - this is a hard rule with zero exceptions
+- **Use action-oriented descriptions** that describe what the code does
+- **Be specific about the behavior being tested**
+- **AVOID** weasel words like "handle", "manage", or other non-specific action verbs
+- **AVOID** subjective outcome words like "successfully", "correctly", "invalid" - instead indicate what the actual result should be
+- **BE SPECIFIC** about conditions: use "email without domain" instead of "invalid email"
+
 ```ts
-it('displays an error when input is invalid', () => { ... });
+// ❌ WRONG vs ✅ CORRECT Examples
+
+// ❌ Using "should" - NEVER use this word
+it('should return fixed timestamp', () => { ... });
+// ✅ CORRECT
+it('returns fixed timestamp for privacy events', () => { ... });
+
+// ❌ Using "should" with vague behavior
+it('should ignore events', () => { ... });
+// ✅ CORRECT - specific about what events
+it('ignores events without privacy timestamp property', () => { ... });
+
+// ❌ Using "should" with generic error
+it('should throw error', () => { ... });
+// ✅ CORRECT - specific about when and what error
+it('throws error when strategy is null', () => { ... });
+
+// ❌ Using "should" with subjective "invalid"
+it('should display an error when input is invalid', () => { ... });
+// ✅ CORRECT - specific about what makes it invalid
+it('displays error when email is missing @ symbol', () => { ... });
+
+// ❌ Using "handles" and "correctly" - vague and subjective
+it('handles invalid input correctly', () => { ... });
+// ✅ CORRECT - specific about the condition and result
+it('returns false for email without domain', () => { ... });
+
+// ❌ Using "manages" and "successfully" - vague and subjective
+it('manages user authentication successfully', () => { ... });
+// ✅ CORRECT - specific about the action and condition
+it('redirects to login when user is not authenticated', () => { ... });
+
+// ❌ Using "should" and "correctly" - vague and subjective
+it('should render correctly', () => { ... });
+// ✅ CORRECT - specific about what it does
+it('matches snapshot', () => { ... });
 ```
-- Structure tests using the AAA pattern (Arrange, Act, Assert) for readability and maintainability.
+
+## Test Structure and Organization - MANDATORY
+
+- **EVERY test MUST follow the AAA pattern** (Arrange, Act, Assert) with blank line separation
+- **NO** comments for each AAA section - use blank lines only
+- **Each test must cover ONE behavior** and be isolated from others
+- **Use helper functions** for test data creation
+- **Group related tests** in `describe` blocks
+
 ```ts
-// Arrange
-const input = 'bad';
-// Act
-const result = validate(input);
-// Assert
-expect(result).toBe(false);
+// ✅ CORRECT AAA Pattern
+it('returns false for email without domain', () => {
+  const input = 'user@';
+
+  const result = validateEmail(input);
+
+  expect(result).toBe(false);
+});
+
+// ✅ CORRECT with helper function
+const createTestEvent = (overrides = {}) => ({
+  type: EventType.TrackEvent,
+  event: 'Test Event',
+  timestamp: '2024-01-01T12:00:00.000Z',
+  properties: { data: 'value' },
+  ...overrides,
+});
+
+it('returns fixed timestamp for privacy events', () => {
+  const event = createTestEvent({ privacyTimestamp: true });
+
+  const result = plugin.execute(event);
+
+  expect(result.timestamp).toBe('1970-01-01T00:00:00.000Z');
+});
 ```
-- Each test must cover one behavior and be isolated from others.
+
+## Mocking Rules - CRITICAL
+
+- **EVERYTHING not under test MUST be mocked** - no exceptions
+- **NO** use of `require` - use ES6 imports only
+- **NO** use of `any` type - use proper TypeScript types
+- **Mock all external dependencies** including APIs, services, hooks
+- **Use realistic mock data** that reflects real usage
+
 ```ts
-it('returns true for valid email', () => { expect(isEmail('a@b.com')).toBe(true); });
+// ✅ CORRECT Mocking
+import { mockFunction } from 'jest-mock';
+import { apiService } from '../services/api';
+
+jest.mock('../services/api');
+const mockApiService = apiService as jest.Mocked<typeof apiService>;
+
+// ✅ CORRECT with proper types
+interface MockSegmentEvent {
+  type: EventType;
+  event: string;
+  timestamp: string;
+  properties?: Record<string, unknown>;
+}
+
+const createMockEvent = (overrides: Partial<MockSegmentEvent> = {}): MockSegmentEvent => ({
+  type: EventType.TrackEvent,
+  event: 'Test Event',
+  timestamp: '2024-01-01T12:00:00.000Z',
+  properties: {},
+  ...overrides,
+});
+
+// ❌ WRONG - Never use these patterns
+const mockApi = require('../services/api'); // ❌ no require
+const mockApi: any = jest.fn(); // ❌ no any type
 ```
-- Favor focused assertions and clear structure.
+
+## Test Isolation and Focus - MANDATORY
+
+- **Each test MUST be independent** - no shared state between tests
+- **Use `beforeEach` for setup, `afterEach` for cleanup**
+- **Reset all mocks between tests**
+- **Tests MUST run in any order**
+- **Avoid duplicated or polluted tests**
+- **Use mocks for all external dependencies**
+
 ```ts
-expect(screen.getByText('Welcome')).toBeOnTheScreen();
+// ✅ CORRECT Test Isolation
+describe('MetaMetricsCustomTimestampPlugin', () => {
+  let plugin: MetaMetricsCustomTimestampPlugin;
+
+  beforeEach(() => {
+    plugin = new MetaMetricsCustomTimestampPlugin({
+      timestampStrategy: 'fixed',
+      customTimestamp: '1970-01-01T00:00:00.000Z',
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns fixed timestamp for privacy events', () => {
+    const event = createTestEvent({ privacyTimestamp: true });
+
+    const result = plugin.execute(event);
+
+    expect(result.timestamp).toBe('1970-01-01T00:00:00.000Z');
+  });
+});
 ```
-- Avoid duplicated or polluted tests.
+
+## Test Coverage Requirements - MANDATORY
+
+**EVERY component MUST test:**
+- ✅ **Happy path** - normal expected behavior
+- ✅ **Edge cases** - null, undefined, empty values, boundary conditions
+- ✅ **Error conditions** - invalid inputs, failure scenarios
+- ✅ **Different code paths** - all if/else branches, switch cases
+- ✅ **Method chaining** - for builder patterns
+- ✅ **Side effects** - property changes, state updates, cleanup
+
 ```ts
-// Only define shared mocks once, not in every test
-beforeEach(() => mockReset());
+// ✅ CORRECT Coverage Example
+describe('MetaMetricsCustomTimestampPlugin', () => {
+  describe('execute', () => {
+    it('returns fixed timestamp for privacy events', () => {
+      // Happy path
+    });
+
+    it('ignores events without privacy timestamp property', () => {
+      // Edge case
+    });
+
+    it('throws error when strategy is null', () => {
+      // Error condition
+    });
+
+    it('uses event-specific timestamp strategy when provided', () => {
+      // Different code path
+    });
+
+    it('removes privacy properties from event', () => {
+      // Side effect
+    });
+  });
+});
 ```
-- Use mocks only when necessary.
-```ts
-jest.mock('api'); // mock only when calling real API is not feasible
-```
+
+## Parameterized Tests
+
 - Parameterize tests to cover all values (e.g., enums) with type-safe iteration.
+
 ```ts
 it.each(['small', 'medium', 'large'] as const)('renders %s size', (size) => {
   expect(renderComponent(size)).toBeOnTheScreen();
 });
 ```
-- Prefer comments like "Given / When / Then" for test case clarity.
-```ts
-// Given a logged out user
-// When they visit the dashboard
-// Then they should be redirected to login
-```
 
 # Test Determinism & Brittleness
 
+- **EVERYTHING** not under test must be mocked - no exceptions.
 - Avoid brittle tests: do not test internal state or UI snapshots for logic.
 - Only test public behavior, not implementation details.
 - Mock time, randomness, and external systems to ensure consistent results.
+
 ```ts
+// Mock all external dependencies
+jest.mock('../services/api');
+jest.mock('../utils/date');
+jest.mock('../hooks/useAuth');
+
 jest.useFakeTimers();
 jest.setSystemTime(new Date('2024-01-01'));
 ```
+
 - Avoid relying on global state or hardcoded values (e.g., dates) or mock it.
 
 # Reviewer Responsibilities
@@ -76,7 +245,7 @@ expect(result).toBe(false);
 it('renders button when enabled')
 
 // NOT OK
-it('renders and disables button when input is empty or invalid')
+it('renders and disables button when input is empty or missing required field')
 ```
 
 # Refactoring Support
@@ -84,6 +253,31 @@ it('renders and disables button when input is empty or invalid')
 - Ensure tests provide safety nets during refactors and logic changes. Run the tests before pushing commits!
 - Encourage small, testable components.
 - Unit tests must act as documentation for feature expectations.
+
+# Quality Checklist - MANDATORY
+
+Before submitting any test file, verify:
+- [ ] **No "should" in any test name**
+- [ ] **All tests follow AAA pattern**
+- [ ] **Each test has one clear purpose**
+- [ ] **All code paths are tested**
+- [ ] **Edge cases are covered**
+- [ ] **Test data is realistic**
+- [ ] **Tests are independent**
+- [ ] **Assertions are specific**
+- [ ] **Test names are descriptive**
+- [ ] **No test duplication**
+
+# Common Mistakes to AVOID - CRITICAL
+
+- ❌ **Using "should" in test names** - This is the #1 mistake
+- ❌ **Testing multiple behaviors in one test** - One test, one behavior
+- ❌ **Sharing state between tests** - Each test must be independent
+- ❌ **Not testing error conditions** - Test both success and failure paths
+- ❌ **Using unrealistic test data** - Use data that reflects real usage
+- ❌ **Not following AAA pattern** - Always Arrange, Act, Assert
+- ❌ **Not testing edge cases** - Test null, undefined, empty values
+- ❌ **Using weak matchers** - Use specific assertions like `toBe()`, `toEqual()`
 
 # Anti-patterns to Avoid
 
@@ -103,26 +297,64 @@ expect(queryByText('Item')).toBeOnTheScreen(); // ✅ use strong matchers
 # Unit tests developement workflow
 
 - Always run unit tests after making code changes.
+- **MANDATORY**: Use ONLY the commands defined in `.cursor/commands/` directory
+- **NEVER** use npm, npx, or other package managers - ONLY use yarn
+- **NEVER** use commands not defined in `.cursor/commands/` - check existing commands first
+
+## Required Testing Commands
+
+### Single File Testing
 ```shell
+# Use this command for testing a specific file
+yarn jest <filename>
+```
+**Examples:**
+- `yarn jest MyComponent.test.tsx`
+- `yarn jest utils/helpers.test.ts`
+
+### Specific Test Pattern
+```shell
+# Use this command for testing specific test cases
+yarn jest <filename> -t "<test-name-pattern>"
+```
+**Examples:**
+- `yarn jest MyComponent.test.tsx -t "displays error message"`
+- `yarn jest utils/helpers.test.ts -t "validates email format"`
+
+### All Unit Tests
+```shell
+# Use this command for running all unit tests
 yarn test:unit
 ```
+
+### Coverage Reports
+```shell
+# Use this command for coverage reports
+yarn test:unit:coverage
+```
+
+## Forbidden Commands
+- ❌ `npm test` - Use `yarn jest` instead
+- ❌ `npm run test` - Use `yarn test:unit` instead
+- ❌ `npx jest` - Use `yarn jest` instead
+- ❌ Any command not defined in `.cursor/commands/` directory
+
+## Workflow Requirements
 - Confirm all tests are passing before commit.
 - When a snapshot update is detected, confirm the changes are expected.
 - Do not blindly update snapshots without understanding the differences.
+- **ALWAYS** check `.cursor/commands/` directory before running any command.
 
 # Reference Code Examples
 
 ## ✅ Proper Test Structure (AAA)
 ```ts
 it('indicates expired milk when past due date', () => {
-  // Arrange
   const today = new Date('2025-06-01');
   const milk = { expiration: new Date('2025-05-30') };
 
-  // Act
   const result = isMilkGood(today, milk);
 
-  // Assert
   expect(result).toBe(false);
 });
 ```
@@ -140,6 +372,7 @@ it('renders the button', () => {
 it('displays error message when API fails', async () => {
   mockApi.failOnce();
   const { findByText } = render(<MyComponent />);
+
   expect(await findByText('Something went wrong')).toBeOnTheScreen();
 });
 ```
@@ -148,6 +381,7 @@ it('displays error message when API fails', async () => {
 ```ts
 it('hides selector when disabled', () => {
   const { queryByTestId } = render(<Selector enabled={false} />);
+
   expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
 
   // Intentionally break: render with enabled=true and see if test fails
