@@ -441,35 +441,6 @@ describe('PredictTabView', () => {
 
       expect(screen.queryByTestId('markets-won-card')).not.toBeOnTheScreen();
     });
-
-    it('filters out positions with zero cashPnl for markets won count', () => {
-      const positionWithZeroPnl = { ...mockClaimablePosition, cashPnl: 0 };
-      mockUsePredictPositions.mockImplementation(
-        (options: { claimable?: boolean } = {}) => {
-          if (options.claimable) {
-            return {
-              positions: [mockClaimablePosition, positionWithZeroPnl],
-              isLoading: false,
-              isRefreshing: false,
-              error: null,
-              loadPositions: mockLoadClaimablePositions,
-            };
-          }
-          return {
-            positions: [],
-            isLoading: false,
-            isRefreshing: false,
-            error: null,
-            loadPositions: mockLoadPositions,
-          };
-        },
-      );
-
-      renderWithProviders(<PredictTabView />);
-
-      expect(screen.getByTestId('markets-won-count')).toHaveTextContent('1');
-      expect(screen.getByTestId('claimable-amount')).toHaveTextContent('15');
-    });
   });
 
   describe('Claim Functionality', () => {

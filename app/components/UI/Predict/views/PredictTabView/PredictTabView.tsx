@@ -66,8 +66,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     if (claimablePositions.length === 0) return null;
 
     const wonPositions = claimablePositions.filter(
-      (position) =>
-        position.status === PredictPositionStatus.WON && position.cashPnl > 0,
+      (position) => position.status === PredictPositionStatus.WON,
     );
 
     const totalClaimableAmount = wonPositions.reduce(
