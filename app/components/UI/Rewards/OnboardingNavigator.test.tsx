@@ -112,7 +112,6 @@ jest.mock('react-redux', () => {
 
 // Mock selectors
 jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -126,20 +125,13 @@ jest.mock('../../../selectors/accountsController', () => ({
 }));
 
 // Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
   selectOnboardingActiveStep,
   selectOptinAllowedForGeo,
 } from '../../../reducers/rewards/selectors';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -204,7 +196,6 @@ describe('OnboardingNavigator', () => {
     store = createMockStore();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
     mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
     mockSelectOptinAllowedForGeo.mockReturnValue(true);
@@ -392,7 +383,6 @@ describe('OnboardingNavigator', () => {
     it('uses selectors for state management', () => {
       // Arrange
       // Reset mocks
-      mockSelectRewardsActiveAccountHasOptedIn.mockClear();
       mockSelectRewardsSubscriptionId.mockClear();
       mockSelectOnboardingActiveStep.mockClear();
       mockSelectOptinAllowedForGeo.mockClear();

@@ -54,8 +54,6 @@ export const useOptin = (): UseOptinResult => {
             createEventBuilder(MetaMetricsEvents.REWARDS_OPTED_IN)
               .addProperties({
                 referred: Boolean(referralCode),
-                // TODO: Add Points
-                starting_points_balance: 0,
               })
               .build(),
           );

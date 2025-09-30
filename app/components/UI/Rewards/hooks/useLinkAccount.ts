@@ -4,6 +4,10 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import useRewardsToast from './useRewardsToast';
+import { formatAddress } from '../../../../util/address';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { isSolanaAccount } from '../../../../core/Multichain/utils';
 
 interface UseLinkAccountResult {
   linkAccount: (account: InternalAccount) => Promise<boolean>;
@@ -17,12 +21,35 @@ export const useLinkAccount = (): UseLinkAccountResult => {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const triggerAccountLinkingEvent = useCallback(
+    (status: 'started' | 'completed' | 'failed', account: InternalAccount) => {
+      const accountScope = isEvmAccountType(account.type)
+        ? 'evm'
+        : isSolanaAccount(account)
+        ? 'solana'
+        : account.type; // Fallback to account.type for other types
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_ACCOUNT_LINKING)
+          .addProperties({
+            status,
+            scope: accountScope,
+            wallet_type: account.type,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
 
   const linkAccount = useCallback(
     async (account: InternalAccount): Promise<boolean> => {
       setIsLoading(true);
       setIsError(false);
       setError(null);
+
+      triggerAccountLinkingEvent('started', account);
 
       try {
         const success = await Engine.controllerMessenger.call(
@@ -31,10 +58,11 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         );
 
         if (success) {
+          triggerAccountLinkingEvent('completed', account);
           showToast(
             RewardsToastOptions.success(
               strings('rewards.settings.link_account_success_title', {
-                accountName: account.metadata.name,
+                accountName: formatAddress(account.address, 'short'),
               }),
             ),
           );
@@ -46,7 +74,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
             strings('rewards.settings.link_account_error_title'),
           ),
         );
-
+        triggerAccountLinkingEvent('failed', account);
         setIsError(true);
         setError('Failed to link account');
         return false;
@@ -56,7 +84,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
             strings('rewards.settings.link_account_error_title'),
           ),
         );
-
+        triggerAccountLinkingEvent('failed', account);
         Logger.log('useLinkAccount: Failed to link account', err);
         setIsError(true);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -65,7 +93,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         setIsLoading(false);
       }
     },
-    [RewardsToastOptions, showToast],
+    [RewardsToastOptions, showToast, triggerAccountLinkingEvent],
   );
 
   return {
