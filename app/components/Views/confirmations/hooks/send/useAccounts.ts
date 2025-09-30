@@ -26,7 +26,9 @@ export const useAccounts = (): RecipientType[] => {
   const {
     isEvmSendType,
     isSolanaSendType,
+    /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
     isBitcoinSendType,
+    /// END:ONLY_INCLUDE_IF
     /// BEGIN:ONLY_INCLUDE_IF(tron)
     isTronSendType,
     /// END:ONLY_INCLUDE_IF
