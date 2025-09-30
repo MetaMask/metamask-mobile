@@ -52,5 +52,19 @@ describe('handleRewardsUrl', () => {
         },
       });
     });
+
+    it('should fallback to wallet view on error', async () => {
+      // Mock error in navigation
+      mockNavigate.mockImplementationOnce(() => {
+        throw new Error('Navigation error');
+      });
+
+      await handleRewardsUrl({ rewardsPath: '?referral=code123' });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET_VIEW, {
+        screen: Routes.WALLET_VIEW,
+      });
+    });
   });
 });
