@@ -7,7 +7,7 @@ import {
   PredictController,
   type PredictControllerState,
 } from './PredictController';
-import { type PredictOrderStatus } from '../types';
+import { PredictClaimStatus, type PredictOrderStatus } from '../types';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   addTransaction,
@@ -1277,6 +1277,99 @@ describe('PredictController', () => {
       });
     });
 
+    it('update claim transaction status to CONFIRMED on transactionConfirmed', () => {
+      withController(({ controller, messenger }) => {
+        const txId = 'tx1';
+        const txData = '0xclaimdata';
+
+        // Set up claim transactions using the actual transaction ID
+        controller.updateStateForTesting((state) => {
+          state.claimTransactions[txId] = [
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim', data: txData, value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-1',
+            },
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim2', data: '0xotherdata', value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-2',
+            },
+          ];
+        });
+
+        const event = {
+          id: txId,
+          hash: '0xabc',
+          status: 'confirmed',
+          txParams: {
+            from: '0x1',
+            to: '0xclaim',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // Verify the matching claim transaction was updated to CONFIRMED
+        expect(controller.state.claimTransactions[txId][0].status).toBe(
+          'confirmed',
+        );
+        // Other transaction should remain unchanged
+        expect(controller.state.claimTransactions[txId][1].status).toBe(
+          'pending',
+        );
+      });
+    });
+
+    it('not modify state when claim transaction data does not match on transactionConfirmed', () => {
+      withController(({ controller, messenger }) => {
+        const claimTxId = 'claim-tx-2';
+
+        // Set up claim transactions
+        controller.updateStateForTesting((state) => {
+          state.claimTransactions[claimTxId] = [
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim', data: '0xclaimdata', value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-1',
+            },
+          ];
+        });
+
+        const initialState = { ...controller.state };
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          txParams: {
+            from: '0x1',
+            to: '0xclaim',
+            data: '0xdifferentdata', // Different data that won't match
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // State should remain unchanged since no matching transaction was found
+        expect(controller.state).toEqual(initialState);
+      });
+    });
+
     it('set order status to error on transactionFailed', () => {
       withController(({ controller, messenger }) => {
         const batchId = 'batch-6';
@@ -1316,6 +1409,61 @@ describe('PredictController', () => {
         );
 
         expect(controller.state.activeOrders[batchId].status).toBe('error');
+      });
+    });
+
+    it('update claim transaction status to ERROR on transactionFailed', () => {
+      withController(({ controller, messenger }) => {
+        const txId = 'tx-failed';
+        const txData = '0xclaimdata';
+
+        // Set up claim transactions using the actual transaction ID
+        controller.updateStateForTesting((state) => {
+          state.claimTransactions[txId] = [
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim', data: txData, value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-1',
+            },
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim2', data: '0xotherdata', value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-2',
+            },
+          ];
+        });
+
+        const event = {
+          transactionMeta: {
+            id: txId,
+            hash: '0xabc',
+            status: 'failed',
+            error: { message: 'Transaction failed' },
+            txParams: {
+              from: '0x1',
+              to: '0xclaim',
+              data: txData,
+              value: '0x0',
+            },
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionFailed',
+          // @ts-ignore
+          event,
+        );
+
+        // Verify the matching claim transaction was updated to ERROR
+        expect(controller.state.claimTransactions[txId][0].status).toBe(
+          'error',
+        );
+        // Other transaction should remain unchanged
+        expect(controller.state.claimTransactions[txId][1].status).toBe(
+          'pending',
+        );
       });
     });
 
@@ -1362,6 +1510,60 @@ describe('PredictController', () => {
             orderId: batchId,
             status: 'cancelled',
           }),
+        );
+      });
+    });
+
+    it('update claim transaction status to CANCELLED on transactionRejected', () => {
+      withController(({ controller, messenger }) => {
+        const txId = 'tx-rejected';
+        const txData = '0xclaimdata';
+
+        // Set up claim transactions using the actual transaction ID
+        controller.updateStateForTesting((state) => {
+          state.claimTransactions[txId] = [
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim', data: txData, value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-1',
+            },
+            {
+              chainId: 1,
+              txParams: { to: '0xclaim2', data: '0xotherdata', value: '0x0' },
+              status: PredictClaimStatus.PENDING,
+              positionId: 'pos-2',
+            },
+          ];
+        });
+
+        const event = {
+          transactionMeta: {
+            id: txId,
+            hash: '0xdef',
+            status: 'rejected',
+            txParams: {
+              from: '0x1',
+              to: '0xclaim',
+              data: txData,
+              value: '0x0',
+            },
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionRejected',
+          // @ts-ignore
+          event,
+        );
+
+        // Verify the matching claim transaction was updated to CANCELLED
+        expect(controller.state.claimTransactions[txId][0].status).toBe(
+          'cancelled',
+        );
+        // Other transaction should remain unchanged
+        expect(controller.state.claimTransactions[txId][1].status).toBe(
+          'pending',
         );
       });
     });
@@ -2066,6 +2268,61 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBe('Claim preparation failed');
+      });
+    });
+  });
+
+  describe('clearClaimTransactions', () => {
+    it('clear all claim transactions from state', () => {
+      withController(({ controller }) => {
+        // Set up initial claim transactions
+        controller.updateStateForTesting((state) => {
+          state.claimTransactions = {
+            'tx-1': [
+              {
+                chainId: 1,
+                txParams: { to: '0x1', data: '0xdata1', value: '0x0' },
+                status: PredictClaimStatus.PENDING,
+                positionId: 'pos-1',
+              },
+            ],
+            'tx-2': [
+              {
+                chainId: 1,
+                txParams: { to: '0x2', data: '0xdata2', value: '0x0' },
+                status: PredictClaimStatus.CONFIRMED,
+                positionId: 'pos-2',
+              },
+            ],
+          };
+        });
+
+        // Verify transactions exist
+        expect(controller.state.claimTransactions).toEqual({
+          'tx-1': expect.any(Array),
+          'tx-2': expect.any(Array),
+        });
+
+        // Clear claim transactions
+        controller.clearClaimTransactions();
+
+        // Verify transactions are cleared
+        expect(controller.state.claimTransactions).toEqual({});
+      });
+    });
+
+    it('handle clearing empty claim transactions', () => {
+      withController(({ controller }) => {
+        // Ensure claim transactions are empty
+        controller.updateStateForTesting((state) => {
+          state.claimTransactions = {};
+        });
+
+        // Clear should work without error
+        expect(() => controller.clearClaimTransactions()).not.toThrow();
+
+        // Should remain empty
+        expect(controller.state.claimTransactions).toEqual({});
       });
     });
   });
