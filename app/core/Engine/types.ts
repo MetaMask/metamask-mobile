@@ -673,7 +673,6 @@ export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
   | 'ExecutionService'
-  | 'SelectedNetworkController'
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
@@ -705,7 +704,8 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
-  | 'GatorPermissionsController';
+  | 'GatorPermissionsController'
+  | 'SelectedNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
