@@ -21,6 +21,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useFocusEffect: jest.fn(),
 }));
 
 // Mock dispatch

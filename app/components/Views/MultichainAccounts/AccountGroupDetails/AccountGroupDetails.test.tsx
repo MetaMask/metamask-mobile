@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
@@ -169,6 +170,52 @@ describe('AccountGroupDetails', () => {
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles hardware back press by navigating back and prevents default', () => {
+    const removeMock = jest.fn();
+    const addListenerSpy = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation(
+        (
+          event: 'hardwareBackPress',
+          _handler: () => boolean | null | undefined,
+        ): NativeEventSubscription => {
+          expect(event).toBe('hardwareBackPress');
+          return { remove: removeMock } as unknown as NativeEventSubscription;
+        },
+      );
+
+    const { unmount } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+
+    // Multiple subscriptions may exist. Invoke handlers until we find the one that triggers goBack.
+    let foundHandlerCalledGoBack = false;
+    let observedResult: boolean | null | undefined;
+    for (const call of addListenerSpy.mock.calls) {
+      const maybeHandler = call?.[1] as
+        | (() => boolean | null | undefined)
+        | undefined;
+      if (!maybeHandler) {
+        continue;
+      }
+      mockGoBack.mockClear();
+      observedResult = maybeHandler();
+      if (mockGoBack.mock.calls.length > 0) {
+        foundHandlerCalledGoBack = true;
+        break;
+      }
+    }
+
+    expect(foundHandlerCalledGoBack).toBe(true);
+    expect(observedResult).toBe(true);
+
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+
+    addListenerSpy.mockRestore();
   });
 
   it('displays unlock to reveal text for private keys', () => {
