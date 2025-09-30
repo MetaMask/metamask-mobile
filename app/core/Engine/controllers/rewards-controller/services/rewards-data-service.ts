@@ -28,6 +28,19 @@ import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
 import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
 
+/**
+ * Custom error for invalid timestamps
+ */
+export class InvalidTimestampError extends Error {
+  timestamp: number;
+
+  constructor(message: string, timestamp: number) {
+    super(message);
+    this.name = 'InvalidTimestampError';
+    this.timestamp = timestamp;
+  }
+}
+
 const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
@@ -358,6 +371,15 @@ export class RewardsDataService {
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
       throw new Error(`Login failed: ${response.status}`);
     }
 
@@ -644,7 +666,19 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Mobile join failed: ${response.status}`);
+      const errorData = await response.json();
+      Logger.log('RewardsDataService: mobileJoin errorData', errorData);
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
+      throw new Error(
+        `Mobile join failed: ${response.status} ${errorData?.message || ''}`,
+      );
     }
 
     return (await response.json()) as SubscriptionDto;

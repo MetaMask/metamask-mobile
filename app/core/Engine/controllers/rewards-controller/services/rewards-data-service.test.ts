@@ -1,4 +1,5 @@
 import {
+  InvalidTimestampError,
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
@@ -10,6 +11,7 @@ import type {
   SubscriptionReferralDetailsDto,
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
+  MobileLoginDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -140,6 +142,86 @@ describe('RewardsDataService', () => {
     });
   });
 
+  // Test for mobileJoin function
+  describe('mobileJoin', () => {
+    const mockJoinRequest = {
+      account: '0x123456789',
+      timestamp: 1234567890,
+      signature: '0xabcdef',
+    };
+
+    const mockSubscriptionId = 'test-subscription-id';
+
+    const mockSubscriptionResponse = {
+      id: 'test-subscription-id',
+      referralCode: 'test-referral-code',
+      accounts: [],
+    };
+
+    it('should successfully join an account to a subscription', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockSubscriptionResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.mobileJoin(
+        mockJoinRequest as MobileLoginDto,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockSubscriptionResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/subscriptions/mobile-join',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockJoinRequest),
+        }),
+      );
+    });
+
+    it('should handle join errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({ message: 'Join failed' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Mobile join failed: 400 Join failed');
+    });
+
+    it('should throw InvalidTimestampError when server returns invalid timestamp error', async () => {
+      const mockErrorResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid timestamp',
+          serverTimestamp: 1234567000000, // Server timestamp in milliseconds
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      try {
+        await service.mobileJoin(
+          mockJoinRequest as MobileLoginDto,
+          mockSubscriptionId,
+        );
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
+      }
+    });
+  });
+
   describe('login', () => {
     const mockLoginRequest = {
       account: '0x123456789',
@@ -182,7 +264,8 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: false,
         status: 401,
-      } as Response;
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(service.login(mockLoginRequest)).rejects.toThrow(
@@ -196,6 +279,28 @@ describe('RewardsDataService', () => {
       await expect(service.login(mockLoginRequest)).rejects.toThrow(
         'Network error',
       );
+    });
+
+    it('should throw InvalidTimestampError when server returns invalid timestamp error', async () => {
+      const mockErrorResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid timestamp',
+          serverTimestamp: 1234567000000, // Server timestamp in milliseconds
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockErrorResponse);
+
+      try {
+        await service.login(mockLoginRequest);
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(1234567000); // Server timestamp in seconds
+      }
     });
   });
 
