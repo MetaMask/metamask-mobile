@@ -56,13 +56,13 @@ class ImportWalletView {
   }
 
   async tapContinueButton(): Promise<void> {
-    await Gestures.waitAndTap(this.continueButton, {
+    await Gestures.tap(this.continueButton, {
       elemDescription: 'Import Wallet Continue Button',
     });
   }
 
   async tapTitle(): Promise<void> {
-    await Gestures.waitAndTap(this.title, {
+    await Gestures.tap(this.title, {
       elemDescription: 'Import Wallet Title',
     });
   }
