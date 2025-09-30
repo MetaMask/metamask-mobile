@@ -9,6 +9,8 @@ self-hosted-runner:
     - "macos-15"
     - "ghcr.io/cirruslabs/macos-runner:sequoia"
     - "ghcr.io/cirruslabs/macos-runner:sequoia-xl"
+    - "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"
+    - "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl"
     - "low-priority"
 
 # Configuration variables in array of strings defined in your repository or
