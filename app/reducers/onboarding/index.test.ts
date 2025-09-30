@@ -10,6 +10,7 @@ describe('onboardingReducer', () => {
   const initialState = {
     events: [],
     completedOnboarding: false,
+    onboardingDeepLink: undefined,
   };
 
   it('returns the initial state when no action is provided', () => {
