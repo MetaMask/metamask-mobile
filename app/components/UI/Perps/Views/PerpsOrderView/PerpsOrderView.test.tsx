@@ -168,10 +168,7 @@ jest.mock('../../hooks', () => ({
     setOrderType: jest.fn(),
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
-    calculations: {
-      marginRequired: 11,
-      positionSize: 0.0037,
-    },
+    optimizeOrderAmount: jest.fn(),
   })),
   usePerpsOrderValidation: jest.fn(() => ({
     isValid: true,
@@ -634,10 +631,7 @@ describe('PerpsOrderView', () => {
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
-      calculations: {
-        marginRequired: '11',
-        positionSize: '0.0037',
-      },
+      optimizeOrderAmount: jest.fn(),
     });
   });
 
@@ -728,10 +722,7 @@ describe('PerpsOrderView', () => {
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
-      calculations: {
-        marginRequired: '11',
-        positionSize: '0.0037',
-      },
+      optimizeOrderAmount: jest.fn(),
     });
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -931,10 +922,7 @@ describe('PerpsOrderView', () => {
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
-      calculations: {
-        marginRequired: '11',
-        positionSize: '0.0037',
-      },
+      optimizeOrderAmount: jest.fn(),
     });
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -975,10 +963,7 @@ describe('PerpsOrderView', () => {
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
-      calculations: {
-        marginRequired: '11',
-        positionSize: '0.0037',
-      },
+      optimizeOrderAmount: jest.fn(),
     });
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1281,10 +1266,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '10',
-          positionSize: '0.033',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Mock liquidation price higher than stop loss
@@ -1331,10 +1313,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '10',
-          positionSize: '0.033',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Mock liquidation price lower than stop loss
@@ -1381,10 +1360,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '10',
-          positionSize: '0.033',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Mock liquidation price lower than stop loss
@@ -1434,10 +1410,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '10',
-          positionSize: '0.033',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Mock liquidation price higher than stop loss
@@ -1487,10 +1460,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '10',
-          positionSize: '0.033',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Mock liquidation price
@@ -1539,10 +1509,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '10',
-          positionSize: '0.033',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Mock liquidation price higher than stop loss
@@ -1616,10 +1583,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '33.33',
-          positionSize: '0.0333',
-        },
+        optimizeOrderAmount: jest.fn(),
       }));
 
       // Mock usePerpsOrderForm to match the context
@@ -1644,10 +1608,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '33.33',
-          positionSize: '0.0333',
-        },
+        optimizeOrderAmount: jest.fn(),
       }));
 
       // Mock the usePerpsToasts hook
@@ -1744,10 +1705,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '33.33',
-          positionSize: '0.0333',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // Also update the order form mock to match
@@ -1772,10 +1730,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '33.33',
-          positionSize: '0.0333',
-        },
+        optimizeOrderAmount: jest.fn(),
       }));
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1959,10 +1914,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '0',
-          positionSize: '0',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1997,10 +1949,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '33.33',
-          positionSize: '0.0333',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2147,10 +2096,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '20.00', // Truthy value - triggers formatPrice path
-          positionSize: '0.02',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2184,10 +2130,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '', // Falsy value - triggers fallback path
-          positionSize: '',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2221,10 +2164,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '16.67',
-          positionSize: '0.0167',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       // The fees are already mocked in the global mock setup
@@ -2261,10 +2201,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '0',
-          positionSize: '0',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2317,10 +2254,7 @@ describe('PerpsOrderView', () => {
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
-        calculations: {
-          marginRequired: '6.25',
-          positionSize: '0.0083',
-        },
+        optimizeOrderAmount: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
