@@ -1314,7 +1314,6 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return false;
 
-    const lastUpdated = await this.getPointsEventsLastUpdated(params);
     const cached =
       this.state.pointsEvents[
         this.#createSeasonSubscriptionCompositeKey(
@@ -1326,6 +1325,8 @@ export class RewardsController extends BaseController<
     const cachedLatestUpdatedAt = cached?.pointsEvents?.[0]?.updatedAt;
     // If the cache is empty, we need to fetch fresh data
     if (!cachedLatestUpdatedAt) return true;
+
+    const lastUpdated = await this.getPointsEventsLastUpdated(params);
     return lastUpdated
       ? lastUpdated.getTime() !== cachedLatestUpdatedAt
       : // If the lastUpdated is null with non-empty cache, we need to fetch fresh data
