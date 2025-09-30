@@ -2,7 +2,7 @@
 # It is a modified version of run-e2e-workflow.yml.
 # It passes matrix sharding info to the test framework via environment variables.
 
-name: Run E2E
+name: Create screenshots
 
 on:
   workflow_call:
