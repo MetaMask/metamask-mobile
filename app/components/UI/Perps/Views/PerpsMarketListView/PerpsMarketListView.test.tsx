@@ -653,6 +653,147 @@ describe('PerpsMarketListView', () => {
         screen.getByPlaceholderText('Search by token symbol'),
       ).toBeOnTheScreen();
     });
+
+    it('shows navbar when close icon is pressed while search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Click the close icon (same button, but now shows close icon)
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Search should be hidden
+      expect(
+        screen.queryByPlaceholderText('Search by token symbol'),
+      ).not.toBeOnTheScreen();
+
+      // Tab bar should be visible again
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+    });
+
+    it('shows navbar when header is pressed while search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Press the header (which is a Pressable)
+      const perpsText = screen.getByText('Perps');
+      const header = perpsText.parent?.parent;
+      expect(header).toBeTruthy();
+      if (header) {
+        act(() => {
+          fireEvent.press(header);
+        });
+      }
+
+      // Search should be hidden
+      expect(
+        screen.queryByPlaceholderText('Search by token symbol'),
+      ).not.toBeOnTheScreen();
+
+      // Tab bar should be visible again
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+    });
+
+    it('shows navbar when keyboard is dismissed while search is visible', () => {
+      // Mock Keyboard.addListener to capture the callback
+      let keyboardHideCallback: (() => void) | null = null;
+      const mockAddListener = jest.fn((event, callback) => {
+        if (event === 'keyboardDidHide') {
+          keyboardHideCallback = callback;
+        }
+        return { remove: jest.fn() };
+      });
+      const { Keyboard } = jest.requireActual('react-native');
+      jest.spyOn(Keyboard, 'addListener').mockImplementation(mockAddListener);
+
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Verify that the keyboard listener was registered
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'keyboardDidHide',
+        expect.any(Function),
+      );
+
+      // Simulate keyboard dismissal by calling the registered callback
+      act(() => {
+        if (keyboardHideCallback) {
+          keyboardHideCallback();
+        }
+      });
+
+      // Search should be hidden
+      expect(
+        screen.queryByPlaceholderText('Search by token symbol'),
+      ).not.toBeOnTheScreen();
+
+      // Tab bar should be visible again
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+    });
   });
 
   describe('Market Selection', () => {

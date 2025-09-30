@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, TouchableOpacity, Animated, TextInput } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Animated,
+  TextInput,
+  Pressable,
+  Keyboard,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -214,6 +221,21 @@ const PerpsMarketListView = ({
     }
   };
 
+  // Auto-close search when keyboard is dismissed via back/dismiss button or gesture
+  useEffect(() => {
+    if (!isSearchVisible) return;
+
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      // Close search when keyboard is dismissed
+      setIsSearchVisible(false);
+      setSearchQuery('');
+    });
+
+    return () => {
+      hideSubscription?.remove();
+    };
+  }, [isSearchVisible]);
+
   // Track screen load performance
   const hasTrackedMarketsView = useRef(false);
   const hasTrackedDataDisplay = useRef(false);
@@ -327,6 +349,13 @@ const PerpsMarketListView = ({
             contentContainerStyle={styles.flashListContent}
             refreshing={isRefreshingMarkets}
             onRefresh={handleRefresh}
+            /**
+             * Fixes "double-tap" UX issue where the first tap dismissed the keyboard
+             * and the second tap selects a list item.
+             *
+             * This allows users to directly select a list item with a single tap.
+             */
+            keyboardShouldPersistTaps="handled"
           />
         </Animated.View>
       </>
@@ -443,6 +472,12 @@ const PerpsMarketListView = ({
     );
   };
 
+  const hideSearchIfOpen = () => {
+    if (isSearchVisible) {
+      setIsSearchVisible(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
@@ -452,7 +487,7 @@ const PerpsMarketListView = ({
         style={hiddenButtonStyle}
       />
       {/* Header */}
-      <View style={styles.header}>
+      <Pressable style={styles.header} onPress={hideSearchIfOpen}>
         <View style={styles.headerTitleContainer}>
           <Text
             variant={TextVariant.HeadingLG}
@@ -474,7 +509,7 @@ const PerpsMarketListView = ({
             />
           </TouchableOpacity>
         </View>
-      </View>
+      </Pressable>
 
       {isSearchVisible && (
         <View style={styles.searchContainer}>
@@ -512,6 +547,7 @@ const PerpsMarketListView = ({
 
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
+      {/* Bottom navbar - hidden when search is visible */}
       {!isSearchVisible && (
         <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
       )}
