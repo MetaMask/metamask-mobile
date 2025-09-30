@@ -4,8 +4,6 @@ on:
   issue_comment:
     types: [edited, deleted]
   pull_request:
-    branches:
-      - stable
     types: [opened, reopened, labeled, unlabeled, synchronize]
   merge_group: # Trigger on merge queue events to satisfy the branch protection rules
     types: [checks_requested]
