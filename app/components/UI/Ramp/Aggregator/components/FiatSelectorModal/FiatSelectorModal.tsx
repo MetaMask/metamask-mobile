@@ -3,7 +3,6 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import {
   createNavigationDetails,
@@ -27,13 +26,10 @@ import Text, {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './FiatSelectorModal.styles.ts';
 
-const MAX_TOKENS_RESULTS = 20;
+const MAX_RESULTS = 20;
 
 interface FiatSelectorModalNavigationDetails {
   currencies: FiatCurrency[];
-  title?: string;
-  description?: string;
-  excludeIds?: FiatCurrency['id'][];
 }
 
 export const createFiatSelectorModalNavigationDetails =
@@ -46,37 +42,18 @@ function FiatSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<FiatCurrency>>(null);
 
-  const {
-    currencies,
-    title,
-    description,
-    excludeIds = [],
-  } = useParams<FiatSelectorModalNavigationDetails>();
+  const { currencies } = useParams<FiatSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
 
-  const { colors } = useTheme();
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
   const { setSelectedFiatCurrencyId, selectedFiatCurrencyId } = useRampSDK();
 
-  const excludedAddresses = useMemo(
-    () => excludeIds.filter(Boolean).map((id) => id.toLowerCase()),
-    [excludeIds],
-  );
-
-  const filteredCurrencies = useMemo(
-    () =>
-      currencies?.filter(
-        (currency) => !excludedAddresses.includes(currency.id?.toLowerCase()),
-      ) ?? [],
-    [currencies, excludedAddresses],
-  );
-
   const currencyFuse = useMemo(
     () =>
-      new Fuse(filteredCurrencies, {
+      new Fuse(currencies, {
         shouldSort: true,
         threshold: 0.45,
         location: 0,
@@ -85,14 +62,14 @@ function FiatSelectorModal() {
         minMatchCharLength: 1,
         keys: ['symbol', 'name'],
       }),
-    [filteredCurrencies],
+    [currencies],
   );
   const currencySearchResults = useMemo(
     () =>
       searchString.length > 0
-        ? currencyFuse.search(searchString)?.slice(0, MAX_TOKENS_RESULTS) || []
-        : filteredCurrencies || [],
-    [searchString, currencyFuse, filteredCurrencies],
+        ? currencyFuse.search(searchString)?.slice(0, MAX_RESULTS) || []
+        : currencies || [],
+    [searchString, currencyFuse, currencies],
   );
 
   const handleSelectCurrency = useCallback(
@@ -160,7 +137,7 @@ function FiatSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {title || strings('fiat_on_ramp_aggregator.select_region_currency')}
+          {strings('fiat_on_ramp_aggregator.select_region_currency')}
         </Text>
       </BottomSheetHeader>
       <View style={styles.searchContainer}>
