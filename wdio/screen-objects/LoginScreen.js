@@ -5,10 +5,7 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
-class LoginScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class LoginScreen {
 
   get device() {
     return this._device;
@@ -16,7 +13,7 @@ class LoginScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get loginScreen() {
@@ -118,7 +115,7 @@ class LoginScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      await this.tap(this.resetWalletButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.resetWalletButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -129,7 +126,7 @@ class LoginScreen extends AppwrightGestures {
     } else {
       const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
-      await this.typeText(element, password); // Use inherited typeText method with retry logic
+      await AppwrightGestures.typeText(element, password); // Use static typeText method with retry logic
       await screenTitle.tap()
     }
   }
@@ -139,7 +136,7 @@ class LoginScreen extends AppwrightGestures {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      await this.tap(this.unlockButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.unlockButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -147,7 +144,7 @@ class LoginScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      await this.tap(this.title); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.title); // Use static tapElement method with retry logic
     }
   }
 
@@ -155,7 +152,7 @@ class LoginScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      await this.tap(this.rememberMeToggle); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.rememberMeToggle); // Use static tapElement method with retry logic
     }
   }
 }

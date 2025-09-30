@@ -10,10 +10,7 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
 
-class AmountScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class AmountScreen {
 
   get device() {
     return this._device;
@@ -21,7 +18,7 @@ class AmountScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get amountInputField() {
@@ -72,12 +69,12 @@ class AmountScreen extends AppwrightGestures {
       if (AppwrightSelectors.isAndroid(this._device)) {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
         await numberKey.waitFor('visible',{ timeout: 30000 });
-        await this.tap(numberKey);
+        await AppwrightGestures.tap(numberKey);
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         await numberKey.waitFor('visible', { timeout: 30000 });
-        await this.tap(numberKey); 
+        await AppwrightGestures.tap(numberKey); 
       }
     }
     }
@@ -98,7 +95,7 @@ class AmountScreen extends AppwrightGestures {
   }
 
   async tapOnNextButton() {
-    await this.tap(this.nextButton);
+    await AppwrightGestures.tap(this.nextButton);
   }
 
   async isVisible() {

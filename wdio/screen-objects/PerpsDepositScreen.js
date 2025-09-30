@@ -1,10 +1,7 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
-class PerpsDepositScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class PerpsDepositScreen {
 
   get device() {
     return this._device;
@@ -12,7 +9,7 @@ class PerpsDepositScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get continueButton() {
@@ -41,23 +38,23 @@ class PerpsDepositScreen extends AppwrightGestures {
 
   async selectPayTokenByText(networkId, token) {
     const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkId}-${token}`);
-    await this.tap(networkButton); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(networkButton); // Use static tap method with retry logic
   }
 
   async fillUsdAmount(amount) {
-    await this.typeText(this.amountInput, String(amount)); // Use inherited typeText method with retry logic
+    await AppwrightGestures.typeText(this.amountInput, String(amount)); // Use static typeText method with retry logic
   }
 
   async tapPayWith() {
-    await this.tap(this.payWithButton); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
   }
 
   async tapContinue() {
-    await this.tap(this.continueButton); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
   }
 
   async tapCancel() {
-    await this.tap(this.cancelButton); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
   }
 }
 

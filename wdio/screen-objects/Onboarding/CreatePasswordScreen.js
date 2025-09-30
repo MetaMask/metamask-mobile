@@ -7,10 +7,7 @@ import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
-class CreatePasswordScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class CreatePasswordScreen {
 
   get device() {
     return this._device;
@@ -18,7 +15,7 @@ class CreatePasswordScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
   
   get container() {
@@ -82,7 +79,7 @@ class CreatePasswordScreen extends AppwrightGestures {
       await Gestures.setValueWithoutTap(this.newPasswordInput, password);
     } else {
       const element = await this.newPasswordInput;
-      await this.typeText(element, password); // Use inherited typeText method with retry logic
+      await AppwrightGestures.typeText(element, password); // Use static typeText method with retry logic
     }
   }
 
@@ -91,7 +88,7 @@ class CreatePasswordScreen extends AppwrightGestures {
       await Gestures.setValueWithoutTap(this.confirmPasswordInput, password);
     } else {
       const element = await this.confirmPasswordInput;
-      await this.typeText(element, password); // Use inherited typeText method with retry logic
+      await AppwrightGestures.typeText(element, password); // Use static typeText method with retry logic
     }
   }
 
@@ -99,7 +96,7 @@ class CreatePasswordScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.iUnderstandCheckbox);
     } else {
-      await this.tap(this.iUnderstandCheckbox); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.iUnderstandCheckbox); // Use static tapElement method with retry logic
     }
   }
 
@@ -107,7 +104,7 @@ class CreatePasswordScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.submitButton);
     } else {
-      await this.tap(this.submitButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.submitButton); // Use static tapElement method with retry logic
     }
   }
 

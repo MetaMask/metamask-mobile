@@ -5,10 +5,7 @@ import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class OnboardingSheet extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class OnboardingSheet {
 
   get device() {
     return this._device;
@@ -16,7 +13,7 @@ class OnboardingSheet extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get container() {
@@ -55,7 +52,7 @@ class OnboardingSheet extends AppwrightGestures {
     if (!this.device) {
       await Gestures.waitAndTap(this.importSeedButton);
     } else {
-      await this.tap(this.importSeedButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.importSeedButton); // Use static tapElement method with retry logic
     }
   }
 

@@ -1,56 +1,21 @@
 import AppwrightSelectors from './AppwrightSelectors';
 import { APP_PACKAGE_IDS } from './Constants';
-/* This file is not in used at the moment because files in the wdio folder are expecting to be in js and not ts
-so we are keeping it here for reference but not using it in the project.
-Once we have migrated the page objects to ts, we will remove the js version of this file.
-*/
-
-interface Device {
-  webDriverClient: {
-    executeScript: (script: string, args: unknown[]) => Promise<void>;
-    hideKeyboard: () => Promise<void>;
-    background: (time: number) => Promise<void>;
-    dismissAlert: () => Promise<void>;
-  };
-  terminateApp: (packageId: string) => Promise<void>;
-  activateApp: (packageId: string) => Promise<unknown>;
-  waitForTimeout: (timeout: number) => Promise<void>;
-}
-
-interface Element {
-  tap(): Promise<void>;
-  fill(text: string): Promise<void>;
-  isVisible(options?: { timeout?: number }): Promise<boolean>;
-}
+import { Device, AppwrightLocator } from 'appwright';
 
 /**
  * Base class for Appwright gestures
  * Provides common gesture methods that can be extended by screen objects
  */
 export default class AppwrightGestures {
-  private _device: Device | null;
-
-  constructor(deviceInstance: Device | null = null) {
-    this._device = deviceInstance;
-  }
-
-  get device(): Device | null {
-    return this._device;
-  }
-
-  set device(deviceInstance: Device | null) {
-    this._device = deviceInstance;
-  }
-
   /**
    * Tap method with retry logic
-   * @param elementPromise - The element promise to tap
+   * @param elem - The element promise to tap
    * @param options - Configuration options for retry behavior
    * @param maxRetries - Maximum number of tap attempts
    * @param retryDelay - Delay between tap attempts
    */
-  async tap(
-    elementPromise: Promise<Element>,
+  static async tap(
+    elem: Promise<AppwrightLocator>,
     options: {
       maxRetries?: number;
       retryDelay?: number;
@@ -58,7 +23,7 @@ export default class AppwrightGestures {
   ): Promise<void> {
     const { maxRetries = 2, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
-    const elementToTap = await elementPromise;
+    const elementToTap = await elem;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -75,7 +40,7 @@ export default class AppwrightGestures {
               attempt + 1
             }, retrying in ${retryDelay}ms...`,
           );
-          await this.wait(retryDelay);
+          await AppwrightGestures.wait(retryDelay);
           continue;
         }
         throw error;
@@ -88,14 +53,14 @@ export default class AppwrightGestures {
 
   /**
    * Type text into an element with retry logic
-   * @param elementPromise - The element promise to type into
+   * @param elem - The element promise to type into
    * @param text - The text to type
    * @param options - Configuration options for retry behavior
    * @param maxRetries - Maximum number of type attempts
    * @param retryDelay - Delay between type attempts
    */
-  async typeText(
-    elementPromise: Promise<Element>,
+  static async typeText(
+    elem: Promise<AppwrightLocator>,
     text: string,
     options: {
       maxRetries?: number;
@@ -104,7 +69,7 @@ export default class AppwrightGestures {
   ): Promise<void> {
     const { maxRetries = 1, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
-    const elementToType = await elementPromise;
+    const elementToType = await elem;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -120,7 +85,7 @@ export default class AppwrightGestures {
               attempt + 1
             }, retrying in ${retryDelay}ms...`,
           );
-          await this.wait(retryDelay);
+          await AppwrightGestures.wait(retryDelay);
           continue;
         }
         throw error;
@@ -135,20 +100,22 @@ export default class AppwrightGestures {
    * Utility method to wait for a specified amount of time
    * @param ms - Time to wait in milliseconds
    */
-  async wait(ms: number): Promise<void> {
+  static async wait(ms: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Scroll element into view with platform-specific scrolling
-   * @param elementPromise - The element promise to scroll into view
+   * @param testDevice - The device instance
+   * @param elem - The element promise to scroll into view
    * @param options - Configuration options for scrolling behavior
    * @param maxScrollAttempts - Maximum number of scroll attempts
    * @param scrollTimeout - Timeout for scroll attempts
    * @param scrollParams - Parameters for scrolling behavior
    */
-  async scrollIntoView(
-    elementPromise: Promise<Element>,
+  static async scrollIntoView(
+    testDevice: Device,
+    elem: Promise<AppwrightLocator>,
     options: {
       maxScrollAttempts?: number;
       scrollTimeout?: number;
@@ -161,7 +128,7 @@ export default class AppwrightGestures {
         percent?: number;
       };
     } = {},
-  ): Promise<Element> {
+  ): Promise<AppwrightLocator> {
     const {
       maxScrollAttempts = 20,
       scrollTimeout = 2000,
@@ -179,7 +146,7 @@ export default class AppwrightGestures {
 
     for (let i = 0; i < maxScrollAttempts; i++) {
       try {
-        const elementInstance = await elementPromise;
+        const elementInstance = await elem;
         const isVisible = await elementInstance.isVisible({
           timeout: scrollTimeout,
         });
@@ -190,15 +157,12 @@ export default class AppwrightGestures {
       } catch (error) {
         // Element not found or not visible, continue scrolling
       }
-      const webDriverClient = this.device?.webDriverClient;
-      if (!webDriverClient) {
-        throw new Error('Device webDriverClient not available');
-      }
 
       // Perform a scroll action
-      if (AppwrightSelectors.isAndroid(this.device)) {
+      if (AppwrightSelectors.isAndroid(testDevice)) {
         // For Android, use a swipe gesture
-        //await webDriverClient.tap({ x: 500, y: 1500 });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const webDriverClient = (testDevice as any).webDriverClient;
         await webDriverClient.executeScript('mobile: swipeGesture', [
           {
             left,
@@ -211,6 +175,8 @@ export default class AppwrightGestures {
         ]);
       } else {
         // For iOS, use mobile: scroll command
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const webDriverClient = (testDevice as any).webDriverClient;
         await webDriverClient.executeScript('mobile: scroll', [
           {
             direction,
@@ -223,7 +189,9 @@ export default class AppwrightGestures {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
-    throw new Error(`Element not found after 5 scroll attempts`);
+    throw new Error(
+      `Element not found after ${maxScrollAttempts} scroll attempts`,
+    );
   }
 
   /**
@@ -308,8 +276,11 @@ export default class AppwrightGestures {
    * @param deviceInstance - The device object
    */
   static async hideKeyboard(deviceInstance: Device): Promise<void> {
-    if (AppwrightSelectors.isAndroid(deviceInstance))
-      await deviceInstance.webDriverClient.hideKeyboard(); // only needed for Android
+    if (AppwrightSelectors.isAndroid(deviceInstance)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const webDriverClient = (deviceInstance as any).webDriverClient;
+      await webDriverClient.hideKeyboard(); // only needed for Android
+    }
   }
 
   /**
@@ -321,7 +292,8 @@ export default class AppwrightGestures {
     deviceInstance: Device,
     time: number,
   ): Promise<void> {
-    const webDriverClient = deviceInstance.webDriverClient;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const webDriverClient = (deviceInstance as any).webDriverClient;
     await webDriverClient.background(time);
   }
 
@@ -334,6 +306,8 @@ export default class AppwrightGestures {
     const isIOS = AppwrightSelectors.isIOS(deviceInstance);
     const timeout = isIOS ? 8000 : 2000; // 8 seconds for iOS, 2 for Android
     await deviceInstance.waitForTimeout(timeout);
-    return await deviceInstance.webDriverClient.dismissAlert();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const webDriverClient = (deviceInstance as any).webDriverClient;
+    return await webDriverClient.dismissAlert();
   }
 }

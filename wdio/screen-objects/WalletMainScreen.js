@@ -11,10 +11,7 @@ import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class WalletMainScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class WalletMainScreen {
 
   get device() {
     return this._device;
@@ -22,7 +19,6 @@ class WalletMainScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
   }
 
   get ImportToken() {
@@ -182,14 +178,14 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await this.tap(this.accountIcon); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountIcon); // Use static tapElement method with retry logic
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await this.tap(this.swapButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -198,7 +194,7 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await this.tap(this.networkInNavBar); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.networkInNavBar); // Use static tapElement method with retry logic
     }
   }
 
@@ -267,7 +263,7 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await this.tap(this.accountActionsButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.accountActionsButton); // Use static tapElement method with retry logic
     }
   }
 

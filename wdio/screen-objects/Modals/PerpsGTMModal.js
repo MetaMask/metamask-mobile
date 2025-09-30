@@ -5,10 +5,7 @@ import AppwrightGestures from "../../../e2e/framework/AppwrightGestures";
 import { expect } from 'appwright';
 import { PerpsGTMModalSelectorsIDs } from '../../../e2e/selectors/Perps/Perps.selectors';
 
-class PerpsGTMModal extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class PerpsGTMModal {
 
   get device() {
     return this._device;
@@ -16,7 +13,7 @@ class PerpsGTMModal extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get notNowButton() {
@@ -58,7 +55,7 @@ class PerpsGTMModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.notNowButton);
     } else {
-      await this.tap(this.notNowButton);
+      await AppwrightGestures.tap(this.notNowButton);
     }
   }
 
@@ -66,7 +63,7 @@ class PerpsGTMModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.getStartedButton);
     } else {
-      await this.tap(this.getStartedButton);
+      await AppwrightGestures.tap(this.getStartedButton);
     }
   }
 }

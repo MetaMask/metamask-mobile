@@ -5,10 +5,7 @@ import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class OnBoardingScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class OnBoardingScreen {
 
 
   get title() {
@@ -58,7 +55,7 @@ class OnBoardingScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
     } else {
-      await this.tap(this.existingWalletButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.existingWalletButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -66,7 +63,7 @@ class OnBoardingScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
-      await this.tap(this.createNewWalletButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.createNewWalletButton); // Use static tapElement method with retry logic
     }
   }
 }

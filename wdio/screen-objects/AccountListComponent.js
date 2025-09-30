@@ -7,10 +7,7 @@ import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
-class AccountListComponent extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class AccountListComponent {
 
   get device() {
     return this._device;
@@ -18,7 +15,7 @@ class AccountListComponent extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get accountListContainer() {
@@ -41,7 +38,7 @@ class AccountListComponent extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      await this.tap(this.addAccountButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -66,8 +63,8 @@ class AccountListComponent extends AppwrightGestures {
 
   async tapOnAccountByName(name) {
     let account = await AppwrightSelectors.getElementByText(this.device, name);
-    await this.scrollIntoView(account); // Use inherited method with retry logic
-    await this.tap(account); // Tap after scrolling into view
+    await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
+    await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
 }
 

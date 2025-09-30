@@ -1,34 +1,24 @@
-export interface Device {
-  getById(id: string, options?: { exact?: boolean }): Promise<unknown>;
-  getByXpath(xpath: string): Promise<unknown>;
-  getByText(text: string): Promise<unknown>;
-  webDriverClient: {
-    capabilities: {
-      platformName: string;
-    };
-  };
-}
+import { AppwrightLocator, Device, Platform } from 'appwright';
 
 export default class AppwrightSelectors {
-  // The below three selectors are the primary selectors
   static async getElementByID(
     testDevice: Device,
     id: string,
-  ): Promise<unknown> {
+  ): Promise<AppwrightLocator> {
     return await testDevice.getById(id, { exact: true });
   }
 
   static async getElementByXpath(
     testDevice: Device,
     xpath: string,
-  ): Promise<unknown> {
+  ): Promise<AppwrightLocator> {
     return await testDevice.getByXpath(xpath);
   }
 
   static async getElementByText(
     testDevice: Device,
     text: string,
-  ): Promise<unknown> {
+  ): Promise<AppwrightLocator> {
     return await testDevice.getByText(text);
   }
 
@@ -36,7 +26,7 @@ export default class AppwrightSelectors {
   static async getElementByCatchAll(
     testDevice: Device,
     identifier: string,
-  ): Promise<unknown> {
+  ): Promise<AppwrightLocator> {
     const isAndroid = AppwrightSelectors.isAndroid(testDevice);
 
     if (isAndroid) {
@@ -53,7 +43,7 @@ export default class AppwrightSelectors {
   static async getElementByNameiOS(
     testDevice: Device,
     identifier: string,
-  ): Promise<unknown> {
+  ): Promise<AppwrightLocator | null> {
     const isIOS = AppwrightSelectors.isIOS(testDevice);
     if (isIOS) {
       const xpath = `//*[contains(@name,'${identifier}')][1]`;
@@ -63,12 +53,12 @@ export default class AppwrightSelectors {
   }
 
   static isIOS(testDevice: Device): boolean {
-    const platform = testDevice.webDriverClient.capabilities.platformName;
-    return platform === 'iOS' || platform === 'ios';
+    const platform = testDevice.getPlatform();
+    return platform === Platform.IOS;
   }
 
   static isAndroid(testDevice: Device): boolean {
-    const platform = testDevice.webDriverClient.capabilities.platformName;
-    return platform === 'android' || platform === 'Android';
+    const platform = testDevice.getPlatform();
+    return platform === Platform.ANDROID;
   }
 }

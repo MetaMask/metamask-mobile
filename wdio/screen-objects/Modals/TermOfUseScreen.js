@@ -5,10 +5,7 @@ import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class TermOfUseScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class TermOfUseScreen {
 
   get device() {
     return this._device;
@@ -16,7 +13,7 @@ class TermOfUseScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get container() {
@@ -85,7 +82,7 @@ class TermOfUseScreen extends AppwrightGestures {
       await Gestures.waitAndTap(this.checkbox);
     } else {
       const cb = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
-      await this.tap(cb); // Use inherited tap method with retry logic
+      await AppwrightGestures.tap(cb); // Use static tap method with retry logic
     }
   }
 
@@ -94,7 +91,7 @@ class TermOfUseScreen extends AppwrightGestures {
       await Gestures.waitAndTap(this.scrollEndArrowButton);
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
-      await this.tap(button); // Use inherited tap method with retry logic
+      await AppwrightGestures.tap(button); // Use static tap method with retry logic
     }
   }
 
@@ -113,7 +110,7 @@ class TermOfUseScreen extends AppwrightGestures {
       await Gestures.tap(this.acceptButton);
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
-      await this.tap(button); // Use inherited tap method with retry logic
+      await AppwrightGestures.tap(button); // Use static tap method with retry logic
     }
   }
 }

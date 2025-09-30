@@ -10,10 +10,7 @@ import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class MetaMetricsScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class MetaMetricsScreen {
 
   get device() {
     return this._device;
@@ -21,7 +18,7 @@ class MetaMetricsScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get screenTitle() {
@@ -70,7 +67,7 @@ class MetaMetricsScreen extends AppwrightGestures {
       await element.waitForEnabled();
       await Gestures.waitAndTap(this.iAgreeButton);
     } else {
-      await this.tap(this.iAgreeButton); // Use inherited tapElement method with retry logic
+      await AppwrightGestures.tap(this.iAgreeButton); // Use static tapElement method with retry logic
     }
   }
 

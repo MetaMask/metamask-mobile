@@ -1,10 +1,7 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
-class PerpsTabView extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class PerpsTabView {
 
   get device() {
     return this._device;
@@ -12,7 +9,7 @@ class PerpsTabView extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get perpsTabButton() {
@@ -28,17 +25,17 @@ class PerpsTabView extends AppwrightGestures {
   }
 
   async tapPerpsTab() {
-    await this.tap(this.perpsTabButton); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(this.perpsTabButton); // Use static tap method with retry logic
   }
 
   async tapAddFunds() {
-    await this.tap(this.addFundsButton); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
   }
 
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
     await button.isVisible({ timeout: 5000 });
-    await this.tap(button); // Use inherited tap method with retry logic
+    await AppwrightGestures.tap(button); // Use static tap method with retry logic
   }
 }
 
