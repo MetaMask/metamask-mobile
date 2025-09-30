@@ -108,18 +108,18 @@ class BridgeScreen {
       }
       let tokenButton;
       if (AppwrightSelectors.isAndroid(this._device)){
-        tokenButton = AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
+        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
       }
       else {
         // Try multiple iOS element selection strategies
         console.log(`Looking for iOS token with ID: asset-${tokenNetworkId}-${token}`);
         
         try {
-          tokenButton = AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
+          tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
           console.log('Found token button by Name');
         } catch (error) {
           console.log('Name selector failed, trying ID selector for iOS...');
-          tokenButton = AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+          tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
           console.log('Found token button by ID');
         }
       }
