@@ -954,64 +954,39 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                         >
                                           <View>
                                             <View
-                                              useNativeDriver={true}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#f3f5f9",
+                                                    "borderRadius": 9999,
+                                                    "height": 40,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 40,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
                                             >
                                               <Image
-                                                fadeIn={true}
                                                 onError={[Function]}
-                                                onLoadEnd={[Function]}
+                                                resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "",
+                                                    "uri": "https://example.com/eth.png",
                                                   }
                                                 }
                                                 style={
                                                   [
                                                     {
-                                                      "borderRadius": 12,
-                                                      "height": 24,
-                                                      "width": 24,
+                                                      "height": "100%",
+                                                      "width": "100%",
                                                     },
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    undefined,
-                                                    undefined,
                                                     undefined,
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -1200,64 +1175,39 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                         >
                                           <View>
                                             <View
-                                              useNativeDriver={true}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#f3f5f9",
+                                                    "borderRadius": 9999,
+                                                    "height": 40,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 40,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
                                             >
                                               <Image
-                                                fadeIn={true}
                                                 onError={[Function]}
-                                                onLoadEnd={[Function]}
+                                                resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "",
+                                                    "uri": "https://example.com/pol.png",
                                                   }
                                                 }
                                                 style={
                                                   [
                                                     {
-                                                      "borderRadius": 12,
-                                                      "height": 24,
-                                                      "width": 24,
+                                                      "height": "100%",
+                                                      "width": "100%",
                                                     },
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    undefined,
-                                                    undefined,
                                                     undefined,
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -1446,64 +1396,39 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                         >
                                           <View>
                                             <View
-                                              useNativeDriver={true}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#f3f5f9",
+                                                    "borderRadius": 9999,
+                                                    "height": 40,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 40,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
                                             >
                                               <Image
-                                                fadeIn={true}
                                                 onError={[Function]}
-                                                onLoadEnd={[Function]}
+                                                resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "",
+                                                    "uri": "https://example.com/sol.png",
                                                   }
                                                 }
                                                 style={
                                                   [
                                                     {
-                                                      "borderRadius": 12,
-                                                      "height": 24,
-                                                      "width": 24,
+                                                      "height": "100%",
+                                                      "width": "100%",
                                                     },
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    undefined,
-                                                    undefined,
                                                     undefined,
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -1692,12 +1617,24 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                         >
                                           <View>
                                             <View
-                                              useNativeDriver={true}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#f3f5f9",
+                                                    "borderRadius": 9999,
+                                                    "height": 40,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 40,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
                                             >
                                               <Image
-                                                fadeIn={true}
                                                 onError={[Function]}
-                                                onLoadEnd={[Function]}
+                                                resizeMode="contain"
                                                 source={
                                                   {
                                                     "uri": "https://example.com/usdc.png",
@@ -1706,50 +1643,13 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "borderRadius": 12,
-                                                      "height": 24,
-                                                      "width": 24,
+                                                      "height": "100%",
+                                                      "width": "100%",
                                                     },
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    undefined,
-                                                    undefined,
                                                     undefined,
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 18,
-                                                        "height": 36,
-                                                        "width": 36,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
