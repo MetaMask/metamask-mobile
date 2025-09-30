@@ -1,5 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, TouchableHighlight } from 'react-native';
+import {
+  FlatList,
+  TouchableHighlight,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -8,16 +13,10 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createDepositNavigationDetails } from '../../../Deposit/routes/utils';
 import OrderListItem from '../../components/OrderListItem';
-import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
 
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../../component-library/components/Buttons/Button/Button.types';
+import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 
@@ -31,22 +30,6 @@ import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
-
-interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
-  readonly selected?: boolean;
-}
-
-function FilterButton({ selected = false, ...props }: FilterButtonProps) {
-  return (
-    <Button
-      variant={selected ? ButtonVariants.Primary : ButtonVariants.Secondary}
-      size={ButtonSize.Sm}
-      accessibilityRole="button"
-      accessible
-      {...props}
-    />
-  );
-}
 
 function OrdersList() {
   const { colors } = useTheme();
@@ -114,50 +97,59 @@ function OrdersList() {
     </TouchableHighlight>
   );
 
+  const renderFilterTab = (filter: filterType, label: string) => {
+    const isActive = currentFilter === filter;
+
+    return (
+      <TouchableOpacity
+        key={filter}
+        style={[styles.filterTab, isActive && styles.filterTabActive]}
+        onPress={() => setCurrentFilter(filter)}
+        activeOpacity={0.7}
+      >
+        <Text
+          variant={TextVariant.BodySMBold}
+          style={isActive ? null : styles.filterTabText}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <FlatList
       ListHeaderComponent={
-        <ScrollView horizontal>
-          <Row style={styles.filters}>
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.All')}
-              onPress={() => setCurrentFilter('ALL')}
-              selected={currentFilter === 'ALL'}
-            />
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Purchased')}
-              onPress={() => setCurrentFilter('PURCHASE')}
-              selected={currentFilter === 'PURCHASE'}
-            />
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Sold')}
-              onPress={() => setCurrentFilter('SELL')}
-              selected={currentFilter === 'SELL'}
-            />
-          </Row>
-        </ScrollView>
+        <View style={styles.filterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterScrollView}
+          >
+            {renderFilterTab('ALL', strings('fiat_on_ramp_aggregator.All'))}
+            {renderFilterTab(
+              'PURCHASE',
+              strings('fiat_on_ramp_aggregator.Purchased'),
+            )}
+            {renderFilterTab('SELL', strings('fiat_on_ramp_aggregator.Sold'))}
+          </ScrollView>
+        </View>
       }
       data={orders}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <Row>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Muted}
-            style={styles.emptyMessage}
-          >
-            {currentFilter === 'ALL'
-              ? strings('fiat_on_ramp_aggregator.empty_orders_list')
-              : null}
-            {currentFilter === 'PURCHASE'
-              ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
-              : null}
-            {currentFilter === 'SELL'
-              ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
-              : null}
-          </Text>
-        </Row>
+        <View style={styles.emptyContainer}>
+          <TabEmptyState
+            description={
+              currentFilter === 'ALL'
+                ? strings('fiat_on_ramp_aggregator.empty_orders_list')
+                : currentFilter === 'PURCHASE'
+                ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
+                : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
+            }
+          />
+        </View>
       }
     />
   );

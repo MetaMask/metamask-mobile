@@ -18,6 +18,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 
@@ -342,14 +343,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>
-        {strings('perps.transactions.empty_state.no_transactions', {
-          type: activeFilter.toLowerCase(),
-        })}
-      </Text>
-      <Text style={styles.emptyText}>
-        {strings('perps.transactions.empty_state.history_will_appear')}
-      </Text>
+      <TabEmptyState
+        description={`${strings(
+          'perps.transactions.empty_state.no_transactions',
+          {
+            type: activeFilter.toLowerCase(),
+          },
+        )}\n\n${strings('perps.transactions.empty_state.history_will_appear')}`}
+      />
     </View>
   );
 

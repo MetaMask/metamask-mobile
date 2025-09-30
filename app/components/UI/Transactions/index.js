@@ -72,6 +72,7 @@ import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -84,9 +85,11 @@ const createStyles = (colors) =>
       margin: 0,
     },
     emptyContainer: {
+      width: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
+      paddingVertical: 40,
+      backgroundColor: colors.background.default,
     },
     keyboardAwareWrapper: {
       flex: 1,
@@ -390,7 +393,7 @@ class Transactions extends PureComponent {
     }
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+        <TabEmptyState description={strings('wallet.no_transactions')} />
       </View>
     );
   };

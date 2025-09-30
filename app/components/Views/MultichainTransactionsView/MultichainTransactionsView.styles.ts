@@ -8,10 +8,10 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
     },
     emptyContainer: {
-      flex: 1,
+      width: '100%',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 20,
+      paddingVertical: 40,
     },
     emptyText: {
       fontSize: 20,

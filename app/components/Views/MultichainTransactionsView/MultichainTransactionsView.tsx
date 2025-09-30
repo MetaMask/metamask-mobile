@@ -27,6 +27,7 @@ import PriceChartContext, {
 import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -116,9 +117,9 @@ const MultichainTransactionsView = ({
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
-      <Text style={[style.emptyText, { color: colors.text.default }]}>
-        {emptyMessage ?? strings('wallet.no_transactions')}
-      </Text>
+      <TabEmptyState
+        description={emptyMessage ?? strings('wallet.no_transactions')}
+      />
     </View>
   );
 

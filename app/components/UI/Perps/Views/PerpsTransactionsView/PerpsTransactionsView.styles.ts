@@ -12,8 +12,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
     },
     filterContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: 8,
       backgroundColor: colors.background.default,
       zIndex: 1000, // iOS
       elevation: 1000, // Android
@@ -113,7 +112,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
-      paddingVertical: 48,
+      paddingVertical: 40,
     },
     emptyText: {
       textAlign: 'center' as const,

@@ -9,7 +9,6 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
@@ -17,12 +16,14 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { Box } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -43,7 +44,7 @@ import {
   isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
-import TabBar from '../../Base/TabBar';
+import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
@@ -68,36 +69,35 @@ const createStyles = (params) => {
   return StyleSheet.create({
     wrapper: {
       flex: 1,
+      paddingHorizontal: 16,
+    },
+    tabWrapper: {
+      flex: 1,
+      backgroundColor: colors.background.default,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
       width: '100%',
       justifyContent: 'space-between',
-      paddingVertical: 16,
-      paddingHorizontal: 8,
+      alignItems: 'center',
+      marginVertical: 8,
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
-      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
-      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
-      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
+      borderColor: colors.border.muted,
+      borderWidth: 1,
+      borderRadius: 8,
+      maxWidth: '80%',
+      paddingHorizontal: 12,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
+      borderColor: colors.border.muted,
       marginRight: 4,
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
-      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
-      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
-      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
+      borderWidth: 1,
+      borderRadius: 8,
+      maxWidth: '80%',
+      paddingHorizontal: 12,
       opacity: 0.5,
     },
     networkManagerWrapper: {
@@ -127,6 +127,7 @@ const createStyles = (params) => {
 const ActivityView = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const tw = useTailwind();
 
   const { styles } = useStyles(createStyles, {
     style: { marginTop: insets.top },
@@ -209,8 +210,6 @@ const ActivityView = () => {
     [navigation, colors, selectedAddress, openAccountSelector],
   );
 
-  const renderTabBar = () => <TabBar />;
-
   // Calculate if Perps tab is currently active
   // Perps is the last tab, so its index depends on what other tabs are shown
   const perpsTabIndex = 2;
@@ -222,11 +221,11 @@ const ActivityView = () => {
       if (params.redirectToOrders) {
         const orderTabNumber = 1;
         navigation.setParams({ redirectToOrders: false });
-        tabViewRef.current?.goToPage(orderTabNumber);
+        tabViewRef.current?.goToTabIndex(orderTabNumber);
       } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
         const perpsTabNumber = isPerpsEnabled ? 2 : 1;
         navigation.setParams({ redirectToPerpsTransactions: false });
-        tabViewRef.current?.goToPage(perpsTabNumber);
+        tabViewRef.current?.goToTabIndex(perpsTabNumber);
       }
     }, [
       navigation,
@@ -252,104 +251,116 @@ const ActivityView = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
-      <View style={[styles.header, { marginTop: insets.top }]}>
-        <Text style={styles.title} variant={TextVariant.HeadingSM}>
-          {strings('transactions_view.title')}
-        </Text>
-      </View>
-      <View style={styles.wrapper}>
-        {!(isPerpsTabActive || isOrdersTabActive) && (
-          <View style={styles.controlButtonOuterWrapper}>
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-              label={
-                <>
-                  {isRemoveGlobalNetworkSelectorEnabled() ? (
-                    <View style={styles.networkManagerWrapper}>
-                      {!areAllNetworksSelected && (
-                        <Avatar
-                          variant={AvatarVariant.Network}
-                          size={AvatarSize.Xs}
-                          name={networkName}
-                          imageSource={networkImageSource}
-                        />
-                      )}
-                      <TextComponent
-                        variant={TextVariant.BodyMDMedium}
-                        style={styles.controlButtonText}
-                        numberOfLines={1}
-                      >
-                        {enabledNetworks.length > 1
-                          ? strings('wallet.all_networks')
-                          : currentNetworkName ??
-                            strings('wallet.current_network')}
-                      </TextComponent>
-                    </View>
-                  ) : (
-                    <TextComponent
-                      variant={TextVariant.BodyMDMedium}
-                      style={styles.titleText}
-                      numberOfLines={1}
-                    >
-                      {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
-                        ? strings('wallet.popular_networks')
-                        : networkName ?? strings('wallet.current_network')}
-                    </TextComponent>
-                  )}
-                </>
-              }
-              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-              onPress={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? showFilterControls
-                  : () => null
-              }
-              endIconName={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? IconName.ArrowDown
-                  : undefined
-              }
-              style={
-                isDisabled && !isMultichainAccountsState2Enabled
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
-              }
-              disabled={isDisabled && !isMultichainAccountsState2Enabled}
-            />
-          </View>
-        )}
-        <ScrollableTabView
+      <Box
+        twClassName="flex-1 px-4 bg-default gap-4"
+        style={{ marginTop: insets.top }}
+      >
+        <Box twClassName="mb-4">
+          <TextComponent
+            variant={TextVariant.HeadingLG}
+            twClassName="text-default"
+          >
+            {strings('activity_view.title')}
+          </TextComponent>
+        </Box>
+        <TabsList
           ref={tabViewRef}
-          renderTabBar={renderTabBar}
           onChangeTab={({ i }) => setActiveTabIndex(i)}
         >
-          {showUnifiedActivityList ? (
-            <UnifiedTransactionsView
-              tabLabel={strings('transactions_view.title')}
-              chainId={currentChainId}
-            />
-          ) : selectedAddress && isNonEvmAddress(selectedAddress) ? (
-            <MultichainTransactionsView
-              tabLabel={strings('transactions_view.title')}
-              chainId={currentChainId}
-            />
-          ) : (
-            <TransactionsView tabLabel={strings('transactions_view.title')} />
-          )}
-          <RampOrdersList
+          <View
+            key="transactions"
+            tabLabel={strings('transactions_view.title')}
+            style={styles.tabWrapper}
+          >
+            <View style={styles.controlButtonOuterWrapper}>
+              <ButtonBase
+                testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+                label={
+                  <>
+                    {isRemoveGlobalNetworkSelectorEnabled() ? (
+                      <View style={styles.networkManagerWrapper}>
+                        {!areAllNetworksSelected && (
+                          <Avatar
+                            variant={AvatarVariant.Network}
+                            size={AvatarSize.Xs}
+                            name={networkName}
+                            imageSource={networkImageSource}
+                          />
+                        )}
+                        <TextComponent
+                          variant={TextVariant.BodyMDMedium}
+                          style={styles.controlButtonText}
+                          numberOfLines={1}
+                        >
+                          {enabledNetworks.length > 1
+                            ? strings('wallet.all_networks')
+                            : currentNetworkName ??
+                              strings('wallet.current_network')}
+                        </TextComponent>
+                      </View>
+                    ) : (
+                      <TextComponent
+                        variant={TextVariant.BodyMDMedium}
+                        style={styles.titleText}
+                        numberOfLines={1}
+                      >
+                        {isAllNetworks &&
+                        isAllPopularEVMNetworks &&
+                        isEvmSelected
+                          ? strings('wallet.popular_networks')
+                          : networkName ?? strings('wallet.current_network')}
+                      </TextComponent>
+                    )}
+                  </>
+                }
+                isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
+                onPress={
+                  isEvmSelected || isMultichainAccountsState2Enabled
+                    ? showFilterControls
+                    : () => null
+                }
+                endIconName={
+                  isEvmSelected || isMultichainAccountsState2Enabled
+                    ? IconName.ArrowDown
+                    : undefined
+                }
+                style={
+                  isDisabled && !isMultichainAccountsState2Enabled
+                    ? styles.controlButtonDisabled
+                    : styles.controlButton
+                }
+                disabled={isDisabled && !isMultichainAccountsState2Enabled}
+              />
+            </View>
+            {showUnifiedActivityList ? (
+              <UnifiedTransactionsView chainId={currentChainId} />
+            ) : selectedAddress && isNonEvmAddress(selectedAddress) ? (
+              <MultichainTransactionsView chainId={currentChainId} />
+            ) : (
+              <TransactionsView />
+            )}
+          </View>
+          <View
+            key="orders"
             tabLabel={strings('fiat_on_ramp_aggregator.orders')}
-          />
+            style={styles.tabWrapper}
+          >
+            <RampOrdersList />
+          </View>
 
           {isPerpsEnabled && (
-            <PerpsConnectionProvider
+            <View
+              key="perps"
               tabLabel={strings('perps.transactions.title')}
-              isVisible={isPerpsTabActive}
+              style={styles.tabWrapper}
             >
-              <PerpsTransactionsView />
-            </PerpsConnectionProvider>
+              <PerpsConnectionProvider isVisible={isPerpsTabActive}>
+                <PerpsTransactionsView />
+              </PerpsConnectionProvider>
+            </View>
           )}
-        </ScrollableTabView>
-      </View>
+        </TabsList>
+      </Box>
     </ErrorBoundary>
   );
 };

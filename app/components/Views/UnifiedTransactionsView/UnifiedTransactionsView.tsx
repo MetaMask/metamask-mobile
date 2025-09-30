@@ -11,7 +11,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../../component-library/components/Texts/Text';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
@@ -49,6 +48,7 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionActionModal from '../../UI/TransactionActionModal';
@@ -534,9 +534,7 @@ const UnifiedTransactionsView = ({
 
   const renderEmptyList = () => (
     <View style={styles.emptyList}>
-      <Text style={styles.emptyListText}>
-        {strings('wallet.no_transactions')}
-      </Text>
+      <TabEmptyState description={strings('wallet.no_transactions')} />
     </View>
   );
 
