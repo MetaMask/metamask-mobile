@@ -1251,7 +1251,6 @@ const Wallet = ({
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
               displayBridgeButton={displayBridgeButton}
-              chainId={chainId}
               goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
@@ -1299,7 +1298,6 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
-      chainId,
     ],
   );
   const renderLoader = useCallback(

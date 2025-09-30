@@ -12,14 +12,12 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
-import { CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
-  chainId: Hex | CaipChainId;
   onBuy?: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
