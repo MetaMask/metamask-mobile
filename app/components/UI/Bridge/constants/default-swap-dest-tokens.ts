@@ -110,7 +110,8 @@ export const Bip44DefaultPairs: Record<CaipAssetType, BridgeToken> = {
     name: 'Ethereum',
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
-    image: '',
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
     chainId: CHAIN_IDS.MAINNET,
   },
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
@@ -119,14 +120,24 @@ export const Bip44DefaultPairs: Record<CaipAssetType, BridgeToken> = {
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     decimals: 6,
     image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+    chainId: CHAIN_IDS.MAINNET,
+  },
+  'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': {
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
     chainId: CHAIN_IDS.MAINNET,
   },
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
     address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
     symbol: 'SOL',
     decimals: 9,
-    image: '',
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
     chainId: SolScope.Mainnet,
     name: 'Solana',
   },
