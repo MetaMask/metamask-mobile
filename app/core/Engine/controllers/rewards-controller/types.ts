@@ -565,7 +565,7 @@ export type UnlockedRewardsState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PointsEventsDtoState = {
-  pointsEvents: {
+  results: {
     id: string;
     timestamp: number;
     value: number;
@@ -576,6 +576,9 @@ export type PointsEventsDtoState = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any;
   }[];
+  has_more: boolean;
+  cursor: string | null;
+  total_results: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

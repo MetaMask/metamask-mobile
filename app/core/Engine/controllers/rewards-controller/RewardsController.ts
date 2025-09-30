@@ -325,13 +325,16 @@ export class RewardsController extends BaseController<
     pointsEvents: PaginatedPointsEventsDto,
   ): PointsEventsDtoState {
     return {
-      pointsEvents: pointsEvents.results.map((result) => ({
+      results: pointsEvents.results.map((result) => ({
         ...result,
         timestamp: new Date(result.timestamp).getTime(),
         updatedAt: new Date(result.updatedAt).getTime(),
         type: result.type,
         payload: result.payload,
       })),
+      has_more: pointsEvents.has_more,
+      cursor: pointsEvents.cursor,
+      total_results: pointsEvents.total_results,
     };
   }
 
@@ -339,15 +342,15 @@ export class RewardsController extends BaseController<
     state: PointsEventsDtoState,
   ): PaginatedPointsEventsDto {
     return {
-      results: state.pointsEvents.map((r) => ({
+      results: state.results.map((r) => ({
         ...r,
         type: r.type as PointsEventDto['type'],
         timestamp: new Date(r.timestamp),
         updatedAt: new Date(r.updatedAt),
       })),
-      total_results: state.pointsEvents.length,
-      cursor: null,
-      has_more: false,
+      total_results: state.total_results,
+      cursor: state.cursor,
+      has_more: state.has_more,
     };
   }
 
@@ -1200,11 +1203,17 @@ export class RewardsController extends BaseController<
       return { has_more: false, cursor: null, total_results: 0, results: [] };
 
     // If cursor is provided, always fetch fresh and do not touch cache
-    if (params.cursor || params.forceFresh) {
+    if (params.cursor) {
       const dto = await this.messagingSystem.call(
         'RewardsDataService:getPointsEvents',
         params,
       );
+      this.triggerBalanceUpdateIfNeeded(dto, params);
+      return dto;
+    }
+
+    if (params.forceFresh) {
+      const dto = await this.getPointsEventsIfChanged(params);
       this.triggerBalanceUpdateIfNeeded(dto, params);
       return dto;
     }
@@ -1234,32 +1243,8 @@ export class RewardsController extends BaseController<
               cursor: params.cursor,
             },
           );
-          const hasPointsEventsChanged = await this.hasPointsEventsChanged(
-            params,
-          );
-
-          // If no new points events have been added, return cached data
-          if (!hasPointsEventsChanged) {
-            return this.state.pointsEvents[cacheKey]
-              ? this.#convertPointsEventsStateToDto(
-                  this.state.pointsEvents[cacheKey],
-                )
-              : {
-                  has_more: false,
-                  cursor: null,
-                  total_results: 0,
-                  results: [],
-                };
-          }
-
-          const pointsEvents = await this.messagingSystem.call(
-            'RewardsDataService:getPointsEvents',
-            params,
-          );
-
-          // Check if we should emit balance updated event
+          const pointsEvents = await this.getPointsEventsIfChanged(params);
           this.triggerBalanceUpdateIfNeeded(pointsEvents, params);
-
           return pointsEvents;
         } catch (error) {
           Logger.log(
@@ -1285,6 +1270,34 @@ export class RewardsController extends BaseController<
     });
 
     return result;
+  }
+
+  async getPointsEventsIfChanged(
+    params: GetPointsEventsDto,
+  ): Promise<PaginatedPointsEventsDto> {
+    const cacheKey = this.#createSeasonSubscriptionCompositeKey(
+      params.seasonId,
+      params.subscriptionId,
+    );
+
+    const hasPointsEventsChanged = await this.hasPointsEventsChanged(params);
+
+    // If no new points events have been added, return cached data
+    if (!hasPointsEventsChanged) {
+      return this.state.pointsEvents[cacheKey]
+        ? this.#convertPointsEventsStateToDto(this.state.pointsEvents[cacheKey])
+        : {
+            has_more: false,
+            cursor: null,
+            total_results: 0,
+            results: [],
+          };
+    }
+
+    return await this.messagingSystem.call(
+      'RewardsDataService:getPointsEvents',
+      params,
+    );
   }
 
   /**
@@ -1323,7 +1336,7 @@ export class RewardsController extends BaseController<
         )
       ];
 
-    const cachedLatestUpdatedAt = cached?.pointsEvents?.[0]?.updatedAt;
+    const cachedLatestUpdatedAt = cached?.results?.[0]?.updatedAt;
     // If the cache is empty, we need to fetch fresh data
     if (!cachedLatestUpdatedAt) return true;
 
