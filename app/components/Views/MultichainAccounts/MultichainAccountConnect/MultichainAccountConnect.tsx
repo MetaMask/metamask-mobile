@@ -213,7 +213,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname } = hostInfo.metadata;
+  const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -234,20 +234,29 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       ...testNetworkConfigurations,
     ].map(({ caipChainId }) => caipChainId);
 
-    const namespacesToCaipChainIds = nonTestNetworkConfigurations
-      .map(({ caipChainId }) => caipChainId)
-      .filter((caipChainId) =>
-        requestedNamespacesWithoutWallet.includes(
-          parseCaipChainId(caipChainId).namespace,
-        ),
-      );
+    const walletRequest =
+      requestedCaipChainIds.filter(
+        (caipChainId) =>
+          parseCaipChainId(caipChainId).namespace === KnownCaipNamespace.Wallet,
+      ).length > 0;
+
+    let additionalChains: CaipChainId[] = [];
+    if (walletRequest && isEip1193Request) {
+      additionalChains = nonTestNetworkConfigurations
+        .map(({ caipChainId }) => caipChainId)
+        .filter((caipChainId) =>
+          requestedNamespacesWithoutWallet.includes(
+            parseCaipChainId(caipChainId).namespace,
+          ),
+        );
+    }
 
     const supportedRequestedCaipChainIds = Array.from(
       new Set([
         ...requestedCaipChainIds.filter((requestedCaipChainId) =>
           allNetworksList.includes(requestedCaipChainId as CaipChainId),
         ),
-        ...namespacesToCaipChainIds,
+        ...additionalChains,
       ]),
     );
 
@@ -289,6 +298,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     nonTestNetworkConfigurations,
     testNetworkConfigurations,
     requestedCaipChainIds,
+    isEip1193Request,
     currentlySelectedNetwork.chainId,
     requestedNamespaces,
     requestedNamespacesWithoutWallet,
