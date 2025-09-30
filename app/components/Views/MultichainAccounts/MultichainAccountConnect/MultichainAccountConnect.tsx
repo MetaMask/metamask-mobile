@@ -90,6 +90,7 @@ import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
+import { ConnectionProps } from '../../../../core/SDKConnect/Connection/Connection.ts';
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -164,7 +165,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations],
   );
 
-  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
+  const { wc2Metadata, v2Connections } = useSelector(
+    (state: RootState) => state.sdk,
+  );
 
   const { origin: channelIdOrHostname } = hostInfo.metadata;
 
@@ -174,10 +177,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     channelId: channelIdOrHostname,
   });
 
+  const sdkV2Connection: ConnectionProps & { isV2?: boolean } =
+    v2Connections[channelIdOrHostname];
+
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+
+  const isOriginMMSDKV2RemoteConn = sdkV2Connection?.isV2;
 
   const requestedCaipChainIdsWithDefaultSelectedChainIds = useMemo(
     () => Array.from(new Set([...requestedCaipChainIds, ...allNetworksList])),
@@ -304,11 +312,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
       dappHostname = channelIdOrHostname;
+    } else if (isOriginMMSDKV2RemoteConn) {
+      title = sdkV2Connection.origin;
+      dappHostname = sdkV2Connection.originatorInfo?.title ?? '';
     }
     return { domainTitle: title, hostname: dappHostname };
   }, [
     isOriginWalletConnect,
     isOriginMMSDKRemoteConn,
+    isOriginMMSDKV2RemoteConn,
+    sdkV2Connection,
     isChannelId,
     dappUrl,
     channelIdOrHostname,
@@ -318,7 +331,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const urlWithProtocol =
     hostname && !isUUID(hostname)
-      ? prefixUrlWithProtocol(getHost(hostname))
+      ? isOriginMMSDKV2RemoteConn
+        ? hostname // TODO [ffmcgee]: clean up this mess!!!!
+        : prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
   const { hostname: hostnameFromUrlObj } = getUrlObj(urlWithProtocol);
