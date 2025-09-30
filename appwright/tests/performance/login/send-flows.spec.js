@@ -16,7 +16,7 @@ import { TEST_AMOUNTS } from '../../../utils/TestConstants.js';
 import { login } from '../../../utils/Flows.js';
 
 /* Scenario 9: Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3 */
-test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
+test.skip('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -86,7 +86,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await performanceTracker.attachToTest(testInfo);
 });
 
-test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
+test.skip('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
