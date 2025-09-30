@@ -293,14 +293,14 @@ const PerpsMarketListView = ({
             color={TextColor.Default}
             style={styles.emptyStateTitle}
           >
-            No tokens found
+            {strings('perps.no_tokens_found')}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
             style={styles.emptyStateDescription}
           >
-            {`We couldn't find any tokens with the name "${searchQuery}". Try a different search.`}
+            {strings('perps.no_tokens_found_description', { searchQuery })}
           </Text>
         </View>
       );
