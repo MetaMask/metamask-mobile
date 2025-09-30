@@ -2,7 +2,6 @@ import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.sel
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { BASE_DEFAULTS, Utilities } from '../../framework';
-import OnboardingSheet from './OnboardingSheet';
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
@@ -31,19 +30,10 @@ class OnboardingView {
   async tapHaveAnExistingWallet() {
     await Utilities.executeWithRetry(
       async () => {
-        if (SEEDLESS_ONBOARDING_ENABLED) {
-          await Gestures.waitAndTap(this.existingWalletButton, {
-            elemDescription: 'Onboarding Have an Existing Wallet Button',
-          });
-          await Utilities.waitForElementToBeVisible(
-            OnboardingSheet.importSeedButton,
-          );
-        } else {
-          await Gestures.waitAndTap(this.existingWalletButton, {
-            elemDescription: 'Onboarding Have an Existing Wallet Button',
-            waitForElementToDisappear: true,
-          });
-        }
+        await Gestures.waitAndTap(this.existingWalletButton, {
+          elemDescription: 'Onboarding Have an Existing Wallet Button',
+          waitForElementToDisappear: !SEEDLESS_ONBOARDING_ENABLED,
+        });
       },
       {
         timeout: BASE_DEFAULTS.timeout,
