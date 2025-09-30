@@ -37,9 +37,10 @@ test.skip('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
-  timer1.start();
+
   await WalletMainScreen.tapNetworkNavBar();
   await NetworksScreen.selectNetwork('Ethereum');
+  timer1.start();
   await WalletActionModal.tapSendButton();
   await SendScreen.isVisible();
   timer1.stop();
