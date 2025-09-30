@@ -618,6 +618,41 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
     });
+
+    it('hides tab bar when search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should now be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('tab-bar-item-browser'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('tab-bar-item-actions'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('tab-bar-item-activity'),
+      ).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Market Selection', () => {

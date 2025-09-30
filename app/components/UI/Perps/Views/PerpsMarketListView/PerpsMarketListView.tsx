@@ -246,6 +246,7 @@ const PerpsMarketListView = ({
       hasTrackedMarketsView.current = true;
     }
   }, [markets, track]);
+
   const renderMarketList = () => {
     // Skeleton List - show immediately while loading
     if (isLoadingMarkets) {
@@ -511,7 +512,9 @@ const PerpsMarketListView = ({
 
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
-      <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
+      {!isSearchVisible && (
+        <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
+      )}
     </SafeAreaView>
   );
 };
