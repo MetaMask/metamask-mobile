@@ -22,11 +22,9 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [SolScope.Mainnet]: imageIcons.SOLANA,
   [SolScope.Devnet]: imageIcons.SOLANA,
   [SolScope.Testnet]: imageIcons.SOLANA,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   [TrxScope.Mainnet]: imageIcons.TRON,
   [TrxScope.Nile]: imageIcons.TRON,
   [TrxScope.Shasta]: imageIcons.TRON,
-  ///: END:ONLY_INCLUDE_IF
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
