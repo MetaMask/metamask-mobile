@@ -37,6 +37,14 @@ export const useOptout = (): UseOptoutResult => {
 
     setIsLoading(true);
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+        .addProperties({
+          status: RewardsMetricsStatuses.STARTED,
+        })
+        .build(),
+    );
+
     try {
       Logger.log('useOptout: Starting opt-out process');
 

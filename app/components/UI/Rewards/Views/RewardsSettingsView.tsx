@@ -17,7 +17,7 @@ import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { useOptout } from '../hooks/useOptout';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { RewardsMetricsStatuses } from '../utils';
+import { RewardsMetricsButtons } from '../utils';
 
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
@@ -86,9 +86,11 @@ const RewardsSettingsView: React.FC = () => {
               onPress={() => {
                 showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW);
                 trackEvent(
-                  createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+                  createEventBuilder(
+                    MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                  )
                     .addProperties({
-                      status: RewardsMetricsStatuses.STARTED,
+                      button_type: RewardsMetricsButtons.OPT_OUT,
                     })
                     .build(),
                 );

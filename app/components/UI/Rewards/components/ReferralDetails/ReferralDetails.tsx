@@ -20,6 +20,7 @@ import {
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../utils';
 
 const ReferralDetails: React.FC = () => {
   const referralCode = useSelector(selectReferralCode);
@@ -39,9 +40,11 @@ const ReferralDetails: React.FC = () => {
     if (referralCode) {
       Clipboard.setString(referralCode);
       trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.REWARDS_REFERRAL_CODE_COPIED,
-        ).build(),
+        createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+          .addProperties({
+            button_type: RewardsMetricsButtons.COPY_REFERRAL_CODE,
+          })
+          .build(),
       );
     }
   };
@@ -50,18 +53,22 @@ const ReferralDetails: React.FC = () => {
     if (link) {
       Clipboard.setString(link);
       trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.REWARDS_REFERRAL_LINK_COPIED,
-        ).build(),
+        createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+          .addProperties({
+            button_type: RewardsMetricsButtons.COPY_REFERRAL_LINK,
+          })
+          .build(),
       );
     }
   };
 
   const handleShareLink = async (link: string) => {
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.REWARDS_REFERRAL_SHARE_CLICKED,
-      ).build(),
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.SHARE_REFERRAL_LINK,
+        })
+        .build(),
     );
     await Share.open({
       message: `${strings('rewards.referral.actions.share_referral_subject')}`,

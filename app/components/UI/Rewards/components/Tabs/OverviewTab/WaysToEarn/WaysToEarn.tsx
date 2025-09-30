@@ -30,6 +30,7 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../../../utils';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -180,6 +181,14 @@ export const WaysToEarn = () => {
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+          ways_to_earn_type: type,
+        })
+        .build(),
+    );
     navigation.goBack(); // Close the modal first
     switch (type) {
       case WayToEarnType.SWAPS:
@@ -211,15 +220,6 @@ export const WaysToEarn = () => {
             label: ctaLabel,
             onPress: () => {
               handleCTAPress(wayToEarn.type);
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.REWARDS_WAY_TO_EARN_CLICKED,
-                )
-                  .addProperties({
-                    type: wayToEarn.type,
-                  })
-                  .build(),
-              );
             },
             variant: ButtonVariant.Primary,
           },

@@ -75,6 +75,14 @@ export enum RewardsMetricsStatuses {
   CANCELED = 'canceled',
 }
 
+export enum RewardsMetricsButtons {
+  WAYS_TO_EARN = 'ways_to_earn',
+  COPY_REFERRAL_CODE = 'copy_referral_code',
+  COPY_REFERRAL_LINK = 'copy_referral_link',
+  SHARE_REFERRAL_LINK = 'share_referral_link',
+  OPT_OUT = 'opt_out',
+}
+
 export const formatAccountScope = (account: InternalAccount): string =>
   isEvmAccountType(account.type)
     ? 'evm'
