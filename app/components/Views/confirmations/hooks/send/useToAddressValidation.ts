@@ -32,6 +32,14 @@ export const useToAddressValidation = () => {
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
   const prevAddressValidated = useRef<string>();
+  const unmountedRef = useRef(false);
+
+  useEffect(
+    () => () => {
+      unmountedRef.current = true;
+    },
+    [],
+  );
 
   const validateToAddress = useCallback(
     async (toAddress?: string) => {
@@ -79,26 +87,23 @@ export const useToAddressValidation = () => {
 
   useEffect(() => {
     if (prevAddressValidated.current === to) {
-      return;
+      return undefined;
     }
-
-    let cancel = false;
 
     (async () => {
       setLoading(true);
-      const result = await validateToAddress(to);
+      prevAddressValidated.current = to;
+      const validationResult = await validateToAddress(to);
 
-      if (!cancel) {
-        prevAddressValidated.current = to;
-        setResult({ ...result, toAddressValidated: to });
-        setLoading(false);
+      if (!unmountedRef.current && prevAddressValidated.current === to) {
+        setResult({
+          ...validationResult,
+          toAddressValidated: to,
+        });
       }
+      setLoading(false);
     })();
-
-    return () => {
-      cancel = true;
-    };
-  }, [setLoading, to, validateToAddress]);
+  }, [setResult, to, validateToAddress]);
 
   const {
     toAddressValidated,
