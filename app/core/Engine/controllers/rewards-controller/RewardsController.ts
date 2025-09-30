@@ -392,6 +392,7 @@ export class RewardsController extends BaseController<
    * @returns The first subscription ID or null if no subscriptions exist
    */
   getFirstSubscriptionId(): string | null {
+    if (!this.state.subscriptions?.length) return null;
     const subscriptionIds = Object.keys(this.state.subscriptions);
     return subscriptionIds.length > 0 ? subscriptionIds[0] : null;
   }
