@@ -102,7 +102,8 @@ export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
     name: 'Bitcoin',
     address: '0x0000000000000000000000000000000000000000',
     decimals: 8,
-    image: '',
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
     chainId: BtcScope.Mainnet,
   },
   'eip155:1/slip44:60': {
