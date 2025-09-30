@@ -203,12 +203,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
-      return;
-    }
-
-    const parentNavigation = navigation.getParent?.();
-    if (parentNavigation?.canGoBack?.()) {
-      parentNavigation.goBack();
     }
   };
 

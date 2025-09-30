@@ -7,6 +7,7 @@ import {
   encodeApprove,
   getContractConfig,
   getL2Headers,
+  getMarketDetailsFromGammaApi,
   getMarketFromPolymarketApi,
   getMarketsFromPolymarketApi,
   getOrderTypedData,
@@ -44,6 +45,7 @@ jest.mock('./utils', () => {
     })),
     getMarketsFromPolymarketApi: jest.fn(),
     getMarketFromPolymarketApi: jest.fn(),
+    getMarketDetailsFromGammaApi: jest.fn(),
     getTickSize: jest.fn(),
     calculateMarketPrice: jest.fn(),
     buildMarketOrderCreationArgs: jest.fn(),
@@ -66,6 +68,8 @@ const mockSignTypedMessage = Engine.context.KeyringController
 const mockGetMarketsFromPolymarketApi =
   getMarketsFromPolymarketApi as jest.Mock;
 const mockGetMarketFromPolymarketApi = getMarketFromPolymarketApi as jest.Mock;
+const mockGetMarketDetailsFromGammaApi =
+  getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetTickSize = getTickSize as jest.Mock;
 const mockCalculateMarketPrice = calculateMarketPrice as jest.Mock;
 const mockBuildMarketOrderCreationArgs =
@@ -549,12 +553,58 @@ describe('PolymarketProvider', () => {
   });
 
   describe('getMarketDetails', () => {
-    it('throws error when method is not implemented', () => {
+    it('successfully gets market details', async () => {
+      const provider = createProvider();
+      const mockMarketDetails = {
+        id: 'market-123',
+        slug: 'test-market',
+        title: 'Test Market',
+        description: 'A test market',
+        icon: 'https://example.com/icon.png',
+        closed: false,
+        series: 'Test Series',
+        tags: [{ slug: 'trending' }],
+        endDate: '2025-01-01T00:00:00Z',
+        markets: [
+          {
+            conditionId: 'cond-1',
+            question: 'Will Bitcoin reach $100k?',
+            description: 'Bitcoin price prediction',
+            icon: 'https://example.com/market1.png',
+            image: 'https://example.com/market1.png',
+            groupItemTitle: 'Bitcoin',
+            closed: false,
+            volume: '1000000',
+            volumeNum: 1000000,
+            clobTokenIds: '["0","1"]',
+            outcomes: '["Yes","No"]',
+            outcomePrices: '["0.6","0.4"]',
+            negRisk: false,
+            orderPriceMinTickSize: '0.01',
+          },
+        ],
+      };
+
+      // Mock the getMarketDetailsFromGammaApi function using the existing mock structure
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockMarketDetails);
+
+      const result = await provider.getMarketDetails({
+        marketId: 'market-123',
+      });
+
+      expect(result).toBeDefined();
+      expect(result.id).toBe('market-123');
+      expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+        marketId: 'market-123',
+      });
+    });
+
+    it('throws error when marketId is not provided', async () => {
       const provider = createProvider();
 
-      expect(() =>
-        provider.getMarketDetails({ marketId: 'market-123' }),
-      ).toThrow('Method not implemented.');
+      await expect(provider.getMarketDetails({ marketId: '' })).rejects.toThrow(
+        'marketId is required',
+      );
     });
   });
 
