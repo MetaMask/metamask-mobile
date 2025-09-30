@@ -96,7 +96,7 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   },
 };
 
-export const Bip44DefaultPairs: Record<CaipAssetType, BridgeToken> = {
+export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
   'bip122:000000000019d6689c085ae165831e93/slip44:0': {
     symbol: 'BTC',
     name: 'Bitcoin',
