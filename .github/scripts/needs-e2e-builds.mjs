@@ -2,7 +2,8 @@ import fs from 'node:fs';
 
 /**
  * Convert a string to a boolean. Created to make sure the variables are 
- * evaluated properly.
+ * evaluated properly by checking if the trimmed, lowercased
+ * string is equal to 'true'.
  * @param {string} value - The string to convert
  * @returns {boolean} - The boolean value
  */
@@ -25,13 +26,24 @@ const githubEventName = process.env.GITHUB_EVENT_NAME;
 function writeOutputs({ message, willBuildAndroid, willBuildIos, changedFiles }) {
   const willBuild = willBuildAndroid || willBuildIos ? 'true' : 'false';
   console.log(message);
-  const outputs = [
+
+  // Write simple, single-line outputs
+  const basicOutputs = [
     `android_final=${willBuildAndroid}`,
     `ios_final=${willBuildIos}`,
     `builds=${willBuild}`,
-    `changed_files=${changedFiles}`,
   ].join('\n') + '\n';
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, outputs);
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, basicOutputs);
+
+  // Write changed_files as a multiline output using a safe heredoc delimiter
+  const value = changedFiles ?? '';
+  if (!value) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, 'changed_files=\n');
+  } else {
+    const delimiter = 'GH_EOF';
+    const multiLine = `changed_files<<${delimiter}\n${value}\n${delimiter}\n`;
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, multiLine);
+  }
 }
 
 async function main() {
