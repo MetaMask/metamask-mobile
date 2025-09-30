@@ -43,6 +43,10 @@ class SendScreen {
     }
   }
 
+  get reviewButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'review-button-send');
+  }
+
   get sendAddressInputField() {
     return Selectors.getElementByPlatform(SEND_ADDRESS_INPUT_FIELD);
   }
@@ -75,6 +79,7 @@ class SendScreen {
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
+  
 
   async openNetworkPicker() {
     if (!this._device) {
@@ -94,9 +99,20 @@ class SendScreen {
     }
   }
 
+  async clickOnReviewButton() {
+    const reviewButton = await this.reviewButton;
+    await reviewButton.tap();
+  }
+
   async clickOnAccountByName(accountName) {
     const account = await AppwrightSelectors.getElementByCatchAll(this._device, accountName);
     await AppwrightGestures.tap(account);
+  }
+
+  async clickOnAccountByAddress(accountAddress) {
+    const accountId = `recipient-name-${accountAddress}`;
+    const account = await AppwrightSelectors.getElementByID(this._device, accountId);
+    await account.tap();
   }
 
   async isSendWarningMessageVisible(message) {
@@ -179,6 +195,7 @@ class SendScreen {
   }
 
   async selectToken(tokenName, tokenSymbol) {
+
     if (!this._device) {
       await Gestures.tapTextByXpath(tokenName);
     } else {
@@ -195,11 +212,6 @@ class SendScreen {
   async isSelectAddressScreenDisplayed() {
     const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
     appwrightExpect(await selectAddressScreen).toBeVisible();
-  }
-
-  async clickOnReviewButton() {
-    const reviewButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Review');
-    await reviewButton.tap();
   }
 }
 

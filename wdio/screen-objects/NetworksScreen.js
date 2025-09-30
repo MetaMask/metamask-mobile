@@ -176,7 +176,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
     } else {
-      const networkElement = await AppwrightSelectors.getElementByText(this._device, network);
+      const networkElement = await AppwrightSelectors.getElementByCatchAll(this._device, network);
       await networkElement.tap();
     }
   }

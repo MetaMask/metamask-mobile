@@ -72,9 +72,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByText(this._device, "All Networks");
-
-      // return AppwrightSelectors.getElementByID(this._device, "tokens-network-filter");
+      return AppwrightSelectors.getElementByID(this._device, 'tokens-network-filter');
     }
   }
 
@@ -157,8 +155,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
-
+      let tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token); // for some reason by Id does not work sometimes
       await tokenName.tap();
     }
   }
@@ -169,7 +166,7 @@ class WalletMainScreen {
       const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
       await tokenName.isVisible();
     } else {
-      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
       await tokenName.isVisible();
     }
   }
