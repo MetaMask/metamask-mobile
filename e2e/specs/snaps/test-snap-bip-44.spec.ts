@@ -101,6 +101,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');

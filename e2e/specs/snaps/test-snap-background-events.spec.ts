@@ -112,6 +112,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         const pastDate = new Date(Date.now() - 5_000).toISOString();

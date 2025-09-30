@@ -78,6 +78,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');

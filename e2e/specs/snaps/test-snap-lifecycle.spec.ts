@@ -34,6 +34,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestHelpers.terminateApp();

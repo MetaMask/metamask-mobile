@@ -28,6 +28,7 @@ describe(FlaskBuildTests('Client Status Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('sendClientStatusButton');

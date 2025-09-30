@@ -171,6 +171,7 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
+            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.tapButton('clearUnencryptedManageStateButton');
