@@ -20,7 +20,7 @@ import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationS
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
 import MultichainAccountEducationModal from '../../../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
-import AppwrightSelectors from '../../../../../wdio/helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 test('Cold Start after importing a wallet', async ({
@@ -51,8 +51,8 @@ test('Cold Start after importing a wallet', async ({
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.terminateApp(device);
-  await AppwrightSelectors.activateApp(device);
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   await login(device, { scenarioType: 'onboarding', skipIntro: true }); // Skip intro screens on second login
 

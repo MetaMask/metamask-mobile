@@ -170,9 +170,7 @@ describe('usePerpsNetworkManagement', () => {
           await result.current.ensureArbitrumNetworkExists();
         });
 
-        expect(mockEnableNetwork).toHaveBeenCalledWith(
-          ARBITRUM_MAINNET_CAIP_CHAIN_ID,
-        );
+        expect(mockEnableNetwork).not.toHaveBeenCalledWith();
         expect(mockAddNetwork).not.toHaveBeenCalled();
       });
 
@@ -188,9 +186,7 @@ describe('usePerpsNetworkManagement', () => {
           await result.current.ensureArbitrumNetworkExists();
         });
 
-        expect(mockEnableNetwork).toHaveBeenCalledWith(
-          ARBITRUM_TESTNET_CAIP_CHAIN_ID,
-        );
+        expect(mockEnableNetwork).not.toHaveBeenCalled();
         expect(mockAddNetwork).not.toHaveBeenCalled();
       });
     });

@@ -98,7 +98,7 @@ describe('segmentPersistor', () => {
       );
     });
 
-    it('handles undefined values correctly', async () => {
+    it('stores and retrieves undefined values', async () => {
       mockStorageWrapper.setItem.mockResolvedValue(undefined);
       mockStorageWrapper.getItem.mockResolvedValue('undefined');
 
@@ -151,6 +151,126 @@ describe('segmentPersistor', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         'segment_user-info_123',
       );
+    });
+  });
+
+  describe('pending events data format migration', () => {
+    it('migrates from object format to array format', async () => {
+      const testKey = 'test-pendingEvents';
+      const objectFormatData = { events: [{ id: '1', type: 'track' }] };
+      const serializedData = JSON.stringify(objectFormatData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual([{ id: '1', type: 'track' }]);
+    });
+
+    it('returns array format unchanged when already in array format', async () => {
+      const testKey = 'test-pendingEvents';
+      const arrayFormatData = [{ id: '1', type: 'track' }];
+      const serializedData = JSON.stringify(arrayFormatData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual(arrayFormatData);
+    });
+
+    it('returns empty array when object format has invalid events property', async () => {
+      const testKey = 'test-pendingEvents';
+      const invalidObjectData = { events: 'not-an-array' };
+      const serializedData = JSON.stringify(invalidObjectData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when data is neither array nor object with events', async () => {
+      const testKey = 'test-pendingEvents';
+      const invalidData = 'not-an-object-or-array';
+      const serializedData = JSON.stringify(invalidData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when object format contains empty events array', async () => {
+      const testKey = 'test-pendingEvents';
+      const emptyObjectData = { events: [] };
+      const serializedData = JSON.stringify(emptyObjectData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when object format has null events property', async () => {
+      const testKey = 'test-pendingEvents';
+      const nullEventsData = { events: null };
+      const serializedData = JSON.stringify(nullEventsData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('does not apply migration logic to non-pending events keys', async () => {
+      const testKey = 'test-otherKey';
+      const objectData = { prop: 'value' };
+      const serializedData = JSON.stringify(objectData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-otherKey',
+      );
+      expect(result).toEqual(objectData);
+    });
+
+    it('extracts complex nested events from object format', async () => {
+      const testKey = 'test-pendingEvents';
+      const expectedEvents = [
+        { id: '1', type: 'track', properties: { value: 100 } },
+        { id: '2', type: 'identify', userId: 'user123' },
+      ];
+      const complexEventsData = {
+        events: expectedEvents,
+      };
+      const serializedData = JSON.stringify(complexEventsData);
+      mockStorageWrapper.getItem.mockResolvedValue(serializedData);
+
+      const result = await segmentPersistor.get(testKey);
+
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_test-pendingEvents',
+      );
+      expect(result).toEqual(expectedEvents);
     });
   });
 });

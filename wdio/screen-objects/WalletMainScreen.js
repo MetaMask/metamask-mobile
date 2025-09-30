@@ -8,15 +8,21 @@ import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
-class WalletMainScreen {
+class WalletMainScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get ImportToken() {
@@ -174,16 +180,14 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      const element = await this.accountIcon;
-      await element.tap();
+      await this.tap(this.accountIcon); // Use inherited tapElement method with retry logic
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      const element = await this.swapButton;
-      await element.tap();
+      await this.tap(this.swapButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -192,8 +196,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      const element = await this.networkInNavBar;
-      await element.tap();
+      await this.tap(this.networkInNavBar); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -262,8 +265,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      const element = await this.accountActionsButton;
-      await element.tap();
+      await this.tap(this.accountActionsButton); // Use inherited tapElement method with retry logic
     }
   }
 

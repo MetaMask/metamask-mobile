@@ -14,7 +14,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers, BigNumber } from 'ethers';
+import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -41,6 +41,7 @@ import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
+import { isNativeAddress } from '@metamask/bridge-controller';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -238,8 +239,10 @@ export const TokenInputArea = forwardRef<
             token?.symbol
           }`
         : undefined;
+
+    const isNativeAsset = isNativeAddress(token?.address);
     const formattedAddress =
-      token?.address && token.address !== ethers.constants.AddressZero
+      token?.address && !isNativeAsset
         ? formatAddress(token?.address)
         : undefined;
 
@@ -251,12 +254,6 @@ export const TokenInputArea = forwardRef<
     const displayedAmount = getDisplayAmount(amount, tokenType);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
-
-    // TODO come up with a more robust way to check if the asset is native
-    // Maybe a util in BridgeController
-    const isNativeAsset =
-      token?.address === ethers.constants.AddressZero ||
-      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
     let tokenButtonText = isUnifiedSwapsEnabled
       ? 'bridge.swap_to'

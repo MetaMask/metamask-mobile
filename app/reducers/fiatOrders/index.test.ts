@@ -1101,6 +1101,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {
@@ -1200,6 +1201,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {
@@ -1431,6 +1433,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {
@@ -1532,6 +1535,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {
@@ -1895,6 +1899,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {
@@ -2104,6 +2109,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {
@@ -2203,6 +2209,7 @@ describe('selectors', () => {
                     },
                   },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
             NetworkController: {

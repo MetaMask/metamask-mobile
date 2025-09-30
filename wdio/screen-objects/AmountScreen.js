@@ -1,4 +1,5 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import { expect } from 'appwright';
@@ -9,13 +10,18 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
 
-class AmountScreen {
+class AmountScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get amountInputField() {
@@ -66,12 +72,12 @@ class AmountScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
         await numberKey.waitFor('visible',{ timeout: 30000 });
-        await numberKey.tap();
+        await this.tap(numberKey);
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         await numberKey.waitFor('visible', { timeout: 30000 });
-        await numberKey.tap();
+        await this.tap(numberKey); 
       }
     }
     }
@@ -92,8 +98,7 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    const element = await this.nextButton;
-    await element.tap();
+    await this.tap(this.nextButton);
   }
 
   async isVisible() {

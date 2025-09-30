@@ -8,6 +8,7 @@ import {
   AccountGroupId,
   AccountWalletId,
   AccountWalletType,
+  parseAccountGroupId,
 } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import {
@@ -27,6 +28,30 @@ const EMPTY_OBJ: Readonly<Record<string, never>> = Object.freeze({});
 // Type definitions for reverse mappings
 type AccountToWalletMap = Readonly<Record<AccountId, AccountWalletId>>;
 type AccountToGroupMap = Readonly<Record<AccountId, AccountGroupObject>>;
+
+/**
+ * Get an account group from the AccountControllerState.
+ *
+ * @param state - The AccountControllerState object.
+ * @param groupId - The group ID to get.
+ * @returns The account group boject for this group ID.
+ * */
+function getAccountGroupFrom(
+  state: AccountTreeControllerState | undefined,
+  groupId: AccountGroupId | null,
+) {
+  if (!state?.accountTree?.wallets || !groupId) {
+    return undefined;
+  }
+
+  const { wallets } = state.accountTree;
+  const {
+    wallet: { id: walletId },
+  } = parseAccountGroupId(groupId);
+  const wallet = wallets[walletId];
+
+  return wallet?.groups[groupId];
+}
 
 /**
  * Get the AccountTreeController state
@@ -225,21 +250,6 @@ export const selectWalletByAccount = createSelector(
 );
 
 /**
- * Get the selected account group from the AccountTreeController using optimized reverse mapping
- * @param state - Root redux state
- * @param selectedAccountId - The ID of the selected account
- * @returns The selected account group or null if not found
- */
-export const selectSelectedAccountGroup = createSelector(
-  [selectAccountToGroupMap, selectSelectedInternalAccountId],
-  (accountToGroupMap, selectedAccountId): AccountGroupObject | null => {
-    if (!selectedAccountId) return null;
-
-    return accountToGroupMap[selectedAccountId] ?? null;
-  },
-);
-
-/**
  * Resolves the selected account group preferring the controller's explicit selection,
  * and falling back to deriving from the selected internal account.
  */
@@ -279,21 +289,9 @@ export const selectResolvedSelectedAccountGroup = createSelector(
  */
 export const selectAccountGroupById = createSelector(
   selectAccountTreeControllerState,
-  (_, accountId: AccountGroupId) => accountId,
-  (
-    accountTree: AccountTreeControllerState | undefined,
-    accountId: AccountGroupId,
-  ) => {
-    if (!accountTree?.accountTree?.wallets) {
-      return undefined;
-    }
-
-    const { wallets } = accountTree.accountTree;
-    const [walletId] = accountId.split('/');
-    const wallet = wallets[walletId as AccountWalletId];
-
-    return wallet?.groups[accountId as AccountGroupId];
-  },
+  (_, groupId: AccountGroupId) => groupId,
+  (state: AccountTreeControllerState | undefined, groupId: AccountGroupId) =>
+    getAccountGroupFrom(state, groupId),
 );
 
 /**
@@ -334,6 +332,20 @@ export const selectSelectedAccountGroupId = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeState: AccountTreeControllerState) =>
     accountTreeState?.accountTree?.selectedAccountGroup || null,
+);
+
+/**
+ * Get the selected account group from the AccountTreeController using optimized reverse mapping
+ * @param state - Root redux state
+ * @param selectedAccountId - The ID of the selected account
+ * @returns The selected account group or null if not found
+ */
+export const selectSelectedAccountGroup = createSelector(
+  [selectAccountTreeControllerState, selectSelectedAccountGroupId],
+  (
+    state: AccountTreeControllerState,
+    groupId: AccountGroupId | null,
+  ): AccountGroupObject | null => getAccountGroupFrom(state, groupId) ?? null,
 );
 
 /**
