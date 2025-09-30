@@ -164,7 +164,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         keyExtractor={(protocolChainAggregate) =>
           `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
         }
-        scrollEnabled={false}
+        scrollEnabled
       />
     </View>
   );

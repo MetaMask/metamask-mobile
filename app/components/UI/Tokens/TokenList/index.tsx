@@ -117,7 +117,7 @@ const TokenListComponent = ({
         />
       }
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-      scrollEnabled={false}
+      scrollEnabled
     />
   ) : (
     <View style={styles.emptyView}>
