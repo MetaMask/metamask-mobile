@@ -48,8 +48,7 @@ const createStoreAndPersistor = async () => {
     preloadedState: initialState,
     devTools: false,
     enhancers: (getDefaultEnhancers) =>
-      // TODO: Replace local with dev
-      process.env.METAMASK_ENVIRONMENT === 'local'
+      process.env.METAMASK_ENVIRONMENT === 'dev'
         ? getDefaultEnhancers.concat(devToolsEnhancer())
         : getDefaultEnhancers,
   });
