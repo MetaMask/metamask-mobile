@@ -34,6 +34,7 @@ interface ParsedArgs {
   verbose: boolean;
   output: 'default' | 'json' | 'tags';
   includeMainChanges: boolean;
+  changedFiles?: string;
 }
 
 class AIE2ETagsSelector {
@@ -466,7 +467,18 @@ RESPOND WITH JSON ONLY:
     // Set quiet mode flag to suppress logging for json and tags output
     this.isQuietMode = options.output === 'json' || options.output === 'tags';
 
-    const allChangedFiles = this.getChangedFiles(options.baseBranch, options.includeMainChanges);
+    // Get changed files - either from provided argument or via git
+    let allChangedFiles: string[];
+    if (options.changedFiles) {
+      // Use provided changed files (skip git commands)
+      this.log('📋 Using provided changed files (skipping git commands)');
+      allChangedFiles = options.changedFiles.split(/\s+/).filter(f => f);
+    } else {
+      // Compute changed files via git
+      this.log('📋 Computing changed files via git');
+      allChangedFiles = this.getChangedFiles(options.baseBranch, options.includeMainChanges);
+    }
+
     const filterResult = this.filterRelevantFiles(allChangedFiles);
     const { relevantFiles: changedFiles } = filterResult;
 
@@ -609,6 +621,9 @@ RESPOND WITH JSON ONLY:
         case '--include-main':
           options.includeMainChanges = true;
           break;
+        case '--changed-files':
+          options.changedFiles = args[++i];
+          break;
         case '--show-tags':
           this.showTagComparison();
           process.exit(0);
@@ -654,8 +669,9 @@ Options:
   -b, --base-branch <branch>   Base branch to compare against (default: comprehensive diff)
   -d, --dry-run               Show commands without running
   -v, --verbose               Verbose output with AI reasoning
-  -o, --output <format>       Output format (default|json|tags)
+  -o, --output <format>       Output format (default|json|tags|matrix)
   --include-main-changes       Include more changes from main branch (extends analysis window)
+  --changed-files <files>     Use provided changed files (skips git commands)
   --show-tags                 Show comparison of pipeline vs available tags
   -h, --help                 Show this help
 
@@ -677,6 +693,9 @@ Examples:
 
   # Tags only output for CI integration
   node scripts/ai-e2e-tags-selector.ts --output tags
+
+  # Use provided changed files (skip git commands)
+  node scripts/ai-e2e-tags-selector.ts --changed-files "app/core/Engine.ts package.json" --verbose
 
   # Show which tags are used in pipelines
   node scripts/ai-e2e-tags-selector.ts --show-tags
