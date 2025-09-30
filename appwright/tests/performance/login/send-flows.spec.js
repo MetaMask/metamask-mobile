@@ -33,7 +33,7 @@ test.skip('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
 
   await login(device);
   // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
-
+  const destinationAddress = '0xbea21b0b30ddd5e04f426ffb0c4c79157fc4047d';
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
@@ -68,9 +68,7 @@ test.skip('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   const timer5 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
-  await SendScreen.typeAddressInSendAddressField(
-    '0xbea21b0b30ddd5e04f426ffb0c4c79157fc4047d',
-  );
+  await SendScreen.typeAddressInSendAddressField(destinationAddress);
   await SendScreen.clickOnReviewButton();
   timer5.start();
   //await SendScreen.clickOnReviewButton();
