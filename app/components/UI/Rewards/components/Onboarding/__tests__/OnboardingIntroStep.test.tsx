@@ -1,8 +1,23 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import OnboardingIntroStep from '../OnboardingIntroStep';
+// Inject default props into OnboardingIntroStep to reflect new API
+jest.mock('../OnboardingIntroStep', () => {
+  const ReactActual = jest.requireActual('react');
+  const Actual = jest.requireActual('../OnboardingIntroStep').default;
+  const Wrapper = (props: Record<string, unknown>) =>
+    ReactActual.createElement(Actual, {
+      title: 'mocked_rewards.onboarding.intro_title',
+      description: 'mocked_rewards.onboarding.intro_description',
+      confirmLabel: 'mocked_rewards.onboarding.intro_confirm',
+      ...props,
+    });
+  return { __esModule: true, default: Wrapper };
+});
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+// Use the mocked component with no required props to avoid TS errors
+const OnboardingIntroStep = jest.requireMock('../OnboardingIntroStep')
+  .default as unknown as React.ComponentType<Record<string, never>>;
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -138,10 +153,7 @@ describe('OnboardingIntroStep', () => {
       renderWithProviders(<OnboardingIntroStep />);
 
       expect(
-        screen.getByText('mocked_rewards.onboarding.intro_title_1'),
-      ).toBeDefined();
-      expect(
-        screen.getByText('mocked_rewards.onboarding.intro_title_2'),
+        screen.getByText('mocked_rewards.onboarding.intro_title'),
       ).toBeDefined();
       expect(
         screen.getByText('mocked_rewards.onboarding.intro_description'),
