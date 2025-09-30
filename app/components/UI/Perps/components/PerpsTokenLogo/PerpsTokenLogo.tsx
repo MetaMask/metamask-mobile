@@ -47,7 +47,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       borderRadius: size / 2,
       backgroundColor: (() => {
         if (themeAppearance === 'dark' && needsLightBg) {
-          return colors.icon.inverse; // White in dark mode
+          return 'white'; // White in dark mode
         }
         if (themeAppearance === 'light' && needsDarkBg) {
           return colors.icon.default; // Black in light mode
