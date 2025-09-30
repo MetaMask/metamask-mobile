@@ -6,6 +6,7 @@ name: Create screenshots
 
 on:
   workflow_call:
+  workflow_dispatch:
     inputs:
       test-suite-name:
         description: 'Name of the test suite'
