@@ -84,15 +84,14 @@ export const useInitialSourceToken = (
   useEffect(() => {
     // If no initial source token is provided,
     // set the source token to the bip44 default pair (preferred) or the native token of the current chain
-    if (!initialSourceToken) {
+    if (!initialSourceToken && !sourceToken) {
       if (bip44DefaultPair) {
         dispatch(setSourceToken(bip44DefaultPair.sourceAsset));
         return;
       }
-      if (!sourceToken) {
-        dispatch(setSourceToken(getNativeSourceToken(chainId)));
-        return;
-      }
+
+      dispatch(setSourceToken(getNativeSourceToken(chainId)));
+      return;
     }
 
     if (prevInitialSourceToken === initialSourceToken) return;
