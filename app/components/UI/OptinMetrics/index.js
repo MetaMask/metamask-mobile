@@ -459,16 +459,17 @@ class OptinMetrics extends PureComponent {
               {strings('privacy_policy.description_content_1')}
             </Text>
             <View>
-              <View style={styles.sectionContainer}>
-                <TouchableOpacity
-                  style={styles.checkbox}
-                  onPress={this.handleBasicUsageToggle}
-                  testID={
-                    MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
-                  }
-                  activeOpacity={1}
-                >
+              <TouchableOpacity
+                style={styles.sectionContainer}
+                onPress={this.handleBasicUsageToggle}
+                testID={
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+                }
+                activeOpacity={0.7}
+              >
+                <View style={styles.checkbox}>
                   <Checkbox
+                    onPress={this.handleBasicUsageToggle}
                     isChecked={this.state.isBasicUsageChecked}
                     accessibilityRole={'checkbox'}
                     accessible
@@ -481,7 +482,7 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.gather_basic_usage_title')}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </View>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -492,25 +493,27 @@ class OptinMetrics extends PureComponent {
                   <Text
                     color={TextColor.Primary}
                     variant={TextVariant.BodySM}
-                    onPress={this.openLearnMore}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      this.openLearnMore();
+                    }}
                   >
                     {strings('privacy_policy.gather_basic_usage_learn_more')}
                   </Text>
                 </Text>
-              </View>
-              <View
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
                   styles.sectionContainer,
                   this.isMarketingDisabled && styles.disabledContainer,
                 ]}
+                onPress={this.handleMarketingToggle}
+                activeOpacity={this.isMarketingDisabled ? 1 : 0.7}
+                disabled={this.isMarketingDisabled}
               >
-                <TouchableOpacity
-                  style={styles.checkbox}
-                  onPress={this.handleMarketingToggle}
-                  activeOpacity={this.isMarketingDisabled ? 1 : 0.7}
-                  disabled={this.isMarketingDisabled}
-                >
+                <View style={styles.checkbox}>
                   <Checkbox
+                    onPress={this.handleMarketingToggle}
                     isChecked={this.state.isMarketingChecked}
                     accessibilityRole={'checkbox'}
                     accessible
@@ -528,7 +531,7 @@ class OptinMetrics extends PureComponent {
                       {strings('privacy_policy.checkbox_marketing')}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </View>
                 <Text
                   variant={TextVariant.BodySM}
                   color={
@@ -540,7 +543,7 @@ class OptinMetrics extends PureComponent {
                 >
                   {strings('privacy_policy.checkbox')}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>

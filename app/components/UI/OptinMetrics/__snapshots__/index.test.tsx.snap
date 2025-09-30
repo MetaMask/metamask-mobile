@@ -289,7 +289,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
                             <View>
-                              <View
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                onPress={[Function]}
                                 style={
                                   {
                                     "backgroundColor": "#f3f5f9",
@@ -298,10 +300,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     "padding": 16,
                                   }
                                 }
+                                testID="optin-metrics-metrics-checkbox"
                               >
-                                <TouchableOpacity
-                                  activeOpacity={1}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "flex-start",
@@ -311,12 +312,12 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "marginRight": 25,
                                     }
                                   }
-                                  testID="optin-metrics-metrics-checkbox"
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -348,6 +349,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                         fill="currentColor"
                                         height={20}
                                         name="CheckBold"
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "height": 20,
@@ -381,7 +383,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       Gather basic usage data
                                     </Text>
                                   </View>
-                                </TouchableOpacity>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -413,8 +415,11 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     Learn more
                                   </Text>
                                 </Text>
-                              </View>
-                              <View
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                disabled={false}
+                                onPress={[Function]}
                                 style={
                                   [
                                     {
@@ -427,10 +432,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  activeOpacity={0.7}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "flex-start",
@@ -445,6 +447,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -492,7 +495,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       Marketing updates
                                     </Text>
                                   </View>
-                                </TouchableOpacity>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -509,7 +512,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 >
                                   We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                                 </Text>
-                              </View>
+                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
@@ -969,7 +972,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
                             <View>
-                              <View
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                onPress={[Function]}
                                 style={
                                   {
                                     "backgroundColor": "#f3f5f9",
@@ -978,10 +983,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     "padding": 16,
                                   }
                                 }
+                                testID="optin-metrics-metrics-checkbox"
                               >
-                                <TouchableOpacity
-                                  activeOpacity={1}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "flex-start",
@@ -991,12 +995,12 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "marginRight": 25,
                                     }
                                   }
-                                  testID="optin-metrics-metrics-checkbox"
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1028,6 +1032,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                         fill="currentColor"
                                         height={20}
                                         name="CheckBold"
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "height": 20,
@@ -1061,7 +1066,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       Gather basic usage data
                                     </Text>
                                   </View>
-                                </TouchableOpacity>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1093,8 +1098,11 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     Learn more
                                   </Text>
                                 </Text>
-                              </View>
-                              <View
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                disabled={false}
+                                onPress={[Function]}
                                 style={
                                   [
                                     {
@@ -1107,10 +1115,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  activeOpacity={0.7}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "flex-start",
@@ -1125,6 +1130,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1172,7 +1178,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       Marketing updates
                                     </Text>
                                   </View>
-                                </TouchableOpacity>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1189,7 +1195,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 >
                                   We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                                 </Text>
-                              </View>
+                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
@@ -1761,7 +1767,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
                             <View>
-                              <View
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                onPress={[Function]}
                                 style={
                                   {
                                     "backgroundColor": "#f3f5f9",
@@ -1770,10 +1778,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     "padding": 16,
                                   }
                                 }
+                                testID="optin-metrics-metrics-checkbox"
                               >
-                                <TouchableOpacity
-                                  activeOpacity={1}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "flex-start",
@@ -1783,12 +1790,12 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       "marginRight": 25,
                                     }
                                   }
-                                  testID="optin-metrics-metrics-checkbox"
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1820,6 +1827,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                         fill="currentColor"
                                         height={20}
                                         name="CheckBold"
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "height": 20,
@@ -1853,7 +1861,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       Gather basic usage data
                                     </Text>
                                   </View>
-                                </TouchableOpacity>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1885,8 +1893,11 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     Learn more
                                   </Text>
                                 </Text>
-                              </View>
-                              <View
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                disabled={false}
+                                onPress={[Function]}
                                 style={
                                   [
                                     {
@@ -1899,10 +1910,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  activeOpacity={0.7}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "flex-start",
@@ -1917,6 +1925,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1964,7 +1973,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       Marketing updates
                                     </Text>
                                   </View>
-                                </TouchableOpacity>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1981,7 +1990,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 >
                                   We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                                 </Text>
-                              </View>
+                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
