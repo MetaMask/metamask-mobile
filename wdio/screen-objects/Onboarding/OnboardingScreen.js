@@ -7,6 +7,13 @@ import { expect as appwrightExpect } from 'appwright';
 
 class OnBoardingScreen {
 
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
 
   get title() {
     if (!this._device) {
