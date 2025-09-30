@@ -603,16 +603,19 @@ describe('Wallet', () => {
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Check that navigate was called with ShareAddressQR since "Your QR code" tab was removed
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MULTICHAIN.SHARE_ADDRESS_QR,
-        params: expect.objectContaining({
-          address: expect.any(String),
-          networkName: expect.any(String),
-          chainId: expect.any(String),
-          groupId: expect.any(String),
-        }),
-      });
+      // Verify navigation to ShareAddressQR modal for receiving funds
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+        {
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+          params: expect.objectContaining({
+            address: expect.any(String),
+            networkName: expect.any(String),
+            chainId: expect.any(String),
+            groupId: expect.any(String),
+          }),
+        },
+      );
     });
 
     it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {

@@ -192,8 +192,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const onReceive = () => {
     if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MULTICHAIN.SHARE_ADDRESS_QR,
+      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
           address: selectedInternalAccountAddress,
           networkName,

@@ -578,9 +578,9 @@ const Wallet = ({
       selectedAccountGroupId &&
       chainId
     ) {
-      // Navigate to ShareAddressQR since "Your QR code" tab was removed
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MULTICHAIN.SHARE_ADDRESS_QR,
+      // Show address QR code for receiving funds
+      navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
           address: selectedInternalAccount.address,
           networkName: providerConfig?.nickname || 'Unknown Network',

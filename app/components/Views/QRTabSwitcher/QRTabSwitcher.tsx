@@ -63,7 +63,7 @@ const QRTabSwitcher = () => {
   const { onScanError, onScanSuccess, onStartScan, origin } =
     route.params as QRTabSwitcherParams;
 
-  // Only Scanner tab remains, so selectedIndex is always Scanner
+  // QR scanner displays camera view for scanning codes
   const selectedIndex = QRTabSwitcherScreens.Scanner;
   const navigation = useNavigation();
   const theme = useTheme();
@@ -112,7 +112,7 @@ const QRTabSwitcher = () => {
         ></HeaderBase>
       </View>
 
-      {/* Tab switcher removed - only Scanner tab remains */}
+      {/* QR scanner interface - camera view only */}
     </View>
   );
 };

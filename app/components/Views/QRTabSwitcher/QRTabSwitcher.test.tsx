@@ -51,11 +51,10 @@ describe('QRTabSwitcher', () => {
   it('renders QRScanner by default', () => {
     render(<QRTabSwitcher />);
     jest.runAllTimers();
-    // QRScanner should be rendered (mocked to return null)
-    // No tabs should be visible since only Scanner remains
+    // QRScanner component is rendered for camera functionality
   });
 
-  it('does not render tabber since only Scanner tab remains', () => {
+  it('renders scanner interface without tab controls', () => {
     (useRoute as jest.Mock).mockReturnValue({
       params: {
         disableTabber: true,
@@ -64,7 +63,7 @@ describe('QRTabSwitcher', () => {
     });
     const { queryByText } = render(<QRTabSwitcher />);
     jest.runAllTimers();
-    // Tab switcher UI should not be visible since there's only one tab
+    // Scanner interface displays camera view without tab navigation
     expect(queryByText(strings('qr_tab_switcher.scanner_tab'))).toBeNull();
   });
 });
