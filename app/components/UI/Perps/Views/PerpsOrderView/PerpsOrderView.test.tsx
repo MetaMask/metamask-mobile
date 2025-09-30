@@ -82,8 +82,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.liquidation_price': 'Liquidation price',
       'perps.order.fees': 'Fees',
       'perps.order.off': 'off',
+      'perps.order.tp': 'TP',
+      'perps.order.sl': 'SL',
       'perps.order.button.long': 'Long {{asset}}',
       'perps.order.button.short': 'Short {{asset}}',
+      'perps.market.long': 'Long',
+      'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
@@ -1826,7 +1830,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
     });
 
@@ -1854,7 +1858,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.queryByText('Points')).toBeFalsy();
+        expect(screen.queryByText('perps.estimated_points')).toBeFalsy();
       });
     });
 
@@ -1881,11 +1885,11 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
 
       // Assert - Points text and tooltip should be present
-      expect(screen.getByText('Points')).toBeTruthy();
+      expect(screen.getByText('perps.estimated_points')).toBeTruthy();
     });
   });
 
@@ -2084,7 +2088,7 @@ describe('PerpsOrderView', () => {
 
       // Verify points section is displayed
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The points tooltip is handled by the handleTooltipPress('points') function
@@ -2116,7 +2120,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The RewardPointsDisplay component is rendered with the correct props
@@ -2327,7 +2331,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
         expect(screen.getByText('Fees')).toBeDefined();
         // Should render both points and fees with discount integration (targets lines 1081, 214-229)
       });

@@ -1,9 +1,15 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { BtcScope, SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  BtcScope,
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  TrxScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -33,7 +39,7 @@ export function getFailoverUrlsForInfuraNetwork(
 export const PopularList = [
   {
     chainId: toHex('43114'),
-    nickname: 'Avalanche C-Chain',
+    nickname: 'Avalanche',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
     ticker: 'AVAX',
@@ -45,7 +51,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('42161'),
-    nickname: 'Arbitrum One',
+    nickname: 'Arbitrum',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
     ticker: 'ETH',
@@ -57,7 +63,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('56'),
-    nickname: 'BNB Smart Chain Mainnet',
+    nickname: 'BNB Chain',
     rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
@@ -83,7 +89,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('10'),
-    nickname: 'OP Mainnet',
+    nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
     ticker: 'ETH',
@@ -106,7 +112,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('137'),
-    nickname: 'Polygon Mainnet',
+    nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
     ticker: 'POL',
@@ -118,7 +124,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('324'),
-    nickname: 'zkSync Mainnet',
+    nickname: 'zkSync Era',
     rpcUrl: `https://mainnet.era.zksync.io`,
     ticker: 'ETH',
     warning: true,
@@ -130,7 +136,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('1329'),
-    nickname: 'Sei Mainnet',
+    nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'SEI',
@@ -157,6 +163,14 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
       return require('../../images/bitcoin-testnet-logo.png');
     case BtcScope.Signet:
       return require('../../images/bitcoin-signet-logo.svg');
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    case TrxScope.Mainnet:
+      return require('../../images/tron-logo.png');
+    case TrxScope.Nile:
+      return require('../../images/tron-logo.png');
+    case TrxScope.Shasta:
+      return require('../../images/tron-logo.png');
+    ///: END:ONLY_INCLUDE_IF(tron)
     default:
       return undefined;
   }

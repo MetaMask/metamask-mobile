@@ -14,7 +14,6 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
-  ScrollView,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -127,6 +126,7 @@ import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
+import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { cloneDeep } from 'lodash';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -718,9 +718,12 @@ const Wallet = ({
   const { selectNetwork } = useNetworkSelection({
     networks: allNetworks,
   });
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
+    // do not prompt for social login flow
     if (
+      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
@@ -730,6 +733,7 @@ const Wallet = ({
       });
     }
   }, [
+    isSocialLogin,
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
@@ -758,7 +762,6 @@ const Wallet = ({
   }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
     if (isConnectionRemoved && isSocialLogin) {
@@ -1147,7 +1150,7 @@ const Wallet = ({
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
-      } else {
+      } else if (tabLabel === strings('wallet.collectibles')) {
         // Return early if no address selected
         if (!selectedAddress) return;
 
@@ -1217,7 +1220,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <ScrollView
+      <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
@@ -1237,6 +1240,7 @@ const Wallet = ({
             />
           </View>
         ) : null}
+        <NetworkConnectionBanner />
         <>
           {isMultichainAccountsState2Enabled ? (
             <AccountGroupBalance />
@@ -1273,7 +1277,7 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
-      </ScrollView>
+      </View>
     ),
     [
       styles.banner,

@@ -17,8 +17,6 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import step4Img from '../../../../../images/rewards/rewards-onboarding-step4.png';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import TextField, {
   TextFieldSize,
 } from '../../../../../component-library/components/Form/TextField';
@@ -29,16 +27,21 @@ import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
   REWARDS_ONBOARD_TERMS_URL,
 } from './constants';
+import RewardsErrorBanner from '../RewardsErrorBanner';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
     setReferralCode: handleReferralCodeChange,
     isValidating: isValidatingReferralCode,
     isValid: referralCodeIsValid,
+    isUnknownError: isUnknownErrorReferralCode,
   } = useValidateReferralCode();
 
   const handleNext = useCallback(() => {
@@ -78,9 +81,9 @@ const OnboardingStep4: React.FC = () => {
       {/* Opt in error message */}
 
       {optinError && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={optinError}
+        <RewardsErrorBanner
+          title={strings('rewards.optin_error.title')}
+          description={strings('rewards.optin_error.description')}
         />
       )}
 
@@ -127,7 +130,8 @@ const OnboardingStep4: React.FC = () => {
                 'bg-background-pressed',
                 referralCode.length >= 6 &&
                   !referralCodeIsValid &&
-                  !isValidatingReferralCode
+                  !isValidatingReferralCode &&
+                  !isUnknownErrorReferralCode
                   ? 'border-error-default'
                   : 'border-muted',
               )}
@@ -136,12 +140,22 @@ const OnboardingStep4: React.FC = () => {
             />
             {referralCode.length >= 6 &&
               !referralCodeIsValid &&
-              !isValidatingReferralCode && (
+              !isValidatingReferralCode &&
+              !isUnknownErrorReferralCode && (
                 <Text twClassName="text-error-default">
                   {strings('rewards.onboarding.step4_referral_input_error')}
                 </Text>
               )}
           </Box>
+
+          {isUnknownErrorReferralCode && (
+            <RewardsErrorBanner
+              title={strings('rewards.referral_validation_unknown_error.title')}
+              description={strings(
+                'rewards.referral_validation_unknown_error.description',
+              )}
+            />
+          )}
         </Box>
       </Box>
     </Box>
@@ -200,7 +214,20 @@ const OnboardingStep4: React.FC = () => {
   }
 
   const onNextDisabled =
-    (!referralCodeIsValid && !!referralCode) || !!subscriptionId;
+    (!referralCodeIsValid && !!referralCode) ||
+    !!subscriptionId ||
+    isUnknownErrorReferralCode;
+
+  /**
+   * Auto-redirect to dashboard if user is already opted in
+   */
+  useFocusEffect(
+    useCallback(() => {
+      if (subscriptionId) {
+        navigation.navigate(Routes.REWARDS_DASHBOARD);
+      }
+    }, [subscriptionId, navigation]),
+  );
 
   return (
     <OnboardingStepComponent

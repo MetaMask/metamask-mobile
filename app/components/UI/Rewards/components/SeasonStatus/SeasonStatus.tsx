@@ -13,11 +13,8 @@ import { useTheme } from '../../../../../util/theme';
 import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { capitalize } from 'lodash';
-import { useSelector, useDispatch } from 'react-redux';
-import Banner, {
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { useSelector } from 'react-redux';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   selectSeasonStatusLoading,
   selectSeasonTiers,
@@ -29,12 +26,12 @@ import {
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
 import { selectSeasonStatusError } from '../../../../../selectors/rewards';
-import { setSeasonStatusError } from '../../../../../actions/rewards';
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
 import { Image } from 'react-native';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
+import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 
 const SeasonStatus: React.FC = () => {
   const tw = useTailwind();
@@ -48,7 +45,8 @@ const SeasonStatus: React.FC = () => {
   const seasonStartDate = useSelector(selectSeasonStartDate);
   const seasonEndDate = useSelector(selectSeasonEndDate);
   const theme = useTheme();
-  const dispatch = useDispatch();
+
+  const { fetchSeasonStatus } = useSeasonStatus();
 
   const progress = React.useMemo(() => {
     if (!currentTier || !balanceTotal) {
@@ -87,20 +85,21 @@ const SeasonStatus: React.FC = () => {
     return tiers.findIndex((tier) => tier.id === currentTier.id) + 1;
   }, [tiers, currentTier]);
 
-  if (seasonStatusLoading || !currentTier) {
+  if ((seasonStatusLoading || !currentTier) && !seasonStatusError) {
     return <Skeleton height={115} width="100%" />;
   }
 
   if (seasonStatusError && !seasonStartDate) {
     return (
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
+      <RewardsErrorBanner
         title={strings('rewards.season_status_error.error_fetching_title')}
         description={strings(
           'rewards.season_status_error.error_fetching_description',
         )}
-        onClose={() => dispatch(setSeasonStatusError(null))}
+        onConfirm={() => {
+          fetchSeasonStatus();
+        }}
+        confirmButtonLabel={strings('rewards.season_status_error.retry_button')}
       />
     );
   }
@@ -194,15 +193,22 @@ const SeasonStatus: React.FC = () => {
         twClassName="gap-2 justify-between items-center"
       >
         <Box
-          alignItems={BoxAlignItems.Center}
+          alignItems={BoxAlignItems.Start}
           flexDirection={BoxFlexDirection.Row}
           twClassName="gap-2"
         >
-          <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+          <MetamaskRewardsPointsImage
+            name="MetamaskRewardsPoints"
+            style={tw.style('mt-0.5')}
+          />
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
             <Text
-              style={tw.style({ fontSize: 22, fontWeight: FontWeight.Bold })}
+              style={tw.style({
+                fontSize: 22,
+                fontWeight: FontWeight.Bold,
+                marginTop: 2,
+              })}
             >
               {formatNumber(balanceTotal)}
             </Text>
@@ -216,7 +222,10 @@ const SeasonStatus: React.FC = () => {
         </Box>
 
         {!!nextTierPointsNeeded && (
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative w-[50%] text-right"
+          >
             {formatNumber(nextTierPointsNeeded)}{' '}
             {strings('rewards.to_level_up').toLowerCase()}
           </Text>
