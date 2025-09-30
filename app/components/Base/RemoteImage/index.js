@@ -83,6 +83,24 @@ const RemoteImage = (props) => {
 
   const [dimensions, setDimensions] = useState(null);
 
+  useEffect(() => {
+    resolveIpfsUrl();
+    async function resolveIpfsUrl() {
+      try {
+        const url = new URL(props.source.uri);
+        if (url.protocol !== 'ipfs:') setResolvedIpfsUrl(false);
+        const ipfsUrl = await getFormattedIpfsUrl(
+          ipfsGateway,
+          props.source.uri,
+          false,
+        );
+        setResolvedIpfsUrl(ipfsUrl);
+      } catch (err) {
+        setResolvedIpfsUrl(false);
+      }
+    }
+  }, [props.source.uri, ipfsGateway]);
+
   const calculateImageDimensions = useCallback((imageWidth, imageHeight) => {
     const deviceWidth = Dimensions.get('window').width;
     const maxWidth = deviceWidth - 32;
@@ -118,24 +136,6 @@ const RemoteImage = (props) => {
     },
     [calculateImageDimensions],
   );
-
-  useEffect(() => {
-    resolveIpfsUrl();
-    async function resolveIpfsUrl() {
-      try {
-        const url = new URL(props.source.uri);
-        if (url.protocol !== 'ipfs:') setResolvedIpfsUrl(false);
-        const ipfsUrl = await getFormattedIpfsUrl(
-          ipfsGateway,
-          props.source.uri,
-          false,
-        );
-        setResolvedIpfsUrl(ipfsUrl);
-      } catch (err) {
-        setResolvedIpfsUrl(false);
-      }
-    }
-  }, [props.source.uri, ipfsGateway]);
 
   const formatTokenId = (tokenId) => {
     if (tokenId.toString().length > 9) {
