@@ -17,6 +17,7 @@ import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { useOptout } from '../hooks/useOptout';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { RewardsMetricsStatuses } from '../utils';
 
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
@@ -87,7 +88,7 @@ const RewardsSettingsView: React.FC = () => {
                 trackEvent(
                   createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
                     .addProperties({
-                      status: 'started',
+                      status: RewardsMetricsStatuses.STARTED,
                     })
                     .build(),
                 );

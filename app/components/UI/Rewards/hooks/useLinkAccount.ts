@@ -6,8 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import useRewardsToast from './useRewardsToast';
 import { formatAddress } from '../../../../util/address';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { isSolanaAccount } from '../../../../core/Multichain/utils';
+import { formatAccountScope, RewardsMetricsStatuses } from '../utils';
 
 interface UseLinkAccountResult {
   linkAccount: (account: InternalAccount) => Promise<boolean>;
@@ -24,12 +23,8 @@ export const useLinkAccount = (): UseLinkAccountResult => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const triggerAccountLinkingEvent = useCallback(
-    (status: 'started' | 'completed' | 'failed', account: InternalAccount) => {
-      const accountScope = isEvmAccountType(account.type)
-        ? 'evm'
-        : isSolanaAccount(account)
-        ? 'solana'
-        : account.type; // Fallback to account.type for other types
+    (status: RewardsMetricsStatuses, account: InternalAccount) => {
+      const accountScope = formatAccountScope(account);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_ACCOUNT_LINKING)
           .addProperties({
@@ -49,7 +44,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
       setIsError(false);
       setError(null);
 
-      triggerAccountLinkingEvent('started', account);
+      triggerAccountLinkingEvent(RewardsMetricsStatuses.STARTED, account);
 
       try {
         const success = await Engine.controllerMessenger.call(
@@ -58,7 +53,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         );
 
         if (success) {
-          triggerAccountLinkingEvent('completed', account);
+          triggerAccountLinkingEvent(RewardsMetricsStatuses.COMPLETED, account);
           showToast(
             RewardsToastOptions.success(
               strings('rewards.settings.link_account_success_title', {
@@ -74,7 +69,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
             strings('rewards.settings.link_account_error_title'),
           ),
         );
-        triggerAccountLinkingEvent('failed', account);
+        triggerAccountLinkingEvent(RewardsMetricsStatuses.FAILED, account);
         setIsError(true);
         setError('Failed to link account');
         return false;
@@ -84,7 +79,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
             strings('rewards.settings.link_account_error_title'),
           ),
         );
-        triggerAccountLinkingEvent('failed', account);
+        triggerAccountLinkingEvent(RewardsMetricsStatuses.FAILED, account);
         Logger.log('useLinkAccount: Failed to link account', err);
         setIsError(true);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');

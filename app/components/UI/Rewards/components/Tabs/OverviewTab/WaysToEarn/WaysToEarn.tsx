@@ -211,21 +211,15 @@ export const WaysToEarn = () => {
             label: ctaLabel,
             onPress: () => {
               handleCTAPress(wayToEarn.type);
-
-              // Metrics
-              if (wayToEarn.type === WayToEarnType.PERPS) {
-                trackEvent(
-                  createEventBuilder(
-                    MetaMetricsEvents.REWARDS_PERPS_BUTTON_CLICKED,
-                  ).build(),
-                );
-              } else if (wayToEarn.type === WayToEarnType.SWAPS) {
-                trackEvent(
-                  createEventBuilder(
-                    MetaMetricsEvents.REWARDS_SWAP_BUTTON_CLICKED,
-                  ).build(),
-                );
-              }
+              trackEvent(
+                createEventBuilder(
+                  MetaMetricsEvents.REWARDS_WAY_TO_EARN_CLICKED,
+                )
+                  .addProperties({
+                    type: wayToEarn.type,
+                  })
+                  .build(),
+              );
             },
             variant: ButtonVariant.Primary,
           },

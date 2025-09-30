@@ -12,6 +12,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
+import { RewardsMetricsStatuses } from '../utils';
 
 interface UseOptoutResult {
   optout: () => Promise<boolean>;
@@ -48,7 +49,7 @@ export const useOptout = (): UseOptoutResult => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
             .addProperties({
-              status: 'completed',
+              status: RewardsMetricsStatuses.COMPLETED,
             })
             .build(),
         );
@@ -60,6 +61,13 @@ export const useOptout = (): UseOptoutResult => {
         return true;
       }
       Logger.log('useOptout: Opt-out failed - controller returned false');
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+          .addProperties({
+            status: RewardsMetricsStatuses.FAILED,
+          })
+          .build(),
+      );
 
       // Show error toast
       showToast(
@@ -70,6 +78,14 @@ export const useOptout = (): UseOptoutResult => {
       return false;
     } catch (error) {
       Logger.log('useOptout: Opt-out failed with exception:', error);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+          .addProperties({
+            status: RewardsMetricsStatuses.FAILED,
+          })
+          .build(),
+      );
 
       // Show error toast
       showToast(
@@ -104,7 +120,7 @@ export const useOptout = (): UseOptoutResult => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
             .addProperties({
-              status: 'canceled',
+              status: RewardsMetricsStatuses.CANCELED,
             })
             .build(),
         );

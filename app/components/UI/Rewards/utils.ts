@@ -7,6 +7,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../util/Logger';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { isSolanaAccount } from '../../../core/Multichain/utils';
 
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -64,3 +66,18 @@ export const convertInternalAccountToCaipAccountId = (
     return null;
   }
 };
+
+// Metrics related utils
+export enum RewardsMetricsStatuses {
+  STARTED = 'started',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELED = 'canceled',
+}
+
+export const formatAccountScope = (account: InternalAccount): string =>
+  isEvmAccountType(account.type)
+    ? 'evm'
+    : isSolanaAccount(account)
+    ? 'solana'
+    : account.type; // Fallback to account.type for other types

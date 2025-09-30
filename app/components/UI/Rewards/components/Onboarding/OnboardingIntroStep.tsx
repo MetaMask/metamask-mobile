@@ -40,6 +40,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { RewardsMetricsStatuses } from '../../utils';
 
 /**
  * OnboardingIntroStep Component
@@ -214,7 +215,7 @@ const OnboardingIntroStep: React.FC = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.REWARDS_ONBOARDING)
             .addProperties({
-              status: 'started',
+              status: RewardsMetricsStatuses.STARTED,
             })
             .build(),
         );
