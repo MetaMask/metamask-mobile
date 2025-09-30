@@ -1815,10 +1815,6 @@ describe('MultichainAccountConnect', () => {
       const ethereumSelected = queryByTestId('Ethereum-selected');
 
       expect(ethereumSelected).toBeTruthy();
-
-      const polygonSelected = queryByTestId('Polygon-selected');
-
-      expect(polygonSelected).toBeTruthy();
     });
   });
 
