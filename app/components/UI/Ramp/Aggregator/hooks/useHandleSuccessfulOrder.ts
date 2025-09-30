@@ -7,25 +7,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { hexToBN, toHexadecimal } from '../../../../../util/number';
 
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
-import { useRampSDK } from '../sdk';
 import { getNotificationDetails } from '../utils';
 import stateHasOrder from '../../utils/stateHasOrder';
 import useAnalytics from '../../hooks/useAnalytics';
-import { hexToBN, toHexadecimal } from '../../../../../util/number';
-import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectEvmChainId } from '../../../../../selectors/networkController';
 
 function useHandleSuccessfulOrder() {
-  const { selectedChainId, selectedAddress } = useRampSDK();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const chainIdFromProvider = useSelector(selectEvmChainId);
 
   const handleDispatchUserWalletProtection = useCallback(() => {
     dispatch(protectWalletModalVisible());
@@ -63,9 +59,10 @@ function useHandleSuccessfulOrder() {
           trackEvent('OFFRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_offramp: (order?.data as Order)?.provider?.name,
-            chain_id_source: selectedChainId,
-            currency_source: (order?.data as Order)?.cryptoCurrency.symbol,
-            currency_destination: (order?.data as Order)?.fiatCurrency.symbol,
+            chain_id_source: (order?.data as Order)?.cryptoCurrency?.network
+              ?.chainId,
+            currency_source: (order?.data as Order)?.cryptoCurrency?.symbol,
+            currency_destination: (order?.data as Order)?.fiatCurrency?.symbol,
           });
           navigation.navigate(Routes.TRANSACTIONS_VIEW, {
             screen: Routes.RAMP.ORDER_DETAILS,
@@ -76,39 +73,46 @@ function useHandleSuccessfulOrder() {
             },
           });
         } else {
+          const chainIdFromProvider = (order?.data as Order)?.cryptoCurrency
+            ?.network?.chainId;
+
+          const hexChainId = chainIdFromProvider
+            ? toHexadecimal(chainIdFromProvider)
+            : null;
+          const accountBalance =
+            hexChainId &&
+            order.account &&
+            accountsByChainId[hexChainId]?.[order.account]
+              ? accountsByChainId[hexChainId][order.account].balance
+              : null;
+
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_onramp: (order?.data as Order)?.provider?.name,
-            chain_id_destination: selectedChainId,
+            chain_id_destination: chainIdFromProvider,
             has_zero_currency_destination_balance: false,
-            has_zero_native_balance: accountsByChainId[
-              toHexadecimal(chainIdFromProvider)
-            ][selectedAddress]?.balance
+            has_zero_native_balance: accountBalance
               ? (
                   hexToBN(
-                    accountsByChainId[toHexadecimal(chainIdFromProvider)][
-                      selectedAddress
-                    ].balance,
+                    accountBalance,
                     // TODO: Replace "any" with type
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   ) as any
                 )?.isZero?.()
               : undefined,
-            currency_source: (order?.data as Order)?.fiatCurrency.symbol,
-            currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
+            currency_source: (order?.data as Order)?.fiatCurrency?.symbol,
+            currency_destination: (order?.data as Order)?.cryptoCurrency
+              ?.symbol,
           });
         }
       });
     },
     [
-      chainIdFromProvider,
-      accountsByChainId,
       dispatchThunk,
       handleDispatchUserWalletProtection,
       navigation,
-      selectedAddress,
-      selectedChainId,
       trackEvent,
+      accountsByChainId,
     ],
   );
 

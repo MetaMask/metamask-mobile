@@ -1,5 +1,5 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
@@ -10,9 +10,9 @@ import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
@@ -20,18 +20,14 @@ const MAIN_ACCOUNT_INDEX = 0;
 const IMPORTED_ACCOUNT_INDEX = 1;
 
 const testSpecificMock = async (mockServer: Mockttp) => {
-  const { urlEndpoint, response } =
-    mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: urlEndpoint,
-    response,
-    responseCode: 200,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    remoteFeatureMultichainAccountsAccountDetails(false),
+  );
 };
 
 // TODO: With this migration we also removed the need for ganache options and everything is simplified.
-describe(Regression('Change Account Name'), () => {
+describe(RegressionAccounts('Change Account Name'), () => {
   it('renames an account and verifies the new name persists after locking and unlocking the wallet', async () => {
     await withFixtures(
       {

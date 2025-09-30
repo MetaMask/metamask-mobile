@@ -3,7 +3,7 @@ import {
   PublishHookResult,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { StatusTypes } from '@metamask/bridge-controller';
 import {
   BridgeHistoryItem,
@@ -12,10 +12,14 @@ import {
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { store } from '../../../store';
 import { ExtractEventHandler } from '@metamask/base-controller';
-import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
+import {
+  TransactionBridgeQuote,
+  refreshQuote,
+} from '../../../components/Views/confirmations/utils/bridge';
 import { cloneDeep } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { toHex } from '@metamask/controller-utils';
+import { updateRequiredTransactionIds } from '../../transaction-controller';
 
 const log = createProjectLogger('pay-publish-hook');
 
@@ -53,7 +57,10 @@ export class PayHook {
     transactionMeta: TransactionMeta,
     _signedTx: string,
   ): Promise<PublishHookResult> {
-    const { id: transactionId } = transactionMeta;
+    const {
+      id: transactionId,
+      txParams: { from },
+    } = transactionMeta;
     const state = store.getState();
 
     const quotes =
@@ -64,12 +71,30 @@ export class PayHook {
       return EMPTY_RESULT;
     }
 
+    // Currently we only support a single source meaning we only check the first quote.
+    const isSameChain =
+      quotes[0].quote.srcChainId === quotes[0].quote.destChainId;
+
+    if (isSameChain) {
+      log(
+        'Ignoring quotes as source is same chain',
+        quotes[0].quote.srcChainId,
+      );
+      return EMPTY_RESULT;
+    }
+
     let index = 0;
 
     for (const quote of quotes) {
       log('Submitting bridge', index, quote);
 
-      await this.#submitBridgeTransaction(quote);
+      const finalQuote = index > 0 ? await refreshQuote(quote) : quote;
+
+      await this.#submitBridgeTransaction(
+        transactionId,
+        from as Hex,
+        finalQuote,
+      );
 
       index += 1;
     }
@@ -78,6 +103,8 @@ export class PayHook {
   }
 
   async #submitBridgeTransaction(
+    transactionId: string,
+    from: Hex,
     originalQuote: TransactionBridgeQuote,
   ): Promise<void> {
     const quote = cloneDeep(originalQuote);
@@ -88,11 +115,25 @@ export class PayHook {
       sourceChainId,
     );
 
+    const bridgeTransactionIdCollector = this.#collectTransactionIds(
+      sourceChainId,
+      from,
+
+      (id) =>
+        updateRequiredTransactionIds({
+          transactionId,
+          requiredTransactionIds: [id],
+          append: true,
+        }),
+    );
+
     const result = await this.#messenger.call(
       'BridgeStatusController:submitTx',
       quote,
       isSmartTransaction,
     );
+
+    bridgeTransactionIdCollector.end();
 
     log('Bridge transaction submitted', result);
 
@@ -142,5 +183,36 @@ export class PayHook {
         (state) => state.txHistory[transactionId],
       );
     });
+  }
+
+  #collectTransactionIds(
+    chainId: Hex,
+    from: Hex,
+    onTransaction: (transactionId: string) => void,
+  ): { end: () => void } {
+    const listener = (tx: TransactionMeta) => {
+      if (
+        tx.chainId !== chainId ||
+        tx.txParams.from.toLowerCase() !== from.toLowerCase()
+      ) {
+        return;
+      }
+
+      onTransaction(tx.id);
+    };
+
+    this.#messenger.subscribe(
+      'TransactionController:unapprovedTransactionAdded',
+      listener,
+    );
+
+    const end = () => {
+      this.#messenger.unsubscribe(
+        'TransactionController:unapprovedTransactionAdded',
+        listener,
+      );
+    };
+
+    return { end };
   }
 }

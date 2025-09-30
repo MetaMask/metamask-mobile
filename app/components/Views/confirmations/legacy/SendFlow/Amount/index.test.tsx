@@ -11,6 +11,7 @@ import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendF
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { setMaxValueMode } from '../../../../../../actions/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -1275,6 +1276,7 @@ describe('Amount', () => {
       {
         origin: 'metamask',
         networkClientId: 'sepolia',
+        type: TransactionType.simpleSend,
       },
     );
   });

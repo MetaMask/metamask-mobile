@@ -1,5 +1,5 @@
 import TestHelpers from '../../../../../helpers';
-import { SmokeNetworkExpansion } from '../../../../../tags';
+import { RegressionNetworkExpansion } from '../../../../../tags';
 import Browser from '../../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
@@ -27,7 +27,7 @@ Test Steps:
 7. Check Dapp 1 is still on Linea Sepolia
 8. Check Dapp 2 is still on ETH Mainnet
 */
-describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
+describe(RegressionNetworkExpansion('Per Dapp Management'), (): void => {
   beforeAll(async (): Promise<void> => {
     jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();

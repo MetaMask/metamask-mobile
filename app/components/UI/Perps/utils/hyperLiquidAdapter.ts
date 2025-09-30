@@ -83,6 +83,8 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     maxLeverage: pos.maxLeverage,
     returnOnEquity: pos.returnOnEquity,
     cumulativeFunding: pos.cumFunding,
+    takeProfitCount: 0, // Default value, will be updated by provider logic
+    stopLossCount: 0, // Default value, will be updated by provider logic
   };
 }
 
@@ -92,7 +94,10 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
  * @param rawOrder - Raw order data from HyperLiquid SDK (frontendOpenOrders or webData2)
  * @returns MetaMask Perps API order object
  */
-export function adaptOrderFromSDK(rawOrder: FrontendOrder): Order {
+export function adaptOrderFromSDK(
+  rawOrder: FrontendOrder,
+  position?: Position,
+): Order {
   // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
   const symbol = rawOrder.coin;
@@ -117,12 +122,21 @@ export function adaptOrderFromSDK(rawOrder: FrontendOrder): Order {
   const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
 
   // Sizes
-  const size = rawOrder.sz;
-  const originalSize = rawOrder.origSz || size;
+  let size = rawOrder.sz;
+  let originalSize = rawOrder.origSz || size;
 
   // Calculate filled and remaining size
-  const currentSize = parseFloat(size);
-  const origSize = parseFloat(originalSize);
+  let currentSize = parseFloat(size);
+  let origSize = parseFloat(originalSize);
+
+  if (rawOrder.isPositionTpsl && origSize === 0 && position) {
+    const absPositionSize = Math.abs(parseFloat(position.size));
+    currentSize = absPositionSize;
+    origSize = absPositionSize;
+    size = absPositionSize.toString();
+    originalSize = absPositionSize.toString();
+  }
+
   const filledSize = origSize - currentSize;
 
   // Check for TP/SL in child orders (REST API feature)
@@ -197,13 +211,32 @@ export function adaptAccountStateFromSDK(
   spotState?: SpotClearinghouseState,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
-  const totalUnrealizedPnl = perpsState.assetPositions
-    .reduce(
-      (sum: number, assetPos: AssetPosition) =>
-        sum + parseFloat(assetPos.position.unrealizedPnl),
-      0,
-    )
-    .toString();
+  const { totalUnrealizedPnl, weightedReturnOnEquity } =
+    perpsState.assetPositions.reduce(
+      (acc, assetPos: AssetPosition) => {
+        const unrealizedPnl = parseFloat(
+          assetPos.position.unrealizedPnl || '0',
+        );
+        const marginUsed = parseFloat(assetPos.position.marginUsed || '0');
+        const returnOnEquity = parseFloat(
+          assetPos.position.returnOnEquity || '0',
+        );
+        acc.totalUnrealizedPnl += unrealizedPnl;
+        acc.weightedReturnOnEquity += returnOnEquity * marginUsed;
+        return acc;
+      },
+      {
+        totalUnrealizedPnl: 0,
+        weightedReturnOnEquity: 0,
+      },
+    );
+  const totalMarginUsed = parseFloat(
+    perpsState.marginSummary.totalMarginUsed || '0',
+  );
+  const totalReturnOnEquityPercentage = (
+    (weightedReturnOnEquity / totalMarginUsed) *
+    100
+  ).toFixed(1);
 
   // TODO: BALANCE DISPLAY DECISION NEEDED
   //
@@ -245,10 +278,12 @@ export function adaptAccountStateFromSDK(
   const totalBalance = (spotBalance + perpsBalance).toString();
 
   const accountState: AccountState = {
-    availableBalance: perpsState.withdrawable, // Always Perps withdrawable
-    totalBalance, // Combined or Perps-only? See TODO above
-    marginUsed: perpsState.crossMarginSummary.totalMarginUsed,
-    unrealizedPnl: totalUnrealizedPnl,
+    availableBalance: perpsState.withdrawable || '0', // Always Perps withdrawable
+    totalBalance: totalBalance || '0', // Combined or Perps-only? See TODO above
+    marginUsed: perpsState.marginSummary.totalMarginUsed || '0', // margin used including cross margin
+    unrealizedPnl: totalUnrealizedPnl.toString() || '0',
+    returnOnEquity: totalReturnOnEquityPercentage || '0',
+    totalValue: perpsState.marginSummary.accountValue || '0', // vaults + margin + pnl + perps balance
   };
 
   return accountState;

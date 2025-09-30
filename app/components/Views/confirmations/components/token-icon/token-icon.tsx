@@ -1,6 +1,5 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import SwapsTokenIcon from '../../../../UI/Swaps/components/TokenIcon';
 import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -11,21 +10,30 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { useTokenWithBalance } from '../../hooks/tokens/useTokenWithBalance';
 
 export interface TokenIconProps {
   address: Hex;
   chainId: Hex;
+  showNetwork?: boolean;
+  variant?: TokenIconVariant;
 }
 
-export const TokenIcon: React.FC<TokenIconProps> = ({ address, chainId }) => {
-  const { styles } = useStyles(styleSheet, {});
-  const tokens = useTokensWithBalance({ chainIds: [chainId] });
+export enum TokenIconVariant {
+  Default = 'default',
+  Row = 'row',
+  Hero = 'hero',
+}
 
-  const token = tokens.find(
-    (t) =>
-      t.address.toLowerCase() === address.toLowerCase() &&
-      t.chainId === chainId,
-  );
+export const TokenIcon: React.FC<TokenIconProps> = ({
+  address,
+  chainId,
+  showNetwork = true,
+  variant = TokenIconVariant.Default,
+}) => {
+  const { styles } = useStyles(styleSheet, { variant });
+
+  const token = useTokenWithBalance(address, chainId);
 
   if (!token) {
     return null;
@@ -40,10 +48,13 @@ export const TokenIcon: React.FC<TokenIconProps> = ({ address, chainId }) => {
       style={styles.container}
       badgePosition={BadgePosition.BottomRight}
       badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
-        />
+        showNetwork && (
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+            style={styles.badge}
+          />
+        )
       }
     >
       <SwapsTokenIcon

@@ -26,6 +26,7 @@ describe('handleMetaMaskProtocol', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
+  const mockHandleDepositCash = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
@@ -44,6 +45,7 @@ describe('handleMetaMaskProtocol', () => {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
+    _handleDepositCash: mockHandleDepositCash,
     _handleBrowserUrl: mockHandleBrowserUrl,
   } as unknown as DeeplinkManager;
 
@@ -293,7 +295,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should displays RETURN_TO_DAPP_MODAL', () => {
+    it('should displays RETURN_TO_DAPP_TOAST', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -312,7 +314,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
       });
     });
 
@@ -418,6 +420,25 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(mockHandleSellCrypto).toHaveBeenCalled();
+    });
+  });
+
+  describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}', () => {
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`;
+    });
+
+    it('should call _handleDepositCash', () => {
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleDepositCash).toHaveBeenCalled();
     });
   });
 });

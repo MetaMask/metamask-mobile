@@ -5,12 +5,6 @@ const styleSheet = () =>
     safeArea: {
       flex: 1,
     },
-
-    container: {
-      flex: 1,
-      padding: 16,
-    },
-
     header: {
       display: 'flex',
       flexDirection: 'row',

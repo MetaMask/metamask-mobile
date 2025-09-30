@@ -1,4 +1,5 @@
 import React from 'react';
+import { Hex } from '@metamask/utils';
 import { Text } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -25,7 +26,6 @@ describe('ConfirmationAssetPollingProvider', () => {
   const mockTransactionMetadata = {
     id: 'test-transaction-id',
     chainId: CHAIN_ID_MOCK,
-    networkClientId: 'mainnet',
     txParams: {
       from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
       to: '0x1234567890123456789012345678901234567890',
@@ -81,7 +81,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
-          networkClientId: 'mainnet',
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),
@@ -182,7 +181,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
-          networkClientId: 'mainnet',
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),
@@ -207,8 +205,7 @@ describe('ConfirmationAssetPollingProvider', () => {
     it('handles different chainId formats correctly', () => {
       const customTransactionMetadata = {
         ...mockTransactionMetadata,
-        chainId: '0x89' as `0x${string}`,
-        networkClientId: 'polygon-mainnet',
+        chainId: '0x89' as Hex,
       };
 
       jest
@@ -224,10 +221,130 @@ describe('ConfirmationAssetPollingProvider', () => {
         { state: {} },
       );
 
+      // The transaction's chainId should be included even if it's not in bridge chains
+      expect(mockAssetPollingProvider).toHaveBeenCalledWith(
+        {
+          chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK, '0x89'],
+          address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        },
+        expect.anything(),
+      );
+    });
+
+    it('does not duplicate chainId when transaction chainId is already in bridge chains', () => {
+      const customTransactionMetadata = {
+        ...mockTransactionMetadata,
+        chainId: CHAIN_ID_MOCK as Hex,
+      };
+
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue(customTransactionMetadata);
+
+      const TestChild = () => <Text testID="test-child">Test Child</Text>;
+
+      renderWithProvider(
+        <ConfirmationAssetPollingProvider>
+          <TestChild />
+        </ConfirmationAssetPollingProvider>,
+        { state: {} },
+      );
+
+      // Should not duplicate CHAIN_ID_MOCK since it's already in bridge chains
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
-          networkClientId: 'polygon-mainnet',
+          address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        },
+        expect.anything(),
+      );
+    });
+
+    it('handles empty bridge chains list', () => {
+      selectEnabledSourceChainsMock.mockReturnValue([]);
+
+      const customTransactionMetadata = {
+        ...mockTransactionMetadata,
+        chainId: '0x89' as Hex,
+      };
+
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue(customTransactionMetadata);
+
+      const TestChild = () => <Text testID="test-child">Test Child</Text>;
+
+      renderWithProvider(
+        <ConfirmationAssetPollingProvider>
+          <TestChild />
+        </ConfirmationAssetPollingProvider>,
+        { state: {} },
+      );
+
+      // Should still include transaction chainId even with no bridge chains
+      expect(mockAssetPollingProvider).toHaveBeenCalledWith(
+        {
+          chainIds: ['0x89'],
+          address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        },
+        expect.anything(),
+      );
+    });
+
+    it('filters out non-EVM chains from bridge chains', () => {
+      const customTransactionMetadata = {
+        ...mockTransactionMetadata,
+        chainId: CHAIN_ID_MOCK as Hex,
+      };
+
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue(customTransactionMetadata);
+
+      const TestChild = () => <Text testID="test-child">Test Child</Text>;
+
+      renderWithProvider(
+        <ConfirmationAssetPollingProvider>
+          <TestChild />
+        </ConfirmationAssetPollingProvider>,
+        { state: {} },
+      );
+
+      // Should only include EVM chains (0x1, 0x2), not 'SolanaChainId'
+      expect(mockAssetPollingProvider).toHaveBeenCalledWith(
+        {
+          chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
+          address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        },
+        expect.anything(),
+      );
+    });
+
+    it('handles newly added network from dapp scenario', () => {
+      // Simulate a newly added custom network that is not in bridge chains
+      const newCustomChainId = '0xa4b1'; // Arbitrum One
+      const customTransactionMetadata = {
+        ...mockTransactionMetadata,
+        chainId: newCustomChainId as Hex,
+      };
+
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue(customTransactionMetadata);
+
+      const TestChild = () => <Text testID="test-child">Test Child</Text>;
+
+      renderWithProvider(
+        <ConfirmationAssetPollingProvider>
+          <TestChild />
+        </ConfirmationAssetPollingProvider>,
+        { state: {} },
+      );
+
+      // The newly added network should be included for polling
+      expect(mockAssetPollingProvider).toHaveBeenCalledWith(
+        {
+          chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK, newCustomChainId],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),

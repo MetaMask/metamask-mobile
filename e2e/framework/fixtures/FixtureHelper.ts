@@ -1,3 +1,4 @@
+/* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
@@ -18,6 +19,7 @@ import {
   stopMockServer,
   validateLiveRequests,
 } from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -344,6 +346,10 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
+
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
@@ -404,6 +410,8 @@ export async function withFixtures(
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
 
+  let testError: Error | null = null;
+
   try {
     // Handle smart contracts
     let contractRegistry;
@@ -452,31 +460,96 @@ export async function withFixtures(
 
     await testSuite({ contractRegistry, mockServer, localNodes });
   } catch (error) {
+    testError = error as Error;
     logger.error('Error in withFixtures:', error);
-    throw error;
   } finally {
-    validateLiveRequests(mockServer);
+    const cleanupErrors: Error[] = [];
 
     if (endTestfn) {
-      // Pass the mockServer to the endTestfn if it exists as we may want
-      // to capture events before cleanup
-      await endTestfn({ mockServer });
+      try {
+        // Pass the mockServer to the endTestfn if it exists as we may want
+        // to capture events before cleanup
+        await endTestfn({ mockServer });
+      } catch (endTestError) {
+        logger.error('Error in endTestfn:', endTestError);
+        cleanupErrors.push(endTestError as Error);
+      }
     }
 
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
-      await handleLocalNodeCleanup(localNodes);
+      try {
+        await handleLocalNodeCleanup(localNodes);
+      } catch (cleanupError) {
+        logger.error('Error during local node cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (dapps && dapps.length > 0) {
-      await handleDappCleanup(dapps, dappServer);
+      try {
+        await handleDappCleanup(dapps, dappServer);
+      } catch (cleanupError) {
+        logger.error('Error during dapp cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (mockServer) {
-      await stopMockServer(mockServer);
+      try {
+        await stopMockServer(mockServer);
+      } catch (cleanupError) {
+        logger.error('Error during mock server cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
-    await stopFixtureServer(fixtureServer);
+    try {
+      await stopFixtureServer(fixtureServer);
+    } catch (cleanupError) {
+      logger.error('Error during fixture server cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    try {
+      // Force reload React Native to stop any lingering timers
+      await device.reloadReactNative();
+    } catch (cleanupError) {
+      logger.warn('React Native reload failed (non-critical):', cleanupError);
+      // Don't add to cleanupErrors as this is a non-critical cleanup operation
+      // The test should not fail if only React Native reload fails
+    }
+
+    try {
+      // Validate live requests
+      validateLiveRequests(mockServer);
+    } catch (cleanupError) {
+      logger.error('Error during live request validation:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    // Handle error reporting: prioritize test error over cleanup errors
+    if (testError && cleanupErrors.length > 0) {
+      // Both test and cleanup failed - report both but throw the test error
+      const cleanupErrorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      logger.error(
+        `Test failed AND cleanup failed with ${cleanupErrors.length} error(s):\n${cleanupErrorMessages}`,
+      );
+      throw testError; // Preserve original test failure
+    } else if (testError) {
+      // Only test failed - normal case
+      throw testError;
+    } else if (cleanupErrors.length > 0) {
+      // Only cleanup failed - throw cleanup error
+      const errorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      const errorMessage = `Test cleanup failed with ${cleanupErrors.length} error(s):\n${errorMessages}`;
+      throw new Error(errorMessage);
+    }
+    // No errors - test passed successfully
   }
 }
 

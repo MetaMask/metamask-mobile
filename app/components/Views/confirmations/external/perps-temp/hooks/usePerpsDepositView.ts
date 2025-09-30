@@ -1,6 +1,5 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
@@ -8,8 +7,13 @@ import {
   selectIsTransactionBridgeQuotesLoadingById,
   selectTransactionBridgeQuotesById,
 } from '../../../../../../core/redux/slices/confirmationMetrics';
-import { BigNumber } from 'bignumber.js';
 import { usePerpsDepositInit } from './usePerpsDepositInit';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayTokenAmounts } from '../../../hooks/pay/useTransactionPayTokenAmounts';
+import {
+  ARBITRUM_USDC_ADDRESS,
+  PERPS_MINIMUM_DEPOSIT,
+} from '../../../constants/perps';
 
 export function usePerpsDepositView({
   isKeyboardVisible,
@@ -19,8 +23,8 @@ export function usePerpsDepositView({
   usePerpsDepositInit();
 
   const { id: transactionId } = useTransactionMetadataOrThrow();
-  const { amountUnformatted } = useTokenAmount();
-  const amountValue = new BigNumber(amountUnformatted ?? '0');
+  const { payToken } = useTransactionPayToken();
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
@@ -32,14 +36,13 @@ export function usePerpsDepositView({
 
   const isFullView =
     !isKeyboardVisible &&
-    !amountValue.isZero() &&
-    (isQuotesLoading || Boolean(quotes?.length));
+    (isQuotesLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0);
 
   useAutomaticTransactionPayToken({
     balanceOverrides: [
       {
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
-        balance: 10,
+        address: ARBITRUM_USDC_ADDRESS,
+        balance: PERPS_MINIMUM_DEPOSIT,
         chainId: CHAIN_IDS.ARBITRUM,
       },
     ],
@@ -47,5 +50,6 @@ export function usePerpsDepositView({
 
   return {
     isFullView,
+    isPayTokenSelected: Boolean(payToken),
   };
 }

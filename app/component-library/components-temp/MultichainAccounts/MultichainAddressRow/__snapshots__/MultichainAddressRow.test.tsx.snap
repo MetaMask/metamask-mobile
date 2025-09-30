@@ -3,14 +3,21 @@
 exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "flexDirection": "row",
-      "gap": 16,
-      "justifyContent": "space-between",
-      "padding": 16,
-    }
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "display": "flex",
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "space-between",
+        "paddingBottom": 16,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+        "paddingTop": 16,
+      },
+      undefined,
+    ]
   }
   testID="multichain-address-row"
 >
@@ -20,7 +27,6 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
     style={
       {
         "backgroundColor": "#457a391a",
-        "borderRadius": 16,
         "bottom": 0,
         "left": 0,
         "opacity": 0,
@@ -63,23 +69,33 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
   </View>
   <View
     style={
-      {
-        "alignItems": "flex-start",
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {
+          "alignItems": "flex-start",
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexDirection": "column",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
     }
   >
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist Medium",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          undefined,
+        ]
       }
       testID="multichain-address-row-network-name"
     >
@@ -88,13 +104,17 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#686e7d",
-          "fontFamily": "Geist Regular",
-          "fontSize": 14,
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
+        [
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          undefined,
+        ]
       }
       testID="multichain-address-row-address"
     >
@@ -103,46 +123,96 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
   </View>
   <View
     style={
-      {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "gap": 8,
-      }
-    }
-  >
-    <TouchableOpacity
-      accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
+      [
         {
           "alignItems": "center",
-          "borderRadius": 8,
-          "height": 28,
-          "justifyContent": "center",
-          "opacity": 1,
-          "width": 28,
-        }
-      }
-      testID="multichain-address-row-qr-button"
-    >
-      <SvgMock
-        color="#121314"
-        fill="currentColor"
-        height={20}
-        name="QrCode"
-        style={
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 16,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
           {
-            "height": 20,
-            "width": 20,
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
         }
-        width={20}
-      />
-    </TouchableOpacity>
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 32,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 32,
+            },
+            undefined,
+          ]
+        }
+        testID="multichain-address-row-qr-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="QrCode"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 20,
+                "width": 20,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
   </View>
 </View>
 `;

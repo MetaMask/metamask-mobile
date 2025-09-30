@@ -16,7 +16,6 @@ import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import SettingsScreen from '../screen-objects/SettingsScreen';
 import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen';
-import SolanaNewFeatureSheet from '../screen-objects/Modals/SolanaFeatureSheet';
 import OnboardingSheet from '../screen-objects/Onboarding/OnboardingSheet';
 const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
@@ -48,12 +47,6 @@ Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   const timeOut = 3000;
   await driver.pause(timeOut);
-  await WelcomeScreen.clickGetStartedButton();
-  await driver.pause(2000);
-  // await TermOfUseScreen.isDisplayed();
-  await TermOfUseScreen.tapScrollEndButton();
-  await TermOfUseScreen.tapAgreeCheckBox();
-    await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.tapHaveAnExistingWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -313,9 +306,4 @@ Then(/^tokens (.*) in account should be displayed$/, async (token) => {
 
 Then(/^I use the back button on Android$/, async () => {
   await driver.back();
-});
-
-Given(/^I dismiss the Solana New Feature Sheet$/, async () => {
-  await SolanaNewFeatureSheet.isVisible();
-  await SolanaNewFeatureSheet.tapNotNowButton();
 });

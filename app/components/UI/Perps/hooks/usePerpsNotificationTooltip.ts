@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectIsPerpsNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectHasPlacedFirstOrder } from '../controllers/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
@@ -44,19 +44,12 @@ export function usePerpsNotificationTooltip(): UsePerpsNotificationTooltipResult
   const [isVisible, setIsVisible] = useState(false);
 
   // Get state from Redux selectors
-  const perpsNotificationsEnabled = useSelector(
-    selectIsPerpsNotificationsEnabled,
+  const isPushNotificationsEnabled = useSelector(
+    selectIsMetaMaskPushNotificationsEnabled,
   );
   const hasPlacedFirstOrder = usePerpsSelector(selectHasPlacedFirstOrder);
 
-  /**
-   * Determine if tooltip should be shown
-   * Memoized to prevent unnecessary re-calculations
-   */
-  const shouldShowTooltip = useMemo(
-    () => !hasPlacedFirstOrder && !perpsNotificationsEnabled,
-    [hasPlacedFirstOrder, perpsNotificationsEnabled],
-  );
+  const shouldShowTooltip = !hasPlacedFirstOrder && !isPushNotificationsEnabled;
 
   /**
    * Show the tooltip

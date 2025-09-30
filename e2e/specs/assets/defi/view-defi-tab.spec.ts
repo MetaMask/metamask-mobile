@@ -1,23 +1,26 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
+import { RegressionNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { WalletViewSelectorsText } from '../../../selectors/wallet/WalletView.selectors';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { loginToApp } from '../../../viewHelper';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
+import {
+  defiPositionsError,
+  defiPositionsWithData,
+  defiPositionsWithNoData,
+} from '../../../api-mocking/mock-responses/defi-api-mocks';
 
-describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
+describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          const { urlEndpoint, response } =
-            mockEvents.GET.defiPositionsWithNoData;
+          const { urlEndpoint, response } = defiPositionsWithNoData;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: urlEndpoint,
@@ -37,10 +40,10 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
         await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_NO_VISIBLE_POSITIONS,
+          WalletViewSelectorsText.DEFI_EMPTY_STATE_DESCRIPTION,
         );
         await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_NOT_SUPPORTED,
+          WalletViewSelectorsText.DEFI_EMPTY_STATE_EXPLORE_BUTTON,
         );
       },
     );
@@ -52,7 +55,7 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          const { urlEndpoint, response } = mockEvents.GET.defiPositionsError;
+          const { urlEndpoint, response } = defiPositionsError;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: urlEndpoint,
@@ -91,8 +94,7 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          const { urlEndpoint, response } =
-            mockEvents.GET.defiPositionsWithData;
+          const { urlEndpoint, response } = defiPositionsWithData;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: urlEndpoint,

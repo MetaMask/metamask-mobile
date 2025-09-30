@@ -78,11 +78,15 @@ describe('perps controller init', () => {
             sinceOpen: '-8.20',
             sinceChange: '-3.10',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ],
       accountState: null,
+      perpsBalances: {},
       pendingOrders: [],
       depositInProgress: false,
+      lastDepositTransactionId: null,
       lastDepositResult: null,
       lastError: null,
       lastUpdateTimestamp: Date.now(),
@@ -95,6 +99,8 @@ describe('perps controller init', () => {
         testnet: false,
         mainnet: false,
       },
+      withdrawInProgress: false,
+      lastWithdrawResult: null,
     };
 
     initRequestMock.persistedState = {

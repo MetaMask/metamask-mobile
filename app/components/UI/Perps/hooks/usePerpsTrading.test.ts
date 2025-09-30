@@ -247,6 +247,8 @@ describe('usePerpsTrading', () => {
             sinceOpen: '10',
             sinceChange: '5',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -270,6 +272,8 @@ describe('usePerpsTrading', () => {
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '16.67',
+        totalValue: '10500',
       };
 
       (
@@ -293,6 +297,8 @@ describe('usePerpsTrading', () => {
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '16.67',
+        totalValue: '10500',
       };
 
       (

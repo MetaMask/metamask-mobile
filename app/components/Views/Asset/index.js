@@ -256,14 +256,14 @@ class Asset extends PureComponent {
         navigation,
         colors,
         // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
-        shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
+        shouldShowMoreOptionsInNavBar
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: 'AssetOptions',
                 params: {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
-                  chainId: route.params?.chainId,
+                  chainId: route.params?.chainId || '0x1',
                   asset,
                 },
               })
@@ -605,7 +605,7 @@ class Asset extends PureComponent {
     const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
-    const displayFundButton = isDepositAvailable || isRampAvailable;
+    const displayBuyButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -620,7 +620,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -646,7 +646,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}

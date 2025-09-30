@@ -41,11 +41,14 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
   TraceOperation,
   endTrace,
   trace,
+  hasMetricsConsent,
+  discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -61,6 +64,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 
 const createStyles = (colors) =>
@@ -391,10 +395,14 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressCreate = () => {
+  onPressCreate = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+    // need to call hasMetricConset to update the cached consent state
+    await hasMetricsConsent();
+
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
@@ -416,10 +424,13 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = () => {
+  onPressImport = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+    await hasMetricsConsent();
+
     const action = async () => {
       trace({
         name: TraceName.OnboardingExistingSrpImport,
@@ -499,7 +510,46 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    // check for internet connection
+    try {
+      const netState = await NetInfo.fetch();
+      if (!netState.isConnected || netState.isInternetReachable === false) {
+        this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Network check failed:', error);
+    }
+
+    // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
+
+    // Enable metrics for OAuth users
+    await this.props.metrics.enableSocialLogin(true);
+    discardBufferedTraces();
+    await setupSentry();
+
+    // use new trace instead of buffered trace for social login
+    this.onboardingTraceCtx = trace({
+      name: TraceName.OnboardingJourneyOverall,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+    });
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -647,7 +697,7 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -661,9 +711,9 @@ class Onboarding extends PureComponent {
       });
       // else
     } else if (actionType === 'create') {
-      this.onPressCreate();
+      await this.onPressCreate();
     } else {
-      this.onPressImport();
+      await this.onPressImport();
     }
   };
 

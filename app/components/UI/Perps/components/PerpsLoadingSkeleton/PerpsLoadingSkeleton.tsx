@@ -1,146 +1,106 @@
-import React from 'react';
-import { View, ScrollView } from 'react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PerpsLoadingSkeleton.styles';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  BoxAlignItems,
+  BoxJustifyContent,
+  TextColor,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { usePerpsConnection } from '../../providers/PerpsConnectionProvider';
 
 interface PerpsLoadingSkeletonProps {
   testID?: string;
 }
 
 /**
- * PerpsLoadingSkeleton - Skeleton UI displayed while Perps connection is initializing
+ * PerpsLoadingSkeleton - Loading screen displayed while Perps connection is initializing
  *
- * This component mimics the structure of PerpsTabView to provide a smooth
- * visual transition when the connection is established. It shows skeleton
- * placeholders for:
- * - Tab control bar (balance and action buttons)
- * - Positions section header
- * - Position cards
+ * This component shows a loading state that transitions after timeout:
+ * - Initial: Spinner + "Connecting to Perps..." message
+ * - After 10s timeout: Error message + "Retry Connection" button
  */
 const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   testID = 'perps-loading-skeleton',
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+  const { reconnectWithNewContext } = usePerpsConnection();
+  const [showTimeout, setShowTimeout] = useState(false);
+
+  // Set timeout to show retry option after CONNECTION_TIMEOUT_MS
+  // Restarts timer whenever showTimeout becomes false (i.e., when user retries)
+  useEffect(() => {
+    if (!showTimeout) {
+      const timer = setTimeout(() => {
+        setShowTimeout(true);
+      }, PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showTimeout]);
+
+  const handleRetry = async () => {
+    // Reset timeout state and reconnect with new context
+    setShowTimeout(false);
+
+    try {
+      await reconnectWithNewContext();
+    } catch (error) {
+      // Error is handled by connection manager
+      // The loading skeleton will either disappear (on success) or timeout will restart
+    }
+  };
 
   return (
-    <View style={styles.wrapper} testID={testID}>
-      {/* Tab Control Bar Skeleton */}
-      <View style={styles.controlBarContainer}>
-        <View style={styles.controlBarContent}>
-          {/* Balance Section */}
-          <View style={styles.balanceSection}>
-            <Skeleton width={100} height={14} style={styles.balanceLabel} />
-            <Skeleton width={120} height={24} style={styles.balanceValue} />
-          </View>
+    <Box
+      testID={testID}
+      twClassName="flex-1 bg-default pt-20"
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Start}
+    >
+      {!showTimeout ? (
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-6">
+          {/* Loading Spinner */}
+          <ActivityIndicator size="large" color={colors.text.alternative} />
 
-          {/* Action Buttons */}
-          <View style={styles.actionButtonsSection}>
-            <Skeleton width={40} height={40} style={styles.actionButton} />
-            <Skeleton width={40} height={40} style={styles.actionButton} />
-            <Skeleton width={40} height={40} style={styles.actionButton} />
-          </View>
-        </View>
-      </View>
-
-      {/* Positions Content */}
-      <ScrollView style={styles.content} scrollEnabled={false}>
-        {/* Section Header */}
-        <View style={styles.sectionHeader}>
-          <Skeleton width={80} height={18} style={styles.sectionTitle} />
-        </View>
-
-        {/* Position Cards */}
-        <View style={styles.positionsList}>
-          {/* First Position Card */}
-          <View style={styles.positionCard}>
-            <View style={styles.positionCardHeader}>
-              <View style={styles.positionCardLeft}>
-                <Skeleton width={40} height={40} style={styles.positionIcon} />
-                <View style={styles.positionInfo}>
-                  <Skeleton
-                    width={60}
-                    height={16}
-                    style={styles.positionSymbol}
-                  />
-                  <Skeleton
-                    width={40}
-                    height={12}
-                    style={styles.positionLeverage}
-                  />
-                </View>
-              </View>
-              <View style={styles.positionCardRight}>
-                <Skeleton width={80} height={16} style={styles.positionPnl} />
-                <Skeleton
-                  width={60}
-                  height={12}
-                  style={styles.positionPercentage}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Second Position Card */}
-          <View style={styles.positionCard}>
-            <View style={styles.positionCardHeader}>
-              <View style={styles.positionCardLeft}>
-                <Skeleton width={40} height={40} style={styles.positionIcon} />
-                <View style={styles.positionInfo}>
-                  <Skeleton
-                    width={60}
-                    height={16}
-                    style={styles.positionSymbol}
-                  />
-                  <Skeleton
-                    width={40}
-                    height={12}
-                    style={styles.positionLeverage}
-                  />
-                </View>
-              </View>
-              <View style={styles.positionCardRight}>
-                <Skeleton width={80} height={16} style={styles.positionPnl} />
-                <Skeleton
-                  width={60}
-                  height={12}
-                  style={styles.positionPercentage}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Third Position Card (partial visibility) */}
-          <View style={styles.positionCard}>
-            <View style={styles.positionCardHeader}>
-              <View style={styles.positionCardLeft}>
-                <Skeleton width={40} height={40} style={styles.positionIcon} />
-                <View style={styles.positionInfo}>
-                  <Skeleton
-                    width={60}
-                    height={16}
-                    style={styles.positionSymbol}
-                  />
-                  <Skeleton
-                    width={40}
-                    height={12}
-                    style={styles.positionLeverage}
-                  />
-                </View>
-              </View>
-              <View style={styles.positionCardRight}>
-                <Skeleton width={80} height={16} style={styles.positionPnl} />
-                <Skeleton
-                  width={60}
-                  height={12}
-                  style={styles.positionPercentage}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
+          {/* Main Text */}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('perps.connection.connecting_to_perps')}
+          </Text>
+        </Box>
+      ) : (
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-6">
+          {/* Timeout Message */}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('perps.connection.timeout_title')}
+          </Text>
+          {/* Retry Button */}
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Md}
+            onPress={handleRetry}
+            testID={`${testID}-retry-button`}
+          >
+            {strings('perps.connection.retry_connection')}
+          </Button>
+        </Box>
+      )}
+    </Box>
   );
 };
 

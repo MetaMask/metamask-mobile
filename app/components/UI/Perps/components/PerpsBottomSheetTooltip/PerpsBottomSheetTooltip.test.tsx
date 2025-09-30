@@ -1,11 +1,11 @@
-import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import PerpsBottomSheetTooltip from './PerpsBottomSheetTooltip';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import React from 'react';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
+import PerpsBottomSheetTooltip from './PerpsBottomSheetTooltip';
+import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -16,6 +16,21 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+// Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
+jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000',
+      totalBalance: '1000',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalValue: '1000',
+    },
+    isInitialLoading: false,
+  })),
+}));
 
 describe('PerpsBottomSheetTooltip', () => {
   const mockOnClose = jest.fn();
@@ -126,7 +141,7 @@ describe('PerpsBottomSheetTooltip', () => {
       initialLeverage: 5,
     };
 
-    const { getByText, queryAllByText } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <PerpsOrderProvider {...params}>
           <PerpsBottomSheetTooltip
@@ -134,6 +149,10 @@ describe('PerpsBottomSheetTooltip', () => {
             onClose={mockOnClose}
             contentKey={'fees'}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
+            data={{
+              metamaskFeeRate: 0.001, // 0.1% MetaMask fee
+              protocolFeeRate: 0.00045, // 0.045% protocol fee for taker
+            }}
           />
         </PerpsOrderProvider>
       </SafeAreaProvider>,
@@ -142,7 +161,10 @@ describe('PerpsBottomSheetTooltip', () => {
     expect(getByText('Fees')).toBeTruthy();
     expect(getByText('MetaMask fee')).toBeTruthy();
     expect(getByText('Provider fee')).toBeTruthy();
-    expect(queryAllByText('0.000%').length).toBe(2);
+    // MetaMask fee should show 0.100%
+    expect(getByText('0.100%')).toBeTruthy();
+    // Provider fee (taker) should be 0.045%
+    expect(getByText('0.045%')).toBeTruthy();
   });
 
   it('uses custom testID when provided', () => {

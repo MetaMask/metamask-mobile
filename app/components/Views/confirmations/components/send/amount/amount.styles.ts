@@ -8,44 +8,45 @@ import {
 } from '../../../../../UI/Box/box.types';
 
 export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength < 10) {
+  if (contentLength <= 10) {
     return 60;
   }
-  if (contentLength < 12) {
+  if (contentLength <= 12) {
     return 48;
   }
-  if (contentLength < 18) {
+  if (contentLength <= 18) {
     return 32;
   }
-  if (contentLength < 24) {
+  if (contentLength <= 24) {
     return 24;
   }
-  return 18;
+  if (contentLength <= 32) {
+    return 18;
+  }
+  return 12;
 };
 
 export const styleSheet = (params: {
   theme: Theme;
   vars: {
-    inputError: boolean;
-    inputLength: number;
+    contentLength: number;
     isNFT: boolean;
-    symbolLength: number;
   };
 }) => {
   const {
     theme,
-    vars: { inputError, inputLength, isNFT, symbolLength },
+    vars: { contentLength, isNFT },
   } = params;
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: isNFT ? 120 : 132,
+      marginBottom: 40,
     },
     container: {
       backgroundColor: theme.colors.background.default,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-      height: '100%',
+      minHeight: '100%',
     },
     currencyTag: {
       alignSelf: 'center',
@@ -56,27 +57,21 @@ export const styleSheet = (params: {
       marginTop: 8,
       minWidth: 100,
     },
-    input: {
-      alignItems: AlignItems.center,
-      borderWidth: 0,
-      color: inputError
-        ? theme.colors.error.default
-        : theme.colors.text.default,
-      height: 50,
-      fontSize: getFontSizeForInputLength(inputLength + symbolLength),
-      minWidth: '30%',
-    },
     inputSection: {
       flexDirection: FlexDirection.Row,
-      justifyContent:
-        inputLength < 5 ? JustifyContent.center : JustifyContent.flexEnd,
+      justifyContent: JustifyContent.center,
       marginTop: isNFT ? 0 : 80,
       width: '100%',
     },
+    inputText: {
+      fontSize: getFontSizeForInputLength(contentLength),
+      lineHeight: 75,
+      fontFamily: 'Geist Medium',
+    },
     inputWrapper: {
-      alignItems: AlignItems.center,
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.flexEnd,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
     },
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {
@@ -84,13 +79,9 @@ export const styleSheet = (params: {
       marginTop: 32,
       width: '100%',
     },
-    tokenSymbol: {
-      alignItems: AlignItems.center,
-      alignSelf: 'flex-end',
-      fontSize: getFontSizeForInputLength(inputLength + symbolLength),
-      lineHeight: 75,
-      paddingLeft: 2,
-      textAlign: 'left',
+    tokenSymbolWrapper: {
+      justifyContent: JustifyContent.flexStart,
+      width: '50%',
     },
     topSection: {
       paddingHorizontal: 8,

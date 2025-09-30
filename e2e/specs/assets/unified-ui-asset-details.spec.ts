@@ -4,10 +4,10 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import Assertions from '../../framework/Assertions';
 
-describe(Regression('Unified UI Asset Details Actions'), () => {
+describe(RegressionAssets('Unified UI Asset Details Actions'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

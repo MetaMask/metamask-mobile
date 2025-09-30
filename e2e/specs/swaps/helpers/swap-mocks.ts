@@ -3,15 +3,28 @@ import { TestSpecificMock } from '../../../framework';
 import {
   interceptProxyUrl,
   setupMockRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
-  GET_QUOTE_ETH_WETH_RESPONSE,
+  GET_QUOTE_ETH_DAI_RESPONSE,
+  GET_TOKENS_MAINNET_RESPONSE,
 } from './constants';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
+  await setupMockRequest(mockServer, {
+    url: 'https://price.api.cx.metamask.io/v3/spot-prices?assetIds=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48,eip155:1/slip44:60&vsCurrency=usd',
+    response: {
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+        usd: 0.999806,
+      },
+      'eip155:1/slip44:60': { usd: 4583.48 },
+    },
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
+
   // Mock ETH->USDC
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
@@ -20,11 +33,19 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->WETH
+  // Mock ETH->DAI
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
-    response: GET_QUOTE_ETH_WETH_RESPONSE,
+    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
+    response: GET_QUOTE_ETH_DAI_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock Ethereum token list
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getTokens.*chainId=1/i,
+    response: GET_TOKENS_MAINNET_RESPONSE,
     responseCode: 200,
   });
 

@@ -14,6 +14,24 @@ export * from '../../types/navigation';
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
+// Unified tracking data interface for analytics events (never persisted in state)
+export interface TrackingData {
+  // Common to all operations
+  totalFee: number; // Total fee for the operation
+  marketPrice: number; // Market price at operation time
+  metamaskFee?: number; // MetaMask fee amount
+  metamaskFeeRate?: number; // MetaMask fee rate
+  feeDiscountPercentage?: number; // Fee discount percentage
+  estimatedPoints?: number; // Estimated reward points
+
+  // Order-specific (used for trade operations)
+  marginUsed?: number; // Margin required for this order
+
+  // Close-specific (used for position close operations)
+  receivedAmount?: number; // Amount user receives after close
+  realizedPnl?: number; // Realized P&L from close
+}
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
@@ -32,6 +50,9 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export type OrderResult = {
@@ -65,6 +86,8 @@ export type Position = {
   };
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  takeProfitCount: number; // Take profit count, how many tps can affect the position
+  stopLossCount: number; // Stop loss count, how many sls can affect the position
 };
 
 export type AccountState = {
@@ -72,6 +95,8 @@ export type AccountState = {
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
+  returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
+  totalValue: string; // Based on HyperLiquid: accountValue
 };
 
 export type ClosePositionParams = {
@@ -80,6 +105,8 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export interface InitializeResult {
@@ -151,6 +178,10 @@ export interface PerpsMarketData {
    * Funding interval in hours (optional, market-specific)
    */
   fundingIntervalHours?: number;
+  /**
+   * Current funding rate as decimal (optional, from predictedFundings API)
+   */
+  fundingRate?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -249,10 +280,27 @@ export interface WithdrawResult {
   estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
+export interface GetHistoricalPortfolioParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface HistoricalPortfolioResult {
+  accountValue1dAgo: string;
+  timestamp: number;
+}
+
 export interface LiveDataConfig {
   priceThrottleMs?: number; // ms between price updates (default: 2000)
   positionThrottleMs?: number; // ms between position updates (default: 5000)
   maxUpdatesPerSecond?: number; // hard limit to prevent UI blocking
+}
+
+export interface PerpsControllerConfig {
+  /**
+   * Fallback blocked regions to use when RemoteFeatureFlagController fails to fetch.
+   * The fallback is set by default if defined and replaced with remote block list once available.
+   */
+  fallbackBlockedRegions?: string[];
 }
 
 export interface PriceUpdate {
@@ -476,6 +524,16 @@ export interface IPerpsProvider {
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
 
   /**
+   * Get historical portfolio data
+   * Purpose: Retrieve account value from previous periods for PnL tracking
+   * Example: Get account value from yesterday to calculate 24h percentage change
+   * @param params - Optional parameters for historical portfolio retrieval
+   */
+  getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult>;
+
+  /**
    * Historical order lifecycle - order placement, modifications, and status changes.
    * Purpose: Track the complete journey of orders from request to completion.
    * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
@@ -521,4 +579,7 @@ export interface IPerpsProvider {
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;
+
+  // Fee discount context (optional - for MetaMask reward discounts)
+  setUserFeeDiscount?(discountBips: number | undefined): void;
 }

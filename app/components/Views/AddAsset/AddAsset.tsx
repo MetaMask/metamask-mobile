@@ -12,7 +12,7 @@ import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
 import ScrollableTabView, {
   TabBarProps,
-} from 'react-native-scrollable-tab-view';
+} from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import {
@@ -171,7 +171,7 @@ const AddAsset = () => {
     setOpenNetworkFilter(false);
   };
 
-  const renderTabBar = (props: TabBarProps) => <TabBar {...props} />;
+  const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
   const renderNetworkSelector = useCallback(
     () => (
@@ -285,6 +285,21 @@ const AddAsset = () => {
         <AddCustomCollectible
           navigation={navigation}
           collectibleContract={collectibleContract}
+          setOpenNetworkSelector={setOpenNetworkSelector}
+          networkId={networkConfigurations?.[selectedNetwork as Hex]?.chainId}
+          selectedNetwork={
+            selectedNetwork
+              ? networkConfigurations?.[selectedNetwork as Hex]?.name
+              : null
+          }
+          networkClientId={
+            selectedNetwork
+              ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
+                  networkConfigurations?.[selectedNetwork]
+                    ?.defaultRpcEndpointIndex
+                ]?.networkClientId
+              : null
+          }
         />
       )}
       {openNetworkFilter ? renderNetworkFilterSelector() : null}

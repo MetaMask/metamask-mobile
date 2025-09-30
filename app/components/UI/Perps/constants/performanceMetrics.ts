@@ -36,6 +36,10 @@ export enum PerpsMeasurementName {
 
   // Screen Load Metrics - History (milliseconds)
   TRANSACTION_HISTORY_SCREEN_LOADED = 'transaction_history_screen_loaded',
+
+  // Data Lake API Metrics (milliseconds)
+  DATA_LAKE_API_CALL = 'data_lake_api_call',
+  DATA_LAKE_API_RETRY = 'data_lake_api_retry',
 }
 
 /**
@@ -66,6 +70,10 @@ export const PerpsPerformanceTargets: Record<string, number> = {
   [PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED]: 200,
   [PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED]: 200,
   [PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED]: 1000,
+
+  // Data Lake API targets
+  [PerpsMeasurementName.DATA_LAKE_API_CALL]: 2000, // 2 seconds target
+  [PerpsMeasurementName.DATA_LAKE_API_RETRY]: 5000, // 5 seconds for all retries
 };
 
 /**

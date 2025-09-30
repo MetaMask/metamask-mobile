@@ -9,7 +9,7 @@ describe('Recipient', () => {
   const createMockRecipient = (
     overrides: Partial<RecipientType> = {},
   ): RecipientType => ({
-    name: 'John Doe',
+    accountName: 'John Doe',
     address: '0x1234567890123456789012345678901234567890',
     ...overrides,
   });
@@ -22,7 +22,7 @@ describe('Recipient', () => {
 
   it('renders recipient name correctly', () => {
     const mockRecipient = createMockRecipient({
-      name: 'Alice Smith',
+      accountName: 'Alice Smith',
     });
 
     const { getByText } = renderWithProvider(
@@ -95,5 +95,36 @@ describe('Recipient', () => {
     );
 
     expect(getByText('John Doe')).toBeOnTheScreen();
+  });
+
+  it('renders recipient address correctly', () => {
+    const mockRecipient = createMockRecipient();
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('0x12345...67890')).toBeOnTheScreen();
+  });
+
+  it('renders contact name when BIP44 is true and account group name is not provided', () => {
+    const mockRecipient = createMockRecipient({
+      accountGroupName: undefined,
+      contactName: 'Contact Name',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        isBIP44
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('Contact Name')).toBeOnTheScreen();
   });
 });

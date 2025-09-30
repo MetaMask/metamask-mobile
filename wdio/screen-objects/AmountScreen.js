@@ -1,6 +1,8 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
+import { expect } from 'appwright';
 import {
   AMOUNT_ERROR,
   AMOUNT_SCREEN,
@@ -8,13 +10,18 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
 
-class AmountScreen {
+class AmountScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get amountInputField() {
@@ -41,8 +48,16 @@ class AmountScreen {
     if (!this._device) {
       return Selectors.getElementByPlatform(NEXT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, NEXT_BUTTON);
+      return AppwrightSelectors.getElementByText(this._device, 'Continue');
     }
+  }
+  // Helper method to split amount into digits
+  splitAmountIntoDigits(amount) {
+    // Convert to string and split into array of digits
+    return amount.toString().split('').map(char => {
+      // Return only numeric digits, filter out decimal points, commas, etc.
+      return /\d/.test(char) ? parseInt(char, 10) : char;
+    });
   }
 
   async enterAmount(text) {
@@ -50,8 +65,21 @@ class AmountScreen {
       await Gestures.waitAndTap(this.amountInputField);
       await Gestures.typeText(this.amountInputField, text);
     } else {
-      const element = await AppwrightSelectors.getElementByID(this._device, TRANSACTION_AMOUNT_INPUT);
-      await element.fill(text);
+      // Split amount into digits
+    const digits = this.splitAmountIntoDigits(text);
+    console.log('Amount digits:', digits);
+    for (const digit of digits) {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+        await numberKey.waitFor('visible',{ timeout: 30000 });
+        await this.tap(numberKey);
+      }
+      else {
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        await numberKey.waitFor('visible', { timeout: 30000 });
+        await this.tap(numberKey); 
+      }
+    }
     }
   }
 
@@ -70,8 +98,17 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    const element = await this.nextButton;
-    await element.tap();
+    await this.tap(this.nextButton);
+  }
+
+  async isVisible() {
+    if (!this._device) {
+      const element = await this.amountScreen;
+      await element.waitForDisplayed();
+    } else {
+      const element = await AppwrightSelectors.getElementByCatchAll(this._device, '25%');
+      await expect(element).toBeVisible();
+    }
   }
 }
 

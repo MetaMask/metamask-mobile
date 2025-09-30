@@ -10,7 +10,10 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
-import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
+import { getPasswordForScenario } from './TestConstants.js';
+import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
+import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
+import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -21,14 +24,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   CreatePasswordScreen.device = device;
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
-  SolanaFeatureSheet.device = device;
-  await WelcomeScreen.clickGetStartedButton();
-  await TermOfUseScreen.isDisplayed();
 
-  await TermOfUseScreen.tapAgreeCheckBox();
-  await TermOfUseScreen.tapScrollEndButton();
-
-  await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.isScreenTitleVisible();
 
   await OnboardingScreen.tapHaveAnExistingWallet();
@@ -43,8 +39,12 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await CreatePasswordScreen.isVisible();
 
-  await CreatePasswordScreen.enterPassword('123456789');
-  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.enterPassword(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreatePasswordScreen.reEnterPassword(
+    getPasswordForScenario('onboarding'),
+  );
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
@@ -54,8 +54,9 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  // await SolanaFeatureSheet.isVisible();
-  // await SolanaFeatureSheet.tapNotNowButton();
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissMultichainAccountsIntroModal(device);
+
   await WalletMainScreen.isMainWalletViewVisible();
 }
 
@@ -85,7 +86,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -103,4 +104,41 @@ export async function importSRPFlow(device, srp) {
 
   timers.push(timer, timer2, timer3, timer4);
   return timers;
+}
+
+export async function login(device, options = {}) {
+  LoginScreen.device = device;
+  const { skipIntro = false, scenarioType = 'login' } = options;
+
+  const password = getPasswordForScenario(scenarioType);
+
+  // Type password and unlock
+  await LoginScreen.typePassword(password);
+  await LoginScreen.tapUnlockButton();
+  // Wait for app to settle after unlock
+
+  // Only tap intro screens on first login
+  if (!skipIntro) {
+    await dismissMultichainAccountsIntroModal(device);
+    await tapPerpsBottomSheetGotItButton(device);
+  }
+}
+export async function tapPerpsBottomSheetGotItButton(device) {
+  PerpsGTMModal.device = device;
+  const container = await PerpsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
+  }
+}
+
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
+  MultichainAccountEducationModal.device = device;
+  const closeButton = await MultichainAccountEducationModal.closeButton;
+  if (await closeButton.isVisible({ timeout })) {
+    await MultichainAccountEducationModal.tapGotItButton();
+  }
 }

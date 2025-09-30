@@ -23,11 +23,21 @@ export const ConfirmationAssetPollingProvider = ({
   const transactionMeta = useTransactionMetadataRequest();
   const bridgeChains = useSelector(selectEnabledSourceChains);
 
-  const pollChainIds = useMemo(
-    () =>
-      bridgeChains.filter((chain) => chain.isEvm).map((chain) => chain.chainId),
-    [bridgeChains],
-  ) as Hex[];
+  const pollChainIds = useMemo(() => {
+    const bridgeChainIds = bridgeChains
+      .filter((chain) => chain.isEvm)
+      .map((chain) => chain.chainId as Hex);
+
+    // Always include the transaction's chain to ensure balance is available
+    // This is critical when a user adds a new network from a dapp and immediately
+    // attempts to transact - the new network may not be in the bridge chains list
+    const txChainId = transactionMeta?.chainId as Hex | undefined;
+    if (txChainId && !bridgeChainIds.includes(txChainId)) {
+      return [...bridgeChainIds, txChainId];
+    }
+
+    return bridgeChainIds;
+  }, [bridgeChains, transactionMeta?.chainId]);
 
   if (!transactionMeta) {
     return children;
@@ -37,7 +47,6 @@ export const ConfirmationAssetPollingProvider = ({
     <>
       <AssetPollingProvider
         chainIds={pollChainIds}
-        networkClientId={transactionMeta.networkClientId}
         address={transactionMeta.txParams.from as Hex}
       />
       {children}

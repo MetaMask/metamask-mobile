@@ -35,10 +35,17 @@ export const ZERO_BALANCE = '0x0';
 export const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee'; // 421614 in decimal
 
 // USDC token addresses
+export const USDC_ETHEREUM_MAINNET_ADDRESS =
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 export const USDC_ARBITRUM_MAINNET_ADDRESS =
   '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
 export const USDC_ARBITRUM_TESTNET_ADDRESS =
   '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+
+// USDC token icon URL using MetaMask's official Token Icons API
+// Format: https://static.cx.metamask.io/api/v1/tokenIcons/{chainId}/{contractAddress}.png
+// This URL follows the same pattern used throughout MetaMask (bridges, swaps, etc.)
+export const USDC_TOKEN_ICON_URL = `https://static.cx.metamask.io/api/v1/tokenIcons/1/${USDC_ETHEREUM_MAINNET_ADDRESS}.png`;
 
 // WebSocket endpoints
 export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
@@ -106,9 +113,8 @@ const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 
 // Builder fee configuration
 export const BUILDER_FEE_CONFIG = {
-  // Test wallet address for builder fees, currently staking test wallet
-  // FIXME: use official testnetBuilder as soon as available
-  testnetBuilder: '0x316BDE155acd07609872a56Bc32CcfB0B13201fA' as Hex,
+  // Test builder wallet
+  testnetBuilder: '0x724e57771ba749650875bd8adb2e29a85d0cacfa' as Hex,
   // Production builder wallet
   mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as Hex,
   // Fee in decimal (10 bp = 0.1%)
@@ -124,8 +130,7 @@ export const REFERRAL_CONFIG = {
   // Production referral code
   mainnetCode: 'MMCSI',
   // Development/testnet referral code
-  // FIXME: use official testnetCode as soon as available
-  testnetCode: 'MSO',
+  testnetCode: 'MMCSITEST',
 };
 
 // MetaMask fee for deposits (temporary placeholder)

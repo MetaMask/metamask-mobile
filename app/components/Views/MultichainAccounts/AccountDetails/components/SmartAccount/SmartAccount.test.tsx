@@ -10,10 +10,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
-
-jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
-  useEIP7702Networks: jest.fn(),
-}));
+import Icon from '../../../../../../component-library/components/Icons/Icon';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -22,13 +19,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
-
-import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
-import AppConstants from '../../../../../../core/AppConstants';
-
-const mockUseEIP7702Networks = useEIP7702Networks as jest.MockedFunction<
-  typeof useEIP7702Networks
->;
 
 const mockAddress = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const mockAccount = createMockInternalAccount(
@@ -52,36 +42,48 @@ const render = (account: InternalAccount) =>
 describe('SmartAccountDetails', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    mockUseEIP7702Networks.mockReturnValue({
-      network7702List: [],
-      networkSupporting7702Present: false,
-      pending: false,
-    });
   });
 
-  it('displays learn more button correctly', () => {
+  it('displays smart account row with correct text', () => {
     const { getByText } = render(mockAccount);
 
     expect(
-      getByText(strings('multichain_accounts.smart_account.learn_more')),
+      getByText(strings('multichain_accounts.account_details.smart_account')),
     ).toBeTruthy();
   });
 
-  it('calls navigation when learn more button is pressed', () => {
+  it('displays arrow icon', () => {
+    const { UNSAFE_getByType } = render(mockAccount);
+
+    // Check that an Icon element is rendered
+    const iconElement = UNSAFE_getByType(Icon);
+    expect(iconElement).toBeTruthy();
+  });
+
+  it('navigates to SmartAccountDetails when pressed', () => {
     const { getByText } = render(mockAccount);
 
-    const learnMoreButton = getByText(
-      strings('multichain_accounts.smart_account.learn_more'),
+    const smartAccountRow = getByText(
+      strings('multichain_accounts.account_details.smart_account'),
     );
-    fireEvent.press(learnMoreButton);
+    fireEvent.press(smartAccountRow);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.SMART_ACCOUNTS,
-        title: 'Smart Accounts',
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('SmartAccountDetails', {
+      account: mockAccount,
     });
+  });
+
+  it('renders as TouchableOpacity for interaction', () => {
+    const { getByText } = render(mockAccount);
+
+    const smartAccountRow = getByText(
+      strings('multichain_accounts.account_details.smart_account'),
+    );
+
+    // Should be pressable
+    expect(smartAccountRow).toBeTruthy();
+    fireEvent.press(smartAccountRow);
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('returns null for non-EVM account types', () => {
@@ -93,5 +95,11 @@ describe('SmartAccountDetails', () => {
     const { toJSON } = render(nonEvmAccount);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('renders correctly for EVM account types', () => {
+    const { toJSON } = render(mockAccount);
+
+    expect(toJSON()).not.toBeNull();
   });
 });

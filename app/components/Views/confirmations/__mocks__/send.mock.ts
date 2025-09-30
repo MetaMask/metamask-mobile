@@ -42,6 +42,7 @@ export const MOCK_NFT1155 = {
   tokenId: '17',
   tokenURI:
     'https://dweb.link/ipfs/QmQD4h1Dkkn75ZKSFXDtmW6kehpCkckStRazCdUgp7m9g1',
+  balance: '2',
 };
 
 export const evmSendStateMock = {

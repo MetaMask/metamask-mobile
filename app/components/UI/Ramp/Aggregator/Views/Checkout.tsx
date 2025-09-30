@@ -28,6 +28,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
+import Logger from '../../../../../util/Logger';
 
 interface CheckoutParams {
   url: string;
@@ -40,7 +41,7 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 );
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl, isBuy } =
+  const { selectedAsset, selectedAddress, sdkError, callbackBaseUrl, isBuy } =
     useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
@@ -56,26 +57,29 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
+    const chainId = selectedAsset?.network?.chainId;
+    if (!chainId) return;
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
         provider_onramp: provider.name,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
         provider_offramp: provider.name,
       });
     }
-  }, [isBuy, provider.name, selectedChainId, trackEvent]);
+  }, [isBuy, provider.name, selectedAsset?.network?.chainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: provider.name },
+        { title: provider.name, showNetwork: false },
         colors,
         handleCancelPress,
       ),
@@ -83,18 +87,22 @@ const CheckoutWebView = () => {
   }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
-    if (!customOrderId) {
+    if (
+      !customOrderId ||
+      !selectedAsset?.network?.chainId ||
+      !selectedAddress
+    ) {
       return;
     }
     const customOrderIdData = createCustomOrderIdData(
       customOrderId,
-      selectedChainId,
+      selectedAsset.network.chainId,
       selectedAddress,
       isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, isBuy, selectedAddress, selectedChainId]);
+  }, [customOrderId, dispatch, isBuy, selectedAsset, selectedAddress]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -110,6 +118,10 @@ const CheckoutWebView = () => {
           // Most likely the user clicked the X in Wyre widget
           // @ts-expect-error navigation prop mismatch
           navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
+        if (!selectedAddress) {
+          Logger.error(new Error('No address available for selected asset'));
           return;
         }
         const orders = await SDK.orders();
@@ -135,7 +147,6 @@ const CheckoutWebView = () => {
         const transformedOrder = {
           ...aggregatorOrderToFiatOrder(order),
           account: selectedAddress,
-          network: selectedChainId,
         };
 
         handleSuccessfulOrder(transformedOrder);
@@ -201,6 +212,7 @@ const CheckoutWebView = () => {
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
+          testID="checkout-webview"
         />
       </View>
     );

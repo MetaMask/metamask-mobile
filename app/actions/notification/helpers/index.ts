@@ -2,6 +2,18 @@ import type { MarkAsReadNotificationsParam } from '@metamask/notification-servic
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
+let previewToken: string | undefined;
+
+export function setContentPreviewToken(newPreviewToken?: string | null) {
+  if (typeof newPreviewToken === 'string') {
+    previewToken = newPreviewToken;
+  }
+}
+
+export function getContentPreviewToken() {
+  return previewToken;
+}
+
 export const assertIsFeatureEnabled = () => {
   if (!isNotificationsFeatureEnabled()) {
     throw new Error(
@@ -63,21 +75,6 @@ export const toggleFeatureAnnouncements = async (
 };
 
 /**
- * Perps Notifications Switch
- * - Enables/Disables Perps Notifications
- * @param perpsNotificationsEnabled boolean to toggle on/off
- */
-export const togglePerpsNotifications = async (
-  perpsNotificationsEnabled: boolean,
-) => {
-  assertIsFeatureEnabled();
-  // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented
-  await Engine.context.NotificationServicesController.setPerpsNotificationsEnabled(
-    perpsNotificationsEnabled,
-  );
-};
-
-/**
  * Account Notification Settings.
  * - Informs us which accounts have notifications enabled.
  * @param accounts - accounts to check
@@ -121,7 +118,9 @@ export const enableAccounts = async (accounts: string[]) => {
  */
 export const fetchNotifications = async () => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications();
+  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications(
+    getContentPreviewToken(),
+  );
 };
 
 /**

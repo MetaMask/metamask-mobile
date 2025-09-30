@@ -5,9 +5,10 @@ import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Pe
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
+import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -18,15 +19,18 @@ import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { OrderType } from '../../controllers/types';
 import { formatPercentage, formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOrderHeader.styles';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
   priceChange: number;
-  orderType: OrderType;
+  orderType?: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;
+  title?: string;
   onOrderTypePress?: () => void;
+  isLoading?: boolean;
 }
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
@@ -37,6 +41,8 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   direction = 'long',
   onBack,
   onOrderTypePress,
+  title,
+  isLoading,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -86,7 +92,12 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           style={styles.headerTitle}
           testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
         >
-          {direction === 'long' ? 'Long' : 'Short'} {asset}
+          {title ||
+            `${
+              direction === 'long'
+                ? strings('perps.market.long')
+                : strings('perps.market.short')
+            } ${asset}`}
         </Text>
         <View style={styles.priceRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -94,22 +105,35 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           </Text>
           {price > 0 && (
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodyMD}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
-              style={styles.headerPriceChange}
             >
               {formatPercentage(priceChange)}
             </Text>
           )}
         </View>
       </View>
-      <TouchableOpacity onPress={handleOrderTypePress}>
-        <View style={styles.marketButton}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {orderType === 'market' ? 'Market' : 'Limit'}
-          </Text>
-        </View>
-      </TouchableOpacity>
+      {Boolean(orderType) && (
+        <TouchableOpacity
+          onPress={handleOrderTypePress}
+          testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+          disabled={isLoading}
+        >
+          <View style={styles.marketButton}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {orderType === 'market'
+                ? strings('perps.order.market')
+                : strings('perps.order.limit')}
+            </Text>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Xs}
+              color={IconColor.Default}
+              style={styles.marketButtonIcon}
+            />
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

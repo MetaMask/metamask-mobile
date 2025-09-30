@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -34,6 +35,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -41,19 +43,32 @@ import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
-const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
+const CustomNetworkSelector = ({
+  openModal,
+  dismissModal,
+}: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // Use custom hooks for network management
-  const { networks } = useNetworksByNamespace({
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Custom,
   });
-  const { selectCustomNetwork } = useNetworkSelection({
+
+  const { networksToUse } = useNetworksToUse({
     networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
+
+  const { selectCustomNetwork } = useNetworkSelection({
+    networks: networksToUse,
   });
 
   const goToNetworkSettings = useCallback(() => {
@@ -67,10 +82,10 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
     ({ item }) => {
       const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
-      const chainId = toHex(rawChainId);
+      const chainId = isEvmSelected ? toHex(rawChainId) : rawChainId;
 
-      const handlePress = () => {
-        selectCustomNetwork(caipChainId);
+      const handlePress = async () => {
+        await selectCustomNetwork(caipChainId, dismissModal);
       };
 
       const handleMenuPress = () => {
@@ -84,7 +99,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
       };
 
       return (
-        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
+        <View>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
@@ -100,11 +115,15 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
             buttonProps={{
               onButtonClick: handleMenuPress,
             }}
+            testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
+              caipChainId,
+              isSelected,
+            )}
           />
         </View>
       );
     },
-    [selectCustomNetwork, openModal],
+    [selectCustomNetwork, openModal, dismissModal, isEvmSelected],
   );
 
   const renderFooter = useCallback(
@@ -129,9 +148,12 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER}
+      style={styles.container}
+    >
       <FlashList
-        data={networks}
+        data={networksToUse}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         ListFooterComponent={renderFooter}

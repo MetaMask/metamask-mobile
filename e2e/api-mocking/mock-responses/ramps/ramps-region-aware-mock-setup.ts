@@ -1,12 +1,11 @@
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../mockHelpers';
+import { setupMockRequest } from '../../helpers/mockHelpers';
 import { MockApiEndpoint, RampsRegion } from '../../../framework/types';
 import {
   RAMPS_NETWORKS_RESPONSE,
   RAMPS_COUNTRIES_RESPONSE,
   RAMPS_LIGHT_RESPONSE,
   RAMPS_AMOUNT_RESPONSE,
-  GAS_FEES_RESPONSE,
 } from './ramps-mocks';
 import { createGeolocationResponse } from './ramps-geolocation';
 import { RAMPS_QUOTE_RESPONSE } from './ramps-quotes-response';
@@ -99,22 +98,28 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_QUOTE_RESPONSE,
     },
 
-    // 7. Gas fees endpoint for offramp transactions (both UAT and prod)
     {
       urlEndpoint:
-        /^https:\/\/gas\.api\.cx\.metamask\.io\/networks\/\d+\/suggestedGasFees$/,
+        /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*\.png$/,
       responseCode: 200,
-      response: GAS_FEES_RESPONSE,
+      response: '',
     },
   ];
 
-  // Set up all mocks
-  for (const mock of mockEndpoints) {
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: mock.urlEndpoint,
-      response: mock.response,
-      responseCode: mock.responseCode,
-    });
-  }
+  await Promise.all([
+    ...mockEndpoints.map((mock) =>
+      setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: mock.urlEndpoint,
+        response: mock.response,
+        responseCode: mock.responseCode,
+      }),
+    ),
+    setupMockRequest(mockServer, {
+      requestMethod: 'HEAD',
+      url: /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*\.png$/,
+      response: '',
+      responseCode: 200,
+    }),
+  ]);
 };

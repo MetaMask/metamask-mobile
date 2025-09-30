@@ -55,7 +55,7 @@ export function handleMetaMaskDeeplink({
       SDKConnect.getInstance().state.navigation?.navigate(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
         },
       );
     } else if (params.channelId) {
@@ -167,6 +167,12 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
+    const depositCashPath = url.replace(
+      `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`,
+      '',
+    );
+    instance._handleDepositCash(depositCashPath);
   }
 }
 

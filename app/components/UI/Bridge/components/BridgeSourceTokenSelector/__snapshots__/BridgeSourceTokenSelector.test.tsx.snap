@@ -313,14 +313,21 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                     }
                   >
                     <View
+                      onLayout={[Function]}
                       style={
-                        {
-                          "bottom": 0,
-                          "left": 0,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
+                        [
+                          {
+                            "bottom": 0,
+                            "justifyContent": "flex-end",
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          },
+                          {
+                            "paddingBottom": 0,
+                          },
+                        ]
                       }
                     >
                       <View
@@ -335,27 +342,63 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               "top": 0,
                             },
                             {
-                              "opacity": undefined,
+                              "opacity": 0,
                             },
                           ]
                         }
-                      />
+                      >
+                        <TouchableOpacity
+                          onPress={[Function]}
+                          style={
+                            {
+                              "flex": 1,
+                            }
+                          }
+                        />
+                      </View>
                       <View
-                        collapsable={false}
-                        enabled={true}
-                        handlerTag={1}
-                        handlerType="PanGestureHandler"
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
+                        onLayout={[Function]}
                         style={
                           [
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                            },
+                            {
+                              "paddingBottom": 0,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          collapsable={false}
+                          enabled={true}
+                          handlerTag={2}
+                          handlerType="PanGestureHandler"
+                          onGestureHandlerEvent={[Function]}
+                          onGestureHandlerStateChange={[Function]}
+                          onLayout={[Function]}
+                          style={
                             [
                               {
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc866",
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "borderWidth": 1,
+                                "height": 1334,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -364,167 +407,120 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   },
                                 ],
                               },
-                            ],
-                            [
-                              {
-                                "justifyContent": "flex-end",
-                              },
-                              {
-                                "marginTop": 0,
-                              },
-                            ],
-                          ]
-                        }
-                      >
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            }
-                          }
-                        />
-                        <View
-                          style={
-                            [
-                              {},
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flex": 1,
-                                },
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderTopLeftRadius": 20,
-                                  "borderTopRightRadius": 20,
-                                },
-                                {
-                                  "paddingBottom": 0,
-                                },
-                              ],
                             ]
                           }
                         >
                           <View
                             style={
-                              [
-                                {},
-                                {
-                                  "alignSelf": "center",
-                                  "backgroundColor": "#b7bbc8",
-                                  "borderRadius": 4,
-                                  "height": 5,
-                                  "marginTop": 8,
-                                  "width": 48,
-                                },
-                              ]
-                            }
-                          />
-                          <View
-                            gap={4}
-                            style={
-                              [
-                                {
-                                  "gap": 4,
-                                },
-                                undefined,
-                              ]
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "padding": 4,
+                              }
                             }
                           >
                             <View
                               style={
-                                [
-                                  {
-                                    "backgroundColor": "#ffffff",
-                                    "flexDirection": "row",
-                                    "gap": 16,
-                                    "padding": 16,
-                                  },
-                                  false,
-                                ]
+                                {
+                                  "backgroundColor": "#b7bbc866",
+                                  "borderRadius": 2,
+                                  "height": 4,
+                                  "width": 40,
+                                }
                               }
-                              testID="header"
+                            />
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flexDirection": "row",
+                                  "gap": 16,
+                                  "padding": 16,
+                                },
+                                false,
+                              ]
+                            }
+                            testID="header"
+                          >
+                            <View
+                              style={
+                                {
+                                  "width": undefined,
+                                }
+                              }
                             >
                               <View
+                                onLayout={[Function]}
+                              />
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "flex": 1,
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 18,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  justifyContent="center"
+                                Select token
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "width": undefined,
+                                }
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                              >
+                                <TouchableOpacity
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "justifyContent": "center",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "alignItems": "center",
+                                      "borderRadius": 8,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "opacity": 1,
+                                      "width": 24,
+                                    }
                                   }
+                                  testID="bridge-token-selector-close-button"
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="Close"
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "flex": 1,
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 18,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "textAlign": "center",
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                  >
-                                    Select token
-                                  </Text>
-                                  <View
-                                    style={
-                                      [
-                                        {},
-                                        [
-                                          {
-                                            "position": "absolute",
-                                            "right": 0,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                        ],
-                                      ]
-                                    }
-                                  >
-                                    <TouchableOpacity
-                                      onPress={[Function]}
-                                      testID="bridge-token-selector-close-button"
-                                    >
-                                      <SvgMock
-                                        color="#121314"
-                                        fill="currentColor"
-                                        height={16}
-                                        name="Close"
-                                        style={
-                                          {
-                                            "height": 16,
-                                            "width": 16,
-                                          }
-                                        }
-                                        width={16}
-                                      />
-                                    </TouchableOpacity>
-                                  </View>
-                                </View>
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </View>
@@ -711,6 +707,35 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               />
                             </TouchableOpacity>
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -771,7 +796,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,
@@ -783,142 +808,248 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               </View>
                             </View>
                           </View>
-                          <View
-                            collapsable={false}
-                            onLayout={[Function]}
-                            style={
-                              {
-                                "flex": 1,
-                                "overflow": "hidden",
-                              }
-                            }
-                          >
+                          <View>
                             <RCTScrollView
+                              ListEmptyComponent={[Function]}
                               bounces={true}
                               collapsable={false}
-                              keyExtractor={[Function]}
-                              maintainVisibleContentPosition={
-                                {
-                                  "minIndexForVisible": 0,
-                                }
+                              data={
+                                [
+                                  {
+                                    "address": "0x0000000000000000000000000000000000000002",
+                                    "balance": "2.0",
+                                    "balanceFiat": "$200000",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "https://token2.com/logo.png",
+                                    "name": "Hello Token",
+                                    "symbol": "HELLO",
+                                    "tokenFiatAmount": 200000,
+                                  },
+                                  {
+                                    "address": "0x0000000000000000000000000000000000000003",
+                                    "balance": "5.0",
+                                    "balanceFiat": "$80000",
+                                    "chainId": "0xa",
+                                    "decimals": 18,
+                                    "image": "https://token3.com/logo.png",
+                                    "name": "Foo Token",
+                                    "symbol": "FOO",
+                                    "tokenFiatAmount": 80000,
+                                  },
+                                  {
+                                    "address": "0x0000000000000000000000000000000000000000",
+                                    "balance": "20.0",
+                                    "balanceFiat": "$40000",
+                                    "chainId": "0xa",
+                                    "decimals": 18,
+                                    "image": "",
+                                    "name": "Ethereum",
+                                    "symbol": "ETH",
+                                    "tokenFiatAmount": 40000,
+                                  },
+                                  {
+                                    "address": "0x0000000000000000000000000000000000000001",
+                                    "balance": "1.0",
+                                    "balanceFiat": "$20000",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "https://token1.com/logo.png",
+                                    "name": "Token One",
+                                    "symbol": "TOKEN1",
+                                    "tokenFiatAmount": 20000,
+                                  },
+                                  {
+                                    "address": "0x0000000000000000000000000000000000000000",
+                                    "balance": "3.0",
+                                    "balanceFiat": "$6000",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "",
+                                    "name": "Ethereum",
+                                    "symbol": "ETH",
+                                    "tokenFiatAmount": 6000,
+                                  },
+                                ]
                               }
+                              getItem={[Function]}
+                              getItemCount={[Function]}
+                              handlerTag={1}
+                              handlerType="NativeViewGestureHandler"
+                              initialNumToRender={20}
+                              keyExtractor={[Function]}
+                              keyboardShouldPersistTaps="always"
+                              maxToRenderPerBatch={20}
+                              onContentSizeChange={[Function]}
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                              onLayout={[Function]}
+                              onMomentumScrollBegin={[Function]}
+                              onMomentumScrollEnd={[Function]}
                               onScroll={[Function]}
+                              onScrollBeginDrag={[Function]}
+                              onScrollEndDrag={[Function]}
+                              removeClippedSubviews={true}
+                              renderItem={[Function]}
+                              renderScrollComponent={[Function]}
                               scrollEnabled={true}
                               scrollEventThrottle={0.0001}
                               showsHorizontalScrollIndicator={false}
                               showsVerticalScrollIndicator={true}
-                              style={{}}
+                              stickyHeaderIndices={[]}
+                              viewabilityConfigCallbackPairs={[]}
+                              windowSize={10}
                             >
                               <View>
                                 <View
-                                  style={
-                                    {
-                                      "height": 0,
-                                      "left": 0,
-                                      "position": "absolute",
-                                      "top": 1000000,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "height": 0,
-                                      "width": undefined,
-                                    }
-                                  }
-                                />
-                                <View
-                                  style={
-                                    {
-                                      "height": 0,
-                                      "marginLeft": undefined,
-                                      "marginTop": 0,
-                                      "opacity": 1,
-                                      "width": undefined,
-                                    }
-                                  }
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
                                 >
                                   <View
-                                    index={0}
-                                    onLayout={[Function]}
+                                    alignItems="center"
+                                    flexDirection="row"
                                     style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
                                     }
                                   >
-                                    <View
-                                      alignItems="center"
-                                      flexDirection="row"
+                                    <TouchableOpacity
+                                      onPress={[Function]}
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "padding": 4,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "paddingHorizontal": 15,
-                                            "paddingVertical": 10,
-                                          }
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
                                         }
-                                        testID="asset-0x1-HELLO"
+                                      }
+                                      testID="asset-0x1-HELLO"
+                                    >
+                                      <View
+                                        alignItems="center"
+                                        flexDirection="row"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "gap": 4,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
                                       >
                                         <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={4}
+                                          onLayout={[Function]}
                                           style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 4,
-                                              },
-                                              undefined,
-                                            ]
+                                            {
+                                              "alignSelf": undefined,
+                                              "position": "relative",
+                                            }
                                           }
+                                          testID="badge-wrapper-badge"
                                         >
+                                          <View>
+                                            <View
+                                              style={
+                                                {
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderRadius": 16,
+                                                  "height": 32,
+                                                  "overflow": "hidden",
+                                                  "width": 32,
+                                                }
+                                              }
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={
+                                                  {
+                                                    "uri": "https://token2.com/logo.png",
+                                                  }
+                                                }
+                                                style={
+                                                  {
+                                                    "flex": 1,
+                                                    "height": undefined,
+                                                    "width": undefined,
+                                                  }
+                                                }
+                                                testID="token-avatar-image"
+                                              />
+                                            </View>
+                                          </View>
                                           <View
-                                            onLayout={[Function]}
                                             style={
                                               {
-                                                "alignSelf": undefined,
-                                                "position": "relative",
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "bottom": 0,
+                                                "height": 0,
+                                                "justifyContent": "center",
+                                                "position": "absolute",
+                                                "right": 0,
+                                                "transform": [
+                                                  {
+                                                    "translateX": 0,
+                                                  },
+                                                  {
+                                                    "translateY": 0,
+                                                  },
+                                                ],
                                               }
                                             }
-                                            testID="badge-wrapper-badge"
                                           >
-                                            <View>
+                                            <View
+                                              onLayout={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "height": "50%",
+                                                  "justifyContent": "center",
+                                                  "maxHeight": 24,
+                                                  "minHeight": 8,
+                                                  "opacity": 0,
+                                                }
+                                              }
+                                              testID="badgenetwork"
+                                            >
                                               <View
                                                 style={
                                                   {
+                                                    "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderRadius": 16,
+                                                    "borderColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "borderWidth": 2,
                                                     "height": 32,
+                                                    "justifyContent": "center",
                                                     "overflow": "hidden",
+                                                    "shadowColor": "#0000001a",
+                                                    "shadowOffset": {
+                                                      "height": 2,
+                                                      "width": 0,
+                                                    },
+                                                    "shadowOpacity": 1,
+                                                    "shadowRadius": 4,
+                                                    "transform": [
+                                                      {
+                                                        "scale": 1,
+                                                      },
+                                                    ],
                                                     "width": 32,
                                                   }
                                                 }
@@ -926,114 +1057,45 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={
-                                                    {
-                                                      "uri": "https://token2.com/logo.png",
-                                                    }
-                                                  }
+                                                  source={1}
                                                   style={
                                                     {
-                                                      "flex": 1,
-                                                      "height": undefined,
-                                                      "width": undefined,
-                                                    }
-                                                  }
-                                                  testID="token-avatar-image"
-                                                />
-                                              </View>
-                                            </View>
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "aspectRatio": 1,
-                                                  "bottom": 0,
-                                                  "height": 0,
-                                                  "justifyContent": "center",
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "transform": [
-                                                    {
-                                                      "translateX": 0,
-                                                    },
-                                                    {
-                                                      "translateY": 0,
-                                                    },
-                                                  ],
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  {
-                                                    "alignItems": "center",
-                                                    "aspectRatio": 1,
-                                                    "height": "50%",
-                                                    "justifyContent": "center",
-                                                    "maxHeight": 24,
-                                                    "minHeight": 8,
-                                                    "opacity": 0,
-                                                  }
-                                                }
-                                                testID="badgenetwork"
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderColor": "#ffffff",
-                                                      "borderRadius": 8,
-                                                      "borderWidth": 2,
                                                       "height": 32,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "shadowColor": "#0000001a",
-                                                      "shadowOffset": {
-                                                        "height": 2,
-                                                        "width": 0,
-                                                      },
-                                                      "shadowOpacity": 1,
-                                                      "shadowRadius": 4,
-                                                      "transform": [
-                                                        {
-                                                          "scale": 1,
-                                                        },
-                                                      ],
                                                       "width": 32,
                                                     }
                                                   }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    resizeMode="contain"
-                                                    source={1}
-                                                    style={
-                                                      {
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      }
-                                                    }
-                                                    testID="network-avatar-image"
-                                                  />
-                                                </View>
+                                                  testID="network-avatar-image"
+                                                />
                                               </View>
                                             </View>
                                           </View>
+                                        </View>
+                                        <View
+                                          flexDirection="column"
+                                          gap={4}
+                                          style={
+                                            [
+                                              {
+                                                "flexDirection": "column",
+                                                "gap": 4,
+                                              },
+                                              {
+                                                "flex": 1,
+                                                "marginLeft": 8,
+                                              },
+                                            ]
+                                          }
+                                        >
                                           <View
-                                            flexDirection="column"
-                                            gap={4}
+                                            alignItems="center"
+                                            flexDirection="row"
                                             style={
                                               [
                                                 {
-                                                  "flexDirection": "column",
-                                                  "gap": 4,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 },
-                                                {
-                                                  "flex": 1,
-                                                  "marginLeft": 8,
-                                                },
+                                                undefined,
                                               ]
                                             }
                                           >
@@ -1051,145 +1113,215 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               HELLO
                                             </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Hello Token
-                                            </Text>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {},
-                                                {
-                                                  "alignItems": "flex-end",
-                                                  "flex": 1,
-                                                },
-                                              ]
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              $200000
-                                            </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              2 HELLO
-                                            </Text>
-                                          </View>
+                                            Hello Token
+                                          </Text>
                                         </View>
-                                      </TouchableOpacity>
-                                    </View>
-                                  </View>
-                                  <View
-                                    index={1}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      alignItems="center"
-                                      flexDirection="row"
-                                      style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "padding": 4,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "paddingHorizontal": 15,
-                                            "paddingVertical": 10,
-                                          }
-                                        }
-                                        testID="asset-0xa-FOO"
-                                      >
                                         <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={4}
                                           style={
                                             [
+                                              {},
                                               {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 4,
+                                                "alignItems": "flex-end",
+                                                "flex": 1,
                                               },
-                                              undefined,
                                             ]
                                           }
                                         >
-                                          <View
-                                            onLayout={[Function]}
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
-                                                "alignSelf": undefined,
-                                                "position": "relative",
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
                                               }
                                             }
-                                            testID="badge-wrapper-badge"
                                           >
-                                            <View>
+                                            $200000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            2 HELLO
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
+                                        }
+                                      }
+                                      testID="asset-0xa-FOO"
+                                    >
+                                      <View
+                                        alignItems="center"
+                                        flexDirection="row"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "gap": 4,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          onLayout={[Function]}
+                                          style={
+                                            {
+                                              "alignSelf": undefined,
+                                              "position": "relative",
+                                            }
+                                          }
+                                          testID="badge-wrapper-badge"
+                                        >
+                                          <View>
+                                            <View
+                                              style={
+                                                {
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderRadius": 16,
+                                                  "height": 32,
+                                                  "overflow": "hidden",
+                                                  "width": 32,
+                                                }
+                                              }
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={
+                                                  {
+                                                    "uri": "https://token3.com/logo.png",
+                                                  }
+                                                }
+                                                style={
+                                                  {
+                                                    "flex": 1,
+                                                    "height": undefined,
+                                                    "width": undefined,
+                                                  }
+                                                }
+                                                testID="token-avatar-image"
+                                              />
+                                            </View>
+                                          </View>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "bottom": 0,
+                                                "height": 0,
+                                                "justifyContent": "center",
+                                                "position": "absolute",
+                                                "right": 0,
+                                                "transform": [
+                                                  {
+                                                    "translateX": 0,
+                                                  },
+                                                  {
+                                                    "translateY": 0,
+                                                  },
+                                                ],
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              onLayout={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "height": "50%",
+                                                  "justifyContent": "center",
+                                                  "maxHeight": 24,
+                                                  "minHeight": 8,
+                                                  "opacity": 0,
+                                                }
+                                              }
+                                              testID="badgenetwork"
+                                            >
                                               <View
                                                 style={
                                                   {
+                                                    "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderRadius": 16,
+                                                    "borderColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "borderWidth": 2,
                                                     "height": 32,
+                                                    "justifyContent": "center",
                                                     "overflow": "hidden",
+                                                    "shadowColor": "#0000001a",
+                                                    "shadowOffset": {
+                                                      "height": 2,
+                                                      "width": 0,
+                                                    },
+                                                    "shadowOpacity": 1,
+                                                    "shadowRadius": 4,
+                                                    "transform": [
+                                                      {
+                                                        "scale": 1,
+                                                      },
+                                                    ],
                                                     "width": 32,
                                                   }
                                                 }
@@ -1197,114 +1329,45 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={
-                                                    {
-                                                      "uri": "https://token3.com/logo.png",
-                                                    }
-                                                  }
+                                                  source={1}
                                                   style={
                                                     {
-                                                      "flex": 1,
-                                                      "height": undefined,
-                                                      "width": undefined,
-                                                    }
-                                                  }
-                                                  testID="token-avatar-image"
-                                                />
-                                              </View>
-                                            </View>
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "aspectRatio": 1,
-                                                  "bottom": 0,
-                                                  "height": 0,
-                                                  "justifyContent": "center",
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "transform": [
-                                                    {
-                                                      "translateX": 0,
-                                                    },
-                                                    {
-                                                      "translateY": 0,
-                                                    },
-                                                  ],
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  {
-                                                    "alignItems": "center",
-                                                    "aspectRatio": 1,
-                                                    "height": "50%",
-                                                    "justifyContent": "center",
-                                                    "maxHeight": 24,
-                                                    "minHeight": 8,
-                                                    "opacity": 0,
-                                                  }
-                                                }
-                                                testID="badgenetwork"
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderColor": "#ffffff",
-                                                      "borderRadius": 8,
-                                                      "borderWidth": 2,
                                                       "height": 32,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "shadowColor": "#0000001a",
-                                                      "shadowOffset": {
-                                                        "height": 2,
-                                                        "width": 0,
-                                                      },
-                                                      "shadowOpacity": 1,
-                                                      "shadowRadius": 4,
-                                                      "transform": [
-                                                        {
-                                                          "scale": 1,
-                                                        },
-                                                      ],
                                                       "width": 32,
                                                     }
                                                   }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    resizeMode="contain"
-                                                    source={1}
-                                                    style={
-                                                      {
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      }
-                                                    }
-                                                    testID="network-avatar-image"
-                                                  />
-                                                </View>
+                                                  testID="network-avatar-image"
+                                                />
                                               </View>
                                             </View>
                                           </View>
+                                        </View>
+                                        <View
+                                          flexDirection="column"
+                                          gap={4}
+                                          style={
+                                            [
+                                              {
+                                                "flexDirection": "column",
+                                                "gap": 4,
+                                              },
+                                              {
+                                                "flex": 1,
+                                                "marginLeft": 8,
+                                              },
+                                            ]
+                                          }
+                                        >
                                           <View
-                                            flexDirection="column"
-                                            gap={4}
+                                            alignItems="center"
+                                            flexDirection="row"
                                             style={
                                               [
                                                 {
-                                                  "flexDirection": "column",
-                                                  "gap": 4,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 },
-                                                {
-                                                  "flex": 1,
-                                                  "marginLeft": 8,
-                                                },
+                                                undefined,
                                               ]
                                             }
                                           >
@@ -1322,292 +1385,293 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               FOO
                                             </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Foo Token
-                                            </Text>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {},
-                                                {
-                                                  "alignItems": "flex-end",
-                                                  "flex": 1,
-                                                },
-                                              ]
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              $80000
-                                            </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              5 FOO
-                                            </Text>
-                                          </View>
+                                            Foo Token
+                                          </Text>
                                         </View>
-                                      </TouchableOpacity>
-                                    </View>
-                                  </View>
-                                  <View
-                                    index={2}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      alignItems="center"
-                                      flexDirection="row"
-                                      style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "padding": 4,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "paddingHorizontal": 15,
-                                            "paddingVertical": 10,
-                                          }
-                                        }
-                                        testID="asset-0xa-ETH"
-                                      >
                                         <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={4}
                                           style={
                                             [
+                                              {},
                                               {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 4,
+                                                "alignItems": "flex-end",
+                                                "flex": 1,
                                               },
-                                              undefined,
                                             ]
                                           }
                                         >
-                                          <View
-                                            onLayout={[Function]}
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
-                                                "alignSelf": undefined,
-                                                "position": "relative",
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
                                               }
                                             }
-                                            testID="badge-wrapper-badge"
                                           >
-                                            <View>
-                                              <View
-                                                useNativeDriver={true}
-                                              >
-                                                <Image
-                                                  fadeIn={true}
-                                                  onError={[Function]}
-                                                  onLoadEnd={[Function]}
-                                                  source={
-                                                    {
-                                                      "uri": "",
-                                                    }
+                                            $80000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            5 FOO
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
+                                        }
+                                      }
+                                      testID="asset-0xa-ETH"
+                                    >
+                                      <View
+                                        alignItems="center"
+                                        flexDirection="row"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "gap": 4,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          onLayout={[Function]}
+                                          style={
+                                            {
+                                              "alignSelf": undefined,
+                                              "position": "relative",
+                                            }
+                                          }
+                                          testID="badge-wrapper-badge"
+                                        >
+                                          <View>
+                                            <View
+                                              useNativeDriver={true}
+                                            >
+                                              <Image
+                                                fadeIn={true}
+                                                onError={[Function]}
+                                                onLoadEnd={[Function]}
+                                                source={
+                                                  {
+                                                    "uri": "",
                                                   }
+                                                }
+                                                style={
+                                                  [
+                                                    {
+                                                      "borderRadius": 12,
+                                                      "height": 24,
+                                                      "width": 24,
+                                                    },
+                                                    {
+                                                      "borderRadius": 18,
+                                                      "height": 36,
+                                                      "width": 36,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="network-logo-ETH"
+                                              />
+                                              <View
+                                                collapsable={false}
+                                                style={
+                                                  {
+                                                    "bottom": 0,
+                                                    "left": 0,
+                                                    "opacity": 1,
+                                                    "position": "absolute",
+                                                    "right": 0,
+                                                    "top": 0,
+                                                  }
+                                                }
+                                              >
+                                                <View
                                                   style={
                                                     [
-                                                      {
-                                                        "borderRadius": 12,
-                                                        "height": 24,
-                                                        "width": 24,
-                                                      },
                                                       {
                                                         "borderRadius": 18,
                                                         "height": 36,
                                                         "width": 36,
                                                       },
-                                                      undefined,
-                                                      undefined,
+                                                      {
+                                                        "backgroundColor": "#eee",
+                                                      },
                                                       undefined,
                                                     ]
                                                   }
-                                                  testID="network-logo-ETH"
                                                 />
-                                                <View
-                                                  collapsable={false}
-                                                  style={
-                                                    {
-                                                      "bottom": 0,
-                                                      "left": 0,
-                                                      "opacity": 1,
-                                                      "position": "absolute",
-                                                      "right": 0,
-                                                      "top": 0,
-                                                    }
-                                                  }
-                                                >
-                                                  <View
-                                                    style={
-                                                      [
-                                                        {
-                                                          "borderRadius": 18,
-                                                          "height": 36,
-                                                          "width": 36,
-                                                        },
-                                                        {
-                                                          "backgroundColor": "#eee",
-                                                        },
-                                                        undefined,
-                                                      ]
-                                                    }
-                                                  />
-                                                </View>
-                                              </View>
-                                            </View>
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "aspectRatio": 1,
-                                                  "bottom": 0,
-                                                  "height": 0,
-                                                  "justifyContent": "center",
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "transform": [
-                                                    {
-                                                      "translateX": 0,
-                                                    },
-                                                    {
-                                                      "translateY": 0,
-                                                    },
-                                                  ],
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  {
-                                                    "alignItems": "center",
-                                                    "aspectRatio": 1,
-                                                    "height": "50%",
-                                                    "justifyContent": "center",
-                                                    "maxHeight": 24,
-                                                    "minHeight": 8,
-                                                    "opacity": 0,
-                                                  }
-                                                }
-                                                testID="badgenetwork"
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderColor": "#ffffff",
-                                                      "borderRadius": 8,
-                                                      "borderWidth": 2,
-                                                      "height": 32,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "shadowColor": "#0000001a",
-                                                      "shadowOffset": {
-                                                        "height": 2,
-                                                        "width": 0,
-                                                      },
-                                                      "shadowOpacity": 1,
-                                                      "shadowRadius": 4,
-                                                      "transform": [
-                                                        {
-                                                          "scale": 1,
-                                                        },
-                                                      ],
-                                                      "width": 32,
-                                                    }
-                                                  }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    resizeMode="contain"
-                                                    source={1}
-                                                    style={
-                                                      {
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      }
-                                                    }
-                                                    testID="network-avatar-image"
-                                                  />
-                                                </View>
                                               </View>
                                             </View>
                                           </View>
                                           <View
-                                            flexDirection="column"
-                                            gap={4}
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "bottom": 0,
+                                                "height": 0,
+                                                "justifyContent": "center",
+                                                "position": "absolute",
+                                                "right": 0,
+                                                "transform": [
+                                                  {
+                                                    "translateX": 0,
+                                                  },
+                                                  {
+                                                    "translateY": 0,
+                                                  },
+                                                ],
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              onLayout={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "height": "50%",
+                                                  "justifyContent": "center",
+                                                  "maxHeight": 24,
+                                                  "minHeight": 8,
+                                                  "opacity": 0,
+                                                }
+                                              }
+                                              testID="badgenetwork"
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "borderWidth": 2,
+                                                    "height": 32,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "shadowColor": "#0000001a",
+                                                    "shadowOffset": {
+                                                      "height": 2,
+                                                      "width": 0,
+                                                    },
+                                                    "shadowOpacity": 1,
+                                                    "shadowRadius": 4,
+                                                    "transform": [
+                                                      {
+                                                        "scale": 1,
+                                                      },
+                                                    ],
+                                                    "width": 32,
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  resizeMode="contain"
+                                                  source={1}
+                                                  style={
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                  testID="network-avatar-image"
+                                                />
+                                              </View>
+                                            </View>
+                                          </View>
+                                        </View>
+                                        <View
+                                          flexDirection="column"
+                                          gap={4}
+                                          style={
+                                            [
+                                              {
+                                                "flexDirection": "column",
+                                                "gap": 4,
+                                              },
+                                              {
+                                                "flex": 1,
+                                                "marginLeft": 8,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            alignItems="center"
+                                            flexDirection="row"
                                             style={
                                               [
                                                 {
-                                                  "flexDirection": "column",
-                                                  "gap": 4,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 },
-                                                {
-                                                  "flex": 1,
-                                                  "marginLeft": 8,
-                                                },
+                                                undefined,
                                               ]
                                             }
                                           >
@@ -1625,145 +1689,215 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               ETH
                                             </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Ethereum
-                                            </Text>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {},
-                                                {
-                                                  "alignItems": "flex-end",
-                                                  "flex": 1,
-                                                },
-                                              ]
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              $40000
-                                            </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              20 ETH
-                                            </Text>
-                                          </View>
+                                            Ethereum
+                                          </Text>
                                         </View>
-                                      </TouchableOpacity>
-                                    </View>
-                                  </View>
-                                  <View
-                                    index={3}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      alignItems="center"
-                                      flexDirection="row"
-                                      style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "padding": 4,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "paddingHorizontal": 15,
-                                            "paddingVertical": 10,
-                                          }
-                                        }
-                                        testID="asset-0x1-TOKEN1"
-                                      >
                                         <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={4}
                                           style={
                                             [
+                                              {},
                                               {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 4,
+                                                "alignItems": "flex-end",
+                                                "flex": 1,
                                               },
-                                              undefined,
                                             ]
                                           }
                                         >
-                                          <View
-                                            onLayout={[Function]}
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
-                                                "alignSelf": undefined,
-                                                "position": "relative",
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
                                               }
                                             }
-                                            testID="badge-wrapper-badge"
                                           >
-                                            <View>
+                                            $40000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            20 ETH
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
+                                        }
+                                      }
+                                      testID="asset-0x1-TOKEN1"
+                                    >
+                                      <View
+                                        alignItems="center"
+                                        flexDirection="row"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "gap": 4,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          onLayout={[Function]}
+                                          style={
+                                            {
+                                              "alignSelf": undefined,
+                                              "position": "relative",
+                                            }
+                                          }
+                                          testID="badge-wrapper-badge"
+                                        >
+                                          <View>
+                                            <View
+                                              style={
+                                                {
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderRadius": 16,
+                                                  "height": 32,
+                                                  "overflow": "hidden",
+                                                  "width": 32,
+                                                }
+                                              }
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={
+                                                  {
+                                                    "uri": "https://token1.com/logo.png",
+                                                  }
+                                                }
+                                                style={
+                                                  {
+                                                    "flex": 1,
+                                                    "height": undefined,
+                                                    "width": undefined,
+                                                  }
+                                                }
+                                                testID="token-avatar-image"
+                                              />
+                                            </View>
+                                          </View>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "bottom": 0,
+                                                "height": 0,
+                                                "justifyContent": "center",
+                                                "position": "absolute",
+                                                "right": 0,
+                                                "transform": [
+                                                  {
+                                                    "translateX": 0,
+                                                  },
+                                                  {
+                                                    "translateY": 0,
+                                                  },
+                                                ],
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              onLayout={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "height": "50%",
+                                                  "justifyContent": "center",
+                                                  "maxHeight": 24,
+                                                  "minHeight": 8,
+                                                  "opacity": 0,
+                                                }
+                                              }
+                                              testID="badgenetwork"
+                                            >
                                               <View
                                                 style={
                                                   {
+                                                    "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderRadius": 16,
+                                                    "borderColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "borderWidth": 2,
                                                     "height": 32,
+                                                    "justifyContent": "center",
                                                     "overflow": "hidden",
+                                                    "shadowColor": "#0000001a",
+                                                    "shadowOffset": {
+                                                      "height": 2,
+                                                      "width": 0,
+                                                    },
+                                                    "shadowOpacity": 1,
+                                                    "shadowRadius": 4,
+                                                    "transform": [
+                                                      {
+                                                        "scale": 1,
+                                                      },
+                                                    ],
                                                     "width": 32,
                                                   }
                                                 }
@@ -1771,114 +1905,45 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={
-                                                    {
-                                                      "uri": "https://token1.com/logo.png",
-                                                    }
-                                                  }
+                                                  source={1}
                                                   style={
                                                     {
-                                                      "flex": 1,
-                                                      "height": undefined,
-                                                      "width": undefined,
-                                                    }
-                                                  }
-                                                  testID="token-avatar-image"
-                                                />
-                                              </View>
-                                            </View>
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "aspectRatio": 1,
-                                                  "bottom": 0,
-                                                  "height": 0,
-                                                  "justifyContent": "center",
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "transform": [
-                                                    {
-                                                      "translateX": 0,
-                                                    },
-                                                    {
-                                                      "translateY": 0,
-                                                    },
-                                                  ],
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  {
-                                                    "alignItems": "center",
-                                                    "aspectRatio": 1,
-                                                    "height": "50%",
-                                                    "justifyContent": "center",
-                                                    "maxHeight": 24,
-                                                    "minHeight": 8,
-                                                    "opacity": 0,
-                                                  }
-                                                }
-                                                testID="badgenetwork"
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderColor": "#ffffff",
-                                                      "borderRadius": 8,
-                                                      "borderWidth": 2,
                                                       "height": 32,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "shadowColor": "#0000001a",
-                                                      "shadowOffset": {
-                                                        "height": 2,
-                                                        "width": 0,
-                                                      },
-                                                      "shadowOpacity": 1,
-                                                      "shadowRadius": 4,
-                                                      "transform": [
-                                                        {
-                                                          "scale": 1,
-                                                        },
-                                                      ],
                                                       "width": 32,
                                                     }
                                                   }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    resizeMode="contain"
-                                                    source={1}
-                                                    style={
-                                                      {
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      }
-                                                    }
-                                                    testID="network-avatar-image"
-                                                  />
-                                                </View>
+                                                  testID="network-avatar-image"
+                                                />
                                               </View>
                                             </View>
                                           </View>
+                                        </View>
+                                        <View
+                                          flexDirection="column"
+                                          gap={4}
+                                          style={
+                                            [
+                                              {
+                                                "flexDirection": "column",
+                                                "gap": 4,
+                                              },
+                                              {
+                                                "flex": 1,
+                                                "marginLeft": 8,
+                                              },
+                                            ]
+                                          }
+                                        >
                                           <View
-                                            flexDirection="column"
-                                            gap={4}
+                                            alignItems="center"
+                                            flexDirection="row"
                                             style={
                                               [
                                                 {
-                                                  "flexDirection": "column",
-                                                  "gap": 4,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 },
-                                                {
-                                                  "flex": 1,
-                                                  "marginLeft": 8,
-                                                },
+                                                undefined,
                                               ]
                                             }
                                           >
@@ -1896,292 +1961,293 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               TOKEN1
                                             </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Token One
-                                            </Text>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {},
-                                                {
-                                                  "alignItems": "flex-end",
-                                                  "flex": 1,
-                                                },
-                                              ]
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              $20000
-                                            </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              1 TOKEN1
-                                            </Text>
-                                          </View>
+                                            Token One
+                                          </Text>
                                         </View>
-                                      </TouchableOpacity>
-                                    </View>
-                                  </View>
-                                  <View
-                                    index={4}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      alignItems="center"
-                                      flexDirection="row"
-                                      style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "padding": 4,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "paddingHorizontal": 15,
-                                            "paddingVertical": 10,
-                                          }
-                                        }
-                                        testID="asset-0x1-ETH"
-                                      >
                                         <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={4}
                                           style={
                                             [
+                                              {},
                                               {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 4,
+                                                "alignItems": "flex-end",
+                                                "flex": 1,
                                               },
-                                              undefined,
                                             ]
                                           }
                                         >
-                                          <View
-                                            onLayout={[Function]}
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
-                                                "alignSelf": undefined,
-                                                "position": "relative",
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
                                               }
                                             }
-                                            testID="badge-wrapper-badge"
                                           >
-                                            <View>
-                                              <View
-                                                useNativeDriver={true}
-                                              >
-                                                <Image
-                                                  fadeIn={true}
-                                                  onError={[Function]}
-                                                  onLoadEnd={[Function]}
-                                                  source={
-                                                    {
-                                                      "uri": "",
-                                                    }
+                                            $20000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            1 TOKEN1
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
+                                        }
+                                      }
+                                      testID="asset-0x1-ETH"
+                                    >
+                                      <View
+                                        alignItems="center"
+                                        flexDirection="row"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                              "gap": 4,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          onLayout={[Function]}
+                                          style={
+                                            {
+                                              "alignSelf": undefined,
+                                              "position": "relative",
+                                            }
+                                          }
+                                          testID="badge-wrapper-badge"
+                                        >
+                                          <View>
+                                            <View
+                                              useNativeDriver={true}
+                                            >
+                                              <Image
+                                                fadeIn={true}
+                                                onError={[Function]}
+                                                onLoadEnd={[Function]}
+                                                source={
+                                                  {
+                                                    "uri": "",
                                                   }
+                                                }
+                                                style={
+                                                  [
+                                                    {
+                                                      "borderRadius": 12,
+                                                      "height": 24,
+                                                      "width": 24,
+                                                    },
+                                                    {
+                                                      "borderRadius": 18,
+                                                      "height": 36,
+                                                      "width": 36,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="network-logo-ETH"
+                                              />
+                                              <View
+                                                collapsable={false}
+                                                style={
+                                                  {
+                                                    "bottom": 0,
+                                                    "left": 0,
+                                                    "opacity": 1,
+                                                    "position": "absolute",
+                                                    "right": 0,
+                                                    "top": 0,
+                                                  }
+                                                }
+                                              >
+                                                <View
                                                   style={
                                                     [
-                                                      {
-                                                        "borderRadius": 12,
-                                                        "height": 24,
-                                                        "width": 24,
-                                                      },
                                                       {
                                                         "borderRadius": 18,
                                                         "height": 36,
                                                         "width": 36,
                                                       },
-                                                      undefined,
-                                                      undefined,
+                                                      {
+                                                        "backgroundColor": "#eee",
+                                                      },
                                                       undefined,
                                                     ]
                                                   }
-                                                  testID="network-logo-ETH"
                                                 />
-                                                <View
-                                                  collapsable={false}
-                                                  style={
-                                                    {
-                                                      "bottom": 0,
-                                                      "left": 0,
-                                                      "opacity": 1,
-                                                      "position": "absolute",
-                                                      "right": 0,
-                                                      "top": 0,
-                                                    }
-                                                  }
-                                                >
-                                                  <View
-                                                    style={
-                                                      [
-                                                        {
-                                                          "borderRadius": 18,
-                                                          "height": 36,
-                                                          "width": 36,
-                                                        },
-                                                        {
-                                                          "backgroundColor": "#eee",
-                                                        },
-                                                        undefined,
-                                                      ]
-                                                    }
-                                                  />
-                                                </View>
-                                              </View>
-                                            </View>
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "aspectRatio": 1,
-                                                  "bottom": 0,
-                                                  "height": 0,
-                                                  "justifyContent": "center",
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "transform": [
-                                                    {
-                                                      "translateX": 0,
-                                                    },
-                                                    {
-                                                      "translateY": 0,
-                                                    },
-                                                  ],
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  {
-                                                    "alignItems": "center",
-                                                    "aspectRatio": 1,
-                                                    "height": "50%",
-                                                    "justifyContent": "center",
-                                                    "maxHeight": 24,
-                                                    "minHeight": 8,
-                                                    "opacity": 0,
-                                                  }
-                                                }
-                                                testID="badgenetwork"
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderColor": "#ffffff",
-                                                      "borderRadius": 8,
-                                                      "borderWidth": 2,
-                                                      "height": 32,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "shadowColor": "#0000001a",
-                                                      "shadowOffset": {
-                                                        "height": 2,
-                                                        "width": 0,
-                                                      },
-                                                      "shadowOpacity": 1,
-                                                      "shadowRadius": 4,
-                                                      "transform": [
-                                                        {
-                                                          "scale": 1,
-                                                        },
-                                                      ],
-                                                      "width": 32,
-                                                    }
-                                                  }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    resizeMode="contain"
-                                                    source={1}
-                                                    style={
-                                                      {
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      }
-                                                    }
-                                                    testID="network-avatar-image"
-                                                  />
-                                                </View>
                                               </View>
                                             </View>
                                           </View>
                                           <View
-                                            flexDirection="column"
-                                            gap={4}
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "bottom": 0,
+                                                "height": 0,
+                                                "justifyContent": "center",
+                                                "position": "absolute",
+                                                "right": 0,
+                                                "transform": [
+                                                  {
+                                                    "translateX": 0,
+                                                  },
+                                                  {
+                                                    "translateY": 0,
+                                                  },
+                                                ],
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              onLayout={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
+                                                  "height": "50%",
+                                                  "justifyContent": "center",
+                                                  "maxHeight": 24,
+                                                  "minHeight": 8,
+                                                  "opacity": 0,
+                                                }
+                                              }
+                                              testID="badgenetwork"
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "borderWidth": 2,
+                                                    "height": 32,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "shadowColor": "#0000001a",
+                                                    "shadowOffset": {
+                                                      "height": 2,
+                                                      "width": 0,
+                                                    },
+                                                    "shadowOpacity": 1,
+                                                    "shadowRadius": 4,
+                                                    "transform": [
+                                                      {
+                                                        "scale": 1,
+                                                      },
+                                                    ],
+                                                    "width": 32,
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  resizeMode="contain"
+                                                  source={1}
+                                                  style={
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                  testID="network-avatar-image"
+                                                />
+                                              </View>
+                                            </View>
+                                          </View>
+                                        </View>
+                                        <View
+                                          flexDirection="column"
+                                          gap={4}
+                                          style={
+                                            [
+                                              {
+                                                "flexDirection": "column",
+                                                "gap": 4,
+                                              },
+                                              {
+                                                "flex": 1,
+                                                "marginLeft": 8,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            alignItems="center"
+                                            flexDirection="row"
                                             style={
                                               [
                                                 {
-                                                  "flexDirection": "column",
-                                                  "gap": 4,
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
                                                 },
-                                                {
-                                                  "flex": 1,
-                                                  "marginLeft": 8,
-                                                },
+                                                undefined,
                                               ]
                                             }
                                           >
@@ -2199,64 +2265,64 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               ETH
                                             </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Ethereum
-                                            </Text>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {},
-                                                {
-                                                  "alignItems": "flex-end",
-                                                  "flex": 1,
-                                                },
-                                              ]
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              $6000
-                                            </Text>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 16,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              3 ETH
-                                            </Text>
-                                          </View>
+                                            Ethereum
+                                          </Text>
                                         </View>
-                                      </TouchableOpacity>
-                                    </View>
+                                        <View
+                                          style={
+                                            [
+                                              {},
+                                              {
+                                                "alignItems": "flex-end",
+                                                "flex": 1,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            $6000
+                                          </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            3 ETH
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
                                 </View>
                               </View>
