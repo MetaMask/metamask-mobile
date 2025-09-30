@@ -21,7 +21,7 @@ describe('networkConnectionBanner actions', () => {
     it.each([
       {
         chainId: '0x1',
-        status: 'slow' as const,
+        status: 'degraded' as const,
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
       },
