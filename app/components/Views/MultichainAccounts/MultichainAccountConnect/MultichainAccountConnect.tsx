@@ -56,7 +56,11 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar/index.ts';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController.ts';
+import {
+  EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+  getSelectedMultichainNetwork,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../../selectors/networkController.ts';
 import { isUUID } from '../../../../core/SDKConnect/utils/isUUID.ts';
 import useOriginSource from '../../../hooks/useOriginSource.ts';
 import {
@@ -68,7 +72,13 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../../util/phishingDetection.ts';
-import { CaipAccountId, CaipChainId } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+  toCaipChainId,
+} from '@metamask/utils';
 import {
   Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
@@ -81,7 +91,6 @@ import { useStyles } from '../../../../component-library/hooks/index.ts';
 import { getApiAnalyticsProperties } from '../../../../util/metrics/MultichainAPI/getApiAnalyticsProperties.ts';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type.ts';
 import { AccountGroupId } from '@metamask/account-api';
-import { getCaip25AccountFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountFromAccountGroupAndScope.ts';
 import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
@@ -90,6 +99,8 @@ import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
+import { TEST_NETWORK_IDS } from '../../../../constants/network.js';
+import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -159,9 +170,37 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const allNetworksList = useMemo(
-    () => Object.keys(networkConfigurations) as CaipChainId[],
+
+  const [nonTestNetworkConfigurations, testNetworkConfigurations] = useMemo(
+    () =>
+      Object.entries(networkConfigurations).reduce(
+        ([nonTestNetworksList, testNetworksList], [chainId, network]) => {
+          const caipChainId = chainId as CaipChainId;
+          const testnetCaipIds = TEST_NETWORK_IDS.map((id) =>
+            toCaipChainId(
+              KnownCaipNamespace.Eip155,
+              parseInt(id, 16).toString(),
+            ),
+          );
+          const isTestNetwork = testnetCaipIds.includes(caipChainId);
+          (isTestNetwork ? testNetworksList : nonTestNetworksList).push({
+            ...network,
+            caipChainId,
+          });
+          return [nonTestNetworksList, testNetworksList];
+        },
+        [
+          [] as EvmAndMultichainNetworkConfigurationsWithCaipChainId[],
+          [] as EvmAndMultichainNetworkConfigurationsWithCaipChainId[],
+        ],
+      ),
     [networkConfigurations],
+  );
+
+  const alreadyConnectedCaipChainIds = useMemo(
+    () =>
+      getAllScopesFromCaip25CaveatValue(existingPermissionsCaip25CaveatValue),
+    [existingPermissionsCaip25CaveatValue],
   );
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
@@ -179,26 +218,77 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
-  const requestedCaipChainIdsWithDefaultSelectedChainIds = useMemo(
-    () => Array.from(new Set([...requestedCaipChainIds, ...allNetworksList])),
-    [requestedCaipChainIds, allNetworksList],
-  );
+  const currentlySelectedNetwork = useSelector(getSelectedMultichainNetwork);
+
+  const requestedAndAlreadyConnectedCaipChainIdsOrDefault = useMemo(() => {
+    const allNetworksList = [
+      ...nonTestNetworkConfigurations,
+      ...testNetworkConfigurations,
+    ].map(({ caipChainId }) => caipChainId);
+
+    const supportedRequestedCaipChainIds = requestedCaipChainIds.filter(
+      (requestedCaipChainId) =>
+        allNetworksList.includes(requestedCaipChainId as CaipChainId),
+    );
+
+    // If globally selected network is a test network, include that in the default selected networks for connection request
+    const currentlySelectedNetworkChainId = currentlySelectedNetwork.chainId;
+    const selectedNetworkIsTestNetwork = testNetworkConfigurations.find(
+      (network: { caipChainId: CaipChainId }) =>
+        network.caipChainId === currentlySelectedNetworkChainId,
+    );
+
+    const defaultSelectedNetworkList = selectedNetworkIsTestNetwork
+      ? [...nonTestNetworkConfigurations, selectedNetworkIsTestNetwork].map(
+          ({ caipChainId }) => caipChainId,
+        )
+      : nonTestNetworkConfigurations.map(({ caipChainId }) => caipChainId);
+
+    if (supportedRequestedCaipChainIds.length > 0) {
+      return Array.from(
+        new Set([
+          ...supportedRequestedCaipChainIds,
+          ...alreadyConnectedCaipChainIds,
+        ]),
+      );
+    }
+
+    if (requestedNamespaces.length > 0) {
+      return Array.from(
+        new Set(
+          defaultSelectedNetworkList.filter((caipChainId) => {
+            const { namespace } = parseCaipChainId(caipChainId);
+            return requestedNamespaces.includes(namespace);
+          }),
+        ),
+      );
+    }
+
+    return defaultSelectedNetworkList;
+  }, [
+    alreadyConnectedCaipChainIds,
+    currentlySelectedNetwork,
+    testNetworkConfigurations,
+    nonTestNetworkConfigurations,
+    requestedCaipChainIds,
+    requestedNamespaces,
+  ]);
 
   const {
     connectedAccountGroups,
     supportedAccountGroups,
     connectedAccountGroupWithRequested,
-    caipAccountIdsOfConnectedAccountGroupWithRequested,
+    caipAccountIdsOfConnectedAndRequestedAccountGroups,
     selectedAndRequestedAccountGroups,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
     requestedCaipAccountIds,
-    requestedCaipChainIdsWithDefaultSelectedChainIds,
+    requestedAndAlreadyConnectedCaipChainIdsOrDefault,
     requestedNamespaces,
   );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
-    requestedCaipChainIdsWithDefaultSelectedChainIds,
+    requestedAndAlreadyConnectedCaipChainIdsOrDefault,
   );
 
   const selectedNetworkAvatars = useMemo(
@@ -222,7 +312,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       return {
         suggestedAccountGroups: connectedAccountGroupWithRequested,
         suggestedCaipAccountIds:
-          caipAccountIdsOfConnectedAccountGroupWithRequested,
+          caipAccountIdsOfConnectedAndRequestedAccountGroups,
       };
     }
 
@@ -238,18 +328,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
       return {
         suggestedAccountGroups: [defaultSelectedAccountGroup],
-        suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
+        suggestedCaipAccountIds: getCaip25AccountIdsFromAccountGroupAndScope(
           [defaultSelectedAccountGroup],
-          requestedCaipChainIdsWithDefaultSelectedChainIds,
+          requestedAndAlreadyConnectedCaipChainIdsOrDefault,
         ),
       };
     }
 
     return {
       suggestedAccountGroups: selectedAndRequestedAccountGroups,
-      suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
+      suggestedCaipAccountIds: getCaip25AccountIdsFromAccountGroupAndScope(
         selectedAndRequestedAccountGroups,
-        requestedCaipChainIdsWithDefaultSelectedChainIds,
+        requestedAndAlreadyConnectedCaipChainIdsOrDefault,
       ),
     };
   }, [
@@ -257,9 +347,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     supportedAccountGroups,
     requestedCaipAccountIds.length,
     selectedAndRequestedAccountGroups,
-    requestedCaipChainIdsWithDefaultSelectedChainIds,
+    requestedAndAlreadyConnectedCaipChainIdsOrDefault,
     connectedAccountGroupWithRequested,
-    caipAccountIdsOfConnectedAccountGroupWithRequested,
+    caipAccountIdsOfConnectedAndRequestedAccountGroups,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
@@ -549,7 +639,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           selectedGroupIds.has(group.id),
       );
 
-      const caip25AccountIds = getCaip25AccountFromAccountGroupAndScope(
+      const caip25AccountIds = getCaip25AccountIdsFromAccountGroupAndScope(
         selectedAccountGroups,
         updatedSelectedChains,
       );

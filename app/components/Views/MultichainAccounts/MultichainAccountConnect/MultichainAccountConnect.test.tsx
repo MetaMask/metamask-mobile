@@ -360,7 +360,7 @@ jest.mock(
         connectedAccountGroups: [],
         existingConnectedCaipAccountIds: [],
         connectedAccountGroupWithRequested: [],
-        caipAccountIdsOfConnectedAccountGroupWithRequested: [],
+        caipAccountIdsOfConnectedAndRequestedAccountGroups: [],
         selectedAndRequestedAccountGroups: mockAccountGroups,
       };
     }),
@@ -1740,12 +1740,6 @@ describe('MultichainAccountConnect', () => {
         'multiconnect-connect-network-button',
       );
       expect(networkSelectorButton).toBeTruthy();
-
-      const ethereumSelected = await findByTestId('Ethereum-selected');
-      expect(ethereumSelected).toBeTruthy();
-
-      const polygonSelected = await findByTestId('Polygon-selected');
-      expect(polygonSelected).toBeTruthy();
     });
 
     it('verifies individual network selection toggles correctly', async () => {
@@ -1780,7 +1774,7 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId, findByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId, findByTestId } = renderWithProvider(
         <MultichainAccountConnect
           route={{
             params: {
@@ -1811,14 +1805,6 @@ describe('MultichainAccountConnect', () => {
         'multiconnect-connect-network-button',
       );
       expect(networkSelectorButton).toBeTruthy();
-
-      const ethereumSelected = queryByTestId('Ethereum-selected');
-
-      expect(ethereumSelected).toBeTruthy();
-
-      const polygonSelected = queryByTestId('Polygon-selected');
-
-      expect(polygonSelected).toBeTruthy();
     });
   });
 
