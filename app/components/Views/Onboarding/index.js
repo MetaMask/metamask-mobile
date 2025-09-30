@@ -760,7 +760,7 @@ class Onboarding extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const onboardingType = this.props.route.params?.oboardingType;
+    const onboardingType = this.props.route.params?.onboardingType;
     if (onboardingType) {
       this.handleOnboardingDeeplink(onboardingType);
     }
