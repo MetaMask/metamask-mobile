@@ -88,9 +88,9 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
 
   const onConfirm = async () => {
     try {
-      const isGlobalDisconnect = !account && !channelId;
-      const isSessionDisconnect = !account && channelId;
-      const isAccountDisconnect = account && channelId;
+      const isGlobalDisconnect = !account && !channelId; // Disconnect all sessions.
+      const isSessionDisconnect = !account && channelId; // Disconnect a specific session.
+      const isAccountDisconnect = account && channelId; // Disconnect a specific account under a session.
 
       if (isGlobalDisconnect) {
         // Disconnect all V1 sessions.

@@ -17,6 +17,7 @@ import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
  */
 export class ConnectionRegistry {
   private readonly DEEPLINK_PREFIX = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`;
+  private readonly DEEPLINK_CLEANUP_DELAY = 60 * 1000;
 
   private readonly RELAY_URL: string;
   private readonly keymanager: IKeyManager;
@@ -85,6 +86,9 @@ export class ConnectionRegistry {
    * 4. Save the connection to the store
    * 5. Sync the connection list to the host application
    * 6. Hide loading indicator
+   *
+   * NOTE: As the host app might call this function multiple times in a short period of time,
+   * we need keep track of the deeplinks and delay the cleanup to make this function idempotent.
    */
   public async handleConnectDeeplink(url: string): Promise<void> {
     if (this.deeplinks.has(url)) return;
@@ -110,7 +114,7 @@ export class ConnectionRegistry {
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
     } finally {
-      setTimeout(() => this.deeplinks.delete(url), 60 * 1000);
+      setTimeout(() => this.deeplinks.delete(url), this.DEEPLINK_CLEANUP_DELAY);
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
   }
