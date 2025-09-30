@@ -112,7 +112,7 @@ export const ActivityTab: React.FC = () => {
     if (isLoadingMore) {
       return <LoadingFooter />;
     }
-    return null;
+    return <Box twClassName="h-4" />;
   };
 
   if (

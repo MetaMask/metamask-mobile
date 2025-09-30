@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-import { useFocusEffect } from '@react-navigation/native';
 
 // Add longer timeout for waitFor to prevent test flakiness
 const waitForOptions = { timeout: 5000 };
@@ -58,16 +57,13 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
     mockUseInvalidateByRewardEvents(...args),
 }));
 
-// Mock React Navigation hooks
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn(),
+// Mock Redux hooks
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (...args: unknown[]) => mockUseSelector(...args),
 }));
 
 describe('usePointsEvents', () => {
-  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
-    typeof useFocusEffect
-  >;
-
   const mockPointsEvent = {
     id: 'event-1',
     title: 'Test Event',
@@ -88,10 +84,12 @@ describe('usePointsEvents', () => {
     mockCall.mockResolvedValue(mockPaginatedResponse);
 
     // Reset the mocked hooks
-    mockUseFocusEffect.mockClear();
     mockUseInvalidateByRewardEvents.mockImplementation(() => {
       // Mock implementation
     });
+
+    // Default mock for useSelector to return 'activity' tab to trigger initial fetch
+    mockUseSelector.mockReturnValue('activity');
   });
 
   describe('initialization', () => {
@@ -117,13 +115,6 @@ describe('usePointsEvents', () => {
         }),
       );
 
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
       expect(result.current.pointsEvents).toEqual(null);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasMore).toBe(true);
@@ -138,13 +129,6 @@ describe('usePointsEvents', () => {
           subscriptionId: '',
         }),
       );
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       expect(result.current.pointsEvents).toEqual(null);
       expect(result.current.isLoading).toBe(false);
@@ -165,13 +149,6 @@ describe('usePointsEvents', () => {
       expect(result.current.isLoading).toBe(true);
       expect(result.current.error).toBeNull();
 
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
       // Wait for the data to load
       await waitFor(
         () => expect(result.current.isLoading).toBe(false),
@@ -185,6 +162,7 @@ describe('usePointsEvents', () => {
           seasonId: 'season-1',
           subscriptionId: 'sub-1',
           cursor: null,
+          forceFresh: false,
         },
       );
 
@@ -205,10 +183,6 @@ describe('usePointsEvents', () => {
 
       // Should start with loading true
       expect(result.current.isLoading).toBe(true);
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       // Wait for the data to load
       await waitFor(
@@ -238,13 +212,6 @@ describe('usePointsEvents', () => {
       expect(result.current.isLoading).toBe(true);
       expect(result.current.error).toBeNull();
 
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
       // Wait for the error to be set
       await waitFor(
         () => expect(result.current.error).not.toBeNull(),
@@ -269,13 +236,6 @@ describe('usePointsEvents', () => {
       // Initial state should show loading
       expect(result.current.isLoading).toBe(true);
       expect(result.current.error).toBeNull();
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       // Wait for the error to be set
       await waitFor(
@@ -302,10 +262,6 @@ describe('usePointsEvents', () => {
       // Should start with loading true
       expect(result.current.isLoading).toBe(true);
 
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
       // Wait for the error to be set
       await waitFor(
         () => expect(result.current.error).not.toBeNull(),
@@ -325,13 +281,6 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       // Wait for initial load
       await waitFor(
@@ -363,6 +312,7 @@ describe('usePointsEvents', () => {
           seasonId: 'season-1',
           subscriptionId: 'sub-1',
           cursor: 'next-cursor',
+          forceFresh: false,
         },
       );
 
@@ -380,13 +330,6 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       // Wait for initial load
       await waitFor(
@@ -430,13 +373,6 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       // Wait for initial load
       await waitFor(
@@ -483,13 +419,6 @@ describe('usePointsEvents', () => {
         }),
       );
 
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
       // Wait for initial load
       await waitFor(
         () => expect(result.current.isLoading).toBe(false),
@@ -521,6 +450,7 @@ describe('usePointsEvents', () => {
           seasonId: 'season-1',
           subscriptionId: 'sub-1',
           cursor: null,
+          forceFresh: true,
         },
       );
 
@@ -535,13 +465,6 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
 
       // Wait for initial load
       await waitFor(
@@ -579,9 +502,6 @@ describe('usePointsEvents', () => {
         }),
       );
 
-      // Wait for initial load
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
       await waitFor(
         () => expect(result.current.isLoading).toBe(false),
         waitForOptions,
@@ -606,6 +526,137 @@ describe('usePointsEvents', () => {
     });
   });
 
+  describe('activeTab functionality', () => {
+    it('should fetch data when activeTab changes to activity', async () => {
+      // Arrange - Start with a different tab
+      mockUseSelector.mockReturnValue('overview');
+
+      const { rerender } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Initial load should not happen since we're on 'overview' tab
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Reset mock to track the next call
+      mockCall.mockClear();
+
+      // Act - Change activeTab to 'activity'
+      act(() => {
+        mockUseSelector.mockReturnValue('activity');
+        rerender();
+      });
+
+      // Assert - Should trigger fetchPointsEvents
+      await waitFor(
+        () =>
+          expect(mockCall).toHaveBeenCalledWith(
+            'RewardsController:getPointsEvents',
+            {
+              seasonId: 'season-1',
+              subscriptionId: 'sub-1',
+              cursor: null,
+              forceFresh: false,
+            },
+          ),
+        waitForOptions,
+      );
+    });
+
+    it('should not fetch data when activeTab changes to non-activity tab', async () => {
+      // Arrange - Start with overview tab (important: set BEFORE rendering)
+      mockUseSelector.mockReturnValue('overview');
+
+      const { rerender } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Wait for initial state to settle (no fetch should happen on overview tab)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Reset mock to track the next call
+      mockCall.mockClear();
+
+      // Act - Change activeTab to 'levels' (non-activity)
+      act(() => {
+        mockUseSelector.mockReturnValue('levels');
+        rerender();
+      });
+
+      // Wait a bit to ensure no API call is made
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - Should not trigger fetchPointsEvents
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+
+    it('should not fetch data when activeTab changes to activity but seasonId is missing', async () => {
+      // Arrange - Start with overview tab
+      mockUseSelector.mockReturnValue('overview');
+
+      const { rerender } = renderHook(() =>
+        usePointsEvents({
+          seasonId: undefined,
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Wait for initial state to settle
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Reset mock to track the next call
+      mockCall.mockClear();
+
+      // Act - Change activeTab to 'activity'
+      act(() => {
+        mockUseSelector.mockReturnValue('activity');
+        rerender();
+      });
+
+      // Wait a bit to ensure no API call is made
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - Should not trigger fetchPointsEvents due to missing seasonId
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+
+    it('should not fetch data when activeTab changes to activity but subscriptionId is empty', async () => {
+      // Arrange - Start with overview tab
+      mockUseSelector.mockReturnValue('overview');
+
+      const { rerender } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: '',
+        }),
+      );
+
+      // Wait for initial state to settle
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Reset mock to track the next call
+      mockCall.mockClear();
+
+      // Act - Change activeTab to 'activity'
+      act(() => {
+        mockUseSelector.mockReturnValue('activity');
+        rerender();
+      });
+
+      // Wait a bit to ensure no API call is made
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - Should not trigger fetchPointsEvents due to empty subscriptionId
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+  });
+
   describe('event subscriptions', () => {
     it('should subscribe to reward events', () => {
       renderHook(() =>
@@ -615,12 +666,13 @@ describe('usePointsEvents', () => {
         }),
       );
 
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
       // Verify subscription to events
       expect(mockUseInvalidateByRewardEvents).toHaveBeenCalledWith(
-        ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+        [
+          'RewardsController:accountLinked',
+          'RewardsController:rewardClaimed',
+          'RewardsController:pointsEventsUpdated',
+        ],
         expect.any(Function),
       );
     });

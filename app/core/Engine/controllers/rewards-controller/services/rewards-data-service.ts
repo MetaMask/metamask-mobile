@@ -19,6 +19,7 @@ import type {
   PointsBoostEnvelopeDto,
   RewardDto,
   ClaimRewardDto,
+  GetPointsEventsLastUpdatedDto,
   MobileOptinDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -60,6 +61,11 @@ export interface RewardsDataServiceLoginAction {
 export interface RewardsDataServiceGetPointsEventsAction {
   type: `${typeof SERVICE_NAME}:getPointsEvents`;
   handler: RewardsDataService['getPointsEvents'];
+}
+
+export interface RewardsDataServiceGetPointsEventsLastUpdatedAction {
+  type: `${typeof SERVICE_NAME}:getPointsEventsLastUpdated`;
+  handler: RewardsDataService['getPointsEventsLastUpdated'];
 }
 
 export interface RewardsDataServiceEstimatePointsAction {
@@ -134,6 +140,7 @@ export interface RewardsDataServiceClaimRewardAction {
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
+  | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
@@ -195,6 +202,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPointsEvents`,
       this.getPointsEvents.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPointsEventsLastUpdated`,
+      this.getPointsEventsLastUpdated.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
@@ -400,6 +411,27 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PaginatedPointsEventsDto;
+  }
+
+  async getPointsEventsLastUpdated(
+    params: GetPointsEventsLastUpdatedDto,
+  ): Promise<Date | null> {
+    const { seasonId, subscriptionId } = params;
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/points-events/last-updated`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get points events last update failed: ${response.status}`,
+      );
+    }
+    const result = await response.json();
+    return result?.lastUpdated ? new Date(result.lastUpdated) : null;
   }
 
   /**
