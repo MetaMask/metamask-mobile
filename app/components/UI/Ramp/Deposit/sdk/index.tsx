@@ -61,9 +61,7 @@ export interface DepositSDK {
 const isDevelopment =
   process.env.NODE_ENV !== 'production' ||
   process.env.RAMP_DEV_BUILD === 'true';
-
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
-
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
 let environment = SdkEnvironment.Production;
@@ -90,9 +88,7 @@ export const DepositSDKProvider = ({
   ...props
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
-  const providerApiKey =
-    useSelector(selectDepositProviderApiKey) ||
-    process.env.RAMP_PROVIDER_API_KEY;
+  const providerApiKey = useSelector(selectDepositProviderApiKey);
 
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
