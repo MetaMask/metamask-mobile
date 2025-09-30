@@ -67,6 +67,10 @@ const RampModalsRoutes = () => (
       name={Routes.RAMP.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
       component={IncompatibleAccountTokenModal}
     />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.REGION_SELECTOR}
+      component={RegionSelectorModal}
+    />
   </ModalsStack.Navigator>
 );
 

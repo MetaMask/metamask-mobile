@@ -48,7 +48,6 @@ import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import FiatSelectModal from '../../components/modals/FiatSelectModal';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
-import RegionModal from '../../components/RegionModal';
 import SkeletonText from '../../components/SkeletonText';
 import ErrorView from '../../components/ErrorView';
 import BadgeWrapper, {
@@ -72,7 +71,8 @@ import {
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
-import { QuickAmount, Region, ScreenLocation } from '../../types';
+import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
+import { QuickAmount, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import {
@@ -141,8 +141,6 @@ const BuildQuote = () => {
     showPaymentMethodsModal,
     hidePaymentMethodModal,
   ] = useModalHandler(false);
-  const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
-    useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
@@ -156,7 +154,6 @@ const BuildQuote = () => {
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedRegion,
-    setSelectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
@@ -228,6 +225,37 @@ const BuildQuote = () => {
     setAmountBNMinimalUnit,
     currentFiatCurrency,
   );
+
+  useEffect(() => {
+    setAmount('0');
+    setAmountNumber(0);
+  }, [selectedRegion]);
+
+  useEffect(() => {
+    const handleRegionChange = async () => {
+      if (
+        selectedRegion &&
+        selectedFiatCurrencyId === defaultFiatCurrency?.id
+      ) {
+        const newRegionCurrency = await queryDefaultFiatCurrency(
+          selectedRegion.id,
+          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
+        );
+        if (newRegionCurrency?.id) {
+          setSelectedFiatCurrencyId(newRegionCurrency.id);
+        }
+      }
+    };
+
+    handleRegionChange();
+  }, [
+    selectedRegion,
+    selectedFiatCurrencyId,
+    defaultFiatCurrency?.id,
+    queryDefaultFiatCurrency,
+    selectedPaymentMethodId,
+    setSelectedFiatCurrencyId,
+  ]);
 
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
@@ -509,37 +537,14 @@ const BuildQuote = () => {
 
   const handleChangeRegion = useCallback(() => {
     setAmountFocused(false);
-    toggleRegionModal();
-  }, [toggleRegionModal]);
-
-  const handleRegionPress = useCallback(
-    async (region: Region) => {
-      hideRegionModal();
-      setAmount('0');
-      setAmountNumber(0);
-      if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
-        /*
-         * Selected fiat currency is default, we will fetch
-         * and select new region default fiat currency
-         */
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          region.id,
-          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
-        );
-        setSelectedFiatCurrencyId(newRegionCurrency?.id);
-      }
-      setSelectedRegion(region);
-    },
-    [
-      defaultFiatCurrency?.id,
-      hideRegionModal,
-      queryDefaultFiatCurrency,
-      selectedFiatCurrencyId,
-      selectedPaymentMethodId,
-      setSelectedFiatCurrencyId,
-      setSelectedRegion,
-    ],
-  );
+    if (regions && regions.length > 0) {
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails({
+          regions,
+        }),
+      );
+    }
+  }, [navigation, regions, setAmountFocused]);
 
   /**
    * * CryptoCurrency handlers
@@ -1112,23 +1117,6 @@ const BuildQuote = () => {
         location={screenLocation}
         rampType={rampType}
       />
-      {regions && (
-        <RegionModal
-          isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.title')}
-          description={strings(
-            isBuy
-              ? 'fiat_on_ramp_aggregator.region.description'
-              : 'fiat_on_ramp_aggregator.region.sell_description',
-          )}
-          data={regions}
-          dismiss={hideRegionModal as () => void}
-          onRegionPress={handleRegionPress}
-          location={screenLocation}
-          selectedRegion={selectedRegion}
-          rampType={rampType}
-        />
-      )}
     </ScreenLayout>
   );
 };
