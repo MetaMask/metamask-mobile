@@ -6017,16 +6017,6 @@
     "minutes_format": "{{count}} मिनट",
     "minutes_format_plural": "{{count}} मिनट"
   },
-  "sdk_connect_v2": {
-    "show_loading": {
-      "title": "Connecting to dApp",
-      "description": "Establishing connection with {{dappName}}..."
-    },
-    "show_error": {
-      "title": "Connection Error",
-      "description": "Failed to establish connection. Please try again."
-    }
-  },
   "transaction_details": {
     "title": {
       "perps_deposit": "फंडेड पर्प्स अकाउंट",
