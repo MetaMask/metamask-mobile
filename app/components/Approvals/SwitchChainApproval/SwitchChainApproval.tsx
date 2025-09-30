@@ -4,7 +4,7 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   isPortfolioViewEnabled,
   isRemoveGlobalNetworkSelectorEnabled,
@@ -20,6 +20,7 @@ import {
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 const SwitchChainApproval = () => {
   const {
@@ -36,6 +37,10 @@ const SwitchChainApproval = () => {
   const { selectNetwork } = useNetworkSelection({
     networks,
   });
+
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
@@ -66,9 +71,11 @@ const SwitchChainApproval = () => {
     },
   );
 
+  const chainId = permittedEthChainIds[0];
+
   const customNetworkInformation = {
-    chainId: permittedEthChainIds[0],
-    chainName: 'FIX THIS',
+    chainId,
+    chainName: evmNetworkConfigurations[chainId]?.name,
   };
   Logger.log(
     'Switch Chain Approval requestData',
