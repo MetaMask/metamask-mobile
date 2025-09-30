@@ -232,6 +232,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [needs_e2e_build]
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
     outputs:
       test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
     steps:
