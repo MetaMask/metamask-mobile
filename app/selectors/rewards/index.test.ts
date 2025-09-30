@@ -2,7 +2,6 @@ import { RootState } from '../../reducers';
 import {
   selectRewardsControllerState,
   selectRewardsSubscriptionId,
-  selectRewardsActiveAccountHasOptedIn,
   selectRewardsActiveAccountAddress,
   selectHideUnlinkedAccountsBanner,
 } from './index';
@@ -174,67 +173,6 @@ describe('Rewards Selectors', () => {
 
       // Act
       const result = selectRewardsSubscriptionId(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('selectRewardsActiveAccountHasOptedIn', () => {
-    it('returns true when active account has opted in', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          subscriptionId: 'test-id',
-          hasOptedIn: true,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountHasOptedIn(state);
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('returns false when active account has not opted in', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          subscriptionId: 'test-id',
-          hasOptedIn: false,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountHasOptedIn(state);
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    it('returns null when no active account exists', () => {
-      // Arrange
-      const state = createMockRootState({ activeAccount: null });
-
-      // Act
-      const result = selectRewardsActiveAccountHasOptedIn(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    it('returns null when active account hasOptedIn property is undefined', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          subscriptionId: 'test-id',
-          // hasOptedIn property is missing
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountHasOptedIn(state);
 
       // Assert
       expect(result).toBeNull();
