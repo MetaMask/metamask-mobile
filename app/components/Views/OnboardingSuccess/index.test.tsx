@@ -2313,7 +2313,7 @@ describe('OnboardingSuccess', () => {
       expect(getByTestId('animated-dots')).toHaveTextContent('...');
     });
 
-    it('should test renderAnimationContent and renderAnimationContainer functions', () => {
+    it('should test renderAnimationContent and renderContent functions', () => {
       const TestRenderFunctions = ({
         animationStep,
       }: {

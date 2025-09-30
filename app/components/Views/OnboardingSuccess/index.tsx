@@ -76,12 +76,12 @@ export const ResetNavigationToHome = CommonActions.reset({
 
 interface OnboardingSuccessProps {
   onDone: () => void;
-  successFlow: ONBOARDING_SUCCESS_FLOW;
+  _successFlow: ONBOARDING_SUCCESS_FLOW;
 }
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
-  successFlow,
+  _successFlow,
 }) => {
   const navigation = useNavigation();
 
@@ -304,7 +304,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     [styles.riveAnimation],
   );
 
-  const renderAnimationContainer = useCallback(
+  const renderContent = useCallback(
     () => (
       <View style={styles.animationContainer}>
         {RiveAnimationComponent}
@@ -318,25 +318,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       styles.textOverlay,
     ],
   );
-
-  const renderContent = () => {
-    if (
-      isSocialLogin ||
-      !successFlow ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
-    ) {
-      return renderAnimationContainer();
-    }
-
-    switch (successFlow) {
-      default:
-        return renderAnimationContainer();
-    }
-  };
 
   const renderFooter = () => {
     if (isSocialLogin || !showButtons) return null;
@@ -537,7 +518,7 @@ export const OnboardingSuccess = () => {
 
   return (
     <OnboardingSuccessComponent
-      successFlow={successFlow}
+      _successFlow={successFlow}
       onDone={() => navigation.dispatch(nextScreen)}
     />
   );
