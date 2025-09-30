@@ -22,11 +22,14 @@ import { useNavigation } from '@react-navigation/native';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 const NftGridList = () => {
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  const actionSheetRef = useRef<typeof ActionSheet>();
   const [longPressedCollectible, setLongPressedCollectible] =
     useState<Nft | null>(null);
+
+  const actionSheetRef = useRef<typeof ActionSheet>();
 
   const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
@@ -49,16 +52,13 @@ const NftGridList = () => {
   }, [longPressedCollectible]);
 
   // Loading state to make sure Nft tab is opened without lags
+  // TODO juan: might not be necessary after Brian's changes
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialLoading(false);
     }, 100);
     return () => clearTimeout(timer);
   }, []);
-
-  const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);

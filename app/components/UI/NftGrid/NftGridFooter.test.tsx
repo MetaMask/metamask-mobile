@@ -7,57 +7,94 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 
+// Mock i18n strings
+jest.mock('../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const strings: Record<string, string> = {
+      'wallet.no_collectibles': 'No NFTs yet',
+      'wallet.add_collectibles': 'Import NFTs',
+    };
+    return strings[key] || key;
+  },
+}));
+
+// Mock theme hook
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      text: { alternative: '#666666' },
+      primary: { default: '#037DD6' },
+    },
+  }),
+}));
+
+// Mock TextComponent from design system
+jest.mock('../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return ({
+    children,
+    style,
+    ...props
+  }: {
+    children: React.ReactNode;
+    style?: unknown;
+    [key: string]: unknown;
+  }) => (
+    <Text style={style} {...props}>
+      {children}
+    </Text>
+  );
+});
+
 describe('NftGridFooter', () => {
   const mockGoToAddCollectible = jest.fn();
+
   const defaultProps = {
     isAddNFTEnabled: true,
     goToAddCollectible: mockGoToAddCollectible,
   };
 
-  const initialState = {
+  const createInitialState = (isNftFetchingProgress = false) => ({
     collectibles: {
-      isNftFetchingProgress: false,
+      isNftFetchingProgress,
     },
     engine: {
       backgroundState,
     },
-  };
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly without spinner', () => {
-    const store = mockStore(initialState);
-    const { toJSON } = render(
+  it('renders footer with correct content', () => {
+    const store = mockStore(createInitialState());
+    const { getByText, getByTestId } = render(
       <Provider store={store}>
         <NftGridFooter {...defaultProps} />
       </Provider>,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(getByText('No NFTs yet')).toBeDefined();
+    expect(getByText('Import NFTs')).toBeDefined();
+    expect(getByTestId('import-collectible-button')).toBeDefined();
   });
 
   it('shows spinner when NFTs are being fetched', () => {
-    const stateWithFetching = {
-      ...initialState,
-      collectibles: {
-        isNftFetchingProgress: true,
-      },
-    };
-    const store = mockStore(stateWithFetching);
-
+    const store = mockStore(createInitialState(true));
     const { getByTestId } = render(
       <Provider store={store}>
         <NftGridFooter {...defaultProps} />
       </Provider>,
     );
 
-    expect(getByTestId('collectible-contracts-spinner')).toBeDefined();
+    const spinner = getByTestId('collectible-contracts-spinner');
+    expect(spinner).toBeDefined();
+    expect(spinner.type).toBe('ActivityIndicator');
   });
 
-  it('does not show spinner when NFTs are not being fetched', () => {
-    const store = mockStore(initialState);
-
+  it('hides spinner when NFTs are not being fetched', () => {
+    const store = mockStore(createInitialState(false));
     const { queryByTestId } = render(
       <Provider store={store}>
         <NftGridFooter {...defaultProps} />
@@ -67,61 +104,39 @@ describe('NftGridFooter', () => {
     expect(queryByTestId('collectible-contracts-spinner')).toBeNull();
   });
 
-  it('displays empty text and add collectibles button', () => {
-    const store = mockStore(initialState);
-
-    const { getByTestId, toJSON } = render(
-      <Provider store={store}>
-        <NftGridFooter {...defaultProps} />
-      </Provider>,
-    );
-
-    // Check that the button exists
-    expect(getByTestId('import-collectible-button')).toBeDefined();
-
-    // Check that the component renders correctly
-    const rendered = toJSON();
-    expect(rendered).toBeDefined();
-  });
-
-  it('calls goToAddCollectible when add collectibles button is pressed', () => {
-    const store = mockStore(initialState);
-
+  it('calls goToAddCollectible when import button is pressed', () => {
+    const store = mockStore(createInitialState());
     const { getByTestId } = render(
       <Provider store={store}>
         <NftGridFooter {...defaultProps} />
       </Provider>,
     );
 
-    const addButton = getByTestId('import-collectible-button');
-    fireEvent.press(addButton);
-
+    fireEvent.press(getByTestId('import-collectible-button'));
     expect(mockGoToAddCollectible).toHaveBeenCalledTimes(1);
   });
 
-  it('renders disabled button when isAddNFTEnabled is false', () => {
-    const store = mockStore(initialState);
-
+  it('disables import button when isAddNFTEnabled is false', () => {
+    const store = mockStore(createInitialState());
     const { getByTestId } = render(
       <Provider store={store}>
         <NftGridFooter {...defaultProps} isAddNFTEnabled={false} />
       </Provider>,
     );
 
-    const addButton = getByTestId('import-collectible-button');
-    expect(addButton.props.disabled).toBe(true);
+    const importButton = getByTestId('import-collectible-button');
+    expect(importButton.props.disabled).toBe(true);
   });
 
-  it('renders enabled button when isAddNFTEnabled is true', () => {
-    const store = mockStore(initialState);
-
+  it('enables import button when isAddNFTEnabled is true', () => {
+    const store = mockStore(createInitialState());
     const { getByTestId } = render(
       <Provider store={store}>
-        <NftGridFooter {...defaultProps} />
+        <NftGridFooter {...defaultProps} isAddNFTEnabled />
       </Provider>,
     );
 
-    const addButton = getByTestId('import-collectible-button');
-    expect(addButton.props.disabled).toBe(false);
+    const importButton = getByTestId('import-collectible-button');
+    expect(importButton.props.disabled).toBe(false);
   });
 });
