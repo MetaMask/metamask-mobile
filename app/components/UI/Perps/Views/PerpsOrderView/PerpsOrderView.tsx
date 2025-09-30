@@ -1086,7 +1086,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {strings('perps.points')}
+                  {strings('perps.estimated_points')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => handleTooltipPress('points')}

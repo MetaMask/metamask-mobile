@@ -39,6 +39,7 @@ import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Engine from '../../../../../core/Engine';
 
 /**
  * OnboardingIntroStep Component
@@ -165,6 +166,21 @@ const OnboardingIntroStep: React.FC = () => {
       showErrorModal(
         'rewards.onboarding.not_supported_hardware_account_title',
         'rewards.onboarding.not_supported_hardware_account_description',
+      );
+      return;
+    }
+
+    // Check if account type is supported for opt-in
+    if (
+      internalAccount &&
+      !Engine.controllerMessenger.call(
+        'RewardsController:isOptInSupported',
+        internalAccount,
+      )
+    ) {
+      showErrorModal(
+        'rewards.onboarding.not_supported_account_type_title',
+        'rewards.onboarding.not_supported_account_type_description',
       );
       return;
     }
