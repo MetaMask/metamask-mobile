@@ -15,7 +15,6 @@ import ListItemSelect from '../../../../../../component-library/components/List/
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
-import TokenIcon from '../../../../Swaps/components/TokenIcon';
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import BadgeWrapper, {
   BadgePosition,
@@ -42,6 +41,10 @@ import { getCaipChainIdFromCryptoCurrency } from '../../utils';
 import NetworksFilterBar from '../../../Deposit/components/NetworksFilterBar';
 import { CaipChainId } from '@metamask/utils';
 import NetworksFilterSelector from '../../../Deposit/components/NetworksFilterSelector/NetworksFilterSelector';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -191,7 +194,12 @@ function TokenSelectModal() {
               />
             }
           >
-            <TokenIcon symbol={token.symbol} icon={token.logo} medium />
+            <AvatarToken
+              name={token.symbol}
+              src={{ uri: token.logo }}
+              size={AvatarTokenSize.Lg}
+              key={selectedAsset?.logo}
+            />
           </BadgeWrapper>
         </ListItemColumn>
         <ListItemColumn widthType={WidthType.Fill}>
@@ -204,6 +212,7 @@ function TokenSelectModal() {
     ),
     [
       selectedAsset?.id,
+      selectedAsset?.logo,
       getNetworkImageForToken,
       colors.text.alternative,
       handleSelectTokenCallback,
