@@ -87,51 +87,6 @@ jest.mock('../../../component-library/components/Skeleton/Skeleton', () => {
   };
 });
 
-// Mock BannerAlert
-jest.mock(
-  '../../../component-library/components/Banners/Banner/variants/BannerAlert',
-  () => {
-    const React = jest.requireActual('react');
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return function MockBannerAlert({
-      title,
-      description,
-      actionButtonProps,
-    }: {
-      title: string;
-      description: string;
-      actionButtonProps?: {
-        label: string;
-        onPress: () => void;
-      };
-    }) {
-      return React.createElement(
-        View,
-        { testID: 'rewards-auth-error-banner' },
-        React.createElement(
-          Text,
-          { testID: 'rewards-auth-error-title' },
-          title,
-        ),
-        React.createElement(
-          Text,
-          { testID: 'rewards-auth-error-description' },
-          description,
-        ),
-        actionButtonProps &&
-          React.createElement(
-            TouchableOpacity,
-            {
-              testID: 'rewards-auth-error-action-button',
-              onPress: actionButtonProps.onPress,
-            },
-            React.createElement(Text, null, actionButtonProps.label),
-          ),
-      );
-    };
-  },
-);
-
 // Mock ErrorBoundary
 jest.mock('../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -181,7 +136,6 @@ jest.mock('../../../selectors/accountsController', () => ({
 }));
 
 jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -208,15 +162,8 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
 }));
 
 // Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -230,7 +177,6 @@ describe('RewardsNavigator', () => {
     jest.clearAllMocks();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
     // Create a mock store

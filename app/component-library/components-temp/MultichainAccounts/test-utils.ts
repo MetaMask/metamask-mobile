@@ -146,6 +146,9 @@ export const createMockState = (
     return acc;
   }, {} as Record<string, AccountWalletObject>);
 
+  const firstWallet = wallets[0];
+  const firstGroupId = Object.keys(firstWallet?.groups ?? [])[0];
+
   return {
     engine: {
       backgroundState: {
@@ -153,6 +156,7 @@ export const createMockState = (
         AccountTreeController: {
           accountTree: {
             wallets: walletMap,
+            selectedAccountGroup: firstGroupId ?? '',
           },
         },
         AccountsController: {

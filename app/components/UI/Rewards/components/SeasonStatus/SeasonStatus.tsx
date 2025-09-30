@@ -14,10 +14,7 @@ import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-r
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { capitalize } from 'lodash';
 import { useSelector } from 'react-redux';
-import Banner, {
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   selectSeasonStatusLoading,
   selectSeasonTiers,
@@ -35,10 +32,6 @@ import RewardsThemeImageComponent from '../ThemeImageComponent';
 import { Image } from 'react-native';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 
 const SeasonStatus: React.FC = () => {
   const tw = useTailwind();
@@ -98,22 +91,15 @@ const SeasonStatus: React.FC = () => {
 
   if (seasonStatusError && !seasonStartDate) {
     return (
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
+      <RewardsErrorBanner
         title={strings('rewards.season_status_error.error_fetching_title')}
         description={strings(
           'rewards.season_status_error.error_fetching_description',
         )}
-        actionButtonProps={{
-          size: ButtonSize.Md,
-          style: tw.style('mt-2'),
-          onPress: () => {
-            fetchSeasonStatus();
-          },
-          label: strings('rewards.unlocked_rewards_error.retry_button'),
-          variant: ButtonVariants.Primary,
+        onConfirm={() => {
+          fetchSeasonStatus();
         }}
+        confirmButtonLabel={strings('rewards.season_status_error.retry_button')}
       />
     );
   }
@@ -207,7 +193,7 @@ const SeasonStatus: React.FC = () => {
         twClassName="gap-2 justify-between items-center"
       >
         <Box
-          alignItems={BoxAlignItems.Center}
+          alignItems={BoxAlignItems.Start}
           flexDirection={BoxFlexDirection.Row}
           twClassName="gap-2"
         >
@@ -229,7 +215,10 @@ const SeasonStatus: React.FC = () => {
         </Box>
 
         {!!nextTierPointsNeeded && (
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative w-[50%] text-right"
+          >
             {formatNumber(nextTierPointsNeeded)}{' '}
             {strings('rewards.to_level_up').toLowerCase()}
           </Text>

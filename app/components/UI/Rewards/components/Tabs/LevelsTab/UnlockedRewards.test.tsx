@@ -89,6 +89,49 @@ jest.mock('../../../hooks/useUnlockedRewards', () => ({
   useUnlockedRewards: jest.fn(),
 }));
 
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              onPress: onConfirm,
+              testID: 'error-retry-button',
+            },
+            ReactActual.createElement(
+              Text,
+              {},
+              confirmButtonLabel || 'Confirm',
+            ),
+          ),
+      ),
+  };
+});
+
 const mockUseSelector = useSelector as jest.Mock;
 const mockUseDispatch = useDispatch as jest.Mock;
 const mockUseUnlockedRewards = useUnlockedRewards as jest.MockedFunction<
@@ -229,15 +272,13 @@ describe('UnlockedRewards', () => {
         error: true,
         seasonStartDate: new Date('2024-01-01'),
       });
-      const { getByText } = render(<UnlockedRewards />);
+      const { getByText, getByTestId } = render(<UnlockedRewards />);
 
       // Should show section header
       expect(getByText('Unlocked rewards')).toBeTruthy();
 
-      // Should show error message
-      expect(
-        getByText('rewards.unlocked_rewards_error.error_fetching_title'),
-      ).toBeTruthy();
+      // Should show error banner
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
 
     it('should not render error banner when loading', () => {
@@ -247,15 +288,13 @@ describe('UnlockedRewards', () => {
         error: true,
         seasonStartDate: new Date('2024-01-01'),
       });
-      const { getByText, queryByText } = render(<UnlockedRewards />);
+      const { getByText, queryByTestId } = render(<UnlockedRewards />);
 
       // Should show section header
       expect(getByText('Unlocked rewards')).toBeTruthy();
 
-      // Should NOT show error message when loading
-      expect(
-        queryByText('rewards.unlocked_rewards_error.error_fetching_title'),
-      ).toBeNull();
+      // Should NOT show error banner when loading
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
     });
 
     it('should not render error banner when rewards exist', () => {
@@ -265,15 +304,13 @@ describe('UnlockedRewards', () => {
         error: true,
         seasonStartDate: new Date('2024-01-01'),
       });
-      const { getByText, queryByText } = render(<UnlockedRewards />);
+      const { getByText, queryByTestId } = render(<UnlockedRewards />);
 
       // Should show section header
       expect(getByText('Unlocked rewards')).toBeTruthy();
 
-      // Should NOT show error message when rewards exist
-      expect(
-        queryByText('rewards.unlocked_rewards_error.error_fetching_title'),
-      ).toBeNull();
+      // Should NOT show error banner when rewards exist
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
     });
   });
 

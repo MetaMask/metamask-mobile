@@ -1,5 +1,4 @@
 import { BaseController } from '@metamask/base-controller';
-import { toHex } from '@metamask/controller-utils';
 import { maxBy } from 'lodash';
 import {
   type RewardsControllerState,
@@ -46,6 +45,7 @@ import {
 import { base58 } from 'ethers/lib/utils';
 import { isNonEvmAddress } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
+import { InvalidTimestampError } from './services/rewards-data-service';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -329,6 +329,18 @@ export class RewardsController extends BaseController<
       'RewardsController:claimReward',
       this.claimReward.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:isOptInSupported',
+      this.isOptInSupported.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getActualSubscriptionId',
+      this.getActualSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getFirstSubscriptionId',
+      this.getFirstSubscriptionId.bind(this),
+    );
   }
 
   /**
@@ -362,6 +374,26 @@ export class RewardsController extends BaseController<
    */
   #getAccountState(account: CaipAccountId): RewardsAccountState | null {
     return this.state.accounts[account] || null;
+  }
+
+  /**
+   * Get the actual subscription ID for a given CAIP account ID
+   * @param account - The CAIP account ID to check
+   * @returns The subscription ID or null if not found
+   */
+  getActualSubscriptionId(account: CaipAccountId): string | null {
+    const accountState = this.#getAccountState(account);
+    return accountState?.subscriptionId || null;
+  }
+
+  /**
+   * Get the first subscription ID from the subscriptions map
+   * @returns The first subscription ID or null if no subscriptions exist
+   */
+  getFirstSubscriptionId(): string | null {
+    if (!this.state.subscriptions) return null;
+    const subscriptionIds = Object.keys(this.state.subscriptions);
+    return subscriptionIds.length > 0 ? subscriptionIds[0] : null;
   }
 
   /**
@@ -503,9 +535,12 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware
-    if (isHardwareAccount(address)) return true;
+  #shouldSkipSilentAuth(
+    account: CaipAccountId,
+    internalAccount: InternalAccount,
+  ): boolean {
+    // Skip if opt-in is not supported (e.g., hardware wallets, unsupported account types)
+    if (!this.isOptInSupported(internalAccount)) return true;
 
     const now = Date.now();
 
@@ -518,6 +553,43 @@ export class RewardsController extends BaseController<
     }
 
     return false;
+  }
+
+  /**
+   * Check if an internal account supports opt-in for rewards
+   * @param account - The internal account to check
+   * @returns boolean - True if the account supports opt-in, false otherwise
+   */
+  isOptInSupported(account: InternalAccount): boolean {
+    try {
+      // Try to check if it's a hardware wallet
+      const isHardware = isHardwareAccount(account.address);
+      // If it's a hardware wallet, opt-in is not supported
+      if (isHardware) {
+        return false;
+      }
+
+      // Check if it's an EVM address (not non-EVM)
+      if (!isNonEvmAddress(account.address)) {
+        return true;
+      }
+
+      // Check if it's a Solana address
+      if (isSolanaAddress(account.address)) {
+        return true;
+      }
+
+      // If it's neither Solana nor EVM, opt-in is not supported
+      return false;
+    } catch (error) {
+      // If there's an exception (e.g., checking hardware wallet status fails),
+      // assume opt-in is not supported
+      Logger.log(
+        'RewardsController: Exception checking opt-in support, assuming not supported:',
+        error,
+      );
+      return false;
+    }
   }
 
   convertInternalAccountToCaipAccountId(
@@ -542,6 +614,7 @@ export class RewardsController extends BaseController<
   async #performSilentAuth(
     internalAccount?: InternalAccount | null,
     shouldBecomeActiveAccount = true,
+    respectSkipSilentAuth = true,
   ): Promise<string | null> {
     if (!internalAccount) {
       if (shouldBecomeActiveAccount) {
@@ -556,10 +629,10 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.#shouldSkipSilentAuth(account, internalAccount.address)
+      ? this.#shouldSkipSilentAuth(account, internalAccount)
       : false;
 
-    if (shouldSkip) {
+    if (shouldSkip && respectSkipSilentAuth) {
       // This means that we'll have a record for this account
       let accountState = this.#getAccountState(account as CaipAccountId);
       if (accountState) {
@@ -600,9 +673,11 @@ export class RewardsController extends BaseController<
 
     try {
       // Generate timestamp and sign the message
-      const timestamp = Math.floor(Date.now() / 1000);
-
+      let timestamp = Math.floor(Date.now() / 1000);
       let signature;
+      let retryAttempt = 0;
+      const MAX_RETRY_ATTEMPTS = 1;
+
       try {
         signature = await this.#signRewardsMessage(internalAccount, timestamp);
       } catch (signError) {
@@ -629,13 +704,43 @@ export class RewardsController extends BaseController<
         throw signError;
       }
 
-      const loginResponse: LoginResponseDto = await this.messagingSystem.call(
-        'RewardsDataService:login',
-        {
-          account: internalAccount.address,
-          timestamp,
-          signature,
-        },
+      // Function to execute the login call with retry logic
+      const executeLogin = async (
+        ts: number,
+        sig: string,
+      ): Promise<LoginResponseDto> => {
+        try {
+          return await this.messagingSystem.call('RewardsDataService:login', {
+            account: internalAccount.address,
+            timestamp: ts,
+            signature: sig,
+          });
+        } catch (error) {
+          // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
+          if (
+            error instanceof InvalidTimestampError &&
+            retryAttempt < MAX_RETRY_ATTEMPTS
+          ) {
+            retryAttempt++;
+            Logger.log(
+              'RewardsController: Retrying silent auth with server timestamp',
+              { originalTimestamp: ts, newTimestamp: error.timestamp },
+            );
+            // Use the timestamp from the error for retry
+            timestamp = error.timestamp;
+            signature = await this.#signRewardsMessage(
+              internalAccount,
+              timestamp,
+            );
+            return await executeLogin(timestamp, signature);
+          }
+          throw error;
+        }
+      };
+
+      const loginResponse: LoginResponseDto = await executeLogin(
+        timestamp,
+        signature,
       );
 
       // Update state with successful authentication
@@ -1258,42 +1363,47 @@ export class RewardsController extends BaseController<
       account: account.address,
     });
 
-    const challengeResponse = await this.messagingSystem.call(
-      'RewardsDataService:generateChallenge',
-      {
-        address: account.address,
-      },
-    );
+    // Generate timestamp and sign the message for mobile optin
+    let timestamp = Math.floor(Date.now() / 1000);
+    let signature = await this.#signRewardsMessage(account, timestamp);
+    let retryAttempt = 0;
+    const MAX_RETRY_ATTEMPTS = 1;
 
-    // Try different encoding approaches to handle potential character issues
-    let hexMessage;
-    try {
-      // First try: direct toHex conversion
-      hexMessage = toHex(challengeResponse.message);
-    } catch {
-      // Fallback: use Buffer to convert to hex if toHex fails
-      hexMessage =
-        '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
-    }
+    const executeMobileOptin = async (
+      ts: number,
+      sig: string,
+    ): Promise<LoginResponseDto> => {
+      try {
+        return await this.messagingSystem.call(
+          'RewardsDataService:mobileOptin',
+          {
+            account: account.address,
+            timestamp: ts,
+            signature: sig as `0x${string}`,
+            referralCode,
+          },
+        );
+      } catch (error) {
+        // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
+        if (
+          error instanceof InvalidTimestampError &&
+          retryAttempt < MAX_RETRY_ATTEMPTS
+        ) {
+          retryAttempt++;
+          Logger.log('RewardsController: Retrying with server timestamp', {
+            originalTimestamp: ts,
+            newTimestamp: error.timestamp,
+          });
+          // Use the timestamp from the error for retry
+          timestamp = error.timestamp;
+          signature = await this.#signRewardsMessage(account, timestamp);
+          return await executeMobileOptin(timestamp, signature);
+        }
+        throw error;
+      }
+    };
 
-    // Use KeyringController for silent signature
-    const signature = await this.messagingSystem.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: hexMessage,
-        from: account.address,
-      },
-    );
-
-    Logger.log('RewardsController: Submitting optin with signature...');
-    const optinResponse = await this.messagingSystem.call(
-      'RewardsDataService:optin',
-      {
-        challengeId: challengeResponse.id,
-        signature,
-        referralCode,
-      },
-    );
+    const optinResponse = await executeMobileOptin(timestamp, signature);
 
     Logger.log(
       'RewardsController: Optin successful, updating controller state...',
@@ -1472,7 +1582,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to validate referral code:',
         error instanceof Error ? error.message : String(error),
       );
-      return false;
+      throw error;
     }
   }
 
@@ -1491,6 +1601,11 @@ export class RewardsController extends BaseController<
       return this.state.activeAccount.subscriptionId;
     }
 
+    Logger.log(
+      'RewardsController: Subscriptions map',
+      this.state.subscriptions?.length,
+    );
+
     // Fallback to the first subscription ID from the subscriptions map
     const subscriptionIds = Object.keys(this.state.subscriptions);
     if (subscriptionIds.length > 0) {
@@ -1503,12 +1618,16 @@ export class RewardsController extends BaseController<
         'AccountsController:listMultichainAccounts',
       );
 
-      if (!allAccounts || allAccounts.length === 0) {
+      // Extract addresses from internal accounts using isOptInSupported
+      const supportedAccounts: InternalAccount[] =
+        allAccounts?.filter((account: InternalAccount) =>
+          this.isOptInSupported(account),
+        ) || [];
+      if (!supportedAccounts || supportedAccounts.length === 0) {
         return null;
       }
 
-      // Extract addresses from internal accounts
-      const addresses = allAccounts.map(
+      const addresses = supportedAccounts.map(
         (account: InternalAccount) => account.address,
       );
 
@@ -1532,15 +1651,16 @@ export class RewardsController extends BaseController<
         optInStatusResponse.ois.length,
       );
       let silentAuthAttempts = 0;
-      for (let i = 0; i < allAccounts.length; i++) {
+      for (let i = 0; i < supportedAccounts.length; i++) {
         if (silentAuthAttempts > maxSilentAuthAttempts) break;
-        const account = allAccounts[i];
+        const account = supportedAccounts[i];
         if (!account || optInStatusResponse.ois[i] === false) continue;
         try {
           silentAuthAttempts++;
           const subscriptionId = await this.#performSilentAuth(
             account,
             false, // shouldBecomeActiveAccount = false
+            false, // respectSkipSilentAuth = false
           );
           if (subscriptionId) {
             Logger.log(
@@ -1618,20 +1738,51 @@ export class RewardsController extends BaseController<
 
     try {
       // Generate timestamp and sign the message for mobile join
-      const timestamp = Math.floor(Date.now() / 1000);
-      const signature = await this.#signRewardsMessage(account, timestamp);
+      let timestamp = Math.floor(Date.now() / 1000);
+      let signature = await this.#signRewardsMessage(account, timestamp);
+      let retryAttempt = 0;
+      const MAX_RETRY_ATTEMPTS = 1;
 
-      // Call mobile join via messenger
-      const updatedSubscription: SubscriptionDto =
-        await this.messagingSystem.call(
-          'RewardsDataService:mobileJoin',
-          {
-            account: account.address,
-            timestamp,
-            signature: signature as `0x${string}`,
-          },
-          candidateSubscriptionId,
-        );
+      // Function to execute the mobile join call
+      const executeMobileJoin = async (
+        ts: number,
+        sig: string,
+      ): Promise<SubscriptionDto> => {
+        try {
+          return await this.messagingSystem.call(
+            'RewardsDataService:mobileJoin',
+            {
+              account: account.address,
+              timestamp: ts,
+              signature: sig as `0x${string}`,
+            },
+            candidateSubscriptionId,
+          );
+        } catch (error) {
+          // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
+          if (
+            error instanceof InvalidTimestampError &&
+            retryAttempt < MAX_RETRY_ATTEMPTS
+          ) {
+            retryAttempt++;
+            Logger.log('RewardsController: Retrying with server timestamp', {
+              originalTimestamp: ts,
+              newTimestamp: error.timestamp,
+            });
+            // Use the timestamp from the error for retry
+            timestamp = error.timestamp;
+            signature = await this.#signRewardsMessage(account, timestamp);
+            return await executeMobileJoin(timestamp, signature);
+          }
+          throw error;
+        }
+      };
+
+      // Call mobile join via messenger with retry logic
+      const updatedSubscription: SubscriptionDto = await executeMobileJoin(
+        timestamp,
+        signature,
+      );
 
       // Update store with accounts and subscriptions (but not activeAccount)
       this.update((state: RewardsControllerState) => {

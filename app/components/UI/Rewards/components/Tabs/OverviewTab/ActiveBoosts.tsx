@@ -36,12 +36,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -255,19 +250,15 @@ const ActiveBoosts: React.FC<{
 
       {/* Show error banner if there's an error */}
       {hasError && !activeBoosts?.length && !isLoading && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
+        <RewardsErrorBanner
           title={strings('rewards.active_boosts_error.error_fetching_title')}
           description={strings(
             'rewards.active_boosts_error.error_fetching_description',
           )}
-          actionButtonProps={{
-            size: ButtonSize.Md,
-            style: tw.style('mt-2'),
-            onPress: fetchActivePointsBoosts,
-            label: strings('rewards.active_boosts_error.retry_button'),
-            variant: ButtonVariants.Primary,
-          }}
+          onConfirm={fetchActivePointsBoosts}
+          confirmButtonLabel={strings(
+            'rewards.active_boosts_error.retry_button',
+          )}
         />
       )}
 

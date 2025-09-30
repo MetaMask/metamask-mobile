@@ -30,9 +30,8 @@ import { formatUrl } from '../../../utils/formatUtils';
 import TextField, {
   TextFieldSize,
 } from '../../../../../../component-library/components/Form/TextField';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import useRewardsToast from '../../../hooks/useRewardsToast';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 
 export interface ModalAction {
   label: string;
@@ -239,12 +238,13 @@ const RewardsClaimBottomSheetModal = ({
   const renderError = () => {
     if (claimRewardError) {
       return (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={claimRewardError}
-          style={tw.style('my-4')}
-          testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ERROR_MESSAGE}
-        />
+        <Box twClassName="w-full my-4">
+          <RewardsErrorBanner
+            title={strings('rewards.claim_reward_error.title')}
+            description={claimRewardError}
+            testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ERROR_MESSAGE}
+          />
+        </Box>
       );
     }
     return null;
