@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { MAX_LENGTH } from '../../components/transactions/custom-amount/edit-amount-2';
+import { useCallback, useMemo, useState } from 'react';
 import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
@@ -8,6 +7,8 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import { setTransactionBridgeQuotesLoading } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useDispatch } from 'react-redux';
+
+export const MAX_LENGTH = 28;
 
 export function useTransactionCustomAmount() {
   const dispatch = useDispatch();
@@ -21,9 +22,13 @@ export function useTransactionCustomAmount() {
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
   const { updateTokenAmount: updateTokenAmountCallback } = useTokenAmount();
 
-  const amountHuman = new BigNumber(amountFiat || '0')
-    .dividedBy(tokenFiatRate ?? 1)
-    .toString(10);
+  const amountHuman = useMemo(
+    () =>
+      new BigNumber(amountFiat || '0')
+        .dividedBy(tokenFiatRate ?? 1)
+        .toString(10),
+    [amountFiat, tokenFiatRate],
+  );
 
   const updatePendingAmount = useCallback((value: string) => {
     let newAmount = value.replace(/^0+/, '') || '0';

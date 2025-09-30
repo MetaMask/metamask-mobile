@@ -6,8 +6,7 @@ import { getCurrencySymbol } from '../../../../../../util/number';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-
-export const MAX_LENGTH = 28;
+import { MAX_LENGTH } from '../../../hooks/transactions/useTransactionCustomAmount';
 
 export interface CustomAmountProps {
   amountFiat: string;
