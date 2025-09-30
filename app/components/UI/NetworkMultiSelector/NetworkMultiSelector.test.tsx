@@ -275,13 +275,17 @@ describe('NetworkMultiSelector', () => {
       evmNetworks: mockNetworks,
       solanaNetworks: mockNetworks,
       bitcoinNetworks: mockNetworks,
+      tronNetworks: mockNetworks,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
+      selectedTronAccount: { id: 'tron-account' } as InternalAccount,
       isMultichainAccountsState2Enabled: true,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
+      areAllBitcoinNetworksSelected: false,
+      areAllTronNetworksSelected: false,
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -598,6 +602,7 @@ describe('NetworkMultiSelector', () => {
         evmNetworks: mockEvmNetworks,
         solanaNetworks: [],
         bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
@@ -605,6 +610,9 @@ describe('NetworkMultiSelector', () => {
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: true,
         areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        selectedTronAccount: null,
       });
 
       // Setup selector mock
@@ -676,9 +684,13 @@ describe('NetworkMultiSelector', () => {
         evmNetworks: [],
         solanaNetworks: mockSolanaNetworks,
         bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
         selectedBitcoinAccount: null,
+        selectedTronAccount: null,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
         isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: false,
@@ -753,6 +765,7 @@ describe('NetworkMultiSelector', () => {
         evmNetworks: [],
         solanaNetworks: [],
         bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
@@ -760,6 +773,9 @@ describe('NetworkMultiSelector', () => {
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        selectedTronAccount: null,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -822,13 +838,17 @@ describe('NetworkMultiSelector', () => {
         evmNetworks: [],
         solanaNetworks: [],
         bitcoinNetworks: [],
+        tronNetworks: [],
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
+        selectedTronAccount: null,
         isMultichainAccountsState2Enabled: false,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
       });
 
       mockUseSelector.mockImplementation((selector) => {
