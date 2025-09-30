@@ -40,3 +40,13 @@ export const ASSETS_REQUIRING_DARK_BG = new Set([
   'XPL',
   // Add more assets that need dark backgrounds in light mode
 ]);
+
+// Assets with 'k' prefix that share logos with their base tokens
+export const K_PREFIX_ASSETS = new Set([
+  'KBONK',
+  'KPEPE',
+  'KSHIB',
+  'KFLOKI',
+  'KNEIRO',
+  'KLUNC',
+]);

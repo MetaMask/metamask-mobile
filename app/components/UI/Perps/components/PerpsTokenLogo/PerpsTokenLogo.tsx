@@ -11,6 +11,7 @@ import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidCon
 import {
   ASSETS_REQUIRING_LIGHT_BG,
   ASSETS_REQUIRING_DARK_BG,
+  K_PREFIX_ASSETS,
 } from './PerpsAssetBgConfig';
 
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
@@ -84,7 +85,13 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   // SVG URL - expo-image handles SVG rendering properly
   const imageUri = useMemo(() => {
     if (!symbol) return null;
-    const upperSymbol = symbol.toUpperCase();
+    let upperSymbol = symbol.toUpperCase();
+
+    // Remove 'k' prefix only for specific assets like kBONK, kPEPE
+    if (K_PREFIX_ASSETS.has(upperSymbol)) {
+      upperSymbol = upperSymbol.substring(1);
+    }
+
     return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${upperSymbol}.svg`;
   }, [symbol]);
 
