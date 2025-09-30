@@ -135,7 +135,7 @@ runs:
         cat > pr_comment.md << EOF
         ## 🔍 AI E2E Analysis Report
 
-        **Risk Level:** ${{ steps.ai-analysis.outputs.risk_level }} | **Selected Tags:** ${{ steps.ai-analysis.outputs.selected_tags_display }}
+        **Risk Level:** ${{ steps.ai-analysis.outputs.risk_level }} | **Selected Tags:** ${{ steps.ai-analysis.outputs.tags_display }}
 
         **🤖 AI Analysis:**
         > ${{ steps.ai-analysis.outputs.reasoning }}
@@ -144,7 +144,7 @@ runs:
         - **Confidence:** ${{ steps.ai-analysis.outputs.confidence }}%
 
         **🏷️ Test Recommendation:**
-        Based on the code changes, the AI recommends testing the following areas: **${{ steps.ai-analysis.outputs.selected_tags_display }}**
+        Based on the code changes, the AI recommends testing the following areas: **${{ steps.ai-analysis.outputs.tags_display }}**
 
         _🔍 [View complete analysis](https://github.com/${{ inputs.repository }}/actions/runs/${{ github.run_id }}) • AI E2E Analysis_
 

@@ -67,6 +67,10 @@ if (CHANGED_FILES && CHANGED_FILES.trim()) {
   console.log('📋 Using pre-computed changed files from needs-e2e-build');
   // Pass changed files directly to the AI selector
   baseCmd += ` --changed-files '${CHANGED_FILES}'`;
+
+  if (INCLUDE_MAIN_CHANGES === 'true') {
+    baseCmd += ' --include-main-changes';
+  }
 } else {
   console.log('📋 Computing changed files via git');
 
