@@ -367,7 +367,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "tron": {
             "tron:2494104990": false,
             "tron:3448148188": false,
-            "tron:728126428": false,
+            "tron:728126428": true,
           },
         },
       },
@@ -1045,7 +1045,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "tron": {
             "tron:2494104990": false,
             "tron:3448148188": false,
-            "tron:728126428": false,
+            "tron:728126428": true,
           },
         },
       },
