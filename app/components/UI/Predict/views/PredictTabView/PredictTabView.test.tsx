@@ -39,15 +39,11 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock hooks with more flexibility
 const mockUsePredictPositions = jest.fn();
-const mockUsePredictClaimablePositions = jest.fn();
 const mockUsePredictClaim = jest.fn();
 
 jest.mock('../../hooks/usePredictPositions', () => ({
-  usePredictPositions: () => mockUsePredictPositions(),
-}));
-
-jest.mock('../../hooks/usePredictClaimablePositions', () => ({
-  usePredictClaimablePositions: () => mockUsePredictClaimablePositions(),
+  usePredictPositions: (options?: { claimable?: boolean }) =>
+    mockUsePredictPositions(options),
 }));
 
 jest.mock('../../hooks/usePredictClaim', () => ({
@@ -259,19 +255,29 @@ describe('PredictTabView', () => {
       navigate: mockNavigate,
     });
 
-    // Default mock implementations
-    mockUsePredictPositions.mockReturnValue({
-      positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: mockLoadPositions,
-    });
-
-    mockUsePredictClaimablePositions.mockReturnValue({
-      claimablePositions: [],
-      loadPositions: mockLoadClaimablePositions,
-    });
+    // Mock usePredictPositions to handle both regular and claimable calls
+    mockUsePredictPositions.mockImplementation(
+      (options: { claimable?: boolean } = {}) => {
+        if (options.claimable) {
+          // Return claimable positions when claimable: true
+          return {
+            positions: [],
+            isLoading: false,
+            isRefreshing: false,
+            error: null,
+            loadPositions: mockLoadClaimablePositions,
+          };
+        }
+        // Return regular positions when claimable is false or undefined
+        return {
+          positions: [],
+          isLoading: false,
+          isRefreshing: false,
+          error: null,
+          loadPositions: mockLoadPositions,
+        };
+      },
+    );
 
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
@@ -399,10 +405,28 @@ describe('PredictTabView', () => {
 
   describe('MarketsWonCard', () => {
     it('renders MarketsWonCard when claimable positions exist', () => {
-      mockUsePredictClaimablePositions.mockReturnValue({
-        claimablePositions: [mockClaimablePosition],
-        loadPositions: mockLoadClaimablePositions,
-      });
+      mockUsePredictPositions.mockImplementation(
+        (options: { claimable?: boolean } = {}) => {
+          if (options.claimable) {
+            // Claimable positions call
+            return {
+              positions: [mockClaimablePosition],
+              isLoading: false,
+              isRefreshing: false,
+              error: null,
+              loadPositions: mockLoadClaimablePositions,
+            };
+          }
+          // Regular positions call
+          return {
+            positions: [],
+            isLoading: false,
+            isRefreshing: false,
+            error: null,
+            loadPositions: mockLoadPositions,
+          };
+        },
+      );
 
       renderWithProviders(<PredictTabView />);
 
@@ -412,11 +436,7 @@ describe('PredictTabView', () => {
     });
 
     it('does not render MarketsWonCard when no claimable positions', () => {
-      mockUsePredictClaimablePositions.mockReturnValue({
-        claimablePositions: [],
-        loadPositions: mockLoadClaimablePositions,
-      });
-
+      // Default mock already returns empty arrays, so no need to override
       renderWithProviders(<PredictTabView />);
 
       expect(screen.queryByTestId('markets-won-card')).not.toBeOnTheScreen();
@@ -424,10 +444,26 @@ describe('PredictTabView', () => {
 
     it('filters out positions with zero cashPnl for markets won count', () => {
       const positionWithZeroPnl = { ...mockClaimablePosition, cashPnl: 0 };
-      mockUsePredictClaimablePositions.mockReturnValue({
-        claimablePositions: [mockClaimablePosition, positionWithZeroPnl],
-        loadPositions: mockLoadClaimablePositions,
-      });
+      mockUsePredictPositions.mockImplementation(
+        (options: { claimable?: boolean } = {}) => {
+          if (options.claimable) {
+            return {
+              positions: [mockClaimablePosition, positionWithZeroPnl],
+              isLoading: false,
+              isRefreshing: false,
+              error: null,
+              loadPositions: mockLoadClaimablePositions,
+            };
+          }
+          return {
+            positions: [],
+            isLoading: false,
+            isRefreshing: false,
+            error: null,
+            loadPositions: mockLoadPositions,
+          };
+        },
+      );
 
       renderWithProviders(<PredictTabView />);
 
@@ -438,10 +474,26 @@ describe('PredictTabView', () => {
 
   describe('Claim Functionality', () => {
     it('calls claim function when claim button is pressed', () => {
-      mockUsePredictClaimablePositions.mockReturnValue({
-        claimablePositions: [mockClaimablePosition],
-        loadPositions: mockLoadClaimablePositions,
-      });
+      mockUsePredictPositions.mockImplementation(
+        (options: { claimable?: boolean } = {}) => {
+          if (options.claimable) {
+            return {
+              positions: [mockClaimablePosition],
+              isLoading: false,
+              isRefreshing: false,
+              error: null,
+              loadPositions: mockLoadClaimablePositions,
+            };
+          }
+          return {
+            positions: [],
+            isLoading: false,
+            isRefreshing: false,
+            error: null,
+            loadPositions: mockLoadPositions,
+          };
+        },
+      );
 
       renderWithProviders(<PredictTabView />);
 
@@ -483,10 +535,26 @@ describe('PredictTabView', () => {
         loading: true, // This covers the isClaiming state
       });
 
-      mockUsePredictClaimablePositions.mockReturnValue({
-        claimablePositions: [mockClaimablePosition],
-        loadPositions: mockLoadClaimablePositions,
-      });
+      mockUsePredictPositions.mockImplementation(
+        (options: { claimable?: boolean } = {}) => {
+          if (options.claimable) {
+            return {
+              positions: [mockClaimablePosition],
+              isLoading: false,
+              isRefreshing: false,
+              error: null,
+              loadPositions: mockLoadClaimablePositions,
+            };
+          }
+          return {
+            positions: [],
+            isLoading: false,
+            isRefreshing: false,
+            error: null,
+            loadPositions: mockLoadPositions,
+          };
+        },
+      );
 
       renderWithProviders(<PredictTabView />);
 

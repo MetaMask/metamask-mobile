@@ -47,9 +47,9 @@ import {
   getContractConfig,
   getL1Headers,
   getL2Headers,
-  getMarketFromPolymarketApi,
-  getMarketOrderRawAmounts,
   getMarketsFromPolymarketApi,
+  getMarketOrderRawAmounts,
+  getParsedMarketsFromPolymarketApi,
   getOrderBook,
   getOrderTypedData,
   getPolymarketEndpoints,
@@ -1393,6 +1393,23 @@ describe('polymarket utils', () => {
       expect(result[0].marketId).toBe('');
       expect(result[1].marketId).toBe('');
     });
+
+    it('handle market data fetch failure gracefully', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      // Should still return positions with empty marketId when API fails
+      expect(result).toHaveLength(3);
+      expect(result[0].marketId).toBe('');
+      expect(result[1].marketId).toBe('');
+      expect(result[2].marketId).toBe('');
+      expect(result[0].id).toBe('position-1');
+      expect(result[1].id).toBe('position-2');
+      expect(result[2].id).toBe('position-3');
+    });
   });
 
   describe('getPredictPositionStatus', () => {
@@ -1450,7 +1467,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await getMarketsFromPolymarketApi();
+      const result = await getParsedMarketsFromPolymarketApi();
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
@@ -1476,7 +1493,7 @@ describe('polymarket utils', () => {
         offset: 5,
       };
 
-      const result = await getMarketsFromPolymarketApi(params);
+      const result = await getParsedMarketsFromPolymarketApi(params);
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
@@ -1501,7 +1518,7 @@ describe('polymarket utils', () => {
         limit: 5,
       };
 
-      await getMarketsFromPolymarketApi(params);
+      await getParsedMarketsFromPolymarketApi(params);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/events/pagination?limit=5&active=true&archived=false&closed=false&ascending=false&offset=0&tag_slug=crypto&order=volume24hr',
@@ -1514,7 +1531,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await getMarketsFromPolymarketApi();
+      const result = await getParsedMarketsFromPolymarketApi();
 
       expect(result).toEqual([]);
     });
@@ -1523,7 +1540,7 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(getMarketsFromPolymarketApi()).rejects.toThrow(
+      await expect(getParsedMarketsFromPolymarketApi()).rejects.toThrow(
         'Network error',
       );
     });
@@ -1555,7 +1572,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await getMarketFromPolymarketApi({
+      const result = await getMarketsFromPolymarketApi({
         conditionIds: ['market-1'],
       });
 
@@ -1570,7 +1587,7 @@ describe('polymarket utils', () => {
       mockFetch.mockRejectedValue(error);
 
       await expect(
-        getMarketFromPolymarketApi({ conditionIds: ['market-1'] }),
+        getMarketsFromPolymarketApi({ conditionIds: ['market-1'] }),
       ).rejects.toThrow('Network error');
     });
   });

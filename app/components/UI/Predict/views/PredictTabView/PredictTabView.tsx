@@ -22,7 +22,6 @@ import {
   PredictPosition as PredictPositionType,
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 
 interface PredictTabViewProps {}
@@ -33,10 +32,13 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     usePredictPositions({
       loadOnMount: true,
     });
-  const { claimablePositions, loadPositions: loadClaimablePositions } =
-    usePredictClaimablePositions({
-      loadOnMount: true,
-    });
+  const {
+    positions: claimablePositions,
+    loadPositions: loadClaimablePositions,
+  } = usePredictPositions({
+    loadOnMount: true,
+    claimable: true,
+  });
   const { claim, loading: isClaiming } = usePredictClaim({
     onComplete: () => {
       loadPositions({ isRefresh: true });

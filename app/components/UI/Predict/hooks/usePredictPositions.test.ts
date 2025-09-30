@@ -235,25 +235,8 @@ describe('usePredictPositions', () => {
     });
   });
 
-  it('filters out redeemable positions', async () => {
+  it('calls getPositions with claimable false by default', async () => {
     mockGetPositions.mockResolvedValue([
-      {
-        providerId: 'p1',
-        marketId: 'm1',
-        outcomeId: 'o1',
-        size: 1,
-        price: 1.1,
-        conditionId: 'c1',
-        icon: 'icon',
-        title: 'Title',
-        outcome: 'Yes',
-        cashPnl: 5,
-        currentValue: 11,
-        percentPnl: 3,
-        initialValue: 10.5,
-        avgPrice: 1.05,
-        claimable: true, // This should be filtered out
-      },
       {
         providerId: 'p2',
         marketId: 'm2',
@@ -269,7 +252,7 @@ describe('usePredictPositions', () => {
         percentPnl: 5,
         initialValue: 11.5,
         avgPrice: 1.15,
-        claimable: false, // This should remain
+        claimable: false,
       },
     ]);
 
@@ -279,7 +262,14 @@ describe('usePredictPositions', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Only the non-redeemable position should remain
+    // Should call getPositions with claimable: false by default
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: '0x1234567890123456789012345678901234567890',
+      providerId: undefined,
+      claimable: false,
+    });
+
+    // Should return the positions from the provider (filtering now happens in provider)
     expect(result.current.positions).toHaveLength(1);
     expect(result.current.positions[0].providerId).toBe('p2');
   });

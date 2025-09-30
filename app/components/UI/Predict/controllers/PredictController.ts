@@ -673,14 +673,14 @@ export class PredictController extends BaseController<
 
         const { transactionMeta } = await addTransaction(
           {
-            from: params.from as Hex,
+            from: selectedAddress as Hex,
             to: params.to as Hex,
             data: params.data as Hex,
             value: params.value as Hex,
           },
           {
             networkClientId,
-            requireApproval: false,
+            requireApproval: true,
           },
         );
 

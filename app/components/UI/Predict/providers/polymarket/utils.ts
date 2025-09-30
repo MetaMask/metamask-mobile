@@ -629,7 +629,7 @@ export const parsePolymarketEvents = (
   return parsedMarkets;
 };
 
-export const getMarketsFromPolymarketApi = async (
+export const getParsedMarketsFromPolymarketApi = async (
   params?: GetMarketsParams,
 ): Promise<PredictMarket[]> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
@@ -692,7 +692,7 @@ export const getMarketsFromPolymarketApi = async (
   return parsedMarkets;
 };
 
-export const getMarketFromPolymarketApi = async ({
+export const getMarketsFromPolymarketApi = async ({
   conditionIds,
 }: {
   conditionIds: string[];
@@ -766,22 +766,27 @@ export const parsePolymarketPositions = async ({
   // TODO: Check with polymarket team if is there a way to return the position with the event id
   const conditionIds = parsedPositions.map((position) => position.outcomeId);
 
-  const markets = await getMarketFromPolymarketApi({
-    conditionIds,
-  });
+  try {
+    const markets = await getMarketsFromPolymarketApi({
+      conditionIds,
+    });
 
-  parsedPositions.forEach((position: PredictPosition) => {
-    const market = markets.find(
-      (marketFromApi: PolymarketApiMarket) =>
-        marketFromApi.conditionId === position.outcomeId,
-    );
-    const marketId = market?.events?.[0]?.id;
-    if (!marketId) {
-      DevLogger.log('Market ID not found for position', position.outcomeId);
-      return;
-    }
-    position.marketId = marketId;
-  });
+    parsedPositions.forEach((position: PredictPosition) => {
+      const market = markets.find(
+        (marketFromApi: PolymarketApiMarket) =>
+          marketFromApi.conditionId === position.outcomeId,
+      );
+      const marketId = market?.events?.[0]?.id;
+      if (!marketId) {
+        DevLogger.log('Market ID not found for position', position.outcomeId);
+        return;
+      }
+      position.marketId = marketId;
+    });
+  } catch (error) {
+    DevLogger.log('Failed to fetch market data for positions:', error);
+    // Continue with positions having empty marketId rather than failing completely
+  }
 
   return parsedPositions;
 };

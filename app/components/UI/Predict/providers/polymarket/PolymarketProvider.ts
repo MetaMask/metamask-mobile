@@ -45,8 +45,8 @@ import {
   encodeErc1155Approve,
   getContractConfig,
   getL2Headers,
-  getMarketFromPolymarketApi,
   getMarketsFromPolymarketApi,
+  getParsedMarketsFromPolymarketApi,
   getOrderTypedData,
   getPolymarketEndpoints,
   getTickSize,
@@ -108,7 +108,7 @@ export class PolymarketProvider implements PredictProvider {
     const [tickSizeResponse, price, marketData] = await Promise.all([
       getTickSize({ tokenId }),
       calculateMarketPrice(tokenId, side, size, OrderType.FOK),
-      getMarketFromPolymarketApi({ conditionIds: [conditionId] }),
+      getMarketsFromPolymarketApi({ conditionIds: [conditionId] }),
     ]);
 
     const tickSize = tickSizeResponse.minimum_tick_size;
@@ -166,7 +166,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getMarketsFromPolymarketApi(params);
+      const markets = await getParsedMarketsFromPolymarketApi(params);
       return markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
@@ -195,11 +195,16 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Failed to get positions');
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
-    const parsedPositions = parsePolymarketPositions({
+    const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
     });
 
-    return parsedPositions;
+    // TODO: Remove this the filtering when polymarket api is fixed
+    const filteredPositions = claimable
+      ? parsedPositions
+      : parsedPositions.filter((position) => !position.claimable);
+
+    return filteredPositions;
   }
 
   public async prepareBuyOrder({

@@ -14,8 +14,8 @@ import {
   encodeErc1155Approve,
   getContractConfig,
   getL2Headers,
-  getMarketFromPolymarketApi,
   getMarketsFromPolymarketApi,
+  getParsedMarketsFromPolymarketApi,
   getOrderTypedData,
   getPolymarketEndpoints,
   getTickSize,
@@ -73,8 +73,8 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
 const mockSignTypedMessage = Engine.context.KeyringController
   .signTypedMessage as jest.Mock;
 const mockGetMarketsFromPolymarketApi =
-  getMarketsFromPolymarketApi as jest.Mock;
-const mockGetMarketFromPolymarketApi = getMarketFromPolymarketApi as jest.Mock;
+  getParsedMarketsFromPolymarketApi as jest.Mock;
+const mockGetMarketFromPolymarketApi = getMarketsFromPolymarketApi as jest.Mock;
 const mockGetTickSize = getTickSize as jest.Mock;
 const mockCalculateMarketPrice = calculateMarketPrice as jest.Mock;
 const mockBuildMarketOrderCreationArgs =

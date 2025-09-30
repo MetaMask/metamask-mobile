@@ -82,16 +82,13 @@ export function usePredictPositions(
           claimable,
         });
         const validPositions = positionsData ?? [];
-        // Filter out positions that have been completed (claimed)
-        const filteredPositions = validPositions.filter(
-          (position) => !position.claimable,
-        );
-        setPositions(filteredPositions);
+
+        setPositions(validPositions);
 
         DevLogger.log('usePredictPositions: Loaded positions', {
           originalCount: validPositions.length,
-          filteredCount: filteredPositions.length,
-          positions: filteredPositions.map((p) => ({
+          filteredCount: validPositions.length,
+          positions: validPositions.map((p) => ({
             size: p.size,
             outcomeId: p.outcomeId,
             outcomeIndex: p.outcomeIndex,
