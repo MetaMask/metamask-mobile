@@ -17,7 +17,7 @@ public class DetoxTest {
 	   @Rule
      public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class, false, false);
 
-     
+    
      @Test
      public void runDetoxTests() {
          DetoxConfig detoxConfig = new DetoxConfig();

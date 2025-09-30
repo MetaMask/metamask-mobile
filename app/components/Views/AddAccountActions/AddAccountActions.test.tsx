@@ -19,6 +19,7 @@ import { MultichainNetwork } from '@metamask/multichain-transactions-controller'
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { TrxScope } from '@metamask/keyring-api';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -243,6 +244,11 @@ describe('AddAccountActions', () => {
         button: AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
         scope: MultichainNetwork.Solana,
         clientType: WalletClientType.Solana,
+      },
+      {
+        button: AddAccountBottomSheetSelectorsIDs.ADD_TRON_ACCOUNT_BUTTON,
+        scope: TrxScope.Mainnet,
+        clientType: WalletClientType.Tron,
       },
     ])(
       'navigates to AddAccount screen on press with $scope and $clientType',
