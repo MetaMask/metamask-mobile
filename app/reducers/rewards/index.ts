@@ -5,6 +5,7 @@ import {
   GeoRewardsMetadata,
   PointsBoostDto,
   RewardDto,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { CaipAccountId } from '@metamask/utils';
@@ -63,6 +64,9 @@ export interface RewardsState {
   activeBoostsLoading: boolean;
   activeBoostsError: boolean;
 
+  // Points Events state
+  pointsEvents: PointsEventDto[] | null;
+
   // Unlocked Rewards state
   unlockedRewards: RewardDto[] | null;
   unlockedRewardLoading: boolean;
@@ -105,6 +109,8 @@ export const initialState: RewardsState = {
   activeBoosts: null,
   activeBoostsLoading: false,
   activeBoostsError: false,
+
+  pointsEvents: null,
 
   unlockedRewards: null,
   unlockedRewardLoading: false,
