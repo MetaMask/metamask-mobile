@@ -15,7 +15,7 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsHardwareAccount,
 ];
 
-const ON_CHANGE_ALERTS = [
+export const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
 ];
@@ -58,7 +58,7 @@ export function useTransactionCustomAmountAlerts({
     : undefined;
 
   const alertMessage =
-    hasAlert && firstAlert?.title ? firstAlert?.message as string : undefined;
+    hasAlert && firstAlert?.title ? (firstAlert?.message as string) : undefined;
 
   return {
     alertMessage,
