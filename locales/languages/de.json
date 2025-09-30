@@ -1519,7 +1519,7 @@
       },
       "choose_leverage": {
         "title": "Ihren Hebel wählen",
-        "description": "Der Hebel verstärkt Gewinne und Verluste gleichermaßen. Bei einem 40-fachen Hebel bedeutet eine Preisbewegung von 4 % einen Gewinn oder Verlust von 40 % auf Ihre Margin."
+        "description": "Der Hebel verstärkt Gewinne und Verluste gleichermaßen. Bei einem 40-fachen Hebel bedeutet eine Preisbewegung von 1 % einen Gewinn oder Verlust von 40 % auf Ihre Margin."
       },
       "watch_liquidation": {
         "title": "Achten Sie auf die Liquidation",
