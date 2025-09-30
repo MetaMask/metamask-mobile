@@ -26,6 +26,8 @@ export const ASSETS_REQUIRING_LIGHT_BG = new Set([
   'BIGTIME',
   'GALA',
   'AR',
+  'UNI',
+  'ETHFI',
   // ... more assets
 ]);
 
