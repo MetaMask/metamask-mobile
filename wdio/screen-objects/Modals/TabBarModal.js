@@ -1,17 +1,23 @@
 import Selectors from '../../helpers/Selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { TabBarSelectorIDs } from '../../../e2e/selectors/wallet/TabBar.selectors';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
 import { expect as appwrightExpect } from 'appwright';
 
-class TabBarModal {
+class TabBarModal extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get walletButton() {
@@ -79,8 +85,8 @@ class TabBarModal {
       const walletIcon = await this.walletButton;
       await appwrightExpect(walletIcon).toBeVisible();
 
-      // For Appwright, we'll use a simpler approach
-      await walletIcon.tap();
+      // Use inherited tap method with retry logic
+      await this.tap(walletIcon);
     }
   }
 
@@ -88,18 +94,8 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.browserButton);
     } else {
-      try {
-        const browserIcon = await this.browserButton;
-        await browserIcon.tap();
-      } catch (error) {
-        if (error.message.includes('not found')) {
-          console.log('Browser button not found, retrying...');
-          const browserIcon = await this.browserButton;
-          await browserIcon.tap();
-        } else {
-          throw error;
-        }
-      }
+      const browserIcon = await this.browserButton;
+      await this.tap(browserIcon); // Use inherited tap method with retry logic
     }
   }
 
@@ -112,7 +108,7 @@ class TabBarModal {
     } else {
       const actionButton = await this.actionButton;
       await appwrightExpect(actionButton).toBeVisible();
-      await actionButton.tap();
+      await this.tap(actionButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -121,7 +117,7 @@ class TabBarModal {
       await Gestures.waitAndTap(this.tradeButton);
     } else {
       const tradeButton = await this.tradeButton;
-      await tradeButton.tap();
+      await this.tap(tradeButton);
     }
   }
 
@@ -131,7 +127,7 @@ class TabBarModal {
       await Gestures.waitAndTap(this.settingsButton);
     } else {
       const settingsButton = await this.settingsButton;
-      await settingsButton.tap();
+      await this.tap(settingsButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -140,7 +136,7 @@ class TabBarModal {
       await Gestures.waitAndTap(this.activityButton);
     } else {
       const activityButton = await this.activityButton;
-      await activityButton.tap();
+      await this.tap(activityButton); // Use inherited tap method with retry logic
     }
   }
 }

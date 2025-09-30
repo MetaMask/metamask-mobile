@@ -193,7 +193,7 @@ const SeasonStatus: React.FC = () => {
         twClassName="gap-2 justify-between items-center"
       >
         <Box
-          alignItems={BoxAlignItems.Center}
+          alignItems={BoxAlignItems.Start}
           flexDirection={BoxFlexDirection.Row}
           twClassName="gap-2"
         >
@@ -215,7 +215,10 @@ const SeasonStatus: React.FC = () => {
         </Box>
 
         {!!nextTierPointsNeeded && (
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative w-[50%] text-right"
+          >
             {formatNumber(nextTierPointsNeeded)}{' '}
             {strings('rewards.to_level_up').toLowerCase()}
           </Text>

@@ -160,7 +160,7 @@ jest.mock('../../../../hooks/useBlockExplorer', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     toBlockExplorer: jest.fn(),
-    blockExplorerName: 'Etherscan (Multichain)',
+    getBlockExplorerName: jest.fn().mockReturnValue('Etherscan (Multichain)'),
   }),
 }));
 
@@ -323,12 +323,15 @@ describe('ShareAddressQR', () => {
   it('navigates to block explorer when View on Etherscan button is pressed', () => {
     // Arrange
     const mockToBlockExplorer = jest.fn();
+    const mockGetBlockExplorerName = jest
+      .fn()
+      .mockReturnValue('Etherscan (Multichain)');
     const useBlockExplorer = jest.requireMock(
       '../../../../hooks/useBlockExplorer',
     ).default;
     useBlockExplorer.mockReturnValue({
       toBlockExplorer: mockToBlockExplorer,
-      blockExplorerName: 'Etherscan (Multichain)',
+      getBlockExplorerName: mockGetBlockExplorerName,
     });
 
     const { getByTestId } = render();

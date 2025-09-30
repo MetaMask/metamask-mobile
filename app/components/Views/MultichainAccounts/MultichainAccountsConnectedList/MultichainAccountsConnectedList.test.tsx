@@ -207,7 +207,7 @@ const DEFAULT_PROPS = {
 
 const mockStore = configureStore([]);
 const buildState = (groups: AccountGroupObject[]) => {
-  const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+  const wallet = createMockWallet('keyring:test-group', 'Test Wallet', groups);
   const internalAccounts = createMockInternalAccountsFromGroups(groups);
   return createMockState([wallet], internalAccounts);
 };
