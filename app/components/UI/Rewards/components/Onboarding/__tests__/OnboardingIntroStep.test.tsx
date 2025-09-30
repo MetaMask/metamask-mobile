@@ -1,5 +1,61 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
+// Mock tailwind preset to provide ThemeProvider and Theme.Light used by ButtonHero
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    useTailwind: () => ({
+      // Return a minimal style function used in components
+      style: (..._args: unknown[]) => ({} as Record<string, unknown>),
+    }),
+    ThemeProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+    Theme: { Light: 'Light' },
+  };
+});
+
+// Mock ButtonHero to a simple Touchable implementation to avoid theme coupling
+jest.mock(
+  '../../../../../../component-library/components-temp/Buttons/ButtonHero',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { TouchableOpacity, Text: RNText } =
+      jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (
+        params: {
+          children?: React.ReactNode;
+          onPress?: () => void;
+          isLoading?: boolean;
+          loadingText?: React.ReactNode;
+        } & Record<string, unknown>,
+      ) =>
+        // Destructure with explicit types to avoid implicit any
+        (({
+          children,
+          onPress,
+          isLoading,
+          loadingText,
+          ...props
+        }: {
+          children?: React.ReactNode;
+          onPress?: () => void;
+          isLoading?: boolean;
+          loadingText?: React.ReactNode;
+        } & Record<string, unknown>) =>
+          ReactActual.createElement(
+            TouchableOpacity,
+            { onPress, testID: 'button-hero', ...props },
+            ReactActual.createElement(
+              RNText,
+              null,
+              isLoading ? loadingText : children,
+            ),
+          ))(params),
+    };
+  },
+);
 // Inject default props into OnboardingIntroStep to reflect new API
 jest.mock('../OnboardingIntroStep', () => {
   const ReactActual = jest.requireActual('react');
