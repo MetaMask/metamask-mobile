@@ -156,8 +156,9 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       ...(isSolanaTestnetEnabledBoolean ? [SolScope.Devnet] : []),
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       TrxScope.Mainnet,
-      TrxScope.Nile,
-      TrxScope.Shasta,
+      // TODO: Uncomment these when we have a FF to enable them
+      // TrxScope.Nile,
+      // TrxScope.Shasta,
       ///: END:ONLY_INCLUDE_IF
     ];
 
