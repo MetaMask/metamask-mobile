@@ -1,12 +1,8 @@
 import {
   MultichainAccountService,
   MultichainAccountServiceMessenger,
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   BtcAccountProvider,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxAccountProvider,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { ControllerInitFunction } from '../../types';
 
@@ -24,12 +20,8 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
     providers: [
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       new BtcAccountProvider(controllerMessenger),
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       new TrxAccountProvider(controllerMessenger),
-      /// END:ONLY_INCLUDE_IF
     ].filter(Boolean),
   });
 
