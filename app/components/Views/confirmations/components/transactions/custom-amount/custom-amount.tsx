@@ -1,15 +1,15 @@
 import React from 'react';
 import { TextInput, View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './edit-amount-2.styles';
-import { getCurrencySymbol } from '../../../../../util/number';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './custom-amount.styles';
+import { getCurrencySymbol } from '../../../../../../util/number';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 
 export const MAX_LENGTH = 28;
 
-export interface EditAmountProps {
+export interface CustomAmountProps {
   amountFiat: string;
   currency?: string;
   hasAlert?: boolean;
@@ -18,14 +18,16 @@ export interface EditAmountProps {
   onPress?: () => void;
 }
 
-export function EditAmount({
-  amountFiat,
-  currency: currencyProp,
-  hasAlert = false,
-  isLoading,
-  onChange,
-  onPress,
-}: Readonly<EditAmountProps>) {
+export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
+  const {
+    amountFiat,
+    currency: currencyProp,
+    hasAlert = false,
+    isLoading,
+    onChange,
+    onPress,
+  } = props;
+
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
@@ -37,18 +39,19 @@ export function EditAmount({
   });
 
   if (isLoading) {
-    return <EditAmountSkeleton />;
+    return <CustomAmountSkeleton />;
   }
 
   return (
     <View style={styles.container}>
       <TextInput
+        testID="custom-amount-symbol"
         style={styles.input}
         defaultValue={fiatSymbol}
         editable={false}
       />
       <TextInput
-        testID="edit-amount-input"
+        testID="custom-amount-input"
         style={styles.input}
         defaultValue={amountFiat}
         showSoftInputOnFocus={false}
@@ -59,16 +62,16 @@ export function EditAmount({
       />
     </View>
   );
-}
+});
 
-export function EditAmountSkeleton() {
+export function CustomAmountSkeleton() {
   const { styles } = useStyles(styleSheet, {
     amountLength: 1,
     hasAlert: false,
   });
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="custom-amount-skeleton">
       <Skeleton height={70} width={80} />
     </View>
   );

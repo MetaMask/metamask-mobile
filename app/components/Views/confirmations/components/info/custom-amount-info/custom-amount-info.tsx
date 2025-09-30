@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { EditAmount } from '../../edit-amount-2/edit-amount-2';
 import { PayTokenAmount } from '../../pay-token-amount';
 import InfoSection from '../../UI/info-row/info-section';
 import { PayWithRow } from '../../rows/pay-with-row';
@@ -14,15 +13,13 @@ import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import AlertBanner from '../../alert-banner';
-import useNavbar from '../../../hooks/ui/useNavbar';
-import { strings } from '../../../../../../../locales/i18n';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AlertMessage } from '../../alerts/alert-message';
+import { CustomAmount } from '../../transactions/custom-amount';
 
 export function CustomAmountInfo() {
-  useNavbar(strings('confirm.title.perps_deposit'));
   useClearConfirmationOnBackSwipe();
   useAutomaticTransactionPayToken();
 
@@ -56,7 +53,7 @@ export function CustomAmountInfo() {
   return (
     <Box style={styles.container}>
       <Box>
-        <EditAmount
+        <CustomAmount
           amountFiat={amountFiat}
           hasAlert={Boolean(keyboardAlertMessage)}
           onPress={() => setKeyboardVisible(true)}
@@ -88,7 +85,6 @@ export function CustomAmountInfo() {
         <DepositKeyboard
           alertMessage={keyboardAlertMessage}
           value={amountFiat}
-          hasInput={false}
           onChange={updatePendingAmount}
           onDonePress={handleDone}
           onPercentagePress={noop}
