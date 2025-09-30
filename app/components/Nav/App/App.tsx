@@ -153,6 +153,7 @@ import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/Mult
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1117,6 +1118,12 @@ const App: React.FC = () => {
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+
+        // Track vault corruption with enabled state checking
+        trackVaultCorruption(errorMessage, {
+          error_type: 'app_startup_authentication_failure',
+          context: 'app_initialization_unlock_failed',
+        });
 
         // Only call lockApp if there is an existing user to prevent unnecessary calls
         await Authentication.lockApp({ reset: false, locked });
