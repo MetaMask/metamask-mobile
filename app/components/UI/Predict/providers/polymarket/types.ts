@@ -162,7 +162,7 @@ export interface PolymarketApiEvent {
   title: string;
   description: string;
   icon: string;
-  endDate: string;
+  endDate?: string;
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
