@@ -8,6 +8,7 @@ import {
 } from '@react-navigation/native';
 import PredictMarketDetails from './PredictMarketDetails';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -592,19 +593,14 @@ describe('PredictMarketDetails', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('navigates to parent when current navigation cannot go back', () => {
-      const { mockCanGoBack, mockGetParent } = setupPredictMarketDetailsTest();
+    it('navigates to predict root when current navigation cannot go back', () => {
+      const { mockCanGoBack, mockNavigate } = setupPredictMarketDetailsTest();
       mockCanGoBack.mockReturnValue(false);
-      const mockParentGoBack = jest.fn();
-      mockGetParent.mockReturnValue({
-        canGoBack: jest.fn(() => true),
-        goBack: mockParentGoBack,
-      });
 
       const backButton = screen.getByTestId('icon-ArrowLeft');
       fireEvent.press(backButton);
 
-      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT);
     });
   });
 

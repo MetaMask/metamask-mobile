@@ -8,8 +8,8 @@ import {
 } from '../types';
 
 export interface UsePredictPriceHistoryOptions
-  extends Omit<GetPriceHistoryParams, 'market'> {
-  market?: string;
+  extends Omit<GetPriceHistoryParams, 'marketId'> {
+  marketId?: string;
   enabled?: boolean;
 }
 
@@ -27,7 +27,7 @@ export const usePredictPriceHistory = (
   options: UsePredictPriceHistoryOptions = {},
 ): UsePredictPriceHistoryResult => {
   const {
-    market,
+    marketId,
     fidelity,
     interval = PredictPriceHistoryInterval.ONE_DAY,
     providerId,
@@ -61,7 +61,7 @@ export const usePredictPriceHistory = (
       return;
     }
 
-    if (!market) {
+    if (!marketId) {
       if (isMountedRef.current) {
         setPriceHistory([]);
         setError(null);
@@ -86,7 +86,7 @@ export const usePredictPriceHistory = (
       }
 
       const history = await controller.getPriceHistory({
-        market,
+        marketId,
         fidelity,
         interval,
         providerId,
@@ -113,7 +113,7 @@ export const usePredictPriceHistory = (
         setIsFetching(false);
       }
     }
-  }, [enabled, market, fidelity, interval, providerId]);
+  }, [enabled, marketId, fidelity, interval, providerId]);
 
   useEffect(() => {
     fetchPriceHistory();

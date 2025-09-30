@@ -171,7 +171,7 @@ export interface PredictPriceHistoryPoint {
 }
 
 export interface GetPriceHistoryParams {
-  market: string;
+  marketId: string;
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;

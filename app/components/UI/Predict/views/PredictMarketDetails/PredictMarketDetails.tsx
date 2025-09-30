@@ -118,7 +118,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // NOTE: Invoke once per outcome so hooks stay at the top level and comply with the rules of hooks.
   const priceHistoryResultA = usePredictPriceHistory({
-    market: outcomeTokenIdA,
+    marketId: outcomeTokenIdA,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
@@ -126,7 +126,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   const priceHistoryResultB = usePredictPriceHistory({
-    market: outcomeTokenIdB,
+    marketId: outcomeTokenIdB,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
@@ -134,7 +134,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   const priceHistoryResultC = usePredictPriceHistory({
-    market: outcomeTokenIdC,
+    marketId: outcomeTokenIdC,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
@@ -203,6 +203,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleBackPress = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
+    } else {
+      // If we can't go back, navigate to the main predict screen
+      navigation.navigate(Routes.PREDICT.ROOT);
     }
   };
 

@@ -95,9 +95,11 @@ export class PolymarketProvider implements PredictProvider {
       throw error;
     }
   }
+
   public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
     throw new Error('Method not implemented.');
   }
+
   public claimWinnings(): Promise<void> {
     throw new Error('Method not implemented.');
   }
@@ -198,17 +200,17 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async getPriceHistory({
-    market,
+    marketId,
     fidelity,
     interval,
   }: GetPriceHistoryParams): Promise<PredictPriceHistoryPoint[]> {
-    if (!market) {
-      throw new Error('market parameter is required');
+    if (!marketId) {
+      throw new Error('marketId parameter is required');
     }
 
     try {
       const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-      const searchParams = new URLSearchParams({ market });
+      const searchParams = new URLSearchParams({ market: marketId });
 
       if (typeof fidelity === 'number') {
         searchParams.set('fidelity', String(fidelity));

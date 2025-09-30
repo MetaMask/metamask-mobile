@@ -54,7 +54,7 @@ describe('usePredictPriceHistory', () => {
 
     it('returns empty price history and not fetching when market is undefined', () => {
       const { result } = renderHook(() =>
-        usePredictPriceHistory({ market: undefined }),
+        usePredictPriceHistory({ marketId: undefined }),
       );
 
       expect(result.current.priceHistory).toEqual([]);
@@ -64,7 +64,7 @@ describe('usePredictPriceHistory', () => {
 
     it('returns empty price history and not fetching when market is empty string', () => {
       const { result } = renderHook(() =>
-        usePredictPriceHistory({ market: '' }),
+        usePredictPriceHistory({ marketId: '' }),
       );
 
       expect(result.current.priceHistory).toEqual([]);
@@ -78,7 +78,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       // Initially loading
@@ -93,7 +93,7 @@ describe('usePredictPriceHistory', () => {
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(result.current.error).toBe(null);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -105,7 +105,7 @@ describe('usePredictPriceHistory', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPriceHistory({
-          market: 'market-1',
+          marketId: 'market-1',
           interval: PredictPriceHistoryInterval.ONE_HOUR,
         }),
       );
@@ -114,7 +114,7 @@ describe('usePredictPriceHistory', () => {
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_HOUR,
         providerId: undefined,
@@ -126,7 +126,7 @@ describe('usePredictPriceHistory', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPriceHistory({
-          market: 'market-1',
+          marketId: 'market-1',
           providerId: 'polymarket',
         }),
       );
@@ -135,7 +135,7 @@ describe('usePredictPriceHistory', () => {
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: 'polymarket',
@@ -147,7 +147,7 @@ describe('usePredictPriceHistory', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPriceHistory({
-          market: 'market-1',
+          marketId: 'market-1',
           fidelity: 100,
         }),
       );
@@ -156,7 +156,7 @@ describe('usePredictPriceHistory', () => {
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: 100,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -167,7 +167,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(null);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       await waitForNextUpdate();
@@ -181,7 +181,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(undefined);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       await waitForNextUpdate();
@@ -198,7 +198,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockRejectedValue(new Error(errorMessage));
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       await waitForNextUpdate();
@@ -216,7 +216,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockRejectedValue('String error');
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       await waitForNextUpdate();
@@ -234,7 +234,7 @@ describe('usePredictPriceHistory', () => {
   describe('enabled option', () => {
     it('does not fetch when enabled is false', () => {
       renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1', enabled: false }),
+        usePredictPriceHistory({ marketId: 'market-1', enabled: false }),
       );
 
       expect(mockGetPriceHistory).not.toHaveBeenCalled();
@@ -245,7 +245,7 @@ describe('usePredictPriceHistory', () => {
 
       const { result, rerender, waitForNextUpdate } = renderHook(
         ({ enabled }) =>
-          usePredictPriceHistory({ market: 'market-1', enabled }),
+          usePredictPriceHistory({ marketId: 'market-1', enabled }),
         { initialProps: { enabled: true } },
       );
 
@@ -266,7 +266,7 @@ describe('usePredictPriceHistory', () => {
 
       const { result, rerender, waitForNextUpdate } = renderHook(
         ({ enabled }) =>
-          usePredictPriceHistory({ market: 'market-1', enabled }),
+          usePredictPriceHistory({ marketId: 'market-1', enabled }),
         { initialProps: { enabled: false } },
       );
 
@@ -279,7 +279,7 @@ describe('usePredictPriceHistory', () => {
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -292,7 +292,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       await waitForNextUpdate();
@@ -311,7 +311,7 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { result, rerender } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       const firstRefetch = result.current.refetch;
@@ -324,7 +324,7 @@ describe('usePredictPriceHistory', () => {
 
     it('does not refetch when disabled', async () => {
       const { result } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1', enabled: false }),
+        usePredictPriceHistory({ marketId: 'market-1', enabled: false }),
       );
 
       await act(async () => {
@@ -340,26 +340,26 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { rerender, waitForNextUpdate } = renderHook(
-        ({ market }) => usePredictPriceHistory({ market }),
-        { initialProps: { market: 'market-1' } },
+        ({ marketId }) => usePredictPriceHistory({ marketId }),
+        { initialProps: { marketId: 'market-1' } },
       );
 
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
       });
 
       // Change market
-      rerender({ market: 'market-2' });
+      rerender({ marketId: 'market-2' });
 
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-2',
+        marketId: 'market-2',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -372,14 +372,14 @@ describe('usePredictPriceHistory', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ interval }) =>
-          usePredictPriceHistory({ market: 'market-1', interval }),
+          usePredictPriceHistory({ marketId: 'market-1', interval }),
         { initialProps: { interval: PredictPriceHistoryInterval.ONE_HOUR } },
       );
 
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_HOUR,
         providerId: undefined,
@@ -391,7 +391,7 @@ describe('usePredictPriceHistory', () => {
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_WEEK,
         providerId: undefined,
@@ -404,14 +404,14 @@ describe('usePredictPriceHistory', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ providerId }) =>
-          usePredictPriceHistory({ market: 'market-1', providerId }),
+          usePredictPriceHistory({ marketId: 'market-1', providerId }),
         { initialProps: { providerId: 'polymarket' } },
       );
 
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: 'polymarket',
@@ -423,7 +423,7 @@ describe('usePredictPriceHistory', () => {
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: 'other-provider',
@@ -436,14 +436,14 @@ describe('usePredictPriceHistory', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ fidelity }) =>
-          usePredictPriceHistory({ market: 'market-1', fidelity }),
+          usePredictPriceHistory({ marketId: 'market-1', fidelity }),
         { initialProps: { fidelity: 50 } },
       );
 
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: 50,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -455,7 +455,7 @@ describe('usePredictPriceHistory', () => {
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: 100,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -474,7 +474,7 @@ describe('usePredictPriceHistory', () => {
       );
 
       const { result, unmount } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       // Start the fetch
@@ -498,14 +498,14 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { rerender } = renderHook(
-        ({ market }) => usePredictPriceHistory({ market }),
-        { initialProps: { market: 'market-1' } },
+        ({ marketId }) => usePredictPriceHistory({ marketId }),
+        { initialProps: { marketId: 'market-1' } },
       );
 
       // Rapidly change market multiple times
-      rerender({ market: 'market-2' });
-      rerender({ market: 'market-3' });
-      rerender({ market: 'market-4' });
+      rerender({ marketId: 'market-2' });
+      rerender({ marketId: 'market-3' });
+      rerender({ marketId: 'market-4' });
 
       // Wait for all promises to settle
       await act(async () => {
@@ -520,13 +520,13 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue([]);
 
       const { waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -537,14 +537,14 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1', fidelity: 0 }),
+        usePredictPriceHistory({ marketId: 'market-1', fidelity: 0 }),
       );
 
       await waitForNextUpdate();
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: 0,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -555,14 +555,14 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1', fidelity: -1 }),
+        usePredictPriceHistory({ marketId: 'market-1', fidelity: -1 }),
       );
 
       await waitForNextUpdate();
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: -1,
         interval: PredictPriceHistoryInterval.ONE_DAY,
         providerId: undefined,
@@ -576,7 +576,7 @@ describe('usePredictPriceHistory', () => {
 
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPriceHistory({
-          market: 'test-market-id',
+          marketId: 'test-market-id',
           providerId: 'test-provider',
           fidelity: 75,
           interval: PredictPriceHistoryInterval.ONE_WEEK,
@@ -586,7 +586,7 @@ describe('usePredictPriceHistory', () => {
       await waitForNextUpdate();
 
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'test-market-id',
+        marketId: 'test-market-id',
         providerId: 'test-provider',
         fidelity: 75,
         interval: PredictPriceHistoryInterval.ONE_WEEK,
@@ -600,7 +600,7 @@ describe('usePredictPriceHistory', () => {
       });
 
       const { result } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1' }),
+        usePredictPriceHistory({ marketId: 'market-1' }),
       );
 
       // Wait a bit for the error to be processed
@@ -626,14 +626,14 @@ describe('usePredictPriceHistory', () => {
       mockGetPriceHistory.mockResolvedValue(mockPriceHistory);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictPriceHistory({ market: 'market-1', interval }),
+        usePredictPriceHistory({ marketId: 'market-1', interval }),
       );
 
       await waitForNextUpdate();
 
       expect(result.current.priceHistory).toEqual(mockPriceHistory);
       expect(mockGetPriceHistory).toHaveBeenCalledWith({
-        market: 'market-1',
+        marketId: 'market-1',
         fidelity: undefined,
         interval,
         providerId: undefined,
