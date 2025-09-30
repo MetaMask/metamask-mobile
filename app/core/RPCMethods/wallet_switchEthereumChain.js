@@ -123,7 +123,7 @@ export const switchEthereumChainHandler = {
     getCurrentChainIdForDomain: true,
     requestPermittedChainsPermissionIncrementalForOrigin: true,
     setTokenNetworkFilter: true,
-    hasApprovalRequestsForOrigin: true,
+    hasApprovalRequestsForOrigin: true, // not needed here, but is needed by wallet_addEthereumChain
     rejectApprovalRequestsForOrigin: true,
   },
 };

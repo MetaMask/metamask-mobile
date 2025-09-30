@@ -17,6 +17,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../Engine';
 import { isSnapId } from '@metamask/snaps-utils';
+import Logger from '../../../util/Logger';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -257,6 +258,7 @@ export async function switchToNetwork({
           isSwitchEthereumChain: true,
         };
       }
+      Logger.log('requestPermittedChainsPermissionIncrementalForOrigin', chainId, autoApprove, metadata);
       await requestPermittedChainsPermissionIncrementalForOrigin({
         chainId,
         autoApprove,

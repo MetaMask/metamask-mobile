@@ -19,6 +19,7 @@ import {
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { addItemToChainIdList } from '../../util/metrics/MultichainAPI/networkMetricUtils';
+import Logger from '../../util/Logger';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -75,10 +76,7 @@ export const wallet_addEthereumChain = async ({
     ticker,
   } = params;
 
-  const switchToNetworkAndMetrics = async (network) => {
-    const { networkClientId } =
-      network.rpcEndpoints[network.defaultRpcEndpointIndex];
-
+  const shouldAddOrUpdateNetwork = (network) => {
     const existingNetwork = hooks.getNetworkConfigurationByChainId(chainId);
     const rpcIndex = existingNetwork?.rpcEndpoints.findIndex(({ url }) =>
       equal(url, firstValidRPCUrl),
@@ -86,15 +84,19 @@ export const wallet_addEthereumChain = async ({
 
     const blockExplorerIndex = firstValidBlockExplorerUrl
       ? existingNetwork?.blockExplorerUrls.findIndex((url) =>
-          equal(url, firstValidBlockExplorerUrl),
-        )
+        equal(url, firstValidBlockExplorerUrl),
+      )
       : undefined;
 
-    const shouldAddOrUpdateNetwork =
-      !existingNetwork ||
+    return !existingNetwork ||
       rpcIndex !== existingNetwork.defaultRpcEndpointIndex ||
       (firstValidBlockExplorerUrl &&
         blockExplorerIndex !== existingNetwork.defaultBlockExplorerUrlIndex);
+  }
+
+
+  const switchToNetworkAndMetrics = async (network, autoApprove) => {
+    Logger.log('switchToNetworkAndMetrics', shouldAddOrUpdateNetwork, existingNetwork, rpcIndex, firstValidBlockExplorerUrl, blockExplorerIndex);
 
     await switchToNetwork({
       network: [networkClientId, network],
@@ -107,7 +109,7 @@ export const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
-      autoApprove: shouldAddOrUpdateNetwork,
+      autoApprove,
       isAddFlow: true,
       hooks,
     });
@@ -141,11 +143,13 @@ export const wallet_addEthereumChain = async ({
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
-    switchToNetworkAndMetrics({
+    const newNetworkConfiguration = {
       ...existingNetworkConfiguration,
       rpcEndpoints: rpcResult.updatedArray,
       defaultRpcEndpointIndex: rpcResult.index,
-    });
+    };
+
+    switchToNetworkAndMetrics(newNetworkConfiguration, shouldAddOrUpdateNetwork(newNetworkConfiguration));
 
     res.result = null;
     return;
@@ -241,9 +245,9 @@ export const wallet_addEthereumChain = async ({
       updatedNetworkConfiguration,
       currentChainId === chainId
         ? {
-            replacementSelectedRpcEndpointIndex:
-              updatedNetworkConfiguration.defaultRpcEndpointIndex,
-          }
+          replacementSelectedRpcEndpointIndex:
+            updatedNetworkConfiguration.defaultRpcEndpointIndex,
+        }
         : undefined,
     );
   } else {
@@ -276,7 +280,7 @@ export const wallet_addEthereumChain = async ({
 
     MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
-  switchToNetworkAndMetrics(newNetworkConfiguration);
+  switchToNetworkAndMetrics(newNetworkConfiguration, true);
 
   res.result = null;
 };
