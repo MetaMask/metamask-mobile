@@ -7,7 +7,7 @@ import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
@@ -76,7 +76,9 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, 'token-network-filter');
+      return AppwrightSelectors.getElementByText(this._device, "All Networks");
+
+      // return AppwrightSelectors.getElementByID(this._device, "tokens-network-filter");
     }
   }
 

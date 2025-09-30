@@ -1,4 +1,4 @@
-import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
+import AppwrightSelectors from './AppwrightSelectors';
 import { APP_PACKAGE_IDS } from './Constants';
 /* This file is not in used at the moment because files in the wdio folder are expecting to be in js and not ts
 so we are keeping it here for reference but not using it in the project.

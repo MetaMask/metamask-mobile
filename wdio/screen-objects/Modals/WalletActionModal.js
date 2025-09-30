@@ -1,6 +1,6 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 

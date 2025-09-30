@@ -1,5 +1,5 @@
 import Selectors from '../../helpers/Selectors';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { TabBarSelectorIDs } from '../../../e2e/selectors/wallet/TabBar.selectors';
 import Gestures from '../../helpers/Gestures';

@@ -10,7 +10,7 @@ import {
   UNDERSTAND_WARNING_CONTINUE,
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
