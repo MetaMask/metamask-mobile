@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+} from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -47,9 +50,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
-import RewardsNavigator, {
-  RewardsModalStack,
-} from '../../UI/Rewards/RewardsNavigator';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -115,6 +116,11 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import OnboardingStep1 from '../../UI/Rewards/components/Onboarding/OnboardingStep1';
+import OnboardingStep2 from '../../UI/Rewards/components/Onboarding/OnboardingStep2';
+import OnboardingStep3 from '../../UI/Rewards/components/Onboarding/OnboardingStep3';
+import OnboardingStep4 from '../../UI/Rewards/components/Onboarding/OnboardingStep4';
+import RewardsIntroModal from '../../UI/Rewards/components/Onboarding/RewardsIntroModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1082,6 +1088,56 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      {/* For navigation from rewards GTM modal */}
+      {isRewardsEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.MODAL.REWARDS_INTRO_MODAL}
+            component={RewardsIntroModal}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+            component={RewardsBottomSheetModal}
+            options={{
+              headerShown: false,
+              cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONBOARDING_1}
+            component={OnboardingStep1}
+            options={{
+              headerShown: false,
+              cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONBOARDING_2}
+            component={OnboardingStep2}
+            options={{
+              headerShown: false,
+              cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONBOARDING_3}
+            component={OnboardingStep3}
+            options={{
+              headerShown: false,
+              cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONBOARDING_4}
+            component={OnboardingStep4}
+            options={{
+              headerShown: false,
+              cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+        </>
+      )}
     </Stack.Navigator>
   );
 };

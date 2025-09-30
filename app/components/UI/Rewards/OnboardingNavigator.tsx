@@ -14,6 +14,7 @@ import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useNavigation } from '@react-navigation/native';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import { useParams } from '../../../util/navigation/navUtils';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 
@@ -54,9 +55,17 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Navigator initialRouteName={getInitialRoute()}>
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_INTRO}
-          component={OnboardingIntroStep}
           options={{ headerShown: false }}
-        />
+        >
+          {() => (
+            <OnboardingIntroStep
+              title={strings('rewards.onboarding.intro_title')}
+              description={strings('rewards.onboarding.intro_description')}
+              confirmLabel={strings('rewards.onboarding.intro_confirm')}
+            />
+          )}
+        </Stack.Screen>
+
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_1}
           component={OnboardingStep1}

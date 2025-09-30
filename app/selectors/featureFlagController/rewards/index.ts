@@ -4,11 +4,20 @@ import { hasProperty } from '@metamask/utils';
 
 const DEFAULT_REWARDS_ENABLED = false;
 export const FEATURE_FLAG_NAME = 'rewards';
+export const ANNOUNCEMENT_MODAL_FLAG_NAME = 'rewards-announcement-modal';
 
 export const selectRewardsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     hasProperty(remoteFeatureFlags, FEATURE_FLAG_NAME)
       ? (remoteFeatureFlags[FEATURE_FLAG_NAME] as boolean)
+      : DEFAULT_REWARDS_ENABLED,
+);
+
+export const selectRewardsAnnouncementModalEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    hasProperty(remoteFeatureFlags, ANNOUNCEMENT_MODAL_FLAG_NAME)
+      ? (remoteFeatureFlags[ANNOUNCEMENT_MODAL_FLAG_NAME] as boolean)
       : DEFAULT_REWARDS_ENABLED,
 );
