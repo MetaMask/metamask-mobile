@@ -120,7 +120,7 @@ jobs:
         run: |
           # Compute outputs using Node script
           GITHUB_EVENT_NAME="${{ github.event_name }}" \
-          SHOULD_SKIP_E2E= "${{ steps.skip-tag.outputs.SKIP }}" == "true" || "${{ steps.skip-label.outputs.SKIP }}" == "true"  \
+          SHOULD_SKIP_E2E="${{ steps.skip-tag.outputs.SKIP == 'true' || steps.skip-label.outputs.SKIP == 'true' }}" \
           ANDROID="${{ steps.filter.outputs.android }}" \
           IOS="${{ steps.filter.outputs.ios }}" \
           SHARED="${{ steps.filter.outputs.shared }}" \
