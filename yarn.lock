@@ -6878,7 +6878,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^47.2.0":
+"@metamask/bridge-status-controller@npm:47.2.0":
   version: 47.2.0
   resolution: "@metamask/bridge-status-controller@npm:47.2.0"
   dependencies:
@@ -6897,6 +6897,28 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
   checksum: d2fd015512655307c9ce7f0e2f4df108ac55856f5f0fb320d0f3560329b29daa60356e8edf0f64aac37e080939094591167943acb5d741d554d8d096e8521c20
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch::locator=metamask%40workspace%3A.":
+  version: 47.2.0
+  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch::version=47.2.0&hash=31ccdf&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/polling-controller": ^14.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.8.1
+    bignumber.js: ^9.1.2
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/bridge-controller": ^47.0.0
+    "@metamask/gas-fee-controller": ^24.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+  checksum: 0ce1e25efd0fc8294795dd263532db81b233661d21aec6527af9b8e2738dc39a6cedf8ea2fb1bce5e3e28852db719943115f40c6c6325e442c9a99419ac41c9d
   languageName: node
   linkType: hard
 
@@ -7760,25 +7782,6 @@ __metadata:
     "@open-rpc/schema-utils-js": ^2.0.5
     jsonschema: ^1.4.1
   checksum: 44901fba2f243bcbf37139179d5a6e24029566688ae44f59de81531ddeb9d8a77c5fe728f522048d64e23fb079195530962c87217d9f2a21975989de654f5b0a
-  languageName: node
-  linkType: hard
-
-"@metamask/multichain-network-controller@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "@metamask/multichain-network-controller@npm:0.12.0"
-  dependencies:
-    "@metamask/base-controller": ^8.1.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/keyring-api": ^20.1.0
-    "@metamask/keyring-internal-api": ^8.1.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.4.2
-    "@solana/addresses": ^2.0.0
-    lodash: ^4.17.21
-  peerDependencies:
-    "@metamask/accounts-controller": ^33.0.0
-    "@metamask/network-controller": ^24.0.0
-  checksum: 89ec63ec1f52e76e55c87072466a6f6ec715821f7ab00179c0d2678c13e5b5aa9b187f8f4bdc80f4ab9237656fe543f666e435244a2041dfed10f474d768e6a8
   languageName: node
   linkType: hard
 
