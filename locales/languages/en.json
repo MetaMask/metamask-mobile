@@ -3434,7 +3434,7 @@
     "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
     "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
-    "success_1": "Secret Recovery Phrase",
+    "success_1": "Wallet",
     "success_2": "imported"
   },
   "first_incoming_transaction": {
