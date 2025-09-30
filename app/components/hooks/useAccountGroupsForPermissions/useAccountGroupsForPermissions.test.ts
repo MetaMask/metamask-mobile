@@ -571,10 +571,10 @@ describe('useAccountGroupsForPermissions', () => {
     expect(result.current.supportedAccountGroups).toHaveLength(2);
     expect(result.current.supportedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toHaveLength(1);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested[0],
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups[0],
     ).toBe(`eip155:1:${mockEvmAccount2.address}`);
   });
 
@@ -637,13 +637,13 @@ describe('useAccountGroupsForPermissions', () => {
     expect(result.current.connectedAccountGroups).toHaveLength(1);
     expect(result.current.connectedAccountGroups[0].id).toBe(MOCK_GROUP_ID_1);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toHaveLength(2);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toContain(`eip155:1:${mockEvmAccount1.address}`);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toContain(`eip155:1:${mockEvmAccount2.address}`);
 
     // Group 2 should be first in supported groups because it fulfills requested accounts
