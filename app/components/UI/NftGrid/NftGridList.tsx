@@ -25,7 +25,6 @@ const NftGridList = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [longPressedCollectible, setLongPressedCollectible] =
     useState<Nft | null>(null);
 
@@ -51,15 +50,6 @@ const NftGridList = () => {
     }
   }, [longPressedCollectible]);
 
-  // Loading state to make sure Nft tab is opened without lags
-  // TODO juan: might not be necessary after Brian's changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
-
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
     navigation.navigate('AddAsset', { assetType: 'collectible' });
@@ -71,33 +61,29 @@ const NftGridList = () => {
 
   return (
     <>
-      {!isInitialLoading && (
-        <FlashList
-          ListHeaderComponent={<NftGridHeader />}
-          data={allFilteredCollectibles}
-          renderItem={({ item }) => (
-            <NftGridItem item={item} onLongPress={setLongPressedCollectible} />
-          )}
-          keyExtractor={(_, index) => index.toString()}
-          testID={RefreshTestId}
-          refreshControl={<NftGridListRefreshControl />}
-          ListEmptyComponent={
-            <NftGridEmpty
-              isAddNFTEnabled={isAddNFTEnabled}
-              goToAddCollectible={goToAddCollectible}
-            />
-          }
-          scrollEnabled={false}
-          numColumns={3}
-        />
-      )}
-
-      {allFilteredCollectibles.length > 0 && (
-        <NftGridFooter
-          isAddNFTEnabled={isAddNFTEnabled}
-          goToAddCollectible={goToAddCollectible}
-        />
-      )}
+      <FlashList
+        ListHeaderComponent={<NftGridHeader />}
+        data={allFilteredCollectibles}
+        renderItem={({ item }) => (
+          <NftGridItem item={item} onLongPress={setLongPressedCollectible} />
+        )}
+        keyExtractor={(_, index) => index.toString()}
+        testID={RefreshTestId}
+        refreshControl={<NftGridListRefreshControl />}
+        ListEmptyComponent={
+          <NftGridEmpty
+            isAddNFTEnabled={isAddNFTEnabled}
+            goToAddCollectible={goToAddCollectible}
+          />
+        }
+        ListFooterComponent={
+          <NftGridFooter
+            isAddNFTEnabled={isAddNFTEnabled}
+            goToAddCollectible={goToAddCollectible}
+          />
+        }
+        numColumns={3}
+      />
 
       <NftGridItemActionSheet
         actionSheetRef={actionSheetRef}
