@@ -8,7 +8,9 @@ import {
   ProcessedNetwork,
 } from '../useNetworksByNamespace/useNetworksByNamespace';
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   BtcScope,
+  ///: END:ONLY_INCLUDE_IF
   SolScope,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
@@ -161,16 +163,18 @@ export const useNetworksToUse = ({
       return networks;
     }
 
-    if (
-      hasSelectedAccounts.evm ||
-      hasSelectedAccounts.solana ||
+    const anySelectedAccount = [
+      hasSelectedAccounts.evm,
+      hasSelectedAccounts.solana,
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      hasSelectedAccounts.bitcoin ||
+      hasSelectedAccounts.bitcoin,
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      hasSelectedAccounts.tron
+      hasSelectedAccounts.tron,
       ///: END:ONLY_INCLUDE_IF
-    ) {
+    ].some(Boolean);
+
+    if (anySelectedAccount) {
       return combineAvailableNetworks([
         hasSelectedAccounts.evm ? evmNetworks : [],
         hasSelectedAccounts.solana ? solanaNetworks : [],
