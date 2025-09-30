@@ -29,7 +29,6 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
-import { strings } from '../../../../../../../locales/i18n';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
