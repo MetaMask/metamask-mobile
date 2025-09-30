@@ -1,3 +1,4 @@
+// just a comment for testing
 pluginManagement {
     includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().toString())
     repositories {
@@ -27,7 +28,6 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 
 rootProject.name = 'MetaMask'
-
 dependencyResolutionManagement {
   versionCatalogs {
     reactAndroidLibs {
