@@ -126,4 +126,4 @@ jobs:
           SHARED="${{ steps.filter.outputs.shared }}" \
           IGNORE_FILES="${{ steps.filter.outputs.ignore_files }}" \
           CATCH_ALL_FILES="${{ steps.filter.outputs.catch_all_files }}" \
-          node .github/scripts/compute-mobile-builds.mjs
+          node .github/scripts/needs-e2e-builds.mjs
