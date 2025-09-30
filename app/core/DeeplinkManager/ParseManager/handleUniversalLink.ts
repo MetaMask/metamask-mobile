@@ -173,7 +173,8 @@ async function handleUniversalLink({
     const depositCashPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleDepositCash(depositCashPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
-    instance._handleOpenHome();
+    const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleOpenHome(homePath);
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
