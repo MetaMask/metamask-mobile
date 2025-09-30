@@ -3,7 +3,7 @@ name: Android E2E Regression Tests
 on:
   workflow_call:
   schedule:
-    - cron: '30 4 * * *'  # 4:30 AM UTC
+    - cron: '0 */2 * * *'  # Every 2 hours
   workflow_dispatch:
 
 permissions:
@@ -225,3 +225,24 @@ jobs:
         with:
           name: android-merged-test-report
           path: all-test-results/**/*.xml
+
+      - name: Generate Test Summary
+        id: summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "summary<<EOF"
+            node scripts/generate-regression-slack-summary.mjs Android
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.REGRESSION_E2E_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "${{ steps.summary.outputs.summary }}"
+            }
