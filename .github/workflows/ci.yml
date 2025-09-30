@@ -226,7 +226,29 @@ jobs:
 
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
-      
+
+  ai-e2e-analysis:
+    name: 'AI E2E Analysis'
+    runs-on: ubuntu-latest
+    needs: [needs_e2e_build]
+    if: github.event_name == 'pull_request'
+    outputs:
+      test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
+    steps:
+      - name: Run AI E2E Analysis
+        id: ai-analysis
+        uses: ./.github/actions/ai-e2e-analysis
+        with:
+          changed-files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+          event-name: ${{ github.event_name }}
+          base-branch: 'origin/main'
+          include-main-changes: 'true'
+          claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          github-token: ${{ github.token }}
+          pr-number: ${{ github.event.pull_request.number }}
+          repository: ${{ github.repository }}
+          post-comment: 'true'
+
   build-android-apks:
     name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
