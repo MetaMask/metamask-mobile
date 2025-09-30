@@ -22,23 +22,6 @@ function getInitRequestMock(): jest.Mocked<
     initMessenger: undefined,
   };
 
-  // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'ApprovalController') {
-      return {
-        addAndShowApprovalRequest: jest.fn(),
-      };
-    }
-
-    if (controllerName === 'KeyringController') {
-      return {
-        addNewKeyring: jest.fn(),
-      };
-    }
-
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
-
   return requestMock;
 }
 
