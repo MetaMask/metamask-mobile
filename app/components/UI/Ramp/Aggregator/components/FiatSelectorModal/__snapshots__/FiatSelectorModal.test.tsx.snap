@@ -660,31 +660,6 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 },
                               ]
                             }
-                            extraData={
-                              [
-                                {
-                                  "decimals": 2,
-                                  "denomSymbol": "$",
-                                  "id": "usd",
-                                  "name": "US Dollar",
-                                  "symbol": "USD",
-                                },
-                                {
-                                  "decimals": 2,
-                                  "denomSymbol": "€",
-                                  "id": "eur",
-                                  "name": "Euro",
-                                  "symbol": "EUR",
-                                },
-                                {
-                                  "decimals": 2,
-                                  "denomSymbol": "£",
-                                  "id": "gbp",
-                                  "name": "British Pound",
-                                  "symbol": "GBP",
-                                },
-                              ]
-                            }
                             getItem={[Function]}
                             getItemCount={[Function]}
                             handlerTag={-1}
