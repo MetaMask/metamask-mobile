@@ -45,7 +45,6 @@ export interface DepositKeyboardProps {
 export const DepositKeyboard = memo(
   ({
     alertMessage,
-    hasInput,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -53,8 +52,8 @@ export const DepositKeyboard = memo(
   }: DepositKeyboardProps) => {
     const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
-
     const valueString = value.toString();
+    const hasInput = valueString && valueString !== '0' && valueString !== '';
 
     const handleChange = useCallback(
       (data: KeypadChangeData) => {
@@ -78,8 +77,7 @@ export const DepositKeyboard = memo(
           justifyContent={JustifyContent.spaceBetween}
           gap={10}
         >
-          {!hasInput &&
-            !alertMessage &&
+          {(!alertMessage || !hasInput) &&
             PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
@@ -98,7 +96,7 @@ export const DepositKeyboard = memo(
               variant={ButtonVariants.Primary}
             />
           )}
-          {alertMessage && (
+          {hasInput && alertMessage && (
             <Box style={styles.alertContainer}>
               <Text style={styles.alertText}>{alertMessage}</Text>
             </Box>

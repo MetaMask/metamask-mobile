@@ -20,6 +20,8 @@ import Approve from '../info/approve';
 import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDeposit } from '../../external/perps-temp/components/deposit';
+import { CustomAmountInfo } from '../info/custom-amount-info/custom-amount-info';
+import { PerpsDepositInfo } from '../info/perps-deposit-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -56,7 +58,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
       case TransactionType.perpsDeposit:
-        return PerpsDeposit;
+        return PerpsDepositInfo;
       // Default to contract interaction as generic transaction confirmation
       default:
         return ContractInteraction;
