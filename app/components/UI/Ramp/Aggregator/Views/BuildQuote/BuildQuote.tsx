@@ -44,7 +44,6 @@ import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
-import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import FiatSelectModal from '../../components/modals/FiatSelectModal';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
@@ -72,6 +71,7 @@ import {
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
+import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
@@ -134,12 +134,6 @@ const BuildQuote = () => {
     toggleFiatSelectorModal,
     ,
     hideFiatSelectorModal,
-  ] = useModalHandler(false);
-  const [
-    isPaymentMethodModalVisible,
-    ,
-    showPaymentMethodsModal,
-    hidePaymentMethodModal,
   ] = useModalHandler(false);
   const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
     useModalHandler(false);
@@ -582,10 +576,39 @@ const BuildQuote = () => {
       if (paymentMethodId) {
         setSelectedPaymentMethodId(paymentMethodId);
       }
-      hidePaymentMethodModal();
     },
-    [hidePaymentMethodModal, setSelectedPaymentMethodId],
+    [setSelectedPaymentMethodId],
   );
+
+  const handleShowPaymentMethodsModal = useCallback(() => {
+    setAmountFocused(false);
+    navigation.navigate(
+      ...createPaymentMethodSelectorModalNavigationDetails({
+        title: strings(
+          isBuy
+            ? 'fiat_on_ramp_aggregator.select_payment_method'
+            : 'fiat_on_ramp_aggregator.select_cash_destination',
+        ),
+        onItemPress: handleChangePaymentMethod,
+        paymentMethods,
+        selectedPaymentMethodId,
+        selectedPaymentMethodType: currentPaymentMethod?.paymentType,
+        selectedRegion,
+        location: screenLocation,
+        rampType,
+      }),
+    );
+  }, [
+    navigation,
+    isBuy,
+    handleChangePaymentMethod,
+    paymentMethods,
+    selectedPaymentMethodId,
+    currentPaymentMethod?.paymentType,
+    selectedRegion,
+    screenLocation,
+    rampType,
+  ]);
 
   /**
    * * Get Quote handlers
@@ -756,26 +779,10 @@ const BuildQuote = () => {
                 ? 'fiat_on_ramp_aggregator.change_payment_method'
                 : 'fiat_on_ramp_aggregator.change_cash_destination',
             )}
-            ctaOnPress={showPaymentMethodsModal as () => void}
+            ctaOnPress={handleShowPaymentMethodsModal}
             location={screenLocation}
           />
         </ScreenLayout.Body>
-        <PaymentMethodModal
-          isVisible={isPaymentMethodModalVisible}
-          dismiss={hidePaymentMethodModal as () => void}
-          title={strings(
-            isBuy
-              ? 'fiat_on_ramp_aggregator.select_payment_method'
-              : 'fiat_on_ramp_aggregator.select_cash_destination',
-          )}
-          paymentMethods={paymentMethods}
-          selectedPaymentMethodId={selectedPaymentMethodId}
-          selectedPaymentMethodType={currentPaymentMethod?.paymentType}
-          onItemPress={handleChangePaymentMethod}
-          selectedRegion={selectedRegion}
-          location={screenLocation}
-          rampType={rampType}
-        />
       </ScreenLayout>
     );
   }
@@ -1033,7 +1040,7 @@ const BuildQuote = () => {
                   />
                 }
                 name={currentPaymentMethod?.name}
-                onPress={showPaymentMethodsModal as () => void}
+                onPress={handleShowPaymentMethodsModal}
                 paymentMethodIcons={paymentMethodIcons}
               />
             </Row>
@@ -1095,22 +1102,6 @@ const BuildQuote = () => {
         title={strings('fiat_on_ramp_aggregator.select_region_currency')}
         currencies={fiatCurrencies}
         onItemPress={handleCurrencyPress}
-      />
-      <PaymentMethodModal
-        isVisible={isPaymentMethodModalVisible}
-        dismiss={hidePaymentMethodModal as () => void}
-        title={strings(
-          isBuy
-            ? 'fiat_on_ramp_aggregator.select_payment_method'
-            : 'fiat_on_ramp_aggregator.select_cash_destination',
-        )}
-        paymentMethods={paymentMethods}
-        selectedPaymentMethodId={selectedPaymentMethodId}
-        selectedPaymentMethodType={currentPaymentMethod?.paymentType}
-        onItemPress={handleChangePaymentMethod}
-        selectedRegion={selectedRegion}
-        location={screenLocation}
-        rampType={rampType}
       />
       {regions && (
         <RegionModal
