@@ -108,6 +108,7 @@ export const wallet_addEthereumChain = async ({
       analytics,
       origin,
       autoApprove: shouldAddOrUpdateNetwork,
+      isAddFlow: true,
       hooks,
     });
   };

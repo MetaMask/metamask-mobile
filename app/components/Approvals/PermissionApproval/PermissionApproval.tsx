@@ -12,6 +12,7 @@ import {
   getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import Logger from '../../../util/Logger';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -46,6 +47,15 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     const {
       metadata: { id },
     } = requestData;
+
+    Logger.log('Permission Approval requestData', requestData);
+    if (
+      requestData?.diff?.permissionDiffMap?.[Caip25EndowmentPermissionName] ||
+      requestData?.metadata?.isSwitchEthereumChain
+    ) {
+      // Use the SwitchChainApproval component to handle this request instead
+      return;
+    }
 
     if (isProcessing.current) return;
 

@@ -312,7 +312,10 @@ const generateRawSignature = async ({
  * @param origin - The origin of the connection.
  * @returns The hooks object.
  */
-export const getRpcMethodMiddlewareHooks = (origin: string) => ({
+export const getRpcMethodMiddlewareHooks = (
+  origin: string,
+  pageMeta: unknown,
+) => ({
   getCaveat: ({
     target,
     caveatType,
@@ -338,7 +341,6 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     return undefined;
   },
   requestPermittedChainsPermissionIncrementalForOrigin: (options: {
-    origin: string;
     chainId: Hex;
     autoApprove: boolean;
   }) =>
@@ -350,9 +352,23 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
           Engine.context.PermissionController.grantPermissionsIncremental.bind(
             Engine.context.PermissionController,
           ),
-        requestPermissionsIncremental:
-          Engine.context.PermissionController.requestPermissionsIncremental.bind(
-            Engine.context.PermissionController,
+        requestPermissionsIncremental: (
+          subject,
+          requestedPermissions,
+          options,
+        ) =>
+          Engine.context.PermissionController.requestPermissionsIncremental(
+            subject,
+            requestedPermissions,
+            options
+              ? {
+                  ...options,
+                  metadata: {
+                    ...options.metadata,
+                    pageMeta,
+                  },
+                }
+              : undefined,
           ),
       },
     }),
@@ -412,7 +428,25 @@ export const getRpcMethodMiddleware = ({
     .replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
     .replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
   const origin = channelId ?? hostname;
-  const hooks = getRpcMethodMiddlewareHooks(origin);
+
+  const getSource = () => {
+    if (analytics?.isRemoteConn)
+      return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+    return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+  };
+
+  const pageMeta = {
+    url: url.current,
+    title: title.current,
+    icon: icon.current,
+    channelId,
+    analytics: {
+      request_source: getSource(),
+      request_platform: analytics?.platform,
+    },
+  };
+  const hooks = getRpcMethodMiddlewareHooks(origin, pageMeta);
 
   DevLogger.log(
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
@@ -432,13 +466,6 @@ export const getRpcMethodMiddleware = ({
       const { browser } = store.getState();
       if (tabId !== browser.activeTab)
         throw providerErrors.userRejectedRequest();
-    };
-
-    const getSource = () => {
-      if (analytics?.isRemoteConn)
-        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
-      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
-      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

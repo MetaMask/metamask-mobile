@@ -94,6 +94,7 @@ export const wallet_switchEthereumChain = async ({
       analytics,
       origin,
       autoApprove: isSnapId(origin),
+      isSwitchFlow: true,
       hooks: {
         toNetworkConfiguration,
         fromNetworkConfiguration,

@@ -14,6 +14,12 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import Logger from '../../../util/Logger';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
 
 const SwitchChainApproval = () => {
   const {
@@ -49,19 +55,45 @@ const SwitchChainApproval = () => {
     );
   }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork]);
 
-  if (approvalRequest?.type !== ApprovalTypes.SWITCH_ETHEREUM_CHAIN)
-    return null;
-
-  return (
-    <ApprovalModal isVisible onCancel={onReject}>
-      <SwitchCustomNetwork
-        onCancel={onReject}
-        onConfirm={onConfirm}
-        currentPageInformation={pageMeta}
-        customNetworkInformation={approvalRequest?.requestData}
-      />
-    </ApprovalModal>
+  const permittedEthChainIds = getPermittedEthChainIds(
+    approvalRequest?.requestData?.diff?.permissionDiffMap?.[
+      Caip25EndowmentPermissionName
+    ]?.[Caip25CaveatType] ?? {
+      requiredScopes: {},
+      optionalScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    },
   );
+
+  const customNetworkInformation = {
+    chainId: permittedEthChainIds[0],
+    chainName: 'FIX THIS',
+  };
+  Logger.log(
+    'Switch Chain Approval requestData',
+    approvalRequest?.requestData,
+    customNetworkInformation,
+  );
+  if (
+    approvalRequest?.requestData?.diff?.permissionDiffMap?.[
+      Caip25EndowmentPermissionName
+    ] ||
+    approvalRequest?.requestData?.metadata?.isSwitchEthereumChain ||
+    approvalRequest?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN
+  ) {
+    return (
+      <ApprovalModal isVisible onCancel={onReject}>
+        <SwitchCustomNetwork
+          onCancel={onReject}
+          onConfirm={onConfirm}
+          currentPageInformation={pageMeta}
+          customNetworkInformation={customNetworkInformation}
+        />
+      </ApprovalModal>
+    );
+  }
+  return null;
 };
 
 export default SwitchChainApproval;

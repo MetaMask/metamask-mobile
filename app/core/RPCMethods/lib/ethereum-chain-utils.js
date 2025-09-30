@@ -16,6 +16,7 @@ import {
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../Engine';
+import { isSnapId } from '@metamask/snaps-utils';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -222,8 +223,9 @@ export async function switchToNetwork({
   analytics,
   origin,
   autoApprove = false,
+  isSwitchFlow = false,
+  isAddFlow = false,
   hooks,
-  dappUrl = origin,
 }) {
   const {
     getCaveat,
@@ -233,11 +235,8 @@ export async function switchToNetwork({
     fromNetworkConfiguration,
     rejectApprovalRequestsForOrigin,
   } = hooks;
-  const {
-    MultichainNetworkController,
-    PermissionController,
-    SelectedNetworkController,
-  } = Engine.context;
+  const { MultichainNetworkController, SelectedNetworkController } =
+    Engine.context;
 
   const [networkConfigurationId, networkConfiguration] = network;
 
@@ -250,79 +249,39 @@ export async function switchToNetwork({
 
   if (caip25Caveat) {
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
-  } else {
-    await requestPermittedChainsPermissionIncrementalForOrigin({
-      origin,
-      chainId,
-      autoApprove,
-    });
-  }
 
-  const shouldGrantPermissions = !ethChainIds?.includes(chainId);
-
-  const requestModalType = autoApprove ? 'new' : 'switch';
-
-  const shouldShowRequestModal = !autoApprove && shouldGrantPermissions;
-
-  const requestData = {
-    rpcUrl:
-      networkConfiguration.rpcEndpoints[
-        networkConfiguration.defaultRpcEndpointIndex
-      ],
-    chainId,
-    chainName:
-      networkConfiguration.name ||
-      networkConfiguration.chainName ||
-      networkConfiguration.nickname ||
-      networkConfiguration.shortName,
-    ticker: networkConfiguration.ticker || 'ETH',
-    chainColor: networkConfiguration.color,
-    pageMeta: {
-      url: dappUrl ?? origin,
-    },
-  };
-
-  if (shouldShowRequestModal) {
-    await requestUserApproval({
-      type: 'SWITCH_ETHEREUM_CHAIN',
-      requestData: { ...requestData, type: requestModalType },
-    });
-
-    if (caip25Caveat) {
-      await PermissionController.grantPermissionsIncremental({
-        subject: { origin },
-        approvedPermissions: {
-          [Caip25EndowmentPermissionName]: {
-            caveats: [
-              {
-                type: Caip25CaveatType,
-                value: setPermittedEthChainIds(caip25Caveat.value, [chainId]),
-              },
-            ],
-          },
+    if (!ethChainIds?.includes(chainId)) {
+      let metadata;
+      if (isSwitchFlow) {
+        metadata = {
+          isSwitchEthereumChain: true,
+        };
+      }
+      await requestPermittedChainsPermissionIncrementalForOrigin({
+        chainId,
+        autoApprove,
+        metadata,
+      });
+    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && isAddFlow) {
+      await requestUserApproval({
+        type: 'SWITCH_ETHEREUM_CHAIN',
+        requestData: {
+          toNetworkConfiguration,
+          fromNetworkConfiguration,
+          type: 'switch',
         },
       });
     }
-  }
-
-  if (!shouldShowRequestModal && !ethChainIds?.includes(chainId)) {
+  } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
-      origin,
       chainId,
       autoApprove,
     });
-  } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
-    await requestUserApproval({
-      origin,
-      type: ApprovalType.SwitchEthereumChain,
-      requestData: {
-        toNetworkConfiguration,
-        fromNetworkConfiguration,
-      },
-    });
   }
 
-  rejectApprovalRequestsForOrigin?.();
+  if (!isSnapId(origin)) {
+    rejectApprovalRequestsForOrigin?.();
+  }
 
   if (isPerDappSelectedNetworkEnabled()) {
     SelectedNetworkController.setNetworkClientIdForDomain(
