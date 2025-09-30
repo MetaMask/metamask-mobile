@@ -112,7 +112,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            headerShown: false,
           },
         });
       }}

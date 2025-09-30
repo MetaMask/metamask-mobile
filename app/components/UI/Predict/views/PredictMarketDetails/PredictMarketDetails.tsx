@@ -117,6 +117,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [outcomeTokenIdA, outcomeTokenIdB, outcomeTokenIdC] = outcomeTokenIds;
 
   // NOTE: Invoke once per outcome so hooks stay at the top level and comply with the rules of hooks.
+  // TODO: Consider refactoring usePredictPriceHistory() to return multiple outcomes, e.g. `maxOutcomes` (default 3)
   const priceHistoryResultA = usePredictPriceHistory({
     marketId: outcomeTokenIdA,
     interval: selectedTimeframe,
