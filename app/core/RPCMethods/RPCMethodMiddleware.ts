@@ -314,7 +314,7 @@ const generateRawSignature = async ({
  */
 export const getRpcMethodMiddlewareHooks = (
   origin: string,
-  pageMeta: unknown,
+  getPageMeta: () => unknown,
 ) => ({
   getCaveat: ({
     target,
@@ -365,7 +365,7 @@ export const getRpcMethodMiddlewareHooks = (
                   ...options,
                   metadata: {
                     ...options.metadata,
-                    pageMeta,
+                    pageMeta: getPageMeta(),
                   },
                 }
               : undefined,
@@ -436,7 +436,7 @@ export const getRpcMethodMiddleware = ({
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
 
-  const pageMeta = {
+  const getPageMeta = () => ({
     url: url.current,
     title: title.current,
     icon: icon.current,
@@ -445,8 +445,8 @@ export const getRpcMethodMiddleware = ({
       request_source: getSource(),
       request_platform: analytics?.platform,
     },
-  };
-  const hooks = getRpcMethodMiddlewareHooks(origin, pageMeta);
+  });
+  const hooks = getRpcMethodMiddlewareHooks(origin, getPageMeta);
 
   DevLogger.log(
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
