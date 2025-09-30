@@ -1,4 +1,5 @@
-import { useCallback, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
+import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from '@metamask/react-native-webview';
 import { getWebviewNavbar } from '../../UI/Navbar';
@@ -34,7 +35,7 @@ const SimpleWebView = () => {
   useEffect(() => {
     navigation.setOptions(getWebviewNavbar(navigation, route, colors));
     navigation && navigation.setParams({ dispatch: share });
-  }, [navigation, route, share]);
+  }, [navigation, route, share, colors]);
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>

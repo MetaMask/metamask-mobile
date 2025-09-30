@@ -38,7 +38,6 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import Engine from '../../../../../core/Engine';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
