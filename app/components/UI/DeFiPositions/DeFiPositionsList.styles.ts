@@ -13,7 +13,7 @@ const styleSheet = () =>
       justifyContent: 'center',
     },
     wrapper: {
-      flex: 1,
+      // Remove flex: 1 to allow dynamic height
     },
   });
 

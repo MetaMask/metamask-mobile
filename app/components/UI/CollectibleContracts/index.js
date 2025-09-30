@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList } from '@shopify/flash-list';
+import { ExternalVirtualized } from '../../../component-library/components/ExternalVirtualized';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -88,12 +89,12 @@ const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
+      // Remove flex: 1 to allow dynamic height
       marginTop: 16,
     },
     BarWrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
+      // Remove flex: 1 to allow dynamic height
     },
     actionBarWrapper: {
       flexDirection: 'row',
@@ -137,7 +138,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     footer: {
-      flex: 1,
+      // Remove flex: 1 to allow dynamic height
       alignItems: 'center',
       marginTop: 8,
     },
@@ -173,6 +174,8 @@ const CollectibleContracts = ({
   useNftDetection,
   isIpfsGatewayEnabled,
   displayNftMedia,
+  parentScrollY = 0,
+  parentViewportHeight = 0,
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
@@ -514,7 +517,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <FlashList
+      <ExternalVirtualized
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -529,32 +532,25 @@ const CollectibleContracts = ({
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
         testID={RefreshTestId}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
-        }
+        itemHeight={100} // Using the estimated item size from FlashList
+        parentScrollY={parentScrollY}
+        parentViewportHeight={parentViewportHeight}
+        initialItemCount={4} // Show 4 NFT collections initially - they're larger
+        maxVisibleItems={8} // Fewer NFTs visible at once due to size
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
-        estimatedItemSize={100}
-        scrollEnabled={false}
       />
     ),
     [
       renderFavoriteCollectibles,
       filteredCollectibleContracts,
-      colors.primary.default,
-      colors.icon.default,
-      refreshing,
-      onRefresh,
       renderCollectibleContract,
       renderFooter,
       renderEmpty,
       isCollectionDetectionBannerVisible,
       styles.emptyView,
+      parentScrollY,
+      parentViewportHeight,
     ],
   );
 
@@ -685,6 +681,14 @@ CollectibleContracts.propTypes = {
    * Boolean to show Nfts media stored on third parties
    */
   displayNftMedia: PropTypes.bool,
+  /**
+   * Parent scroll Y position for external virtualization
+   */
+  parentScrollY: PropTypes.number,
+  /**
+   * Parent viewport height for external virtualization
+   */
+  parentViewportHeight: PropTypes.number,
 };
 
 const mapStateToProps = (state) => {

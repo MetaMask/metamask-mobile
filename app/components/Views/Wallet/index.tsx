@@ -15,6 +15,9 @@ import {
   StyleSheet as RNStyleSheet,
   View,
   ScrollView,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  useWindowDimensions,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -198,7 +201,7 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       paddingHorizontal: 16,
-      flex: 1,
+      // Remove flex: 1 to allow dynamic height for proper virtualization
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -240,6 +243,8 @@ interface WalletTokensTabViewProps {
     shouldSelectPerpsTab?: boolean;
     initialTab?: string;
   };
+  parentScrollY: number;
+  parentViewportHeight: number;
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
@@ -266,6 +271,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     defiEnabled,
     collectiblesEnabled,
     navigationParams,
+    parentScrollY,
+    parentViewportHeight,
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const tabsListRef = useRef<TabsListRef>(null);
@@ -291,8 +298,10 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
       navigation,
+      parentScrollY,
+      parentViewportHeight,
     }),
-    [navigation],
+    [navigation, parentScrollY, parentViewportHeight],
   );
 
   const perpsTabProps = useMemo(
@@ -318,8 +327,10 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
       navigation,
+      parentScrollY,
+      parentViewportHeight,
     }),
-    [navigation],
+    [navigation, parentScrollY, parentViewportHeight],
   );
 
   const collectibleContractsTabProps = useMemo(
@@ -327,8 +338,10 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
       navigation,
+      parentScrollY,
+      parentViewportHeight,
     }),
-    [navigation],
+    [navigation, parentScrollY, parentViewportHeight],
   );
 
   // Handle tab changes and track current index
@@ -482,6 +495,11 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
+
+  // Scroll tracking for external virtualization
+  const { height: screenHeight } = useWindowDimensions();
+  const [scrollY, setScrollY] = useState(0);
+
   const { navigateToSendPage } = useSendNavigation();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -1219,11 +1237,31 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const newScrollY = event.nativeEvent.contentOffset.y;
+      setScrollY(newScrollY);
+
+      // Debug logging for scroll events (development only)
+      if (__DEV__ && false) {
+        // Disabled for now
+        // eslint-disable-next-line no-console
+        console.log('🔍 Wallet Scroll Debug:', {
+          scrollY: newScrollY,
+          screenHeight,
+        });
+      }
+    },
+    [screenHeight],
+  );
+
   const renderContent = useCallback(
     () => (
       <ScrollView
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
@@ -1276,6 +1314,8 @@ const Wallet = ({
             defiEnabled={defiEnabled}
             collectiblesEnabled={collectiblesEnabled}
             navigationParams={route.params}
+            parentScrollY={scrollY}
+            parentViewportHeight={screenHeight}
           />
         </>
       </ScrollView>
@@ -1302,6 +1342,9 @@ const Wallet = ({
       isCarouselBannersEnabled,
       collectiblesEnabled,
       chainId,
+      handleScroll,
+      scrollY,
+      screenHeight,
     ],
   );
   const renderLoader = useCallback(

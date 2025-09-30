@@ -41,7 +41,13 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const Tokens = memo(() => {
+interface TokensProps {
+  parentScrollY?: number;
+  parentViewportHeight?: number;
+}
+
+const Tokens = memo((props: TokensProps) => {
+  const { parentScrollY = 0, parentViewportHeight = 0 } = props;
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
@@ -260,6 +266,8 @@ const Tokens = memo(() => {
               onRefresh={onRefresh}
               showRemoveMenu={showRemoveMenu}
               setShowScamWarningModal={handleScamWarningModal}
+              parentScrollY={parentScrollY}
+              parentViewportHeight={parentViewportHeight}
             />
           )}
         </>

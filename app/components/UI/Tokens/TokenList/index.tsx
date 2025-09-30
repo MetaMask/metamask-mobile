@@ -1,12 +1,9 @@
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { View, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
+// import { FlashList, FlashListRef } from '@shopify/flash-list'; // Replaced with ExternalVirtualized
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
-import {
-  selectIsTokenNetworkFilterEqualCurrentNetwork,
-  selectPrivacyMode,
-} from '../../../../selectors/preferencesController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
 import TextComponent, {
   TextColor,
@@ -19,6 +16,7 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
+import { ExternalVirtualized } from '../../../../component-library/components/ExternalVirtualized';
 
 export interface FlashListAssetKey {
   address: string;
@@ -33,21 +31,22 @@ interface TokenListProps {
   showRemoveMenu: (arg: TokenI) => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
+  parentScrollY?: number;
+  parentViewportHeight?: number;
 }
 
 const TokenListComponent = ({
   tokenKeys,
-  refreshing,
-  onRefresh,
+  refreshing: _refreshing,
+  onRefresh: _onRefresh,
   showRemoveMenu,
   showPercentageChange = true,
   setShowScamWarningModal,
+  parentScrollY = 0,
+  parentViewportHeight = 0,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
-  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
-    selectIsTokenNetworkFilterEqualCurrentNetwork,
-  );
 
   // BIP44 MAINTENANCE: Once stable, only use TokenListItemBip44
   const isMultichainAccountsState2Enabled = useSelector(
@@ -57,14 +56,14 @@ const TokenListComponent = ({
     ? TokenListItemBip44
     : TokenListItem;
 
-  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
+  // const listRef = useRef<FlashListRef<FlashListAssetKey>>(null); // Not needed with ExternalVirtualized
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  useLayoutEffect(() => {
-    listRef.current?.recomputeViewableItems();
-  }, [isTokenNetworkFilterEqualCurrentNetwork]);
+  // useLayoutEffect(() => {
+  //   listRef.current?.recomputeViewableItems();
+  // }, [isTokenNetworkFilterEqualCurrentNetwork]); // Not needed with ExternalVirtualized
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -92,32 +91,20 @@ const TokenListComponent = ({
   );
 
   return tokenKeys?.length ? (
-    <FlashList
-      ref={listRef}
+    <ExternalVirtualized
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
-      removeClippedSubviews={false}
-      viewabilityConfig={{
-        itemVisiblePercentThreshold: 50,
-        minimumViewTime: 1000,
-      }}
-      decelerationRate={0}
       renderItem={renderTokenListItem}
+      itemHeight={64} // Height matches AssetElement itemWrapper height
+      parentScrollY={parentScrollY}
+      parentViewportHeight={parentViewportHeight}
+      initialItemCount={Math.min(6, tokenKeys.length)} // Adaptive initial count
+      maxVisibleItems={15} // Allow more tokens to be visible at once
       keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;
       }}
       ListFooterComponent={<TokenListFooter />}
-      refreshControl={
-        <RefreshControl
-          colors={[colors.primary.default]}
-          tintColor={colors.icon.default}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      }
-      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-      scrollEnabled={false}
     />
   ) : (
     <View style={styles.emptyView}>
