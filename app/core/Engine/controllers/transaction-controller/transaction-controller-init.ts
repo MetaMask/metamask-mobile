@@ -6,6 +6,7 @@ import {
   type PublishBatchHookRequest,
   type PublishBatchHookTransaction,
   type PublishBatchHookResult,
+  TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { Hex } from '@metamask/utils';
@@ -40,6 +41,7 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import { trace } from '../../../../util/trace';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -125,6 +127,8 @@ export const TransactionControllerInit: ControllerInitFunction<
         // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
+        // Expected type mismatch with TransactionControllerOptions['trace']
+        trace: trace as unknown as TransactionControllerOptions['trace'],
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
