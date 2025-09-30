@@ -300,11 +300,11 @@ stages:
       - build_android_main_exp: {}
       - build_android_main_test: {}
       - build_android_main_e2e: {}
-      - build_android_main_local: {}
+      - build_android_main_dev: {}
       - build_android_flask_prod: {}
       - build_android_flask_test: {}
       - build_android_flask_e2e: {}
-      - build_android_flask_local: {}
+      - build_android_flask_dev: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
@@ -1479,7 +1479,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_ENVIRONMENT='dev'
                  node -v
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
@@ -1687,6 +1687,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - code_setup
       - install_applesimutils
       - prep_environment
     after_run:
@@ -1988,6 +1989,7 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
+      - code_setup
       - install_applesimutils
       - prep_environment
     after_run:
@@ -2087,7 +2089,7 @@ workflows:
                 #!/usr/bin/env bash
 
                 # node -v
-                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_ENVIRONMENT='dev'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                 # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
@@ -2360,7 +2362,7 @@ workflows:
                 if [ -n "$COMMAND_YARN" ]; then
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:local
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:dev
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -2563,7 +2565,7 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'local'}
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'dev'}
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" $BUILD_COMMAND
       - save-gradle-cache@1: {}
@@ -2837,13 +2839,13 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_main_local:
+  build_android_main_dev:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
-      - BUILD_COMMAND: 'yarn build:android:main:local'
+      - BUILD_COMMAND: 'yarn build:android:main:dev'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2853,18 +2855,18 @@ workflows:
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_devbuild:
     after_run:
-      - build_android_main_local
+      - build_android_main_dev
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_flask_local:
+  build_android_flask_dev:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
-      - BUILD_COMMAND: 'yarn build:android:flask:local'
+      - BUILD_COMMAND: 'yarn build:android:flask:dev'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2874,18 +2876,18 @@ workflows:
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_flask_devbuild:
     after_run:
-      - build_android_flask_local
+      - build_android_flask_dev
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_qa_local:
+  build_android_qa_dev:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'qa'
-      - BUILD_COMMAND: 'yarn build:android:qa:local'
+      - BUILD_COMMAND: 'yarn build:android:qa:dev'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2895,7 +2897,7 @@ workflows:
   # TODO: Remove this workflow once new build configuration is consolidated
   build_android_qa_devbuild:
     after_run:
-      - build_android_qa_local
+      - build_android_qa_dev
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -3199,7 +3201,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:local
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:dev
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -3446,14 +3448,14 @@ workflows:
       - COMMAND_YARN: 'build:ios:flask:e2e'
     after_run:
       - _ios_build_template
-  build_ios_main_local:
+  build_ios_main_dev:
     envs:
       - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
       - INFO_PLIST_NAME: 'Info.plist'
-      - COMMAND_YARN: 'build:ios:main:local'
+      - COMMAND_YARN: 'build:ios:main:dev'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
@@ -3461,49 +3463,49 @@ workflows:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
-      - build_ios_main_local
+      - build_ios_main_dev
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_devbuild:
     after_run:
-      - build_ios_main_local
-  build_ios_flask_local:
+      - build_ios_main_dev
+  build_ios_flask_dev:
     envs:
       - CONFIGURATION: 'Debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - COMMAND_YARN: 'build:ios:flask:local'
+      - COMMAND_YARN: 'build:ios:flask:dev'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_devbuild:
     after_run:
-      - build_ios_flask_local
+      - build_ios_flask_dev
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
-      - build_ios_flask_local
-  build_ios_qa_local:
+      - build_ios_flask_dev
+  build_ios_qa_dev:
     envs:
       - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - COMMAND_YARN: 'build:ios:qa:local'
+      - COMMAND_YARN: 'build:ios:qa:dev'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_qa_devbuild:
     after_run:
-      - build_ios_qa_local
+      - build_ios_qa_dev
   build_ios_qa_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
-      - build_ios_qa_local
+      - build_ios_qa_dev
   build_ios_qa_prod:
     envs:
       - CONFIGURATION: 'Release'

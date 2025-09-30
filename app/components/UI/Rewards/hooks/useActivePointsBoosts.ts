@@ -8,16 +8,19 @@ import {
 } from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
 import { type PointsBoostDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import Logger from '../../../../util/Logger';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { useFocusEffect } from '@react-navigation/native';
+
+interface UseActivePointsBoostsReturn {
+  fetchActivePointsBoosts: () => Promise<void>;
+}
 
 /**
  * Custom hook to fetch and manage active points boosts data from the rewards API
  * Uses the RewardsController with built-in caching that persists across component unmounts
  */
-export const useActivePointsBoosts = (): void => {
+export const useActivePointsBoosts = (): UseActivePointsBoostsReturn => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const seasonId = useSelector(selectSeasonId);
@@ -28,6 +31,7 @@ export const useActivePointsBoosts = (): void => {
     if (!seasonId || !subscriptionId) {
       dispatch(setActiveBoostsLoading(false));
       dispatch(setActiveBoostsError(false));
+      dispatch(setActiveBoosts(null));
       return;
     }
 
@@ -39,6 +43,7 @@ export const useActivePointsBoosts = (): void => {
     try {
       isLoadingRef.current = true;
       dispatch(setActiveBoostsLoading(true));
+      dispatch(setActiveBoostsError(false));
 
       // RewardsController now handles caching internally
       const fetchedBoosts: PointsBoostDto[] =
@@ -49,12 +54,7 @@ export const useActivePointsBoosts = (): void => {
         );
 
       dispatch(setActiveBoosts(fetchedBoosts || []));
-      dispatch(setActiveBoostsError(false));
     } catch (fetchError) {
-      Logger.log(
-        'useActivePointsBoosts: Failed to fetch active points boosts:',
-        fetchError instanceof Error ? fetchError.message : 'Unknown error',
-      );
       // Keep existing data on error to prevent UI flash
       // Don't dispatch setActiveBoosts([]) here
       dispatch(setActiveBoostsError(true));
@@ -80,4 +80,8 @@ export const useActivePointsBoosts = (): void => {
     ],
     fetchActivePointsBoosts,
   );
+
+  return {
+    fetchActivePointsBoosts,
+  };
 };

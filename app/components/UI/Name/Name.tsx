@@ -19,7 +19,6 @@ import Identicon from '../Identicon';
 import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
-import { strings } from '../../../../locales/i18n';
 
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
@@ -68,6 +67,7 @@ const Name: React.FC<NameProperties> = ({
   type,
   value,
   variation,
+  maxCharLength = 21,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
@@ -97,15 +97,14 @@ const Name: React.FC<NameProperties> = ({
     );
   }
 
-  const MAX_CHAR_LENGTH = 21;
   const MIDDLE_SECTION_ELLIPSIS = '...';
   const truncatedName =
-    name && name.length > MAX_CHAR_LENGTH
+    name && name.length > maxCharLength
       ? `${name.slice(
           0,
-          (MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2,
+          (maxCharLength - MIDDLE_SECTION_ELLIPSIS.length) / 2,
         )}${MIDDLE_SECTION_ELLIPSIS}${name.slice(
-          -(MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2,
+          -(maxCharLength - MIDDLE_SECTION_ELLIPSIS.length) / 2,
         )}`
       : name;
 
@@ -152,7 +151,7 @@ const Name: React.FC<NameProperties> = ({
           open={isTooltipVisible}
           setOpen={setIsTooltipVisible}
           content={value}
-          title={strings('confirm.label.value')}
+          title={name}
         />
       )}
     </>
