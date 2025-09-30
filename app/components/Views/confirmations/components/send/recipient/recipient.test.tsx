@@ -227,6 +227,7 @@ describe('Recipient', () => {
       isNonEvmNativeSendType: false,
       isSolanaSendType: false,
       isBitcoinSendType: false,
+      isTronSendType: false,
     });
   });
 
