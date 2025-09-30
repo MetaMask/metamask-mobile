@@ -70,6 +70,8 @@ import { RewardsController } from '../controllers/rewards-controller/RewardsCont
 import { predictControllerInit } from '../controllers/predict-controller';
 import { PredictController } from '../../../components/UI/Predict/controllers/PredictController';
 import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
+import { selectedNetworkControllerInit } from '../controllers/selected-network-controller-init';
+import { SelectedNetworkController } from '@metamask/selected-network-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -113,10 +115,14 @@ jest.mock(
 jest.mock(
   '../controllers/gator-permissions-controller/gator-permissions-controller-init',
 );
+jest.mock('../controllers/selected-network-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
   const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
+  const mockSelectedNetworkControllerInit = jest.mocked(
+    selectedNetworkControllerInit,
+  );
   const mockMultichainNetworkControllerInit = jest.mocked(
     multichainNetworkControllerInit,
   );
@@ -186,6 +192,7 @@ describe('initModularizedControllers', () => {
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
           AccountTreeController: mockAccountTreeControllerInit,
+          SelectedNetworkController: mockSelectedNetworkControllerInit,
           ApprovalController: mockApprovalControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
@@ -237,6 +244,9 @@ describe('initModularizedControllers', () => {
     });
     mockApprovalControllerInit.mockReturnValue({
       controller: {} as unknown as ApprovalController,
+    });
+    mockSelectedNetworkControllerInit.mockReturnValue({
+      controller: {} as unknown as SelectedNetworkController,
     });
     mockTransactionControllerInit.mockReturnValue({
       controller: {} as unknown as TransactionController,
