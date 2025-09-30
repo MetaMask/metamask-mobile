@@ -28,12 +28,12 @@ export const formatNumber = (value: number | null): string => {
 
 /**
  * Formats a timestamp for rewards date
- * @param timestamp - Unix timestamp in milliseconds
+ * @param date - Unix timestamp in milliseconds
  * @returns Formatted date string with time
  * @example 'Jan 24 2:30 PM'
  */
 export const formatRewardsDate = (
-  timestamp: number,
+  date: Date,
   locale: string = I18n.locale,
 ): string =>
   new Intl.DateTimeFormat(locale, {
@@ -41,7 +41,7 @@ export const formatRewardsDate = (
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  }).format(new Date(timestamp));
+  }).format(new Date(date));
 
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());

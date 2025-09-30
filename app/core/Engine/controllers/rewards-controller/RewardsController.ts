@@ -341,9 +341,10 @@ export class RewardsController extends BaseController<
     return {
       results: state.pointsEvents.map((r) => ({
         ...r,
+        type: r.type as PointsEventDto['type'],
         timestamp: new Date(r.timestamp),
         updatedAt: new Date(r.updatedAt),
-      })) as unknown as PointsEventDto[],
+      })),
       total_results: state.pointsEvents.length,
       cursor: null,
       has_more: false,
