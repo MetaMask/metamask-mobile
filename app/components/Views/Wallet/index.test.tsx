@@ -603,10 +603,15 @@ describe('Wallet', () => {
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Check that navigate was called with QR_TAB_SWITCHER
-      // QRTabSwitcherScreens.Receive is enum value 1, not string 'Receive'
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
-        initialScreen: 1, // QRTabSwitcherScreens.Receive
+      // Check that navigate was called with ShareAddressQR since "Your QR code" tab was removed
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MULTICHAIN.SHARE_ADDRESS_QR,
+        params: expect.objectContaining({
+          address: expect.any(String),
+          networkName: expect.any(String),
+          chainId: expect.any(String),
+          groupId: expect.any(String),
+        }),
       });
     });
 

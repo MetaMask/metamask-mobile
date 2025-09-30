@@ -141,7 +141,6 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
-import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -574,12 +573,30 @@ const Wallet = ({
           )}`,
         }),
       );
-    } else {
-      navigate(Routes.QR_TAB_SWITCHER, {
-        initialScreen: QRTabSwitcherScreens.Receive,
+    } else if (
+      selectedInternalAccount?.address &&
+      selectedAccountGroupId &&
+      chainId
+    ) {
+      // Navigate to ShareAddressQR since "Your QR code" tab was removed
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MULTICHAIN.SHARE_ADDRESS_QR,
+        params: {
+          address: selectedInternalAccount.address,
+          networkName: providerConfig?.nickname || 'Unknown Network',
+          chainId,
+          groupId: selectedAccountGroupId,
+        },
       });
     }
-  }, [isMultichainAccountsState2Enabled, navigate, selectedAccountGroupId]);
+  }, [
+    isMultichainAccountsState2Enabled,
+    navigate,
+    selectedAccountGroupId,
+    selectedInternalAccount,
+    chainId,
+    providerConfig,
+  ]);
 
   const onSend = useCallback(async () => {
     try {

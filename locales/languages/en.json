@@ -1614,8 +1614,7 @@
     "accept": "Accept"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Scan QR code",
-    "receive_tab": "Your QR code"
+    "scanner_tab": "Scan QR code"
   },
   "banner": {
     "bridge": {

@@ -1,14 +1,11 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View } from 'react-native';
 import QRScanner from '../QRScanner';
-import { strings } from '../../../../locales/i18n';
-import ReceiveRequest from '../../UI/ReceiveRequest';
 import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
-import NavbarTitle from '../../../components/UI/NavbarTitle';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -18,7 +15,6 @@ import { endTrace, trace, TraceName } from '../../../util/trace';
 
 export enum QRTabSwitcherScreens {
   Scanner,
-  Receive,
 }
 
 export interface ScanSuccess {
@@ -64,43 +60,20 @@ const QRTabSwitcher = () => {
   }
 
   const route = useRoute();
-  const {
-    onScanError,
-    onScanSuccess,
-    onStartScan,
-    initialScreen,
-    origin,
-    disableTabber,
-    networkName,
-  } = route.params as QRTabSwitcherParams;
+  const { onScanError, onScanSuccess, onStartScan, origin } =
+    route.params as QRTabSwitcherParams;
 
-  const [selectedIndex, setSelectedIndex] = useState(
-    initialScreen || QRTabSwitcherScreens.Scanner,
-  );
+  // Only Scanner tab remains, so selectedIndex is always Scanner
+  const selectedIndex = QRTabSwitcherScreens.Scanner;
   const navigation = useNavigation();
   const theme = useTheme();
   const styles = createStyles(theme);
-
-  const animatedValue = useRef(new Animated.Value(selectedIndex)).current;
 
   // End trace when component has finished initial loading
   useEffect(() => {
     endTrace({ name: TraceName.QRTabSwitcher });
     isFirstRender.current = false;
   }, []);
-
-  useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: selectedIndex,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [animatedValue, selectedIndex]);
-
-  const interpolateLeft = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '50%'],
-  });
 
   const goBack = () => {
     navigation.goBack();
@@ -126,14 +99,6 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      {selectedIndex === QRTabSwitcherScreens.Receive ? (
-        <ReceiveRequest
-          navigation={navigation}
-          hideModal={() => false}
-          showReceiveModal
-        />
-      ) : null}
-
       <View style={styles.overlay}>
         <HeaderBase
           style={styles.header}
@@ -144,63 +109,10 @@ const QRTabSwitcher = () => {
               onPress={goBack}
             />
           }
-        >
-          {selectedIndex === QRTabSwitcherScreens.Receive ? (
-            // @ts-expect-error proptypes components requires ts-expect-error
-            <NavbarTitle
-              // @ts-expect-error proptypes components requires ts-expect-error
-              title={strings(`receive.title`)}
-              // @ts-expect-error proptypes components requires ts-expect-error
-              translate={false}
-              // @ts-expect-error proptypes components requires ts-expect-error
-              disableNetwork
-              // @ts-expect-error proptypes components requires ts-expect-error
-              networkName={networkName}
-            />
-          ) : null}
-        </HeaderBase>
+        ></HeaderBase>
       </View>
 
-      {disableTabber ? null : (
-        <View style={styles.segmentedControlContainer}>
-          <Animated.View
-            style={[
-              styles.segmentedControlItemSelected,
-              { left: interpolateLeft },
-            ]}
-          />
-          <TouchableWithoutFeedback
-            onPress={() => setSelectedIndex(QRTabSwitcherScreens.Scanner)}
-          >
-            <View style={styles.segmentedControlItem}>
-              <Text
-                style={
-                  selectedIndex === QRTabSwitcherScreens.Scanner
-                    ? styles.selectedText
-                    : styles.text
-                }
-              >
-                {strings(`qr_tab_switcher.scanner_tab`)}
-              </Text>
-            </View>
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback
-            onPress={() => setSelectedIndex(QRTabSwitcherScreens.Receive)}
-          >
-            <View style={styles.segmentedControlItem}>
-              <Text
-                style={
-                  selectedIndex === QRTabSwitcherScreens.Receive
-                    ? styles.selectedText
-                    : styles.text
-                }
-              >
-                {strings(`qr_tab_switcher.receive_tab`)}
-              </Text>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      )}
+      {/* Tab switcher removed - only Scanner tab remains */}
     </View>
   );
 };
