@@ -176,21 +176,18 @@ export function* handleDeeplinkSaga() {
       const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
       if (onboardingDeeplink?.includes('onboarding')) {
         const url = new URL(onboardingDeeplink);
-        let onboardingType: OnboardingDeepLinkType | undefined;
+        let onboardingType;
         url.search
           .slice(1)
           .split('&')
           .forEach((param) => {
             const [paramKey, paramValue] = param.split('=');
             if (paramKey === 'type') {
-              onboardingType = paramValue as OnboardingDeepLinkType;
+              onboardingType = paramValue;
             }
           });
 
-        if (
-          onboardingType &&
-          ONBOARDING_DEEPLINK_TYPES.includes(onboardingType)
-        )
+        if (onboardingType)
           NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV, {
             params: {
               onboardingType,
