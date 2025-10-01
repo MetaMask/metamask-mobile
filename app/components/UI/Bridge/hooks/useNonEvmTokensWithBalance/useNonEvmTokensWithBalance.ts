@@ -7,7 +7,7 @@ import { useNonEvmAccountIds } from '../useNonEvmAccountIds';
  * Hook to get non-EVM tokens from all non-EVM accounts
  * @returns Combined array of tokens from all non-EVM accounts
  */
-export const useNonEvmTokens = () => {
+export const useNonEvmTokensWithBalance = () => {
   const nonEvmAccountIds = useNonEvmAccountIds();
   const nonEvmTokens = useSelector((state: RootState) => {
     const tokens: ReturnType<
