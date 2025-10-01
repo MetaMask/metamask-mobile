@@ -173,10 +173,10 @@ const PerpsMarketBalanceActions: React.FC<
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
-        <Box twClassName="p-4">
-          {/* Deposit Progress Section */}
-          {isDepositInProgress && (
-            <Box twClassName="w-full mb-4 pb-4 flex-row justify-between border-b border-muted">
+        {/* Deposit Progress Section */}
+        {isDepositInProgress && (
+          <Box twClassName="p-4">
+            <Box twClassName="w-full flex-row justify-between">
               <Text
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Default}
@@ -185,8 +185,14 @@ const PerpsMarketBalanceActions: React.FC<
               </Text>
               <ActivityIndicator size="small" color={colors.primary.default} />
             </Box>
-          )}
+          </Box>
+        )}
 
+        {isDepositInProgress && (
+          <Box twClassName="w-full border-b border-muted"></Box>
+        )}
+
+        <Box twClassName="p-4">
           {/* Balance Section */}
           <Box twClassName="mb-4">
             <Box
