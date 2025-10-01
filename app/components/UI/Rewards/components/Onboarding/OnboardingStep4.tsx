@@ -45,8 +45,8 @@ const OnboardingStep4: React.FC = () => {
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
   } = useValidateReferralCode(
-    urlParams.isFromDeeplink
-      ? urlParams?.referral?.trim().toUpperCase()
+    urlParams?.isFromDeeplink && urlParams?.referral
+      ? urlParams.referral.trim().toUpperCase()
       : undefined,
   );
 
