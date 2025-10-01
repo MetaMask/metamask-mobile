@@ -41,6 +41,7 @@ import { selectPerOriginChainId } from '../../selectors/selectedNetworkControlle
 import { rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
+import AppConstants from '../AppConstants';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -539,15 +540,28 @@ class WalletConnect2Session {
         `WC::checkWCPermissions switching to network:`,
         existingNetwork,
       );
+      const [networkClientId, networkConfiguration] = existingNetwork;
       // Switching to the network is allowed so try switching into it
       await switchToNetwork({
-        network: existingNetwork,
+        networkClientId,
+        nativeCurrency: networkConfiguration.nativeCurrency,
         chainId: hexChainIdString,
         requestUserApproval: onRequestUserApproval(channelId),
         analytics: {},
         origin: this.channelId,
-        dappUrl: origin,
-        hooks: getRpcMethodMiddlewareHooks(channelId),
+        isSwitchFlow: true,
+        hooks: getRpcMethodMiddlewareHooks({
+          origin: this.channelId,
+          url: { current: origin },
+          title: { current: this.session.peer.metadata.name },
+          icon: {
+            current: this.session.peer.metadata
+              .icons?.[0] as ImageSourcePropType,
+          },
+          analytics: {},
+          channelId: this.channelId,
+          getSource: () => AppConstants.REQUEST_SOURCES.WC,
+        }),
       });
     }
   };
