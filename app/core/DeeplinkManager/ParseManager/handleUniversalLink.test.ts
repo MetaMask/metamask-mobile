@@ -514,7 +514,8 @@ describe('handleUniversalLinks', () => {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: rewardsUrl,
-        pathname: `/${ACTIONS.REWARDS}?referral=code123`,
+        pathname: `/${ACTIONS.REWARDS}`,
+        search: '?referral=code123',
       };
 
       await handleUniversalLink({
