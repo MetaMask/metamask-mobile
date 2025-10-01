@@ -220,9 +220,7 @@ async function generateSummary() {
     GITHUB_RUN_ID,
   } = process.env;
 
-  let summary = `*${platform} E2E Regression Tests*\n\n`;
-  summary += `---------------\n\n`;
-  summary += `*Test Results:*\n`;
+  let summary = `:test_tube: *${platform} E2E Regression Tests*\n\n`;
 
   let totalTests = 0;
   let totalFailures = 0;
@@ -232,13 +230,14 @@ async function generateSummary() {
   // Sort categories alphabetically for consistent output
   const sortedCategories = Object.keys(categoryResults).sort();
 
+  // Build test results
+  const resultLines = [];
   sortedCategories.forEach((category) => {
     const results = categoryResults[category];
     const jobLinks = getJobLinks(category, jobInfo);
 
     if (results.tests === 0) {
-      summary += `• ${category}: :fast_forward: SKIPPED\n`;
-      return;
+      return; // Skip empty categories
     }
 
     totalTests += results.tests;
@@ -248,48 +247,50 @@ async function generateSummary() {
     const passed = results.tests - results.failures - results.skipped;
     const icon = results.failures > 0 ? ':x:' : ':white_check_mark:';
 
-    summary += `• ${category}: ${icon} ${passed} passed`;
+    let line = `${icon} *${category}*: ${passed} passed`;
     if (results.failures > 0) {
       hasFailures = true;
-      summary += `, ${results.failures} failed`;
+      line += `, ${results.failures} failed`;
     }
     if (results.skipped > 0) {
-      summary += `, ${results.skipped} skipped`;
+      line += `, ${results.skipped} skipped`;
     }
 
     // Add job links for failures
     if (jobLinks.length > 0) {
-      summary += ` (<${jobLinks[0]}|View Job>)`;
+      line += ` | <${jobLinks[0]}|View Job>`;
     }
 
-    summary += `\n`;
+    resultLines.push(line);
   });
 
-  // Add failed test details if there are failures
-  if (hasFailures) {
-    summary += `\n*Failed Tests:*\n`;
-    const allFailedTests = Object.values(categoryResults).flatMap((r) => r.failedTests);
-    const uniqueFailures = [...new Set(allFailedTests.map((t) => t.name))].slice(0, 10);
+  summary += resultLines.join('\n') + '\n\n';
 
+  // Add summary
+  summary += `*Summary*\n`;
+  summary += `:chart_with_upwards_trend: Total: *${totalTests}* tests\n`;
+  summary += `:white_check_mark: Passed: *${totalTests - totalFailures - totalSkipped}*\n`;
+  if (totalFailures > 0) summary += `:x: Failed: *${totalFailures}*\n`;
+  if (totalSkipped > 0) summary += `:fast_forward: Skipped: *${totalSkipped}*\n`;
+
+  // Add failed test details if there are failures (limit to 5 for readability)
+  if (hasFailures) {
+    const allFailedTests = Object.values(categoryResults).flatMap((r) => r.failedTests);
+    const uniqueFailures = [...new Set(allFailedTests.map((t) => t.name))].slice(0, 5);
+
+    summary += `\n*Top Failed Tests*\n`;
     uniqueFailures.forEach((testName) => {
-      summary += `• ${testName}\n`;
+      // Truncate long test names
+      const truncated = testName.length > 100 ? testName.substring(0, 100) + '...' : testName;
+      summary += `:small_red_triangle: ${truncated}\n`;
     });
 
-    if (allFailedTests.length > 10) {
-      summary += `\n_...and ${allFailedTests.length - 10} more failures_\n`;
+    if (allFailedTests.length > 5) {
+      summary += `_...and ${allFailedTests.length - 5} more failures_\n`;
     }
   }
 
-  summary += `\n---------------\n\n`;
-  summary += `*Summary:*\n`;
-  summary += `• Total: ${totalTests} tests\n`;
-  summary += `• Passed: ${totalTests - totalFailures - totalSkipped}\n`;
-  if (totalFailures > 0) summary += `• Failed: ${totalFailures}\n`;
-  if (totalSkipped > 0) summary += `• Skipped: ${totalSkipped}\n`;
-
-  summary += `\n---------------\n\n`;
-  summary += `<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|View Full Results>\n`;
-  summary += `---------------\n`;
+  summary += `\n<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|:point_right: View Full Results>`;
 
   return summary;
 }
