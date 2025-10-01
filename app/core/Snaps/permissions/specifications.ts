@@ -68,7 +68,6 @@ export type SnapPermissionSpecificationsActions =
 export type SnapPermissionSpecificationsEvents = KeyringControllerUnlockEvent;
 
 interface SnapPermissionSpecificationsHooks {
-  addAndShowApprovalRequest(request: unknown): Promise<unknown>;
   addNewKeyring(
     type: KeyringTypes | string,
     opts?: unknown,

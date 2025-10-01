@@ -13,7 +13,9 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../../Permissions/specifications';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { getSnapPermissionSpecifications } from '../../Snaps/permissions/specifications';
+///: END:ONLY_INCLUDE_IF
 import { CaipChainId } from '@metamask/utils';
 
 /**
@@ -31,7 +33,9 @@ export const permissionControllerInit: ControllerInitFunction<
   PermissionControllerMessenger,
   PermissionControllerInitMessenger
 > = ({ controllerMessenger, initMessenger, persistedState, getController }) => {
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   const keyringController = getController('KeyringController');
+  ///: END:ONLY_INCLUDE_IF
 
   const controller = new PermissionController({
     // @ts-expect-error: The permission controller needs certain actions that
@@ -60,7 +64,6 @@ export const permissionControllerInit: ControllerInitFunction<
     permissionSpecifications: {
       ...getPermissionSpecifications(),
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      // @ts-expect-error: Messenger type doesn't match.
       ...getSnapPermissionSpecifications(initMessenger, {
         addNewKeyring: keyringController.addNewKeyring.bind(keyringController),
       }),
