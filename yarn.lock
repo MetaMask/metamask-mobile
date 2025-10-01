@@ -7710,9 +7710,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/multichain-account-service@npm:1.2.0"
+"@metamask/multichain-account-service@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@metamask/multichain-account-service@npm:1.4.0"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@metamask/base-controller": ^8.4.0
@@ -7725,7 +7725,7 @@ __metadata:
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/utils": ^11.8.1
     async-mutex: ^0.5.0
   peerDependencies:
     "@metamask/account-api": ^0.12.0
@@ -7734,7 +7734,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: ddc22d016ddabf85265238f2b89d8547a604c0e704df8244eefcb6782211f6ee636edb2d956e0a2132adddc5167c70ca8dfc993d531d85d34e7f15fae246c00a
+  checksum: c71bc9381962e9fe3dd8c4ef29d89678d4fb4487f25fa2745583a83b68f2e67938d23ca08a7a662de0fd67f35aabe078e23a4e2c45d97397abdf77fb1b44422c
   languageName: node
   linkType: hard
 
@@ -7780,6 +7780,25 @@ __metadata:
     "@metamask/accounts-controller": ^33.0.0
     "@metamask/network-controller": ^24.0.0
   checksum: 89ec63ec1f52e76e55c87072466a6f6ec715821f7ab00179c0d2678c13e5b5aa9b187f8f4bdc80f4ab9237656fe543f666e435244a2041dfed10f474d768e6a8
+  languageName: node
+  linkType: hard
+
+"@metamask/multichain-network-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/multichain-network-controller@npm:1.0.0"
+  dependencies:
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/keyring-internal-api": ^9.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.8.0
+    "@solana/addresses": ^2.0.0
+    lodash: ^4.17.21
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/network-controller": ^24.0.0
+  checksum: 5de679e60e39d99c5bf995a624606260babf494f16215591bbc0eca49db061f29e8920498d47f2e71034c5a7a72c69ba84d378f6c489090167034f3d8254a97e
   languageName: node
   linkType: hard
 
@@ -7833,19 +7852,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/network-enablement-controller@npm:1.2.0"
+"@metamask/network-enablement-controller@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/network-enablement-controller@npm:2.1.0"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/controller-utils": ^11.14.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/utils": ^11.8.1
     reselect: ^5.1.1
   peerDependencies:
-    "@metamask/multichain-network-controller": ^0.11.0
+    "@metamask/multichain-network-controller": ^1.0.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: da89146cadabb11a312561f6ac5f068220d567a6f21e1be51ded2750eb642b62a8f12659926168a254e9ffd8f3b26581d738730377ab3ac0c6bd05cd28809634
+  checksum: d415eeb27e59e5d4c97c1fbebcc78df22df3a541d332cfc6974d2f0f06dbbbb9396d3f37e9d33247e43bba75d34e7a2c89061b78ed47fd714ac4687637e9b77f
   languageName: node
   linkType: hard
 
@@ -8607,6 +8627,13 @@ __metadata:
     "@metamask/network-controller": ^24.0.0
     "@metamask/remote-feature-flag-controller": ^1.5.0
   checksum: 1e43062f640bd797971a141081117ac5e4044f9d3fd0adb6592b7dbe5679e79b7bee0064dc17865609d6f1652e6c49f82cc58b15af2498355ffcbfcff31154fc
+  languageName: node
+  linkType: hard
+
+"@metamask/tron-wallet-snap@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.1.0"
+  checksum: 622ea1c77aff705a04af15bb3a1df6f75663adf5518fd108adf31f5220ab8f95bf3aa2df5a0ad0d4de21633c12acd1cb6b374aa276a4a506cece3cd5705fc079
   languageName: node
   linkType: hard
 
@@ -33760,13 +33787,13 @@ __metadata:
     "@metamask/mobile-provider": ^3.0.0
     "@metamask/mobile-wallet-protocol-core": ^0.1.1
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.1
-    "@metamask/multichain-account-service": ^1.2.0
+    "@metamask/multichain-account-service": ^1.4.0
     "@metamask/multichain-api-client": ^0.7.0
     "@metamask/multichain-api-middleware": 1.1.0
-    "@metamask/multichain-network-controller": ^0.12.0
+    "@metamask/multichain-network-controller": ^1.0.0
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
-    "@metamask/network-enablement-controller": ^1.2.0
+    "@metamask/network-enablement-controller": ^2.1.0
     "@metamask/notification-services-controller": ^18.1.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
@@ -33808,6 +33835,7 @@ __metadata:
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
     "@metamask/transaction-controller": ^60.3.0
+    "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
     "@notifee/react-native": ^9.0.0
