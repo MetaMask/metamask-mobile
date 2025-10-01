@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -249,49 +249,47 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <View style={styles.content}>
-          <View style={styles.contentContainer}>
-            {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <View style={styles.firstTimeContent}>
-                <View style={styles.firstTimeContainer}>
-                  <Icon
-                    name={IconName.Details}
-                    color={IconColor.Muted}
-                    size={firstTimeUserIconSize}
-                    style={styles.firstTimeIcon}
-                  />
-                  <Text
-                    variant={TextVariant.HeadingMD}
-                    color={TextColor.Default}
-                    style={styles.firstTimeTitle}
-                  >
-                    {strings('perps.position.list.first_time_title')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.firstTimeDescription}
-                  >
-                    {strings('perps.position.list.first_time_description')}
-                  </Text>
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    label={strings('perps.position.list.start_trading')}
-                    onPress={handleNewTrade}
-                    style={styles.startTradingButton}
-                    width={ButtonWidthTypes.Full}
-                  />
-                </View>
+        <ScrollView style={styles.content}>
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <View style={styles.firstTimeContent}>
+              <View style={styles.firstTimeContainer}>
+                <Icon
+                  name={IconName.Details}
+                  color={IconColor.Muted}
+                  size={firstTimeUserIconSize}
+                  style={styles.firstTimeIcon}
+                />
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  color={TextColor.Default}
+                  style={styles.firstTimeTitle}
+                >
+                  {strings('perps.position.list.first_time_title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.firstTimeDescription}
+                >
+                  {strings('perps.position.list.first_time_description')}
+                </Text>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  label={strings('perps.position.list.start_trading')}
+                  onPress={handleNewTrade}
+                  style={styles.startTradingButton}
+                  width={ButtonWidthTypes.Full}
+                />
               </View>
-            ) : (
-              <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
-              </View>
-            )}
-          </View>
-        </View>
+            </View>
+          ) : (
+            <View style={styles.tradeInfoContainer}>
+              <View style={styles.section}>{renderPositionsSection()}</View>
+              <View style={styles.section}>{renderOrdersSection()}</View>
+            </View>
+          )}
+        </ScrollView>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>
