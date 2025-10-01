@@ -12,6 +12,8 @@ import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
+import { ToastHandler } from '../utils/toast-handler';
+import { JsonRpcRequest } from '@metamask/utils';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -21,20 +23,31 @@ export class Connection {
   public readonly info: ConnectionInfo;
   public readonly client: WalletClient;
   public readonly bridge: IRPCBridgeAdapter;
+  public readonly requests: unknown[] = [];
+  public readonly toastHandler: ToastHandler;
 
   private constructor(connInfo: ConnectionInfo, client: WalletClient) {
     this.id = connInfo.id;
     this.info = connInfo;
     this.client = client;
     this.bridge = new RPCBridgeAdapter(this.info);
+    this.toastHandler = new ToastHandler();
 
     this.client.on('message', (payload) => {
       logger.debug('Received message:', this.id, payload);
+
+      this.toastHandler.addRequest(payload as JsonRpcRequest);
+
       this.bridge.send(payload);
     });
 
     this.bridge.on('response', (payload) => {
       logger.debug('Sending message:', this.id, payload);
+
+      //TODO (wenfix): fix before merge
+      // @ts-expect-error type mismatch
+      this.toastHandler.handleRequest(payload.data);
+
       this.client.sendResponse(payload);
     });
   }
