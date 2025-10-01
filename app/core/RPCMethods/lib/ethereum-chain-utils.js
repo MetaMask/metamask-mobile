@@ -258,13 +258,18 @@ export async function switchToNetwork({
           isSwitchEthereumChain: true,
         };
       }
-      Logger.log('requestPermittedChainsPermissionIncrementalForOrigin', chainId, autoApprove, metadata);
+      Logger.log(
+        'requestPermittedChainsPermissionIncrementalForOrigin',
+        chainId,
+        autoApprove,
+        metadata,
+      );
       await requestPermittedChainsPermissionIncrementalForOrigin({
         chainId,
         autoApprove,
         metadata,
       });
-    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && isAddFlow) {
+    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && !isAddFlow) {
       await requestUserApproval({
         type: 'SWITCH_ETHEREUM_CHAIN',
         requestData: {
