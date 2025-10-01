@@ -11,7 +11,13 @@ export interface UseOptinResult {
   /**
    * Function to initiate the optin process
    */
-  optin: ({ referralCode }: { referralCode?: string }) => Promise<void>;
+  optin: ({
+    referralCode,
+    isPrefilled,
+  }: {
+    referralCode?: string;
+    isPrefilled?: boolean;
+  }) => Promise<void>;
 
   /**
    * Loading state for optin operation
@@ -35,17 +41,25 @@ export const useOptin = (): UseOptinResult => {
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const handleOptin = useCallback(
-    async ({ referralCode }: { referralCode?: string }) => {
+    async ({
+      referralCode,
+      isPrefilled,
+    }: {
+      referralCode?: string;
+      isPrefilled?: boolean;
+    }) => {
       if (!account) {
         return;
       }
       const referred = Boolean(referralCode);
+      const metricsProps = {
+        referred,
+        referral_code_used: referralCode,
+        referral_code_input_type: isPrefilled ? 'prefill' : 'manual',
+      };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_STARTED)
-          .addProperties({
-            referred,
-            referral_code_used: referralCode,
-          })
+          .addProperties(metricsProps)
           .build(),
       );
 
@@ -65,20 +79,14 @@ export const useOptin = (): UseOptinResult => {
           });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED)
-              .addProperties({
-                referred,
-                referral_code_used: referralCode,
-              })
+              .addProperties(metricsProps)
               .build(),
           );
         }
       } catch (error) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_FAILED)
-            .addProperties({
-              referred,
-              referral_code_used: referralCode,
-            })
+            .addProperties(metricsProps)
             .build(),
         );
         const errorMessage = handleRewardsErrorMessage(error);
