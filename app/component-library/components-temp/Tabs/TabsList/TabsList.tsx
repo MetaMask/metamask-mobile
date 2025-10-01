@@ -175,20 +175,20 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         // If tab is loaded but height not measured, measure it quickly
         // Use a ref to track if this measurement is still relevant
         let isMeasurementRelevant = true;
-        let measurementCleanup: (() => void) | undefined;
+        let rafCleanup: (() => void) | undefined;
 
         const timeoutId = setTimeout(() => {
           if (isMeasurementRelevant) {
-            measurementCleanup = measureTabHeight(activeIndex);
+            rafCleanup = measureTabHeight(activeIndex);
           }
         }, 50); // Reduced delay for faster measurement
 
         return () => {
           isMeasurementRelevant = false;
           clearTimeout(timeoutId);
-          // Call measurement cleanup if it exists
-          if (measurementCleanup) {
-            measurementCleanup();
+          // Call RAF cleanup if it exists
+          if (rafCleanup) {
+            rafCleanup();
           }
         };
       } else if (activeIndex >= 0) {
@@ -222,7 +222,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
         });
       }
-    }, [activeIndex, tabs]);
+    }, [activeIndex, tabs.length]);
 
     // Cleanup effect to clear all timers on unmount
     useEffect(
