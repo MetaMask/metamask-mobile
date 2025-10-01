@@ -264,14 +264,9 @@ export const selectIsSwapsLive = createSelector(
  * Combines all the conditions needed for swap functionality to be available
  */
 export const selectIsSwapsEnabled = createSelector(
-  [
-    selectCanSignTransactions,
-    selectBasicFunctionalityEnabled,
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsSwapsLive(state, chainId),
-  ],
-  (canSignTransactions, basicFunctionalityEnabled, swapsIsLive) =>
-    canSignTransactions && basicFunctionalityEnabled && swapsIsLive,
+  [selectCanSignTransactions, selectBasicFunctionalityEnabled],
+  (canSignTransactions, basicFunctionalityEnabled) =>
+    canSignTransactions && basicFunctionalityEnabled,
 );
 
 export const selectTopAssetsFromFeatureFlags = createSelector(
