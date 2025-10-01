@@ -14,6 +14,14 @@ export * from '../../types/navigation';
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
+// Input method for amount entry tracking
+export type InputMethod =
+  | 'default'
+  | 'slider'
+  | 'keypad'
+  | 'percentage'
+  | 'max';
+
 // Unified tracking data interface for analytics events (never persisted in state)
 export interface TrackingData {
   // Common to all operations
@@ -26,6 +34,7 @@ export interface TrackingData {
 
   // Order-specific (used for trade operations)
   marginUsed?: number; // Margin required for this order
+  inputMethod?: InputMethod; // How user set the amount
 
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close

@@ -93,7 +93,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
 
       // Track homescreen tab viewed event with exact property names from requirements
-      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
         [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
           [PerpsEventProperties.ASSET]: p.coin,
           [PerpsEventProperties.LEVERAGE]: p.leverage.value,
