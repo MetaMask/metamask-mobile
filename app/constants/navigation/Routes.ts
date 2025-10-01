@@ -24,6 +24,7 @@ const Routes = {
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
       FIAT_SELECTOR: 'RampFiatSelectorModal',
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
+      PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
     },
   },
   DEPOSIT: {

@@ -8,7 +8,7 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictPosition } from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictCashOut from './PredictCashOut';
 
@@ -151,15 +151,13 @@ const mockPosition: PredictPosition = {
   icon: 'https://example.com/bitcoin.png',
   amount: 100,
   price: 0.5,
-  status: 'open',
+  status: PredictPositionStatus.OPEN,
   size: 50,
   outcomeIndex: 0,
   realizedPnl: 10,
-  curPrice: 0.6,
-  conditionId: 'condition-123',
   percentPnl: 20,
   cashPnl: 5,
-  redeemable: true,
+  claimable: true,
   initialValue: 50,
   avgPrice: 0.5,
   currentValue: 60,
