@@ -12,7 +12,9 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
-import { RewardsMetricsStatuses } from '../utils';
+import { deriveAccountMetricProps, RewardsMetricsButtons } from '../utils';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 interface UseOptoutResult {
   optout: () => Promise<boolean>;
@@ -28,9 +30,11 @@ export const useOptout = (): UseOptoutResult => {
   const {
     resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,
   } = useRewardDashboardModals();
+  const account = useSelector(selectSelectedInternalAccount);
+  const accountMetricsProps = deriveAccountMetricProps(account);
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const optout = useCallback(async (): Promise<boolean> => {
     if (isLoading || !subscriptionId) return false;
@@ -38,10 +42,8 @@ export const useOptout = (): UseOptoutResult => {
     setIsLoading(true);
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
-        .addProperties({
-          status: RewardsMetricsStatuses.STARTED,
-        })
+      createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_STARTED)
+        .addProperties(accountMetricsProps)
         .build(),
     );
 
@@ -55,12 +57,14 @@ export const useOptout = (): UseOptoutResult => {
 
       if (success) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
-            .addProperties({
-              status: RewardsMetricsStatuses.COMPLETED,
-            })
+          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_COMPLETED)
+            .addProperties(accountMetricsProps)
             .build(),
         );
+        const traits = {
+          [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
+        };
+        addTraitsToUser(traits);
         Logger.log('useOptout: Opt-out successful, resetting state');
 
         // Clear rewards Redux state back to initial state
@@ -70,10 +74,8 @@ export const useOptout = (): UseOptoutResult => {
       }
       Logger.log('useOptout: Opt-out failed - controller returned false');
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
-          .addProperties({
-            status: RewardsMetricsStatuses.FAILED,
-          })
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED)
+          .addProperties(accountMetricsProps)
           .build(),
       );
 
@@ -88,10 +90,8 @@ export const useOptout = (): UseOptoutResult => {
       Logger.log('useOptout: Opt-out failed with exception:', error);
 
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
-          .addProperties({
-            status: RewardsMetricsStatuses.FAILED,
-          })
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED)
+          .addProperties(accountMetricsProps)
           .build(),
       );
 
@@ -108,10 +108,12 @@ export const useOptout = (): UseOptoutResult => {
   }, [
     isLoading,
     subscriptionId,
-    showToast,
-    RewardsToastOptions,
     trackEvent,
     createEventBuilder,
+    addTraitsToUser,
+    accountMetricsProps,
+    showToast,
+    RewardsToastOptions,
     dispatch,
     resetAllSessionTrackingForRewardsDashboardModals,
   ]);
@@ -126,9 +128,9 @@ export const useOptout = (): UseOptoutResult => {
         // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
         navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT)
+          createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
             .addProperties({
-              status: RewardsMetricsStatuses.CANCELED,
+              button_type: RewardsMetricsButtons.OPT_OUT_CANCEL,
             })
             .build(),
         );

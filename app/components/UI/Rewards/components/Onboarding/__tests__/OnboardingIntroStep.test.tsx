@@ -65,17 +65,19 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-// Mock metrics
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn(),
-      }),
+// Mock metrics - first definition (will be overridden below with constants). Keeping for potential earlier imports.
+jest.mock('../../../../../../components/hooks/useMetrics', () => {
+  const mockBuilder = {
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({}),
+  };
+  return {
+    useMetrics: () => ({
+      trackEvent: jest.fn(),
+      createEventBuilder: jest.fn(() => mockBuilder),
     }),
-  }),
-}));
+  };
+});
 
 // Mock multichain utils
 jest.mock('../../../../../../core/Multichain/utils', () => ({
@@ -104,20 +106,23 @@ jest.mock('../../../../../../core/Engine/Engine', () => ({
   },
 }));
 
-// Mock metrics
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn(),
-      }),
+// Override metrics mock to also export MetaMetricsEvents constants while preserving proper builder shape
+jest.mock('../../../../../../components/hooks/useMetrics', () => {
+  const mockBuilder = {
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({}),
+  };
+  return {
+    useMetrics: () => ({
+      trackEvent: jest.fn(),
+      createEventBuilder: jest.fn(() => mockBuilder),
     }),
-  }),
-  MetaMetricsEvents: {
-    REWARDS_ONBOARDING: 'REWARDS_ONBOARDING',
-  },
-}));
+    MetaMetricsEvents: {
+      REWARDS_ONBOARDING_STARTED: 'REWARDS_ONBOARDING_STARTED',
+      REWARDS_ONBOARDING_COMPLETED: 'REWARDS_ONBOARDING_COMPLETED',
+    },
+  };
+});
 
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({

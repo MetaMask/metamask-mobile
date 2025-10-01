@@ -26,6 +26,7 @@ const RewardsSettingsView: React.FC = () => {
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedSettingsViewed = useRef(false);
 
   useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
@@ -41,6 +42,15 @@ const RewardsSettingsView: React.FC = () => {
       headerTitleAlign: 'center',
     });
   }, [colors, navigation]);
+
+  useEffect(() => {
+    if (!hasTrackedSettingsViewed.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_SETTINGS_VIEWED).build(),
+      );
+      hasTrackedSettingsViewed.current = true;
+    }
+  }, [trackEvent, createEventBuilder]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">

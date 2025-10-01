@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Image, ImageBackground, Text as RNText } from 'react-native';
 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -40,7 +40,6 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { RewardsMetricsStatuses } from '../../utils';
 
 /**
  * OnboardingIntroStep Component
@@ -202,7 +201,7 @@ const OnboardingIntroStep: React.FC = () => {
   }, [navigation]);
 
   const { trackEvent, createEventBuilder } = useMetrics();
-  const hasTrackedOnboardingStart = React.useRef(false);
+  const hasTrackedOnboardingStart = useRef(false);
 
   /**
    * Auto-redirect to dashboard if user is already opted in
@@ -213,11 +212,9 @@ const OnboardingIntroStep: React.FC = () => {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
       } else if (!hasTrackedOnboardingStart.current) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.REWARDS_ONBOARDING)
-            .addProperties({
-              status: RewardsMetricsStatuses.STARTED,
-            })
-            .build(),
+          createEventBuilder(
+            MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,
+          ).build(),
         );
         hasTrackedOnboardingStart.current = true;
       }

@@ -20,13 +20,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../utils', () => ({
   handleRewardsErrorMessage: jest.fn(),
-  formatAccountScope: jest.fn().mockReturnValue('evm'),
-  RewardsMetricsStatuses: {
-    STARTED: 'started',
-    COMPLETED: 'completed',
-    FAILED: 'failed',
-    CANCELED: 'canceled',
-  },
+  deriveAccountMetricProps: jest.fn().mockReturnValue({
+    account_type: 'Imported',
+    scope: 'evm',
+  }),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({

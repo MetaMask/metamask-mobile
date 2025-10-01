@@ -16,6 +16,7 @@ export enum UserProfileProperty {
   NUMBER_OF_HD_ENTROPIES = 'number_of_hd_entropies',
   CHAIN_IDS = 'chain_id_list',
   HAS_REWARDS_OPTED_IN = 'has_rewards_opted_in',
+  REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
 }
 
 export interface UserProfileMetaData {
@@ -32,4 +33,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]?: number;
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
   [UserProfileProperty.HAS_REWARDS_OPTED_IN]?: string;
+  [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]?: number;
 }

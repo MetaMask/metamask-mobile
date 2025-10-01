@@ -2,7 +2,7 @@ import {
   handleRewardsErrorMessage,
   SOLANA_SIGNUP_NOT_SUPPORTED,
   convertInternalAccountToCaipAccountId,
-  formatAccountScope,
+  deriveAccountMetricProps,
 } from './utils';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
 import Logger from '../../../util/Logger';
@@ -25,6 +25,9 @@ jest.mock('@metamask/keyring-api', () => ({
 jest.mock('../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(),
 }));
+jest.mock('../../../util/address', () => ({
+  getAddressAccountType: jest.fn(),
+}));
 
 const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
   typeof parseCaipChainId
@@ -33,12 +36,9 @@ const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
   typeof toCaipAccountId
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
-const { isEvmAccountType } = jest.requireMock('@metamask/keyring-api') as {
-  isEvmAccountType: jest.Mock;
-};
-const { isSolanaAccount } = jest.requireMock(
-  '../../../core/Multichain/utils',
-) as { isSolanaAccount: jest.Mock };
+const { isEvmAccountType } = jest.requireMock('@metamask/keyring-api');
+const { isSolanaAccount } = jest.requireMock('../../../core/Multichain/utils');
+const { getAddressAccountType } = jest.requireMock('../../../util/address');
 
 describe('Rewards Utils', () => {
   beforeEach(() => {
@@ -487,10 +487,10 @@ describe('Rewards Utils', () => {
     });
   });
 
-  describe('formatAccountScope', () => {
+  describe('deriveAccountMetricProps', () => {
     const baseAccount: InternalAccount = {
-      id: 'acct-1',
-      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      id: 'id-1',
+      address: '0xabc0000000000000000000000000000000000001',
       scopes: ['eip155:1'],
       type: 'eip155:eoa',
       options: {},
@@ -502,46 +502,62 @@ describe('Rewards Utils', () => {
       },
     };
 
-    beforeEach(() => {
-      isEvmAccountType.mockReset();
-      isSolanaAccount.mockReset();
+    it('returns undefined props when no account is provided', () => {
+      const result = deriveAccountMetricProps();
+      expect(result).toEqual({ scope: undefined, account_type: undefined });
     });
 
-    it('returns "evm" when account is EVM type', () => {
-      isEvmAccountType.mockReturnValue(true);
-      isSolanaAccount.mockReturnValue(false);
-      const result = formatAccountScope(baseAccount);
-      expect(result).toBe('evm');
+    it('returns evm scope when isEvmAccountType returns true', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(true);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (getAddressAccountType as jest.Mock).mockReturnValue('smart');
+
+      const result = deriveAccountMetricProps(baseAccount);
       expect(isEvmAccountType).toHaveBeenCalledWith(baseAccount.type);
-      expect(isSolanaAccount).not.toHaveBeenCalled();
+      expect(result).toEqual({ scope: 'evm', account_type: 'smart' });
     });
 
-    it('returns "solana" when account is not EVM but is Solana', () => {
-      isEvmAccountType.mockReturnValue(false);
-      isSolanaAccount.mockReturnValue(true);
-      // Use a valid solana account type from allowed union
+    it('returns solana scope when isSolanaAccount returns true and not evm', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(false);
+      (isSolanaAccount as jest.Mock).mockReturnValue(true);
+      (getAddressAccountType as jest.Mock).mockReturnValue('solana');
+
       const solAccount: InternalAccount = {
         ...baseAccount,
+        address: '11111111111111111111111111111112',
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
         type: 'solana:data-account',
       };
-      const result = formatAccountScope(solAccount);
-      expect(result).toBe('solana');
+
+      const result = deriveAccountMetricProps(solAccount);
       expect(isEvmAccountType).toHaveBeenCalledWith(solAccount.type);
       expect(isSolanaAccount).toHaveBeenCalledWith(solAccount);
+      expect(result).toEqual({ scope: 'solana', account_type: 'solana' });
     });
 
-    it('falls back to account.type when neither EVM nor Solana', () => {
-      isEvmAccountType.mockReturnValue(false);
-      isSolanaAccount.mockReturnValue(false);
-      // Use a valid non-evm non-solana account type (e.g., Tron)
-      const customAccount: InternalAccount = {
+    it('falls back to account.type when neither evm nor solana', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(false);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (getAddressAccountType as jest.Mock).mockReturnValue('other');
+
+      const otherAccount: InternalAccount = {
         ...baseAccount,
-        type: 'tron:eoa',
+        type: 'any:account',
       };
-      const result = formatAccountScope(customAccount);
-      expect(result).toBe('tron:eoa');
-      expect(isEvmAccountType).toHaveBeenCalledWith(customAccount.type);
-      expect(isSolanaAccount).toHaveBeenCalledWith(customAccount);
+
+      const result = deriveAccountMetricProps(otherAccount);
+      expect(result).toEqual({ scope: 'any:account', account_type: 'other' });
+    });
+
+    it('sets account_type to metadata value when getAddressAccountType throws', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(true);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (getAddressAccountType as jest.Mock).mockImplementation(() => {
+        throw new Error('locked');
+      });
+
+      const result = deriveAccountMetricProps(baseAccount);
+      expect(result).toEqual({ scope: 'evm', account_type: 'HD Key Tree' });
     });
   });
 });

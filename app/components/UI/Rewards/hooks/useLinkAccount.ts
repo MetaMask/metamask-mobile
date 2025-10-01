@@ -6,7 +6,8 @@ import { strings } from '../../../../../locales/i18n';
 import useRewardsToast from './useRewardsToast';
 import { formatAddress } from '../../../../util/address';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { formatAccountScope, RewardsMetricsStatuses } from '../utils';
+import { deriveAccountMetricProps } from '../utils';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
 interface UseLinkAccountResult {
   linkAccount: (account: InternalAccount) => Promise<boolean>;
@@ -23,16 +24,10 @@ export const useLinkAccount = (): UseLinkAccountResult => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const triggerAccountLinkingEvent = useCallback(
-    (status: RewardsMetricsStatuses, account: InternalAccount) => {
-      const accountScope = formatAccountScope(account);
+    (event: IMetaMetricsEvent, account: InternalAccount) => {
+      const accountMetricProps = deriveAccountMetricProps(account);
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_ACCOUNT_LINKING)
-          .addProperties({
-            status,
-            scope: accountScope,
-            wallet_type: account.type,
-          })
-          .build(),
+        createEventBuilder(event).addProperties(accountMetricProps).build(),
       );
     },
     [createEventBuilder, trackEvent],
@@ -44,7 +39,10 @@ export const useLinkAccount = (): UseLinkAccountResult => {
       setIsError(false);
       setError(null);
 
-      triggerAccountLinkingEvent(RewardsMetricsStatuses.STARTED, account);
+      triggerAccountLinkingEvent(
+        MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_STARTED,
+        account,
+      );
 
       try {
         const success = await Engine.controllerMessenger.call(
@@ -53,7 +51,10 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         );
 
         if (success) {
-          triggerAccountLinkingEvent(RewardsMetricsStatuses.COMPLETED, account);
+          triggerAccountLinkingEvent(
+            MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_COMPLETED,
+            account,
+          );
           showToast(
             RewardsToastOptions.success(
               strings('rewards.settings.link_account_success_title', {
@@ -69,7 +70,10 @@ export const useLinkAccount = (): UseLinkAccountResult => {
             strings('rewards.settings.link_account_error_title'),
           ),
         );
-        triggerAccountLinkingEvent(RewardsMetricsStatuses.FAILED, account);
+        triggerAccountLinkingEvent(
+          MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_FAILED,
+          account,
+        );
         setIsError(true);
         setError('Failed to link account');
         return false;
@@ -79,7 +83,10 @@ export const useLinkAccount = (): UseLinkAccountResult => {
             strings('rewards.settings.link_account_error_title'),
           ),
         );
-        triggerAccountLinkingEvent(RewardsMetricsStatuses.FAILED, account);
+        triggerAccountLinkingEvent(
+          MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_FAILED,
+          account,
+        );
         Logger.log('useLinkAccount: Failed to link account', err);
         setIsError(true);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');

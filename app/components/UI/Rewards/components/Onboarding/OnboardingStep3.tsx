@@ -13,7 +13,6 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { RewardsMetricsStatuses } from '../../utils';
 
 const OnboardingStep3: React.FC = () => {
   const navigation = useNavigation();
@@ -26,11 +25,9 @@ const OnboardingStep3: React.FC = () => {
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));
     navigation.navigate(Routes.REWARDS_ONBOARDING_4);
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_ONBOARDING)
-        .addProperties({
-          status: RewardsMetricsStatuses.COMPLETED,
-        })
-        .build(),
+      createEventBuilder(
+        MetaMetricsEvents.REWARDS_ONBOARDING_COMPLETED,
+      ).build(),
     );
   }, [dispatch, navigation, trackEvent, createEventBuilder]);
 

@@ -1,11 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import {
-  handleRewardsErrorMessage,
-  formatAccountScope,
-  RewardsMetricsStatuses,
-} from '../utils';
+import { deriveAccountMetricProps, handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
@@ -37,22 +33,21 @@ export const useOptin = (): UseOptinResult => {
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const accountMetricsProps = deriveAccountMetricProps(account);
 
   const handleOptin = useCallback(
     async ({ referralCode }: { referralCode?: string }) => {
       if (!account) {
         return;
       }
-
-      const accountScope = formatAccountScope(account);
       const referred = Boolean(referralCode);
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_OPTED_IN)
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_STARTED)
           .addProperties({
             referred,
-            status: RewardsMetricsStatuses.STARTED,
-            scope: accountScope,
-            wallet_type: account.type,
+            referral_code_used: referralCode,
+            // TODO: add referral_code_input_type
+            ...accountMetricsProps,
           })
           .build(),
       );
@@ -72,24 +67,22 @@ export const useOptin = (): UseOptinResult => {
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
           });
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.REWARDS_OPTED_IN)
+            createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED)
               .addProperties({
                 referred,
-                status: RewardsMetricsStatuses.COMPLETED,
-                scope: accountScope,
-                wallet_type: account.type,
+                referral_code_used: referralCode,
+                ...accountMetricsProps,
               })
               .build(),
           );
         }
       } catch (error) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.REWARDS_OPTED_IN)
+          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_FAILED)
             .addProperties({
               referred,
-              status: RewardsMetricsStatuses.FAILED,
-              scope: accountScope,
-              wallet_type: account.type,
+              referral_code_used: referralCode,
+              ...accountMetricsProps,
             })
             .build(),
         );
@@ -99,7 +92,14 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(false);
       }
     },
-    [account, createEventBuilder, dispatch, trackEvent, addTraitsToUser],
+    [
+      account,
+      createEventBuilder,
+      dispatch,
+      trackEvent,
+      addTraitsToUser,
+      accountMetricsProps,
+    ],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);

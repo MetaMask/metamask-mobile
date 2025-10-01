@@ -182,9 +182,8 @@ export const WaysToEarn = () => {
 
   const handleCTAPress = async (type: WayToEarnType) => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED)
         .addProperties({
-          button_type: RewardsMetricsButtons.WAYS_TO_EARN,
           ways_to_earn_type: type,
         })
         .build(),
@@ -204,6 +203,14 @@ export const WaysToEarn = () => {
   };
 
   const handleEarningWayPress = (wayToEarn: WayToEarn) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+          ways_to_earn_type: wayToEarn.type,
+        })
+        .build(),
+    );
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
