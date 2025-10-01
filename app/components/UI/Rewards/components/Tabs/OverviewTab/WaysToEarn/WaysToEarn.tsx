@@ -267,8 +267,6 @@ export const WaysToEarn = () => {
                   </Text>
                 </Box>
               </Box>
-
-              <Icon name={IconName.ArrowRight} size={IconSize.Md} />
             </ButtonBase>
           )}
         />
