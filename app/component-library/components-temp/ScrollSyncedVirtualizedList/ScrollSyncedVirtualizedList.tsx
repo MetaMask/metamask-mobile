@@ -42,7 +42,7 @@ export function ScrollSyncedVirtualizedList<T>({
   ListEmptyComponent,
 }: ScrollSyncedVirtualizedListProps<T>) {
   const [listYPosition, setListYPosition] = useState<number | null>(null);
-  const [headerHeight, setHeaderHeight] = useState<number>(0);
+  const [footerHeight, setFooterHeight] = useState<number>(0);
 
   const handleListLayout = useCallback(
     (layoutEvent: LayoutChangeEvent) => {
@@ -55,18 +55,18 @@ export function ScrollSyncedVirtualizedList<T>({
     [listYPosition],
   );
 
-  const handleHeaderLayout = useCallback(
+  const handleFooterLayout = useCallback(
     (layoutEvent: LayoutChangeEvent) => {
       const { height } = layoutEvent.nativeEvent.layout;
-      if (headerHeight !== height) {
-        setHeaderHeight(height);
+      if (footerHeight !== height) {
+        setFooterHeight(height);
       }
     },
-    [headerHeight],
+    [footerHeight],
   );
 
   const baseHeight = data.length * itemHeight;
-  const totalContentHeight = baseHeight + headerHeight;
+  const totalHeight = baseHeight + footerHeight;
 
   const { startIndex, endIndex, topSpacer, bottomSpacer } = useMemo(() => {
     if (data.length === 0) {
@@ -87,23 +87,21 @@ export function ScrollSyncedVirtualizedList<T>({
     }
 
     // Virtualization: show items around current scroll position
-    // Account for header height in scroll calculations
-    const adjustedScrollY = Math.max(0, parentScrollY - headerHeight);
-    const currentItemIndex = Math.floor(adjustedScrollY / itemHeight);
-    const itemsToShowAbove = 5;
-    const itemsToShowBelow = 10;
-    const scrollStartIndex = Math.max(0, currentItemIndex - itemsToShowAbove);
+    const currentItemIndex = Math.floor(parentScrollY / itemHeight);
+    const itemsToShowAboveAndBelow = 6;
+    const scrollStartIndex = Math.max(
+      0,
+      currentItemIndex - itemsToShowAboveAndBelow,
+    );
     const scrollEndIndex = Math.min(
       data.length - 1,
-      currentItemIndex + itemsToShowBelow,
+      currentItemIndex + itemsToShowAboveAndBelow,
     );
 
     const scrollTopSpacer = scrollStartIndex * itemHeight;
     const renderedCount = Math.max(0, scrollEndIndex - scrollStartIndex + 1);
-    const scrollBottomSpacer = Math.max(
-      0,
-      baseHeight - scrollTopSpacer - renderedCount * itemHeight,
-    );
+    const scrollBottomSpacer =
+      totalHeight - scrollTopSpacer - renderedCount * itemHeight;
 
     return {
       startIndex: scrollStartIndex,
@@ -111,20 +109,15 @@ export function ScrollSyncedVirtualizedList<T>({
       topSpacer: scrollTopSpacer,
       bottomSpacer: scrollBottomSpacer,
     };
-  }, [parentScrollY, itemHeight, baseHeight, headerHeight, data.length]);
+  }, [parentScrollY, itemHeight, totalHeight, data.length]);
 
   const renderHeader = () => {
     if (!ListHeaderComponent) return null;
-
-    const headerContent = React.isValidElement(ListHeaderComponent)
-      ? ListHeaderComponent
-      : React.createElement(ListHeaderComponent as React.ComponentType);
-
-    return (
-      <Box onLayout={handleHeaderLayout as (event: unknown) => void}>
-        {headerContent}
-      </Box>
-    );
+    if (React.isValidElement(ListHeaderComponent)) {
+      return ListHeaderComponent;
+    }
+    const HeaderComponent = ListHeaderComponent as React.ComponentType;
+    return <HeaderComponent />;
   };
 
   const renderFooter = () => {
@@ -134,7 +127,11 @@ export function ScrollSyncedVirtualizedList<T>({
       ? ListFooterComponent
       : React.createElement(ListFooterComponent as React.ComponentType);
 
-    return footerContent;
+    return (
+      <Box onLayout={handleFooterLayout as (event: unknown) => void}>
+        {footerContent}
+      </Box>
+    );
   };
 
   const renderEmpty = () => {
@@ -162,7 +159,7 @@ export function ScrollSyncedVirtualizedList<T>({
       testID={testID}
       onLayout={handleListLayout as (event: unknown) => void}
     >
-      <Box style={{ height: totalContentHeight }}>
+      <Box style={{ height: baseHeight }}>
         {renderHeader()}
         <Box style={{ height: topSpacer }} />
         {(() => {
