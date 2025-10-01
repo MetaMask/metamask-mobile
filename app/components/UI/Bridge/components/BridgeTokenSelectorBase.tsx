@@ -53,6 +53,9 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonItemRows: {
       flex: 1,
     },
+    tokensList: {
+      marginTop: 10,
+    },
   });
 };
 
@@ -218,7 +221,7 @@ export const BridgeTokenSelectorBase: React.FC<
         </Text>
       </BottomSheetHeader>
 
-      <Box style={styles.buttonContainer} gap={16}>
+      <Box style={styles.buttonContainer} gap={20}>
         {networksBar}
 
         <TextFieldSearch
@@ -232,6 +235,7 @@ export const BridgeTokenSelectorBase: React.FC<
       {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
       <View>
         <ListComponent
+          style={styles.tokensList}
           key={scrollResetKey}
           data={
             shouldRenderOverallLoading

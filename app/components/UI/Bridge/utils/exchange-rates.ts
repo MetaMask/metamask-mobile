@@ -24,6 +24,7 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
+import { formatCurrency } from './format-currency';
 
 interface GetDisplayCurrencyValueParams {
   token: BridgeToken | undefined;
@@ -95,11 +96,12 @@ export const getDisplayCurrencyValue = ({
     }
   }
 
+  const formattedCurrencyValue = formatCurrency(currencyValue, currentCurrency);
   if (currencyValue >= 0.01 || currencyValue === 0) {
-    return addCurrencySymbol(currencyValue, currentCurrency);
+    return formattedCurrencyValue;
   }
 
-  return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+  return `< ${formatCurrency('0.01', currentCurrency)}`;
 };
 
 /**
