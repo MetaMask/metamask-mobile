@@ -25,9 +25,9 @@ const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
   const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  const keystorePassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  const keystorePassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
