@@ -9,7 +9,7 @@ import {
 } from "../testIDs/Screens/WalletSetupScreen.testIds";
 import Gestures from "../../helpers/Gestures";
 import Selectors from "../../helpers/Selectors";
-import AppwrightSelectors from "../../helpers/AppwrightSelectors";
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect } from "appwright";
 
 class CreateNewWalletScreen {
