@@ -369,44 +369,18 @@ describe('AssetOverview', () => {
   });
 
   it('should handle receive button press', async () => {
-    // Arrange - Create mock state with required data for ShareAddressQR navigation
-    const mockStateWithReceiveData = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          AccountsController: {
-            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-            internalAccounts: {
-              accounts: {
-                'account-id-1': {
-                  address: MOCK_ADDRESS_2,
-                  id: 'account-id-1',
-                  type: 'eip155:eoa',
-                },
-              },
-              selectedAccount: 'account-id-1',
-            },
-          },
-          AccountTreeController: {
-            accountTree: {
-              wallets: {
-                'wallet-1': {
-                  groups: {
-                    'group-id-123': {
-                      id: 'group-id-123',
-                      accounts: ['account-id-1'],
-                    },
-                  },
-                },
-              },
-              selectedAccountGroup: 'group-id-123',
-            },
-          },
-        },
-      },
-    };
+    // Arrange - Mock the selectors directly to ensure conditions are met
+    const mockUseSelector = jest.fn();
+    mockUseSelector
+      .mockReturnValueOnce(MOCK_ADDRESS_2) // selectedInternalAccountAddress
+      .mockReturnValueOnce({ id: 'group-id-123' }) // selectedAccountGroup
+      .mockReturnValueOnce(MOCK_CHAIN_ID); // chainId
+
+    // Replace useSelector for this test
+    jest.doMock('react-redux', () => ({
+      ...jest.requireActual('react-redux'),
+      useSelector: mockUseSelector,
+    }));
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -414,15 +388,16 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
+        networkName="Ethereum Mainnet"
       />,
-      { state: mockStateWithReceiveData },
+      { state: mockInitialState },
     );
 
     // Act
     const receiveButton = getByTestId('token-receive-button');
     fireEvent.press(receiveButton);
 
-    // Assert - Should navigate to ShareAddressQR instead of old QRTabSwitcher
+    // Assert - Should navigate to ShareAddressQR
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenNthCalledWith(
       1,
@@ -431,9 +406,9 @@ describe('AssetOverview', () => {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: expect.objectContaining({
           address: MOCK_ADDRESS_2,
-          networkName: expect.any(String),
+          networkName: 'Ethereum Mainnet',
           chainId: MOCK_CHAIN_ID,
-          groupId: expect.any(String),
+          groupId: 'group-id-123',
         }),
       },
     );
