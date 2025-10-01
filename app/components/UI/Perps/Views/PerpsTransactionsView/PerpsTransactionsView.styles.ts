@@ -38,7 +38,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     sectionHeaderText: {
       fontSize: 16,
       fontWeight: '600' as const,
-      color: colors.text.muted,
+      color: colors.text.alternative,
     },
     transactionItem: {
       flexDirection: 'row' as const,
