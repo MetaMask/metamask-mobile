@@ -3358,8 +3358,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -3373,8 +3372,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -3388,8 +3386,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -6658,8 +6655,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -6673,8 +6669,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -6688,8 +6683,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -18338,8 +18332,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -18353,8 +18346,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -18368,8 +18360,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -21001,8 +20992,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -21016,8 +21006,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -21031,8 +21020,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
