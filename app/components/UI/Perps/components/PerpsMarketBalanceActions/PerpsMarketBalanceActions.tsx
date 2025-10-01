@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Modal, Animated, View } from 'react-native';
+import { Modal, Animated, View, ActivityIndicator } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -42,6 +42,7 @@ import {
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import images from '../../../../../images/image-icons';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
+import { useAppTheme } from '../../../../../util/theme';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -49,6 +50,7 @@ const PerpsMarketBalanceActions: React.FC<
   PerpsMarketBalanceActionsProps
 > = () => {
   const tw = useTailwind();
+  const { colors } = useAppTheme();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -167,95 +169,73 @@ const PerpsMarketBalanceActions: React.FC<
   return (
     <>
       <Box
-        twClassName="mx-4 mt-4 mb-4 p-4 rounded-xl"
+        twClassName="mx-4 mt-4 mb-4 rounded-xl overflow-hidden"
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
-        {/* Deposit Progress Section */}
-        {isDepositInProgress && (
-          <Box twClassName="mb-4 pb-4 border-b border-muted">
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.deposit_in_progress')}
-            </Text>
-          </Box>
-        )}
-
-        {/* Balance Section */}
-        <Box twClassName="mb-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="justify-between"
-          >
-            <Box>
+        <Box twClassName="p-4">
+          {/* Deposit Progress Section */}
+          {isDepositInProgress && (
+            <Box twClassName="w-full mb-4 pb-4 flex-row justify-between border-b border-muted">
               <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                style={tw.style('mb-1')}
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
               >
-                {strings('perps.available_balance')}
+                {strings('perps.deposit_in_progress')}
               </Text>
-              <Animated.View style={[getBalanceAnimatedStyle]}>
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  color={TextColor.Default}
-                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                >
-                  {formatPerpsFiat(availableBalance)}
-                </Text>
-              </Animated.View>
+              <ActivityIndicator size="small" color={colors.primary.default} />
             </Box>
+          )}
 
-            {/* USDC Token Avatar with HyperLiquid Badge */}
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={images.HL}
-                  name="HyperLiquid"
-                />
-              }
+          {/* Balance Section */}
+          <Box twClassName="mb-4">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="justify-between"
             >
-              <AvatarToken
-                name={USDC_SYMBOL}
-                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-                size={AvatarSize.Lg}
-              />
-            </BadgeWrapper>
-          </Box>
-        </Box>
+              <Box>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={tw.style('mb-1')}
+                >
+                  {strings('perps.available_balance')}
+                </Text>
+                <Animated.View style={[getBalanceAnimatedStyle]}>
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    color={TextColor.Default}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                  >
+                    {formatPerpsFiat(availableBalance)}
+                  </Text>
+                </Animated.View>
+              </Box>
 
-        {/* Buttons Section */}
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-          {/* Add Funds Button */}
-          <Box twClassName="flex-1">
-            <ButtonBase
-              twClassName="h-12 rounded-xl"
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-subsection flex-row items-center justify-center w-full',
-                  pressed && !isDepositInProgress && 'bg-background-pressed',
-                  isDepositInProgress && 'opacity-50',
-                )
-              }
-              onPress={isDepositInProgress ? undefined : handleAddFunds}
-              disabled={isDepositInProgress}
-              testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-            >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={
-                  isDepositInProgress ? TextColor.Muted : TextColor.Default
+              {/* USDC Token Avatar with HyperLiquid Badge */}
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={images.HL}
+                    name="HyperLiquid"
+                  />
                 }
               >
-                {strings('perps.add_funds')}
-              </Text>
-            </ButtonBase>
+                <AvatarToken
+                  name={USDC_SYMBOL}
+                  imageSource={{ uri: USDC_TOKEN_ICON_URL }}
+                  size={AvatarSize.Lg}
+                />
+              </BadgeWrapper>
+            </Box>
           </Box>
 
-          {/* Withdraw Button */}
-          {!isBalanceEmpty && (
+          {/* Buttons Section */}
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+            {/* Add Funds Button */}
             <Box twClassName="flex-1">
               <ButtonBase
                 twClassName="h-12 rounded-xl"
@@ -266,9 +246,9 @@ const PerpsMarketBalanceActions: React.FC<
                     isDepositInProgress && 'opacity-50',
                   )
                 }
-                onPress={isDepositInProgress ? undefined : handleWithdraw}
+                onPress={isDepositInProgress ? undefined : handleAddFunds}
                 disabled={isDepositInProgress}
-                testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
+                testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
               >
                 <Text
                   variant={TextVariant.BodyMDMedium}
@@ -276,21 +256,51 @@ const PerpsMarketBalanceActions: React.FC<
                     isDepositInProgress ? TextColor.Muted : TextColor.Default
                   }
                 >
-                  {strings('perps.withdraw')}
+                  {strings('perps.add_funds')}
                 </Text>
               </ButtonBase>
             </Box>
+
+            {/* Withdraw Button */}
+            {!isBalanceEmpty && (
+              <Box twClassName="flex-1">
+                <ButtonBase
+                  twClassName="h-12 rounded-xl"
+                  style={({ pressed }) =>
+                    tw.style(
+                      'bg-subsection flex-row items-center justify-center w-full',
+                      pressed &&
+                        !isDepositInProgress &&
+                        'bg-background-pressed',
+                      isDepositInProgress && 'opacity-50',
+                    )
+                  }
+                  onPress={isDepositInProgress ? undefined : handleWithdraw}
+                  disabled={isDepositInProgress}
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={
+                      isDepositInProgress ? TextColor.Muted : TextColor.Default
+                    }
+                  >
+                    {strings('perps.withdraw')}
+                  </Text>
+                </ButtonBase>
+              </Box>
+            )}
+          </Box>
+          {isDepositInProgress && (
+            <Text
+              variant={TextVariant.BodyXS}
+              color={TextColor.Alternative}
+              style={tw.style('mt-2 text-center')}
+            >
+              {strings('perps.deposit_pending_try_again')}
+            </Text>
           )}
         </Box>
-        {isDepositInProgress && (
-          <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Alternative}
-            style={tw.style('mt-2 text-center')}
-          >
-            {strings('perps.deposit_pending_try_again')}
-          </Text>
-        )}
       </Box>
 
       {/* Eligibility Modal */}
