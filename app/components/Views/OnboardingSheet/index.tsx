@@ -185,41 +185,42 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             style={styles.socialBtn}
           />
           {Device.isAndroid() && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            onPress={onPressContinueWithAppleAction}
-            testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
-            label={
-              <View style={styles.buttonLabel}>
-                {isDark ? (
-                  <AppleWhiteIcon
-                    fill="currentColor"
-                    width={24}
-                    height={24}
-                    name={'apple-white'}
-                  />
-                ) : (
-                  <AppleIcon
-                    fill="currentColor"
-                    width={24}
-                    height={24}
-                    name={'apple'}
-                  />
-                )}
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {createWallet
-                    ? strings('onboarding.continue_with_apple')
-                    : strings('onboarding.sign_in_with_apple')}
-                </Text>
-              </View>
-            }
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.socialBtn}
-          />)}
+            <Button
+              variant={ButtonVariants.Secondary}
+              onPress={onPressContinueWithAppleAction}
+              testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
+              label={
+                <View style={styles.buttonLabel}>
+                  {isDark ? (
+                    <AppleWhiteIcon
+                      fill="currentColor"
+                      width={24}
+                      height={24}
+                      name={'apple-white'}
+                    />
+                  ) : (
+                    <AppleIcon
+                      fill="currentColor"
+                      width={24}
+                      height={24}
+                      name={'apple'}
+                    />
+                  )}
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                  >
+                    {createWallet
+                      ? strings('onboarding.continue_with_apple')
+                      : strings('onboarding.sign_in_with_apple')}
+                  </Text>
+                </View>
+              }
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
+              style={styles.socialBtn}
+            />
+          )}
         </View>
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
