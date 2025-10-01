@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-// import { FlashList, FlashListRef } from '@shopify/flash-list'; // Replaced with ExternalVirtualized
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';

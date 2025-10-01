@@ -6,14 +6,8 @@ import React, {
   useRef,
 } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
-  View,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { FlashList } from '@shopify/flash-list';
 import { ScrollSyncedVirtualizedList } from '../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -29,7 +23,6 @@ import {
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import AppConstants from '../../../core/AppConstants';
 import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
@@ -591,7 +584,7 @@ const CollectibleContracts = ({
                       numberOfLines={1}
                     >
                       {enabledNetworks.length > 1
-                        ? strings('wallet.all_networks')
+                        ? strings('wallet.popular_networks')
                         : currentNetworkName ??
                           strings('wallet.current_network')}
                     </TextComponent>

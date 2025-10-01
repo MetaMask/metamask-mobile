@@ -14,7 +14,6 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
-  ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
   useWindowDimensions,
@@ -1259,7 +1258,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <ScrollView
+      <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
         onScroll={handleScroll}
@@ -1320,7 +1319,7 @@ const Wallet = ({
             parentViewportHeight={screenHeight}
           />
         </>
-      </ScrollView>
+      </View>
     ),
     [
       styles.banner,

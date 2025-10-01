@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, FlatList } from 'react-native';
+import { View } from 'react-native';
 import { ScrollSyncedVirtualizedList } from '../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
