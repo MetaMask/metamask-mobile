@@ -666,29 +666,46 @@ describe('Wallet', () => {
     });
 
     it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
-      // Patch the selector to return true for isMultichainAccountsState2Enabled
+      // Arrange - Create mock state with state2 enabled and required data
+      const mockStateWithState2 = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'group-id-123',
+              },
+            },
+          },
+        },
+      };
+
       jest.mocked(useSelector).mockImplementation((callback) => {
-        const state = {
-          ...mockInitialState,
-          isMultichainAccountsState2Enabled: true,
-        };
-        return callback(state);
+        const result = callback(mockStateWithState2);
+        // Override the state2 flag specifically
+        if (
+          callback.toString().includes('selectMultichainAccountsState2Enabled')
+        ) {
+          return true;
+        }
+        return result;
       });
 
+      // Act
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
-
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // You need to know what createAddressListNavigationDetails returns.
-      // For example, if it returns [route, params], check those:
-      // expect(mockNavigate).toHaveBeenCalledWith(route, params);
-
-      // If it spreads an array, you can check the call arguments:
-      expect(mockNavigate.mock.calls[0][0]).toBeDefined();
-      expect(mockNavigate.mock.calls[0][1]).toBeDefined();
-      // Optionally, check for groupId or title in params if needed
+      // Assert - createAddressListNavigationDetails spreads an array [route, params]
+      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockNavigate.mock.calls[0]).toBeDefined();
+      // Verify it was called with address list navigation (state2 behavior)
+      const [route, params] = mockNavigate.mock.calls[0];
+      expect(route).toBeDefined();
+      expect(params).toBeDefined();
     });
 
     it('should handle onSend callback correctly with native currency', async () => {
