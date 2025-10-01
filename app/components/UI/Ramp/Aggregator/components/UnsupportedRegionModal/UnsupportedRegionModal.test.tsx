@@ -49,12 +49,6 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
-// jest.mock('react-native/Libraries/Linking/Linking', () => ({
-//   openURL: jest.fn(),
-//   addEventListener: jest.fn(),
-//   removeEventListener: jest.fn(),
-// }));
-
 describe('UnsupportedRegionModal', () => {
   afterEach(() => {
     jest.clearAllMocks();
