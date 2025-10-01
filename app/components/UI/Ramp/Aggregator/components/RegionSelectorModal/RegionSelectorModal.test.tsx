@@ -197,4 +197,14 @@ describe('RegionSelectorModal', () => {
     const { toJSON } = render(RegionSelectorModal);
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('navigates back to country view when back button is pressed from state view', () => {
+    const { getByText, getByTestId, toJSON } = render(RegionSelectorModal);
+    const usRegion = getByText('United States of America');
+    fireEvent.press(usRegion);
+    expect(toJSON()).toMatchSnapshot();
+    const backButton = getByTestId('back-button');
+    fireEvent.press(backButton);
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

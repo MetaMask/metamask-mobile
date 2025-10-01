@@ -253,6 +253,9 @@ function RegionSelectorModal() {
             ? handleRegionBackButton
             : undefined
         }
+        backButtonProps={{
+          testID: 'back-button',
+        }}
       >
         <Text variant={TextVariant.HeadingMD}>
           {activeView === RegionViewType.COUNTRY
