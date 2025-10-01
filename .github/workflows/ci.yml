@@ -230,6 +230,7 @@ jobs:
   ai-e2e-analysis:
     name: 'AI E2E Analysis'
     runs-on: ubuntu-latest
+    continue-on-error: true
     needs: [needs_e2e_build]
     permissions:
       contents: read
