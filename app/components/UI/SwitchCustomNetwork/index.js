@@ -16,9 +16,7 @@ const SwitchCustomNetwork = ({
   onConfirm,
 }) => {
   const { networkName } = useNetworkInfo(
-    currentPageInformation?.url
-      ? new URL(currentPageInformation.url).origin
-      : '',
+    new URL(currentPageInformation.url).origin,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
 

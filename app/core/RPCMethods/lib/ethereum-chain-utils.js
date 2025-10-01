@@ -256,12 +256,6 @@ export async function switchToNetwork({
           isSwitchEthereumChain: true,
         };
       }
-      Logger.log(
-        'requestPermittedChainsPermissionIncrementalForOrigin',
-        chainId,
-        autoApprove,
-        metadata,
-      );
       await requestPermittedChainsPermissionIncrementalForOrigin({
         chainId,
         autoApprove,
@@ -294,15 +288,12 @@ export async function switchToNetwork({
       networkClientId,
     );
   } else {
-    await MultichainNetworkController.setActiveNetwork(
-      networkClientId,
-    );
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
   }
 
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
-    symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
 

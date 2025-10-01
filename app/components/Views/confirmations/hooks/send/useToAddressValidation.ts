@@ -34,9 +34,12 @@ export const useToAddressValidation = () => {
   const prevAddressValidated = useRef<string>();
   const unmountedRef = useRef(false);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       unmountedRef.current = true;
-    }, []);
+    },
+    [],
+  );
 
   const validateToAddress = useCallback(
     async (toAddress?: string) => {

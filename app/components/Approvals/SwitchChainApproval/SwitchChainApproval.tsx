@@ -14,7 +14,6 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import Logger from '../../../util/Logger';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -77,11 +76,7 @@ const SwitchChainApproval = () => {
     chainId,
     chainName: evmNetworkConfigurations[chainId]?.name,
   };
-  Logger.log(
-    'Switch Chain Approval requestData',
-    approvalRequest?.requestData,
-    customNetworkInformation,
-  );
+
   if (
     approvalRequest?.requestData?.diff?.permissionDiffMap?.[
       Caip25EndowmentPermissionName
