@@ -219,8 +219,7 @@ const BuildQuote = () => {
       selectedRegion &&
       (selectedRegion.unsupported ||
         (isBuy && !selectedRegion.support?.buy) ||
-        (isSell && !selectedRegion.support?.sell) ||
-        selectedRegion?.name === 'Afghanistan')
+        (isSell && !selectedRegion.support?.sell))
     ), [regions, selectedRegion, isBuy, isSell]);
 
   useFocusEffect(
