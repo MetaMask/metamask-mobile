@@ -15,21 +15,9 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
       backgroundColor: colors.background.default,
-      zIndex: 1000, // iOS
-      elevation: 1000, // Android
-      position: 'relative' as const,
     },
-    filterScrollView: {
-      flexDirection: 'row' as const,
-    },
-    filterTab: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      marginRight: 8,
-      borderRadius: 20,
-      backgroundColor: colors.background.default,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+    filterTabContainer: {
+      gap: 8,
     },
     filterTabActive: {
       backgroundColor: colors.background.defaultPressed,

@@ -7,12 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  RefreshControl,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -47,6 +42,10 @@ import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -223,29 +222,17 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <TouchableOpacity
+        <Button
           key={tab}
-          style={[styles.filterTab, isActive && styles.filterTabActive]}
-          onPressIn={handleTabPress}
-          activeOpacity={0.7}
-          delayPressIn={0}
-          delayPressOut={0}
-        >
-          <Text
-            variant={TextVariant.BodySMBold}
-            style={isActive ? null : styles.filterTabText}
-          >
-            {strings(`perps.transactions.tabs.${i18nKey}`)}
-          </Text>
-        </TouchableOpacity>
+          variant={isActive ? ButtonVariants.Primary : ButtonVariants.Secondary}
+          size={ButtonSize.Sm}
+          onPress={handleTabPress}
+          accessibilityRole="button"
+          label={strings(`perps.transactions.tabs.${i18nKey}`)}
+        />
       );
     },
-    [
-      activeFilter,
-      styles.filterTab,
-      styles.filterTabActive,
-      styles.filterTabText,
-    ],
+    [activeFilter],
   );
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
@@ -374,8 +361,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
+          contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
-          style={styles.filterScrollView}
           pointerEvents="auto"
           scrollEnabled={false}
         >
