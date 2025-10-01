@@ -528,7 +528,7 @@ const PerpsMarketListView = ({
               placeholderTextColor={theme.colors.text.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              onFocus={() => setShouldShowNavbar(false)}
+              onPressIn={() => setShouldShowNavbar(false)}
               autoCapitalize="none"
               autoCorrect={false}
               autoFocus

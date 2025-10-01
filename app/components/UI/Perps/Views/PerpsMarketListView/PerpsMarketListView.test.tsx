@@ -818,7 +818,7 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
     });
 
-    it('hides navbar when search input is refocused after keyboard dismissal', () => {
+    it('hides navbar when search input is pressed again after keyboard dismissal', () => {
       // Mock keyboard listener
       let keyboardHideCallback: (() => void) | null = null;
       const mockAddListener = jest.fn((event, callback) => {
@@ -853,10 +853,10 @@ describe('PerpsMarketListView', () => {
       // Navbar should be visible
       expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
 
-      // Refocus the search input
+      // Press the search input again
       const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
-        fireEvent(searchInput, 'focus');
+        fireEvent(searchInput, 'pressIn');
       });
 
       // Navbar should be hidden again
