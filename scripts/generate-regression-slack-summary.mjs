@@ -292,10 +292,14 @@ async function generateSummary() {
 
   summary += `\n<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|:point_right: View Full Results>`;
 
-  summary += `\n\n:information_source: *Help improve test coverage:*\n`;
-  summary += `• Unskip and fix failing tests\n`;
-  summary += `• Move tests out of quarantine back into regression runs\n`;
-  summary += `• Keep our test suite healthy and reliable!`;
+  if (hasFailures) {
+    summary += `\n\n:information_source: *Help improve test coverage:*\n`;
+    summary += `• Unskip and fix failing tests\n`;
+    summary += `• Move tests out of quarantine back into regression runs\n`;
+    summary += `• Keep our test suite healthy and reliable!`;
+  } else {
+    summary += `\n\n:tada: *All tests passed!* Great work keeping the test suite healthy!`;
+  }
 
   return { summary, hasFailures };
 }

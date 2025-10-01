@@ -2,9 +2,19 @@ name: iOS E2E Regression Tests
 
 on:
   workflow_call:
+    inputs:
+      notify_on_pass:
+        description: 'Send Slack notification even when all tests pass'
+        type: boolean
+        default: false
   schedule:
     - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
+    inputs:
+      notify_on_pass:
+        description: 'Send Slack notification even when all tests pass'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -187,13 +197,31 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Prepare Slack Payload
+        if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
+        run: |
+          node -e "
+          const fs = require('fs');
+          const message = \`${{ steps.summary.outputs.summary }}\`;
+          const payload = {
+            text: 'iOS E2E Regression Test Results',
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: message
+                }
+              }
+            ]
+          };
+          fs.writeFileSync('/tmp/slack-payload.json', JSON.stringify(payload, null, 2));
+          "
+
       - name: Send Slack Notification
-        if: steps.summary.outcome == 'failure'
+        if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.REGRESSION_E2E_SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "${{ steps.summary.outputs.summary }}"
-            }
+          payload-file-path: /tmp/slack-payload.json
