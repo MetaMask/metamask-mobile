@@ -41,6 +41,7 @@ import {
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import images from '../../../../../images/image-icons';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -50,6 +51,8 @@ const PerpsMarketBalanceActions: React.FC<
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
+  const { isDepositInProgress } = usePerpsDepositProgress();
+  console.log('isDepositInProgress', isDepositInProgress);
 
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -224,15 +227,19 @@ const PerpsMarketBalanceActions: React.FC<
               style={({ pressed }) =>
                 tw.style(
                   'bg-subsection flex-row items-center justify-center w-full',
-                  pressed && 'bg-background-pressed',
+                  pressed && !isDepositInProgress && 'bg-background-pressed',
+                  isDepositInProgress && 'opacity-50',
                 )
               }
-              onPress={handleAddFunds}
+              onPress={isDepositInProgress ? undefined : handleAddFunds}
+              disabled={isDepositInProgress}
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
             >
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
+                color={
+                  isDepositInProgress ? TextColor.Muted : TextColor.Default
+                }
               >
                 {strings('perps.add_funds')}
               </Text>
@@ -247,15 +254,19 @@ const PerpsMarketBalanceActions: React.FC<
                 style={({ pressed }) =>
                   tw.style(
                     'bg-subsection flex-row items-center justify-center w-full',
-                    pressed && 'bg-background-pressed',
+                    pressed && !isDepositInProgress && 'bg-background-pressed',
+                    isDepositInProgress && 'opacity-50',
                   )
                 }
-                onPress={handleWithdraw}
+                onPress={isDepositInProgress ? undefined : handleWithdraw}
+                disabled={isDepositInProgress}
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
               >
                 <Text
                   variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  color={
+                    isDepositInProgress ? TextColor.Muted : TextColor.Default
+                  }
                 >
                   {strings('perps.withdraw')}
                 </Text>
@@ -263,6 +274,15 @@ const PerpsMarketBalanceActions: React.FC<
             </Box>
           )}
         </Box>
+        {isDepositInProgress && (
+          <Text
+            variant={TextVariant.BodyXS}
+            color={TextColor.Alternative}
+            style={tw.style('mt-2 text-center')}
+          >
+            {strings('perps.deposit_pending_try_again')}
+          </Text>
+        )}
       </Box>
 
       {/* Eligibility Modal */}
