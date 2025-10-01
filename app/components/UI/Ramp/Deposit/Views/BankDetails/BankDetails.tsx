@@ -262,7 +262,7 @@ const BankDetails = () => {
     if (isLoadingConfirmPayment || !order) return;
     try {
       setIsLoadingConfirmPayment(true);
-      if (!hasDepositOrderField(order?.data, 'paymentDetails')) {
+      if (!hasDepositOrderField(order?.data, 'paymentMethod')) {
         console.error('Order or payment details not found');
         Logger.error(
           new Error('Order or payment details not found'),
@@ -271,7 +271,7 @@ const BankDetails = () => {
         return;
       }
 
-      const paymentMethod = order.data.paymentDetails?.[0]?.paymentMethod;
+      const paymentMethod = order.data.paymentMethod.id;
       if (!paymentMethod) {
         console.error('Payment method not found or empty');
         Logger.error(
