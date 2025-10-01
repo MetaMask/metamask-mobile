@@ -3,6 +3,7 @@ import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
+  eventId: string;
   icon: string;
   title: string;
   slug: string;
@@ -98,10 +99,14 @@ export type SignedOrder = (OrderData & { salt: string }) & {
   signature: string;
 };
 
-export type ClobOrderObject = Omit<SignedOrder, 'side' | 'salt'> & {
-  side: Side;
-  salt: number;
-};
+export interface ClobOrderObject {
+  order: Omit<SignedOrder, 'side' | 'salt'> & {
+    side: Side;
+    salt: number;
+  };
+  owner: string;
+  orderType: OrderType;
+}
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ClobHeaders = {
   POLY_ADDRESS: string;

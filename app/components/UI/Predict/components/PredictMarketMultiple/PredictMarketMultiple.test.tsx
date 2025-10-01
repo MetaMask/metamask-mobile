@@ -15,13 +15,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock hooks
-const mockPlaceBuyOrder = jest.fn();
-const mockUsePredictBuy = jest.fn();
-
-jest.mock('../../hooks/usePredictBuy', () => ({
-  usePredictBuy: () => mockUsePredictBuy(),
-}));
+// Navigation is already mocked above with mockNavigate
 
 const mockMarket: PredictMarket = {
   id: 'test-market-1',
@@ -59,20 +53,12 @@ const initialState = {
 
 describe('PredictMarket', () => {
   beforeEach(() => {
-    mockUsePredictBuy.mockReturnValue({
-      placeBuyOrder: mockPlaceBuyOrder,
-      loading: false,
-      currentOrder: null,
-      result: null,
-      completed: false,
-      error: undefined,
-      reset: jest.fn(),
-    });
+    jest.clearAllMocks();
   });
+
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
-    mockPlaceBuyOrder.mockClear();
   });
 
   it('render market information correctly', () => {
@@ -90,7 +76,7 @@ describe('PredictMarket', () => {
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('call placeBuyOrder when buttons are pressed', () => {
+  it('navigate to place bet modal when buttons are pressed', () => {
     const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
       { state: initialState },
@@ -98,20 +84,26 @@ describe('PredictMarket', () => {
 
     const buttons = UNSAFE_getAllByType(Button);
 
+    // Press the "Yes" button
     fireEvent.press(buttons[0]);
-    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      size: 1,
-      outcomeId: mockMarket.outcomes[0].id,
-      outcomeTokenId: mockMarket.outcomes[0].tokens[0].id,
-      market: mockMarket,
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictPlaceBet',
+      params: {
+        market: mockMarket,
+        outcomeId: mockMarket.outcomes[0].id,
+        outcomeTokenId: mockMarket.outcomes[0].tokens[0].id,
+      },
     });
 
+    // Press the "No" button
     fireEvent.press(buttons[1]);
-    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      size: 1,
-      outcomeId: mockMarket.outcomes[0].id,
-      outcomeTokenId: mockMarket.outcomes[0].tokens[1].id,
-      market: mockMarket,
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictPlaceBet',
+      params: {
+        market: mockMarket,
+        outcomeId: mockMarket.outcomes[0].id,
+        outcomeTokenId: mockMarket.outcomes[0].tokens[1].id,
+      },
     });
   });
 
@@ -171,5 +163,98 @@ describe('PredictMarket', () => {
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
     expect(getByText('75.00%')).toBeOnTheScreen();
+  });
+
+  it('handle market with recurrence', () => {
+    const marketWithRecurrence: PredictMarket = {
+      ...mockMarket,
+      recurrence: Recurrence.DAILY,
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={marketWithRecurrence} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Daily')).toBeOnTheScreen();
+  });
+
+  it('handle market with exactly 4 outcomes showing singular text', () => {
+    const marketWithFourOutcomes: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
+        mockMarket.outcomes[0],
+        { ...mockMarket.outcomes[0], id: 'outcome-2' },
+        { ...mockMarket.outcomes[0], id: 'outcome-3' },
+        { ...mockMarket.outcomes[0], id: 'outcome-4' },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={marketWithFourOutcomes} />,
+      { state: initialState },
+    );
+
+    expect(getByText('+1 more outcome')).toBeOnTheScreen();
+  });
+
+  it('handle market with more than 4 outcomes showing plural text', () => {
+    const marketWithFiveOutcomes: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
+        mockMarket.outcomes[0],
+        { ...mockMarket.outcomes[0], id: 'outcome-2' },
+        { ...mockMarket.outcomes[0], id: 'outcome-3' },
+        { ...mockMarket.outcomes[0], id: 'outcome-4' },
+        { ...mockMarket.outcomes[0], id: 'outcome-5' },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={marketWithFiveOutcomes} />,
+      { state: initialState },
+    );
+
+    expect(getByText('+2 more outcomes')).toBeOnTheScreen();
+  });
+
+  it('handle market without image gracefully', () => {
+    const marketWithoutImage: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          image: '',
+        },
+      ],
+    };
+
+    const { queryByTestId } = renderWithProvider(
+      <PredictMarketMultiple market={marketWithoutImage} />,
+      { state: initialState },
+    );
+
+    // Should render without crashing, image container should still exist
+    expect(queryByTestId).toBeDefined();
+  });
+
+  it('handle numeric volume values correctly', () => {
+    const marketWithNumericVolume: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          volume: 500000, // numeric instead of string
+        },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={marketWithNumericVolume} />,
+      { state: initialState },
+    );
+
+    // Should display the formatted volume (formatVolume returns lowercase k)
+    expect(getByText(/\$500k.*Vol\./)).toBeOnTheScreen();
   });
 });

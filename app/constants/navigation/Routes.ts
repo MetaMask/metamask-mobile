@@ -263,6 +263,7 @@ const Routes = {
     MODALS: {
       ROOT: 'PredictModals',
       CASH_OUT: 'PredictCashOut',
+      PLACE_BET: 'PredictPlaceBet',
     },
   },
   LOCK_SCREEN: 'LockScreen',
