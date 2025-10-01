@@ -92,7 +92,7 @@ describe('useAccountInfo', () => {
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '7.0.0',
+                minimumVersion: '0.0.0',
               },
             },
           },
@@ -129,7 +129,7 @@ describe('useAccountInfo', () => {
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '7.0.0',
+                minimumVersion: '0.0.0',
               },
             },
           },
@@ -179,7 +179,7 @@ describe('useAccountInfo', () => {
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '7.0.0',
+                minimumVersion: '0.0.0',
               },
             },
           },
@@ -203,9 +203,6 @@ describe('useAccountInfo', () => {
                   metadata: { name: 'Second Wallet' },
                   groups: {},
                 },
-              },
-              accountToWalletMap: {
-                [accountId]: MOCK_WALLET_ID,
               },
             },
           },
@@ -232,7 +229,7 @@ describe('useAccountInfo', () => {
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '7.0.0',
+                minimumVersion: '0.0.0',
               },
             },
           },
@@ -307,7 +304,7 @@ describe('useAccountInfo', () => {
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '7.0.0',
+                minimumVersion: '0.0.0',
               },
             },
           },
@@ -344,7 +341,7 @@ describe('useAccountInfo', () => {
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '7.0.0',
+                minimumVersion: '0.0.0',
               },
             },
           },
@@ -363,9 +360,6 @@ describe('useAccountInfo', () => {
                     },
                   },
                 },
-              },
-              accountToWalletMap: {
-                [accountId]: MOCK_WALLET_ID,
               },
             },
           },
