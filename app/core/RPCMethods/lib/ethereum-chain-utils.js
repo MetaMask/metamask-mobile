@@ -219,6 +219,7 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  */
 export async function switchToNetwork({
   networkClientId,
+  ticker,
   chainId,
   requestUserApproval,
   analytics,
@@ -294,6 +295,7 @@ export async function switchToNetwork({
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
+    symbol: ticker || 'ETH',
     ...analytics,
   };
 

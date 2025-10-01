@@ -233,6 +233,7 @@ export const wallet_addEthereumChain = async ({
 
   await switchToNetwork({
     networkClientId,
+    ticker: updatedNetworkConfiguration.ticker,
     chainId,
     controllers: {
       MultichainNetworkController,

@@ -88,6 +88,7 @@ export const wallet_switchEthereumChain = async ({
 
     await switchToNetwork({
       networkClientId: networkClientIdToSwitchTo,
+      ticker: toNetworkConfiguration.ticker,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
