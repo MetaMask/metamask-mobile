@@ -3,8 +3,8 @@ import {
   View,
   StyleSheet,
   Dimensions,
-  ViewStyle,
   ImageSourcePropType,
+  StyleProp,
 } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // @ts-expect-error - resolveAssetSource has no type definitions
@@ -47,8 +47,8 @@ import {
 interface RemoteImageProps {
   fadeIn?: boolean;
   source?: ImageSourcePropType | { uri?: string };
-  style?: object;
-  placeholderStyle?: object;
+  style?: StyleProp<object>;
+  placeholderStyle?: StyleProp<object>;
   onError?: () => void;
   isUrl?: boolean;
   address?: string;
@@ -239,7 +239,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
                 onError={onError}
               />
             ) : (
-              <View style={style as ViewStyle}>
+              <View style={style}>
                 <Image
                   style={styles.imageStyle}
                   {...restProps}
