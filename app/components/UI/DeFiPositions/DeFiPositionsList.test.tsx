@@ -214,6 +214,9 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
     ).toBeOnTheScreen();
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
+    ).toBeOnTheScreen();
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
 
