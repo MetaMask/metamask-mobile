@@ -98,12 +98,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
-              marketId: 30377, // item.id,
-              // TODO: wire up the marketId (dependent on incoming PR)
-              // NOTE: hardcoded examples below
-              // 30377 - Elon Must richest (single market)
-              // 36094 - Best AI model 2025 (multiple outcomes)
-              // 39883 - 2nd Largest Company (multiple outcomes)
+              marketId: item.marketId,
               headerShown: false,
             },
           });

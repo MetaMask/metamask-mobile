@@ -333,7 +333,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={TextColor.Alternative}
                 >
                   {currentPosition?.outcome} at{' '}
-                  {formatPrice(currentPosition?.curPrice || 0, {
+                  {formatPrice(currentPosition?.price || 0, {
                     maximumDecimals: 2,
                   })}{' '}
                   • 30 seconds ago
