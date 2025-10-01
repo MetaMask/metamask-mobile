@@ -478,10 +478,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -1453,10 +1451,8 @@ exports[`BridgeView renders 1`] = `
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",

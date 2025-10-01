@@ -182,7 +182,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
         return (
           <RemoteImage
             fadeIn
-            resizeMode={'contain'}
+            contentFit={'contain'}
             source={{ uri: sourceUri }}
             style={[
               styles.image,
