@@ -19,7 +19,12 @@ import {
   SEI_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  isNativeAddress,
+  isNonEvmChainId,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
+import { getNativeSourceToken } from '../hooks/useInitialSourceToken';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -69,8 +74,17 @@ export function normalizeToCaipAssetType(
   address: string,
   chainId: Hex | CaipChainId,
 ): string {
+  if (!isNonEvmChainId(chainId)) {
+    throw new Error(`Chain ID is not a non-EVM chain ID: ${chainId}`);
+  }
+
   if (isCaipAssetType(address)) {
     return address;
+  }
+
+  if (isNativeAddress(address)) {
+    const nativeSourceToken = getNativeSourceToken(chainId);
+    return nativeSourceToken.address;
   }
 
   return `${chainId}/token:${address}`;

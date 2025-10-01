@@ -161,7 +161,7 @@ export const useTopTokens = ({
 
       // Convert non-EVM addresses to CAIP format for consistent deduplication
       const tokenAddress = isNonEvmChainId(caipChainId)
-        ? normalizeToCaipAssetType(bridgeAsset.address, caipChainId)
+        ? bridgeAsset.assetId
         : bridgeAsset.address;
 
       bridgeTokenObj[addr] = {
