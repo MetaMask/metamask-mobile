@@ -169,8 +169,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { origin: channelIdOrHostname } = hostInfo.metadata;
 
-  const { isV2: isOriginMMSDKV2RemoteConn, sdkV2Connection } =
-    useSDKV2Connection(channelIdOrHostname);
+  const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
+  const isOriginMMSDKV2RemoteConn = useMemo(
+    () => Boolean(sdkV2Connection?.isV2),
+    [sdkV2Connection?.isV2],
+  );
 
   const isChannelId = isUUID(channelIdOrHostname);
 

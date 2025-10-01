@@ -34,8 +34,8 @@ export const NetworkAndOriginRow = () => {
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
-  const { isV2: isMMDSDKV2Origin, sdkV2Connection } =
-    useSDKV2Connection(origin);
+  const sdkV2Connection = useSDKV2Connection(origin);
+  const isMMDSDKV2Origin = Boolean(sdkV2Connection?.isV2);
 
   const networkConfiguration = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),

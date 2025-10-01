@@ -60,7 +60,7 @@ const Wrapper = ({
 }) => <Provider store={store}>{children}</Provider>;
 
 describe('useSDKV2Connection', () => {
-  it('should return isV2: true and connection data for v2 connection', () => {
+  it('should return connection data for v2 connection', () => {
     const mockState = createMockState({
       'https://test-dapp.com': mockV2Connection,
     });
@@ -73,11 +73,10 @@ describe('useSDKV2Connection', () => {
       },
     );
 
-    expect(result.current.isV2).toBe(true);
-    expect(result.current.sdkV2Connection).toEqual(mockV2Connection);
+    expect(result.current).toEqual(mockV2Connection);
   });
 
-  it('should return isV2: false and connection data for v1 connection', () => {
+  it('should return connection data for v1 connection', () => {
     const mockState = createMockState({
       'https://test-v1-dapp.com': mockV1Connection,
     });
@@ -90,11 +89,10 @@ describe('useSDKV2Connection', () => {
       },
     );
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toEqual(mockV1Connection);
+    expect(result.current).toEqual(mockV1Connection);
   });
 
-  it('should return isV2: false and undefined connection for non-existent origin', () => {
+  it('should return undefined for non-existent origin', () => {
     const mockState = createMockState({
       'https://test-dapp.com': mockV2Connection,
     });
@@ -107,11 +105,10 @@ describe('useSDKV2Connection', () => {
       },
     );
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toBeUndefined();
+    expect(result.current).toBeUndefined();
   });
 
-  it('should return isV2: false and undefined connection for undefined origin', () => {
+  it('should return undefined for undefined origin', () => {
     const mockState = createMockState({
       'https://test-dapp.com': mockV2Connection,
     });
@@ -121,11 +118,10 @@ describe('useSDKV2Connection', () => {
       wrapper: ({ children }) => <Wrapper store={store}>{children}</Wrapper>,
     });
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toBeUndefined();
+    expect(result.current).toBeUndefined();
   });
 
-  it('should return isV2: false and undefined connection for empty string origin', () => {
+  it('should return undefined for empty string origin', () => {
     const mockState = createMockState({
       'https://test-dapp.com': mockV2Connection,
     });
@@ -135,8 +131,7 @@ describe('useSDKV2Connection', () => {
       wrapper: ({ children }) => <Wrapper store={store}>{children}</Wrapper>,
     });
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toBeUndefined();
+    expect(result.current).toBeUndefined();
   });
 
   it('should handle connection without isV2 property', () => {
@@ -167,8 +162,7 @@ describe('useSDKV2Connection', () => {
       },
     );
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toEqual(connectionWithoutIsV2);
+    expect(result.current).toEqual(connectionWithoutIsV2);
   });
 
   it('should handle empty v2Connections object', () => {
@@ -182,8 +176,7 @@ describe('useSDKV2Connection', () => {
       },
     );
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toBeUndefined();
+    expect(result.current).toBeUndefined();
   });
 
   it('should handle multiple connections and return correct one', () => {
@@ -212,7 +205,6 @@ describe('useSDKV2Connection', () => {
       },
     );
 
-    expect(result.current.isV2).toBe(false);
-    expect(result.current.sdkV2Connection).toEqual(mockV1Connection);
+    expect(result.current).toEqual(mockV1Connection);
   });
 });
