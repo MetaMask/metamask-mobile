@@ -54,9 +54,10 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
       );
 
       dispatch(setUnlockedRewards(unlockedRewardsData));
-    } catch (err) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setUnlockedRewardError(true));
+      console.error('Error fetching unlocked rewards');
     } finally {
       isLoadingRef.current = false;
       dispatch(setUnlockedRewardLoading(false));
