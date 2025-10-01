@@ -13,6 +13,7 @@ import { getPersistentState } from '../getPersistentState/getPersistentState';
 import { debounce } from 'lodash';
 import ReduxService from '../../core/redux';
 import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
+import { StateConstraint } from '@metamask/base-controller';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -157,11 +158,35 @@ export const setupEnginePersistence = () => {
     if (Engine.controllerMessenger) {
       BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
         const controllerName = eventName.split(':')[0];
+
+        // Skip CronjobController state change events
+        // as they are handled separately in the CronjobControllerStorageManager.
+        // This prevents duplicate updates to the Redux store.
+        if (eventName === 'CronjobController:stateChange') {
+          return;
+        }
+
+        const persistController = debounce(async (filteredState) => {
+          try {
+            // Save the filtered state to filesystem storage
+            await ControllerStorage.setItem(
+              `persist:${controllerName}`,
+              JSON.stringify(filteredState),
+            );
+
+            Logger.log(`${controllerName} state persisted successfully`);
+          } catch (error) {
+            Logger.error(error as Error, {
+              message: `Failed to persist ${controllerName} state`,
+            });
+          }
+        }, 200);
+
         Engine.controllerMessenger.subscribe(
           eventName,
           // Debounce to prevent excessive filesystem writes during rapid state changes
           // WARNING: lodash.debounce with async functions can cause race conditions
-          debounce(async (controllerState) => {
+          async (controllerState: StateConstraint) => {
             try {
               // Filter out non-persistent fields based on controller metadata
               const filteredState = getPersistentState(
@@ -170,26 +195,19 @@ export const setupEnginePersistence = () => {
                 Engine.context[controllerName as keyof EngineContext]?.metadata,
               );
 
-              // Save the filtered state to filesystem storage
-              await ControllerStorage.setItem(
-                `persist:${controllerName}`,
-                JSON.stringify(filteredState),
-              );
-              Logger.log(`${controllerName} state persisted successfully`);
-
-              // Notify Redux that this controller's state has been persisted
-              // This updates the Redux store to reflect the persistence status
               ReduxService.store.dispatch({
                 type: UPDATE_BG_STATE_KEY,
                 payload: { key: controllerName },
               });
+
+              await persistController(filteredState);
             } catch (error) {
               Logger.error(
                 error as Error,
-                `Failed to persist ${controllerName} state`,
+                `Failed to process ${controllerName} state change`,
               );
             }
-          }, 200),
+          },
         );
       });
       Logger.log(
