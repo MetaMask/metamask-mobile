@@ -13,6 +13,7 @@ import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useNavigation } from '@react-navigation/native';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { useParams } from '../../../util/navigation/navUtils';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,7 @@ const OnboardingNavigator: React.FC = () => {
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
+  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
 
   // Reset onboarding step when component mounts/account changes to prevent stale state
   useEffect(() => {
@@ -74,6 +76,7 @@ const OnboardingNavigator: React.FC = () => {
           name={Routes.REWARDS_ONBOARDING_4}
           component={OnboardingStep4}
           options={{ headerShown: false }}
+          initialParams={{ ...urlParams }}
         />
       </Stack.Navigator>
     </UnmountOnBlur>
