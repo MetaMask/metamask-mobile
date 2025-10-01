@@ -16,12 +16,6 @@ jest.mock('./OnboardingIntroStep', () => ({
   default: (props: Record<string, unknown>) => mockOnboardingIntroStep(props),
 }));
 
-// Mock useCandidateSubscriptionId hook
-const mockUseCandidateSubscriptionId = jest.fn();
-jest.mock('../../hooks/useCandidateSubscriptionId', () => ({
-  useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
-}));
-
 // Mock strings to stable values
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => `mocked_${key}`,
@@ -53,10 +47,5 @@ describe('RewardsIntroModal', () => {
 
     // Effect should trigger setItem once
     expect(setItemSpy).toHaveBeenCalledWith(REWARDS_GTM_MODAL_SHOWN, 'true');
-  });
-
-  it('invokes useCandidateSubscriptionId hook', () => {
-    renderWithProviders(<RewardsIntroModal />);
-    expect(mockUseCandidateSubscriptionId).toHaveBeenCalled();
   });
 });

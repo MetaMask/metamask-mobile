@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import { useParams } from '../../../util/navigation/navUtils';
 import { strings } from '../../../../locales/i18n';
+import RewardsIntroModal from './components/Onboarding/RewardsIntroModal';
 
 const Stack = createStackNavigator();
 
@@ -54,6 +55,11 @@ const OnboardingNavigator: React.FC = () => {
     <UnmountOnBlur>
       <Stack.Navigator initialRouteName={getInitialRoute()}>
         <Stack.Screen
+          name={Routes.MODAL.REWARDS_INTRO_MODAL}
+          component={RewardsIntroModal}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_INTRO}
           options={{ headerShown: false }}
         >
@@ -69,17 +75,24 @@ const OnboardingNavigator: React.FC = () => {
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_1}
           component={OnboardingStep1}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            //cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          }}
         />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_2}
           component={OnboardingStep2}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+          }}
         />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_3}
           component={OnboardingStep3}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+          }}
         />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_4}

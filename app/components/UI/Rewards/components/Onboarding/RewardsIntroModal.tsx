@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
 import OnboardingIntroStep from './OnboardingIntroStep';
-import { useCandidateSubscriptionId } from '../../hooks/useCandidateSubscriptionId';
 import { strings } from '../../../../../../locales/i18n';
 import storageWrapper from '../../../../../store/storage-wrapper';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
@@ -14,7 +13,6 @@ const RewardsIntroModal = () => {
     setHasSeenRewardsIntroModal();
   }, [setHasSeenRewardsIntroModal]);
 
-  useCandidateSubscriptionId();
   return (
     <OnboardingIntroStep
       title={strings('rewards.onboarding.gtm_title')}

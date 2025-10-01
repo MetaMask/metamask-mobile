@@ -9,6 +9,7 @@ import {
   selectRewardsAnnouncementModalEnabledFlag,
 } from '../../../../selectors/featureFlagController/rewards';
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -58,7 +59,9 @@ describe('useRewardsIntroModal', () => {
 
     await waitFor(() => {
       expect(result.current.hasSeenRewardsIntroModal).toBe(false);
-      expect(navigate).toHaveBeenCalledWith(Routes.MODAL.REWARDS_INTRO_MODAL);
+      expect(navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        screen: Routes.MODAL.REWARDS_INTRO_MODAL,
+      });
     });
   });
 
@@ -114,6 +117,24 @@ describe('useRewardsIntroModal', () => {
       if (selector === selectMultichainAccountsIntroModalSeen) return false;
       return undefined;
     });
+    jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('false');
+
+    renderHook(() => useRewardsIntroModal());
+
+    await waitFor(() => {
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not navigate when subscriptionId is present', async () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return true;
+      if (selector === selectRewardsSubscriptionId) return 'sub_123';
+      return undefined;
+    });
+
     jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('false');
 
     renderHook(() => useRewardsIntroModal());
