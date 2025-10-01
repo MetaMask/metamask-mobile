@@ -19,6 +19,7 @@ import {
   Text,
   TextVariant,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -193,7 +194,7 @@ const RewardsClaimBottomSheetModal = ({
 
   const renderTitle = () => (
     <Box twClassName="flex-row items-center justify-between w-full">
-      <Text variant={TextVariant.HeadingLg} twClassName="w-[80%]">
+      <Text variant={TextVariant.HeadingSm} twClassName="w-[80%]">
         {title}
       </Text>
       <Box
@@ -211,7 +212,11 @@ const RewardsClaimBottomSheetModal = ({
 
   const renderDescription = () => (
     <Box twClassName="my-4 w-full">
-      <Text variant={TextVariant.BodyMd} twClassName="text-text-alternative">
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        twClassName="text-text-alternative"
+      >
         {description}
       </Text>
       {claimUrl && (
@@ -221,14 +226,15 @@ const RewardsClaimBottomSheetModal = ({
         >
           <Text
             variant={TextVariant.BodySm}
-            style={tw.style('text-primary-default underline mr-1')}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-primary-default underline mr-1"
           >
             {formatUrl(claimUrl)}
           </Text>
           <Icon
             name={IconName.Export}
             size={IconSize.Sm}
-            style={tw.style('text-primary-default')}
+            twClassName="text-primary-default"
           />
         </TouchableOpacity>
       )}
