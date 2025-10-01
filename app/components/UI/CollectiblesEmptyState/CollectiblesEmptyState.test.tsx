@@ -24,15 +24,13 @@ describe('CollectiblesEmptyState', () => {
     // Button should not render when no onAction is provided
   });
 
-  it('calls onDiscoverCollectibles when action button is pressed', () => {
-    const mockOnDiscoverCollectibles = jest.fn();
+  it('calls onAction when action button is pressed', () => {
+    const mockOnAction = jest.fn();
     const { getByText } = renderWithProvider(
-      <CollectiblesEmptyState
-        onDiscoverCollectibles={mockOnDiscoverCollectibles}
-      />,
+      <CollectiblesEmptyState onAction={mockOnAction} />,
     );
 
     fireEvent.press(getByText('Import NFTs'));
-    expect(mockOnDiscoverCollectibles).toHaveBeenCalledTimes(1);
+    expect(mockOnAction).toHaveBeenCalledTimes(1);
   });
 });
