@@ -97,8 +97,7 @@ export function ScrollSyncedVirtualizedList<T>({
     }
 
     // Virtualization: show items around current scroll position
-    // Adjust scroll position to account for header height
-    const adjustedScrollY = Math.max(0, parentScrollY - headerHeight);
+    const adjustedScrollY = parentScrollY;
     const currentItemIndex = Math.floor(adjustedScrollY / itemHeight);
 
     // Use consistent and symmetric buffer sizes
@@ -126,7 +125,7 @@ export function ScrollSyncedVirtualizedList<T>({
       topSpacer: scrollTopSpacer,
       bottomSpacer: scrollBottomSpacer,
     };
-  }, [parentScrollY, itemHeight, baseHeight, headerHeight, data.length]);
+  }, [parentScrollY, itemHeight, baseHeight, data.length]);
 
   const renderHeader = () => {
     if (!ListHeaderComponent) return null;

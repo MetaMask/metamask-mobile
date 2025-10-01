@@ -175,40 +175,39 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         // If tab is loaded but height not measured, measure it quickly
         // Use a ref to track if this measurement is still relevant
         let isMeasurementRelevant = true;
+        let measurementCleanup: (() => void) | undefined;
 
         const timeoutId = setTimeout(() => {
           if (isMeasurementRelevant) {
-            const cleanup = measureTabHeight(activeIndex);
-            // Store cleanup function if returned
-            if (cleanup) {
-              // The cleanup will be called when the timeout is cleared or component unmounts
-            }
+            measurementCleanup = measureTabHeight(activeIndex);
           }
         }, 50); // Reduced delay for faster measurement
 
         return () => {
           isMeasurementRelevant = false;
           clearTimeout(timeoutId);
+          // Call measurement cleanup if it exists
+          if (measurementCleanup) {
+            measurementCleanup();
+          }
         };
       } else if (activeIndex >= 0) {
         // For new tabs, use a reasonable default estimate for smoother initial animation
-        // Only set fallback if we don't have any height information
-        const hasAnyHeight = Array.from(tabHeights.values()).some((h) => h > 0);
-        if (!hasAnyHeight) {
+        // Check if we have height information for any tabs
+        const heights = Array.from(tabHeights.values()).filter((h) => h > 0);
+        if (heights.length === 0) {
+          // No height information available, use default
           setScrollViewHeight(400);
         } else {
           // Use average of existing heights as a better estimate
-          const heights = Array.from(tabHeights.values()).filter((h) => h > 0);
-          const avgHeight =
-            heights.length > 0
-              ? Math.round(
-                  heights.reduce((sum, h) => sum + h, 0) / heights.length,
-                )
-              : 400;
-          setScrollViewHeight(avgHeight);
+          const avgHeight = Math.round(
+            heights.reduce((sum, h) => sum + h, 0) / heights.length,
+          );
+          setScrollViewHeight(Math.max(avgHeight, 200)); // Ensure minimum reasonable height
         }
       } else {
-        setScrollViewHeight(undefined);
+        // No active tab, clear height to use minHeight fallback
+        setScrollViewHeight(0);
       }
     }, [activeIndex, tabHeights, loadedTabs, measureTabHeight]);
 
@@ -244,6 +243,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           clearTimeout(goToTabTimeout.current);
           goToTabTimeout.current = null;
         }
+        // Clear tab content refs to prevent memory leaks
+        tabContentRefs.current.clear();
       },
       [],
     );
@@ -519,7 +520,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         <View
           style={tw.style(
             'mt-2',
-            scrollViewHeight
+            scrollViewHeight && scrollViewHeight > 0
               ? { height: scrollViewHeight, overflow: 'hidden' }
               : { minHeight: 400 },
           )}
