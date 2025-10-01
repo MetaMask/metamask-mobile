@@ -4,28 +4,35 @@ import PaymentMethodSelectorModal from './PaymentMethodSelectorModal';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RampType } from '../../types';
 import { PaymentType } from '@consensys/on-ramp-sdk';
+import { fireEvent } from '@testing-library/react-native';
 
-// Mock useAnalytics
-jest.mock('../../../hooks/useAnalytics', () => jest.fn(() => jest.fn()));
+jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
 
-// Mock PaymentMethod component
-jest.mock('../PaymentMethod', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ payment }: { payment: { name: string } }) => (
-      <View testID="payment-method">
-        <Text>{payment.name}</Text>
-      </View>
-    ),
-  };
-});
+const mockTrackEvent = jest.fn();
+jest.mock('../../../hooks/useAnalytics', () => jest.fn(() => mockTrackEvent));
 
-// Mock useParams
 const mockUseParams = jest.fn();
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
+}));
+
+const mockSetSelectedPaymentMethodId = jest.fn();
+
+const mockUseRampSDKInitialValues = {
+  selectedPaymentMethodId: 'payment-method-1',
+  setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  selectedRegion: { id: 'US', name: 'United States' },
+  rampType: RampType.BUY,
+  isBuy: true,
+};
+
+let mockUseRampSDKValues = {
+  ...mockUseRampSDKInitialValues,
+};
+
+jest.mock('../../sdk', () => ({
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 function render(component: React.ComponentType) {
@@ -38,35 +45,39 @@ const mockPaymentMethods = [
   {
     id: 'payment-method-1',
     name: 'Credit Card',
-    paymentType: PaymentType.CREDIT_DEBIT_CARD,
+    paymentType: PaymentType.DebitCreditCard,
     logo: { light: ['icon1.png'], dark: ['icon1.png'] },
     icons: ['icon1.png'],
     disclaimer: 'Test disclaimer',
+    delay: [0, 0],
+    amountTier: [0, 3],
+    detail: 'Test detail',
   },
   {
     id: 'payment-method-2',
     name: 'Bank Transfer',
-    paymentType: PaymentType.BANK_TRANSFER,
+    paymentType: PaymentType.BankTransfer,
     logo: { light: ['icon2.png'], dark: ['icon2.png'] },
     icons: ['icon2.png'],
+    delay: [1, 3],
+    amountTier: [1, 3],
+    detail: 'Test detail',
   },
 ];
 
 const defaultParams = {
   title: 'Select Payment Method',
-  onItemPress: jest.fn(),
   paymentMethods: mockPaymentMethods,
-  selectedPaymentMethodId: 'payment-method-1',
-  selectedPaymentMethodType: PaymentType.CREDIT_DEBIT_CARD,
-  selectedRegion: { id: 'US', name: 'United States' },
   location: 'Amount to Buy Screen' as const,
-  rampType: RampType.BUY,
 };
 
 describe('PaymentMethodSelectorModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(defaultParams);
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+    };
   });
 
   it('renders correctly', () => {
@@ -74,40 +85,53 @@ describe('PaymentMethodSelectorModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with payment methods', () => {
-    const { getByText } = render(PaymentMethodSelectorModal);
-
-    expect(getByText('Select Payment Method')).toBeTruthy();
-    expect(getByText('Credit Card')).toBeTruthy();
-    expect(getByText('Bank Transfer')).toBeTruthy();
-  });
-
-  it('renders disclaimer when selected payment method has one', () => {
-    const { getByText } = render(PaymentMethodSelectorModal);
-
-    expect(getByText('Test disclaimer')).toBeTruthy();
-  });
-
   it('renders without disclaimer when selected payment method has none', () => {
-    mockUseParams.mockReturnValue({
-      ...defaultParams,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
       selectedPaymentMethodId: 'payment-method-2',
-    });
+    };
 
-    const { queryByText } = render(PaymentMethodSelectorModal);
-
-    expect(queryByText('Test disclaimer')).toBeNull();
+    const { toJSON } = render(PaymentMethodSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders for sell flow', () => {
     mockUseParams.mockReturnValue({
       ...defaultParams,
       title: 'Select Cash Destination',
-      rampType: RampType.SELL,
     });
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      rampType: RampType.SELL,
+      isBuy: false,
+    };
 
+    const { toJSON } = render(PaymentMethodSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
     const { getByText } = render(PaymentMethodSelectorModal);
 
-    expect(getByText('Select Cash Destination')).toBeTruthy();
+    const paymentMethodElement = getByText('Bank Transfer');
+    fireEvent.press(paymentMethodElement);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'ONRAMP_PAYMENT_METHOD_SELECTED',
+      {
+        payment_method_id: 'payment-method-2',
+        available_payment_method_ids: ['payment-method-1', 'payment-method-2'],
+        region: 'US',
+        location: 'Amount to Buy Screen',
+      },
+    );
+  });
+  it('does not track RAMPS_PAYMENT_METHOD_SELECTED event when the same payment method is selected', () => {
+    const { getByText } = render(PaymentMethodSelectorModal);
+
+    const paymentMethodElement = getByText('Credit Card');
+    fireEvent.press(paymentMethodElement);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

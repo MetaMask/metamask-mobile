@@ -615,11 +615,13 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton('Change'));
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RampPaymentMethodSelectorModal',
+        'RampModals',
         expect.objectContaining({
-          title: 'Select payment method',
-          paymentMethods: mockPaymentMethods,
-          selectedPaymentMethodId: mockPaymentMethods[0]?.id,
+          screen: 'RampPaymentMethodSelectorModal',
+          params: expect.objectContaining({
+            paymentMethods: mockPaymentMethods,
+            location: 'Amount to Buy Screen',
+          }),
         }),
       );
     });

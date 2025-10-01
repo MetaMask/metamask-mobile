@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View, ScrollView } from 'react-native';
-import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
+import { Payment } from '@consensys/on-ramp-sdk';
 
 import Text, {
   TextVariant,
@@ -12,61 +12,85 @@ import BottomSheetHeader from '../../../../../../component-library/components/Bo
 
 import PaymentMethod from '../PaymentMethod';
 import useAnalytics from '../../../hooks/useAnalytics';
-import { RampType, Region, ScreenLocation } from '../../types';
+import { ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { useRampSDK } from '../../sdk';
 
 import styleSheet from './PaymentMethodSelectorModal.styles';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface PaymentMethodSelectorModalParams {
-  title?: string;
-  onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
-  selectedPaymentMethodId: Payment['id'] | null;
-  selectedPaymentMethodType: PaymentType | undefined;
-  selectedRegion?: Region | null;
   location?: ScreenLocation;
-  rampType: RampType;
 }
 
 export const createPaymentMethodSelectorModalNavigationDetails =
   createNavigationDetails<PaymentMethodSelectorModalParams>(
+    Routes.RAMP.MODALS.ID,
     Routes.RAMP.MODALS.PAYMENT_METHOD_SELECTOR,
   );
 
 function PaymentMethodSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const {
-    title,
-    onItemPress,
-    paymentMethods,
-    selectedPaymentMethodId,
-    selectedRegion,
-    location,
-    rampType,
-  } = useParams<PaymentMethodSelectorModalParams>();
+  const { paymentMethods, location } =
+    useParams<PaymentMethodSelectorModalParams>();
 
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const isBuy = rampType === RampType.BUY;
+
+  const {
+    selectedPaymentMethodId,
+    setSelectedPaymentMethodId,
+    selectedRegion,
+    isBuy,
+  } = useRampSDK();
+
+  const title = strings(
+    isBuy
+      ? 'fiat_on_ramp_aggregator.select_payment_method'
+      : 'fiat_on_ramp_aggregator.select_cash_destination',
+  );
 
   const handleOnPressItemCallback = useCallback(
-    (paymentMethodId?: Payment['id']) => {
-      trackEvent('RAMP_PAYMENT_METHOD_SELECTED', {
-        payment_method_id: paymentMethodId as string,
-        location,
-        region: selectedRegion?.id,
-      });
+    (paymentMethodId: Payment['id']) => {
+      if (selectedPaymentMethodId !== paymentMethodId) {
+        trackEvent(
+          isBuy
+            ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+            : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+          {
+            payment_method_id: paymentMethodId,
+            available_payment_method_ids: paymentMethods?.map(
+              ({ id }) => id,
+            ) as string[],
+            region: selectedRegion?.id as string,
+            location,
+          },
+        );
 
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onItemPress(paymentMethodId);
-      });
+        sheetRef.current?.onCloseBottomSheet(() => {
+          setSelectedPaymentMethodId(paymentMethodId);
+        });
+      } else {
+        sheetRef.current?.onCloseBottomSheet(() => {
+          setSelectedPaymentMethodId(null);
+        });
+      }
     },
-    [onItemPress, trackEvent, location, selectedRegion?.id],
+    [
+      isBuy,
+      location,
+      setSelectedPaymentMethodId,
+      paymentMethods,
+      selectedPaymentMethodId,
+      selectedRegion?.id,
+      trackEvent,
+    ],
   );
 
   const selectedPaymentMethod = paymentMethods?.find(

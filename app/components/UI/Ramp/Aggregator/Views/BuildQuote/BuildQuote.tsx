@@ -96,7 +96,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
-import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
@@ -148,7 +148,6 @@ const BuildQuote = () => {
    */
   const {
     selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
     selectedRegion,
     setSelectedRegion,
     selectedAsset,
@@ -571,44 +570,15 @@ const BuildQuote = () => {
    * * PaymentMethod handlers
    */
 
-  const handleChangePaymentMethod = useCallback(
-    (paymentMethodId?: Payment['id']) => {
-      if (paymentMethodId) {
-        setSelectedPaymentMethodId(paymentMethodId);
-      }
-    },
-    [setSelectedPaymentMethodId],
-  );
-
   const handleShowPaymentMethodsModal = useCallback(() => {
     setAmountFocused(false);
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
-        title: strings(
-          isBuy
-            ? 'fiat_on_ramp_aggregator.select_payment_method'
-            : 'fiat_on_ramp_aggregator.select_cash_destination',
-        ),
-        onItemPress: handleChangePaymentMethod,
         paymentMethods,
-        selectedPaymentMethodId,
-        selectedPaymentMethodType: currentPaymentMethod?.paymentType,
-        selectedRegion,
         location: screenLocation,
-        rampType,
       }),
     );
-  }, [
-    navigation,
-    isBuy,
-    handleChangePaymentMethod,
-    paymentMethods,
-    selectedPaymentMethodId,
-    currentPaymentMethod?.paymentType,
-    selectedRegion,
-    screenLocation,
-    rampType,
-  ]);
+  }, [navigation, paymentMethods, screenLocation]);
 
   /**
    * * Get Quote handlers
