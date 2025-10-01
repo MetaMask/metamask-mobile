@@ -406,31 +406,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
         >
           <View
             onLayout={[Function]}
-          >
-            <View
-              tabLabel="Tab 2"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Tab 2
-                 Content
-              </Text>
-            </View>
-          </View>
+          />
         </View>
       </View>
     </RCTScrollView>
@@ -865,31 +841,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
         >
           <View
             onLayout={[Function]}
-          >
-            <View
-              tabLabel="Tab 2"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  [
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Tab 2
-                 Content
-              </Text>
-            </View>
-          </View>
+          />
         </View>
         <View
           style={

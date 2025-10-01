@@ -14,6 +14,7 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
+  ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
   useWindowDimensions,
@@ -200,6 +201,7 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       paddingHorizontal: 16,
+      // Remove flex: 1 to allow dynamic height for proper virtualization
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -307,10 +309,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
       navigation,
-      parentScrollY,
-      parentViewportHeight,
     }),
-    [navigation, parentScrollY, parentViewportHeight],
+    [navigation],
   );
 
   const predictTabProps = useMemo(
@@ -1257,7 +1257,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <View
+      <ScrollView
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
         onScroll={handleScroll}
@@ -1318,7 +1318,7 @@ const Wallet = ({
             parentViewportHeight={screenHeight}
           />
         </>
-      </View>
+      </ScrollView>
     ),
     [
       styles.banner,

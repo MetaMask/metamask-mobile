@@ -137,7 +137,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         // Use requestAnimationFrame to ensure measurement happens after render
         requestAnimationFrame(() => {
           tabContentRef.measure(
-            (_x: number, _y: number, _width: number, height: number) => {
+            (
+              _x: number,
+              _y: number,
+              _width: number,
+              height: number,
+              _pageX: number,
+              _pageY: number,
+            ) => {
               if (height > 0) {
                 setTabHeights((prev) => {
                   const newHeights = new Map(prev);
@@ -176,27 +183,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         setLoadedTabs((prev) => {
           const newLoadedTabs = new Set(prev);
 
-          // Always load the current tab
+          // Only load the current tab (strict lazy loading)
           newLoadedTabs.add(activeIndex);
-
-          // Preload adjacent tabs for smoother transitions (optional optimization)
-          const enabledIndices = tabs
-            .map((_, index) => index)
-            .filter((index) => !tabs[index]?.isDisabled);
-
-          const currentEnabledIndex = enabledIndices.indexOf(activeIndex);
-          if (currentEnabledIndex >= 0) {
-            // Preload next tab
-            if (currentEnabledIndex < enabledIndices.length - 1) {
-              const nextTabIndex = enabledIndices[currentEnabledIndex + 1];
-              newLoadedTabs.add(nextTabIndex);
-            }
-            // Preload previous tab
-            if (currentEnabledIndex > 0) {
-              const prevTabIndex = enabledIndices[currentEnabledIndex - 1];
-              newLoadedTabs.add(prevTabIndex);
-            }
-          }
 
           return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
         });

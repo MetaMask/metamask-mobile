@@ -42,6 +42,7 @@ export function ScrollSyncedVirtualizedList<T>({
   ListEmptyComponent,
 }: ScrollSyncedVirtualizedListProps<T>) {
   const [listYPosition, setListYPosition] = useState<number | null>(null);
+  const [headerHeight, setHeaderHeight] = useState<number>(0);
   const [footerHeight, setFooterHeight] = useState<number>(0);
 
   const handleListLayout = useCallback(
@@ -55,6 +56,16 @@ export function ScrollSyncedVirtualizedList<T>({
     [listYPosition],
   );
 
+  const handleHeaderLayout = useCallback(
+    (layoutEvent: LayoutChangeEvent) => {
+      const { height } = layoutEvent.nativeEvent.layout;
+      if (headerHeight !== height) {
+        setHeaderHeight(height);
+      }
+    },
+    [headerHeight],
+  );
+
   const handleFooterLayout = useCallback(
     (layoutEvent: LayoutChangeEvent) => {
       const { height } = layoutEvent.nativeEvent.layout;
@@ -66,7 +77,6 @@ export function ScrollSyncedVirtualizedList<T>({
   );
 
   const baseHeight = data.length * itemHeight;
-  const totalHeight = baseHeight + footerHeight;
 
   const { startIndex, endIndex, topSpacer, bottomSpacer } = useMemo(() => {
     if (data.length === 0) {
@@ -87,21 +97,28 @@ export function ScrollSyncedVirtualizedList<T>({
     }
 
     // Virtualization: show items around current scroll position
-    const currentItemIndex = Math.floor(parentScrollY / itemHeight);
-    const itemsToShowAboveAndBelow = 6;
-    const scrollStartIndex = Math.max(
-      0,
-      currentItemIndex - itemsToShowAboveAndBelow,
-    );
+    // Adjust scroll position to account for header height
+    const adjustedScrollY = Math.max(0, parentScrollY - headerHeight);
+    const currentItemIndex = Math.floor(adjustedScrollY / itemHeight);
+
+    // Use consistent and symmetric buffer sizes
+    const itemsToShowAbove = 5;
+    const itemsToShowBelow = 10;
+
+    const scrollStartIndex = Math.max(0, currentItemIndex - itemsToShowAbove);
     const scrollEndIndex = Math.min(
       data.length - 1,
-      currentItemIndex + itemsToShowAboveAndBelow,
+      currentItemIndex + itemsToShowBelow,
     );
 
     const scrollTopSpacer = scrollStartIndex * itemHeight;
     const renderedCount = Math.max(0, scrollEndIndex - scrollStartIndex + 1);
-    const scrollBottomSpacer =
-      totalHeight - scrollTopSpacer - renderedCount * itemHeight;
+
+    // Use baseHeight for spacer calculation to avoid footer height timing issues
+    const scrollBottomSpacer = Math.max(
+      0,
+      baseHeight - scrollTopSpacer - renderedCount * itemHeight,
+    );
 
     return {
       startIndex: scrollStartIndex,
@@ -109,15 +126,20 @@ export function ScrollSyncedVirtualizedList<T>({
       topSpacer: scrollTopSpacer,
       bottomSpacer: scrollBottomSpacer,
     };
-  }, [parentScrollY, itemHeight, totalHeight, data.length]);
+  }, [parentScrollY, itemHeight, baseHeight, headerHeight, data.length]);
 
   const renderHeader = () => {
     if (!ListHeaderComponent) return null;
-    if (React.isValidElement(ListHeaderComponent)) {
-      return ListHeaderComponent;
-    }
-    const HeaderComponent = ListHeaderComponent as React.ComponentType;
-    return <HeaderComponent />;
+
+    const headerContent = React.isValidElement(ListHeaderComponent)
+      ? ListHeaderComponent
+      : React.createElement(ListHeaderComponent as React.ComponentType);
+
+    return (
+      <Box onLayout={handleHeaderLayout as (event: unknown) => void}>
+        {headerContent}
+      </Box>
+    );
   };
 
   const renderFooter = () => {
@@ -159,8 +181,8 @@ export function ScrollSyncedVirtualizedList<T>({
       testID={testID}
       onLayout={handleListLayout as (event: unknown) => void}
     >
+      {renderHeader()}
       <Box style={{ height: baseHeight }}>
-        {renderHeader()}
         <Box style={{ height: topSpacer }} />
         {(() => {
           const itemsToRender = data.slice(startIndex, endIndex + 1);
