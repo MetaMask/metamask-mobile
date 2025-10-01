@@ -41,10 +41,10 @@ jobs:
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
       aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
+      artifact-name: ${{ steps.determine-target-paths.outputs.artifact-name }}
 
     steps:
       - name: Checkout repo
@@ -93,19 +93,36 @@ jobs:
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
         run: |
+          # TODO: debugging vars
+          apk_target_path=""
+          test_apk_target_path=""
+          aab_target_path=""
+          artifact-name=""
+          echo "Determining target paths and Artifact Names..."
           if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
-            # TODO
-            echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
-            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release" >> "$GITHUB_OUTPUT"
-            echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease" >> "$GITHUB_OUTPUT" # TODO: CONFIRM THIS
-            echo "artifact-name=app-flask-release" >> "$GITHUB_OUTPUT"
+            apk_target_path="android/app/build/outputs/apk/flask/release"
+            test_apk_target_path="android/app/build/outputs/apk/androidTest/flask/release"
+            aab_target_path="android/app/build/outputs/bundle/flaskRelease"
+            artifact-name="app-flask-release"
+            echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
+            echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
+            echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
+            echo "artifact-name=${artifact-name}" >> "$GITHUB_OUTPUT"
           else
-            # TODO
-            echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
-            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release" >> "$GITHUB_OUTPUT"
-            echo "aab-target-path=android/app/build/outputs/bundle/prodRelease" >> "$GITHUB_OUTPUT"
-            echo "artifact-name=app-prod-release" >> "$GITHUB_OUTPUT"
+            apk_target_path="android/app/build/outputs/apk/prod/release"
+            test_apk_target_path="android/app/build/outputs/apk/androidTest/prod/release"
+            aab_target_path="android/app/build/outputs/bundle/prodRelease"
+            artifact-name="app-prod-release"
+            echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
+            echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
+            echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
+            echo "artifact-name=${artifact-name}" >> "$GITHUB_OUTPUT"
           fi
+          echo "Determine target paths and Artifact Names results:"
+          echo "apk-target-path=${apk_target_path}"
+          echo "test-apk-target-path=${test_apk_target_path}"
+          echo "aab-target-path=${aab_target_path}"
+          echo "artifact-name=${artifact-name}"
 
       - name: Check and restore cached APKs if Fingerprint is found
         id: cache-restore
@@ -115,9 +132,9 @@ jobs:
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
-            android-apk-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-
+            android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
             android-apk-
 
       - name: Build Android E2E APKs
@@ -234,7 +251,7 @@ jobs:
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}-androidTest.apk
             ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.aab
-          key: android-apk-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk
