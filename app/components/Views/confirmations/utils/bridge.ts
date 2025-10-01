@@ -216,7 +216,6 @@ async function getSingleBridgeQuote(
     srcTokenAddress: toChecksumAddress(sourceTokenAddress),
     srcTokenAmount: sourceTokenAmount,
     walletAddress: from,
-    gasless7702: false, // TODO handle this properly
   };
 
   const quotes = await BridgeController.fetchQuotes(
