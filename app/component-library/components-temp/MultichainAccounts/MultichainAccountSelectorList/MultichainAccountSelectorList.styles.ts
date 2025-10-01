@@ -3,7 +3,7 @@ import { Theme } from '../../../../util/theme/models';
 
 const createStyles = (params: {
   theme: Theme;
-  vars: { isSelected: boolean };
+  vars: { isSelected?: boolean };
 }) => {
   const { theme, vars } = params;
   const { isSelected } = vars;
