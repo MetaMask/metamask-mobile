@@ -1,10 +1,10 @@
 import React from 'react';
-import { ImageStyle, StyleProp } from 'react-native';
+import { ImageStyle } from 'react-native';
 import { Payment } from '@consensys/on-ramp-sdk';
 import { useTheme } from '../../../../../util/theme';
 import RemoteImage from '../../../../Base/RemoteImage';
 interface Props {
-  style?: StyleProp<ImageStyle>;
+  style?: ImageStyle;
   logosByTheme: Payment['logo'];
 }
 

@@ -14,8 +14,8 @@ exports[`CollectibleMedia should render correctly 1`] = `
     useNativeDriver={true}
   >
     <View
+      contentFit="contain"
       fadeIn={true}
-      resizeMode="contain"
       source={
         {
           "uri": "IMAGE",
