@@ -638,7 +638,7 @@ describe('WalletConnect2Session', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+          screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
         },
       );
     });
