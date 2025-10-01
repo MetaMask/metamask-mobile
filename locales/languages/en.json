@@ -1493,7 +1493,10 @@
         "filled": "Filled",
         "metamask_fee": "MetaMask fee",
         "hyperliquid_fee": "Hyperliquid fee",
-        "total_fee": "Total fee"
+        "total_fee": "Total fee",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Date",

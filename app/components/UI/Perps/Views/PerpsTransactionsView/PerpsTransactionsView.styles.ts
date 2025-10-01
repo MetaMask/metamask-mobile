@@ -120,5 +120,10 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
       color: colors.text.muted,
     },
+    fillTag: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 10,
+    },
   };
 };
