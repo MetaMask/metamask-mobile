@@ -28,7 +28,7 @@ import { useEffect } from 'react';
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
 
-  // getNativeAssetForChainId returns zero address for Solana, we need the assetId to get balances properly for native SOL
+  // getNativeAssetForChainId returns zero address for non-EVM chains, we need the CAIP assetId to get balances properly for native asset
   const address = isNonEvmChainId(chainId)
     ? nativeAsset.assetId
     : nativeAsset.address;
