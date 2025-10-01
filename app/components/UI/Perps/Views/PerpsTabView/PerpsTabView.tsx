@@ -95,17 +95,14 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
       // Track homescreen tab viewed event with exact property names from requirements
       track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
-        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => {
-          const direction = getPositionDirection(p.size);
-          return {
-            [PerpsEventProperties.ASSET]: p.coin,
-            [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-            [PerpsEventProperties.DIRECTION]:
-              direction === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-          };
-        }),
+        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
+          [PerpsEventProperties.ASSET]: p.coin,
+          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
+          [PerpsEventProperties.DIRECTION]:
+            parseFloat(p.size) > 0
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+        })),
       });
 
       hasTrackedHomescreen.current = true;
