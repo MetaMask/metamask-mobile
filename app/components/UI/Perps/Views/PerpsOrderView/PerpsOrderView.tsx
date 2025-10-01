@@ -69,6 +69,7 @@ import {
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import type {
+  InputMethod,
   OrderParams,
   OrderType,
   PerpsNavigationParamList,
@@ -149,6 +150,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isSubmittingRef = useRef(false);
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
+  const inputMethodRef = useRef<InputMethod>('default');
 
   const { account } = usePerpsLiveAccount();
 
@@ -611,6 +613,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       // Enforce 9-digit limit (ignoring non-digits like separators)
       const digitCount = (value.match(/\d/g) || []).length;
       if (digitCount > 9) {
@@ -622,10 +625,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     handleMaxAmount();
   };
 
@@ -724,6 +729,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           estimatedPoints: feeResults.estimatedPoints
             ? Number(feeResults.estimatedPoints)
             : undefined,
+          inputMethod: inputMethodRef.current,
         },
       };
 
@@ -859,7 +865,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={parseFloat(orderForm.amount || '0')}
-              onValueChange={(value) => setAmount(Math.floor(value).toString())}
+              onValueChange={(value) => {
+                inputMethodRef.current = 'slider';
+                setAmount(Math.floor(value).toString());
+              }}
               minimumValue={0}
               maximumValue={amountTimesLeverage}
               step={1}

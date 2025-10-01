@@ -17,16 +17,10 @@ import Text, {
 import Keypad from '../../../../../components/Base/Keypad';
 import { useTheme } from '../../../../../util/theme';
 
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { Position } from '../../controllers/types';
 import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   getPerpsTPSLBottomSheetSelector,
   PerpsTPSLBottomSheetSelectorsIDs,
@@ -90,8 +84,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const takeProfitPercentageRef = useRef<TextInput>(null);
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
-
-  const { track } = usePerpsEventTracking();
 
   // Subscribe to real-time price only when visible and we have an asset
   // Use 1s debounce for TP/SL bottom sheet
@@ -173,8 +165,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     stopLossPrice,
     selectedTpPercentage,
     selectedSlPercentage,
-    tpUsingPercentage,
-    slUsingPercentage,
   } = tpslForm.formState;
 
   const {
@@ -328,54 +318,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
-    // Track stop loss and take profit set events
-    if (parseStopLossPrice) {
-      track(MetaMetricsEvents.PERPS_RISK_MANAGEMENT, {
-        [PerpsEventProperties.ACTION_TYPE]:
-          PerpsEventValues.ACTION_TYPE.STOP_LOSS_SET,
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
-          actualDirection === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(parseStopLossPrice),
-        [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
-          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
-          : PerpsEventValues.INPUT_METHOD.MANUAL,
-      });
-    }
-
-    if (parseTakeProfitPrice) {
-      track(MetaMetricsEvents.PERPS_RISK_MANAGEMENT, {
-        [PerpsEventProperties.ACTION_TYPE]:
-          PerpsEventValues.ACTION_TYPE.TAKE_PROFIT_SET,
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
-          actualDirection === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.TAKE_PROFIT_PRICE]:
-          parseFloat(parseTakeProfitPrice),
-        [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
-          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
-          : PerpsEventValues.INPUT_METHOD.MANUAL,
-      });
-    }
-
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);
     // Don't close immediately - let the parent handle closing after update completes
-  }, [
-    focusedInput,
-    takeProfitPrice,
-    stopLossPrice,
-    onConfirm,
-    dismissKeypad,
-    track,
-    asset,
-    actualDirection,
-    slUsingPercentage,
-    tpUsingPercentage,
-  ]);
+  }, [focusedInput, takeProfitPrice, stopLossPrice, onConfirm, dismissKeypad]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
   const inputsDisabled = isUpdating;

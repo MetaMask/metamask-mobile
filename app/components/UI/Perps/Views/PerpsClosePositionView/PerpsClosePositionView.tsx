@@ -30,7 +30,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { OrderType, Position } from '../../controllers/types';
+import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
@@ -81,6 +81,7 @@ const PerpsClosePositionView: React.FC = () => {
   const { position } = route.params as { position: Position };
 
   const hasTrackedCloseView = useRef(false);
+  const inputMethodRef = useRef<InputMethod>('default');
   const { track } = usePerpsEventTracking();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -348,6 +349,7 @@ const PerpsClosePositionView: React.FC = () => {
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
         estimatedPoints: rewardsState.estimatedPoints,
+        inputMethod: inputMethodRef.current,
       },
     );
   };
@@ -358,6 +360,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
@@ -430,6 +433,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     const newPercentage = percentage * 100;
     setClosePercentage(newPercentage);
 
@@ -439,6 +443,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     setClosePercentage(100);
 
     // Update USD input to match calculated value for keypad display consistency
@@ -452,6 +457,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleSliderChange = (value: number) => {
+    inputMethodRef.current = 'slider';
     setClosePercentage(value);
   };
 
