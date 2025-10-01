@@ -11,6 +11,8 @@ import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-cont
 import Logger from '../../../../util/Logger';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { selectRewardsActiveAccountSubscriptionId } from '../../../../selectors/rewards';
+import { convertInternalAccountToCaipAccountId } from '../utils';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -23,6 +25,7 @@ interface useRewardOptinSummaryResult {
   hasError: boolean;
   refresh: () => Promise<void>;
   currentAccountOptedIn: boolean | null;
+  currentAccountSupported: boolean | null;
 }
 
 interface useRewardOptinSummaryOptions {
@@ -35,6 +38,9 @@ export const useRewardOptinSummary = (
   const { enabled = true } = options;
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const activeAccountSubscriptionId = useSelector(
+    selectRewardsActiveAccountSubscriptionId,
+  );
 
   const [optedInAccounts, setOptedInAccounts] = useState<
     AccountWithOptInStatus[]
@@ -42,6 +48,9 @@ export const useRewardOptinSummary = (
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [currentAccountOptedIn, setCurrentAccountOptedIn] = useState<
+    boolean | null
+  >(null);
+  const [currentAccountSupported, setCurrentAccountSupported] = useState<
     boolean | null
   >(null);
   const isLoadingRef = useRef(false);
@@ -68,19 +77,27 @@ export const useRewardOptinSummary = (
     try {
       setIsLoading(true);
       setHasError(false);
-      const addresses = accounts.map((account) => account.address);
+      setCurrentAccountOptedIn(null);
+      setCurrentAccountSupported(null);
+      const supportedAccounts: InternalAccount[] =
+        accounts?.filter((account: InternalAccount) =>
+          Engine.controllerMessenger.call(
+            'RewardsController:isOptInSupported',
+            account,
+          ),
+        ) || [];
 
       const response: OptInStatusDto = await Engine.controllerMessenger.call(
         'RewardsController:getOptInStatus',
-        { addresses },
+        { addresses: supportedAccounts.map((account) => account.address) },
       );
 
       // Map all accounts with their opt-in status
       const accountsWithStatus: AccountWithOptInStatus[] = [];
       let selectedAccountStatus = false;
 
-      for (let i = 0; i < accounts.length; i++) {
-        const account = accounts[i];
+      for (let i = 0; i < supportedAccounts.length; i++) {
+        const account = supportedAccounts[i];
         const hasOptedIn = response.ois[i] || false;
 
         accountsWithStatus.push({ ...account, hasOptedIn });
@@ -93,9 +110,16 @@ export const useRewardOptinSummary = (
 
       setOptedInAccounts(accountsWithStatus);
       setCurrentAccountOptedIn(selectedAccountStatus);
+      setCurrentAccountSupported(
+        supportedAccounts.some(
+          (account) => account.address === selectedAccount?.address,
+        ),
+      );
     } catch (error) {
       Logger.log('useRewardOptinSummary: Failed to fetch opt-in status', error);
       setHasError(true);
+      setCurrentAccountSupported(null);
+      setCurrentAccountOptedIn(null);
     } finally {
       isLoadingRef.current = false;
       setIsLoading(false);
@@ -116,12 +140,42 @@ export const useRewardOptinSummary = (
     return { linkedAccounts: linked, unlinkedAccounts: unlinked };
   }, [optedInAccounts]);
 
+  const coercedLinkedAccounts = useMemo(() => {
+    const firstSubscriptionId = Engine.controllerMessenger.call(
+      'RewardsController:getFirstSubscriptionId',
+    );
+    if (
+      activeAccountSubscriptionId &&
+      firstSubscriptionId &&
+      activeAccountSubscriptionId !== firstSubscriptionId
+    ) {
+      const accountsForSameSubscription = linkedAccounts.filter((account) => {
+        const caipAccount = convertInternalAccountToCaipAccountId(account);
+        if (!caipAccount) {
+          return false;
+        }
+        try {
+          const actualSubscriptionId = Engine.controllerMessenger.call(
+            'RewardsController:getActualSubscriptionId',
+            caipAccount,
+          );
+          return actualSubscriptionId === activeAccountSubscriptionId;
+        } catch (error) {
+          return false;
+        }
+      });
+      return accountsForSameSubscription;
+    }
+    return linkedAccounts;
+  }, [activeAccountSubscriptionId, linkedAccounts]);
+
   return {
-    linkedAccounts,
+    linkedAccounts: coercedLinkedAccounts,
     unlinkedAccounts,
     isLoading: isLoading && !optedInAccounts.length, // prevent flickering if accounts are being populated via i.e. profile sync
     hasError,
     refresh: fetchOptInStatus,
     currentAccountOptedIn,
+    currentAccountSupported,
   };
 };

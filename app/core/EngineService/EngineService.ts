@@ -22,8 +22,9 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
-import { INIT_BG_STATE_KEY, LOG_TAG } from './constants';
 import { isE2E } from '../../util/test/utils';
+import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { INIT_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
   private engineInitialized = false;
@@ -89,6 +90,12 @@ export class EngineService {
 
       setupEnginePersistence();
     } catch (error) {
+      trackVaultCorruption((error as Error).message, {
+        error_type: 'engine_initialization_failure',
+        context: 'engine_service_startup',
+        has_existing_state: Object.keys(state).length > 0,
+      });
+
       Logger.error(
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',

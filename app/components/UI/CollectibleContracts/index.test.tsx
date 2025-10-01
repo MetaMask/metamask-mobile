@@ -1160,7 +1160,7 @@ describe('CollectibleContracts', () => {
       },
     );
 
-    const filterControlersButton = getByTestId('token-network-filter');
+    const filterControlersButton = getByTestId('collectibles-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
@@ -1226,7 +1226,7 @@ describe('CollectibleContracts', () => {
       },
     );
 
-    const filterControlersButton = getByTestId('token-network-filter');
+    const filterControlersButton = getByTestId('collectibles-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -1385,7 +1385,6 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    // Should show "All Networks" text when multiple networks are enabled
-    expect(getByText('All Networks')).toBeDefined();
+    expect(getByText('Popular networks')).toBeDefined();
   });
 });
