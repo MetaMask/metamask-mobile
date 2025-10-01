@@ -263,7 +263,7 @@ const BankDetails = () => {
     try {
       setIsLoadingConfirmPayment(true);
       if (!hasDepositOrderField(order?.data, 'paymentMethod')) {
-        console.error('Order or payment details not found');
+        console.error('Payment method not found or empty');
         Logger.error(
           new Error('Order or payment details not found'),
           'BankDetails: handleBankTransferSent',
@@ -271,8 +271,8 @@ const BankDetails = () => {
         return;
       }
 
-      const paymentMethod = order.data.paymentMethod.id;
-      if (!paymentMethod) {
+      const paymentMethodId = order.data.paymentMethod.id;
+      if (!paymentMethodId) {
         console.error('Payment method not found or empty');
         Logger.error(
           new Error('Payment method not found or empty'),
@@ -281,7 +281,7 @@ const BankDetails = () => {
         return;
       }
 
-      await confirmPayment(order.id, paymentMethod);
+      await confirmPayment(order.id, paymentMethodId);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
@@ -291,7 +291,7 @@ const BankDetails = () => {
         gas_fee: 0, //Number(order.data.gasFee),
         processing_fee: 0, //Number(order.data.processingFee),
         total_fee: Number(order.data.totalFeesFiat),
-        payment_method_id: order.data.paymentMethod.id,
+        payment_method_id: paymentMethodId,
         country: selectedRegion?.isoCode || '',
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
