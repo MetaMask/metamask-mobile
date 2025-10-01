@@ -579,6 +579,7 @@ export type PointsEventsDtoState = {
   has_more: boolean;
   cursor: string | null;
   total_results: number;
+  lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

@@ -22,12 +22,14 @@ import rewardsReducer, {
   setUnlockedRewards,
   setUnlockedRewardLoading,
   setUnlockedRewardError,
+  setPointsEvents,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
 import {
   SeasonStatusState,
   RewardClaimStatus,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { CaipAccountId } from '@metamask/utils';
 
@@ -1378,7 +1380,7 @@ describe('rewardsReducer', () => {
     });
 
     describe('persist/REHYDRATE', () => {
-      it('should reset all state to initial values including banner preferences', () => {
+      it('should restore persisted UI state while resetting non-persistent state', () => {
         // Arrange
         const persistedRewardsState: RewardsState = {
           activeTab: 'activity',
@@ -1424,14 +1426,14 @@ describe('rewardsReducer', () => {
           geoLocation: 'CA',
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
-          hideUnlinkedAccountsBanner: true, // This will be reset
+          hideUnlinkedAccountsBanner: true,
           hideCurrentAccountNotOptedInBanner: [
             {
               caipAccountId:
                 'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
               hide: true,
             },
-          ], // This will be reset
+          ],
           activeBoosts: [
             {
               id: 'boost-1',
@@ -1465,30 +1467,111 @@ describe('rewardsReducer', () => {
         // Act
         const state = rewardsReducer(initialState, rehydrateAction);
 
-        // Assert - State should be reset to initial values but preserve banner preferences
+        // Assert - Should restore persisted UI state while keeping current non-persistent state
         const expectedState = {
           ...initialState,
+          // Restored from persisted state
+          seasonId: persistedRewardsState.seasonId,
+          seasonName: persistedRewardsState.seasonName,
+          seasonStartDate: persistedRewardsState.seasonStartDate,
+          seasonEndDate: persistedRewardsState.seasonEndDate,
+          seasonTiers: persistedRewardsState.seasonTiers,
+          referralCode: persistedRewardsState.referralCode,
+          refereeCount: persistedRewardsState.refereeCount,
+          currentTier: persistedRewardsState.currentTier,
+          nextTier: persistedRewardsState.nextTier,
+          balanceTotal: persistedRewardsState.balanceTotal,
+          balanceUpdatedAt: persistedRewardsState.balanceUpdatedAt,
+          activeBoosts: persistedRewardsState.activeBoosts,
+          pointsEvents: persistedRewardsState.pointsEvents,
+          unlockedRewards: persistedRewardsState.unlockedRewards,
           hideUnlinkedAccountsBanner:
             persistedRewardsState.hideUnlinkedAccountsBanner,
           hideCurrentAccountNotOptedInBanner:
             persistedRewardsState.hideCurrentAccountNotOptedInBanner,
+          // Keep current non-persistent state
+          nextTierPointsNeeded: initialState.nextTierPointsNeeded,
+          balanceRefereePortion: initialState.balanceRefereePortion,
         };
         expect(state).toEqual(expectedState);
       });
 
-      it('should reset banner preferences regardless of persisted values', () => {
+      it('should preserve all persisted UI state fields', () => {
         // Arrange
         const persistedRewardsState: RewardsState = {
           ...initialState,
-          referralCode: 'SOME_CODE', // This will be reset
-          hideUnlinkedAccountsBanner: true, // This will be reset to false
+          seasonId: 'persisted-season-id',
+          seasonName: 'Persisted Season Name',
+          seasonStartDate: new Date('2024-01-01'),
+          seasonEndDate: new Date('2024-12-31'),
+          seasonTiers: [
+            {
+              id: 'tier-persisted',
+              name: 'Persisted Tier',
+              pointsNeeded: 500,
+              image: {
+                lightModeUrl: 'persisted.png',
+                darkModeUrl: 'persisted-dark.png',
+              },
+              levelNumber: '2',
+              rewards: [],
+            },
+          ],
+          referralCode: 'PERSISTED_CODE',
+          refereeCount: 25,
+          currentTier: {
+            id: 'current-tier',
+            name: 'Current Tier',
+            pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'current.png',
+              darkModeUrl: 'current-dark.png',
+            },
+            levelNumber: '3',
+            rewards: [],
+          },
+          nextTier: {
+            id: 'next-tier',
+            name: 'Next Tier',
+            pointsNeeded: 2000,
+            image: {
+              lightModeUrl: 'next.png',
+              darkModeUrl: 'next-dark.png',
+            },
+            levelNumber: '4',
+            rewards: [],
+          },
+          balanceTotal: 3000,
+          balanceUpdatedAt: new Date('2024-06-01'),
+          activeBoosts: [
+            {
+              id: 'persisted-boost',
+              name: 'Persisted Boost',
+              icon: {
+                lightModeUrl: 'boost.png',
+                darkModeUrl: 'boost-dark.png',
+              },
+              boostBips: 1500,
+              seasonLong: true,
+              backgroundColor: '#00FF00',
+            },
+          ],
+          pointsEvents: [],
+          unlockedRewards: [
+            {
+              id: 'unlocked-reward',
+              seasonRewardId: 'season-reward-id',
+              claimStatus: RewardClaimStatus.UNCLAIMED,
+            },
+          ],
+          hideUnlinkedAccountsBanner: true,
           hideCurrentAccountNotOptedInBanner: [
             {
               caipAccountId:
                 'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
               hide: true,
             },
-          ], // This will be reset to empty array
+          ],
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -1500,14 +1583,88 @@ describe('rewardsReducer', () => {
         // Act
         const state = rewardsReducer(initialState, rehydrateAction);
 
-        // Assert
+        // Assert - All persisted UI state should be preserved
+        expect(state.seasonId).toBe(persistedRewardsState.seasonId);
+        expect(state.seasonName).toBe(persistedRewardsState.seasonName);
+        expect(state.seasonStartDate).toEqual(
+          persistedRewardsState.seasonStartDate,
+        );
+        expect(state.seasonEndDate).toEqual(
+          persistedRewardsState.seasonEndDate,
+        );
+        expect(state.seasonTiers).toEqual(persistedRewardsState.seasonTiers);
+        expect(state.referralCode).toBe(persistedRewardsState.referralCode);
+        expect(state.refereeCount).toBe(persistedRewardsState.refereeCount);
+        expect(state.currentTier).toEqual(persistedRewardsState.currentTier);
+        expect(state.nextTier).toEqual(persistedRewardsState.nextTier);
+        expect(state.balanceTotal).toBe(persistedRewardsState.balanceTotal);
+        expect(state.balanceUpdatedAt).toEqual(
+          persistedRewardsState.balanceUpdatedAt,
+        );
+        expect(state.activeBoosts).toEqual(persistedRewardsState.activeBoosts);
+        expect(state.pointsEvents).toEqual(persistedRewardsState.pointsEvents);
+        expect(state.unlockedRewards).toEqual(
+          persistedRewardsState.unlockedRewards,
+        );
         expect(state.hideUnlinkedAccountsBanner).toBe(
           persistedRewardsState.hideUnlinkedAccountsBanner,
         );
         expect(state.hideCurrentAccountNotOptedInBanner).toEqual(
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         );
-        expect(state.referralCode).toBe(null); // Should be reset
+
+        // Non-persistent state should remain from current state
+        expect(state.nextTierPointsNeeded).toBe(
+          initialState.nextTierPointsNeeded,
+        );
+        expect(state.balanceRefereePortion).toBe(
+          initialState.balanceRefereePortion,
+        );
+      });
+
+      it('should preserve current non-persistent state while restoring persisted UI state', () => {
+        // Arrange
+        const currentState = {
+          ...initialState,
+          nextTierPointsNeeded: 500, // This should be preserved
+          balanceRefereePortion: 100, // This should be preserved
+          activeTab: 'levels' as const, // This should be reset to initial
+          seasonStatusLoading: true, // This should be reset to initial
+        };
+        const persistedRewardsState: RewardsState = {
+          ...initialState,
+          seasonId: 'persisted-season',
+          seasonName: 'Persisted Season',
+          referralCode: 'PERSISTED123',
+          balanceTotal: 2000,
+          hideUnlinkedAccountsBanner: true,
+        };
+        const rehydrateAction = {
+          type: 'persist/REHYDRATE',
+          payload: {
+            rewards: persistedRewardsState,
+          },
+        };
+
+        // Act
+        const state = rewardsReducer(currentState, rehydrateAction);
+
+        // Assert - Non-persistent state should be preserved from current state
+        expect(state.nextTierPointsNeeded).toBe(500); // Preserved from current state
+        expect(state.balanceRefereePortion).toBe(100); // Preserved from current state
+
+        // Persisted UI state should be restored
+        expect(state.seasonId).toBe('persisted-season');
+        expect(state.seasonName).toBe('Persisted Season');
+        expect(state.referralCode).toBe('PERSISTED123');
+        expect(state.balanceTotal).toBe(2000);
+        expect(state.hideUnlinkedAccountsBanner).toBe(true);
+
+        // Non-persistent state should be reset to initial
+        expect(state.activeTab).toBe(initialState.activeTab);
+        expect(state.seasonStatusLoading).toBe(
+          initialState.seasonStatusLoading,
+        );
       });
 
       it('should return current state when no rewards data in rehydrate payload', () => {
@@ -2212,6 +2369,344 @@ describe('rewardsReducer', () => {
       action = setUnlockedRewardError(true);
       currentState = rewardsReducer(currentState, action);
       expect(currentState.unlockedRewardError).toBe(true);
+    });
+  });
+
+  describe('setPointsEvents', () => {
+    it('should set points events array', () => {
+      // Arrange
+      const mockPointsEvents: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP' as const,
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+            destAsset: {
+              amount: '3000000000',
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+          },
+        },
+        {
+          id: 'event-2',
+          type: 'REFERRAL' as const,
+          timestamp: new Date('2024-01-02T00:00:00Z'),
+          value: 50,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const action = setPointsEvents(mockPointsEvents);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.pointsEvents).toEqual(mockPointsEvents);
+      expect(state.pointsEvents).toHaveLength(2);
+      expect(state.pointsEvents?.[0]?.id).toBe('event-1');
+      expect(state.pointsEvents?.[0]?.type).toBe('SWAP');
+      expect(state.pointsEvents?.[1]?.type).toBe('REFERRAL');
+    });
+
+    it('should replace existing points events', () => {
+      // Arrange
+      const existingEvents: PointsEventDto[] = [
+        {
+          id: 'old-event',
+          type: 'SIGN_UP_BONUS' as const,
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 200,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const stateWithEvents = {
+        ...initialState,
+        pointsEvents: existingEvents,
+      };
+      const newEvents: PointsEventDto[] = [
+        {
+          id: 'new-event-1',
+          type: 'PERPS' as const,
+          timestamp: new Date('2024-01-02T00:00:00Z'),
+          value: 300,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          payload: {
+            type: 'OPEN_POSITION',
+            direction: 'LONG',
+            asset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+          },
+        },
+        {
+          id: 'new-event-2',
+          type: 'LOYALTY_BONUS' as const,
+          timestamp: new Date('2024-01-03T00:00:00Z'),
+          value: 75,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-03T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const action = setPointsEvents(newEvents);
+
+      // Act
+      const state = rewardsReducer(stateWithEvents, action);
+
+      // Assert
+      expect(state.pointsEvents).toEqual(newEvents);
+      expect(state.pointsEvents).toHaveLength(2);
+      expect(state.pointsEvents?.[0]?.id).toBe('new-event-1');
+      expect(state.pointsEvents?.[1]?.id).toBe('new-event-2');
+    });
+
+    it('should set empty array when no events provided', () => {
+      // Arrange
+      const stateWithEvents = {
+        ...initialState,
+        pointsEvents: [
+          {
+            id: 'existing-event',
+            type: 'ONE_TIME_BONUS' as const,
+            timestamp: new Date('2024-01-01T00:00:00Z'),
+            value: 500,
+            bonus: null,
+            accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+            updatedAt: new Date('2024-01-01T00:00:00Z'),
+            payload: null,
+          },
+        ],
+      };
+      const action = setPointsEvents([]);
+
+      // Act
+      const state = rewardsReducer(stateWithEvents, action);
+
+      // Assert
+      expect(state.pointsEvents).toEqual([]);
+      expect(state.pointsEvents).toHaveLength(0);
+    });
+
+    it('should set points events to null', () => {
+      // Arrange
+      const stateWithEvents = {
+        ...initialState,
+        pointsEvents: [
+          {
+            id: 'existing-event',
+            type: 'SWAP' as const,
+            timestamp: new Date('2024-01-01T00:00:00Z'),
+            value: 100,
+            bonus: null,
+            accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+            updatedAt: new Date('2024-01-01T00:00:00Z'),
+            payload: {
+              srcAsset: {
+                amount: '1000000000000000000',
+                type: 'eip155:1/slip44:60',
+                decimals: 18,
+                name: 'Ethereum',
+                symbol: 'ETH',
+              },
+              destAsset: {
+                amount: '3000000000',
+                type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+                decimals: 6,
+                name: 'USD Coin',
+                symbol: 'USDC',
+              },
+            },
+          },
+        ],
+      };
+      const action = setPointsEvents(null);
+
+      // Act
+      const state = rewardsReducer(stateWithEvents, action);
+
+      // Assert
+      expect(state.pointsEvents).toBeNull();
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'activity' as const,
+        referralCode: 'TEST123',
+        balanceTotal: 1000,
+        activeBoostsLoading: true,
+      };
+      const mockEvents: PointsEventDto[] = [
+        {
+          id: 'test-event',
+          type: 'SWAP' as const,
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 150,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '10000000',
+              type: 'eip155:1/slip44:0',
+              decimals: 8,
+              name: 'Bitcoin',
+              symbol: 'BTC',
+            },
+            destAsset: {
+              amount: '2500000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+          },
+        },
+      ];
+      const action = setPointsEvents(mockEvents);
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.pointsEvents).toEqual(mockEvents);
+      expect(state.activeTab).toBe('activity');
+      expect(state.referralCode).toBe('TEST123');
+      expect(state.balanceTotal).toBe(1000);
+      expect(state.activeBoostsLoading).toBe(true);
+    });
+
+    it('should handle mixed event types', () => {
+      // Arrange
+      const mixedEvents: PointsEventDto[] = [
+        {
+          id: 'swap-event',
+          type: 'SWAP' as const,
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+            destAsset: {
+              amount: '3000000000',
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+          },
+        },
+        {
+          id: 'perps-event',
+          type: 'PERPS' as const,
+          timestamp: new Date('2024-01-02T00:00:00Z'),
+          value: 200,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          payload: {
+            type: 'CLOSE_POSITION',
+            direction: 'SHORT',
+            asset: {
+              amount: '5000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+          },
+        },
+        {
+          id: 'referral-event',
+          type: 'REFERRAL' as const,
+          timestamp: new Date('2024-01-03T00:00:00Z'),
+          value: 50,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-03T00:00:00Z'),
+          payload: null,
+        },
+        {
+          id: 'signup-event',
+          type: 'SIGN_UP_BONUS' as const,
+          timestamp: new Date('2024-01-04T00:00:00Z'),
+          value: 1000,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-04T00:00:00Z'),
+          payload: null,
+        },
+        {
+          id: 'loyalty-event',
+          type: 'LOYALTY_BONUS' as const,
+          timestamp: new Date('2024-01-05T00:00:00Z'),
+          value: 75,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-05T00:00:00Z'),
+          payload: null,
+        },
+        {
+          id: 'onetime-event',
+          type: 'ONE_TIME_BONUS' as const,
+          timestamp: new Date('2024-01-06T00:00:00Z'),
+          value: 500,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-06T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const action = setPointsEvents(mixedEvents);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.pointsEvents).toEqual(mixedEvents);
+      expect(state.pointsEvents).toHaveLength(6);
+      expect(state.pointsEvents?.[0]?.type).toBe('SWAP');
+      expect(state.pointsEvents?.[1]?.type).toBe('PERPS');
+      expect(state.pointsEvents?.[2]?.type).toBe('REFERRAL');
+      expect(state.pointsEvents?.[3]?.type).toBe('SIGN_UP_BONUS');
+      expect(state.pointsEvents?.[4]?.type).toBe('LOYALTY_BONUS');
+      expect(state.pointsEvents?.[5]?.type).toBe('ONE_TIME_BONUS');
     });
   });
 });

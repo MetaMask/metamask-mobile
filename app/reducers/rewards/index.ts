@@ -308,6 +308,12 @@ const rewardsSlice = createSlice({
     setUnlockedRewardError: (state, action: PayloadAction<boolean>) => {
       state.unlockedRewardError = action.payload;
     },
+    setPointsEvents: (
+      state,
+      action: PayloadAction<PointsEventDto[] | null>,
+    ) => {
+      state.pointsEvents = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
@@ -315,7 +321,24 @@ const rewardsSlice = createSlice({
         return {
           // Reset non-persistent state (state is persisted via controller)
           ...initialState,
-          // Restore only a few persistent state
+
+          // UI state we want to restore from previous visit
+          seasonId: action.payload.rewards.seasonId,
+          seasonName: action.payload.rewards.seasonName,
+          seasonStartDate: action.payload.rewards.seasonStartDate,
+          seasonEndDate: action.payload.rewards.seasonEndDate,
+          seasonTiers: action.payload.rewards.seasonTiers,
+          referralCode: action.payload.rewards.referralCode,
+          refereeCount: action.payload.rewards.refereeCount,
+          currentTier: action.payload.rewards.currentTier,
+          nextTier: action.payload.rewards.nextTier,
+          nextTierPointsNeeded: state.nextTierPointsNeeded,
+          balanceTotal: action.payload.rewards.balanceTotal,
+          balanceRefereePortion: state.balanceRefereePortion,
+          balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
+          activeBoosts: action.payload.rewards.activeBoosts,
+          pointsEvents: action.payload.rewards.pointsEvents,
+          unlockedRewards: action.payload.rewards.unlockedRewards,
           hideUnlinkedAccountsBanner:
             action.payload.rewards.hideUnlinkedAccountsBanner,
           hideCurrentAccountNotOptedInBanner:
@@ -350,6 +373,7 @@ export const {
   setUnlockedRewards,
   setUnlockedRewardLoading,
   setUnlockedRewardError,
+  setPointsEvents,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;
