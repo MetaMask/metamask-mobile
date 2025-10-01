@@ -144,3 +144,50 @@ export const getRecurrence = (series?: PredictSeries[]): Recurrence => {
       return Recurrence.NONE;
   }
 };
+
+export const formatCents = (dollars: string | number): string => {
+  const num = typeof dollars === 'string' ? parseFloat(dollars) : dollars;
+
+  if (isNaN(num)) {
+    return '0¢';
+  }
+
+  // Convert dollars to cents (multiply by 100) and round to whole cents
+  const cents = Math.round(num * 100);
+
+  return `${cents}¢`;
+};
+
+/**
+ * Formats position size with variable decimal precision based on magnitude
+ * @param size - Raw position size value
+ * @returns Format varies by size:
+ * - Size < 0.01: "X.XXXXXX" (6 decimals)
+ * - Size < 1: "X.XXXX" (4 decimals)
+ * - Size >= 1: "X.XX" (2 decimals)
+ * @example formatPositionSize(0.001234) => "0.001234"
+ * @example formatPositionSize(0.5678) => "0.5678"
+ * @example formatPositionSize(123.456) => "123.46"
+ */
+export const formatPositionSize = (size: string | number): string => {
+  const num = typeof size === 'string' ? parseFloat(size) : size;
+
+  if (isNaN(num)) {
+    return '0';
+  }
+
+  const abs = Math.abs(num);
+
+  // For very small numbers, use more decimal places
+  if (abs < 0.01) {
+    return num.toFixed(6);
+  }
+
+  // For small numbers, use 4 decimal places
+  if (abs < 1) {
+    return num.toFixed(4);
+  }
+
+  // For normal numbers, use 2 decimal places
+  return num.toFixed(2);
+};

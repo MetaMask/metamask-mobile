@@ -25,24 +25,24 @@ import {
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  CalculateBetAmountsParams,
+  CalculateBetAmountsResponse,
+  CalculateCashOutAmountsParams,
+  CalculateCashOutAmountsResponse,
   GetMarketsParams,
   GetPositionsParams,
+  PlaceOrderParams,
   PredictProvider,
 } from '../providers/types';
 import {
-  BuyParams,
   ClaimParams,
   GetPriceHistoryParams,
-  OffchainTradeResponse,
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
-  PredictNotification,
-  PredictOrder,
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
-  SellParams,
 } from '../types';
 
 /**
@@ -64,6 +64,7 @@ export const PREDICT_ERROR_CODES = {
   ONCHAIN_TRANSACTION_NOT_FOUND: 'ONCHAIN_TRANSACTION_NOT_FOUND',
   SUBMIT_OFFCHAIN_TRADE_FAILED: 'SUBMIT_OFFCHAIN_TRADE_FAILED',
   CLAIM_FAILED: 'CLAIM_FAILED',
+  PLACE_ORDER_FAILED: 'PLACE_ORDER_FAILED',
 } as const;
 
 export type PredictErrorCode =
@@ -81,15 +82,13 @@ export type PredictControllerState = {
   lastError: string | null;
   lastUpdateTimestamp: number;
 
-  // Order management
-  activeOrders: { [key: string]: PredictOrder };
-
   // Claim management
   claimTransactions: { [key: string]: PredictClaim[] };
 
-  // Notifications
-  // TODO: Refactor to use generic notifications
-  notifications: PredictNotification[];
+  // Persisted data
+  // --------------
+  // Setup
+  isOnboarded: { [address: string]: boolean };
 };
 
 /**
@@ -99,23 +98,19 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
-  activeOrders: {},
-  notifications: [],
   claimTransactions: {},
+  isOnboarded: {},
 });
 
 /**
  * State metadata for the PredictController
  */
 const metadata = {
-  orders: { persist: false, anonymous: false },
-  pendingOrders: { persist: false, anonymous: false },
   eligibility: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
-  activeOrders: { persist: true, anonymous: false },
-  notifications: { persist: false, anonymous: false },
   claimTransactions: { persist: false, anonymous: false },
+  isOnboarded: { persist: true, anonymous: false },
 };
 
 /**
@@ -135,16 +130,12 @@ export type PredictControllerActions =
       handler: () => PredictControllerState;
     }
   | {
-      type: 'PredictController:buy';
-      handler: PredictController['buy'];
-    }
-  | {
-      type: 'PredictController:sell';
-      handler: PredictController['sell'];
-    }
-  | {
       type: 'PredictController:refreshEligibility';
       handler: PredictController['refreshEligibility'];
+    }
+  | {
+      type: 'PredictController:placeOrder';
+      handler: PredictController['placeOrder'];
     };
 
 /**
@@ -275,112 +266,23 @@ export class PredictController extends BaseController<
       return;
     }
 
-    let activeOrder = this.state.activeOrders[id];
     const claimTransaction = this.state.claimTransactions[id];
 
-    if (!activeOrder && !claimTransaction) {
+    if (!claimTransaction) {
       return;
     }
 
-    if (claimTransaction) {
-      const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
-        isEqualCaseInsensitive(txParams.data, _txMeta.txParams.data ?? ''),
-      );
-      if (transactionIndex === -1) {
-        return;
-      }
-      this.update((state) => {
-        state.claimTransactions[id][transactionIndex].status =
-          PredictClaimStatus.CONFIRMED;
-      });
-      return;
-    }
-
-    const provider = this.providers.get(activeOrder.providerId);
-    if (!provider) {
-      this.update((state) => {
-        state.activeOrders[id].status = 'error';
-        state.activeOrders[id].error =
-          PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
-      });
-      return;
-    }
-
-    const onchainTransactionIndex = activeOrder.onchainTradeParams.findIndex(
-      (tx) => isEqualCaseInsensitive(tx.data, _txMeta.txParams.data ?? ''),
+    const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
+      isEqualCaseInsensitive(txParams.data, _txMeta.txParams.data ?? ''),
     );
-
-    const onchainTransactionNotFound = onchainTransactionIndex === -1;
-
-    if (onchainTransactionNotFound) {
-      this.update((state) => {
-        state.activeOrders[id].status = 'error';
-        state.activeOrders[id].error =
-          PREDICT_ERROR_CODES.ONCHAIN_TRANSACTION_NOT_FOUND;
-      });
+    if (transactionIndex === -1) {
       return;
     }
-
     this.update((state) => {
-      state.activeOrders[id].onchainTradeParams[
-        onchainTransactionIndex
-      ].transactionId = _txMeta.id;
+      state.claimTransactions[id][transactionIndex].status =
+        PredictClaimStatus.CONFIRMED;
     });
-
-    activeOrder = this.state.activeOrders[id];
-
-    const allTransactionsConfirmed = activeOrder.onchainTradeParams.every(
-      (tx) => tx.transactionId,
-    );
-
-    if (!allTransactionsConfirmed) {
-      return;
-    }
-
-    const { offchainTradeParams } = activeOrder;
-
-    if (!offchainTradeParams) {
-      this.update((state) => {
-        state.activeOrders[id].status = 'filled';
-        state.notifications.push({ orderId: id, status: 'filled' });
-      });
-
-      return;
-    }
-
-    if (!provider.submitOffchainTrade) {
-      this.update((state) => {
-        state.activeOrders[id].status = 'error';
-        state.activeOrders[id].error =
-          PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED;
-        state.notifications.push({ orderId: id, status: 'error' });
-      });
-      return;
-    }
-
-    try {
-      const { success, response } = (await provider.submitOffchainTrade?.(
-        offchainTradeParams,
-      )) as OffchainTradeResponse;
-
-      const status = success ? 'filled' : 'error';
-      const error = !success
-        ? (response as { error: string }).error ?? 'Unknown error'
-        : undefined;
-
-      this.update((state) => {
-        state.activeOrders[id].status = status;
-        state.activeOrders[id].error = error;
-        state.notifications.push({ orderId: id, status });
-      });
-    } catch (error) {
-      this.update((state) => {
-        state.activeOrders[id].status = 'error';
-        state.activeOrders[id].error =
-          PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_FAILED;
-        state.notifications.push({ orderId: id, status: 'error' });
-      });
-    }
+    return;
   }
 
   /**
@@ -398,37 +300,26 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const activeOrder = this.state.activeOrders[id];
     const claimTransaction = this.state.claimTransactions[id];
 
-    if (!activeOrder && !claimTransaction) {
+    if (!claimTransaction) {
       return;
     }
 
-    if (claimTransaction) {
-      const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
-        isEqualCaseInsensitive(
-          txParams.data,
-          _event.transactionMeta.txParams.data ?? '',
-        ),
-      );
-      if (transactionIndex === -1) {
-        return;
-      }
-      this.update((state) => {
-        state.claimTransactions[id][transactionIndex].status =
-          PredictClaimStatus.ERROR;
-      });
+    const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
+      isEqualCaseInsensitive(
+        txParams.data,
+        _event.transactionMeta.txParams.data ?? '',
+      ),
+    );
+    if (transactionIndex === -1) {
       return;
     }
-
-    // TODO: Implement transaction failure tracking
     this.update((state) => {
-      if (state.activeOrders[id]) {
-        state.activeOrders[id].status = 'error';
-        state.notifications.push({ orderId: id, status: 'error' });
-      }
+      state.claimTransactions[id][transactionIndex].status =
+        PredictClaimStatus.ERROR;
     });
+    return;
   }
 
   /**
@@ -446,37 +337,26 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const activeOrder = this.state.activeOrders[id];
     const claimTransaction = this.state.claimTransactions[id];
 
-    if (!activeOrder && !claimTransaction) {
+    if (!claimTransaction) {
       return;
     }
 
-    if (claimTransaction) {
-      const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
-        isEqualCaseInsensitive(
-          txParams.data,
-          _event.transactionMeta.txParams.data ?? '',
-        ),
-      );
-      if (transactionIndex === -1) {
-        return;
-      }
-      this.update((state) => {
-        state.claimTransactions[id][transactionIndex].status =
-          PredictClaimStatus.CANCELLED;
-      });
+    const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
+      isEqualCaseInsensitive(
+        txParams.data,
+        _event.transactionMeta.txParams.data ?? '',
+      ),
+    );
+    if (transactionIndex === -1) {
       return;
     }
-
-    // TODO: Implement transaction failure tracking
     this.update((state) => {
-      if (state.activeOrders[id]) {
-        state.activeOrders[id].status = 'cancelled';
-        state.notifications.push({ orderId: id, status: 'cancelled' });
-      }
+      state.claimTransactions[id][transactionIndex].status =
+        PredictClaimStatus.CANCELLED;
     });
+    return;
   }
 
   /**
@@ -734,223 +614,59 @@ export class PredictController extends BaseController<
     }
   }
 
-  async buy({
-    market,
-    outcomeId,
-    outcomeTokenId,
-    size,
-  }: BuyParams): Promise<Result> {
+  async placeOrder<T>(params: PlaceOrderParams): Promise<Result<T>> {
     try {
-      const provider = this.providers.get(market.providerId);
+      const provider = this.providers.get(params.providerId);
       if (!provider) {
         throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
       }
 
-      // TODO: Change to AccountTreeController when available
-      const { AccountsController, NetworkController, KeyringController } =
-        Engine.context;
+      const { AccountsController, KeyringController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
 
-      const order = await provider.prepareBuyOrder({
-        signer: {
-          address: selectedAddress,
-          signTypedMessage: (
-            params: TypedMessageParams,
-            version: SignTypedDataVersion,
-          ) => KeyringController.signTypedMessage(params, version),
-          signPersonalMessage: (params: PersonalMessageParams) =>
-            KeyringController.signPersonalMessage(params),
-        },
-        outcomeId,
-        outcomeTokenId,
-        size,
-        market,
-      });
-
-      if (order.onchainTradeParams.length === 0) {
-        throw new Error(PREDICT_ERROR_CODES.NO_ONCHAIN_TRADE_PARAMS);
-      }
-
-      const { chainId } = order;
-
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        numberToHex(chainId),
-      );
-
-      if (order.onchainTradeParams.length === 1) {
-        const params = order.onchainTradeParams[0];
-
-        const { transactionMeta } = await addTransaction(
-          {
-            from: selectedAddress as Hex,
-            to: params.to as Hex,
-            data: params.data as Hex,
-            value: params.value as Hex,
-          },
-          {
-            networkClientId,
-            requireApproval: true,
-          },
-        );
-
-        this.update((state) => {
-          state.activeOrders[transactionMeta.id] = order;
-          state.activeOrders[transactionMeta.id].status = 'pending';
-          state.notifications.push({
-            orderId: transactionMeta.id,
-            status: 'pending',
-          });
-        });
-
-        return {
-          success: true,
-          id: transactionMeta.id,
-        };
-      }
-
-      const { batchId } = await addTransactionBatch({
-        from: selectedAddress as Hex,
-        networkClientId,
-        transactions: order.onchainTradeParams.map((tx) => ({
-          params: {
-            to: tx.to as Hex,
-            data: tx.data as Hex,
-            value: tx.value as Hex,
-          },
-        })),
-        disable7702: true,
-        disableHook: true,
-        disableSequential: false,
-        requireApproval: true,
-      });
-
-      this.update((state) => {
-        state.activeOrders[batchId] = order;
-        state.activeOrders[batchId].status = 'pending';
-        state.notifications.push({ orderId: batchId, status: 'pending' });
-      });
-
-      return {
-        success: true,
-        id: batchId,
+      const signer = {
+        address: selectedAddress,
+        signTypedMessage: (
+          params: TypedMessageParams,
+          version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(params, version),
+        signPersonalMessage: (params: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(params),
       };
+
+      return await provider.placeOrder({ ...params, signer });
     } catch (error) {
       return {
         success: false,
         error:
           error instanceof Error
             ? error.message
-            : PREDICT_ERROR_CODES.PLACE_BUY_ORDER_FAILED,
-        id: undefined,
+            : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
       };
     }
   }
 
-  async sell({ position }: SellParams): Promise<Result> {
-    try {
-      const provider = this.providers.get(position.providerId);
-      if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-      }
-
-      // TODO: Change to AccountTreeController when available
-      const { AccountsController, NetworkController, KeyringController } =
-        Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
-
-      const order = await provider.prepareSellOrder({
-        signer: {
-          address: selectedAddress,
-          signTypedMessage: (
-            params: TypedMessageParams,
-            version: SignTypedDataVersion,
-          ) => KeyringController.signTypedMessage(params, version),
-          signPersonalMessage: (params: PersonalMessageParams) =>
-            KeyringController.signPersonalMessage(params),
-        },
-        position,
-      });
-
-      if (order.onchainTradeParams.length === 0) {
-        throw new Error(PREDICT_ERROR_CODES.NO_ONCHAIN_TRADE_PARAMS);
-      }
-
-      const { chainId } = order;
-
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        numberToHex(chainId),
-      );
-
-      if (order.onchainTradeParams.length === 1) {
-        const params = order.onchainTradeParams[0];
-
-        const { transactionMeta } = await addTransaction(
-          {
-            from: selectedAddress as Hex,
-            to: params.to as Hex,
-            data: params.data as Hex,
-            value: params.value as Hex,
-          },
-          {
-            networkClientId,
-            requireApproval: true,
-          },
-        );
-
-        this.update((state) => {
-          state.activeOrders[transactionMeta.id] = order;
-          state.activeOrders[transactionMeta.id].status = 'pending';
-          state.notifications.push({
-            orderId: transactionMeta.id,
-            status: 'pending',
-          });
-        });
-
-        return {
-          success: true,
-          id: transactionMeta.id,
-        };
-      }
-
-      const { batchId } = await addTransactionBatch({
-        from: selectedAddress as Hex,
-        networkClientId,
-        transactions: order.onchainTradeParams.map((tx) => ({
-          params: {
-            to: tx.to as Hex,
-            data: tx.data as Hex,
-            value: tx.value as Hex,
-          },
-        })),
-        disable7702: true,
-        disableHook: true,
-        disableSequential: false,
-        requireApproval: false,
-      });
-
-      this.update((state) => {
-        state.activeOrders[batchId] = order;
-        state.activeOrders[batchId].status = 'pending';
-        state.notifications.push({ orderId: batchId, status: 'pending' });
-      });
-
-      return {
-        success: true,
-        id: batchId,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.PLACE_SELL_ORDER_FAILED,
-        id: undefined,
-      };
+  async calculateBetAmounts(
+    params: CalculateBetAmountsParams,
+  ): Promise<CalculateBetAmountsResponse> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
+    return provider.calculateBetAmounts(params);
   }
 
-  async claim({ positions }: ClaimParams): Promise<Result> {
+  async calculateCashOutAmounts(
+    params: CalculateCashOutAmountsParams,
+  ): Promise<CalculateCashOutAmountsResponse> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+    }
+    return provider.calculateCashOutAmounts(params);
+  }
+
+  async claim({ positions }: ClaimParams): Promise<Result<string[]>> {
     try {
       const { AccountsController, NetworkController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
@@ -1023,7 +739,7 @@ export class PredictController extends BaseController<
       }
       return {
         success: true,
-        ids,
+        response: ids,
       };
     } catch (error) {
       return {
@@ -1032,7 +748,6 @@ export class PredictController extends BaseController<
           error instanceof Error
             ? error.message
             : PREDICT_ERROR_CODES.CLAIM_FAILED,
-        id: undefined,
       };
     }
   }
@@ -1065,14 +780,6 @@ export class PredictController extends BaseController<
         });
       }
     }
-  }
-
-  public deleteNotification(orderId: string): void {
-    this.update((state) => {
-      state.notifications = state.notifications.filter(
-        (order) => order.orderId !== orderId,
-      );
-    });
   }
 
   /**

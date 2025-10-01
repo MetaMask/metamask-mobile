@@ -4,6 +4,7 @@ import { Hex, hexToNumber } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import {
+  OnchainTradeParams,
   PredictMarketStatus,
   PredictPositionStatus,
   Side,
@@ -45,6 +46,7 @@ import {
 import { GetMarketsParams } from '../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { SafeFeeAuthorization } from './safe/types';
+import { ethers } from 'ethers';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -598,7 +600,7 @@ export const submitClobOrder = async ({
   }
 
   const responseData = (await response.json()) as OrderResponse;
-  return responseData;
+  return { success: true, response: responseData };
 };
 
 export const parsePolymarketEvents = (
@@ -780,7 +782,7 @@ export const parsePolymarketPositions = async ({
     (position: PolymarketPosition) => ({
       id: position.asset,
       providerId: 'polymarket',
-      marketId: '',
+      marketId: position.eventId,
       outcomeId: position.conditionId,
       outcome: position.outcome,
       outcomeTokenId: position.asset,
@@ -805,35 +807,6 @@ export const parsePolymarketPositions = async ({
       claimable: position.redeemable,
     }),
   );
-
-  if (parsedPositions.length === 0) {
-    return [];
-  }
-
-  // TODO: Check with polymarket team if is there a way to return the position with the event id
-  const conditionIds = parsedPositions.map((position) => position.outcomeId);
-
-  try {
-    const markets = await getMarketsFromPolymarketApi({
-      conditionIds,
-    });
-
-    parsedPositions.forEach((position: PredictPosition) => {
-      const market = markets.find(
-        (marketFromApi: PolymarketApiMarket) =>
-          marketFromApi.conditionId === position.outcomeId,
-      );
-      const marketId = market?.events?.[0]?.id;
-      if (!marketId) {
-        DevLogger.log('Market ID not found for position', position.outcomeId);
-        return;
-      }
-      position.marketId = marketId;
-    });
-  } catch (error) {
-    DevLogger.log('Failed to fetch market data for positions:', error);
-    // Continue with positions having empty marketId rather than failing completely
-  }
 
   return parsedPositions;
 };
@@ -903,3 +876,107 @@ export function calculateFeeAmount(order: OrderData): bigint {
   }
   return (BigInt(order.makerAmount) * BigInt(FEE_PERCENTAGE)) / BigInt(100);
 }
+
+export const getAllowanceCalls = (params: { address: string }) => {
+  const { address } = params;
+  const chainId = POLYGON_MAINNET_CHAIN_ID;
+  const contractConfig = getContractConfig(chainId);
+  const calls: OnchainTradeParams[] = [];
+
+  const usdcExchange = encodeApprove({
+    spender: contractConfig.exchange,
+    amount: ethers.constants.MaxInt256.toString(),
+  });
+  calls.push({
+    data: usdcExchange,
+    to: contractConfig.collateral,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const usdcNegRisk = encodeApprove({
+    spender: contractConfig.negRiskExchange,
+    amount: ethers.constants.MaxInt256.toString(),
+  });
+
+  calls.push({
+    data: usdcNegRisk,
+    to: contractConfig.collateral,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const usdcAdapter = encodeApprove({
+    spender: contractConfig.negRiskAdapter,
+    amount: ethers.constants.MaxInt256.toString(),
+  });
+  calls.push({
+    data: usdcAdapter,
+    to: contractConfig.collateral,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const conditionalExchange = encodeErc1155Approve({
+    spender: contractConfig.exchange,
+    approved: true,
+  });
+
+  calls.push({
+    data: conditionalExchange,
+    to: contractConfig.conditionalTokens,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const conditionalNegRisk = encodeErc1155Approve({
+    spender: contractConfig.negRiskExchange,
+    approved: true,
+  });
+  calls.push({
+    data: conditionalNegRisk,
+    to: contractConfig.conditionalTokens,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const conditionalAdapter = encodeErc1155Approve({
+    spender: contractConfig.negRiskAdapter,
+    approved: true,
+  });
+  calls.push({
+    data: conditionalAdapter,
+    to: contractConfig.conditionalTokens,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  return calls;
+};
+
+export const getMarketPositions = async ({
+  marketId,
+  address,
+}: {
+  marketId: string;
+  address: string;
+}) => {
+  const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+  const response = await fetch(
+    `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
+  );
+  if (!response.ok) {
+    throw new Error('Failed to get market positions');
+  }
+  const responseData = await response.json();
+  const parsedPositions = await parsePolymarketPositions({
+    positions: responseData,
+  });
+  return parsedPositions;
+};

@@ -19,8 +19,9 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictBuy } from '../../hooks/usePredictBuy';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket as PredictMarketType } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -39,12 +40,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-      reset();
-    },
-  });
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -65,27 +62,25 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
-  const isOutcomeTokenLoading = useCallback(
-    (outcomeTokenId: string) =>
-      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
-    [currentOrderParams, loading],
-  );
-
   const handleYes = () => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[0].id,
-      market,
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcomeId: outcome.id,
+        outcomeTokenId: outcome.tokens[0].id,
+      },
     });
   };
 
   const handleNo = () => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[1].id,
-      market,
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcomeId: outcome.id,
+        outcomeTokenId: outcome.tokens[1].id,
+      },
     });
   };
 

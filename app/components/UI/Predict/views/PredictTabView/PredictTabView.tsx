@@ -16,13 +16,13 @@ import PredictNewButton from '../../components/PredictNewButton';
 import PredictPosition from '../../components/PredictPosition';
 import PredictPositionEmpty from '../../components/PredictPositionEmpty';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictNotifications } from '../../hooks/usePredictNotifications';
 import {
   PredictPositionStatus,
   PredictPosition as PredictPositionType,
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
 
 interface PredictTabViewProps {}
 
@@ -53,9 +53,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  // TODO: remove this once we have a better way to trigger notifications globally
-  usePredictNotifications();
-
   const handleClaimPress = useCallback(() => {
     claim({
       positions: claimablePositions,
@@ -63,7 +60,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   }, [claim, claimablePositions]);
 
   const renderMarketsWonCard = useCallback(() => {
-    if (claimablePositions.length === 0) return null;
+    if (claimablePositions.length === 0) return <PredictOnboarding />;
 
     const wonPositions = claimablePositions.filter(
       (position) => position.status === PredictPositionStatus.WON,
@@ -79,14 +76,17 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     const unrealizedPercent = 3.9;
 
     return (
-      <MarketsWonCard
-        numberOfMarketsWon={wonPositions.length}
-        totalClaimableAmount={totalClaimableAmount}
-        unrealizedAmount={unrealizedAmount}
-        unrealizedPercent={unrealizedPercent}
-        onClaimPress={handleClaimPress}
-        isLoading={isClaiming}
-      />
+      <>
+        <PredictOnboarding />
+        <MarketsWonCard
+          numberOfMarketsWon={wonPositions.length}
+          totalClaimableAmount={totalClaimableAmount}
+          unrealizedAmount={unrealizedAmount}
+          unrealizedPercent={unrealizedPercent}
+          onClaimPress={handleClaimPress}
+          isLoading={isClaiming}
+        />
+      </>
     );
   }, [claimablePositions, handleClaimPress, isClaiming]);
 
