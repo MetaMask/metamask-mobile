@@ -46,7 +46,6 @@ import AccountSelector from '../../components/AccountSelector';
 
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
-import FiatSelectModal from '../../components/modals/FiatSelectModal';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import SkeletonText from '../../components/SkeletonText';
 import ErrorView from '../../components/ErrorView';
@@ -70,6 +69,7 @@ import {
 } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
 import { QuickAmount, ScreenLocation } from '../../types';
@@ -96,7 +96,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
-import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
@@ -129,12 +129,6 @@ const BuildQuote = () => {
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
 
-  const [
-    isFiatSelectorModalVisible,
-    toggleFiatSelectorModal,
-    ,
-    hideFiatSelectorModal,
-  ] = useModalHandler(false);
   const [
     isPaymentMethodModalVisible,
     ,
@@ -565,18 +559,12 @@ const BuildQuote = () => {
 
   const handleFiatSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    toggleFiatSelectorModal();
-  }, [toggleFiatSelectorModal]);
-
-  const handleCurrencyPress = useCallback(
-    (fiatCurrency: FiatCurrency) => {
-      setSelectedFiatCurrencyId(fiatCurrency?.id);
-      setAmount('0');
-      setAmountNumber(0);
-      hideFiatSelectorModal();
-    },
-    [hideFiatSelectorModal, setSelectedFiatCurrencyId],
-  );
+    navigation.navigate(
+      ...createFiatSelectorModalNavigationDetails({
+        currencies: fiatCurrencies ?? [],
+      }),
+    );
+  }, [navigation, fiatCurrencies]);
 
   /**
    * * PaymentMethod handlers
@@ -1094,13 +1082,6 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-      <FiatSelectModal
-        isVisible={isFiatSelectorModalVisible}
-        dismiss={toggleFiatSelectorModal as () => void}
-        title={strings('fiat_on_ramp_aggregator.select_region_currency')}
-        currencies={fiatCurrencies}
-        onItemPress={handleCurrencyPress}
-      />
       <PaymentMethodModal
         isVisible={isPaymentMethodModalVisible}
         dismiss={hidePaymentMethodModal as () => void}

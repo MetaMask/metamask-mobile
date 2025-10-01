@@ -6,6 +6,7 @@ import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import TokenSelectModal from '../components/TokenSelectModal/TokenSelectModal';
+import FiatSelectorModal from '../components/FiatSelectorModal';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -63,6 +64,10 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
       component={TokenSelectModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.FIAT_SELECTOR}
+      component={FiatSelectorModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}

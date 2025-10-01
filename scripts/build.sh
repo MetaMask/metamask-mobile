@@ -801,3 +801,4 @@ elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi
 	
+
