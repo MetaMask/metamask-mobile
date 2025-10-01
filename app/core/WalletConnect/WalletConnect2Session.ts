@@ -235,7 +235,7 @@ class WalletConnect2Session {
 
     const navigation = this.navigation;
 
-    const showReturnModal = () => {
+    const showReturnNotification = () => {
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
       });
@@ -250,10 +250,10 @@ class WalletConnect2Session {
             DevLogger.log(
               `WC2::redirect error while opening ${peerLink} with error ${error}`,
             );
-            showReturnModal();
+            showReturnNotification();
           });
         } else {
-          showReturnModal();
+          showReturnNotification();
         }
       } else {
         Minimizer.goBack();
