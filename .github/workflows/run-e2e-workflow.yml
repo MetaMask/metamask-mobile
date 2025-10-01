@@ -173,9 +173,9 @@ jobs:
 
           # Copy from artifacts to expected locations
           # Warning: each artifact is uploaded as a folder so we need to cp from inside the folder
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/$artifact_name.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${artifact_name}.apk
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${artifact_name}-androidTest.apk
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab ${{ steps.determine-target-paths.outputs.aab-target-path }}/${artifact_name}.aab
+          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/${artifact_name}.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${artifact_name}.apk
+          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${artifact_name}-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${artifact_name}-androidTest.apk
+          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab/${artifact_name}.aab ${{ steps.determine-target-paths.outputs.aab-target-path }}/${artifact_name}.aab
           echo "✅ Android artifacts ready for E2E tests"
 
       - name: Setup iOS artifacts from build job
