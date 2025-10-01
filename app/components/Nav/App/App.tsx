@@ -1081,8 +1081,9 @@ const App: React.FC = () => {
           }
 
           // Try dev auto-login first
+          const isDevelopment = process.env.NODE_ENV === 'development';
           const autoLoginPassword = process.env.MM_DEV_AUTO_LOGIN_PASSWORD;
-          if (autoLoginPassword) {
+          if (isDevelopment && autoLoginPassword) {
             try {
               const authType: AuthData = {
                 currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
