@@ -7,9 +7,11 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTokenAmount } from '../useTokenAmount';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../useTokenAmount');
+jest.mock('../pay/useTransactionPayToken');
 
 function runHook() {
   return renderHookWithProvider(useTransactionCustomAmount, {
@@ -25,6 +27,7 @@ function runHook() {
 describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const useTokenAmountMock = jest.mocked(useTokenAmount);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
   const updateTokenAmountMock: ReturnType<
     typeof useTokenAmount
@@ -38,6 +41,10 @@ describe('useTransactionCustomAmount', () => {
     useTokenAmountMock.mockReturnValue({
       updateTokenAmount: updateTokenAmountMock,
     } as ReturnType<typeof useTokenAmount>);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { tokenFiatAmount: 1234.56 },
+    } as ReturnType<typeof useTransactionPayToken>);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -117,5 +124,15 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
+  });
+
+  it('updatePendingAmountPercentage updates amount fiat to percentage of token balance', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(43);
+    });
+
+    expect(result.current.amountFiat).toBe('530.86');
   });
 });
