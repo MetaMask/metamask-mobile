@@ -21,7 +21,7 @@ import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
 import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
-
+import Device from '../../../util/device';
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
   onPressImport?: () => void;
@@ -184,6 +184,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             size={ButtonSize.Lg}
             style={styles.socialBtn}
           />
+          {Device.isAndroid() && (
           <Button
             variant={ButtonVariants.Secondary}
             onPress={onPressContinueWithAppleAction}
@@ -218,7 +219,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             style={styles.socialBtn}
-          />
+          />)}
         </View>
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
