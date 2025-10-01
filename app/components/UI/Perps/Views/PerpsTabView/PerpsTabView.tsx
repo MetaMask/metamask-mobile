@@ -1,11 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -50,17 +44,10 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
-import { ScrollSyncedVirtualizedList } from '../../../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 
-interface PerpsTabViewProps {
-  parentScrollY?: number;
-  parentViewportHeight?: number;
-}
+interface PerpsTabViewProps {}
 
-const PerpsTabView: React.FC<PerpsTabViewProps> = ({
-  parentScrollY = 0,
-  parentViewportHeight = 0,
-}) => {
+const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -88,37 +75,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = ({
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
-
-  interface CombinedDataItem {
-    type: 'position' | 'order' | 'start_trade_cta';
-    data?: unknown;
-    index?: number;
-  }
-
-  const combinedData = useMemo(() => {
-    const items: CombinedDataItem[] = [];
-
-    // Add positions without section header (header will be rendered outside)
-    if (hasPositions) {
-      positions.forEach((position, index) => {
-        items.push({ type: 'position', data: position, index });
-      });
-    }
-
-    // Add orders without section header (header will be rendered outside)
-    if (hasOrders) {
-      orders.forEach((order, index) => {
-        items.push({ type: 'order', data: order, index });
-      });
-    }
-
-    // Add CTA at the end
-    if (hasPositions || hasOrders) {
-      items.push({ type: 'start_trade_cta' });
-    }
-
-    return items;
-  }, [positions, orders, hasPositions, hasOrders]);
 
   // Start measuring position data load time on mount
   useEffect(() => {
@@ -183,97 +139,100 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = ({
     coordinatedPress(handleNewTrade);
   }, [coordinatedPress, handleNewTrade]);
 
-  const renderStartTradeCTA = useCallback(
-    () => (
-      <TouchablePerpsComponent
-        style={styles.startTradeCTA}
-        onPress={memoizedPressHandler}
-        testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
-      >
-        <View style={styles.startTradeContent}>
-          <View style={styles.startTradeIconContainer}>
-            <Icon
-              name={IconName.Add}
-              color={IconColor.Default}
-              size={IconSize.Sm}
-            />
-          </View>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            style={styles.startTradeText}
-          >
-            {strings('perps.position.list.start_new_trade')}
+  const renderStartTradeCTA = () => (
+    <TouchablePerpsComponent
+      style={styles.startTradeCTA}
+      onPress={memoizedPressHandler}
+      testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
+    >
+      <View style={styles.startTradeContent}>
+        <View style={styles.startTradeIconContainer}>
+          <Icon
+            name={IconName.Add}
+            color={IconColor.Default}
+            size={IconSize.Sm}
+          />
+        </View>
+        <Text variant={TextVariant.BodyMDMedium} style={styles.startTradeText}>
+          {strings('perps.position.list.start_new_trade')}
+        </Text>
+      </View>
+    </TouchablePerpsComponent>
+  );
+
+  const renderOrdersSection = () => {
+    // Only show orders section if there are active orders
+    if (!orders || orders.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        <View style={styles.sectionHeader}>
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
+            {strings('perps.order.open_orders')}
           </Text>
         </View>
-      </TouchablePerpsComponent>
-    ),
-    [
-      styles.startTradeCTA,
-      styles.startTradeContent,
-      styles.startTradeIconContainer,
-      styles.startTradeText,
-      memoizedPressHandler,
-    ],
-  );
+        <View>
+          {orders.map((order) => (
+            <PerpsCard key={order.orderId} order={order} />
+          ))}
+          {(!positions || positions.length === 0) && renderStartTradeCTA()}
+        </View>
+      </>
+    );
+  };
 
-  const renderVirtualizedItem = useCallback(
-    ({ item }: { item: CombinedDataItem }) => {
-      switch (item.type) {
-        case 'position': {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const position = item.data as any;
-          const sizeValue = parseFloat(position?.size || '0');
-          const directionSegment = Number.isFinite(sizeValue)
-            ? sizeValue > 0
-              ? 'long'
-              : sizeValue < 0
-              ? 'short'
-              : 'unknown'
-            : 'unknown';
-          return (
-            <View
-              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position?.coin}-${position?.leverage?.value}x-${directionSegment}-${item.index}`}
-            >
-              <PerpsCard position={position} />
-            </View>
-          );
-        }
-
-        case 'order': {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const order = item.data as any;
-          return <PerpsCard key={order?.orderId} order={order} />;
-        }
-
-        case 'start_trade_cta': {
-          return renderStartTradeCTA();
-        }
-
-        default:
-          return null;
-      }
-    },
-    [renderStartTradeCTA],
-  );
-
-  const keyExtractor = useCallback((item: CombinedDataItem, index: number) => {
-    switch (item.type) {
-      case 'position': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const position = item.data as any;
-        return `position-${position?.coin}-${item.index}`;
-      }
-      case 'order': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const order = item.data as any;
-        return `order-${order?.orderId}`;
-      }
-      case 'start_trade_cta':
-        return 'start-trade-cta';
-      default:
-        return `item-${index}`;
+  const renderPositionsSection = () => {
+    if (isInitialLoading) {
+      // Removed loading state as it was redundant to the first loading state and only appeared for very little time
+      return (
+        <Skeleton height={30} width="100%" style={styles.loadingContainer} />
+      );
     }
-  }, []);
+
+    if (positions.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        <View style={styles.sectionHeader}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.sectionTitle}
+            testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION_TITLE}
+          >
+            {strings('perps.position.title')}
+          </Text>
+        </View>
+        <View>
+          {positions.map((position, index) => {
+            const sizeValue = parseFloat(position.size);
+            const directionSegment = Number.isFinite(sizeValue)
+              ? sizeValue > 0
+                ? 'long'
+                : sizeValue < 0
+                ? 'short'
+                : 'unknown'
+              : 'unknown';
+            return (
+              <View
+                key={`${position.coin}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+              >
+                <PerpsCard
+                  key={`${position.coin}-${index}`}
+                  position={position}
+                />
+              </View>
+            );
+          })}
+          {renderStartTradeCTA()}
+        </View>
+      </>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
@@ -291,50 +250,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = ({
                 testID="perps-empty-state"
                 twClassName="mx-auto"
               />
-            ) : isInitialLoading ? (
-              <Skeleton
-                height={30}
-                width="100%"
-                style={styles.loadingContainer}
-              />
             ) : (
-              <>
-                {/* Render section headers outside the virtualized list */}
-                {hasPositions && (
-                  <View style={styles.sectionHeader}>
-                    <Text
-                      variant={TextVariant.BodyMDMedium}
-                      style={styles.sectionTitle}
-                      testID={
-                        PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION_TITLE
-                      }
-                    >
-                      {strings('perps.position.title')}
-                    </Text>
-                  </View>
-                )}
-
-                {hasOrders && (
-                  <View style={styles.sectionHeader}>
-                    <Text
-                      variant={TextVariant.BodyMDMedium}
-                      style={styles.sectionTitle}
-                    >
-                      {strings('perps.order.open_orders')}
-                    </Text>
-                  </View>
-                )}
-
-                <ScrollSyncedVirtualizedList
-                  data={combinedData}
-                  renderItem={renderVirtualizedItem}
-                  keyExtractor={keyExtractor}
-                  itemHeight={80}
-                  parentScrollY={parentScrollY}
-                  _parentViewportHeight={parentViewportHeight}
-                  testID="perps-virtualized-list"
-                />
-              </>
+              <View style={styles.tradeInfoContainer}>
+                <View style={styles.section}>{renderPositionsSection()}</View>
+                <View style={styles.section}>{renderOrdersSection()}</View>
+              </View>
             )}
           </View>
         </View>

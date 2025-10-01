@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import { ScrollSyncedVirtualizedList } from '../../../component-library/components-temp/ScrollSyncedVirtualizedList';
+import { View, FlatList } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -38,14 +37,9 @@ import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { DefiEmptyState } from '../DefiEmptyState';
 export interface DeFiPositionsListProps {
   tabLabel: string;
-  parentScrollY?: number;
-  parentViewportHeight?: number;
 }
 
-const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
-  parentScrollY = 0,
-  parentViewportHeight = 0,
-}) => {
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const { styles } = useStyles(styleSheet, undefined);
   const tw = useTailwind();
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -156,7 +150,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
-      <ScrollSyncedVirtualizedList
+      <FlatList
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
         data={formattedDeFiPositions}
         renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
@@ -170,9 +164,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
         keyExtractor={(protocolChainAggregate) =>
           `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
         }
-        itemHeight={80}
-        parentScrollY={parentScrollY}
-        _parentViewportHeight={parentViewportHeight}
+        scrollEnabled={false}
       />
     </View>
   );

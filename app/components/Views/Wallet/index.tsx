@@ -309,10 +309,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
       navigation,
-      parentScrollY,
-      parentViewportHeight,
     }),
-    [navigation, parentScrollY, parentViewportHeight],
+    [navigation],
   );
 
   const predictTabProps = useMemo(
@@ -328,11 +326,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
-      navigation,
-      parentScrollY,
-      parentViewportHeight,
     }),
-    [navigation, parentScrollY, parentViewportHeight],
+    [],
   );
 
   const collectibleContractsTabProps = useMemo(

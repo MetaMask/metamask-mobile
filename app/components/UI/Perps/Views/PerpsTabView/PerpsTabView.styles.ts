@@ -18,9 +18,9 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
     },
-    contentContainer: {
-      flexGrow: 1,
-    },
+    content: {},
+    contentContainer: {},
+    section: {},
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
