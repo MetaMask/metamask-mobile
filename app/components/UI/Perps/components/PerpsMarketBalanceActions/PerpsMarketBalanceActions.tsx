@@ -42,7 +42,8 @@ import {
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import images from '../../../../../images/image-icons';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
-import { useAppTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './PerpsMarketBalanceActions.styles';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -50,7 +51,7 @@ const PerpsMarketBalanceActions: React.FC<
   PerpsMarketBalanceActionsProps
 > = () => {
   const tw = useTailwind();
-  const { colors } = useAppTheme();
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -183,7 +184,10 @@ const PerpsMarketBalanceActions: React.FC<
               >
                 {strings('perps.deposit_in_progress')}
               </Text>
-              <ActivityIndicator size="small" color={colors.primary.default} />
+              <ActivityIndicator
+                size="small"
+                color={styles.activityIndicator.color}
+              />
             </Box>
           </Box>
         )}
