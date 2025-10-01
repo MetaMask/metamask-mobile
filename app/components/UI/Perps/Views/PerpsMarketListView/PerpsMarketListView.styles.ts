@@ -147,6 +147,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,
+      minHeight: 50,
     },
     searchIcon: {
       marginRight: 10,
@@ -156,6 +157,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       fontSize: 16,
       color: colors.text.default,
+      includeFontPadding: false, // Android-specific: removes extra font padding
     },
     clearButton: {
       padding: 4,
