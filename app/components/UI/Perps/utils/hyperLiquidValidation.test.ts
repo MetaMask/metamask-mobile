@@ -12,6 +12,7 @@ import {
   getSupportedPaths,
   validateOrderParams,
   validateCoinExists,
+  getMaxOrderValue,
 } from './hyperLiquidValidation';
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import type { GetSupportedPathsParams } from '../controllers/types';
@@ -55,6 +56,18 @@ jest.mock('../constants/hyperLiquidConfig', () => ({
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
+  },
+}));
+
+jest.mock('../constants/perpsConfig', () => ({
+  HYPERLIQUID_ORDER_LIMITS: {
+    MARKET_ORDER_LIMITS: {
+      HIGH_LEVERAGE: 15_000_000,
+      MEDIUM_HIGH_LEVERAGE: 5_000_000,
+      MEDIUM_LEVERAGE: 2_000_000,
+      LOW_LEVERAGE: 500_000,
+    },
+    LIMIT_ORDER_MULTIPLIER: 10,
   },
 }));
 
@@ -782,6 +795,352 @@ describe('hyperLiquidValidation', () => {
       expect(result).toEqual({
         isValid: false,
         error: 'Unknown coin: btc',
+      });
+    });
+  });
+
+  describe('getMaxOrderValue', () => {
+    describe('market orders', () => {
+      it('should return high leverage limit for maxLeverage >= 25', () => {
+        // Arrange
+        const maxLeverage = 25;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(15_000_000);
+      });
+
+      it('should return high leverage limit for maxLeverage > 25', () => {
+        // Arrange
+        const maxLeverage = 50;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(15_000_000);
+      });
+
+      it('should return medium high leverage limit for maxLeverage >= 20 and < 25', () => {
+        // Arrange
+        const maxLeverage = 20;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(5_000_000);
+      });
+
+      it('should return medium high leverage limit for maxLeverage between 20 and 25', () => {
+        // Arrange
+        const maxLeverage = 22.5;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(5_000_000);
+      });
+
+      it('should return medium leverage limit for maxLeverage >= 10 and < 20', () => {
+        // Arrange
+        const maxLeverage = 10;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(2_000_000);
+      });
+
+      it('should return medium leverage limit for maxLeverage between 10 and 20', () => {
+        // Arrange
+        const maxLeverage = 15;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(2_000_000);
+      });
+
+      it('should return low leverage limit for maxLeverage < 10', () => {
+        // Arrange
+        const maxLeverage = 9.9;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(500_000);
+      });
+
+      it('should return low leverage limit for maxLeverage = 0', () => {
+        // Arrange
+        const maxLeverage = 0;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(500_000);
+      });
+
+      it('should return low leverage limit for negative maxLeverage', () => {
+        // Arrange
+        const maxLeverage = -5;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(500_000);
+      });
+    });
+
+    describe('limit orders', () => {
+      it('should return high leverage limit multiplied by 10 for maxLeverage >= 25', () => {
+        // Arrange
+        const maxLeverage = 25;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(150_000_000);
+      });
+
+      it('should return high leverage limit multiplied by 10 for maxLeverage > 25', () => {
+        // Arrange
+        const maxLeverage = 50;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(150_000_000);
+      });
+
+      it('should return medium high leverage limit multiplied by 10 for maxLeverage >= 20 and < 25', () => {
+        // Arrange
+        const maxLeverage = 20;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(50_000_000);
+      });
+
+      it('should return medium high leverage limit multiplied by 10 for maxLeverage between 20 and 25', () => {
+        // Arrange
+        const maxLeverage = 22.5;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(50_000_000);
+      });
+
+      it('should return medium leverage limit multiplied by 10 for maxLeverage >= 10 and < 20', () => {
+        // Arrange
+        const maxLeverage = 10;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(20_000_000);
+      });
+
+      it('should return medium leverage limit multiplied by 10 for maxLeverage between 10 and 20', () => {
+        // Arrange
+        const maxLeverage = 15;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(20_000_000);
+      });
+
+      it('should return low leverage limit multiplied by 10 for maxLeverage < 10', () => {
+        // Arrange
+        const maxLeverage = 9.9;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(5_000_000);
+      });
+
+      it('should return low leverage limit multiplied by 10 for maxLeverage = 0', () => {
+        // Arrange
+        const maxLeverage = 0;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(5_000_000);
+      });
+
+      it('should return low leverage limit multiplied by 10 for negative maxLeverage', () => {
+        // Arrange
+        const maxLeverage = -5;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(5_000_000);
+      });
+    });
+
+    describe('boundary conditions', () => {
+      it('should handle exact boundary at 25 leverage for market orders', () => {
+        // Arrange
+        const maxLeverage = 25;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(15_000_000);
+      });
+
+      it('should handle exact boundary at 20 leverage for market orders', () => {
+        // Arrange
+        const maxLeverage = 20;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(5_000_000);
+      });
+
+      it('should handle exact boundary at 10 leverage for market orders', () => {
+        // Arrange
+        const maxLeverage = 10;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(2_000_000);
+      });
+
+      it('should handle exact boundary at 25 leverage for limit orders', () => {
+        // Arrange
+        const maxLeverage = 25;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(150_000_000);
+      });
+
+      it('should handle exact boundary at 20 leverage for limit orders', () => {
+        // Arrange
+        const maxLeverage = 20;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(50_000_000);
+      });
+
+      it('should handle exact boundary at 10 leverage for limit orders', () => {
+        // Arrange
+        const maxLeverage = 10;
+        const orderType = 'limit' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(20_000_000);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('should handle very large leverage values', () => {
+        // Arrange
+        const maxLeverage = 1000;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(15_000_000);
+      });
+
+      it('should handle decimal leverage values', () => {
+        // Arrange
+        const maxLeverage = 12.345;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(2_000_000);
+      });
+
+      it('should handle very small positive leverage values', () => {
+        // Arrange
+        const maxLeverage = 0.001;
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(500_000);
+      });
+
+      it('should handle floating point precision edge cases', () => {
+        // Arrange
+        const maxLeverage = 19.999999999999996; // This should stay < 20
+        const orderType = 'market' as const;
+
+        // Act
+        const result = getMaxOrderValue(maxLeverage, orderType);
+
+        // Assert
+        expect(result).toBe(2_000_000);
       });
     });
   });
