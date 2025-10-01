@@ -327,6 +327,4 @@ export function usePerpsDataMonitor(
     hasPositionChangedForAsset,
     cleanupMonitoring,
   ]);
-
-  // Hook returns void - all side effects are managed internally
 }
