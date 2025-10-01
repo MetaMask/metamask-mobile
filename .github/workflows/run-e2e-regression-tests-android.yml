@@ -175,6 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
+      - build-android-apks
       - regression-confirmations-android
       - regression-confirmations-redesigned-android
       - regression-trade-android

@@ -217,7 +217,7 @@ function getFailedJobs(jobInfo) {
     (job) =>
       job.name.includes('Regression') &&
       job.name.includes(platform) &&
-      job.conclusion === 'failure'
+      (job.conclusion === 'failure' || job.conclusion === 'cancelled')
   );
 
   return failedJobs.map((job) => {
@@ -228,8 +228,34 @@ function getFailedJobs(jobInfo) {
     return {
       category,
       jobUrl: job.html_url,
+      conclusion: job.conclusion,
     };
   });
+}
+
+/**
+ * Check if the build job failed
+ */
+function getBuildJobFailure(jobInfo) {
+  if (!jobInfo?.jobs) {
+    return null;
+  }
+
+  const buildJob = jobInfo.jobs.find(
+    (job) =>
+      (job.name.includes('Build Android APKs') || job.name.includes('Build iOS')) &&
+      (job.conclusion === 'failure' || job.conclusion === 'cancelled')
+  );
+
+  if (buildJob) {
+    return {
+      name: buildJob.name,
+      url: buildJob.html_url,
+      conclusion: buildJob.conclusion,
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -261,10 +287,44 @@ async function generateSummary() {
   let totalSkipped = 0;
   let hasFailures = false;
 
+  // Check if build job failed
+  const buildFailure = getBuildJobFailure(jobInfo);
+  if (buildFailure) {
+    hasFailures = true;
+    const statusText = buildFailure.conclusion === 'cancelled' ? 'cancelled' : 'failed';
+    summary += `:rotating_light: *Build ${statusText.toUpperCase()}* :rotating_light:\n`;
+    summary += `The ${buildFailure.name} job ${statusText}. All tests were skipped.\n`;
+    summary += `<${buildFailure.url}|:point_right: View Build Job>\n\n`;
+    summary += `<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|View Full Run>\n\n`;
+    summary += `:information_source: *Next Steps:*\n`;
+    summary += `• Check the build job logs for errors\n`;
+    summary += `• Fix any build issues before running tests again`;
+    return { summary, hasFailures };
+  }
+
   // Get all failed jobs
   const failedJobs = getFailedJobs(jobInfo);
   if (failedJobs.length > 0) {
     hasFailures = true;
+  }
+
+  // Check if we have no test results and no failed jobs detected
+  // This could indicate an infrastructure issue (e.g., runner problems, artifact upload failures)
+  const hasTestResults = Object.keys(categoryResults).length > 0;
+  if (!hasTestResults && failedJobs.length === 0) {
+    hasFailures = true;
+    summary += `:warning: *Infrastructure Issue Detected* :warning:\n`;
+    summary += `No test results were found and no failed jobs were detected.\n`;
+    summary += `This may indicate:\n`;
+    summary += `• Runner communication issues\n`;
+    summary += `• Test result artifact upload failures\n`;
+    summary += `• Other infrastructure problems\n\n`;
+    summary += `<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|:point_right: View Full Run>\n\n`;
+    summary += `:information_source: *Next Steps:*\n`;
+    summary += `• Check the workflow run logs for errors\n`;
+    summary += `• Verify self-hosted runners are healthy\n`;
+    summary += `• Check if test artifacts were uploaded successfully`;
+    return { summary, hasFailures };
   }
 
   // Sort categories alphabetically for consistent output
@@ -286,7 +346,8 @@ async function generateSummary() {
     // Job failed but no XML results
     if (hasFailed && (!results || results.tests === 0)) {
       const failedJob = failedJobs.find((j) => j.category === category);
-      resultLines.push(`:x: *${category}*: Job failed (no test results) | <${failedJob.jobUrl}|View Job>`);
+      const statusText = failedJob.conclusion === 'cancelled' ? 'cancelled' : 'failed';
+      resultLines.push(`:x: *${category}*: Job ${statusText} (no test results) | <${failedJob.jobUrl}|View Job>`);
       return;
     }
 
