@@ -28,9 +28,9 @@ import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
-import { CustomAmountInfoSkeleton } from '../custom-amount-info-skeleton';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
+import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 
 export enum ConfirmationLoader {
   Default = 'default',
