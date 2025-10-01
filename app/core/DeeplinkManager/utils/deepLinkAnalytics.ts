@@ -140,14 +140,10 @@ export const extractSensitiveProperties = (
         if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
         if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
         if (urlParams.provider) sensitiveProps.provider = urlParams.provider;
-        if (urlParams.payment_method)
-          sensitiveProps.payment_method = urlParams.payment_method;
-        if (urlParams.sub_payment_method)
-          sensitiveProps.sub_payment_method = urlParams.sub_payment_method;
-        if (urlParams.fiat_currency)
-          sensitiveProps.fiat_currency = urlParams.fiat_currency;
-        if (urlParams.fiat_quantity)
-          sensitiveProps.fiat_quantity = urlParams.fiat_quantity;
+        if (urlParams.payment_method) sensitiveProps.payment_method = urlParams.payment_method;
+        if (urlParams.sub_payment_method) sensitiveProps.sub_payment_method = urlParams.sub_payment_method;
+        if (urlParams.fiat_currency) sensitiveProps.fiat_currency = urlParams.fiat_currency;
+        if (urlParams.fiat_quantity) sensitiveProps.fiat_quantity = urlParams.fiat_quantity;
         break;
 
       case DeepLinkRoute.TRANSACTION:
@@ -166,10 +162,8 @@ export const extractSensitiveProperties = (
         if (urlParams.to) sensitiveProps.to = urlParams.to;
         if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
         if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.crypto_currency)
-          sensitiveProps.crypto_currency = urlParams.crypto_currency;
-        if (urlParams.crypto_amount)
-          sensitiveProps.crypto_amount = urlParams.crypto_amount;
+        if (urlParams.crypto_currency) sensitiveProps.crypto_currency = urlParams.crypto_currency;
+        if (urlParams.crypto_amount) sensitiveProps.crypto_amount = urlParams.crypto_amount;
         break;
 
       case DeepLinkRoute.HOME:
