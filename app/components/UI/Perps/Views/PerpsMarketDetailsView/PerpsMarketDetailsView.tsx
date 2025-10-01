@@ -155,8 +155,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setTimeout(() => {
         setProgrammaticActiveTab(null);
       }, PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS);
+
+      // Clear monitoringIntent to allow fresh monitoring next time
+      navigation.setParams({ monitoringIntent: undefined });
     },
-    [],
+    [navigation],
   );
 
   // Handle data-driven monitoring when coming from order success (declarative API)
