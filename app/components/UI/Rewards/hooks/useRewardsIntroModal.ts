@@ -51,7 +51,8 @@ export const useRewardsIntroModal = () => {
 
     if (shouldShow && !isE2ETest) {
       navigation.navigate(Routes.REWARDS_VIEW, {
-        screen: Routes.MODAL.REWARDS_INTRO_MODAL,
+        screen: Routes.REWARDS_ONBOARDING_FLOW,
+        params: { screen: Routes.MODAL.REWARDS_INTRO_MODAL },
       });
     }
   }, [

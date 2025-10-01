@@ -60,7 +60,8 @@ describe('useRewardsIntroModal', () => {
     await waitFor(() => {
       expect(result.current.hasSeenRewardsIntroModal).toBe(false);
       expect(navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
-        screen: Routes.MODAL.REWARDS_INTRO_MODAL,
+        screen: Routes.REWARDS_ONBOARDING_FLOW,
+        params: { screen: Routes.MODAL.REWARDS_INTRO_MODAL },
       });
     });
   });
