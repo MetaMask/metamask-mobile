@@ -450,6 +450,7 @@ describe('deepLinkAnalytics', () => {
           from: 'ETH',
           to: 'USDC',
           amount: '100',
+          slippage: '0.5',
           utm_source: 'twitter',
           utm_campaign: 'swap_promo',
         },

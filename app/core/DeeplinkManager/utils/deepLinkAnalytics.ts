@@ -106,17 +106,78 @@ export const detectAppInstallation = async (): Promise<boolean> => {
  */
 export const extractSensitiveProperties = (
   route: DeepLinkRoute,
-  _urlParams: Record<string, string>,
+  urlParams: Record<string, string>,
 ): SensitiveProperties => {
   try {
     const sensitiveProps: SensitiveProperties = {};
 
-    // Note: Route-specific parameters like 'from', 'to', 'slippage', etc.
-    // are not available in the current DeeplinkUrlParams interface.
-    // This would need to be addressed in a separate refactoring.
+    // Extract route-specific properties based on route type
+    switch (route) {
+      case DeepLinkRoute.SWAP:
+        // Extract common properties for swap
+        if (urlParams.from) sensitiveProps.from = urlParams.from;
+        if (urlParams.to) sensitiveProps.to = urlParams.to;
+        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
+        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
+        if (urlParams.slippage) sensitiveProps.slippage = urlParams.slippage;
+        break;
 
-    // For now, return empty object since route-specific parameters
-    // are not available in the current DeeplinkUrlParams interface
+      case DeepLinkRoute.PERPS:
+        // Extract common properties for perps
+        if (urlParams.from) sensitiveProps.from = urlParams.from;
+        if (urlParams.to) sensitiveProps.to = urlParams.to;
+        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
+        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
+        if (urlParams.symbol) sensitiveProps.symbol = urlParams.symbol;
+        if (urlParams.screen) sensitiveProps.screen = urlParams.screen;
+        if (urlParams.tab) sensitiveProps.tab = urlParams.tab;
+        break;
+
+      case DeepLinkRoute.DEPOSIT:
+        // Extract common properties for deposit
+        if (urlParams.from) sensitiveProps.from = urlParams.from;
+        if (urlParams.to) sensitiveProps.to = urlParams.to;
+        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
+        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
+        if (urlParams.provider) sensitiveProps.provider = urlParams.provider;
+        if (urlParams.payment_method)
+          sensitiveProps.payment_method = urlParams.payment_method;
+        if (urlParams.sub_payment_method)
+          sensitiveProps.sub_payment_method = urlParams.sub_payment_method;
+        if (urlParams.fiat_currency)
+          sensitiveProps.fiat_currency = urlParams.fiat_currency;
+        if (urlParams.fiat_quantity)
+          sensitiveProps.fiat_quantity = urlParams.fiat_quantity;
+        break;
+
+      case DeepLinkRoute.TRANSACTION:
+        // Extract common properties for transaction
+        if (urlParams.from) sensitiveProps.from = urlParams.from;
+        if (urlParams.to) sensitiveProps.to = urlParams.to;
+        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
+        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
+        if (urlParams.gas) sensitiveProps.gas = urlParams.gas;
+        if (urlParams.gasPrice) sensitiveProps.gasPrice = urlParams.gasPrice;
+        break;
+
+      case DeepLinkRoute.BUY:
+        // Extract common properties for buy
+        if (urlParams.from) sensitiveProps.from = urlParams.from;
+        if (urlParams.to) sensitiveProps.to = urlParams.to;
+        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
+        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
+        if (urlParams.crypto_currency)
+          sensitiveProps.crypto_currency = urlParams.crypto_currency;
+        if (urlParams.crypto_amount)
+          sensitiveProps.crypto_amount = urlParams.crypto_amount;
+        break;
+
+      case DeepLinkRoute.HOME:
+      case DeepLinkRoute.INVALID:
+      default:
+        // No properties for home or invalid routes
+        break;
+    }
 
     Logger.log(
       `DeepLinkAnalytics: Extracted sensitive properties for ${route}:`,

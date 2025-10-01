@@ -1,4 +1,4 @@
-// Updated to track "skipped" interstitial state and use consolidated analytics
+// Tracks "skipped" interstitial state and uses consolidated analytics
 import {
   createDeepLinkModalNavDetails,
   DeepLinkModalParams,

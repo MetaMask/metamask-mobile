@@ -24,6 +24,40 @@ export interface DeeplinkUrlParams {
   utm_term?: string;
   utm_content?: string;
   account?: string; // This is the format => "address@chainId"
+
+  // Route-specific parameters for analytics
+  // Common parameters
+  from?: string;
+  to?: string;
+  amount?: string;
+  asset?: string;
+
+  // Swap-specific parameters
+  slippage?: string;
+
+  // Perps-specific parameters
+  symbol?: string;
+  screen?: string;
+  tab?: string;
+
+  // Deposit-specific parameters
+  provider?: string;
+  payment_method?: string;
+  sub_payment_method?: string;
+  fiat_currency?: string;
+  fiat_quantity?: string;
+  assetId?: string;
+
+  // Transaction-specific parameters
+  gas?: string;
+  gasPrice?: string;
+
+  // Buy-specific parameters
+  crypto_currency?: string;
+  crypto_amount?: string;
+
+  // Any other route-specific parameters
+  [key: string]: string | undefined;
 }
 
 function extractURLParams(url: string) {

@@ -1,4 +1,4 @@
-// Updated to use consolidated DEEP_LINK_USED event with interstitial state tracking
+// Uses consolidated DEEP_LINK_USED event with interstitial state tracking
 import React, {
   useCallback,
   useRef,

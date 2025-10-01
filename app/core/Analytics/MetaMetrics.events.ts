@@ -508,32 +508,8 @@ enum EVENT_NAME {
   SLOW_RPC_BANNER_UPDATE_RPC_CLICKED = 'Slow RPC Banner: Update RPC Clicked',
   UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED = 'Unavailable RPC Banner: Update RPC Clicked',
 
-  // Deep Link Modal Viewed
   // Deep Link Analytics - Consolidated Event
   DEEP_LINK_USED = 'Deep link Used',
-
-  // TODO: Remove legacy deep link modal events after consolidating to DEEP_LINK_USED
-  // Legacy Deep Link Modal Events (to be removed after migration)
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PUBLIC_MODAL_VIEWED = 'Deep Link Public Modal Viewed',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_INVALID_MODAL_VIEWED = 'Deep Link Invalid Modal Viewed',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PRIVATE_MODAL_DISMISSED = 'Deep Link Private Modal Dismissed',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PUBLIC_MODAL_DISMISSED = 'Deep Link Public Modal Dismissed',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_INVALID_MODAL_DISMISSED = 'Deep Link Invalid Modal Dismissed',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED = 'Deep Link Private Modal Continue Clicked',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED = 'Deep Link Public Modal Continue Clicked',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Checked',
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Unchecked',
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
@@ -1372,48 +1348,8 @@ const events = {
     EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
   ),
 
-  // Deep Link Modal
+  // Deep Link Analytics
   DEEP_LINK_USED: generateOpt(EVENT_NAME.DEEP_LINK_USED),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PRIVATE_MODAL_VIEWED: generateOpt(
-    EVENT_NAME.DEEP_LINK_PRIVATE_MODAL_VIEWED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PUBLIC_MODAL_VIEWED: generateOpt(
-    EVENT_NAME.DEEP_LINK_PUBLIC_MODAL_VIEWED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_INVALID_MODAL_VIEWED: generateOpt(
-    EVENT_NAME.DEEP_LINK_INVALID_MODAL_VIEWED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PRIVATE_MODAL_DISMISSED: generateOpt(
-    EVENT_NAME.DEEP_LINK_PRIVATE_MODAL_DISMISSED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PUBLIC_MODAL_DISMISSED: generateOpt(
-    EVENT_NAME.DEEP_LINK_PUBLIC_MODAL_DISMISSED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_INVALID_MODAL_DISMISSED: generateOpt(
-    EVENT_NAME.DEEP_LINK_INVALID_MODAL_DISMISSED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED: generateOpt(
-    EVENT_NAME.DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED: generateOpt(
-    EVENT_NAME.DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED: generateOpt(
-    EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED,
-  ),
-  /** @deprecated use DEEP_LINK_USED instead */
-  DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
-    EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
-  ),
   // Perps Events - Mapped to dashboard requirements (49 events total)
   // Tutorial Flow (4 events)
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
