@@ -147,13 +147,15 @@ function RegionSelectorModal() {
       trackEvent('RAMP_REGION_SELECTED', {
         country_id: regionInTransit?.id ?? region.id,
         state_id: regionInTransit ? region.id : undefined,
-        location: 'Amount to Buy Screen',
+        location: isBuy ? 'Amount to Buy Screen' : 'Amount to Sell Screen',
+        is_unsupported_onramp: region.support.buy,
+        is_unsupported_offramp: region.support.sell,
       });
 
       setSelectedRegion(region);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [setSelectedRegion, trackEvent, regionInTransit, scrollToTop],
+    [setSelectedRegion, trackEvent, regionInTransit, scrollToTop, isBuy],
   );
 
   const renderRegionItem = useCallback(
