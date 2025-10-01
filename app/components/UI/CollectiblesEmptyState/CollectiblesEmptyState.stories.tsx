@@ -10,9 +10,9 @@ const CollectiblesEmptyStateMeta = {
 
 export default CollectiblesEmptyStateMeta;
 
-export const Default = {
+export const DefaultStory = {
   args: {
-    onAcion: () => {
+    onAction: () => {
       // eslint-disable-next-line no-console
       console.log('onAction');
     },
