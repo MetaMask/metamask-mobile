@@ -7,6 +7,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import { setTransactionBridgeQuotesLoading } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useDispatch } from 'react-redux';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
 export const MAX_LENGTH = 28;
 
@@ -21,6 +22,8 @@ export function useTransactionCustomAmount() {
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
   const { updateTokenAmount: updateTokenAmountCallback } = useTokenAmount();
+  const { payToken } = useTransactionPayToken();
+  const { tokenFiatAmount } = payToken || {};
 
   const amountHuman = useMemo(
     () =>
@@ -45,6 +48,23 @@ export function useTransactionCustomAmount() {
     setInputChanged(true);
   }, []);
 
+  const updatePendingAmountPercentage = useCallback(
+    (percentage: number) => {
+      if (!tokenFiatAmount) {
+        return;
+      }
+
+      const newAmount = new BigNumber(percentage)
+        .dividedBy(100)
+        .multipliedBy(tokenFiatAmount)
+        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+        .toString(10);
+
+      updatePendingAmount(newAmount);
+    },
+    [tokenFiatAmount, updatePendingAmount],
+  );
+
   const updateTokenAmount = useCallback(() => {
     dispatch(
       setTransactionBridgeQuotesLoading({ transactionId, isLoading: true }),
@@ -58,6 +78,7 @@ export function useTransactionCustomAmount() {
     amountHuman,
     isInputChanged,
     updatePendingAmount,
+    updatePendingAmountPercentage,
     updateTokenAmount,
   };
 }

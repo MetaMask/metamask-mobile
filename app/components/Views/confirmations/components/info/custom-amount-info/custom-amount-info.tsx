@@ -6,7 +6,6 @@ import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
 import { DepositKeyboard } from '../../deposit-keyboard';
-import { noop } from 'lodash';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
@@ -32,6 +31,7 @@ export const CustomAmountInfo = memo(() => {
     amountHuman,
     isInputChanged,
     updatePendingAmount,
+    updatePendingAmountPercentage,
     updateTokenAmount,
   } = useTransactionCustomAmount();
 
@@ -50,13 +50,17 @@ export const CustomAmountInfo = memo(() => {
     setKeyboardVisible(false);
   }, [updateTokenAmount]);
 
+  const handleAmountPress = useCallback(() => {
+    setKeyboardVisible(true);
+  }, []);
+
   return (
     <Box style={styles.container}>
       <Box>
         <CustomAmount
           amountFiat={amountFiat}
           hasAlert={Boolean(keyboardAlertMessage)}
-          onPress={() => setKeyboardVisible(true)}
+          onPress={handleAmountPress}
         />
         <PayTokenAmount amountHuman={amountHuman} />
         {!isKeyboardVisible && (
@@ -87,7 +91,7 @@ export const CustomAmountInfo = memo(() => {
           value={amountFiat}
           onChange={updatePendingAmount}
           onDonePress={handleDone}
-          onPercentagePress={noop}
+          onPercentagePress={updatePendingAmountPercentage}
         />
       )}
     </Box>
