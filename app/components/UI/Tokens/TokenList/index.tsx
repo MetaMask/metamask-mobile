@@ -16,7 +16,7 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
-import { ExternalVirtualized } from '../../../../component-library/components/ExternalVirtualized';
+import { ScrollSyncedVirtualizedList } from '../../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 
 export interface FlashListAssetKey {
   address: string;
@@ -91,15 +91,13 @@ const TokenListComponent = ({
   );
 
   return tokenKeys?.length ? (
-    <ExternalVirtualized
+    <ScrollSyncedVirtualizedList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
       renderItem={renderTokenListItem}
-      itemHeight={64} // Height matches AssetElement itemWrapper height
+      itemHeight={64}
       parentScrollY={parentScrollY}
-      parentViewportHeight={parentViewportHeight}
-      initialItemCount={Math.min(6, tokenKeys.length)} // Adaptive initial count
-      maxVisibleItems={15} // Allow more tokens to be visible at once
+      _parentViewportHeight={parentViewportHeight}
       keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;

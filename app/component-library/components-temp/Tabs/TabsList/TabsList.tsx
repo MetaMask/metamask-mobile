@@ -151,40 +151,83 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, []);
 
-    // Update ScrollView height when active tab changes
     useEffect(() => {
       const currentTabHeight = tabHeights.get(activeIndex);
+
       if (currentTabHeight && currentTabHeight > 0) {
-        // Delay height update slightly to allow scroll animation to complete
-        const timeoutId = setTimeout(() => {
-          setScrollViewHeight(currentTabHeight);
-        }, 50);
-        return () => clearTimeout(timeoutId);
-      }
-      if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
-        // If height not measured yet, trigger measurement
-        // Small delay to ensure content is rendered
+        // If we have a cached height, use it immediately for smooth transitions
+        setScrollViewHeight(currentTabHeight);
+      } else if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
+        // If tab is loaded but height not measured, measure it quickly
         const timeoutId = setTimeout(() => {
           measureTabHeight(activeIndex);
-        }, 150);
+        }, 50); // Reduced delay for faster measurement
         return () => clearTimeout(timeoutId);
-      }
-      // Reset to undefined when no height is available
-      setScrollViewHeight(undefined);
-    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight]);
+      } else if (activeIndex >= 0) {
+        // For new tabs, estimate height based on tab type for smoother initial animation
+        const currentTab = tabs[activeIndex];
+        let estimatedHeight = 400; // Default fallback
 
-    // Load tab content on-demand when tab becomes active for the first time
+        if (currentTab?.key) {
+          // Provide better estimates based on tab type
+          switch (currentTab.key) {
+            case 'tokens-tab':
+              estimatedHeight = 500; // Tokens usually have more items
+              break;
+            case 'defi-tab':
+              estimatedHeight = 350; // DeFi positions are typically fewer
+              break;
+            case 'nfts-tab':
+              estimatedHeight = 450; // NFTs can vary
+              break;
+            case 'perps-tab':
+              estimatedHeight = 300; // Perps positions are usually compact
+              break;
+            case 'predict-tab':
+              estimatedHeight = 350; // Predict positions similar to DeFi
+              break;
+            default:
+              estimatedHeight = 400;
+          }
+        }
+
+        setScrollViewHeight(estimatedHeight);
+      } else {
+        setScrollViewHeight(undefined);
+      }
+    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight, tabs]);
+
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
         setLoadedTabs((prev) => {
-          // Only update if the tab isn't already loaded
-          if (!prev.has(activeIndex)) {
-            return new Set(prev).add(activeIndex);
+          const newLoadedTabs = new Set(prev);
+
+          // Always load the current tab
+          newLoadedTabs.add(activeIndex);
+
+          // Preload adjacent tabs for smoother transitions (optional optimization)
+          const enabledIndices = tabs
+            .map((_, index) => index)
+            .filter((index) => !tabs[index]?.isDisabled);
+
+          const currentEnabledIndex = enabledIndices.indexOf(activeIndex);
+          if (currentEnabledIndex >= 0) {
+            // Preload next tab
+            if (currentEnabledIndex < enabledIndices.length - 1) {
+              const nextTabIndex = enabledIndices[currentEnabledIndex + 1];
+              newLoadedTabs.add(nextTabIndex);
+            }
+            // Preload previous tab
+            if (currentEnabledIndex > 0) {
+              const prevTabIndex = enabledIndices[currentEnabledIndex - 1];
+              newLoadedTabs.add(prevTabIndex);
+            }
           }
-          return prev;
+
+          return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
         });
       }
-    }, [activeIndex, tabs.length]);
+    }, [activeIndex, tabs]);
 
     // Cleanup effect to clear all timers on unmount
     useEffect(
@@ -209,14 +252,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [],
     );
 
-    // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
-      // Store the current active tab key for preservation
       const currentActiveTabKey = tabs[activeIndex]?.key;
 
-      // First, try to preserve the current active tab by key when tabs array changes
       if (currentActiveTabKey && tabs.length > 0) {
-        // Try to find the current active tab by key in the new tabs array
         const newIndexForCurrentTab = tabs.findIndex(
           (tab) => tab.key === currentActiveTabKey,
         );
@@ -252,7 +291,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, [initialActiveIndex, tabs, activeIndex]);
 
-    // Scroll to active tab when activeIndex changes
     useEffect(() => {
       if (scrollViewRef.current && containerWidth > 0) {
         const contentIndex = getContentIndexFromTabIndex(activeIndex);
@@ -279,29 +317,27 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const contentIndex = getContentIndexFromTabIndex(tabIndex);
         if (contentIndex < 0) return;
 
-        // Only update state and call callback if the tab actually changed
         const tabChanged = tabIndex !== activeIndex;
-
-        // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // Ensure the tab is loaded - small delay to let animation start first
         if (!loadedTabs.has(tabIndex)) {
-          // In tests, update synchronously to avoid act() warnings
           if (process.env.JEST_WORKER_ID) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else {
+            // Load tab content immediately for smoother experience
+            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+
+            // Measure height after a brief moment to allow content to render
             if (loadTabTimeout.current) {
               clearTimeout(loadTabTimeout.current);
             }
             loadTabTimeout.current = setTimeout(() => {
-              setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+              measureTabHeight(tabIndex);
               loadTabTimeout.current = null;
-            }, 10); // Small delay to let underline animation start
+            }, 100); // Allow time for content to render before measuring
           }
         }
 
-        // Set programmatic scroll flag AFTER state update
         isProgrammaticScroll.current = true;
 
         // Scroll to the content index, not the tab index
@@ -312,7 +348,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
 
-        // Only call onChangeTab if the tab actually changed
         if (onChangeTab && tabChanged) {
           onChangeTab({
             i: tabIndex,
@@ -336,6 +371,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         containerWidth,
         getContentIndexFromTabIndex,
         loadedTabs,
+        measureTabHeight,
       ],
     );
 
@@ -353,8 +389,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const newTabIndex = getTabIndexFromContentIndex(contentIndex);
 
         if (newTabIndex >= 0 && newTabIndex !== activeIndex) {
-          // Update activeIndex immediately to trigger TabsBar animation alongside content scroll
-          // This matches the behavior of tab clicks
           setActiveIndex(newTabIndex);
           setLoadedTabs((prev) => new Set(prev).add(newTabIndex));
 
@@ -388,10 +422,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     }, []);
 
     const handleScrollEnd = useCallback(() => {
-      // Reset scrolling flag after a short delay
       scrollTimeout.current = setTimeout(() => {
         isScrolling.current = false;
-        // Trigger height measurement for current tab after scroll ends
         if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
           measureTabHeight(activeIndex);
         }
@@ -529,17 +561,27 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                     }
                   }}
                   onLayout={(layoutEvent) => {
-                    // Get height directly from layout event
                     const { height } = layoutEvent.nativeEvent.layout;
                     if (height > 0) {
-                      // Use requestAnimationFrame to ensure smooth updates
-                      requestAnimationFrame(() => {
+                      const tabIndex = enabledTab.originalIndex;
+                      const currentHeight = tabHeights.get(tabIndex);
+
+                      // Only update if height has changed significantly (avoid micro-updates)
+                      if (
+                        !currentHeight ||
+                        Math.abs(currentHeight - height) > 5
+                      ) {
                         setTabHeights((prev) => {
                           const newHeights = new Map(prev);
-                          newHeights.set(enabledTab.originalIndex, height);
+                          newHeights.set(tabIndex, height);
                           return newHeights;
                         });
-                      });
+
+                        // If this is the active tab, update height immediately for smooth experience
+                        if (tabIndex === activeIndex) {
+                          setScrollViewHeight(height);
+                        }
+                      }
                     }
                   }}
                 >

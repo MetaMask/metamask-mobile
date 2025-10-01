@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, FlatList } from 'react-native';
-import { ExternalVirtualized } from '../../../component-library/components/ExternalVirtualized';
+import { ScrollSyncedVirtualizedList } from '../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -156,7 +156,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
-      <ExternalVirtualized
+      <ScrollSyncedVirtualizedList
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
         data={formattedDeFiPositions}
         renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
@@ -170,11 +170,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
         keyExtractor={(protocolChainAggregate) =>
           `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
         }
-        itemHeight={80} // Estimated height for DeFi position items
+        itemHeight={80}
         parentScrollY={parentScrollY}
-        parentViewportHeight={parentViewportHeight}
-        initialItemCount={5} // Show 5 DeFi positions initially - moderate amount
-        maxVisibleItems={10} // Reasonable number for DeFi positions
+        _parentViewportHeight={parentViewportHeight}
       />
     </View>
   );

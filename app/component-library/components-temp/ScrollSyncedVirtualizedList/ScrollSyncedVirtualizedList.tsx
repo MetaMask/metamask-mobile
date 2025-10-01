@@ -1,28 +1,35 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { LayoutChangeEvent } from 'react-native';
+import type { ScrollSyncedVirtualizedListProps } from './ScrollSyncedVirtualizedList.types';
 
-interface Props<T> {
-  data: T[];
-  renderItem: (info: { item: T; index: number }) => React.ReactElement | null;
-  // Height of each row (fixed-height version)
-  itemHeight: number;
-  // Parent scroll position in pixels (y offset from the page ScrollView)
-  parentScrollY: number;
-  // Viewport height of the parent scroll container (visible area, not total content)
-  _parentViewportHeight: number;
-  keyExtractor?: (item: T, index: number) => string;
-  // Optional test ID for the container
-  testID?: string;
-  // Optional header component
-  ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
-  // Optional footer component
-  ListFooterComponent?: React.ComponentType | React.ReactElement | null;
-  // Optional empty component
-  ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
-}
-
-export function ExternalVirtualized<T>({
+/**
+ * A virtualized list component that syncs with parent scroll position.
+ *
+ * This component implements spacer-based virtualization, where only visible items
+ * are rendered while invisible spacers maintain proper scroll physics and positioning.
+ * It's designed to work within a parent ScrollView and responds to the parent's
+ * scroll position to determine which items should be visible.
+ *
+ * Key features:
+ * - Renders only visible items for performance
+ * - Maintains proper scroll physics with spacers
+ * - Syncs with parent ScrollView scroll position
+ * - Supports header, footer, and empty state components
+ * - Fixed item height for predictable layout
+ * @example
+ * ```tsx
+ * <ScrollSyncedVirtualizedList
+ *   data={items}
+ *   renderItem={({ item }) => <ItemComponent item={item} />}
+ *   itemHeight={64}
+ *   parentScrollY={scrollY}
+ *   _parentViewportHeight={viewportHeight}
+ *   keyExtractor={(item) => item.id}
+ * />
+ * ```
+ */
+export function ScrollSyncedVirtualizedList<T>({
   data,
   renderItem,
   itemHeight,
@@ -33,16 +40,14 @@ export function ExternalVirtualized<T>({
   ListHeaderComponent,
   ListFooterComponent,
   ListEmptyComponent,
-}: Props<T>) {
-  // State to track the list's Y position relative to the page
+}: ScrollSyncedVirtualizedListProps<T>) {
   const [listYPosition, setListYPosition] = useState<number | null>(null);
+  const [footerHeight, setFooterHeight] = useState<number>(0);
 
-  // Callback to measure the list's Y position
   const handleListLayout = useCallback(
     (layoutEvent: LayoutChangeEvent) => {
       const { y } = layoutEvent.nativeEvent.layout;
 
-      // Only update if the position actually changed to prevent render loops
       if (listYPosition !== y) {
         setListYPosition(y);
       }
@@ -50,10 +55,17 @@ export function ExternalVirtualized<T>({
     [listYPosition],
   );
 
-  // Calculate total height including footer space
+  const handleFooterLayout = useCallback(
+    (layoutEvent: LayoutChangeEvent) => {
+      const { height } = layoutEvent.nativeEvent.layout;
+      if (footerHeight !== height) {
+        setFooterHeight(height);
+      }
+    },
+    [footerHeight],
+  );
+
   const baseHeight = data.length * itemHeight;
-  // Add extra space for footer if it exists (estimate 120px for footer)
-  const footerHeight = ListFooterComponent ? 120 : 0;
   const totalHeight = baseHeight + footerHeight;
 
   const { startIndex, endIndex, topSpacer, bottomSpacer } = useMemo(() => {
@@ -63,8 +75,7 @@ export function ExternalVirtualized<T>({
 
     // For initial load (scroll at top), show a reasonable number of items
     if (parentScrollY <= 50) {
-      // Small threshold for "at top"
-      const itemsToShow = Math.min(6, data.length); // Show 6 items initially
+      const itemsToShow = Math.min(6, data.length);
       const finalEndIndex = itemsToShow - 1;
 
       return {
@@ -75,15 +86,16 @@ export function ExternalVirtualized<T>({
       };
     }
 
-    // Simple virtualization approach that works reliably
-    // Show a reasonable number of items around the current scroll position
+    // Virtualization: show items around current scroll position
     const currentItemIndex = Math.floor(parentScrollY / itemHeight);
-    const itemsToShowAbove = 5; // Show 5 items above current position
-    const itemsToShowBelow = 10; // Show 10 items below current position
-    const scrollStartIndex = Math.max(0, currentItemIndex - itemsToShowAbove);
+    const itemsToShowAboveAndBelow = 6;
+    const scrollStartIndex = Math.max(
+      0,
+      currentItemIndex - itemsToShowAboveAndBelow,
+    );
     const scrollEndIndex = Math.min(
       data.length - 1,
-      currentItemIndex + itemsToShowBelow,
+      currentItemIndex + itemsToShowAboveAndBelow,
     );
 
     const scrollTopSpacer = scrollStartIndex * itemHeight;
@@ -99,7 +111,6 @@ export function ExternalVirtualized<T>({
     };
   }, [parentScrollY, itemHeight, totalHeight, data.length]);
 
-  // Render header if provided
   const renderHeader = () => {
     if (!ListHeaderComponent) return null;
     if (React.isValidElement(ListHeaderComponent)) {
@@ -109,18 +120,20 @@ export function ExternalVirtualized<T>({
     return <HeaderComponent />;
   };
 
-  // Render footer if provided
   const renderFooter = () => {
     if (!ListFooterComponent) return null;
 
-    if (React.isValidElement(ListFooterComponent)) {
-      return ListFooterComponent;
-    }
-    const FooterComponent = ListFooterComponent as React.ComponentType;
-    return <FooterComponent />;
+    const footerContent = React.isValidElement(ListFooterComponent)
+      ? ListFooterComponent
+      : React.createElement(ListFooterComponent as React.ComponentType);
+
+    return (
+      <Box onLayout={handleFooterLayout as (event: unknown) => void}>
+        {footerContent}
+      </Box>
+    );
   };
 
-  // Render empty component if no data
   const renderEmpty = () => {
     if (data.length > 0 || !ListEmptyComponent) return null;
     if (React.isValidElement(ListEmptyComponent)) {
@@ -130,7 +143,6 @@ export function ExternalVirtualized<T>({
     return <EmptyComponent />;
   };
 
-  // If no data and empty component exists, render it
   if (data.length === 0) {
     return (
       <Box twClassName="w-full" testID={testID}>
@@ -147,14 +159,9 @@ export function ExternalVirtualized<T>({
       testID={testID}
       onLayout={handleListLayout as (event: unknown) => void}
     >
-      {/* Virtualized content container */}
       <Box style={{ height: baseHeight }}>
         {renderHeader()}
-
-        {/* Top spacer */}
         <Box style={{ height: topSpacer }} />
-
-        {/* Rendered items */}
         {(() => {
           const itemsToRender = data.slice(startIndex, endIndex + 1);
 
@@ -174,12 +181,8 @@ export function ExternalVirtualized<T>({
             );
           });
         })()}
-
-        {/* Bottom spacer */}
         <Box style={{ height: bottomSpacer }} />
       </Box>
-
-      {/* Footer outside virtualized area - always visible */}
       {renderFooter()}
     </Box>
   );

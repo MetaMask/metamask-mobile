@@ -67,12 +67,6 @@ export const TokenListItemBip44 = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
-    useEffect(() => {
-      console.log('mounting', assetKey.address);
-      return () => {
-        console.log('unmounting', assetKey.address);
-      };
-    }, [assetKey.address]);
 
     const chainId = asset?.chainId as Hex;
 

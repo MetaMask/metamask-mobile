@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList } from '@shopify/flash-list';
-import { ExternalVirtualized } from '../../../component-library/components/ExternalVirtualized';
+import { ScrollSyncedVirtualizedList } from '../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -517,7 +517,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <ExternalVirtualized
+      <ScrollSyncedVirtualizedList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -532,11 +532,9 @@ const CollectibleContracts = ({
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
         testID={RefreshTestId}
-        itemHeight={100} // Using the estimated item size from FlashList
+        itemHeight={100}
         parentScrollY={parentScrollY}
-        parentViewportHeight={parentViewportHeight}
-        initialItemCount={4} // Show 4 NFT collections initially - they're larger
-        maxVisibleItems={8} // Fewer NFTs visible at once due to size
+        _parentViewportHeight={parentViewportHeight}
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
       />
