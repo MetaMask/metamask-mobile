@@ -284,7 +284,9 @@ async function connectToChannel({
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_NOTIFCATION`);
+        DevLogger.log(
+          `[handleSendMessage] display RETURN_TO_DAPP_NOTIFICATION`,
+        );
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         });

@@ -543,7 +543,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.SDK.RETURN_TO_DAPP_NOTIFCATION}
+      name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
       component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
     />

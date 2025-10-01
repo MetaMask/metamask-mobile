@@ -297,7 +297,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should displays RETURN_TO_DAPP_NOTIFCATION', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFICATION', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -321,7 +321,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should displays RETURN_TO_DAPP_NOTIFCATION with hideReturnToApp set to true', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to true', () => {
       params.redirect = 'true';
       params.hr = true;
       // Mock Device.isIos() to return true
@@ -346,7 +346,7 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-    it('should displays RETURN_TO_DAPP_NOTIFCATION with hideReturnToApp set to false', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to false', () => {
       params.redirect = 'true';
       params.hr = false;
       // Mock Device.isIos() to return true
