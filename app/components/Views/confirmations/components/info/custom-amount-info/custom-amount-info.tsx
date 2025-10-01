@@ -1,11 +1,14 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { PayTokenAmount } from '../../pay-token-amount';
+import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import InfoSection from '../../UI/info-row/info-section';
-import { PayWithRow } from '../../rows/pay-with-row';
+import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
-import { DepositKeyboard } from '../../deposit-keyboard';
+import {
+  DepositKeyboard,
+  DepositKeyboardSkeleton,
+} from '../../deposit-keyboard';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
@@ -16,7 +19,10 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AlertMessage } from '../../alerts/alert-message';
-import { CustomAmount } from '../../transactions/custom-amount';
+import {
+  CustomAmount,
+  CustomAmountSkeleton,
+} from '../../transactions/custom-amount';
 
 export const CustomAmountInfo = memo(() => {
   useClearConfirmationOnBackSwipe();
@@ -97,3 +103,20 @@ export const CustomAmountInfo = memo(() => {
     </Box>
   );
 });
+
+export function CustomAmountInfoSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Box style={styles.container}>
+      <Box>
+        <CustomAmountSkeleton />
+        <PayTokenAmountSkeleton />
+        <InfoSection>
+          <PayWithRowSkeleton />
+        </InfoSection>
+      </Box>
+      <DepositKeyboardSkeleton />
+    </Box>
+  );
+}
