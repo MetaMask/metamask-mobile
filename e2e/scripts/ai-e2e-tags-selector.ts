@@ -281,35 +281,10 @@ CHANGE SUMMARY:
 - Config: ${summary.config} files
 - Other: ${summary.other} files
 
-${hasCriticalDependencyChanges ? `
-🚨 DEPENDENCY CHANGES DETECTED:
-Dependencies were updated (yarn.lock/package.json changes). This typically warrants
-running ALL smoke test tags due to potential wide-reaching effects.
-` : ''}
-
-RELEVANT CHANGED FILES:
-${changedFiles.join('\n')}
 
 Available smoke test tags (used in pipelines): ${this.pipelineTags.join(', ')}
 
-${hasCriticalDependencyChanges ?
-  'RECOMMENDATION: Consider selecting ALL smoke test tags due to dependency changes.' :
-  'Based on the file paths and change patterns, select the most appropriate smoke test tags...'
-}
 
-SELECTION GUIDELINES:
-- yarn.lock/package.json changes → Consider ALL pipeline tags (high risk)
-- app/core/, app/store/, app/reducers/ → SmokeWalletPlatform
-- app/components/Views/confirmations/ → SmokeConfirmations, SmokeConfirmationsRedesigned
-- app/components/*Account*, app/util/*account* → SmokeAccounts
-- app/components/*Swap*, app/util/*swap* → SmokeTrade
-- app/components/*Identity*, app/util/*identity* → SmokeIdentity
-- app/util/networks/, app/components/*Network* → SmokeNetworkAbstractions, SmokeNetworkExpansion
-- config/ or e2e/ changes → Consider ALL pipeline tags (high risk)
-- Small UI changes → Low risk, minimal tags
-- Documentation only → No tests needed (empty array)
-- Choose SmokeWalletPlatform for broad infrastructure changes
-- ONLY suggest tags from the pipeline list above
 
 RESPOND WITH JSON ONLY:
 {
