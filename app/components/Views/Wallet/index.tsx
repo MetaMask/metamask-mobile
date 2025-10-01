@@ -148,7 +148,6 @@ import AppConstants from '../../../core/AppConstants';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -566,8 +565,7 @@ const Wallet = ({
   ///: END:ONLY_INCLUDE_IF
 
   const displayBuyButton = true;
-  const displaySwapsButton =
-    AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
+  const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
   const displayBridgeButton =
     !isUnifiedSwapsEnabled &&
     AppConstants.BRIDGE.ACTIVE &&
@@ -1261,7 +1259,6 @@ const Wallet = ({
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
               displayBridgeButton={displayBridgeButton}
-              chainId={chainId}
               goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
@@ -1311,7 +1308,6 @@ const Wallet = ({
       isCarouselBannersEnabled,
       collectiblesEnabled,
       nftGridViewEnabled,
-      chainId,
     ],
   );
   const renderLoader = useCallback(

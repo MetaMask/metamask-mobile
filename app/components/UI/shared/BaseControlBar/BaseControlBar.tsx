@@ -201,7 +201,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
           >
             {displayAllNetworks
-              ? strings('wallet.all_networks')
+              ? strings('wallet.popular_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
         </View>
