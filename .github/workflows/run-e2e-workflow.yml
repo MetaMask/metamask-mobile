@@ -127,7 +127,7 @@ jobs:
         id: determine-target-paths
         if: ${{ inputs.platform == 'android' }}
         run: |
-          if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
             # TODO
             echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release" >> "$GITHUB_OUTPUT"
@@ -156,15 +156,15 @@ jobs:
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
-          if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
-            ARTIFACT_NAME="app-flask-release"
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            artifact_name="app-flask-release"
           else
-            ARTIFACT_NAME="app-prod-release"
+            artifact_name="app-prod-release"
           fi
           # Copy from artifacts to expected locations
-          cp artifacts/${{ steps.determine-target-paths.outputs.apk-target-path }}/app-prod-release.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${ARTIFACT_NAME}.apk
-          cp artifacts/${{ steps.determine-target-paths.outputs.test-apk-target-path }}/app-prod-release-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${ARTIFACT_NAME}-androidTest.apk
-          cp artifacts/${{ steps.determine-target-paths.outputs.aab-target-path }}/${ARTIFACT_NAME}.aab ${{ steps.determine-target-paths.outputs.aab-target-path }}/${ARTIFACT_NAME}.aab
+          cp artifacts/${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${artifact_name}.apk
+          cp artifacts/${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${artifact_name}-androidTest.apk
+          cp artifacts/${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab ${{ steps.determine-target-paths.outputs.aab-target-path }}/${artifact_name}.aab
           echo "✅ Android artifacts ready for E2E tests"
 
       - name: Setup iOS artifacts from build job
