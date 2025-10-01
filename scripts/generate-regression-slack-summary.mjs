@@ -206,6 +206,40 @@ function getJobLinks(category, jobInfo) {
 }
 
 /**
+ * Get all failed regression jobs
+ */
+function getFailedJobs(jobInfo) {
+  if (!jobInfo?.jobs) {
+    return [];
+  }
+
+  const failedJobs = jobInfo.jobs.filter(
+    (job) =>
+      job.name.includes('Regression') &&
+      job.name.includes(platform) &&
+      job.conclusion === 'failure'
+  );
+
+  return failedJobs.map((job) => {
+    // Extract category from job name (e.g., "Assets Regression (Android) - 1" -> "RegressionAssets")
+    const match = job.name.match(/(\w+)\s+Regression\s+\(/);
+    const category = match ? `Regression${match[1]}` : 'Unknown';
+
+    return {
+      category,
+      jobUrl: job.html_url,
+    };
+  });
+}
+
+/**
+ * Check if a category has any failed jobs
+ */
+function categoryHasFailedJob(category, failedJobs) {
+  return failedJobs.some((job) => job.category === category);
+}
+
+/**
  * Generate the Slack summary message
  */
 async function generateSummary() {
@@ -227,17 +261,38 @@ async function generateSummary() {
   let totalSkipped = 0;
   let hasFailures = false;
 
+  // Get all failed jobs
+  const failedJobs = getFailedJobs(jobInfo);
+  if (failedJobs.length > 0) {
+    hasFailures = true;
+  }
+
   // Sort categories alphabetically for consistent output
   const sortedCategories = Object.keys(categoryResults).sort();
 
+  // Collect all categories (from XML and from failed jobs)
+  const allCategories = new Set([
+    ...sortedCategories,
+    ...failedJobs.map((j) => j.category),
+  ]);
+
   // Build test results
   const resultLines = [];
-  sortedCategories.forEach((category) => {
+  Array.from(allCategories).sort().forEach((category) => {
     const results = categoryResults[category];
+    const hasFailed = categoryHasFailedJob(category, failedJobs);
     const jobLinks = getJobLinks(category, jobInfo);
 
-    if (results.tests === 0) {
-      return; // Skip empty categories
+    // Job failed but no XML results
+    if (hasFailed && (!results || results.tests === 0)) {
+      const failedJob = failedJobs.find((j) => j.category === category);
+      resultLines.push(`:x: *${category}*: Job failed (no test results) | <${failedJob.jobUrl}|View Job>`);
+      return;
+    }
+
+    // Skip empty categories that didn't fail
+    if (!results || results.tests === 0) {
+      return;
     }
 
     totalTests += results.tests;
@@ -245,7 +300,8 @@ async function generateSummary() {
     totalSkipped += results.skipped;
 
     const passed = results.tests - results.failures - results.skipped;
-    const icon = results.failures > 0 ? ':x:' : ':white_check_mark:';
+    // Show failure icon if job failed OR if there are test failures
+    const icon = (results.failures > 0 || hasFailed) ? ':x:' : ':white_check_mark:';
 
     let line = `${icon} *${category}*: ${passed} passed`;
     if (results.failures > 0) {
@@ -256,7 +312,12 @@ async function generateSummary() {
       line += `, ${results.skipped} skipped`;
     }
 
-    // Add job links for failures
+    // Add job failure note if job failed but tests passed
+    if (hasFailed && results.failures === 0) {
+      line += ` (job failed)`;
+    }
+
+    // Add job links
     if (jobLinks.length > 0) {
       line += ` | <${jobLinks[0]}|View Job>`;
     }
@@ -273,20 +334,22 @@ async function generateSummary() {
   if (totalFailures > 0) summary += `:x: Failed: *${totalFailures}*\n`;
   if (totalSkipped > 0) summary += `:fast_forward: Skipped: *${totalSkipped}*\n`;
 
-  // Add failed test details if there are failures (limit to 5 for readability)
-  if (hasFailures) {
+  // Add failed test details if there are test failures in XML (limit to 5 for readability)
+  if (totalFailures > 0) {
     const allFailedTests = Object.values(categoryResults).flatMap((r) => r.failedTests);
     const uniqueFailures = [...new Set(allFailedTests.map((t) => t.name))].slice(0, 5);
 
-    summary += `\n*Top Failed Tests*\n`;
-    uniqueFailures.forEach((testName) => {
-      // Truncate long test names
-      const truncated = testName.length > 100 ? testName.substring(0, 100) + '...' : testName;
-      summary += `:small_red_triangle: ${truncated}\n`;
-    });
+    if (uniqueFailures.length > 0) {
+      summary += `\n*Top Failed Tests*\n`;
+      uniqueFailures.forEach((testName) => {
+        // Truncate long test names
+        const truncated = testName.length > 100 ? testName.substring(0, 100) + '...' : testName;
+        summary += `:small_red_triangle: ${truncated}\n`;
+      });
 
-    if (allFailedTests.length > 5) {
-      summary += `_...and ${allFailedTests.length - 5} more failures_\n`;
+      if (allFailedTests.length > 5) {
+        summary += `_...and ${allFailedTests.length - 5} more failures_\n`;
+      }
     }
   }
 

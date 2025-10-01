@@ -1,12 +1,6 @@
 name: Android E2E Regression Tests
 
 on:
-  workflow_call:
-    inputs:
-      notify_on_pass:
-        description: 'Send Slack notification even when all tests pass'
-        type: boolean
-        default: true
   schedule:
     - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
@@ -237,8 +231,10 @@ jobs:
           node -e "
           const fs = require('fs');
           const message = \`${{ steps.summary.outputs.summary }}\`;
+          const hasFailed = '${{ steps.summary.outcome }}' === 'failure';
+          const title = hasFailed ? 'Android E2E Regression Test Failures' : 'Android E2E Regression Test Results';
           const payload = {
-            text: 'Android E2E Regression Test Results',
+            text: title,
             blocks: [
               {
                 type: 'section',

@@ -1,12 +1,6 @@
 name: iOS E2E Regression Tests
 
 on:
-  workflow_call:
-    inputs:
-      notify_on_pass:
-        description: 'Send Slack notification even when all tests pass'
-        type: boolean
-        default: false
   schedule:
     - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
