@@ -349,6 +349,34 @@ describe('BankDetails Component', () => {
     });
   });
 
+  it('does not call confirmPayment when order has no payment method', async () => {
+    const orderWithoutPaymentMethod = {
+      ...mockOrderData,
+      data: {
+        ...mockOrderData.data,
+        paymentMethod: undefined,
+      },
+    };
+
+    const mockUseSelector = jest.requireMock('react-redux').useSelector;
+    mockUseSelector.mockImplementation(() => orderWithoutPaymentMethod);
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+
+    render(BankDetails);
+
+    fireEvent.press(screen.getByTestId('main-action-button'));
+
+    await waitFor(() => {
+      expect(mockConfirmPayment).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Payment method not found or empty'),
+        'BankDetails: handleBankTransferSent',
+      );
+    });
+    mockUseSelector.mockImplementation(() => mockOrderData);
+  });
+
   describe('401 Error Handling', () => {
     it('handles 401 error in handleBankTransferSent by logging out and navigating to root', async () => {
       const axiosError = new Error('Unauthorized') as AxiosError;
