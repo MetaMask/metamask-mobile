@@ -1144,7 +1144,7 @@ describe('CollectibleContracts', () => {
     expect(queryByTestId('collectibles-network-filter')).toBeNull();
 
     // Should show empty state instead
-    expect(queryByTestId('import-collectible-button')).toBeDefined();
+    expect(queryByTestId('collectibles-empty-state')).toBeDefined();
   });
 
   it('tests conditional logic by verifying empty state is shown when no NFTs', () => {
@@ -1190,7 +1190,7 @@ describe('CollectibleContracts', () => {
     expect(queryByTestId('collectibles-network-filter')).toBeNull();
 
     // 2. Empty state should be shown
-    expect(queryByTestId('import-collectible-button')).toBeDefined();
+    expect(queryByTestId('collectibles-empty-state')).toBeDefined();
 
     // This confirms our conditional rendering logic is working correctly
   });
@@ -1239,7 +1239,7 @@ describe('CollectibleContracts', () => {
     expect(queryByTestId('collectibles-network-filter')).toBeNull();
 
     // Should show empty state with import button instead
-    expect(queryByTestId('import-collectible-button')).toBeDefined();
+    expect(queryByTestId('collectibles-empty-state')).toBeDefined();
   });
 
   it('filters collectibles by enabled networks when isRemoveGlobalNetworkSelectorEnabled is true', () => {
@@ -1384,6 +1384,6 @@ describe('CollectibleContracts', () => {
     expect(queryByText('Popular networks')).toBeNull();
 
     // Should show empty state instead
-    expect(queryByTestId('import-collectible-button')).toBeDefined();
+    expect(queryByTestId('collectibles-empty-state')).toBeDefined();
   });
 });

@@ -508,6 +508,7 @@ const CollectibleContracts = ({
               isDisabled: !isAddNFTEnabled,
             }}
             twClassName="mx-auto mt-4"
+            testID="collectibles-empty-state"
           />
         )}
       </>
@@ -569,10 +570,14 @@ const CollectibleContracts = ({
 
   // Determine if we should show the network selector
   // Show when there are NFTs (contracts, collectibles, or favorites)
-  const shouldShowNetworkSelector =
-    filteredCollectibleContracts.length > 0 ||
-    collectibles.length > 0 ||
-    favoriteCollectibles.length > 0;
+  // Memoized to avoid unnecessary recalculations on every render
+  const shouldShowNetworkSelector = useMemo(
+    () =>
+      filteredCollectibleContracts.length > 0 ||
+      collectibles.length > 0 ||
+      favoriteCollectibles.length > 0,
+    [filteredCollectibleContracts, collectibles, favoriteCollectibles],
+  );
 
   // End trace when component has finished initial loading
   useEffect(() => {
