@@ -4486,7 +4486,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -7783,7 +7782,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -11128,7 +11126,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -13751,7 +13748,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -16716,7 +16712,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -19460,7 +19455,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -22184,7 +22178,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
