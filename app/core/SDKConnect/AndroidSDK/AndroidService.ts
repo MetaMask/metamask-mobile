@@ -241,7 +241,7 @@ export default class AndroidService extends EventEmitter2 {
           SDKConnect.getInstance().state.navigation?.navigate(
             Routes.MODAL.ROOT_MODAL_FLOW,
             {
-              screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+              screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
             },
           );
           return;

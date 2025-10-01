@@ -47,7 +47,7 @@ function handleClientsReady({
             instance.origin !== AppConstants.DEEPLINKS.ORIGIN_QR_CODE
           ) {
             instance.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+              screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
             });
           }
         },

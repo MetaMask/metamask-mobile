@@ -212,7 +212,7 @@ async function connectToChannel({
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         });
         return;
       }
@@ -286,7 +286,7 @@ async function connectToChannel({
       ) {
         DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_NOTIFCATION`);
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         });
       }
     }

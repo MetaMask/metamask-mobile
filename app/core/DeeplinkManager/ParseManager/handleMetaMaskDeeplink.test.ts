@@ -316,7 +316,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         hideReturnToApp: false,
       });
     });
@@ -341,7 +341,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         hideReturnToApp: true,
       });
     });
@@ -366,7 +366,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         hideReturnToApp: false,
       });
     });
