@@ -93,9 +93,21 @@ export const useRewardsAnimation = ({
 
   // Helper function to manage timeouts and prevent memory leaks
   const createTimeout = useCallback((callback: () => void, delay: number) => {
-    const timeoutId = setTimeout(callback, delay);
+    const timeoutId = setTimeout(() => {
+      // Remove timeout from refs when it completes
+      timeoutRefs.current.delete(timeoutId);
+      callback();
+    }, delay);
     timeoutRefs.current.add(timeoutId);
     return timeoutId;
+  }, []);
+
+  // Helper function to clear all pending timeouts
+  const clearAllTimeouts = useCallback(() => {
+    timeoutRefs.current.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    timeoutRefs.current.clear();
   }, []);
 
   // Clear all timeouts on unmount
@@ -110,6 +122,9 @@ export const useRewardsAnimation = ({
   const handleLoadingState = useCallback(() => {
     if (!riveRef.current) return;
 
+    // Clear any pending timeouts to prevent race conditions
+    clearAllTimeouts();
+
     setDisplayText(null);
     rivePosition.value = withTiming(0, { duration: ANIMATION_DURATION.NORMAL });
 
@@ -121,10 +136,20 @@ export const useRewardsAnimation = ({
     }
 
     triggerRiveAnimation(RewardsIconTriggers.Disable);
-  }, [animatedValue, rivePosition, triggerRiveAnimation, createTimeout]);
+  }, [
+    animatedValue,
+    rivePosition,
+    triggerRiveAnimation,
+    createTimeout,
+    clearAllTimeouts,
+  ]);
 
   const handleErrorState = useCallback(() => {
     if (!riveRef.current) return;
+
+    // Clear any pending timeouts to prevent race conditions
+    clearAllTimeouts();
+
     setHideValue(false);
     isAnimating.value = true;
     setDisplayText(strings('rewards.animation.could_not_load'));
@@ -137,10 +162,20 @@ export const useRewardsAnimation = ({
     });
 
     triggerRiveAnimation(RewardsIconTriggers.Disable);
-  }, [rivePosition, triggerRiveAnimation, createTimeout, isAnimating]);
+  }, [
+    rivePosition,
+    triggerRiveAnimation,
+    createTimeout,
+    isAnimating,
+    clearAllTimeouts,
+  ]);
 
   const handleIdleState = useCallback(() => {
     if (!riveRef.current) return;
+
+    // Clear any pending timeouts to prevent race conditions
+    clearAllTimeouts();
+
     setHideValue(false);
     const currentValue = value;
     const previousValue = previousValueRef.current;
@@ -161,7 +196,7 @@ export const useRewardsAnimation = ({
       triggerRiveAnimation(trigger);
       previousValueRef.current = currentValue;
     }
-  }, [value, rivePosition, triggerRiveAnimation]);
+  }, [value, rivePosition, triggerRiveAnimation, clearAllTimeouts]);
 
   // State machine effect - triggers appropriate animation based on state
   useEffect(() => {
