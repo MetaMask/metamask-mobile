@@ -72,6 +72,11 @@ exports[`AssetDetails renders correctly 1`] = `
                 "backgroundColor": "#f3f5f9",
               }
             }
+            source={
+              {
+                "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png",
+              }
+            }
             style={
               [
                 {

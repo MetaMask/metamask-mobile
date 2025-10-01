@@ -480,6 +480,11 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -1448,6 +1453,11 @@ exports[`BridgeView renders 1`] = `
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {

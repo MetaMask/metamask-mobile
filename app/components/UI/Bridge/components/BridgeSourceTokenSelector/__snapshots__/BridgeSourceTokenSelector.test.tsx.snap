@@ -1510,6 +1510,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -2079,6 +2084,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {

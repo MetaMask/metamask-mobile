@@ -1519,6 +1519,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {

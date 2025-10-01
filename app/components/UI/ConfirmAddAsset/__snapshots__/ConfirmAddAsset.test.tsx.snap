@@ -79,6 +79,11 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                       "backgroundColor": "#f3f5f9",
                     }
                   }
+                  source={
+                    {
+                      "uri": "https://example.com/usdt.png",
+                    }
+                  }
                   style={
                     [
                       {

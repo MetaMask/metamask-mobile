@@ -1,6 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RemoteImage should render ipfs sources 1`] = `<View />`;
+exports[`RemoteImage should render ipfs sources 1`] = `
+<View
+  source={
+    {
+      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+    }
+  }
+/>
+`;
 
 exports[`RemoteImage should render static sources 1`] = `
 <MockedExpoImage
@@ -49,6 +57,11 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
             contentFit="cover"
             fadeIn={true}
             isTokenImage={true}
+            source={
+              {
+                "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+              }
+            }
             style={
               {
                 "borderRadius": 8,

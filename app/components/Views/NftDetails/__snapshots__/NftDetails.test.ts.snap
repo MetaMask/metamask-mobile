@@ -426,6 +426,11 @@ exports[`NftDetails should render correctly 1`] = `
                                               isFullRatio={true}
                                               isTokenImage={true}
                                               resizeMode="contain"
+                                              source={
+                                                {
+                                                  "uri": "https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICr6sEjrTDK%2BhfdaXGiZnjM%2BawmNp3vHAw1Ev5N5b97XEQ%3D%3D.png?width=512",
+                                                }
+                                              }
                                               style={
                                                 {
                                                   "borderRadius": 8,

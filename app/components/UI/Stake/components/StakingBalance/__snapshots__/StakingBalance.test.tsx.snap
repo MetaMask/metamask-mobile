@@ -34,6 +34,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
         >
           <View
             fadeIn={true}
+            source={
+              {
+                "uri": "",
+              }
+            }
             style={
               [
                 {
@@ -822,6 +827,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         >
           <View
             fadeIn={true}
+            source={
+              {
+                "uri": "",
+              }
+            }
             style={
               [
                 {

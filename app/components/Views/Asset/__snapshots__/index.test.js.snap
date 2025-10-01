@@ -1756,6 +1756,11 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -3610,6 +3615,11 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -7364,6 +7374,11 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -9218,6 +9233,11 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -13502,6 +13522,11 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {
@@ -15356,6 +15381,11 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             >
                                               <View
                                                 fadeIn={true}
+                                                source={
+                                                  {
+                                                    "uri": "",
+                                                  }
+                                                }
                                                 style={
                                                   [
                                                     {

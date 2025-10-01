@@ -505,6 +505,11 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           >
                             <View
                               fadeIn={true}
+                              source={
+                                {
+                                  "uri": "",
+                                }
+                              }
                               style={
                                 [
                                   {

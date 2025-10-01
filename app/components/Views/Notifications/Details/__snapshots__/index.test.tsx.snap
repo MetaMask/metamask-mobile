@@ -568,6 +568,11 @@ exports[`NotificationsDetails renders correctly 1`] = `
                     "width": 32,
                   }
                 }
+                source={
+                  {
+                    "uri": "",
+                  }
+                }
                 style={
                   {
                     "borderColor": "#f3f5f9",

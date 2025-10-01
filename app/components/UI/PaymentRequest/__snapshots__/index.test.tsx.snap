@@ -293,6 +293,11 @@ exports[`PaymentRequest renders correctly 1`] = `
                   >
                     <View
                       fadeIn={true}
+                      source={
+                        {
+                          "uri": "",
+                        }
+                      }
                       style={
                         [
                           {
@@ -822,6 +827,11 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                   >
                     <View
                       fadeIn={true}
+                      source={
+                        {
+                          "uri": "",
+                        }
+                      }
                       style={
                         [
                           {

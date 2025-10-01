@@ -1330,6 +1330,11 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                               }
                                             >
                                               <View
+                                                source={
+                                                  {
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png",
+                                                  }
+                                                }
                                                 style={
                                                   {
                                                     "height": 24,
@@ -3561,6 +3566,11 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       }
                                                     >
                                                       <View
+                                                        source={
+                                                          {
+                                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
+                                                          }
+                                                        }
                                                         style={
                                                           {
                                                             "height": 24,
@@ -3901,6 +3911,11 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       }
                                                     >
                                                       <View
+                                                        source={
+                                                          {
+                                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
+                                                          }
+                                                        }
                                                         style={
                                                           {
                                                             "height": 24,
@@ -4166,6 +4181,11 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       }
                                                     >
                                                       <View
+                                                        source={
+                                                          {
+                                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_light.png",
+                                                          }
+                                                        }
                                                         style={
                                                           {
                                                             "height": 24,
@@ -5270,6 +5290,11 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 }
                                               >
                                                 <View
+                                                  source={
+                                                    {
+                                                      "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
+                                                    }
+                                                  }
                                                   style={
                                                     {
                                                       "height": 24,

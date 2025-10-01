@@ -99,6 +99,11 @@ exports[`Collectibles should render correctly collectibles 1`] = `
             >
               <View>
                 <View
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
                   style={
                     [
                       {

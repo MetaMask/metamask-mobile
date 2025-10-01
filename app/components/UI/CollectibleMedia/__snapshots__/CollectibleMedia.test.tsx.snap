@@ -16,6 +16,11 @@ exports[`CollectibleMedia should render correctly 1`] = `
     <View
       fadeIn={true}
       resizeMode="contain"
+      source={
+        {
+          "uri": "IMAGE",
+        }
+      }
       style={
         [
           {

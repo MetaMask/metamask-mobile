@@ -59,6 +59,11 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
       >
         <View>
           <View
+            source={
+              {
+                "uri": "",
+              }
+            }
             style={
               [
                 {
@@ -225,6 +230,11 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
             >
               <View>
                 <View
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
                   style={
                     [
                       {
@@ -378,6 +388,11 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
             >
               <View>
                 <View
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
                   style={
                     [
                       {
@@ -527,6 +542,11 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
             >
               <View>
                 <View
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
                   style={
                     [
                       {
@@ -686,6 +706,11 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
             >
               <View>
                 <View
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
                   style={
                     [
                       {

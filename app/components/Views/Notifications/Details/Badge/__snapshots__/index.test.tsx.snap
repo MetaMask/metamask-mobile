@@ -17,6 +17,11 @@ exports[`NotificationBadge should renders correctly 1`] = `
     >
       <View
         fadeIn={true}
+        source={
+          {
+            "uri": "",
+          }
+        }
         style={
           [
             {

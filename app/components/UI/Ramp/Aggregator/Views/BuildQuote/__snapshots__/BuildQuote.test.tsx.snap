@@ -3361,6 +3361,11 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       }
                                     >
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -3370,6 +3375,11 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -3379,6 +3389,11 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -6645,6 +6660,11 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       }
                                     >
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -6654,6 +6674,11 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -6663,6 +6688,11 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -18315,6 +18345,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       }
                                     >
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -18324,6 +18359,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -18333,6 +18373,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -20962,6 +21007,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       }
                                     >
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -20971,6 +21021,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,
@@ -20980,6 +21035,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         }
                                       />
                                       <View
+                                        source={
+                                          {
+                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
+                                          }
+                                        }
                                         style={
                                           {
                                             "height": 20,

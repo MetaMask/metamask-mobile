@@ -105,6 +105,11 @@ exports[`CollectibleModal should render correctly 1`] = `
       >
         <View>
           <View
+            source={
+              {
+                "uri": "",
+              }
+            }
             style={
               [
                 {
