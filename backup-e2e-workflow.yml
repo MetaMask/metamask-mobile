@@ -1,11 +1,10 @@
-# This workflow creates screenshots based on existing e2e tests. 
-# It is a modified version of run-e2e-workflow.yml.
+# This workflow runs mobile E2E tests for a specific test category.
 # It passes matrix sharding info to the test framework via environment variables.
 
-name: Create screenshots
+name: Run E2E
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       test-suite-name:
         description: 'Name of the test suite'
@@ -194,6 +193,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
       - name: Upload test results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.test-suite-name }}-test-results
@@ -201,6 +201,7 @@ jobs:
           retention-days: 7
 
       - name: Prepare screenshots
+        if: failure()
         run: |
           echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
 
@@ -226,6 +227,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload screenshots
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.test-suite-name }}-screenshots
