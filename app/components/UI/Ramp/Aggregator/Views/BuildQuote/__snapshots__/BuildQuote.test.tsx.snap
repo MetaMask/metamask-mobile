@@ -630,7 +630,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                             </View>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -1275,7 +1274,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                             </View>
                           </View>
                         </View>
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -3360,8 +3358,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -3375,8 +3372,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -3390,8 +3386,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -4491,8 +4486,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
-                        <View />
                         <View />
                       </View>
                     </RNCSafeAreaView>
@@ -6662,8 +6655,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -6677,8 +6669,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -6692,8 +6683,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -7793,8 +7783,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
-                        <View />
                         <View />
                       </View>
                     </RNCSafeAreaView>
@@ -11141,8 +11129,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                           </View>
                         </View>
                         <View />
-                        <View />
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -13765,8 +13751,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
-                        <View />
                         <View />
                       </View>
                     </RNCSafeAreaView>
@@ -16733,8 +16717,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                           </View>
                         </View>
                         <View />
-                        <View />
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -18350,8 +18332,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -18365,8 +18346,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -18380,8 +18360,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -19481,8 +19460,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
-                        <View />
                         <View />
                       </View>
                     </RNCSafeAreaView>
@@ -21015,8 +20992,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -21030,8 +21006,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -21045,8 +21020,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                         }
                                       />
-                                      <Image
-                                        onError={[Function]}
+                                      <View
                                         source={
                                           {
                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
@@ -22210,8 +22184,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
-                        <View />
                         <View />
                       </View>
                     </RNCSafeAreaView>
