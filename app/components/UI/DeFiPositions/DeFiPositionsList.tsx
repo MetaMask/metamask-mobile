@@ -136,6 +136,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     // No positions found for the current account
     return (
       <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
+        <DeFiPositionsControlBar />
         <DefiEmptyState twClassName="mx-auto mt-4" />
       </View>
     );
