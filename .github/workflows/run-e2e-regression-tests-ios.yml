@@ -150,7 +150,6 @@ jobs:
       - regression-confirmations-ios
       - regression-trade-ios
       - regression-wallet-platform-ios
-      - regression-identity-ios
       - regression-accounts-ios
       - regression-network-abstraction-ios
       - regression-network-expansion-ios

@@ -185,7 +185,6 @@ jobs:
       - regression-confirmations-redesigned-android
       - regression-trade-android
       - regression-wallet-platform-android
-      - regression-identity-android
       - regression-accounts-android
       - regression-network-abstraction-android
       - regression-network-expansion-android
