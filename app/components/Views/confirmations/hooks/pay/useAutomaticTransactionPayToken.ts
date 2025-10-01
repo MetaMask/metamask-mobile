@@ -127,25 +127,31 @@ export function useAutomaticTransactionPayToken({
 function isTokenSupported(
   token: BridgeToken,
   tokens: BridgeToken[],
-  requiredBalance: number,
+  requiredBalance: number | undefined,
 ): boolean {
   const nativeToken = tokens.find(
     (t) => t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
   );
 
+  const tokenAmount = token?.tokenFiatAmount ?? 0;
+
   const isTokenBalanceSufficient =
-    (token?.tokenFiatAmount ?? 0) >= requiredBalance;
+    requiredBalance === undefined
+      ? tokenAmount > 0
+      : tokenAmount >= requiredBalance;
 
   const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
 
   return isTokenBalanceSufficient && hasNativeBalance;
 }
 
-function getRequiredBalance(transactionMeta: TransactionMeta): number {
+function getRequiredBalance(
+  transactionMeta: TransactionMeta,
+): number | undefined {
   switch (transactionMeta?.type) {
     case TransactionType.perpsDeposit:
       return PERPS_MINIMUM_DEPOSIT;
     default:
-      return 0;
+      return undefined;
   }
 }
