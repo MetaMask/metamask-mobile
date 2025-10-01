@@ -4,10 +4,8 @@ import {
   BtcScope,
   SolAccountType,
   SolScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxAccountType,
   TrxScope,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
@@ -89,9 +87,7 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
   [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   [TrxAccountType.Eoa]: TrxScope.Mainnet,
-  ///: END:ONLY_INCLUDE_IF
 } as const;
 
 export const PRICE_API_CURRENCIES = [
