@@ -62,6 +62,7 @@ describe('CustomAmountInfo', () => {
       amountHuman: '0',
       isInputChanged: false,
       updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
       updateTokenAmount: noop,
     });
 
