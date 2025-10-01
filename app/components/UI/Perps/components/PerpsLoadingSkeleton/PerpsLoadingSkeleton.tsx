@@ -55,6 +55,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
     } catch (error) {
       // Error is handled by connection manager
       // The loading skeleton will either disappear (on success) or timeout will restart
+      console.warn('PerpsLoadingSkeleton: Reconnection failed:', error);
     }
   };
 

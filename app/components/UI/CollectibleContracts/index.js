@@ -28,7 +28,6 @@ import {
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import AppConstants from '../../../core/AppConstants';
 import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
@@ -562,7 +561,7 @@ const CollectibleContracts = ({
     ],
   );
 
-  // TODO: Placeholder variable for now until we update the network enablement controller
+  // Placeholder variable for now until we update the network enablement controller
   const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
   const networkImageSource = getNetworkImageSource({
     chainId: firstEnabledChainId,
