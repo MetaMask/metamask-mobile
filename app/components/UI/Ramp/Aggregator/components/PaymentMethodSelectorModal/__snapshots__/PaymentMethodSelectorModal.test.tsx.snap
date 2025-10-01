@@ -525,7 +525,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                           <RCTScrollView
                             style={
                               {
-                                "flex": 1,
+                                "height": 1067.2,
                               }
                             }
                           >
@@ -1671,7 +1671,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                           <RCTScrollView
                             style={
                               {
-                                "flex": 1,
+                                "height": 1067.2,
                               }
                             }
                           >
@@ -2817,7 +2817,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                           <RCTScrollView
                             style={
                               {
-                                "flex": 1,
+                                "height": 1067.2,
                               }
                             }
                           >
