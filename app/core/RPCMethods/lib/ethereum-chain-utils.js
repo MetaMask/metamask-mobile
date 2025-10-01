@@ -208,8 +208,9 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  *
  * @param response - The JSON RPC request's response object.
  * @param end - The JSON RPC request's end callback.
- * @param {object} params.network - Network configuration of the chain being switched to.
- * @param {string} params.chainId - The network client being switched to.
+ * @param {string} params.networkClientId - NetworkClientId of the chain being switched to.
+ * @param {string} params.nativeCurrency - Native currency of the chain being switched to.
+ * @param {string} params.chainId - The chainId being switched to.
  * @param {Function} params.requestUserApproval - The callback to trigger user approval flow.
  * @param {object} params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param {string} params.origin - The origin sending this request.
@@ -219,7 +220,7 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  */
 export async function switchToNetwork({
   networkClientId,
-  ticker,
+  nativeCurrency,
   chainId,
   requestUserApproval,
   analytics,
@@ -295,7 +296,7 @@ export async function switchToNetwork({
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
-    symbol: ticker || 'ETH',
+    symbol: nativeCurrency || 'ETH',
     ...analytics,
   };
 

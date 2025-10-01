@@ -68,7 +68,8 @@ describe('switchToNetwork', () => {
     const autoApprove = false;
 
     await switchToNetwork({
-      network: [networkClientId, network],
+      networkClientId,
+      nativeCurrency: network.nativeCurrency,
       chainId,
       requestUserApproval,
       analytics,
