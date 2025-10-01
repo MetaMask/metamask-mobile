@@ -1,6 +1,6 @@
 ## Overview
 
-Run unit tests for staged files and their related test files with coverage reporting.
+Run unit tests for staged files and their related test files without coverage.
 
 ## Steps
 
@@ -18,18 +18,17 @@ Run unit tests for staged files and their related test files with coverage repor
    - Exclude snapshot files (`.snap`)
    - Collect all unique test files
 
-3. **Run tests with coverage**
+3. **Run tests**
 
-   - Execute `yarn jest --coverage` with all found test files
-   - Run tests with coverage information
-   - Capture test results and coverage data
+   - Execute `yarn jest` with all found test files
+   - Run tests without coverage information
+   - Capture test results and output
 
 4. **Report results**
 
    - Display test execution summary
    - Show pass/fail counts
-   - Report coverage percentages
-   - Highlight any test failures with details
+   - Report any test failures with details
 
 5. **Fix issues and re-test**
    - If tests fail, analyze the failure details
@@ -44,8 +43,6 @@ Run unit tests for staged files and their related test files with coverage repor
 - [ ] Related test files found for each staged file
 - [ ] Tests executed successfully
 - [ ] All tests pass without failures
-- [ ] Coverage report generated successfully
-- [ ] Coverage percentages displayed
 - [ ] No test timeouts or memory issues
 - [ ] Issues fixed and tests re-run if failures occurred
 - [ ] Final test run shows all tests passing

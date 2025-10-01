@@ -325,6 +325,10 @@ yarn jest <filename> -t "<test-name-pattern>"
 ```shell
 # Use this command for running all unit tests
 yarn test:unit
+
+# Run a specific test file
+yarn jest MyComponent.test.tsx
+yarn jest utils/helpers.test.ts
 ```
 
 ### Coverage Reports
