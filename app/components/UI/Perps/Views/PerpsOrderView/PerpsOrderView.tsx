@@ -681,10 +681,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
       }
 
       // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
-      // Choose monitor type based on order type:
-      // Market orders typically result in immediate position changes
-      // Limit orders remain pending until filled, so monitor orders first
-      const monitor = orderForm.type === 'market' ? 'positions' : 'orders';
+      // Always monitor both orders and positions because:
+      // - Market orders: Usually create positions immediately
+      // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
+      // Monitoring both ensures we route to the correct tab regardless of execution speed
+      const monitorOrders = true;
+      const monitorPositions = true;
 
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
@@ -693,7 +695,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
           // Pass monitoring intent to destination screen for data-driven tab selection
           monitoringIntent: {
             asset: orderForm.asset,
-            monitor,
+            monitorOrders,
+            monitorPositions,
           },
         },
       });

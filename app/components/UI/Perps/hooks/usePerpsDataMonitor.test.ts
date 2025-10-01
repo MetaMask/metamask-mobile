@@ -126,7 +126,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       // Missing asset
       const { result: result1 } = renderHook(() =>
         usePerpsDataMonitor({
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -147,7 +148,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { result: result3 } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           enabled: true,
         }),
       );
@@ -160,7 +162,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { result } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -172,31 +175,33 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         'usePerpsDataMonitor: Starting to monitor for data changes',
         {
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           timeoutMs: 10000,
         },
       );
     });
 
-    it('starts monitoring with default monitor value when monitor is undefined', () => {
+    it('starts monitoring with default values when monitorOrders and monitorPositions are undefined', () => {
       const onDataDetected = jest.fn();
 
       const { result } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          // monitor is undefined, should default to 'both'
+          // monitorOrders and monitorPositions are undefined, should default to true
           onDataDetected,
           enabled: true,
         }),
       );
 
       expect(result.current).toBeUndefined();
-      // Verify monitoring started with default 'both' monitor value
+      // Verify monitoring started with default values (both true)
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsDataMonitor: Starting to monitor for data changes',
         {
           asset: 'BTC',
-          monitor: 'both',
+          monitorOrders: true,
+          monitorPositions: true,
           timeoutMs: 10000,
         },
       );
@@ -211,7 +216,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         ({ enabled }: { enabled: boolean }) =>
           usePerpsDataMonitor({
             asset: 'BTC',
-            monitor: 'orders',
+            monitorOrders: true,
+            monitorPositions: false,
             onDataDetected,
             enabled,
           }),
@@ -229,7 +235,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         'usePerpsDataMonitor: Starting to monitor for data changes',
         {
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           timeoutMs: 10000,
         },
       );
@@ -242,7 +249,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         ({ enabled }: { enabled: boolean }) =>
           usePerpsDataMonitor({
             asset: 'BTC',
-            monitor: 'orders',
+            monitorOrders: true,
+            monitorPositions: false,
             onDataDetected,
             enabled,
           }),
@@ -268,7 +276,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         ({ asset }: { asset: string }) =>
           usePerpsDataMonitor({
             asset,
-            monitor: 'orders',
+            monitorOrders: true,
+            monitorPositions: false,
             onDataDetected,
             enabled: true,
           }),
@@ -299,7 +308,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -345,7 +355,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -371,7 +382,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -393,7 +405,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { result, rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -427,7 +440,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'positions',
+          monitorOrders: false,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -459,7 +473,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'positions',
+          monitorOrders: false,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -491,7 +506,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'positions',
+          monitorOrders: false,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -524,7 +540,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'positions',
+          monitorOrders: false,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -585,7 +602,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'both',
+          monitorOrders: true,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -615,7 +633,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'both',
+          monitorOrders: true,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -648,7 +667,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'both',
+          monitorOrders: true,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -678,7 +698,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { result } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           timeoutMs: 5000,
           enabled: true,
@@ -697,7 +718,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         'usePerpsDataMonitor: Timeout reached, stopping monitoring',
         {
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           timeoutMs: 5000,
         },
       );
@@ -709,7 +731,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { result } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -736,7 +759,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           timeoutMs: 5000,
           enabled: true,
@@ -763,7 +787,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           enabled: true,
         }),
@@ -788,7 +813,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'positions',
+          monitorOrders: false,
+          monitorPositions: true,
           onDataDetected,
           enabled: true,
         }),
@@ -818,7 +844,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         renderHook(() =>
           usePerpsDataMonitor({
             asset: 'BTC',
-            monitor: 'positions',
+            monitorOrders: false,
+            monitorPositions: true,
             onDataDetected,
             enabled: true,
           }),
@@ -837,7 +864,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         renderHook(() =>
           usePerpsDataMonitor({
             asset: 'BTC',
-            monitor: 'orders',
+            monitorOrders: true,
+            monitorPositions: false,
             onDataDetected,
             enabled: true,
           }),
@@ -851,7 +879,8 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const { unmount } = renderHook(() =>
         usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'orders',
+          monitorOrders: true,
+          monitorPositions: false,
           onDataDetected,
           timeoutMs: 5000,
           enabled: true,
@@ -874,29 +903,34 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
 
   describe('parameters validation', () => {
     it.each([
-      ['orders', 'BTC'],
-      ['positions', 'ETH'],
-      ['both', 'SOL'],
-    ])('handles %s monitoring for %s asset correctly', (monitor, asset) => {
-      const onDataDetected = jest.fn();
+      [true, false, 'BTC'],
+      [false, true, 'ETH'],
+      [true, true, 'SOL'],
+    ])(
+      'handles monitorOrders=%s, monitorPositions=%s for %s asset correctly',
+      (monitorOrders, monitorPositions, asset) => {
+        const onDataDetected = jest.fn();
 
-      const { result } = renderHook(() =>
-        usePerpsDataMonitor({
-          asset,
-          monitor: monitor as 'orders' | 'positions' | 'both',
-          onDataDetected,
-          enabled: true,
-        }),
-      );
+        const { result } = renderHook(() =>
+          usePerpsDataMonitor({
+            asset,
+            monitorOrders,
+            monitorPositions,
+            onDataDetected,
+            enabled: true,
+          }),
+        );
 
-      expect(result.current).toBeUndefined();
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDataMonitor: Starting to monitor for data changes',
-        expect.objectContaining({
-          asset,
-          monitor,
-        }),
-      );
-    });
+        expect(result.current).toBeUndefined();
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'usePerpsDataMonitor: Starting to monitor for data changes',
+          expect.objectContaining({
+            asset,
+            monitorOrders,
+            monitorPositions,
+          }),
+        );
+      },
+    );
   });
 });

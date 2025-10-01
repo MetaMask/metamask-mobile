@@ -162,15 +162,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Handle data-driven monitoring when coming from order success (declarative API)
   usePerpsDataMonitor({
     asset: monitoringIntent?.asset,
-    monitor: monitoringIntent?.monitor,
+    monitorOrders: monitoringIntent?.monitorOrders,
+    monitorPositions: monitoringIntent?.monitorPositions,
     timeoutMs: monitoringIntent?.timeoutMs,
     onDataDetected: handleDataDetected,
-    enabled: !!(
-      monitoringIntent &&
-      market &&
-      monitoringIntent.asset &&
-      monitoringIntent.monitor
-    ),
+    enabled: !!(monitoringIntent && market && monitoringIntent.asset),
   });
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({});

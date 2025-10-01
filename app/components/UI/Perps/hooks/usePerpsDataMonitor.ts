@@ -7,8 +7,10 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 export interface DataMonitorParams {
   /** Asset symbol */
   asset: string;
-  /** What to monitor for changes (default: 'both') */
-  monitor?: 'orders' | 'positions' | 'both';
+  /** Whether to monitor for order changes (default: true) */
+  monitorOrders?: boolean;
+  /** Whether to monitor for position changes (default: true) */
+  monitorPositions?: boolean;
   /** How long to monitor in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS) */
   timeoutMs?: number;
   /** Callback when monitoring detects data changes */
@@ -22,8 +24,10 @@ export interface DataMonitorParams {
 export interface UsePerpsDataMonitorParams {
   /** Asset symbol (required when enabled) */
   asset?: string;
-  /** What to monitor for changes (default: 'both') */
-  monitor?: 'orders' | 'positions' | 'both';
+  /** Whether to monitor for order changes (default: true) */
+  monitorOrders?: boolean;
+  /** Whether to monitor for position changes (default: true) */
+  monitorPositions?: boolean;
   /** How long to monitor in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS) */
   timeoutMs?: number;
   /** Callback when monitoring detects data changes */
@@ -47,7 +51,8 @@ export interface UsePerpsDataMonitorParams {
  *
  * @param params - Monitoring parameters
  * @param params.asset - Asset symbol to monitor (required when enabled)
- * @param params.monitor - What to monitor: 'orders' | 'positions' | 'both' (default: 'both')
+ * @param params.monitorOrders - Whether to monitor order changes (default: true)
+ * @param params.monitorPositions - Whether to monitor position changes (default: true)
  * @param params.timeoutMs - Timeout in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS)
  * @param params.onDataDetected - Callback when changes are detected
  * @param params.enabled - Whether monitoring is active
@@ -58,7 +63,8 @@ export function usePerpsDataMonitor(
 ): void {
   const {
     asset,
-    monitor = 'both',
+    monitorOrders = true,
+    monitorPositions = true,
     timeoutMs = PERPS_CONSTANTS.DEFAULT_MONITORING_TIMEOUT_MS,
     onDataDetected,
     enabled = false,
@@ -143,7 +149,14 @@ export function usePerpsDataMonitor(
   // Reset completion flag when key parameters change
   useEffect(() => {
     hasCompletedRef.current = false;
-  }, [asset, onDataDetected, enabled, monitor, timeoutMs]);
+  }, [
+    asset,
+    onDataDetected,
+    enabled,
+    monitorOrders,
+    monitorPositions,
+    timeoutMs,
+  ]);
 
   // Auto-start monitoring when enabled becomes true with valid parameters
   useEffect(() => {
@@ -168,7 +181,8 @@ export function usePerpsDataMonitor(
         'usePerpsDataMonitor: Starting to monitor for data changes',
         {
           asset,
-          monitor,
+          monitorOrders,
+          monitorPositions,
           timeoutMs,
         },
       );
@@ -191,7 +205,8 @@ export function usePerpsDataMonitor(
           'usePerpsDataMonitor: Timeout reached, stopping monitoring',
           {
             asset,
-            monitor,
+            monitorOrders,
+            monitorPositions,
             timeoutMs,
           },
         );
@@ -211,7 +226,8 @@ export function usePerpsDataMonitor(
   }, [
     enabled,
     asset,
-    monitor,
+    monitorOrders,
+    monitorPositions,
     onDataDetected,
     timeoutMs,
     isLoadingOrders,
@@ -241,12 +257,8 @@ export function usePerpsDataMonitor(
     let detectedData: 'orders' | 'positions' | undefined;
     let reason = '';
 
-    // Check for new orders if monitoring orders or both
-    if (
-      (monitor === 'orders' || monitor === 'both') &&
-      !shouldNotify &&
-      orders
-    ) {
+    // Check for new orders if monitoring orders
+    if (monitorOrders && !shouldNotify && orders) {
       const currentAssetOrders = orders.filter(
         (order) => order.symbol === asset,
       );
@@ -259,8 +271,8 @@ export function usePerpsDataMonitor(
       }
     }
 
-    // Check for position changes if monitoring positions or both
-    if ((monitor === 'positions' || monitor === 'both') && !shouldNotify) {
+    // Check for position changes if monitoring positions
+    if (monitorPositions && !shouldNotify) {
       if (hasPositionChangedForAsset(asset)) {
         shouldNotify = true;
         detectedData = 'positions';
@@ -274,7 +286,8 @@ export function usePerpsDataMonitor(
         `usePerpsDataMonitor: ${reason}, detected ${detectedData}`,
         {
           asset,
-          monitor,
+          monitorOrders,
+          monitorPositions,
           reason,
         },
       );
@@ -293,7 +306,8 @@ export function usePerpsDataMonitor(
     // Continue waiting for data changes...
     DevLogger.log('usePerpsDataMonitor: Still waiting for data changes', {
       asset,
-      monitor,
+      monitorOrders,
+      monitorPositions,
       hasOrders: orders ? orders.length > 0 : false,
       hasPositions: positions?.length > 0,
       hasInitialPositions: !!initialPositions,
@@ -301,7 +315,8 @@ export function usePerpsDataMonitor(
   }, [
     isMonitoring,
     asset,
-    monitor,
+    monitorOrders,
+    monitorPositions,
     onDataDetected,
     orders,
     positions,
