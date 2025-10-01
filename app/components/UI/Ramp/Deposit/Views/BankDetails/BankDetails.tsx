@@ -262,7 +262,10 @@ const BankDetails = () => {
     if (isLoadingConfirmPayment || !order) return;
     try {
       setIsLoadingConfirmPayment(true);
-      if (!hasDepositOrderField(order?.data, 'paymentMethod')) {
+      if (
+        !hasDepositOrderField(order?.data, 'paymentMethod') ||
+        !order.data.paymentMethod.id
+      ) {
         console.error('Payment method not found or empty');
         Logger.error(
           new Error('Payment method not found or empty'),
@@ -272,15 +275,6 @@ const BankDetails = () => {
       }
 
       const paymentMethodId = order.data.paymentMethod.id;
-      if (!paymentMethodId) {
-        console.error('Payment method not found or empty');
-        Logger.error(
-          new Error('Payment method not found or empty'),
-          'BankDetails: handleBankTransferSent',
-        );
-        return;
-      }
-
       await confirmPayment(order.id, paymentMethodId);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
