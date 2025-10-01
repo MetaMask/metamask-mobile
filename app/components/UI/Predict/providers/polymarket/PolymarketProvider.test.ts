@@ -1,15 +1,22 @@
 import Engine from '../../../../../core/Engine';
-import { OffchainTradeParams, Side, Recurrence } from '../../types';
+import {
+  OffchainTradeParams,
+  Side,
+  Recurrence,
+  PredictPositionStatus,
+} from '../../types';
 import {
   buildMarketOrderCreationArgs,
   calculateMarketPrice,
   createApiKey,
   encodeApprove,
+  encodeClaim,
+  encodeErc1155Approve,
   getContractConfig,
   getL2Headers,
   getMarketDetailsFromGammaApi,
-  getMarketFromPolymarketApi,
   getMarketsFromPolymarketApi,
+  getParsedMarketsFromPolymarketApi,
   getOrderTypedData,
   getPolymarketEndpoints,
   getTickSize,
@@ -43,13 +50,15 @@ jest.mock('./utils', () => {
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
     })),
+    getParsedMarketsFromPolymarketApi: jest.fn(),
     getMarketsFromPolymarketApi: jest.fn(),
-    getMarketFromPolymarketApi: jest.fn(),
     getMarketDetailsFromGammaApi: jest.fn(),
     getTickSize: jest.fn(),
     calculateMarketPrice: jest.fn(),
     buildMarketOrderCreationArgs: jest.fn(),
     encodeApprove: jest.fn(),
+    encodeClaim: jest.fn(),
+    encodeErc1155Approve: jest.fn(),
     getContractConfig: jest.fn(),
     getL2Headers: jest.fn(),
     getOrderTypedData: jest.fn(),
@@ -66,8 +75,8 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
 const mockSignTypedMessage = Engine.context.KeyringController
   .signTypedMessage as jest.Mock;
 const mockGetMarketsFromPolymarketApi =
-  getMarketsFromPolymarketApi as jest.Mock;
-const mockGetMarketFromPolymarketApi = getMarketFromPolymarketApi as jest.Mock;
+  getParsedMarketsFromPolymarketApi as jest.Mock;
+const mockGetMarketFromPolymarketApi = getMarketsFromPolymarketApi as jest.Mock;
 const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetTickSize = getTickSize as jest.Mock;
@@ -82,6 +91,8 @@ const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
 const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
+const mockEncodeClaim = encodeClaim as jest.Mock;
+const mockEncodeErc1155Approve = encodeErc1155Approve as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const createProvider = () => new PolymarketProvider();
@@ -164,7 +175,7 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue([]),
       });
 
-    mockParsePolymarketPositions.mockReturnValue([]);
+    mockParsePolymarketPositions.mockResolvedValue([]);
 
     const result = await provider.getPositions({
       address: '0x0000000000000000000000000000000000000000',
@@ -237,7 +248,7 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue(mockApiResponse),
       });
 
-    mockParsePolymarketPositions.mockReturnValue(mockParsedPositions);
+    mockParsePolymarketPositions.mockResolvedValue(mockParsedPositions);
 
     const result = await provider.getPositions({
       address: '0x0000000000000000000000000000000000000000',
@@ -273,9 +284,11 @@ describe('PolymarketProvider', () => {
     expect(calledWithUrl.startsWith(`${DATA_API_ENDPOINT}/positions?`)).toBe(
       true,
     );
-    expect(calledWithUrl).toContain('limit=10');
+    expect(calledWithUrl).toContain('limit=100');
     expect(calledWithUrl).toContain('offset=0');
     expect(calledWithUrl).toContain(`user=${userAddress}`);
+    expect(calledWithUrl).toContain('sortBy=CURRENT');
+    expect(calledWithUrl).toContain('redeemable=false');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -297,6 +310,8 @@ describe('PolymarketProvider', () => {
     expect(calledWithUrl).toContain('limit=5');
     expect(calledWithUrl).toContain('offset=15');
     expect(calledWithUrl).toContain(`user=${userAddress}`);
+    expect(calledWithUrl).toContain('sortBy=CURRENT');
+    expect(calledWithUrl).toContain('redeemable=false');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -314,6 +329,26 @@ describe('PolymarketProvider', () => {
         address: '0x3333333333333333333333333333333333333333',
       }),
     ).rejects.toThrow('network failure');
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('getPositions uses claimable parameter correctly', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
+
+    const userAddress = '0x4444444444444444444444444444444444444444';
+    await provider.getPositions({ address: userAddress, claimable: true });
+
+    const calledWithUrl = mockFetch.mock.calls[0][0] as string;
+    expect(calledWithUrl).toContain('redeemable=true');
+    expect(calledWithUrl).toContain(`user=${userAddress}`);
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -353,7 +388,7 @@ describe('PolymarketProvider', () => {
       icon: 'test-icon.png',
       amount: 1,
       price: 0.5,
-      status: 'open' as const,
+      status: PredictPositionStatus.OPEN,
       size: 1,
       outcomeIndex: 0,
       realizedPnl: 0,
@@ -366,6 +401,7 @@ describe('PolymarketProvider', () => {
       avgPrice: 0.5,
       currentValue: 0.5,
       endDate: '2025-01-01T00:00:00Z',
+      claimable: false,
     };
 
     // Setup default mocks
@@ -384,14 +420,16 @@ describe('PolymarketProvider', () => {
     mockPriceValid.mockReturnValue(true);
 
     // Mock market data with valid JSON strings for fields that get parsed
-    mockGetMarketFromPolymarketApi.mockResolvedValue({
-      id: 'outcome-456',
-      conditionId: 'outcome-456',
-      negRisk: false,
-      clobTokenIds: '["token1", "token2"]', // Valid JSON string
-      outcomes: '["YES", "NO"]', // Valid JSON string
-      outcomePrices: '["0.5", "0.5"]', // Valid JSON string
-    });
+    mockGetMarketFromPolymarketApi.mockResolvedValue([
+      {
+        id: 'outcome-456',
+        conditionId: 'outcome-456',
+        negRisk: false,
+        clobTokenIds: '["token1", "token2"]', // Valid JSON string
+        outcomes: '["YES", "NO"]', // Valid JSON string
+        outcomePrices: '["0.5", "0.5"]', // Valid JSON string
+      },
+    ]);
 
     mockBuildMarketOrderCreationArgs.mockReturnValue({
       makerAmount: '1000000',
@@ -406,11 +444,14 @@ describe('PolymarketProvider', () => {
     });
 
     mockEncodeApprove.mockReturnValue('0xencoded');
+    mockEncodeErc1155Approve.mockReturnValue('0xencodederc1155');
 
     mockGetContractConfig.mockReturnValue({
       exchange: '0x1234567890123456789012345678901234567890',
       negRiskExchange: '0x0987654321098765432109876543210987654321',
       collateral: '0xCollateralAddress',
+      conditionalTokens: '0xConditionalTokensAddress',
+      negRiskAdapter: '0xNegRiskAdapterAddress',
     });
 
     mockGetOrderTypedData.mockReturnValue({
@@ -723,6 +764,157 @@ describe('PolymarketProvider', () => {
       const result = await provider.submitOffchainTrade(offchainTradeParams);
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('prepareClaim', () => {
+    function setupPrepareClaimTest() {
+      jest.clearAllMocks();
+      mockGetContractConfig.mockReturnValue({
+        exchange: '0x1234567890123456789012345678901234567890',
+        negRiskExchange: '0x0987654321098765432109876543210987654321',
+        collateral: '0xCollateralAddress',
+        conditionalTokens: '0xConditionalTokensAddress',
+        negRiskAdapter: '0xNegRiskAdapterAddress',
+      });
+      mockEncodeClaim.mockReturnValue('0xencodedclaim');
+      return { provider: createProvider() };
+    }
+
+    it('successfully prepares a claim for regular position', () => {
+      const { provider } = setupPrepareClaimTest();
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      const result = provider.prepareClaim({ position });
+
+      expect(result).toMatchObject({
+        positionId: 'position-1',
+        chainId: 137, // POLYGON_MAINNET_CHAIN_ID
+        status: 'idle',
+        txParams: {
+          data: '0xencodedclaim',
+          to: '0xConditionalTokensAddress',
+          value: '0x0',
+        },
+      });
+
+      expect(mockEncodeClaim).toHaveBeenCalledWith('outcome-456', false, [
+        BigInt('1500000'),
+        0n,
+      ]);
+    });
+
+    it('successfully prepares a claim for negRisk position', () => {
+      const { provider } = setupPrepareClaimTest();
+      const position = {
+        id: 'position-2',
+        providerId: 'polymarket',
+        marketId: 'market-2',
+        outcomeId: 'outcome-789',
+        outcomeIndex: 1,
+        outcome: 'No',
+        outcomeTokenId: '1',
+        title: 'Test NegRisk Position',
+        icon: 'test-icon.png',
+        amount: 2.0,
+        price: 0.3,
+        size: 2.0,
+        negRisk: true,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.3,
+        conditionId: 'outcome-789',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.3,
+        avgPrice: 0.3,
+        currentValue: 0.3,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      const result = provider.prepareClaim({ position });
+
+      expect(result).toMatchObject({
+        positionId: 'position-2',
+        chainId: 137,
+        status: 'idle',
+        txParams: {
+          data: '0xencodedclaim',
+          to: '0xNegRiskAdapterAddress',
+          value: '0x0',
+        },
+      });
+
+      expect(mockEncodeClaim).toHaveBeenCalledWith('outcome-789', true, [
+        0n,
+        BigInt('2000000'),
+      ]);
+    });
+
+    it('calls encodeClaim with correct amounts array based on outcomeIndex', () => {
+      const { provider } = setupPrepareClaimTest();
+      const position = {
+        id: 'position-3',
+        providerId: 'polymarket',
+        marketId: 'market-3',
+        outcomeId: 'outcome-123',
+        outcomeIndex: 1,
+        outcome: 'No',
+        outcomeTokenId: '1',
+        title: 'Test Position Index 1',
+        icon: 'test-icon.png',
+        amount: 0.75,
+        price: 0.4,
+        size: 0.75,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.4,
+        conditionId: 'outcome-123',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.4,
+        avgPrice: 0.4,
+        currentValue: 0.4,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      provider.prepareClaim({ position });
+
+      expect(mockEncodeClaim).toHaveBeenCalledWith('outcome-123', false, [
+        0n,
+        BigInt('750000'),
+      ]);
     });
   });
 

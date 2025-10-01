@@ -27,6 +27,7 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
 
 const mockSetActiveNetwork = jest.fn();
@@ -611,12 +612,18 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedPaymentMethodId when selecting a payment method', async () => {
+    it('navigates to payment method selector when payment method button is pressed', async () => {
       render(BuildQuote);
-      fireEvent.press(getByRoleButton(mockPaymentMethods[0].name));
-      fireEvent.press(getByRoleButton(mockPaymentMethods[1].name));
-      expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
-        mockPaymentMethods[1]?.id,
+      fireEvent.press(getByRoleButton('Change'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentMethodSelectorModal',
+          params: expect.objectContaining({
+            paymentMethods: mockPaymentMethods,
+            location: 'Amount to Buy Screen',
+          }),
+        }),
       );
     });
   });
@@ -650,12 +657,13 @@ describe('BuildQuote View', () => {
       expect(mockGetFiatCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedFiatCurrencyId when selecting a new fiat', async () => {
+    it('navigates to fiat select modal when pressing fiat selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
-      fireEvent.press(getByRoleButton(mockFiatCurrenciesData[1].symbol));
-      expect(mockSetSelectedFiatCurrencyId).toHaveBeenCalledWith(
-        mockFiatCurrenciesData[1]?.id,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createFiatSelectorModalNavigationDetails({
+          currencies: mockFiatCurrenciesData,
+        }),
       );
     });
   });

@@ -4,6 +4,7 @@ import {
   OffchainTradeParams,
   PredictActivity,
   PredictCategory,
+  PredictClaim,
   PredictMarket,
   PredictOrder,
   PredictPosition,
@@ -46,6 +47,18 @@ export interface SellOrderParams {
   position: PredictPosition;
 }
 
+export interface ClaimOrderParams {
+  position: PredictPosition;
+}
+
+export interface GetPositionsParams {
+  address?: string;
+  providerId?: string;
+  limit?: number;
+  offset?: number;
+  claimable?: boolean;
+}
+
 export interface PredictProvider {
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
@@ -55,15 +68,19 @@ export interface PredictProvider {
   ): Promise<PredictPriceHistoryPoint[]>;
 
   // User information
-  getPositions(params: { address: string }): Promise<PredictPosition[]>;
+  getPositions(
+    params: Omit<GetPositionsParams, 'address'> & { address: string },
+  ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
 
   // Order management
   prepareBuyOrder(params: BuyOrderParams): Promise<PredictOrder>;
   prepareSellOrder(params: SellOrderParams): Promise<PredictOrder>;
 
+  // Claim management
+  prepareClaim(params: ClaimOrderParams): PredictClaim;
+
   submitOffchainTrade?(params: OffchainTradeParams): Promise<Result>;
-  claimWinnings(/* TBD */): Promise<void>;
 
   // Eligibility (Geo-Blocking)
   isEligible(): Promise<boolean>;

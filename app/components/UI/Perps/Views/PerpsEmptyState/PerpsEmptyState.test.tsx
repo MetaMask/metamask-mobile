@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsEmptyState } from './PerpsEmptyState';
 
 describe('PerpsEmptyState', () => {
-  const mockOnStartTrading = jest.fn();
+  const mockOnAction = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -12,7 +12,7 @@ describe('PerpsEmptyState', () => {
 
   it('should render correctly', () => {
     const { getByText } = renderWithProvider(
-      <PerpsEmptyState onStartTrading={mockOnStartTrading} />,
+      <PerpsEmptyState onAction={mockOnAction} />,
     );
 
     expect(
@@ -21,14 +21,14 @@ describe('PerpsEmptyState', () => {
     expect(getByText('Start trading')).toBeTruthy();
   });
 
-  it('should call onStartTrading when button is pressed', () => {
+  it('should call onAction when button is pressed', () => {
     const { getByText } = renderWithProvider(
-      <PerpsEmptyState onStartTrading={mockOnStartTrading} />,
+      <PerpsEmptyState onAction={mockOnAction} />,
     );
 
     const startTradingButton = getByText('Start trading');
     fireEvent.press(startTradingButton);
 
-    expect(mockOnStartTrading).toHaveBeenCalledTimes(1);
+    expect(mockOnAction).toHaveBeenCalledTimes(1);
   });
 });

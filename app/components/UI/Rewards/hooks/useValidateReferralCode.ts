@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
 import Engine from '../../../../core/Engine';
 
@@ -46,6 +46,7 @@ export const useValidateReferralCode = (
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [unknownError, setUnknownError] = useState(false);
+  const hasInitialized = useRef(false);
 
   const validateCode = useCallback(async (code: string): Promise<string> => {
     try {
@@ -57,7 +58,7 @@ export const useValidateReferralCode = (
         return 'Invalid code';
       }
       return '';
-    } catch (error) {
+    } catch (err) {
       setUnknownError(true);
       return 'Unknown error';
     }
@@ -94,6 +95,18 @@ export const useValidateReferralCode = (
     },
     [debouncedValidation],
   );
+
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      setReferralCode(initialValue);
+      hasInitialized.current = true;
+    } else if (initialValue !== referralCode) {
+      // Only update if initialValue actually changed from current referralCode
+      setReferralCode(initialValue);
+    }
+    // only run on mount or when initialValue changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue]);
 
   // Cleanup debounced function on unmount
   useEffect(() => () => debouncedValidation.cancel(), [debouncedValidation]);
