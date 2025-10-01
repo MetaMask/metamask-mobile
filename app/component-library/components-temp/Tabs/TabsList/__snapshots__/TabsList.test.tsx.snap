@@ -6,9 +6,6 @@ exports[`TabsList handles empty children gracefully 1`] = `
     [
       {
         "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
       },
       undefined,
     ]
@@ -42,30 +39,41 @@ exports[`TabsList handles empty children gracefully 1`] = `
       }
     />
   </View>
-  <RCTScrollView
-    decelerationRate="fast"
-    horizontal={true}
-    onLayout={[Function]}
-    onMomentumScrollBegin={[Function]}
-    onMomentumScrollEnd={[Function]}
-    onScroll={[Function]}
-    onScrollAnimationEnd={[Function]}
-    onScrollBeginDrag={[Function]}
-    onScrollEndDrag={[Function]}
-    pagingEnabled={true}
-    scrollEventThrottle={16}
-    showsHorizontalScrollIndicator={false}
+  <View
     style={
       {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
         "marginTop": 8,
+        "minHeight": 200,
       }
     }
   >
-    <View />
-  </RCTScrollView>
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "height": "100%",
+        }
+      }
+      decelerationRate="fast"
+      horizontal={true}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollAnimationEnd={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      pagingEnabled={true}
+      scrollEventThrottle={16}
+      showsHorizontalScrollIndicator={false}
+      style={
+        {
+          "width": "100%",
+        }
+      }
+    >
+      <View />
+    </RCTScrollView>
+  </View>
 </View>
 `;
 
@@ -320,85 +328,113 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
       </View>
     </View>
   </View>
-  <RCTScrollView
-    decelerationRate="fast"
-    horizontal={true}
-    onLayout={[Function]}
-    onMomentumScrollBegin={[Function]}
-    onMomentumScrollEnd={[Function]}
-    onScroll={[Function]}
-    onScrollAnimationEnd={[Function]}
-    onScrollBeginDrag={[Function]}
-    onScrollEndDrag={[Function]}
-    pagingEnabled={true}
-    scrollEventThrottle={16}
-    showsHorizontalScrollIndicator={false}
+  <View
     style={
       {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
+        "height": 400,
         "marginTop": 8,
+        "overflow": "hidden",
       }
     }
   >
-    <View>
-      <View
-        style={
-          [
-            {
-              "display": "flex",
-            },
-            {
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "width": 750,
-            },
-          ]
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "height": "100%",
         }
-      >
+      }
+      decelerationRate="fast"
+      horizontal={true}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollAnimationEnd={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      pagingEnabled={true}
+      scrollEventThrottle={16}
+      showsHorizontalScrollIndicator={false}
+      style={
+        {
+          "width": "100%",
+        }
+      }
+    >
+      <View>
         <View
-          tabLabel="Tab 1"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              [
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                },
-                undefined,
-              ]
+          style={
+            {
+              "width": 750,
             }
+          }
+        >
+          <View
+            onLayout={[Function]}
           >
-            Tab 1
-             Content
-          </Text>
+            <View
+              tabLabel="Tab 1"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Tab 1
+                 Content
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "width": 750,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              tabLabel="Tab 2"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Tab 2
+                 Content
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
-      <View
-        style={
-          [
-            {
-              "display": "flex",
-            },
-            {
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "width": 750,
-            },
-          ]
-        }
-      />
-    </View>
-  </RCTScrollView>
+    </RCTScrollView>
+  </View>
 </View>
 `;
 
@@ -408,9 +444,6 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
     [
       {
         "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
       },
       undefined,
     ]
@@ -754,99 +787,123 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
       </View>
     </View>
   </View>
-  <RCTScrollView
-    decelerationRate="fast"
-    horizontal={true}
-    onLayout={[Function]}
-    onMomentumScrollBegin={[Function]}
-    onMomentumScrollEnd={[Function]}
-    onScroll={[Function]}
-    onScrollAnimationEnd={[Function]}
-    onScrollBeginDrag={[Function]}
-    onScrollEndDrag={[Function]}
-    pagingEnabled={true}
-    scrollEventThrottle={16}
-    showsHorizontalScrollIndicator={false}
+  <View
     style={
       {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
+        "height": 400,
         "marginTop": 8,
+        "overflow": "hidden",
       }
     }
   >
-    <View>
-      <View
-        style={
-          [
-            {
-              "display": "flex",
-            },
-            {
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "width": 750,
-            },
-          ]
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "height": "100%",
         }
-      >
+      }
+      decelerationRate="fast"
+      horizontal={true}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollAnimationEnd={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      pagingEnabled={true}
+      scrollEventThrottle={16}
+      showsHorizontalScrollIndicator={false}
+      style={
+        {
+          "width": "100%",
+        }
+      }
+    >
+      <View>
         <View
-          tabLabel="Tab 1"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              [
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                },
-                undefined,
-              ]
+          style={
+            {
+              "width": 750,
             }
+          }
+        >
+          <View
+            onLayout={[Function]}
           >
-            Tab 1
-             Content
-          </Text>
+            <View
+              tabLabel="Tab 1"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Tab 1
+                 Content
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "width": 750,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              tabLabel="Tab 2"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Tab 2
+                 Content
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "width": 750,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          />
         </View>
       </View>
-      <View
-        style={
-          [
-            {
-              "display": "flex",
-            },
-            {
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "width": 750,
-            },
-          ]
-        }
-      />
-      <View
-        style={
-          [
-            {
-              "display": "flex",
-            },
-            {
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "width": 750,
-            },
-          ]
-        }
-      />
-    </View>
-  </RCTScrollView>
+    </RCTScrollView>
+  </View>
 </View>
 `;
