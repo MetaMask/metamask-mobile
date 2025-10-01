@@ -105,5 +105,5 @@ export default {
   XDC,
   'MEGAETH-MAINNET': MEGAETH_MAINNET,
   HEMI,
-  PLASMA,
+  XPL: PLASMA,
 };
