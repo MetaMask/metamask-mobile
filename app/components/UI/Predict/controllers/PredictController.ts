@@ -23,11 +23,17 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { GetMarketsParams, PredictProvider } from '../providers/types';
+import {
+  GetMarketsParams,
+  GetPositionsParams,
+  PredictProvider,
+} from '../providers/types';
 import {
   BuyParams,
-  GetPositionsParams,
+  ClaimParams,
   OffchainTradeResponse,
+  PredictClaim,
+  PredictClaimStatus,
   PredictMarket,
   PredictNotification,
   PredictOrder,
@@ -52,6 +58,7 @@ export const PREDICT_ERROR_CODES = {
   NO_ONCHAIN_TRADE_PARAMS: 'NO_ONCHAIN_TRADE_PARAMS',
   ONCHAIN_TRANSACTION_NOT_FOUND: 'ONCHAIN_TRANSACTION_NOT_FOUND',
   SUBMIT_OFFCHAIN_TRADE_FAILED: 'SUBMIT_OFFCHAIN_TRADE_FAILED',
+  CLAIM_FAILED: 'CLAIM_FAILED',
 } as const;
 
 export type PredictErrorCode =
@@ -72,6 +79,9 @@ export type PredictControllerState = {
   // Order management
   activeOrders: { [key: string]: PredictOrder };
 
+  // Claim management
+  claimTransactions: { [key: string]: PredictClaim[] };
+
   // Notifications
   // TODO: Refactor to use generic notifications
   notifications: PredictNotification[];
@@ -86,6 +96,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastUpdateTimestamp: 0,
   activeOrders: {},
   notifications: [],
+  claimTransactions: {},
 });
 
 /**
@@ -99,6 +110,7 @@ const metadata = {
   lastUpdateTimestamp: { persist: false, anonymous: false },
   activeOrders: { persist: true, anonymous: false },
   notifications: { persist: false, anonymous: false },
+  claimTransactions: { persist: false, anonymous: false },
 };
 
 /**
@@ -208,11 +220,10 @@ export class PredictController extends BaseController<
       this.handleTransactionFailed.bind(this),
     );
 
-    // TODO: Uncomment this when we have a way to handle transaction rejected events
-    /* this.messagingSystem.subscribe(
+    this.messagingSystem.subscribe(
       'TransactionController:transactionRejected',
       this.handleTransactionRejected.bind(this),
-    ); */
+    );
 
     this.initializeProviders().catch((error) => {
       DevLogger.log('PredictController: Error initializing providers', {
@@ -260,8 +271,23 @@ export class PredictController extends BaseController<
     }
 
     let activeOrder = this.state.activeOrders[id];
+    const claimTransaction = this.state.claimTransactions[id];
 
-    if (!activeOrder) {
+    if (!activeOrder && !claimTransaction) {
+      return;
+    }
+
+    if (claimTransaction) {
+      const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
+        isEqualCaseInsensitive(txParams.data, _txMeta.txParams.data ?? ''),
+      );
+      if (transactionIndex === -1) {
+        return;
+      }
+      this.update((state) => {
+        state.claimTransactions[id][transactionIndex].status =
+          PredictClaimStatus.CONFIRMED;
+      });
       return;
     }
 
@@ -367,6 +393,30 @@ export class PredictController extends BaseController<
       return;
     }
 
+    const activeOrder = this.state.activeOrders[id];
+    const claimTransaction = this.state.claimTransactions[id];
+
+    if (!activeOrder && !claimTransaction) {
+      return;
+    }
+
+    if (claimTransaction) {
+      const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
+        isEqualCaseInsensitive(
+          txParams.data,
+          _event.transactionMeta.txParams.data ?? '',
+        ),
+      );
+      if (transactionIndex === -1) {
+        return;
+      }
+      this.update((state) => {
+        state.claimTransactions[id][transactionIndex].status =
+          PredictClaimStatus.ERROR;
+      });
+      return;
+    }
+
     // TODO: Implement transaction failure tracking
     this.update((state) => {
       if (state.activeOrders[id]) {
@@ -379,26 +429,50 @@ export class PredictController extends BaseController<
   /**
    * Handle transaction rejected event
    */
-  // TODO: Uncomment this when we have a way to handle transaction rejected events
-  // private handleTransactionRejected(
-  //   _event: TransactionControllerTransactionRejectedEvent['payload'][0],
-  // ): void {
-  //   const batchId = _event.transactionMeta.id;
-  //   const txId = _event.transactionMeta.id;
-  //
-  //   const id = batchId ?? txId;
-  //
-  //   if (!id) {
-  //     return;
-  //   }
-  //
-  //   this.update((state) => {
-  //     if (state.activeOrders[id]) {
-  //       state.activeOrders[id].status = 'cancelled';
-  //       state.notifications.push({ orderId: id, status: 'cancelled' });
-  //     }
-  //   });
-  // }
+  private handleTransactionRejected(
+    _event: TransactionControllerTransactionRejectedEvent['payload'][0],
+  ): void {
+    const batchId = _event.transactionMeta.id;
+    const txId = _event.transactionMeta.id;
+
+    const id = batchId ?? txId;
+
+    if (!id) {
+      return;
+    }
+
+    const activeOrder = this.state.activeOrders[id];
+    const claimTransaction = this.state.claimTransactions[id];
+
+    if (!activeOrder && !claimTransaction) {
+      return;
+    }
+
+    if (claimTransaction) {
+      const transactionIndex = claimTransaction.findIndex(({ txParams }) =>
+        isEqualCaseInsensitive(
+          txParams.data,
+          _event.transactionMeta.txParams.data ?? '',
+        ),
+      );
+      if (transactionIndex === -1) {
+        return;
+      }
+      this.update((state) => {
+        state.claimTransactions[id][transactionIndex].status =
+          PredictClaimStatus.CANCELLED;
+      });
+      return;
+    }
+
+    // TODO: Implement transaction failure tracking
+    this.update((state) => {
+      if (state.activeOrders[id]) {
+        state.activeOrders[id].status = 'cancelled';
+        state.notifications.push({ orderId: id, status: 'cancelled' });
+      }
+    });
+  }
 
   /**
    * Initialize the PredictController providers
@@ -497,11 +571,9 @@ export class PredictController extends BaseController<
   /**
    * Get user positions
    */
-  async getPositions({
-    address,
-    providerId,
-  }: GetPositionsParams): Promise<PredictPosition[]> {
+  async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
     try {
+      const { address, providerId } = params;
       const { AccountsController } = Engine.context;
 
       const selectedAddress =
@@ -518,6 +590,7 @@ export class PredictController extends BaseController<
       const allPositions = await Promise.all(
         providerIds.map((id: string) =>
           this.providers.get(id)?.getPositions({
+            ...params,
             address: selectedAddress,
           }),
         ),
@@ -766,6 +839,93 @@ export class PredictController extends BaseController<
     }
   }
 
+  async claim({ positions }: ClaimParams): Promise<Result> {
+    try {
+      const { AccountsController, NetworkController } = Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      const calls = positions.map((position) => {
+        const { providerId } = position;
+        const provider = this.providers.get(providerId);
+        if (!provider) {
+          throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+        }
+
+        return provider.prepareClaim({
+          position,
+        });
+      });
+
+      const groupedCalls = calls.reduce((acc, call) => {
+        acc[call.chainId] = [...(acc[call.chainId] || []), call];
+        return acc;
+      }, {} as Record<number, PredictClaim[]>);
+
+      const ids = [];
+
+      for (const chainId in groupedCalls) {
+        const transactions = groupedCalls[chainId];
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(
+          numberToHex(Number(chainId)),
+        );
+
+        if (transactions.length === 1) {
+          const { transactionMeta } = await addTransaction(
+            {
+              from: selectedAddress as Hex,
+              to: transactions[0].txParams.to as Hex,
+              data: transactions[0].txParams.data as Hex,
+              value: transactions[0].txParams.value as Hex,
+            },
+            {
+              networkClientId,
+              requireApproval: true,
+            },
+          );
+          this.update((state) => {
+            state.claimTransactions[transactionMeta.id] = transactions;
+          });
+
+          ids.push(transactionMeta.id);
+          continue;
+        }
+        const { batchId } = await addTransactionBatch({
+          from: selectedAddress as Hex,
+          networkClientId,
+          transactions: transactions.map(({ txParams }) => ({
+            params: {
+              to: txParams.to as Hex,
+              data: txParams.data as Hex,
+              value: txParams.value as Hex,
+            },
+          })),
+          disable7702: true,
+          disableHook: true,
+          disableSequential: false,
+          requireApproval: true,
+        });
+
+        this.update((state) => {
+          state.claimTransactions[batchId] = transactions;
+        });
+        ids.push(batchId);
+      }
+      return {
+        success: true,
+        ids,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.CLAIM_FAILED,
+        id: undefined,
+      };
+    }
+  }
+
   /**
    * Refresh eligibility status
    */
@@ -812,5 +972,11 @@ export class PredictController extends BaseController<
     updater: (state: PredictControllerState) => void,
   ): void {
     this.update(updater);
+  }
+
+  public clearClaimTransactions(): void {
+    this.update((state) => {
+      state.claimTransactions = {};
+    });
   }
 }

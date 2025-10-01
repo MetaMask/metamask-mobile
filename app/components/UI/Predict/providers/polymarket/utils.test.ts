@@ -2,10 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
-import { PredictCategory, Side } from '../../types';
+import { PredictCategory, PredictPositionStatus, Side } from '../../types';
 import {
   ClobAuthDomain,
   EIP712Domain,
+  HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
@@ -39,16 +40,20 @@ import {
   decimalPlaces,
   deriveApiKey,
   encodeApprove,
+  encodeClaim,
+  encodeRedeemNegRiskPositions,
+  encodeRedeemPositions,
   generateSalt,
   getContractConfig,
   getL1Headers,
   getL2Headers,
-  getMarketFromPolymarketApi,
-  getMarketOrderRawAmounts,
   getMarketsFromPolymarketApi,
+  getMarketOrderRawAmounts,
+  getParsedMarketsFromPolymarketApi,
   getOrderBook,
   getOrderTypedData,
   getPolymarketEndpoints,
+  getPredictPositionStatus,
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
@@ -1209,6 +1214,7 @@ describe('polymarket utils', () => {
         curPrice: 0.6,
         currentValue: 60,
         percentPnl: 5,
+        realizedPnl: 0,
         initialValue: 50,
         avgPrice: 0.5,
         redeemable: false,
@@ -1228,48 +1234,198 @@ describe('polymarket utils', () => {
         curPrice: 0.4,
         currentValue: 20,
         percentPnl: -10,
+        realizedPnl: 0,
         initialValue: 25,
         avgPrice: 0.5,
         redeemable: true,
         negativeRisk: false,
         endDate: '2024-12-31',
       },
+      {
+        asset: 'position-3',
+        conditionId: 'condition-1',
+        icon: 'https://example.com/icon3.png',
+        title: 'Position 3',
+        slug: 'position-3',
+        size: 75,
+        outcome: 'Maybe',
+        outcomeIndex: 2,
+        cashPnl: 15,
+        curPrice: 0.8,
+        currentValue: 60,
+        percentPnl: 20,
+        realizedPnl: 0,
+        initialValue: 50,
+        avgPrice: 0.67,
+        redeemable: true,
+        negativeRisk: false,
+        endDate: '2024-12-31',
+      },
     ];
 
-    it('parse positions correctly', () => {
-      const result = parsePolymarketPositions({ positions: mockPositions });
+    const mockMarketResponse: Partial<PolymarketApiMarket>[] = [
+      {
+        conditionId: 'condition-1',
+        events: [
+          {
+            id: 'event-1',
+            slug: 'slug-1',
+            title: 'Mock Event',
+            description: 'Mock Description',
+            icon: 'mock-icon.png',
+            closed: false,
+            series: [],
+            markets: [],
+          },
+        ],
+      },
+    ];
 
-      expect(result).toHaveLength(2);
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockMarketResponse),
+      });
+    });
+
+    it('parse positions correctly and enrich with market data', async () => {
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      expect(result).toHaveLength(3);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1&condition_ids=condition-1',
+      );
+
       expect(result[0]).toEqual({
-        ...mockPositions[0],
         id: 'position-1',
         providerId: 'polymarket',
-        marketId: 'condition-1',
+        marketId: 'event-1',
         outcomeId: 'condition-1',
+        outcome: 'Yes',
         outcomeTokenId: 'position-1',
+        outcomeIndex: 0,
+        negRisk: false,
         amount: 100,
         price: 0.6,
         status: 'open',
+        realizedPnl: 0,
+        percentPnl: 5,
+        cashPnl: 10,
+        initialValue: 50,
+        avgPrice: 0.5,
+        endDate: '2024-12-31',
+        title: 'Position 1',
+        icon: 'https://example.com/icon1.png',
+        size: 100,
+        claimable: false,
+        currentValue: 60,
       });
 
       expect(result[1]).toEqual({
-        ...mockPositions[1],
         id: 'position-2',
         providerId: 'polymarket',
-        marketId: 'condition-1',
+        marketId: 'event-1',
         outcomeId: 'condition-1',
+        outcome: 'No',
         outcomeTokenId: 'position-2',
+        outcomeIndex: 1,
+        negRisk: false,
         amount: 50,
         price: 0.4,
-        status: 'redeemable',
+        status: 'lost',
+        realizedPnl: 0,
+        percentPnl: -10,
+        cashPnl: -5,
+        initialValue: 25,
+        avgPrice: 0.5,
+        endDate: '2024-12-31',
+        title: 'Position 2',
+        icon: 'https://example.com/icon2.png',
+        size: 50,
+        claimable: true,
+        currentValue: 20,
+      });
+
+      expect(result[2]).toEqual({
+        id: 'position-3',
+        providerId: 'polymarket',
+        marketId: 'event-1',
+        outcomeId: 'condition-1',
+        outcome: 'Maybe',
+        outcomeTokenId: 'position-3',
+        outcomeIndex: 2,
+        negRisk: false,
+        amount: 75,
+        price: 0.8,
+        status: 'won',
+        realizedPnl: 0,
+        percentPnl: 20,
+        cashPnl: 15,
+        initialValue: 50,
+        avgPrice: 0.67,
+        endDate: '2024-12-31',
+        title: 'Position 3',
+        icon: 'https://example.com/icon3.png',
+        size: 75,
+        claimable: true,
+        currentValue: 60,
       });
     });
 
-    it('handle empty positions array', () => {
-      const result = parsePolymarketPositions({ positions: [] });
-
+    it('handle empty positions array', async () => {
+      const result = await parsePolymarketPositions({ positions: [] });
       expect(result).toEqual([]);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    it('handle positions without a matching market', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]), // No markets found
+      });
+
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      expect(result[0].marketId).toBe('');
+      expect(result[1].marketId).toBe('');
+    });
+
+    it('handle market data fetch failure gracefully', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      // Should still return positions with empty marketId when API fails
+      expect(result).toHaveLength(3);
+      expect(result[0].marketId).toBe('');
+      expect(result[1].marketId).toBe('');
+      expect(result[2].marketId).toBe('');
+      expect(result[0].id).toBe('position-1');
+      expect(result[1].id).toBe('position-2');
+      expect(result[2].id).toBe('position-3');
+    });
+  });
+
+  describe('getPredictPositionStatus', () => {
+    it.each([
+      { claimable: false, cashPnl: 10, expected: PredictPositionStatus.OPEN },
+      { claimable: false, cashPnl: -5, expected: PredictPositionStatus.OPEN },
+      { claimable: true, cashPnl: 15, expected: PredictPositionStatus.WON },
+      { claimable: true, cashPnl: 0, expected: PredictPositionStatus.LOST },
+      { claimable: true, cashPnl: -5, expected: PredictPositionStatus.LOST },
+    ])(
+      'returns $expected when claimable=$claimable and cashPnl=$cashPnl',
+      ({ claimable, cashPnl, expected }) => {
+        const result = getPredictPositionStatus({ claimable, cashPnl });
+        expect(result).toBe(expected);
+      },
+    );
   });
 
   describe('getMarketsFromPolymarketApi', () => {
@@ -1311,7 +1467,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await getMarketsFromPolymarketApi();
+      const result = await getParsedMarketsFromPolymarketApi();
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
@@ -1337,7 +1493,7 @@ describe('polymarket utils', () => {
         offset: 5,
       };
 
-      const result = await getMarketsFromPolymarketApi(params);
+      const result = await getParsedMarketsFromPolymarketApi(params);
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
@@ -1362,7 +1518,7 @@ describe('polymarket utils', () => {
         limit: 5,
       };
 
-      await getMarketsFromPolymarketApi(params);
+      await getParsedMarketsFromPolymarketApi(params);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/events/pagination?limit=5&active=true&archived=false&closed=false&ascending=false&offset=0&tag_slug=crypto&order=volume24hr',
@@ -1375,7 +1531,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await getMarketsFromPolymarketApi();
+      const result = await getParsedMarketsFromPolymarketApi();
 
       expect(result).toEqual([]);
     });
@@ -1384,7 +1540,7 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(getMarketsFromPolymarketApi()).rejects.toThrow(
+      await expect(getParsedMarketsFromPolymarketApi()).rejects.toThrow(
         'Network error',
       );
     });
@@ -1416,11 +1572,11 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await getMarketFromPolymarketApi({
-        conditionId: 'market-1',
+      const result = await getMarketsFromPolymarketApi({
+        conditionIds: ['market-1'],
       });
 
-      expect(result).toEqual(mockMarket);
+      expect(result).toEqual(mockResponse);
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/markets?condition_ids=market-1',
       );
@@ -1431,8 +1587,173 @@ describe('polymarket utils', () => {
       mockFetch.mockRejectedValue(error);
 
       await expect(
-        getMarketFromPolymarketApi({ conditionId: 'market-1' }),
+        getMarketsFromPolymarketApi({ conditionIds: ['market-1'] }),
       ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('encodeRedeemPositions', () => {
+    it('encode redeem positions function call correctly', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [1, 2];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('handle different index sets', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [1, 2, 3, 4];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle bigint amounts', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [BigInt(1), BigInt(2)];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('encodeRedeemNegRiskPositions', () => {
+    it('encode redeem neg risk positions function call correctly', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = [100, 200];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('handle bigint amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = [BigInt(100), BigInt(200)];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle string amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = ['100', '200'];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('encodeClaim', () => {
+    it('encode claim for non-negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = false;
+
+      const result = encodeClaim(conditionId, negRisk);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('encode claim for negRisk positions with amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = [100, 200];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('throw error for negRisk positions without amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+
+      expect(() => encodeClaim(conditionId, negRisk)).toThrow(
+        'amounts parameter is required when negRisk is true',
+      );
+    });
+
+    it('handle bigint amounts for negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = [BigInt(100), BigInt(200)];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle string amounts for negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = ['100', '200'];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
     });
   });
 });

@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
+import { Hex } from '@metamask/utils';
+
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
-}
-
-export interface GetPositionsParams {
-  address?: string;
-  providerId?: string;
 }
 
 export enum PredictMarketStatus {
@@ -55,6 +52,14 @@ export type PredictOrderStatus =
   | 'cancelled'
   | 'error';
 
+export enum PredictClaimStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictOrder = {
   id: string;
@@ -72,6 +77,17 @@ export type PredictOrder = {
   lastUpdated: number;
   onchainTradeParams: OnchainTradeParams[];
   offchainTradeParams?: OffchainTradeParams;
+};
+
+export type PredictClaim = {
+  positionId: string;
+  chainId: number;
+  status: PredictClaimStatus;
+  txParams: {
+    to: Hex;
+    data: Hex;
+    value: Hex;
+  };
 };
 
 export type PredictMarket = {
@@ -155,6 +171,13 @@ export interface PredictActivityClaimWinnings {
   // tbd
 }
 
+export enum PredictPositionStatus {
+  OPEN = 'open',
+  REDEEMABLE = 'redeemable',
+  WON = 'won',
+  LOST = 'lost',
+}
+
 export type PredictPosition = {
   id: string;
   providerId: string;
@@ -162,23 +185,22 @@ export type PredictPosition = {
   outcomeId: string;
   outcome: string;
   outcomeTokenId: string;
+  currentValue: number;
   title: string;
   icon: string;
   amount: number;
   price: number;
-  status: 'open' | 'redeemable' | 'won' | 'lost';
+  status: PredictPositionStatus;
   size: number;
   outcomeIndex: number;
   realizedPnl?: number;
-  curPrice: number;
-  conditionId: string;
   percentPnl: number;
   cashPnl: number;
-  redeemable: boolean;
+  claimable: boolean;
   initialValue: number;
   avgPrice: number;
-  currentValue: number;
   endDate: string;
+  negRisk?: boolean;
 };
 
 export type PredictNotification = {
@@ -197,9 +219,14 @@ export interface SellParams {
   position: PredictPosition;
 }
 
+export interface ClaimParams {
+  positions: PredictPosition[];
+}
+
 export type Result<T = void> = {
   success: boolean;
   id?: string;
+  ids?: string[];
   error?: string;
   value?: T;
 };
