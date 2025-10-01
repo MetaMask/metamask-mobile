@@ -89,7 +89,7 @@ jobs:
               - 'wdio/**'                          # WebDriver test files
               - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
-
+              - 'scripts/build.sh'                 # Build script
 
             ignore:
               - '**/*.md'                          # Documentation files
@@ -110,7 +110,10 @@ jobs:
               - 'scripts/**'                       # Build/utility scripts
               - 'patches/**'                       # Dependency patches
               - 'ppom/**'                          # PPOM sub-project
-
+              - 'scripts/*'                        # Build/utility scripts (non-recursive)
+              - 'scripts/*/**'                     # Subdirectories in scripts/
+              - '!scripts/build.sh'                # Build.sh should build
+              
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback
           list-files: 'shell' # Output lists for comparison

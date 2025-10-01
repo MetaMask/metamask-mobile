@@ -129,9 +129,9 @@ checkParameters(){
 	fi
 
 	# Check if the METAMASK_ENVIRONMENT is valid
-	VALID_METAMASK_ENVIRONMENTS="production|beta|rc|exp|test|e2e|dev"
+	VALID_METAMASK_ENVIRONMENTS="production|beta|rc|exp|test|e2e|dev|qa"
 	case "${METAMASK_ENVIRONMENT}" in
-		production|beta|rc|exp|test|e2e|dev)
+		production|beta|rc|exp|test|e2e|dev|qa)
 			# Valid environment - continue
 			;;
 		*)
