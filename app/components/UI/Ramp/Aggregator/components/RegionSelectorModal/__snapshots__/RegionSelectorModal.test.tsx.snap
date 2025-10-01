@@ -525,6 +525,30 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -718,7 +742,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -1362,6 +1386,30 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -1574,7 +1622,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -2537,6 +2585,30 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -2730,7 +2802,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -3374,6 +3446,30 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -3508,7 +3604,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -4079,6 +4175,30 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -4213,7 +4333,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -4784,6 +4904,30 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -4996,7 +5140,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -5959,6 +6103,30 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                           <View
                             style={
                               {
+                                "marginBottom": 16,
+                                "paddingHorizontal": 16,
+                                "textAlign": "center",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#b7bbc8",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.25,
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
                                 "paddingBottom": 16,
                                 "paddingHorizontal": 16,
                               }
@@ -6134,7 +6302,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "height": 1067.2,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}

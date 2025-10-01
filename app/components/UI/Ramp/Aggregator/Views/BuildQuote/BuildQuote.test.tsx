@@ -106,7 +106,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockQueryGetCountries = jest.fn();
-const mockClearUnsupportedRegion = jest.fn();
 
 const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   data: mockRegionsData,
@@ -114,8 +113,6 @@ const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   error: null,
   query: mockQueryGetCountries,
   selectedRegion: mockRegionsData[0],
-  unsupportedRegion: undefined,
-  clearUnsupportedRegion: mockClearUnsupportedRegion,
 };
 
 let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {

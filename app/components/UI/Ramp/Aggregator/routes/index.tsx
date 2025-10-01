@@ -1,6 +1,5 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Regions from '../Views/Regions';
 import Quotes from '../Views/Quotes';
 import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
@@ -13,6 +12,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
 import RegionSelectorModal from '../components/RegionSelectorModal';
+import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -47,12 +47,6 @@ const MainRoutes = () => (
       }}
     />
     <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
-    <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
-    <Stack.Screen
-      name={Routes.RAMP.REGION_HAS_STARTED}
-      component={Regions}
-      options={{ animationEnabled: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -76,6 +70,10 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.REGION_SELECTOR}
       component={RegionSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.UNSUPPORTED_REGION}
+      component={UnsupportedRegionModal}
     />
   </ModalsStack.Navigator>
 );

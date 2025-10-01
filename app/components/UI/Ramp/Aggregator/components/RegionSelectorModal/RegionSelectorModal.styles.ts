@@ -18,7 +18,7 @@ const createStyles = (params: {
       paddingBottom: 16,
     },
     list: {
-      height: screenHeight * 0.4,
+      height: screenHeight * 0.8,
     },
     region: {
       flexDirection: 'row',
@@ -31,21 +31,10 @@ const createStyles = (params: {
       padding: 16,
       alignItems: 'center',
     },
-    unsupportedContainer: {
-      paddingVertical: 20,
-    },
-    unsupportedTitle: {
-      marginBottom: 8,
-    },
-    unsupportedRegion: {
+    description: {
+      paddingHorizontal: 16,
       marginBottom: 16,
-    },
-    unsupportedDescription: {
-      marginBottom: 20,
-    },
-    supportLink: {
-      color: params.theme.colors.primary.default,
-      textDecorationLine: 'underline',
+      textAlign: 'center',
     },
   });
 };

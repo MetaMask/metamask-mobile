@@ -6,7 +6,6 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { RampSDK } from '../../sdk';
 import { RampType } from '../../types';
-import { mockNetworkState } from '../../../../../../util/test/network';
 
 const mockRegions = [
   {
@@ -87,17 +86,7 @@ function render(component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: {
-            ...backgroundState,
-            NetworkController: {
-              ...mockNetworkState({
-                chainId: '0x1',
-                id: 'mainnet',
-                nickname: 'Ethereum Mainnet',
-                ticker: 'ETH',
-              }),
-            },
-          },
+          backgroundState,
         },
       },
     },

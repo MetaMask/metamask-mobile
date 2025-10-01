@@ -5,14 +5,20 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler, LayoutChangeEvent } from 'react-native';
+import {
+  Pressable,
+  View,
+  BackHandler,
+  LayoutChangeEvent,
+  InteractionManager,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import BN4 from 'bnjs4';
 import {
   AvatarToken,
@@ -101,6 +107,7 @@ import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -224,6 +231,27 @@ const BuildQuote = () => {
     setAmount('0');
     setAmountNumber(0);
   }, [selectedRegion]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        regions &&
+        selectedRegion &&
+        (selectedRegion.unsupported ||
+          (isBuy && !selectedRegion.support?.buy) ||
+          (isSell && !selectedRegion.support?.sell))
+      ) {
+        InteractionManager.runAfterInteractions(() => {
+          navigation.navigate(
+            ...createUnsupportedRegionModalNavigationDetails({
+              regions,
+              region: selectedRegion,
+            }),
+          );
+        });
+      }
+    }, [selectedRegion, navigation, isBuy, isSell, regions]),
+  );
 
   useEffect(() => {
     const handleRegionChange = async () => {

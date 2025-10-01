@@ -5,11 +5,12 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, useWindowDimensions , TouchableOpacity, Linking } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
@@ -42,7 +43,6 @@ const MAX_REGION_RESULTS = 20;
 enum RegionViewType {
   COUNTRY = 'COUNTRY',
   STATE = 'STATE',
-  UNSUPPORTED = 'UNSUPPORTED',
 }
 
 interface RegionSelectorModalParams {
@@ -59,15 +59,12 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
 
-  const { selectedRegion, setSelectedRegion, isBuy, isSell } = useRampSDK();
+  const { selectedRegion, setSelectedRegion, isBuy } = useRampSDK();
   const { regions } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
   const [currentData, setCurrentData] = useState<Region[]>(regions || []);
   const [regionInTransit, setRegionInTransit] = useState<Region | null>(null);
-  const [unsupportedRegion, setUnsupportedRegion] = useState<Region | null>(
-    null,
-  );
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
@@ -147,16 +144,6 @@ function RegionSelectorModal() {
         return;
       }
 
-      if (
-        region.unsupported ||
-        (isBuy && !region.support?.buy) ||
-        (isSell && !region.support?.sell)
-      ) {
-        setUnsupportedRegion(region);
-        setActiveView(RegionViewType.UNSUPPORTED);
-        return;
-      }
-
       trackEvent('RAMP_REGION_SELECTED', {
         country_id: regionInTransit?.id ?? region.id,
         state_id: regionInTransit ? region.id : undefined,
@@ -166,14 +153,7 @@ function RegionSelectorModal() {
       setSelectedRegion(region);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [
-      setSelectedRegion,
-      trackEvent,
-      regionInTransit,
-      scrollToTop,
-      isBuy,
-      isSell,
-    ],
+    [setSelectedRegion, trackEvent, regionInTransit, scrollToTop],
   );
 
   const renderRegionItem = useCallback(
@@ -238,16 +218,12 @@ function RegionSelectorModal() {
     setActiveView(RegionViewType.COUNTRY);
     setCurrentData(regions || []);
     setRegionInTransit(null);
-    setUnsupportedRegion(null);
     setSearchString('');
     scrollToTop();
   }, [regions, scrollToTop]);
 
   const onBackButtonPress = useCallback(() => {
-    if (
-      activeView === RegionViewType.STATE ||
-      activeView === RegionViewType.UNSUPPORTED
-    ) {
+    if (activeView === RegionViewType.STATE) {
       handleRegionBackButton();
     } else {
       sheetRef.current?.onCloseBottomSheet();
@@ -257,67 +233,21 @@ function RegionSelectorModal() {
   const onModalHide = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
     setRegionInTransit(null);
-    setUnsupportedRegion(null);
     setCurrentData(regions || []);
     setSearchString('');
   }, [regions]);
 
-  const handleSupportLinkPress = useCallback(() => {
-    const SUPPORT_URL =
-      'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/';
-    Linking.openURL(SUPPORT_URL);
-  }, []);
-
-  const renderUnsupportedRegionView = useCallback(
-    () => (
-      <View style={styles.emptyList}>
-        <View style={styles.unsupportedContainer}>
-          <Text variant={TextVariant.HeadingMD} style={styles.unsupportedTitle}>
-            {strings('fiat_on_ramp_aggregator.region.unsupported')}
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.unsupportedRegion}>
-            {`${unsupportedRegion?.emoji}  ${unsupportedRegion?.name}`}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.unsupportedDescription}
-          >
-            {strings('fiat_on_ramp_aggregator.region.unsupported_description', {
-              rampType: strings(
-                isBuy
-                  ? 'fiat_on_ramp_aggregator.buy'
-                  : 'fiat_on_ramp_aggregator.sell',
-              ),
-            })}
-          </Text>
-          <TouchableOpacity onPress={handleSupportLinkPress}>
-            <Text variant={TextVariant.BodySM} style={styles.supportLink}>
-              {strings('fiat_on_ramp_aggregator.region.unsupported_link')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    ),
-    [
-      unsupportedRegion,
-      handleSupportLinkPress,
-      styles.emptyList,
-      styles.unsupportedContainer,
-      styles.unsupportedTitle,
-      styles.unsupportedRegion,
-      styles.unsupportedDescription,
-      styles.supportLink,
-      isBuy,
-    ],
-  );
-
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={onModalHide}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack
+      onClose={onModalHide}
+      keyboardAvoidingViewEnabled={false}
+    >
       <BottomSheetHeader
         onClose={onBackButtonPress}
         onBack={
-          activeView === RegionViewType.STATE ||
-          activeView === RegionViewType.UNSUPPORTED
+          activeView === RegionViewType.STATE
             ? handleRegionBackButton
             : undefined
         }
@@ -325,42 +255,43 @@ function RegionSelectorModal() {
         <Text variant={TextVariant.HeadingMD}>
           {activeView === RegionViewType.COUNTRY
             ? strings('fiat_on_ramp_aggregator.region.title')
-            : activeView === RegionViewType.UNSUPPORTED
-            ? strings('fiat_on_ramp_aggregator.region.unsupported')
             : regionInTransit?.name}
         </Text>
       </BottomSheetHeader>
-      {activeView !== RegionViewType.UNSUPPORTED && (
-        <View style={styles.searchContainer}>
-          <TextFieldSearch
-            value={searchString}
-            showClearButton={searchString.length > 0}
-            onPressClearButton={clearSearchText}
-            onFocus={scrollToTop}
-            onChangeText={handleSearchTextChange}
-            placeholder={strings(
-              activeView === RegionViewType.COUNTRY
-                ? 'fiat_on_ramp_aggregator.region.search_by_country'
-                : 'fiat_on_ramp_aggregator.region.search_by_state',
-            )}
-          />
-        </View>
-      )}
-      {activeView === RegionViewType.UNSUPPORTED ? (
-        renderUnsupportedRegionView()
-      ) : (
-        <FlatList
-          ref={listRef}
-          style={styles.list}
-          data={dataSearchResults}
-          renderItem={renderRegionItem}
-          extraData={selectedRegion?.id}
-          keyExtractor={(item) => item?.id}
-          ListEmptyComponent={renderEmptyList}
-          keyboardDismissMode="none"
-          keyboardShouldPersistTaps="always"
+      <View style={styles.description}>
+        <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+          {strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.region.description'
+              : 'fiat_on_ramp_aggregator.region.sell_description',
+          )}
+        </Text>
+      </View>
+      <View style={styles.searchContainer}>
+        <TextFieldSearch
+          value={searchString}
+          showClearButton={searchString.length > 0}
+          onPressClearButton={clearSearchText}
+          onFocus={scrollToTop}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings(
+            activeView === RegionViewType.COUNTRY
+              ? 'fiat_on_ramp_aggregator.region.search_by_country'
+              : 'fiat_on_ramp_aggregator.region.search_by_state',
+          )}
         />
-      )}
+      </View>
+      <FlatList
+        ref={listRef}
+        style={styles.list}
+        data={dataSearchResults}
+        renderItem={renderRegionItem}
+        extraData={selectedRegion?.id}
+        keyExtractor={(item) => item?.id}
+        ListEmptyComponent={renderEmptyList}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+      />
     </BottomSheet>
   );
 }
