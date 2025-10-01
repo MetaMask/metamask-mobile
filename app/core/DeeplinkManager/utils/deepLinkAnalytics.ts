@@ -7,38 +7,19 @@ import branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 import {
   DeepLinkUsedEventProperties,
-  BranchParams,
   InterstitialState,
   SignatureStatus,
   DeepLinkRoute,
   SensitiveProperties,
   DeepLinkAnalyticsContext,
 } from '../types/deepLinkAnalytics';
-import extractURLParams from '../ParseManager/extractURLParams';
 import { ACTIONS } from '../../../constants/deeplinks';
-
-
-/**
- * Detect if the app was installed based on Branch.io parameters
- * Uses validated logic from our testing
- */
-export const detectAppInstallation = async (): Promise<boolean> => {
-  try {
-    const latestParams = await branch.getLatestReferringParams();
-    return determineAppInstallationStatus(latestParams);
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'DeepLinkAnalytics: Error accessing Branch.io parameters',
-    );
-    // Default to app installed if we can't access Branch.io parameters
-    return true;
-  }
-};
 
 /**
  * Determine app installation status from Branch.io parameters
  * This is the core logic we validated in testing
+ * @param params - Branch.io parameters object
+ * @returns boolean - true if app was already installed, false for deferred deep link
  */
 export const determineAppInstallationStatus = (params: unknown): boolean => {
   try {
@@ -78,18 +59,16 @@ export const determineAppInstallationStatus = (params: unknown): boolean => {
           'DeepLinkAnalytics: App was installed via Branch.io (deferred deep link)',
         );
         return false; // was_app_installed = false
-      } else {
-        // Not first session = app was already installed
-        Logger.log(
-          'DeepLinkAnalytics: App was already installed (returning user from Branch link)',
-        );
-        return true; // was_app_installed = true
       }
-    } else {
-      // User did not come from a Branch link (direct app launch)
-      Logger.log('DeepLinkAnalytics: Direct app launch (not from Branch link)');
+      // Not first session = app was already installed
+      Logger.log(
+        'DeepLinkAnalytics: App was already installed (returning user from Branch link)',
+      );
       return true; // was_app_installed = true
     }
+    // User did not come from a Branch link (direct app launch)
+    Logger.log('DeepLinkAnalytics: Direct app launch (not from Branch link)');
+    return true; // was_app_installed = true
   } catch (error) {
     Logger.error(
       error as Error,
@@ -100,12 +79,34 @@ export const determineAppInstallationStatus = (params: unknown): boolean => {
 };
 
 /**
+ * Detect if the app was installed based on Branch.io parameters
+ * Uses validated logic from our testing
+ * @returns Promise<boolean> - true if app was already installed, false for deferred deep link
+ */
+export const detectAppInstallation = async (): Promise<boolean> => {
+  try {
+    const latestParams = await branch.getLatestReferringParams();
+    return determineAppInstallationStatus(latestParams);
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'DeepLinkAnalytics: Error accessing Branch.io parameters',
+    );
+    // Default to app installed if we can't access Branch.io parameters
+    return true;
+  }
+};
+
+/**
  * Extract sensitive properties based on route type
  * Only includes relevant parameters for each route
+ * @param route - The deep link route type
+ * @param urlParams - URL parameters from the deep link
+ * @returns SensitiveProperties - Route-specific sensitive parameters
  */
 export const extractSensitiveProperties = (
   route: DeepLinkRoute,
-  urlParams: Record<string, string>,
+  _urlParams: Record<string, string>,
 ): SensitiveProperties => {
   try {
     const sensitiveProps: SensitiveProperties = {};
@@ -133,6 +134,8 @@ export const extractSensitiveProperties = (
 
 /**
  * Determine interstitial state based on context
+ * @param context - Deep link analytics context
+ * @returns InterstitialState - The determined interstitial state
  */
 export const determineInterstitialState = (
   context: DeepLinkAnalyticsContext,
@@ -148,10 +151,9 @@ export const determineInterstitialState = (
     ) {
       // Deferred deep link - app not installed
       return InterstitialState.NOT_SHOWN;
-    } else {
-      // Direct app launch or other scenario
-      return InterstitialState.NOT_SHOWN;
     }
+    // Direct app launch or other scenario
+    return InterstitialState.NOT_SHOWN;
   }
 
   if (interstitialDisabled) {
@@ -159,9 +161,10 @@ export const determineInterstitialState = (
     return InterstitialState.SKIPPED;
   }
 
-  if (interstitialAction === 'accepted') {
+  if (interstitialAction === InterstitialState.ACCEPTED) {
     return InterstitialState.ACCEPTED;
-  } else if (interstitialAction === 'rejected') {
+  }
+  if (interstitialAction === InterstitialState.REJECTED) {
     return InterstitialState.REJECTED;
   }
 
@@ -250,11 +253,13 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
 
 /**
  * Create the consolidated deep link analytics event
+ * @param context - Deep link analytics context
+ * @returns Promise<DeepLinkUsedEventProperties> - The consolidated analytics event properties
  */
 export const createDeepLinkUsedEvent = async (
   context: DeepLinkAnalyticsContext,
 ): Promise<DeepLinkUsedEventProperties> => {
-  const { url, urlParams, signatureStatus, interstitialDisabled } = context;
+  const { url, urlParams, signatureStatus } = context;
 
   // Detect app installation status
   const wasAppInstalled = await detectAppInstallation();

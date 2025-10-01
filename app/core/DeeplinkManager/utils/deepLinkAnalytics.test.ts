@@ -269,7 +269,7 @@ describe('deepLinkAnalytics', () => {
     it('return ACCEPTED when user accepted the interstitial', () => {
       const context = createMockContext({
         interstitialShown: true,
-        interstitialAction: 'accepted',
+        interstitialAction: InterstitialState.ACCEPTED,
       });
 
       const result = determineInterstitialState(context);
@@ -279,7 +279,7 @@ describe('deepLinkAnalytics', () => {
     it('return REJECTED when user rejected the interstitial', () => {
       const context = createMockContext({
         interstitialShown: true,
-        interstitialAction: 'rejected',
+        interstitialAction: InterstitialState.REJECTED,
       });
 
       const result = determineInterstitialState(context);
@@ -326,9 +326,15 @@ describe('deepLinkAnalytics', () => {
     });
 
     it('map perps actions to PERPS route', () => {
-      expect(mapSupportedActionToRoute(ACTIONS.PERPS)).toBe(DeepLinkRoute.PERPS);
-      expect(mapSupportedActionToRoute(ACTIONS.PERPS_MARKETS)).toBe(DeepLinkRoute.PERPS);
-      expect(mapSupportedActionToRoute(ACTIONS.PERPS_ASSET)).toBe(DeepLinkRoute.PERPS);
+      expect(mapSupportedActionToRoute(ACTIONS.PERPS)).toBe(
+        DeepLinkRoute.PERPS,
+      );
+      expect(mapSupportedActionToRoute(ACTIONS.PERPS_MARKETS)).toBe(
+        DeepLinkRoute.PERPS,
+      );
+      expect(mapSupportedActionToRoute(ACTIONS.PERPS_ASSET)).toBe(
+        DeepLinkRoute.PERPS,
+      );
     });
 
     it('map deposit action to DEPOSIT route', () => {
@@ -343,7 +349,9 @@ describe('deepLinkAnalytics', () => {
 
     it('map buy actions to BUY route', () => {
       expect(mapSupportedActionToRoute(ACTIONS.BUY)).toBe(DeepLinkRoute.BUY);
-      expect(mapSupportedActionToRoute(ACTIONS.BUY_CRYPTO)).toBe(DeepLinkRoute.BUY);
+      expect(mapSupportedActionToRoute(ACTIONS.BUY_CRYPTO)).toBe(
+        DeepLinkRoute.BUY,
+      );
     });
 
     it('map home action to HOME route', () => {
@@ -351,9 +359,13 @@ describe('deepLinkAnalytics', () => {
     });
 
     it('map unsupported actions to INVALID route', () => {
-      expect(mapSupportedActionToRoute(ACTIONS.DAPP)).toBe(DeepLinkRoute.INVALID);
+      expect(mapSupportedActionToRoute(ACTIONS.DAPP)).toBe(
+        DeepLinkRoute.INVALID,
+      );
       expect(mapSupportedActionToRoute(ACTIONS.WC)).toBe(DeepLinkRoute.INVALID);
-      expect(mapSupportedActionToRoute(ACTIONS.CREATE_ACCOUNT)).toBe(DeepLinkRoute.INVALID);
+      expect(mapSupportedActionToRoute(ACTIONS.CREATE_ACCOUNT)).toBe(
+        DeepLinkRoute.INVALID,
+      );
     });
   });
 
@@ -418,11 +430,13 @@ describe('deepLinkAnalytics', () => {
   });
 
   describe('createDeepLinkUsedEvent', () => {
-    let mockDetectAppInstallation: jest.MockedFunction<any>;
+    let mockDetectAppInstallation: jest.MockedFunction<
+      typeof import('./deepLinkAnalytics').detectAppInstallation
+    >;
 
     beforeEach(() => {
       jest.clearAllMocks();
-      const deepLinkAnalytics = require('./deepLinkAnalytics');
+      const deepLinkAnalytics = jest.requireMock('./deepLinkAnalytics');
       mockDetectAppInstallation = deepLinkAnalytics.detectAppInstallation;
     });
 
@@ -442,7 +456,7 @@ describe('deepLinkAnalytics', () => {
         signatureStatus: SignatureStatus.MISSING,
         interstitialShown: true,
         interstitialDisabled: false,
-        interstitialAction: 'accepted',
+        interstitialAction: InterstitialState.ACCEPTED,
       };
 
       const result = await createDeepLinkUsedEvent(context);
@@ -463,7 +477,7 @@ describe('deepLinkAnalytics', () => {
 
     it('create event for invalid route with target URL', async () => {
       // Mock the Branch.io getLatestReferringParams to return deferred deep link params
-      const mockBranch = require('react-native-branch');
+      const mockBranch = jest.requireMock('react-native-branch');
       mockBranch.getLatestReferringParams.mockResolvedValue({
         '+is_first_session': true,
         '+clicked_branch_link': true,
@@ -490,7 +504,7 @@ describe('deepLinkAnalytics', () => {
     });
 
     it('returns default values when Branch.io throws error', async () => {
-      const mockBranch = require('react-native-branch');
+      const mockBranch = jest.requireMock('react-native-branch');
       mockBranch.getLatestReferringParams.mockRejectedValue(
         new Error('Branch.io error'),
       );

@@ -161,5 +161,5 @@ export interface DeepLinkAnalyticsContext {
   interstitialDisabled: boolean;
 
   /** Interstitial user action */
-  interstitialAction?: 'accepted' | 'rejected';
+  interstitialAction?: InterstitialState;
 }

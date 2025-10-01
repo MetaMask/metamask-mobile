@@ -13,11 +13,14 @@ import {
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
-import { createDeepLinkUsedEvent, mapSupportedActionToRoute } from '../utils/deepLinkAnalytics';
+import {
+  createDeepLinkUsedEvent,
+  mapSupportedActionToRoute,
+} from '../utils/deepLinkAnalytics';
 import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
-  DeepLinkRoute,
+  InterstitialState,
 } from '../types/deepLinkAnalytics';
 import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
@@ -208,7 +211,9 @@ async function handleUniversalLink({
       signatureStatus,
       interstitialShown: !shouldProceed, // If user didn't accept, interstitial was shown
       interstitialDisabled: isModalDisabled, // Get actual modal disabled state
-      interstitialAction: shouldProceed ? 'accepted' : 'rejected',
+      interstitialAction: shouldProceed
+        ? InterstitialState.ACCEPTED
+        : InterstitialState.REJECTED,
     };
 
     // Create and track the consolidated event

@@ -1,5 +1,4 @@
-// TODO: Add "skipped" interstitial state tracking when modal is bypassed
-// TODO: Integrate with consolidated DEEP_LINK_USED analytics event
+// Updated to track "skipped" interstitial state and use consolidated analytics
 import {
   createDeepLinkModalNavDetails,
   DeepLinkModalParams,
@@ -7,13 +6,53 @@ import {
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
+import { createDeepLinkUsedEvent } from '../utils/deepLinkAnalytics';
+import {
+  InterstitialState,
+  SignatureStatus,
+  DeepLinkRoute,
+} from '../types/deepLinkAnalytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
+import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import Logger from '../../../util/Logger';
 
-const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
-  // TODO: Update name since this is meant to remove interstitial if don't remind me again was toggled
+const handleDeepLinkModalDisplay = async (params: DeepLinkModalParams) => {
   const deepLinkModalDisabled = selectDeepLinkModalDisabled(store.getState());
 
   if (params.linkType === 'private' && deepLinkModalDisabled) {
     // Skip interstitial if don't remind me again was toggled
+    // Track the skipped interstitial state
+    try {
+      const eventProperties = await createDeepLinkUsedEvent({
+        url: '', // URL not available in this context
+        route: DeepLinkRoute.INVALID, // Will be determined by the calling context
+        urlParams: {},
+        signatureStatus: SignatureStatus.MISSING, // Default for modal context
+        interstitialShown: false, // Modal was not shown
+        interstitialDisabled: true, // User has disabled interstitials
+        interstitialAction: InterstitialState.SKIPPED,
+      });
+
+      const metrics = MetaMetrics.getInstance();
+      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.DEEP_LINK_USED,
+      );
+      const { sensitiveProperties, ...regularProperties } = eventProperties;
+      eventBuilder.addProperties({
+        ...generateDeviceAnalyticsMetaData(),
+        ...regularProperties,
+      });
+      eventBuilder.addSensitiveProperties(sensitiveProperties || {});
+
+      metrics.trackEvent(eventBuilder.build());
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'handleDeepLinkModalDisplay: Error tracking skipped interstitial',
+      );
+    }
+
     params.onContinue();
     return;
   }

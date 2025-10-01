@@ -10,6 +10,7 @@ import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useNavigation } from '@react-navigation/native';
 import { Linking, Platform } from 'react-native';
+import { createDeepLinkUsedEvent } from '../../../core/DeeplinkManager/utils/deepLinkAnalytics';
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
@@ -51,6 +52,34 @@ jest.mock('../../../util/metrics', () =>
   jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
 );
 
+// Mock the analytics utilities
+jest.mock('../../../core/DeeplinkManager/utils/deepLinkAnalytics', () => ({
+  createDeepLinkUsedEvent: jest.fn(),
+}));
+
+jest.mock('../../../core/DeeplinkManager/types/deepLinkAnalytics', () => ({
+  InterstitialState: {
+    ACCEPTED: 'accepted',
+    REJECTED: 'rejected',
+    NOT_SHOWN: 'not shown',
+    SKIPPED: 'skipped',
+  },
+  SignatureStatus: {
+    VALID: 'valid',
+    INVALID: 'invalid',
+    MISSING: 'missing',
+  },
+  DeepLinkRoute: {
+    HOME: 'home',
+    SWAP: 'swap',
+    PERPS: 'perps',
+    DEPOSIT: 'deposit',
+    TRANSACTION: 'transaction',
+    BUY: 'buy',
+    INVALID: 'invalid',
+  },
+}));
+
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -79,9 +108,26 @@ describe('DeepLinkModal', () => {
       ...baseParams,
       linkType: 'public',
     });
+
+    // Set up default mock for createDeepLinkUsedEvent
+    (createDeepLinkUsedEvent as jest.Mock).mockImplementation((context) =>
+      Promise.resolve({
+        route: 'invalid',
+        was_app_installed: true,
+        signature: 'missing',
+        interstitial: context.interstitialAction || 'not shown',
+        attribution_id: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        target: '',
+      }),
+    );
   });
 
-  it('renders public link UI and tracks viewed event', () => {
+  it('renders public link UI and tracks viewed event', async () => {
     const { getByText, queryByText } = renderScreen(
       DeepLinkModal,
       { name: 'DeepLinkModal' },
@@ -98,17 +144,33 @@ describe('DeepLinkModal', () => {
     expect(description).toBeOnTheScreen();
     expect(checkbox).not.toBeOnTheScreen();
 
+    // Wait for async analytics call
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     const expectedEvent = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_VIEWED,
+      MetaMetricsEvents.DEEP_LINK_USED,
     )
-      .addProperties({ deviceProp: 'Device value' })
+      .addProperties({
+        deviceProp: 'Device value',
+        route: 'invalid',
+        was_app_installed: true,
+        signature: 'missing',
+        interstitial: 'not shown',
+        attribution_id: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        target: '',
+      })
       .build();
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
-  it('renders private link UI and tracks viewed event', () => {
+  it('renders private link UI and tracks viewed event', async () => {
     (useParams as jest.Mock).mockReturnValue({
       ...baseParams,
       linkType: 'private',
@@ -127,17 +189,33 @@ describe('DeepLinkModal', () => {
     expect(description).toBeOnTheScreen();
     expect(checkbox).toBeOnTheScreen();
 
+    // Wait for async analytics call
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     const expectedEvent = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_VIEWED,
+      MetaMetricsEvents.DEEP_LINK_USED,
     )
-      .addProperties({ deviceProp: 'Device value' })
+      .addProperties({
+        deviceProp: 'Device value',
+        route: 'invalid',
+        was_app_installed: true,
+        signature: 'missing',
+        interstitial: 'not shown',
+        attribution_id: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        target: '',
+      })
       .build();
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
-  it('calls onContinue when primary CTA is pressed', () => {
+  it('calls onContinue when primary CTA is pressed', async () => {
     (useParams as jest.Mock).mockReturnValue({
       ...baseParams,
       linkType: 'private',
@@ -149,14 +227,14 @@ describe('DeepLinkModal', () => {
     );
     const continueButton = getByText('Continue');
 
-    act(() => {
+    await act(async () => {
       fireEvent.press(continueButton);
     });
 
     expect(mockOnContinue).toHaveBeenCalled();
   });
 
-  it('renders invalid link UI and tracks viewed event', () => {
+  it('renders invalid link UI and tracks viewed event', async () => {
     (useParams as jest.Mock).mockReturnValue({
       ...baseParams,
       linkType: 'invalid',
@@ -183,10 +261,26 @@ describe('DeepLinkModal', () => {
     expect(storeLinkText).toBeOnTheScreen();
     expect(checkbox).not.toBeOnTheScreen(); // Checkbox only for private link
 
+    // Wait for async analytics call
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     const expectedEvent = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
+      MetaMetricsEvents.DEEP_LINK_USED,
     )
-      .addProperties({ deviceProp: 'Device value' })
+      .addProperties({
+        deviceProp: 'Device value',
+        route: 'invalid',
+        was_app_installed: true,
+        signature: 'missing',
+        interstitial: 'not shown',
+        attribution_id: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        target: '',
+      })
       .build();
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -280,7 +374,7 @@ describe('DeepLinkModal', () => {
     expect(mockOnBack).toHaveBeenCalled();
   });
 
-  it('toggles checkbox, dispatches action, and tracks event', () => {
+  it('toggles checkbox, dispatches action, and tracks event', async () => {
     (useParams as jest.Mock).mockReturnValue({
       ...baseParams,
       linkType: 'private',
@@ -291,38 +385,67 @@ describe('DeepLinkModal', () => {
       { state: {} },
     );
     const checkbox = getByText(/Don't remind me again/i);
-    act(() => {
+
+    await act(async () => {
       fireEvent.press(checkbox);
     });
+
     const checkboxEventSelected = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED,
+      MetaMetricsEvents.DEEP_LINK_USED,
     )
-      .addProperties({ deviceProp: 'Device value' })
+      .addProperties({
+        deviceProp: 'Device value',
+        route: 'invalid',
+        was_app_installed: true,
+        signature: 'missing',
+        interstitial: 'skipped',
+        attribution_id: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        target: '',
+      })
       .build();
 
     expect(mockDispatch).toHaveBeenCalledWith(setDeepLinkModalDisabled(true));
     expect(mockTrackEvent).toHaveBeenCalledWith(checkboxEventSelected);
 
     // Toggle again
-    act(() => {
+    await act(async () => {
       fireEvent.press(checkbox);
     });
+
     const checkboxEventUnselected = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED,
+      MetaMetricsEvents.DEEP_LINK_USED,
     )
-      .addProperties({ deviceProp: 'Device value' })
+      .addProperties({
+        deviceProp: 'Device value',
+        route: 'invalid',
+        was_app_installed: true,
+        signature: 'missing',
+        interstitial: 'accepted',
+        attribution_id: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        target: '',
+      })
       .build();
     expect(mockTrackEvent).toHaveBeenCalledWith(checkboxEventUnselected);
     expect(mockDispatch).toHaveBeenCalledWith(setDeepLinkModalDisabled(false));
   });
 
   it.each`
-    linkType     | continueButtonText | eventContinue                                                 | pageTitle
-    ${'public'}  | ${'Continue'}      | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED}  | ${'MetaMask'}
-    ${'private'} | ${'Continue'}      | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED} | ${'MetaMask'}
+    linkType     | continueButtonText | pageTitle
+    ${'public'}  | ${'Continue'}      | ${'MetaMask'}
+    ${'private'} | ${'Continue'}      | ${'MetaMask'}
   `(
     'tracks correct action event and pageTitle when continue button is pressed for $linkType link',
-    async ({ linkType, continueButtonText, eventContinue, pageTitle }) => {
+    async ({ linkType, continueButtonText, pageTitle }) => {
       (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType });
       const { getByText } = renderScreen(
         DeepLinkModal,
@@ -330,26 +453,42 @@ describe('DeepLinkModal', () => {
         { state: {} },
       );
       const continueButton = getByText(continueButtonText);
-      act(() => {
+
+      await act(async () => {
         fireEvent.press(continueButton);
       });
+
       const expectedEvent = MetricsEventBuilder.createEventBuilder(
-        eventContinue,
+        MetaMetricsEvents.DEEP_LINK_USED,
       )
-        .addProperties({ deviceProp: 'Device value', pageTitle })
+        .addProperties({
+          deviceProp: 'Device value',
+          pageTitle,
+          route: 'invalid',
+          was_app_installed: true,
+          signature: 'missing',
+          interstitial: 'accepted',
+          attribution_id: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          target: '',
+        })
         .build();
-      expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
+      expect(mockTrackEvent).toHaveBeenLastCalledWith(expectedEvent);
     },
   );
 
   it.each`
-    linkType     | eventGoBack
-    ${'public'}  | ${MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_DISMISSED}
-    ${'private'} | ${MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_DISMISSED}
-    ${'invalid'} | ${MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED}
+    linkType
+    ${'public'}
+    ${'private'}
+    ${'invalid'}
   `(
     'tracks correct action event when back button is pressed for $linkType link',
-    async ({ linkType, eventGoBack }) => {
+    async ({ linkType }) => {
       (useParams as jest.Mock).mockReturnValue({ ...baseParams, linkType });
       const { getByTestId } = renderScreen(
         DeepLinkModal,
@@ -357,11 +496,28 @@ describe('DeepLinkModal', () => {
         { state: {} },
       );
       const dismissButton = getByTestId('deep-link-modal-close-button');
-      act(() => {
+
+      await act(async () => {
         fireEvent.press(dismissButton);
       });
-      const expectedEvent = MetricsEventBuilder.createEventBuilder(eventGoBack)
-        .addProperties({ deviceProp: 'Device value' })
+
+      const expectedEvent = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.DEEP_LINK_USED,
+      )
+        .addProperties({
+          deviceProp: 'Device value',
+          route: 'invalid',
+          was_app_installed: true,
+          signature: 'missing',
+          interstitial: 'rejected',
+          attribution_id: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          target: '',
+        })
         .build();
       expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
     },
