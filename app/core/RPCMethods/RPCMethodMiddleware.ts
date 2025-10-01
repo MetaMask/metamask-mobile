@@ -312,10 +312,23 @@ const generateRawSignature = async ({
  * @param origin - The origin of the connection.
  * @returns The hooks object.
  */
-export const getRpcMethodMiddlewareHooks = (
-  origin: string,
-  getPageMeta: () => unknown,
-) => ({
+export const getRpcMethodMiddlewareHooks = ({
+  origin,
+  url,
+  title,
+  icon,
+  analytics,
+  channelId,
+  getSource,
+}: {
+  origin: string;
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
+  analytics: { [key: string]: string | boolean };
+  channelId?: string;
+  getSource: () => string;
+}) => ({
   getCaveat: ({
     target,
     caveatType,
@@ -365,7 +378,16 @@ export const getRpcMethodMiddlewareHooks = (
                   ...options,
                   metadata: {
                     ...options.metadata,
-                    pageMeta: getPageMeta(),
+                    pageMeta: {
+                      url: url.current,
+                      title: title.current,
+                      icon: icon.current,
+                      channelId,
+                      analytics: {
+                        request_source: getSource(),
+                        request_platform: analytics?.platform,
+                      },
+                    },
                   },
                 }
               : undefined,
@@ -436,17 +458,15 @@ export const getRpcMethodMiddleware = ({
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
 
-  const getPageMeta = () => ({
-    url: url.current,
-    title: title.current,
-    icon: icon.current,
+  const hooks = getRpcMethodMiddlewareHooks({
+    origin,
+    url,
+    title,
+    icon,
+    analytics,
     channelId,
-    analytics: {
-      request_source: getSource(),
-      request_platform: analytics?.platform,
-    },
+    getSource,
   });
-  const hooks = getRpcMethodMiddlewareHooks(origin, getPageMeta);
 
   DevLogger.log(
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
