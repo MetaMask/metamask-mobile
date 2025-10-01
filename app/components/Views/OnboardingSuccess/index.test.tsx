@@ -190,7 +190,7 @@ describe('OnboardingSuccessComponent', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -200,7 +200,7 @@ describe('OnboardingSuccessComponent', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -210,7 +210,7 @@ describe('OnboardingSuccessComponent', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -222,7 +222,7 @@ describe('OnboardingSuccessComponent', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
 
@@ -244,7 +244,7 @@ describe('OnboardingSuccessComponent', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
 
@@ -263,7 +263,7 @@ describe('OnboardingSuccessComponent', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
 
@@ -373,7 +373,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+          _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
         />,
       );
 
@@ -393,7 +393,7 @@ describe('OnboardingSuccess', () => {
       const { queryByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+          _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
         />,
       );
 
@@ -413,7 +413,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+          _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
         />,
       );
 
@@ -435,7 +435,7 @@ describe('OnboardingSuccess', () => {
       const { queryByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
-          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+          _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
         />,
       );
 
@@ -1979,7 +1979,7 @@ describe('OnboardingSuccess', () => {
 
       const TestSwitchCaseComponent = () => (
         <OnboardingSuccessComponent
-          successFlow={'CUSTOM_UNKNOWN_FLOW' as ONBOARDING_SUCCESS_FLOW}
+          _successFlow={'CUSTOM_UNKNOWN_FLOW' as ONBOARDING_SUCCESS_FLOW}
           onDone={() => {
             /* empty test handler */
           }}
