@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
 import { Payment } from '@consensys/on-ramp-sdk';
 
 import Text, {
@@ -40,7 +40,10 @@ function PaymentMethodSelectorModal() {
   const { paymentMethods, location } =
     useParams<PaymentMethodSelectorModalParams>();
 
-  const { styles } = useStyles(styleSheet, {});
+  const { height: screenHeight } = useWindowDimensions();
+  const { styles } = useStyles(styleSheet, {
+    screenHeight,
+  });
   const trackEvent = useAnalytics();
 
   const {
@@ -77,9 +80,7 @@ function PaymentMethodSelectorModal() {
           setSelectedPaymentMethodId(paymentMethodId);
         });
       } else {
-        sheetRef.current?.onCloseBottomSheet(() => {
-          setSelectedPaymentMethodId(null);
-        });
+        sheetRef.current?.onCloseBottomSheet();
       }
     },
     [

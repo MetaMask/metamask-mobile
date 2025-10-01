@@ -1,13 +1,21 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+interface PaymentMethodSelectorModalStyleSheetVars {
+  screenHeight: number;
+}
+
+const styleSheet = (params: {
+  theme: Theme;
+  vars: PaymentMethodSelectorModalStyleSheetVars;
+}) => {
+  const { theme, vars } = params;
   const { colors } = theme;
+  const { screenHeight } = vars;
 
   return StyleSheet.create({
     scrollView: {
-      flex: 1,
+      height: screenHeight * 0.8,
     },
     content: {
       paddingHorizontal: 16,
