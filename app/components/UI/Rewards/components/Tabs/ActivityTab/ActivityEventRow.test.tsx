@@ -590,9 +590,7 @@ describe('ActivityEventRow', () => {
 
       // Assert
       expect(getByText('15/01/2024')).toBeOnTheScreen();
-      expect(mockFormatRewardsDate).toHaveBeenCalledWith(
-        event.timestamp.getTime(),
-      );
+      expect(mockFormatRewardsDate).toHaveBeenCalledWith(event.timestamp);
     });
   });
 });
