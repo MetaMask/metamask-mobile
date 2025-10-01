@@ -234,36 +234,31 @@ describe('Regions View', () => {
     expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it('renders regions modal when pressing select button', async () => {
+  it('navigates to region selector modal when pressing select button', async () => {
     render(Regions);
     const selectRegionButton = screen.getByRole('button', {
       name: 'Select your region',
     });
     fireEvent.press(selectRegionButton);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+      screen: 'RampRegionSelectorModal',
+      params: {
+        regions: mockRegionsData,
+      },
+    });
   });
 
-  it('calls setSelectedRegion when pressing a region', async () => {
+  it('does not navigate when regions data is empty', async () => {
+    mockUseRegionsValues = {
+      ...mockUseRegionsInitialValues,
+      data: [],
+    };
     render(Regions);
-    const regionToPress = mockRegionsData[0] as Region;
-    // First show region modal
     const selectRegionButton = screen.getByRole('button', {
       name: 'Select your region',
     });
     fireEvent.press(selectRegionButton);
-    // Then detect region selection buttons
-    const regionButton = screen.getByRole('button', {
-      name: regionToPress.name,
-    });
-    fireEvent.press(regionButton);
-    expect(mockSetSelectedRegion).toHaveBeenCalledWith(regionToPress);
-    expect(mockTrackEvent).toBeCalledWith('RAMP_REGION_SELECTED', {
-      country_id: '/regions/cl',
-      is_unsupported_onramp: false,
-      is_unsupported_offramp: false,
-      location: 'Region Screen',
-      state_id: '/regions/cl',
-    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates on continue press', async () => {

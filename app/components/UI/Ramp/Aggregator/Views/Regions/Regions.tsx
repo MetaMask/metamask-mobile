@@ -4,12 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from './Regions.styles';
 
-import useModalHandler from '../../../../../Base/hooks/useModalHandler';
-
 import ScreenLayout from '../../components/ScreenLayout';
 import Box from '../../components/Box';
-import RegionModal from '../../components/RegionModal';
-import RegionAlert from '../../components/RegionAlert';
 import SkeletonText from '../../components/SkeletonText';
 import ErrorView from '../../components/ErrorView';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
@@ -21,9 +17,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
+import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
 
 import { useRampSDK } from '../../sdk';
-import { Region } from '../../types';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
@@ -43,34 +39,20 @@ const RegionsView = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const {
-    setSelectedRegion,
-    setSelectedFiatCurrencyId,
-    selectedAsset,
-    sdkError,
-    isBuy,
-    isSell,
-    rampType,
-  } = useRampSDK();
-  const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
-    useModalHandler(false);
+  const { selectedAsset, sdkError, isBuy, isSell } = useRampSDK();
 
-  const {
-    data,
-    isFetching,
-    error,
-    query: queryGetCountries,
-    selectedRegion,
-    unsupportedRegion,
-    clearUnsupportedRegion,
-  } = useRegions();
+  const { data: regions, isFetching, error, selectedRegion } = useRegions();
 
   const [isPristine, setIsPristine] = useState(true);
 
   const handleRegionSelectorPress = useCallback(() => {
     setIsPristine(false);
-    showRegionModal();
-  }, [showRegionModal, setIsPristine]);
+    if (regions && regions.length > 0) {
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails({ regions }),
+      );
+    }
+  }, [navigation, regions, setIsPristine]);
 
   const handleCancelPress = useCallback(() => {
     const chainId = selectedAsset?.network?.chainId;
@@ -131,15 +113,6 @@ const RegionsView = () => {
     }
   }, [handleOnPress, selectedRegion, isPristine, isBuy, isSell, navigation]);
 
-  const handleRegionPress = useCallback(
-    (region: Region) => {
-      setSelectedRegion(region);
-      setSelectedFiatCurrencyId(null);
-      hideRegionModal();
-    },
-    [hideRegionModal, setSelectedFiatCurrencyId, setSelectedRegion],
-  );
-
   if (sdkError) {
     return (
       <ScreenLayout>
@@ -154,17 +127,13 @@ const RegionsView = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView
-            description={error}
-            ctaOnPress={queryGetCountries}
-            location={'Region Screen'}
-          />
+          <ErrorView description={error} location={'Region Screen'} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
   }
 
-  if (isFetching || !data) {
+  if (isFetching || !regions) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -241,40 +210,6 @@ const RegionsView = () => {
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
-
-      <RegionAlert
-        isVisible={Boolean(unsupportedRegion)}
-        subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
-        dismiss={clearUnsupportedRegion}
-        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-        body={strings(
-          'fiat_on_ramp_aggregator.region.unsupported_description',
-          {
-            rampType: strings(
-              isBuy
-                ? 'fiat_on_ramp_aggregator.buy'
-                : 'fiat_on_ramp_aggregator.sell',
-            ),
-          },
-        )}
-        link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
-      />
-
-      {data && (
-        <RegionModal
-          isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
-          description={strings(
-            'fiat_on_ramp_aggregator.region.select_country_registered',
-          )}
-          data={data}
-          dismiss={hideRegionModal as () => void}
-          onRegionPress={handleRegionPress}
-          location={'Region Screen'}
-          selectedRegion={selectedRegion}
-          rampType={rampType}
-        />
-      )}
     </ScreenLayout>
   );
 };

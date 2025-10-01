@@ -11,6 +11,7 @@ import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
+import RegionSelectorModal from '../components/RegionSelectorModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
