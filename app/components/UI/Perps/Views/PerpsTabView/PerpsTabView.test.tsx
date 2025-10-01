@@ -535,7 +535,7 @@ describe('PerpsTabView', () => {
     it('should have pull-to-refresh functionality configured', async () => {
       const mockLoadPositions = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
+        positions: [mockPosition], // Add positions so control bar renders
         isLoading: false,
         isRefreshing: false,
         loadPositions: mockLoadPositions,
@@ -565,6 +565,14 @@ describe('PerpsTabView', () => {
           });
         }
         return undefined;
+      });
+
+      // Add positions so control bar renders
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isLoading: false,
+        isRefreshing: false,
+        loadPositions: jest.fn(),
       });
 
       render(<PerpsTabView />);
@@ -602,6 +610,14 @@ describe('PerpsTabView', () => {
         return undefined;
       });
 
+      // Add positions so control bar renders
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isLoading: false,
+        isRefreshing: false,
+        loadPositions: jest.fn(),
+      });
+
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');
@@ -631,6 +647,14 @@ describe('PerpsTabView', () => {
           });
         }
         return undefined;
+      });
+
+      // Add positions so control bar renders
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isLoading: false,
+        isRefreshing: false,
+        loadPositions: jest.fn(),
       });
 
       render(<PerpsTabView />);
@@ -674,8 +698,11 @@ describe('PerpsTabView', () => {
       render(<PerpsTabView />);
 
       // Assert - Component should render empty state with correct testID
-      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
       expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
+      // Control bar should not be rendered in empty state
+      expect(
+        screen.queryByTestId('manage-balance-button'),
+      ).not.toBeOnTheScreen();
     });
 
     it('should pass correct hasPositions prop to PerpsTabControlBar when positions exist', () => {
@@ -708,7 +735,7 @@ describe('PerpsTabView', () => {
       expect(screen.getByTestId('has-orders')).toHaveTextContent('true');
     });
 
-    it('should pass false for both props when no positions or orders exist', () => {
+    it('should not render control bar when no positions or orders exist', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
@@ -718,13 +745,27 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByTestId('has-positions')).toHaveTextContent('false');
-      expect(screen.getByTestId('has-orders')).toHaveTextContent('false');
+      // Control bar should not be rendered in empty state
+      expect(screen.queryByTestId('has-positions')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('has-orders')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('manage-balance-button'),
+      ).not.toBeOnTheScreen();
+      // Should show empty state instead
+      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
     });
   });
 
   describe('Accessibility', () => {
     it('should have proper accessibility for manage balance button', () => {
+      // Add positions so control bar renders
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isLoading: false,
+        isRefreshing: false,
+        loadPositions: jest.fn(),
+      });
+
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');

@@ -239,27 +239,30 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
       <>
-        <PerpsTabControlBar
-          onManageBalancePress={handleManageBalancePress}
-          hasPositions={hasPositions}
-          hasOrders={hasOrders}
-        />
-        <ScrollView style={styles.content}>
-          <View style={styles.contentContainer}>
-            {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <PerpsEmptyState
-                onStartTrading={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
-              />
-            ) : (
-              <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
+        {!isInitialLoading && hasNoPositionsOrOrders ? (
+          <PerpsEmptyState
+            onStartTrading={handleNewTrade}
+            testID="perps-empty-state"
+            twClassName="mx-auto mt-4"
+          />
+        ) : (
+          <>
+            <PerpsTabControlBar
+              onManageBalancePress={handleManageBalancePress}
+              hasPositions={hasPositions}
+              hasOrders={hasOrders}
+            />
+            <ScrollView style={styles.content}>
+              <View style={styles.contentContainer}>
+                <View style={styles.tradeInfoContainer}>
+                  <View>{renderPositionsSection()}</View>
+                  <View>{renderOrdersSection()}</View>
+                </View>
               </View>
-            )}
-          </View>
-        </ScrollView>
+            </ScrollView>
+          </>
+        )}
+
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

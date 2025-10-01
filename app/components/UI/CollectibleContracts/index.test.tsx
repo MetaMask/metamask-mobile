@@ -1142,7 +1142,13 @@ describe('CollectibleContracts', () => {
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': [
+                  {
+                    address: '0x1234567890123456789012345678901234567890',
+                    name: 'Test NFT Collection',
+                    symbol: 'TNFT',
+                  },
+                ],
               },
             },
           },
@@ -1154,7 +1160,18 @@ describe('CollectibleContracts', () => {
       push: jest.fn(),
     };
     const { getByTestId } = renderWithProvider(
-      <CollectibleContracts navigation={mockNavigation} />,
+      <CollectibleContracts
+        navigation={mockNavigation}
+        collectibleContracts={{
+          '0x1': [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              name: 'Test NFT Collection',
+              symbol: 'TNFT',
+            },
+          ],
+        }}
+      />,
       {
         state: mockState,
       },
@@ -1208,7 +1225,13 @@ describe('CollectibleContracts', () => {
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': [
+                  {
+                    address: '0x1234567890123456789012345678901234567890',
+                    name: 'Test NFT Collection',
+                    symbol: 'TNFT',
+                  },
+                ],
               },
             },
           },
@@ -1220,7 +1243,18 @@ describe('CollectibleContracts', () => {
       push: jest.fn(),
     };
     const { getByTestId } = renderWithProvider(
-      <CollectibleContracts navigation={mockNavigation} />,
+      <CollectibleContracts
+        navigation={mockNavigation}
+        collectibleContracts={{
+          '0x1': [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              name: 'Test NFT Collection',
+              symbol: 'TNFT',
+            },
+          ],
+        }}
+      />,
       {
         state: mockState,
       },
@@ -1373,7 +1407,13 @@ describe('CollectibleContracts', () => {
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': [
+                  {
+                    address: '0x1234567890123456789012345678901234567890',
+                    name: 'Test NFT Collection',
+                    symbol: 'TNFT',
+                  },
+                ],
               },
             },
           },
@@ -1381,9 +1421,22 @@ describe('CollectibleContracts', () => {
       },
     };
 
-    const { getByText } = renderWithProvider(<CollectibleContracts />, {
-      state: mockState,
-    });
+    const { getByText } = renderWithProvider(
+      <CollectibleContracts
+        collectibleContracts={{
+          '0x1': [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              name: 'Test NFT Collection',
+              symbol: 'TNFT',
+            },
+          ],
+        }}
+      />,
+      {
+        state: mockState,
+      },
+    );
 
     expect(getByText('Popular networks')).toBeDefined();
   });

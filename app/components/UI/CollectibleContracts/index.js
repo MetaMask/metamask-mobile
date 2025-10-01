@@ -12,7 +12,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -176,7 +176,6 @@ const CollectibleContracts = ({
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
-  const tw = useTailwind();
   if (isFirstRender.current) {
     trace({ name: TraceName.CollectibleContractsComponent });
   }
@@ -500,16 +499,20 @@ const CollectibleContracts = ({
 
   const renderEmpty = useCallback(
     () => (
-      <CollectiblesEmptyState
-        onDiscoverCollectibles={goToAddCollectible}
-        actionButtonProps={{
-          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-          isDisabled: !isAddNFTEnabled,
-        }}
-        style={tw.style('mx-auto')}
-      />
+      <>
+        {!isNftFetchingProgress && (
+          <CollectiblesEmptyState
+            onAction={goToAddCollectible}
+            actionButtonProps={{
+              testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+              isDisabled: !isAddNFTEnabled,
+            }}
+            twClassName="mx-auto mt-4"
+          />
+        )}
+      </>
     ),
-    [goToAddCollectible, tw, isAddNFTEnabled],
+    [goToAddCollectible, isAddNFTEnabled, isNftFetchingProgress],
   );
 
   const renderList = useCallback(
@@ -564,6 +567,13 @@ const CollectibleContracts = ({
     chainId: firstEnabledChainId,
   });
 
+  // Determine if we should show the network selector
+  // Show when there are NFTs (contracts, collectibles, or favorites) and not in loading state
+  const shouldShowNetworkSelector =
+    filteredCollectibleContracts.length > 0 ||
+    collectibles.length > 0 ||
+    favoriteCollectibles.length > 0;
+
   // End trace when component has finished initial loading
   useEffect(() => {
     endTrace({ name: TraceName.CollectibleContractsComponent });
@@ -575,60 +585,62 @@ const CollectibleContracts = ({
       style={styles.BarWrapper}
       testID={WalletViewSelectorsIDs.NFT_TAB_CONTAINER}
     >
-      <View style={styles.actionBarWrapper}>
-        <View style={styles.controlButtonOuterWrapper}>
-          <ButtonBase
-            testID={WalletViewSelectorsIDs.COLLECTIBLES_NETWORK_FILTER}
-            label={
-              <>
-                {isRemoveGlobalNetworkSelectorEnabled() ? (
-                  <View style={styles.networkManagerWrapper}>
-                    {!areAllNetworksSelected && (
-                      <Avatar
-                        variant={AvatarVariant.Network}
-                        size={AvatarSize.Xs}
-                        name={networkName}
-                        imageSource={networkImageSource}
-                      />
-                    )}
+      {shouldShowNetworkSelector && (
+        <View style={styles.actionBarWrapper}>
+          <View style={styles.controlButtonOuterWrapper}>
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.COLLECTIBLES_NETWORK_FILTER}
+              label={
+                <>
+                  {isRemoveGlobalNetworkSelectorEnabled() ? (
+                    <View style={styles.networkManagerWrapper}>
+                      {!areAllNetworksSelected && (
+                        <Avatar
+                          variant={AvatarVariant.Network}
+                          size={AvatarSize.Xs}
+                          name={networkName}
+                          imageSource={networkImageSource}
+                        />
+                      )}
+                      <TextComponent
+                        variant={TextVariant.BodyMDMedium}
+                        style={styles.controlButtonText}
+                        numberOfLines={1}
+                      >
+                        {enabledNetworks.length > 1
+                          ? strings('wallet.popular_networks')
+                          : currentNetworkName ??
+                            strings('wallet.current_network')}
+                      </TextComponent>
+                    </View>
+                  ) : (
                     <TextComponent
                       variant={TextVariant.BodyMDMedium}
                       style={styles.controlButtonText}
                       numberOfLines={1}
                     >
-                      {enabledNetworks.length > 1
+                      {isAllNetworks && isPopularNetwork && isEvmSelected
                         ? strings('wallet.popular_networks')
-                        : currentNetworkName ??
-                          strings('wallet.current_network')}
+                        : networkName ?? strings('wallet.current_network')}
                     </TextComponent>
-                  </View>
-                ) : (
-                  <TextComponent
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.controlButtonText}
-                    numberOfLines={1}
-                  >
-                    {isAllNetworks && isPopularNetwork && isEvmSelected
-                      ? strings('wallet.popular_networks')
-                      : networkName ?? strings('wallet.current_network')}
-                  </TextComponent>
-                )}
-              </>
-            }
-            isDisabled={isDisabled}
-            onPress={showFilterControls}
-            endIconName={
-              isEvmSelected || isMultichainAccountsState2Enabled
-                ? IconName.ArrowDown
-                : undefined
-            }
-            style={
-              isDisabled ? styles.controlButtonDisabled : styles.controlButton
-            }
-            disabled={isDisabled}
-          />
+                  )}
+                </>
+              }
+              isDisabled={isDisabled}
+              onPress={showFilterControls}
+              endIconName={
+                isEvmSelected || isMultichainAccountsState2Enabled
+                  ? IconName.ArrowDown
+                  : undefined
+              }
+              style={
+                isDisabled ? styles.controlButtonDisabled : styles.controlButton
+              }
+              disabled={isDisabled}
+            />
+          </View>
         </View>
-      </View>
+      )}
       {renderList()}
     </View>
   );
