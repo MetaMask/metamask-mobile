@@ -85,14 +85,12 @@ const AccountCell = ({
     >
       <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
         {startAccessory}
-        <View style={styles.avatarWrapper}>
-          <AvatarAccount
-            accountAddress={evmAddress}
-            type={avatarAccountType}
-            size={AvatarSize.Md}
-            testID={AccountCellIds.AVATAR}
-          />
-        </View>
+        <AvatarAccount
+          accountAddress={evmAddress}
+          type={avatarAccountType}
+          size={AvatarSize.Md}
+          testID={AccountCellIds.AVATAR}
+        />
         <View style={styles.accountName}>
           <Text
             variant={TextVariant.BodyMDMedium}
