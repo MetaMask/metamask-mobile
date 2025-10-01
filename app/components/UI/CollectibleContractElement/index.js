@@ -38,7 +38,6 @@ const createStyles = (colors, brandColors) =>
     collectibleContractIcon: { width: 30, height: 30 },
     collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
     titleContainer: {
-      flex: 1,
       flexDirection: 'row',
     },
     verticalAlignedContainer: {
@@ -67,7 +66,6 @@ const createStyles = (colors, brandColors) =>
       flexDirection: 'row',
     },
     favoritesLogoWrapper: {
-      flex: 1,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',

@@ -113,14 +113,14 @@ const Tokens = memo((props: TokensProps) => {
 
       // Use InteractionManager for better performance than setTimeout
       InteractionManager.runAfterInteractions(() => {
-        const CHUNK_SIZE = 20; // Process 20 tokens at a time
+        const CHUNK_SIZE = 50; // Increased chunk size for faster loading
         const chunks: (typeof sortedTokenKeys)[] = [];
 
         for (let i = 0; i < sortedTokenKeys.length; i += CHUNK_SIZE) {
           chunks.push(sortedTokenKeys.slice(i, i + CHUNK_SIZE));
         }
 
-        // Progressive loading for better perceived performance
+        // Optimized progressive loading with reduced delays
         let currentChunkIndex = 0;
         let accumulatedTokens: typeof sortedTokenKeys = [];
 
@@ -133,16 +133,14 @@ const Tokens = memo((props: TokensProps) => {
             setProgressiveTokens([...accumulatedTokens]);
             currentChunkIndex++;
 
-            // Process next chunk after allowing UI to update
-            requestAnimationFrame(() => {
-              if (currentChunkIndex < chunks.length) {
-                setTimeout(processChunk, 0);
-              } else {
-                // All chunks processed
-                setRenderedTokenKeys(accumulatedTokens);
-                setIsTokensLoading(false);
-              }
-            });
+            // Use only requestAnimationFrame for smoother processing
+            if (currentChunkIndex < chunks.length) {
+              requestAnimationFrame(processChunk); // Removed setTimeout delay
+            } else {
+              // All chunks processed
+              setRenderedTokenKeys(accumulatedTokens);
+              setIsTokensLoading(false);
+            }
           }
         };
 
