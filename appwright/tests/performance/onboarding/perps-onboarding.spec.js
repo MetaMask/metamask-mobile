@@ -1,12 +1,6 @@
 import { test } from '../../../fixtures/performance-test.js';
 
 import TimerHelper from '../../../utils/TimersHelper.js';
-import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import CreateNewWalletScreen from '../../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
-import MetaMetricsScreen from '../../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../../wdio/screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
 import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
@@ -21,12 +15,6 @@ import { onboardingFlowImportSRP } from '../../../utils/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
-    WelcomeScreen,
-    TermOfUseScreen,
-    OnboardingScreen,
-    CreateNewWalletScreen,
-    MetaMetricsScreen,
-    OnboardingSucessScreen,
     OnboardingSheet,
     ImportFromSeedScreen,
     CreatePasswordScreen,
