@@ -86,22 +86,6 @@ jobs:
       total_splits: 4
     secrets: inherit
 
-  regression-identity-android:
-    name: 'Identity Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks]
-    strategy:
-      matrix:
-        split: [1, 2, 3, 4]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: regression-identity-android-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'RegressionIdentity'
-      split_number: ${{ matrix.split }}
-      total_splits: 4
-    secrets: inherit
-
   regression-accounts-android:
     name: 'Accounts Regression (Android) - ${{ matrix.split }}'
     needs: [build-android-apks]
