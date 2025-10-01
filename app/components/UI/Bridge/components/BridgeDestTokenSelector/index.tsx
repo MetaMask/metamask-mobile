@@ -10,6 +10,7 @@ import {
   selectSelectedDestChainId,
   selectSourceToken,
   setDestToken,
+  setDestAddress,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -31,8 +32,12 @@ import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -58,6 +63,9 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const selectedDestToken = useSelector(selectDestToken);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
+  const getSelectedInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
@@ -66,9 +74,14 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
       dispatch(setDestToken(token));
+
+      const destChainId = formatChainIdToCaip(token.chainId);
+      const internalAccount = getSelectedInternalAccountByScope(destChainId);
+      dispatch(setDestAddress(internalAccount?.address));
+
       navigation.goBack();
     },
-    [dispatch, navigation],
+    [dispatch, navigation, getSelectedInternalAccountByScope],
   );
 
   const debouncedTokenPress = useMemo(
