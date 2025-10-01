@@ -68,8 +68,8 @@ describe('NetworkConnectionBanner', () => {
 
     const statusSnapshotTestCases = [
       {
-        status: 'slow' as const,
-        name: 'for slow status banner',
+        status: 'degraded' as const,
+        name: 'for degraded status banner',
       },
       {
         status: 'unavailable' as const,
@@ -102,7 +102,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Polygon Mainnet',
           rpcUrl: 'https://polygon-rpc.com',
         },
@@ -131,7 +131,7 @@ describe('NetworkConnectionBanner', () => {
   describe('when banner is visible', () => {
     const statusTestCases = [
       {
-        status: 'slow' as const,
+        status: 'degraded' as const,
         expectedMessage: 'Still connecting to Ethereum Mainnet...',
         expectedIconTestId: 'animated-spinner',
       },
@@ -233,13 +233,13 @@ describe('NetworkConnectionBanner', () => {
     );
 
     describe('status transitions', () => {
-      it('should update message when status changes from slow to unavailable', () => {
-        // Start with slow status
+      it('should update message when status changes from degraded to unavailable', () => {
+        // Start with degraded status
         mockuseNetworkConnectionBanner.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
-            status: 'slow',
+            status: 'degraded',
             networkName: 'Ethereum Mainnet',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
@@ -271,7 +271,7 @@ describe('NetworkConnectionBanner', () => {
         ).toBeTruthy();
       });
 
-      it('should update message when status changes from unavailable to slow', () => {
+      it('should update message when status changes from unavailable to degraded', () => {
         // Start with unavailable status
         mockuseNetworkConnectionBanner.mockReturnValue({
           networkConnectionBannerState: {
@@ -290,12 +290,12 @@ describe('NetworkConnectionBanner', () => {
           getByText('Unable to connect to Ethereum Mainnet.'),
         ).toBeTruthy();
 
-        // Change to slow status
+        // Change to degraded status
         mockuseNetworkConnectionBanner.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
-            status: 'slow',
+            status: 'degraded',
             networkName: 'Ethereum Mainnet',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
@@ -317,7 +317,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Polygon Mainnet',
           rpcUrl: 'https://polygon-rpc.com',
         },
@@ -334,7 +334,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Test-Network (Beta)',
           rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
@@ -353,7 +353,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Very Long Network Name That Might Cause Layout Issues',
           rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
@@ -373,7 +373,7 @@ describe('NetworkConnectionBanner', () => {
   describe('accessibility', () => {
     const accessibilityTestCases = [
       {
-        status: 'slow' as const,
+        status: 'degraded' as const,
         expectedMessage: 'Still connecting to Ethereum Mainnet...',
       },
       {
@@ -437,7 +437,7 @@ describe('NetworkConnectionBanner', () => {
   describe('edge cases', () => {
     const emptyNameTestCases = [
       {
-        status: 'slow' as const,
+        status: 'degraded' as const,
         expectedMessage: 'Still connecting to ...',
       },
       {
@@ -471,7 +471,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Ethereum Mainnet',
           rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
@@ -490,7 +490,7 @@ describe('NetworkConnectionBanner', () => {
       expect(mockUpdateRpc).toHaveBeenCalledTimes(3);
       expect(mockUpdateRpc).toHaveBeenCalledWith(
         'https://mainnet.infura.io/v3/test',
-        'slow',
+        'degraded',
         '0x1',
       );
     });
@@ -515,7 +515,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Ethereum Mainnet',
           rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
@@ -533,7 +533,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Ethereum Mainnet',
           rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
@@ -549,7 +549,7 @@ describe('NetworkConnectionBanner', () => {
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
-          status: 'slow',
+          status: 'degraded',
           networkName: 'Polygon Mainnet',
           rpcUrl: 'https://polygon-rpc.com',
         },
