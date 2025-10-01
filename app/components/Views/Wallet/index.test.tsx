@@ -683,14 +683,15 @@ describe('Wallet', () => {
       };
 
       jest.mocked(useSelector).mockImplementation((callback) => {
-        const result = callback(mockStateWithState2);
-        // Override the state2 flag specifically
-        if (
-          callback.toString().includes('selectMultichainAccountsState2Enabled')
-        ) {
+        const selectorString = callback.toString();
+        // Override specific selectors for state2 test
+        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
           return true;
         }
-        return result;
+        if (selectorString.includes('selectSelectedAccountGroupId')) {
+          return 'group-id-123'; // Ensure this returns the group ID
+        }
+        return callback(mockStateWithState2);
       });
 
       // Act
