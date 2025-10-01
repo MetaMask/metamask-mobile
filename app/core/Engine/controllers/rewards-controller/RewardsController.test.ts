@@ -2,6 +2,7 @@
 import {
   RewardsController,
   getRewardsControllerDefaultState,
+  wrapWithCache,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { deriveStateFromMetadata } from '@metamask/base-controller';
@@ -66,6 +67,7 @@ jest.mock('./services/rewards-data-service', () => {
       optIn: jest.fn(),
       validateReferralCode: jest.fn(),
       claimReward: jest.fn(),
+      login: jest.fn(),
     })),
     InvalidTimestampError: actual.InvalidTimestampError,
   };
@@ -2454,6 +2456,7 @@ describe('RewardsController', () => {
           seasonStatuses: {
             [compositeKey]: mockSeasonStatus,
           },
+          pointsEvents: {},
         },
       });
 
@@ -2523,6 +2526,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -2581,6 +2585,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -2629,6 +2634,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -2662,6 +2668,7 @@ describe('RewardsController', () => {
         state.seasonStatuses = {};
         state.activeBoosts = {};
         state.unlockedRewards = {};
+        state.pointsEvents = {};
       });
 
       mockMessenger.call.mockRejectedValue(mockTimeoutError);
@@ -2706,6 +2713,7 @@ describe('RewardsController', () => {
         state.seasonStatuses = {};
         state.activeBoosts = {};
         state.unlockedRewards = {};
+        state.pointsEvents = {};
       });
 
       mockMessenger.call.mockRejectedValue(mock403Error);
@@ -2758,6 +2766,7 @@ describe('RewardsController', () => {
         state.seasonStatuses = {};
         state.activeBoosts = {};
         state.unlockedRewards = {};
+        state.pointsEvents = {};
       });
 
       mockMessenger.call.mockRejectedValue(serverError);
@@ -2796,6 +2805,7 @@ describe('RewardsController', () => {
         state.seasonStatuses = {};
         state.activeBoosts = {};
         state.unlockedRewards = {};
+        state.pointsEvents = {};
       });
 
       mockMessenger.call.mockRejectedValue(rateLimitError);
@@ -2851,6 +2861,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: mockReferralDetailsState,
           },
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -2887,6 +2898,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -2927,6 +2939,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -2972,6 +2985,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -3004,6 +3018,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -3444,6 +3459,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -3478,6 +3494,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -3540,6 +3557,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -3633,6 +3651,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
         },
       });
 
@@ -4332,6 +4351,7 @@ describe('RewardsController', () => {
               lastFetched: Date.now(),
             },
           },
+          pointsEvents: {},
         },
       });
 
@@ -5191,6 +5211,7 @@ describe('RewardsController', () => {
           seasonStatuses: {},
           activeBoosts: {},
           unlockedRewards: {},
+          pointsEvents: {},
         },
       });
 
@@ -5234,6 +5255,7 @@ describe('RewardsController', () => {
           seasonStatuses: {},
           activeBoosts: {},
           unlockedRewards: {},
+          pointsEvents: {},
         },
       });
 
@@ -5277,6 +5299,7 @@ describe('RewardsController', () => {
           seasonStatuses: {},
           activeBoosts: {},
           unlockedRewards: {},
+          pointsEvents: {},
         },
       });
 
@@ -6672,6 +6695,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
           activeBoosts: {
             [compositeKey]: mockCachedBoosts,
           },
@@ -6761,6 +6785,7 @@ describe('RewardsController', () => {
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
+          pointsEvents: {},
           activeBoosts: {
             [compositeKey]: mockStaleBoosts,
           },
@@ -6835,6 +6860,7 @@ describe('RewardsController', () => {
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           activeBoosts: {},
+          pointsEvents: {},
         },
       });
 
@@ -6897,6 +6923,7 @@ describe('RewardsController', () => {
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           activeBoosts: {}, // Empty cache
+          pointsEvents: {},
         },
       });
 
@@ -6992,6 +7019,7 @@ describe('RewardsController', () => {
               lastFetched: Date.now() - 30000, // Fresh cache
             },
           },
+          pointsEvents: {},
         },
       });
 
@@ -7109,6 +7137,7 @@ describe('RewardsController', () => {
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           activeBoosts: {},
+          pointsEvents: {},
           unlockedRewards: {
             [compositeKey]: {
               rewards: mockCachedRewards,
@@ -7176,6 +7205,7 @@ describe('RewardsController', () => {
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           activeBoosts: {},
+          pointsEvents: {},
           unlockedRewards: {
             [compositeKey]: {
               rewards: mockStaleRewards,
@@ -7358,6 +7388,7 @@ describe('RewardsController', () => {
           subscriptionReferralDetails: {},
           seasonStatuses: {},
           activeBoosts: {},
+          pointsEvents: {},
           unlockedRewards: {
             [compositeKey1]: {
               rewards: mockRewards1,
@@ -7579,6 +7610,7 @@ describe('RewardsController', () => {
             lastFetched: Date.now(),
           },
         },
+        pointsEvents: {},
       };
 
       controller = new RewardsController({
@@ -7766,6 +7798,7 @@ describe('RewardsController', () => {
         },
         activeBoosts: {},
         unlockedRewards: {},
+        pointsEvents: {},
       };
 
       controller = new RewardsController({
@@ -7829,6 +7862,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
           "subscriptionReferralDetails": {},
@@ -7846,6 +7880,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
           "subscriptionReferralDetails": {},
@@ -7867,6 +7902,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
           "subscriptionReferralDetails": {},
@@ -8275,7 +8311,6 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-
       // Create a controller with our test state
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -8668,6 +8703,506 @@ describe('RewardsController', () => {
       // Non-EVM and Solana checks should not be called since hardware check failed
       expect(mockIsNonEvmAddress).not.toHaveBeenCalled();
       expect(mockIsSolanaAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getActualSubscriptionId', () => {
+    it('should return subscription ID for existing account', () => {
+      // Arrange
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'test-sub-123',
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: { [CAIP_ACCOUNT_1]: accountState },
+        },
+      });
+
+      // Act
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
+
+      // Assert
+      expect(result).toBe('test-sub-123');
+    });
+
+    it('should return null for non-existent account', () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Act
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null when account has no subscription ID', () => {
+      // Arrange
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: { [CAIP_ACCOUNT_1]: accountState },
+        },
+      });
+
+      // Act
+      const result = controller.getActualSubscriptionId(CAIP_ACCOUNT_1);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getFirstSubscriptionId', () => {
+    it('should return first subscription ID when subscriptions exist', () => {
+      // Arrange
+      const subscriptions = {
+        'sub-123': {
+          id: 'sub-123',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+        'sub-456': {
+          id: 'sub-456',
+          referralCode: 'REF456',
+          accounts: [],
+        },
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions,
+        },
+      });
+
+      // Act
+      const result = controller.getFirstSubscriptionId();
+
+      // Assert
+      expect(result).toBe('sub-123'); // First key in the object
+    });
+
+    it('should return null when no subscriptions exist', () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Act
+      const result = controller.getFirstSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('wrapWithCache', () => {
+    let mockReadCache: jest.Mock;
+    let mockWriteCache: jest.Mock;
+    let mockFetchFresh: jest.Mock;
+    let mockSwrCallback: jest.Mock;
+
+    beforeEach(() => {
+      mockReadCache = jest.fn();
+      mockWriteCache = jest.fn();
+      mockFetchFresh = jest.fn();
+      mockSwrCallback = jest.fn();
+      jest.clearAllMocks();
+      const mockTimestamp = 1234567890;
+      Date.now = jest.fn().mockReturnValue(mockTimestamp);
+    });
+
+    describe('cache behavior', () => {
+      it('returns cached data when cache is not stale', async () => {
+        // Arrange
+        const cachedData = {
+          payload: 'cached-value',
+          lastFetched: Date.now() - 1000,
+        };
+        mockReadCache.mockImplementation(() => cachedData);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('cached-value');
+        expect(mockReadCache).toHaveBeenCalledWith('test-key');
+        expect(mockFetchFresh).not.toHaveBeenCalled();
+        expect(mockWriteCache).not.toHaveBeenCalled();
+      });
+
+      it('returns stale cached data and triggers SWR when cache is stale and SWR callback provided', async () => {
+        // Arrange
+        const staleData = {
+          payload: 'stale-value',
+          lastFetched: Date.now() - 10000,
+        };
+        mockReadCache.mockReturnValue(staleData);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+          swrCallback: mockSwrCallback,
+        });
+
+        // Assert
+        expect(result).toBe('stale-value');
+        expect(mockReadCache).toHaveBeenCalledWith('test-key');
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(mockFetchFresh).toHaveBeenCalled();
+        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
+        expect(mockSwrCallback).toHaveBeenCalledWith('fresh-value');
+      });
+
+      it('fetches fresh data when no cache exists', async () => {
+        // Arrange
+        mockReadCache.mockReturnValue(undefined);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockReadCache).toHaveBeenCalledWith('test-key');
+        expect(mockFetchFresh).toHaveBeenCalled();
+        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
+      });
+
+      it('fetches fresh data when cache has no lastFetched timestamp', async () => {
+        // Arrange
+        const cachedData = { payload: 'cached-value' }; // No lastFetched
+        mockReadCache.mockReturnValue(cachedData);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockReadCache).toHaveBeenCalledWith('test-key');
+        expect(mockFetchFresh).toHaveBeenCalled();
+        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
+      });
+    });
+
+    describe('error handling', () => {
+      it('handles cache read errors gracefully and fetches fresh data', async () => {
+        // Arrange
+        mockReadCache.mockImplementation(() => {
+          throw new Error('Cache read failed');
+        });
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: wrapWithCache cache read failed, fetching fresh',
+          'Cache read failed',
+        );
+        expect(mockFetchFresh).toHaveBeenCalled();
+        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
+      });
+
+      it('handles cache write errors gracefully and still returns fresh data', async () => {
+        // Arrange
+        mockReadCache.mockReturnValue(undefined);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+        mockWriteCache.mockImplementation(() => {
+          throw new Error('Cache write failed');
+        });
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: wrapWithCache writeCache failed',
+          'Cache write failed',
+        );
+        expect(mockFetchFresh).toHaveBeenCalled();
+      });
+
+      it('handles SWR revalidation errors gracefully', async () => {
+        // Arrange
+        const staleData = {
+          payload: 'stale-value',
+          lastFetched: Date.now() - 10000,
+        };
+        mockReadCache.mockReturnValue(staleData);
+        mockFetchFresh.mockRejectedValue(new Error('SWR fetch failed'));
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+          swrCallback: mockSwrCallback,
+        });
+
+        // Assert
+        expect(result).toBe('stale-value');
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'SWR revalidation failed:',
+          'SWR fetch failed',
+        );
+      });
+    });
+
+    describe('TTL behavior', () => {
+      it('considers cache stale when TTL is exceeded', async () => {
+        // Arrange
+        const ttl = 5000; // 5 seconds
+        const staleData = {
+          payload: 'stale-value',
+          lastFetched: Date.now() - (ttl + 1000), // 6 seconds ago
+        };
+        mockReadCache.mockReturnValue(staleData);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockFetchFresh).toHaveBeenCalled();
+      });
+
+      it('considers cache fresh when within TTL', async () => {
+        // Arrange
+        const ttl = 5000; // 5 seconds
+        const freshData = {
+          payload: 'fresh-value',
+          lastFetched: Date.now() - (ttl - 1000), // 4 seconds ago
+        };
+        mockReadCache.mockReturnValue(freshData);
+        mockFetchFresh.mockResolvedValue('newer-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockFetchFresh).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('SWR behavior', () => {
+      it('does not trigger SWR when no callback provided', async () => {
+        // Arrange
+        const staleData = {
+          payload: 'stale-value',
+          lastFetched: Date.now() - 10000,
+        };
+        mockReadCache.mockReturnValue(staleData);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+          // No swrCallback provided
+        });
+
+        // Assert
+        expect(result).toBe('fresh-value');
+        expect(mockFetchFresh).toHaveBeenCalledTimes(1); // Only called once, not in background
+      });
+
+      it('triggers SWR callback after successful background refresh', async () => {
+        // Arrange
+        const staleData = {
+          payload: 'stale-value',
+          lastFetched: Date.now() - 10000,
+        };
+        mockReadCache.mockReturnValue(staleData);
+        mockFetchFresh.mockResolvedValue('fresh-value');
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+          swrCallback: mockSwrCallback,
+        });
+
+        // Assert
+        expect(result).toBe('stale-value');
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(mockFetchFresh).toHaveBeenCalled();
+        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
+        expect(mockSwrCallback).toHaveBeenCalledWith('fresh-value');
+      });
+    });
+
+    describe('integration with different data types', () => {
+      it('works with complex objects', async () => {
+        // Arrange
+        const complexData = {
+          payload: {
+            id: 'test-id',
+            data: { nested: 'value' },
+            array: [1, 2, 3],
+          },
+          lastFetched: Date.now() - 1000,
+        };
+        mockReadCache.mockReturnValue(complexData);
+        mockFetchFresh.mockResolvedValue({ id: 'new-id' });
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toEqual(complexData.payload);
+        expect(mockFetchFresh).not.toHaveBeenCalled();
+      });
+
+      it('works with arrays', async () => {
+        // Arrange
+        const arrayData = {
+          payload: ['item1', 'item2', 'item3'],
+          lastFetched: Date.now() - 1000,
+        };
+        mockReadCache.mockReturnValue(arrayData);
+        mockFetchFresh.mockResolvedValue(['new-item']);
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toEqual(arrayData.payload);
+        expect(mockFetchFresh).not.toHaveBeenCalled();
+      });
+
+      it('works with primitive values', async () => {
+        // Arrange
+        const primitiveData = {
+          payload: 42,
+          lastFetched: Date.now() - 1000,
+        };
+        mockReadCache.mockReturnValue(primitiveData);
+        mockFetchFresh.mockResolvedValue(100);
+
+        // Act
+        const result = await wrapWithCache({
+          key: 'test-key',
+          ttl: 5000,
+          readCache: mockReadCache,
+          fetchFresh: mockFetchFresh,
+          writeCache: mockWriteCache,
+        });
+
+        // Assert
+        expect(result).toBe(42);
+        expect(mockFetchFresh).not.toHaveBeenCalled();
+      });
     });
   });
 });
