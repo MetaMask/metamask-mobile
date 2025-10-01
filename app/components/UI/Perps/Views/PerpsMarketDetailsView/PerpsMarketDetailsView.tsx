@@ -237,7 +237,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
 
       // Track asset screen viewed event - only once
-      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
         [PerpsEventProperties.ASSET]: market.symbol,
         [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
         [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
@@ -267,10 +269,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
-      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
         [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
