@@ -24,85 +24,92 @@ import {
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
 
-export const CustomAmountInfo = memo(() => {
-  useClearConfirmationOnBackSwipe();
-  useAutomaticTransactionPayToken();
+export interface CustomAmountInfoProps {
+  currency?: string;
+}
 
-  const { styles } = useStyles(styleSheet, {});
-  const [isKeyboardVisible, setKeyboardVisible] = useState(true);
-  const { setIsFooterVisible } = useConfirmationContext();
+export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
+  ({ currency }) => {
+    useClearConfirmationOnBackSwipe();
+    useAutomaticTransactionPayToken();
 
-  const {
-    amountFiat,
-    amountHuman,
-    isInputChanged,
-    updatePendingAmount,
-    updatePendingAmountPercentage,
-    updateTokenAmount,
-  } = useTransactionCustomAmount();
+    const { styles } = useStyles(styleSheet, {});
+    const [isKeyboardVisible, setKeyboardVisible] = useState(true);
+    const { setIsFooterVisible } = useConfirmationContext();
 
-  const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
-    useTransactionCustomAmountAlerts({
+    const {
+      amountFiat,
+      amountHuman,
       isInputChanged,
-      pendingTokenAmount: amountHuman,
-    });
+      updatePendingAmount,
+      updatePendingAmountPercentage,
+      updateTokenAmount,
+    } = useTransactionCustomAmount();
 
-  useEffect(() => {
-    setIsFooterVisible(!isKeyboardVisible);
-  }, [isKeyboardVisible, setIsFooterVisible]);
+    const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
+      useTransactionCustomAmountAlerts({
+        isInputChanged,
+        pendingTokenAmount: amountHuman,
+      });
 
-  const handleDone = useCallback(() => {
-    updateTokenAmount();
-    setKeyboardVisible(false);
-  }, [updateTokenAmount]);
+    useEffect(() => {
+      setIsFooterVisible(!isKeyboardVisible);
+    }, [isKeyboardVisible, setIsFooterVisible]);
 
-  const handleAmountPress = useCallback(() => {
-    setKeyboardVisible(true);
-  }, []);
+    const handleDone = useCallback(() => {
+      updateTokenAmount();
+      setKeyboardVisible(false);
+    }, [updateTokenAmount]);
 
-  return (
-    <Box style={styles.container}>
-      <Box>
-        <CustomAmount
-          amountFiat={amountFiat}
-          hasAlert={Boolean(keyboardAlertMessage)}
-          onPress={handleAmountPress}
-        />
-        <PayTokenAmount amountHuman={amountHuman} />
-        {!isKeyboardVisible && (
-          <AlertBanner
-            blockingOnly
-            excludeKeys={excludeBannerKeys}
-            includeFields
-            inline
+    const handleAmountPress = useCallback(() => {
+      setKeyboardVisible(true);
+    }, []);
+
+    return (
+      <Box style={styles.container}>
+        <Box>
+          <CustomAmount
+            amountFiat={amountFiat}
+            currency={currency}
+            hasAlert={Boolean(keyboardAlertMessage)}
+            onPress={handleAmountPress}
+          />
+          <PayTokenAmount amountHuman={amountHuman} />
+          {!isKeyboardVisible && (
+            <AlertBanner
+              blockingOnly
+              excludeKeys={excludeBannerKeys}
+              includeFields
+              inline
+            />
+          )}
+          <InfoSection>
+            <PayWithRow />
+          </InfoSection>
+          {isKeyboardVisible && <AlertMessage alertMessage={alertMessage} />}
+          {!isKeyboardVisible && (
+            <>
+              <InfoSection>
+                <BridgeFeeRow />
+                <BridgeTimeRow />
+                <TotalRow />
+              </InfoSection>
+            </>
+          )}
+        </Box>
+        {isKeyboardVisible && (
+          <DepositKeyboard
+            alertMessage={keyboardAlertMessage}
+            value={amountFiat}
+            onChange={updatePendingAmount}
+            onDonePress={handleDone}
+            onPercentagePress={updatePendingAmountPercentage}
           />
         )}
-        <InfoSection>
-          <PayWithRow />
-        </InfoSection>
-        {isKeyboardVisible && <AlertMessage alertMessage={alertMessage} />}
-        {!isKeyboardVisible && (
-          <>
-            <InfoSection>
-              <BridgeFeeRow />
-              <BridgeTimeRow />
-              <TotalRow />
-            </InfoSection>
-          </>
-        )}
       </Box>
-      {isKeyboardVisible && (
-        <DepositKeyboard
-          alertMessage={keyboardAlertMessage}
-          value={amountFiat}
-          onChange={updatePendingAmount}
-          onDonePress={handleDone}
-          onPercentagePress={updatePendingAmountPercentage}
-        />
-      )}
-    </Box>
-  );
-});
+    );
+  },
+);
 
 export function CustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
