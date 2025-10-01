@@ -315,8 +315,8 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty search results
-    if (searchQuery.trim() && filteredMarkets.length === 0) {
+    // Empty search results - show when search is visible and no markets match
+    if (isSearchVisible && filteredMarkets.length === 0) {
       return (
         <View style={styles.emptyStateContainer}>
           <Icon
@@ -337,7 +337,9 @@ const PerpsMarketListView = ({
             color={TextColor.Alternative}
             style={styles.emptyStateDescription}
           >
-            {strings('perps.no_tokens_found_description', { searchQuery })}
+            {searchQuery.trim()
+              ? strings('perps.no_tokens_found_description', { searchQuery })
+              : strings('perps.search_by_token_symbol')}
           </Text>
         </View>
       );

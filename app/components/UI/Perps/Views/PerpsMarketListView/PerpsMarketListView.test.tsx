@@ -11,6 +11,7 @@ import type { PerpsMarketData } from '../../controllers/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -488,6 +489,35 @@ describe('PerpsMarketListView', () => {
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+    });
+
+    it('shows empty state with search prompt when search is visible with empty query', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Empty state should be visible with search prompt
+      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+      expect(screen.getByText('Search by token symbol')).toBeOnTheScreen();
+
+      // Search icon should be visible in empty state
+      const icons = screen.root.findAllByProps({ name: IconName.Search });
+      expect(icons.length).toBeGreaterThan(0);
+
+      // No markets should be visible
+      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+
+      // Should not show list header when empty state is shown
+      expect(screen.queryByText('Volume')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Price / 24h change')).not.toBeOnTheScreen();
     });
 
     it('hides PerpsMarketBalanceActions when search is visible', () => {
@@ -1232,6 +1262,10 @@ describe('PerpsMarketListView', () => {
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+
+      // Should show empty state with search prompt (not query-specific message)
+      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+      expect(screen.getByText('Search by token symbol')).toBeOnTheScreen();
     });
   });
 });
