@@ -126,22 +126,26 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           )}
         </View>
       ) : (
-        <View>
-          <RemoteImage
-            source={NftFallbackImage}
-            style={[
-              styles.textContainer,
-              style,
-              tiny && styles.tinyImage,
-              small && styles.smallImage,
-              big && styles.bigImage,
-              cover && styles.cover,
-            ]}
-            testID="fallback-nft-with-token-id"
-            tokenId={collectible.tokenId}
-            isTokenImage
-            fadeIn
-          />
+        <View
+          style={[
+            styles.textContainer,
+            style,
+            tiny && styles.tinyImage,
+            small && styles.smallImage,
+            big && styles.bigImage,
+            cover && styles.cover,
+          ]}
+          testID="fallback-nft-with-token-id"
+        >
+          <Text
+            big={big}
+            small={tiny ?? small}
+            style={tiny ? styles.textWrapperIcon : styles.textWrapper}
+          >
+            {collectible.tokenId
+              ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
+              : ''}
+          </Text>
         </View>
       ),
     [
