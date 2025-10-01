@@ -56,6 +56,10 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+    outputs:
+      apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+      test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
     env:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
@@ -118,20 +122,30 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
+      # TODO IMPLEMENT THIS + reuse this in the run-e2e-workflow.yml to avoid repeating and adding more steps, make it a new workflow
+      - name: Determine android target paths
+        id: determine-target-paths
+        if: ${{ inputs.platform == 'android' }}
+        run: |
+          if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
+            # TODO
+            echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
+            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release" >> "$GITHUB_OUTPUT"
+            echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease" >> "$GITHUB_OUTPUT" # TODO: CONFIRM THIS
+          else
+            # TODO
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
+            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release" >> "$GITHUB_OUTPUT"
+            echo "aab-target-path=android/app/build/outputs/bundle/prodRelease" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Android artifacts from build job
         if: ${{ inputs.platform == 'android' }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
-
-          # Create directories for Flask
-          if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
-            mkdir -p android/app/build/outputs/apk/flask/release/
-          fi
-
-          # Create directories for Main
-          if [[ "$METAMASK_BUILD_TYPE" == "main" ]]; then
-            mkdir -p android/app/build/outputs/apk/prod/release/
-          fi
+          mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          mkdir -p ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
       - name: Download Android build artifacts
         if: ${{ inputs.platform == 'android' }}
@@ -142,56 +156,16 @@ jobs:
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
-          # Always move the main and test APKs from the downloaded artifacts into the expected directories
-          ARTIFACT_ROOT="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk"
-          TEST_ARTIFACT_ROOT="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"
-
           if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
-            TARGET_DIR="android/app/build/outputs/apk/flask/release/"
-            TEST_TARGET_DIR="android/app/build/outputs/apk/androidTest/flask/release/"
-            SEARCH_SUBPATH="flask/release"
+            ARTIFACT_NAME="app-flask-release"
           else
-            TARGET_DIR="android/app/build/outputs/apk/prod/release/"
-            TEST_TARGET_DIR="android/app/build/outputs/apk/androidTest/prod/release/"
-            SEARCH_SUBPATH="prod/release"
+            ARTIFACT_NAME="app-prod-release"
           fi
-
-          copy_apk() {
-            local search_root="$1"
-            local include_glob="$2"
-            local exclude_glob="$3"
-            local target_dir="$4"
-            local label="$5"
-
-            if [[ -d "$search_root" ]]; then
-              # -type f: files only; -name: include pattern; ! -name: exclude pattern (if provided)
-              if [[ -n "$exclude_glob" ]]; then
-                APK_PATH=$(find "$search_root" -maxdepth 1 -type f -name "$include_glob" ! -name "$exclude_glob" | head -n1)
-              else
-                APK_PATH=$(find "$search_root" -maxdepth 1 -type f -name "$include_glob" | head -n1)
-              fi
-
-              if [[ -n "$APK_PATH" ]]; then
-                mkdir -p "$target_dir"
-                cp "$APK_PATH" "$target_dir"
-                echo "✅ $label copied to $target_dir"
-              else
-                echo "❌ No $label found under $search_root matching $include_glob"
-                ls -la "$search_root" || true
-                exit 1
-              fi
-            else
-              echo "❌ Search root $search_root not found for $label"
-              ls -la "$(dirname "$search_root")" || true
-              exit 1
-            fi
-          }
-
-          # Copy main APK (exclude androidTest variants)
-          copy_apk "$ARTIFACT_ROOT/$SEARCH_SUBPATH" "*.apk" "*androidTest*.apk" "$TARGET_DIR" "Android main APK"
-
-          # Copy test APK for Detox (androidTest)
-          copy_apk "$TEST_ARTIFACT_ROOT/$SEARCH_SUBPATH" "*-androidTest.apk" "" "$TEST_TARGET_DIR" "Android Test APK"
+          # Copy from artifacts to expected locations
+          cp artifacts/${{ steps.determine-target-paths.outputs.apk-target-path }}/app-prod-release.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${ARTIFACT_NAME}.apk
+          cp artifacts/${{ steps.determine-target-paths.outputs.test-apk-target-path }}/app-prod-release-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${ARTIFACT_NAME}-androidTest.apk
+          cp artifacts/${{ steps.determine-target-paths.outputs.aab-target-path }}/${ARTIFACT_NAME}.aab ${{ steps.determine-target-paths.outputs.aab-target-path }}/${ARTIFACT_NAME}.aab
+          echo "✅ Android artifacts ready for E2E tests"
 
       - name: Setup iOS artifacts from build job
         if: ${{ inputs.platform == 'ios' }}
