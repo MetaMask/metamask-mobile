@@ -565,14 +565,22 @@ const Wallet = ({
 
   const onReceive = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
-      navigate(
-        ...createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-        }),
-      );
+      if (selectedAccountGroupId) {
+        navigate(
+          ...createAddressListNavigationDetails({
+            groupId: selectedAccountGroupId as AccountGroupId,
+            title: `${strings(
+              'multichain_accounts.address_list.receiving_address',
+            )}`,
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error(
+            'Wallet::onReceive - Missing selectedAccountGroupId for state2',
+          ),
+        );
+      }
     } else if (
       selectedInternalAccount?.address &&
       selectedAccountGroupId &&
@@ -588,6 +596,15 @@ const Wallet = ({
           groupId: selectedAccountGroupId,
         },
       });
+    } else {
+      Logger.error(
+        new Error('Wallet::onReceive - Missing required data for navigation'),
+        {
+          hasAddress: !!selectedInternalAccount?.address,
+          hasGroupId: !!selectedAccountGroupId,
+          hasChainId: !!chainId,
+        },
+      );
     }
   }, [
     isMultichainAccountsState2Enabled,

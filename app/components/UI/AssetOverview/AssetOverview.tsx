@@ -191,16 +191,28 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, [selectedNetworkClientId]);
 
   const onReceive = () => {
+    // Show QR code for receiving this specific asset
     if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
       navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
           address: selectedInternalAccountAddress,
-          networkName,
+          networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
         },
       });
+    } else {
+      Logger.error(
+        new Error(
+          'AssetOverview::onReceive - Missing required data for navigation',
+        ),
+        {
+          hasAddress: !!selectedInternalAccountAddress,
+          hasAccountGroup: !!selectedAccountGroup,
+          hasChainId: !!chainId,
+        },
+      );
     }
   };
 
