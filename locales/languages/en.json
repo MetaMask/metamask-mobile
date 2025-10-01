@@ -1459,6 +1459,8 @@
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
     "search_by_token_symbol": "Search by token symbol",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {

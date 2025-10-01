@@ -49,7 +49,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           </View>
         </TagColored>
       ) : null}
-      <Text variant={variant} color={TextColor.Default}>
+      <Text variant={variant} color={TextColor.Alternative}>
         {formatFeeText}
       </Text>
     </View>
