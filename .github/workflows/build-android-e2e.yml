@@ -97,7 +97,7 @@ jobs:
           apk_target_path=""
           test_apk_target_path=""
           aab_target_path=""
-          artifact-name=""
+          artifact_name=""
           echo "Determining target paths and Artifact Names..."
           if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
             apk_target_path="android/app/build/outputs/apk/flask/release"
@@ -107,7 +107,7 @@ jobs:
             echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
             echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
-            echo "artifact-name=${artifact-name}" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=${artifact-name}" >> "$GITHUB_OUTPUT"
           else
             apk_target_path="android/app/build/outputs/apk/prod/release"
             test_apk_target_path="android/app/build/outputs/apk/androidTest/prod/release"
