@@ -29,15 +29,18 @@ import {
 import { SellOrderParams, type BuyOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import { OrderType } from './types';
+import { computeSafeAddress, createSafeFeeAuthorization } from './safe/utils';
 
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
+      getNetworkClientById: jest.fn(),
     },
     KeyringController: {
       signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
     },
   },
 }));
@@ -73,10 +76,19 @@ jest.mock('./utils', () => {
   };
 });
 
+jest.mock('./safe/utils', () => ({
+  computeSafeAddress: jest.fn(),
+  createSafeFeeAuthorization: jest.fn(),
+}));
+
 const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.Mock;
+const mockGetNetworkClientById = Engine.context.NetworkController
+  .getNetworkClientById as jest.Mock;
 const mockSignTypedMessage = Engine.context.KeyringController
   .signTypedMessage as jest.Mock;
+const mockSignPersonalMessage = Engine.context.KeyringController
+  .signPersonalMessage as jest.Mock;
 const mockGetMarketsFromPolymarketApi =
   getParsedMarketsFromPolymarketApi as jest.Mock;
 const mockGetMarketFromPolymarketApi = getMarketsFromPolymarketApi as jest.Mock;
@@ -97,6 +109,8 @@ const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockEncodeErc1155Approve = encodeErc1155Approve as jest.Mock;
+const mockComputeSafeAddress = computeSafeAddress as jest.Mock;
+const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const createProvider = () => new PolymarketProvider();
@@ -366,6 +380,7 @@ describe('PolymarketProvider', () => {
     const mockSigner = {
       address: mockAddress,
       signTypedMessage: mockSignTypedMessage,
+      signPersonalMessage: mockSignPersonalMessage,
     };
 
     const mockMarket = {
@@ -410,11 +425,30 @@ describe('PolymarketProvider', () => {
 
     // Setup default mocks
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+    mockGetNetworkClientById.mockReturnValue({
+      provider: {},
+    });
     mockSignTypedMessage.mockResolvedValue('0xsignature');
+    mockSignPersonalMessage.mockResolvedValue('0xpersonalsignature');
     mockCreateApiKey.mockResolvedValue({
       apiKey: 'test-api-key',
       secret: 'test-secret',
       passphrase: 'test-passphrase',
+    });
+    mockComputeSafeAddress.mockResolvedValue(
+      '0x9999999999999999999999999999999999999999',
+    );
+    mockCreateSafeFeeAuthorization.mockResolvedValue({
+      type: 'safe-transaction',
+      authorization: {
+        tx: {
+          to: '0xCollateralAddress',
+          operation: 0,
+          data: '0xdata',
+          value: '0',
+        },
+        sig: '0xsig',
+      },
     });
 
     mockGetTickSize.mockResolvedValue({
@@ -671,6 +705,7 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).toHaveBeenCalledWith({
         headers: offchainTradeParams.headers,
         clobOrder: offchainTradeParams.clobOrder,
+        feeAuthorization: undefined,
       });
     });
 
