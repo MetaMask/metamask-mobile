@@ -329,9 +329,6 @@ describe('DeFiPositionsList', () => {
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
-    ).toBeOnTheScreen();
-    expect(
       await findByText(`Lend, borrow, and trade, right in your wallet.`),
     ).toBeOnTheScreen();
     expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
@@ -445,11 +442,6 @@ describe('DeFiPositionsList', () => {
 
       expect(
         await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
-        ),
       ).toBeOnTheScreen();
       expect(
         await findByText(`Lend, borrow, and trade, right in your wallet.`),
