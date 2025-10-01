@@ -18,6 +18,7 @@ import {
 } from '../../utils/formatUtils';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
@@ -32,6 +33,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const { styles } = useStyles(styleSheet, {});
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const { isDepositInProgress } = usePerpsDepositProgress();
 
   // Use the reusable hooks for balance animation
   const {
@@ -148,6 +150,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           style={balancePillContainerStyle}
           onPress={handlePress}
           testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
+          disabled={isDepositInProgress}
         >
           <View style={styles.leftSection}>
             <Text
@@ -155,7 +158,9 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               color={TextColor.Alternative}
               style={styles.titleText}
             >
-              {strings('perps.available_balance')}
+              {isDepositInProgress
+                ? strings('perps.deposit_in_progress')
+                : strings('perps.available_balance')}
             </Text>
           </View>
           <View style={styles.rightSection}>
