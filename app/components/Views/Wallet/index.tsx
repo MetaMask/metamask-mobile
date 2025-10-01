@@ -309,8 +309,10 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
       navigation,
+      parentScrollY,
+      parentViewportHeight,
     }),
-    [navigation],
+    [navigation, parentScrollY, parentViewportHeight],
   );
 
   const predictTabProps = useMemo(

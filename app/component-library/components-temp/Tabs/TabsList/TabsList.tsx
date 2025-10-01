@@ -193,15 +193,18 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       } else if (activeIndex >= 0) {
         // For new tabs, use a reasonable default estimate for smoother initial animation
         // Only set fallback if we don't have any height information
-        const hasAnyHeight = Array.from(tabHeights.values()).some(h => h > 0);
+        const hasAnyHeight = Array.from(tabHeights.values()).some((h) => h > 0);
         if (!hasAnyHeight) {
           setScrollViewHeight(400);
         } else {
           // Use average of existing heights as a better estimate
-          const heights = Array.from(tabHeights.values()).filter(h => h > 0);
-          const avgHeight = heights.length > 0
-            ? Math.round(heights.reduce((sum, h) => sum + h, 0) / heights.length)
-            : 400;
+          const heights = Array.from(tabHeights.values()).filter((h) => h > 0);
+          const avgHeight =
+            heights.length > 0
+              ? Math.round(
+                  heights.reduce((sum, h) => sum + h, 0) / heights.length,
+                )
+              : 400;
           setScrollViewHeight(avgHeight);
         }
       } else {
@@ -214,7 +217,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         setLoadedTabs((prev) => {
           const newLoadedTabs = new Set(prev);
 
-          // Only load the current tab (strict lazy loading)
+          // Load the current tab (lazy loading with persistence)
           newLoadedTabs.add(activeIndex);
 
           return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
@@ -518,7 +521,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             'mt-2',
             scrollViewHeight
               ? { height: scrollViewHeight, overflow: 'hidden' }
-              : { minHeight: 200 },
+              : { minHeight: 400 },
           )}
         >
           <ScrollView
@@ -568,7 +571,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                         setTabHeights((prev) => {
                           // Double-check the height hasn't been updated by another source
                           const latestHeight = prev.get(tabIndex);
-                          if (latestHeight && Math.abs(latestHeight - height) <= 5) {
+                          if (
+                            latestHeight &&
+                            Math.abs(latestHeight - height) <= 5
+                          ) {
                             return prev; // No update needed
                           }
 
@@ -579,7 +585,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
                         // If this is the active tab, update height immediately for smooth experience
                         // But only if the component is still mounted and this tab is still active
-                        if (tabIndex === activeIndex && tabContentRefs.current.has(tabIndex)) {
+                        if (
+                          tabIndex === activeIndex &&
+                          tabContentRefs.current.has(tabIndex)
+                        ) {
                           setScrollViewHeight(height);
                         }
                       }

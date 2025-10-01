@@ -103,7 +103,7 @@ export function ScrollSyncedVirtualizedList<T>({
 
     // Use consistent and symmetric buffer sizes
     const itemsToShowAbove = 5;
-    const itemsToShowBelow = 10;
+    const itemsToShowBelow = 5;
 
     const scrollStartIndex = Math.max(0, currentItemIndex - itemsToShowAbove);
     const scrollEndIndex = Math.min(
