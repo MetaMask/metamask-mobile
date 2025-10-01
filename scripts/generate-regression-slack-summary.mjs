@@ -297,16 +297,20 @@ async function generateSummary() {
   summary += `• Move tests out of quarantine back into regression runs\n`;
   summary += `• Keep our test suite healthy and reliable!`;
 
-  return summary;
+  return { summary, hasFailures };
 }
 
 generateSummary()
-  .then((summary) => {
+  .then(({ summary, hasFailures }) => {
     console.log(summary);
+    if (hasFailures) {
+      process.exit(1);
+    }
   })
   .catch((error) => {
     console.error('Error generating summary:', error);
     console.log(
       `${platform} E2E Regression Tests\n---------------\nError generating test results`
     );
+    process.exit(1);
   });

@@ -2,6 +2,8 @@ name: iOS E2E Regression Tests
 
 on:
   workflow_call:
+  schedule:
+    - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
 
 permissions:
@@ -190,6 +192,7 @@ jobs:
 
       - name: Generate Test Summary
         id: summary
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -200,6 +203,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack Notification
+        if: steps.summary.outcome == 'failure'
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.REGRESSION_E2E_SLACK_WEBHOOK_URL }}
