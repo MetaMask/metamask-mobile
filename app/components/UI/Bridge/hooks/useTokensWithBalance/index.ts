@@ -15,7 +15,7 @@ import {
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
+import { selectMultichainTokenListForAccountIdAnyChain } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
@@ -26,7 +26,8 @@ import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { toChecksumAddress } from '../../../../../util/address';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { BtcScope, EthScope, SolScope } from '@metamask/keyring-api';
+import { EthScope } from '@metamask/keyring-api';
+import { useNonEvmAccountIds } from '../useNonEvmAccountIds';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -155,12 +156,8 @@ export const useTokensWithBalance: ({
   const evmAddress = selectedAccountGroupInternalAccounts.find((account) =>
     account.scopes.includes(EthScope.Eoa),
   )?.address;
-  const solanaInternalAccountId = selectedAccountGroupInternalAccounts.find(
-    (account) => account.scopes.includes(SolScope.Mainnet),
-  )?.id;
-  const bitcoinInternalAccountId = selectedAccountGroupInternalAccounts.find(
-    (account) => account.scopes.includes(BtcScope.Mainnet),
-  )?.id;
+
+  const nonEvmAccountIds = useNonEvmAccountIds();
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -180,9 +177,17 @@ export const useTokensWithBalance: ({
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
   const nonEvmTokens = useSelector((state: RootState) => {
-    const solanaTokens = selectMultichainTokenListForAccountId(state, solanaInternalAccountId);
-    const bitcoinTokens = selectMultichainTokenListForAccountId(state, bitcoinInternalAccountId);
-    return [...solanaTokens, ...bitcoinTokens];
+    const tokens: ReturnType<
+      typeof selectMultichainTokenListForAccountIdAnyChain
+    > = [];
+    for (const accountId of nonEvmAccountIds) {
+      const tokensForAccountId = selectMultichainTokenListForAccountIdAnyChain(
+        state,
+        accountId,
+      );
+      tokens.push(...tokensForAccountId);
+    }
+    return tokens;
   });
   ///: END:ONLY_INCLUDE_IF
 
