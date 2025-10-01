@@ -52,7 +52,7 @@ runs:
       uses: actions/checkout@v4
       with:
         sparse-checkout: |
-          scripts
+          e2e/scripts
           .nvmrc
         sparse-checkout-cone-mode: false
         fetch-depth: 1

@@ -8,7 +8,7 @@ The AI E2E Testing system is an intelligent test selection mechanism that analyz
 
 ### Core Components
 
-1. **AI Analysis Script** (`scripts/e2e/ai-e2e-tags-selector.ts`)
+1. **AI Analysis Script** (`e2e/scripts/ai-e2e-tags-selector.ts`)
 
    - Analyzes git diffs and changed files
    - Uses Claude AI to intelligently select appropriate test tags

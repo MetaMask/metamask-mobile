@@ -26,7 +26,7 @@
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "setup:e2e": "cd wdio && yarn install",
-    "ai-e2e": "node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts",
+    "ai-e2e": "node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts",
     "start:ios": "./scripts/build.sh ios main dev --local",
     "start:ios:qa": "./scripts/build.sh ios qa dev --local",
     "start:ios:flask": "./scripts/build.sh ios flask dev --local",

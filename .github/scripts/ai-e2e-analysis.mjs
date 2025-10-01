@@ -60,7 +60,7 @@ console.log(`📋 Event name: ${EVENT_NAME}`);
 console.log('📋 Using pre-computed changed files from needs_e2e_build');
 
 // Build command with changed files from needs_e2e_build job
-const baseCmd = `node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts --output json --changed-files '${CHANGED_FILES}'`;
+const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --changed-files '${CHANGED_FILES}'`;
 
 console.log(`🤖 Running AI analysis with command: ${baseCmd}`);
 
