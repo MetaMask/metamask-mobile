@@ -4490,7 +4490,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         </View>
                         <View />
                         <View />
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -7787,7 +7786,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                         <View />
                         <View />
                       </View>
@@ -11136,7 +11134,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         </View>
                         <View />
                         <View />
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -13759,7 +13756,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                         <View />
                         <View />
                       </View>
@@ -16728,7 +16724,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         </View>
                         <View />
                         <View />
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -19474,7 +19469,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                         </View>
                         <View />
                         <View />
-                        <View />
                       </View>
                     </RNCSafeAreaView>
                   </View>
@@ -22198,7 +22192,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                         <View />
                         <View />
                       </View>
