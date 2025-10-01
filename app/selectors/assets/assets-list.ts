@@ -238,7 +238,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   },
 );
 
-export const selectAsset = createDeepEqualSelector(
+export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
@@ -247,9 +247,17 @@ export const selectAsset = createDeepEqualSelector(
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params,
+    ) => params.address,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params.chainId,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params.isStaked,
   ],
-  (assets, stakedAssets, tokensChainsCache, { address, chainId, isStaked }) => {
+  (assets, stakedAssets, tokensChainsCache, address, chainId, isStaked) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
