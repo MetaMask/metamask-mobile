@@ -13,6 +13,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
@@ -277,6 +278,34 @@ const PerpsMarketListView = ({
       );
     }
 
+    // Empty search results
+    if (searchQuery.trim() && filteredMarkets.length === 0) {
+      return (
+        <View style={styles.emptyStateContainer}>
+          <Icon
+            name={IconName.Search}
+            size={IconSize.Xl}
+            color={theme.colors.icon.muted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_tokens_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_tokens_found_description', { searchQuery })}
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <>
         <PerpsMarketListHeader />
@@ -478,6 +507,10 @@ const PerpsMarketListView = ({
           </View>
         </View>
       )}
+
+      {/* Balance Actions Component */}
+      <PerpsMarketBalanceActions />
+
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
       <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>

@@ -6,7 +6,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -189,7 +189,7 @@ const PoolStakingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <View>
+      <ScrollView bounces={false}>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingSM}>
             {strings('stake.stake_eth_and_earn')}
@@ -226,7 +226,7 @@ const PoolStakingLearnMoreModal = () => {
           />
         )}
         <BodyText />
-      </View>
+      </ScrollView>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={footerButtons}

@@ -70,6 +70,7 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -151,7 +152,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = absSize * effectivePrice;
+  const positionValue = useMemo(
+    () => absSize * effectivePrice,
+    [absSize, effectivePrice], // Round to 2 decimal places
+  );
 
   // Calculate P&L based on effective price (limit price for limit orders)
   const entryPrice = parseFloat(position.entryPrice);
@@ -172,30 +176,43 @@ const PerpsClosePositionView: React.FC = () => {
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
-  const closingValue = positionValue * (closePercentage / 100);
+  const closingValue = useMemo(
+    () => positionValue * (closePercentage / 100), // Round to 2 decimal places
+    [positionValue, closePercentage],
+  );
+  const closingValueString = useMemo(
+    () => closingValue.toString(),
+    [closingValue],
+  );
   const feeResults = usePerpsOrderFees({
     orderType,
-    amount: closingValue.toString(),
+    amount: closingValueString,
     isMaker: false, // Closing positions are typically taker orders
     coin: position.coin,
     isClosing: true, // This is a position closing operation
   });
 
   // Simple boolean calculation for rewards state
-  const hasValidAmount = closePercentage > 0 && closingValue > 0;
+  const hasValidAmount = useMemo(
+    () => closePercentage > 0 && closingValue > 0,
+    [closePercentage, closingValue],
+  );
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
     feeResults,
     hasValidAmount,
     isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: closingValue.toString(),
+    orderAmount: closingValueString,
   });
 
-  // Calculate what user will receive (initial margin - fees)
+  // Calculate what user will receive (initial margin + P&L - fees)
   // P&L is already shown separately in the margin section as "includes P&L"
-  const receiveAmount =
-    (closePercentage / 100) * initialMargin - feeResults.totalFee;
+  const receiveAmount = useMemo(() => {
+    const marginPortion = (closePercentage / 100) * initialMargin;
+    const pnlPortion = effectivePnL * (closePercentage / 100);
+    return marginPortion + pnlPortion - feeResults.totalFee;
+  }, [closePercentage, initialMargin, effectivePnL, feeResults.totalFee]);
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -228,6 +245,10 @@ const PerpsClosePositionView: React.FC = () => {
   // Track position close screen viewed event
   useEffect(() => {
     if (!hasTrackedCloseView.current) {
+      // Calculate unrealized PnL percentage
+      const unrealizedPnlPercent =
+        initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
+
       track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.DIRECTION]: isLong
@@ -235,10 +256,22 @@ const PerpsClosePositionView: React.FC = () => {
           : PerpsEventValues.DIRECTION.SHORT,
         [PerpsEventProperties.POSITION_SIZE]: absSize,
         [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+        [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+        [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
       });
       hasTrackedCloseView.current = true;
     }
-  }, [position.coin, isLong, absSize, pnl, track]);
+  }, [
+    position.coin,
+    isLong,
+    absSize,
+    pnl,
+    initialMargin,
+    receiveAmount,
+    track,
+  ]);
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
@@ -256,6 +289,11 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleConfirm = async () => {
     // Track position close initiated
+    const pnlPercent =
+      initialMargin > 0
+        ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
+        : 0;
+
     track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.DIRECTION]: isLong
@@ -266,6 +304,13 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.CLOSE_VALUE]: closingValue,
       [PerpsEventProperties.PNL_DOLLAR]: effectivePnL * (closePercentage / 100),
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+      [PerpsEventProperties.OPEN_POSITION_SIZE]: absSize,
+      [PerpsEventProperties.ORDER_SIZE]: parseFloat(closeAmount),
+      [PerpsEventProperties.PNL_PERCENT]: pnlPercent,
+      [PerpsEventProperties.FEE]: feeResults.totalFee,
+      [PerpsEventProperties.ASSET_PRICE]: currentPrice,
+      [PerpsEventProperties.LIMIT_PRICE]:
+        orderType === 'limit' ? parseFloat(limitPrice) || null : null,
     });
 
     // Track position close submitted
@@ -290,7 +335,16 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
-      feeResults,
+      {
+        totalFee: feeResults.totalFee,
+        marketPrice: currentPrice,
+        receivedAmount: receiveAmount,
+        realizedPnl: effectivePnL * (closePercentage / 100),
+        metamaskFeeRate: feeResults.metamaskFeeRate,
+        feeDiscountPercentage: feeResults.feeDiscountPercentage,
+        metamaskFee: feeResults.metamaskFee,
+        estimatedPoints: rewardsState.estimatedPoints,
+      },
     );
   };
 
@@ -393,6 +447,10 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
+  const handleSliderChange = (value: number) => {
+    setClosePercentage(value);
+  };
+
   // Tooltip handlers
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
@@ -444,9 +502,13 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(initialMargin * (closePercentage / 100), {
-              maximumDecimals: 2,
-            })}
+            {formatPrice(
+              (closePercentage / 100) * initialMargin +
+                effectivePnL * (closePercentage / 100),
+              {
+                maximumDecimals: 2,
+              },
+            )}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
@@ -518,6 +580,38 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
       </View>
+
+      {/* Rewards Points Estimation */}
+      {rewardsState.shouldShowRewardsRow && (
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryLabel}>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('points')}
+              style={styles.labelWithTooltip}
+              testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('perps.estimated_points')}
+              </Text>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.summaryValue}>
+            <RewardPointsDisplay
+              estimatedPoints={rewardsState.estimatedPoints}
+              bonusBips={rewardsState.bonusBips}
+              isLoading={rewardsState.isLoading}
+              hasError={rewardsState.hasError}
+              shouldShow={rewardsState.shouldShowRewardsRow}
+              isRefresh={rewardsState.isRefresh}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 
@@ -567,7 +661,7 @@ const PerpsClosePositionView: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={closePercentage}
-              onValueChange={setClosePercentage}
+              onValueChange={handleSliderChange}
               minimumValue={0}
               maximumValue={100}
               step={1}

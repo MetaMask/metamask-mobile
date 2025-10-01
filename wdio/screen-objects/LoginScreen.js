@@ -1,16 +1,19 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
 class LoginScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get loginScreen() {
@@ -112,8 +115,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      const element = await this.resetWalletButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.resetWalletButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -124,7 +126,7 @@ class LoginScreen {
     } else {
       const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
-      await element.fill(password);
+      await AppwrightGestures.typeText(element, password);
       await screenTitle.tap()
     }
   }
@@ -134,8 +136,7 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      const element = await this.unlockButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.unlockButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -143,8 +144,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      const element = await this.title;
-      await element.tap();
+      await AppwrightGestures.tap(this.title); // Use static tapElement method with retry logic
     }
   }
 
@@ -152,8 +152,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      const element = await this.rememberMeToggle;
-      await element.tap();
+      await AppwrightGestures.tap(this.rememberMeToggle); // Use static tapElement method with retry logic
     }
   }
 }

@@ -1,22 +1,21 @@
 import React from 'react';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
-  FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { RootState } from '../../../../../reducers';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 
 export interface AccountDisplayItemProps {
   /**
@@ -38,52 +37,75 @@ export interface AccountDisplayItemProps {
    */
   twClassName?: string;
   /**
-   * Text variant for the account name
-   * @default TextVariant.BodyMd
-   */
-  textVariant?: TextVariant;
   /**
-   * Font weight for the account name
-   * @default FontWeight.Medium
+   * Specific caip chain ID to display network icon for (optional)
+   * If not provided, will use the first available scope from the account
    */
-  fontWeight?: FontWeight;
+  caipChainId?: string;
 }
 
 const AccountDisplayItem: React.FC<AccountDisplayItemProps> = ({
   account,
-  avatarSize = AvatarSize.Md,
-  isCurrentAccount = false,
   twClassName = '',
-  textVariant = TextVariant.BodyMd,
-  fontWeight = FontWeight.Medium,
+  avatarSize = AvatarSize.Md,
+  caipChainId,
 }) => {
   const tw = useTailwind();
-
-  // Get account avatar type preference
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
   );
+
+  // Get the caipChainId to use - either provided or first from account scopes
+  const targetCaipChainId = caipChainId || account.scopes?.[0];
+
+  // Early return data if no valid chainId
+  if (!targetCaipChainId) {
+    return (
+      <Box
+        style={tw.style('flex-row items-center gap-3 h-12', twClassName)}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {formatAddress(account.address, 'short')}
+        </Text>
+      </Box>
+    );
+  }
+
+  // Get network configuration and image source with error handling
+  const networkConfig =
+    networkConfigurations[
+      targetCaipChainId as keyof typeof networkConfigurations
+    ];
+  const networkName = networkConfig?.name || 'Unknown Network';
+
+  let networkImageSource;
+  try {
+    networkImageSource = getNetworkImageSource({
+      chainId: targetCaipChainId,
+    });
+  } catch (error) {
+    console.warn('Failed to get network image source:', error);
+    networkImageSource = undefined;
+  }
 
   return (
     <Box
-      style={tw.style(
-        'flex-row items-center gap-3',
-        isCurrentAccount && 'bg-pressed rounded-lg',
-        twClassName,
-      )}
+      style={tw.style('flex-row items-center gap-3 h-12', twClassName)}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
     >
+      {/* Network Avatar - Only show if we have valid network data */}
       <Avatar
-        variant={AvatarVariant.Account}
+        variant={AvatarVariant.Network}
         size={avatarSize}
-        accountAddress={account.address}
-        type={accountAvatarType}
+        name={networkName}
+        imageSource={networkImageSource}
       />
 
-      <Text variant={textVariant} fontWeight={fontWeight}>
+      {/* Account Address and Name */}
+      <Text variant={TextVariant.BodySm} twClassName="text-alternative">
         {formatAddress(account.address, 'short')}
       </Text>
     </Box>

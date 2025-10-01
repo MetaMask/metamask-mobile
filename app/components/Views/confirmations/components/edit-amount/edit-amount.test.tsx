@@ -1,7 +1,10 @@
 import React from 'react';
 import { merge } from 'lodash';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
 import { EditAmount, EditAmountProps } from './edit-amount';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
@@ -9,10 +12,16 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
+import { setTransactionBridgeQuotesLoading } from '../../../../../core/redux/slices/confirmationMetrics';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
+
+jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
+  setTransactionBridgeQuotesLoading: jest.fn(),
+}));
 
 jest.useFakeTimers();
 
@@ -35,6 +44,10 @@ describe('EditAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const updateTokenAmountMock = jest.fn();
 
+  const setTransactionBridgeQuotesLoadingMock = jest.mocked(
+    setTransactionBridgeQuotesLoading,
+  );
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -48,6 +61,10 @@ describe('EditAmount', () => {
     } as ReturnType<typeof useTransactionPayToken>);
 
     useTokenFiatRateMock.mockReturnValue(FIAT_RATE_MOCK);
+
+    setTransactionBridgeQuotesLoadingMock.mockReturnValue({
+      type: 'test',
+    } as never);
   });
 
   it('calls updateTokenAmount with token amount when done button pressed', async () => {
@@ -72,6 +89,33 @@ describe('EditAmount', () => {
     await jest.runAllTimersAsync();
 
     expect(updateTokenAmountMock).toHaveBeenCalledWith('26.5');
+  });
+
+  it('sets quotes loading when done button pressed', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('3'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+    });
+
+    await jest.runAllTimersAsync();
+
+    expect(setTransactionBridgeQuotesLoadingMock).toHaveBeenCalledWith({
+      transactionId: transactionIdMock,
+      isLoading: true,
+    });
   });
 
   it('updates amount when input changes', async () => {

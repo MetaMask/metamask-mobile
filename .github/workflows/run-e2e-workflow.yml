@@ -33,11 +33,16 @@ on:
         required: false
         type: number
         default: 30
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-l-kvm' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
@@ -46,7 +51,10 @@ jobs:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+      CHANGED_FILES: ${{ inputs.changed_files }}
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}
@@ -86,7 +94,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config 
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -104,7 +112,7 @@ jobs:
         if: ${{ inputs.platform == 'android' }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
-          
+
           # Create required directories
           mkdir -p android/app/build/outputs/apk/prod/release/
 
@@ -143,7 +151,7 @@ jobs:
         if: ${{ inputs.platform == 'ios' }}
         run: |
           echo "🏗 Setting up iOS artifacts from build job..."
-          
+
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
@@ -172,17 +180,12 @@ jobs:
 
           # Run tests (Detox/Jest handle retries internally)
           echo "🚀 Starting E2E tests..."
-          if [[ "$platform" == "ios" ]]; then
-            export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
-          else
-            export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
-          fi
-          
+
           # Always use the splitting script (handles both split and non-split cases)
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
 
-          ./scripts/run-e2e-tags-gha.sh
-          
+          node .github/scripts/run-e2e-tags-gha.mjs
+
           echo "✅ Test execution completed"
         env:
           JOB_NAME: ${{ inputs.test-suite-name }}
@@ -196,7 +199,7 @@ jobs:
           name: ${{ inputs.test-suite-name }}-test-results
           path: e2e/reports/
           retention-days: 7
-      
+
       - name: Prepare screenshots
         if: failure()
         run: |

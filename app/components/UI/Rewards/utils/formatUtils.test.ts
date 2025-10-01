@@ -33,6 +33,7 @@ jest.mock('../../../../util/date', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const t: Record<string, string> = {
+      'rewards.events.to': 'to',
       'rewards.events.type.swap': 'Swap',
       'rewards.events.type.referral_action': 'Referral action',
       'rewards.events.type.sign_up_bonus': 'Sign up bonus',
@@ -71,7 +72,7 @@ describe('formatUtils', () => {
 
   describe('formatRewardsDate', () => {
     it('formats timestamp correctly with default locale', () => {
-      const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
+      const timestamp = new Date('2024-01-15T14:30:00Z');
 
       const result = formatRewardsDate(timestamp);
 
@@ -80,7 +81,7 @@ describe('formatUtils', () => {
 
     it('formats timestamp correctly with custom locale', () => {
       // Given a timestamp and custom locale
-      const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
+      const timestamp = new Date('2024-01-15T14:30:00Z');
       const locale = 'fr-FR';
 
       // When formatting the date
@@ -102,6 +103,7 @@ describe('formatUtils', () => {
         value: 100,
         bonus: null,
         accountAddress: TEST_ADDRESS,
+        updatedAt: new Date('2024-01-15T14:30:00Z'),
       };
 
       switch (type) {
@@ -514,14 +516,12 @@ describe('formatUtils', () => {
             amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/eth.png',
           },
           destAsset: {
             symbol: 'USDC',
             amount: '2000000000', // 2000 USDC with 6 decimals
             decimals: 6,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/usdc.png',
           },
         });
 
@@ -531,7 +531,6 @@ describe('formatUtils', () => {
           title: 'Swap',
           details: '1.235 ETH to USDC',
           icon: IconName.SwapVertical,
-          badgeImageUri: 'https://example.com/eth.png',
         });
       });
 
@@ -542,14 +541,12 @@ describe('formatUtils', () => {
             amount: '50000000000000000000', // 50 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/eth.png',
           },
           destAsset: {
             symbol: 'USDC',
             amount: '100000000', // 100 USDC with 6 decimals
             decimals: 6,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/usdc.png',
           },
         });
 
@@ -559,7 +556,6 @@ describe('formatUtils', () => {
           title: 'Swap',
           details: '50 ETH to USDC',
           icon: IconName.SwapVertical,
-          badgeImageUri: 'https://example.com/eth.png',
         });
       });
     });

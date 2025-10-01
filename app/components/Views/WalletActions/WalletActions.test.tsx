@@ -1,8 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
-import { selectChainId } from '../../../selectors/networkController';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -24,6 +22,7 @@ import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -35,6 +34,10 @@ jest.mock('../../UI/Perps', () => ({
 
 jest.mock('../../UI/Perps/selectors/perpsController', () => ({
   selectIsFirstTimePerpsUser: jest.fn(),
+}));
+
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
@@ -127,16 +130,11 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
   selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
-  selectIsSwapsLive: jest.fn().mockReturnValue(true),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
-}));
-
-jest.mock('../../../components/UI/Swaps/utils', () => ({
-  isSwapsAllowed: jest.fn().mockReturnValue(true),
 }));
 
 const mockGoToSwaps = jest.fn();
@@ -306,6 +304,10 @@ describe('WalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeNull();
+    // Feature flag is disabled by default
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeNull();
   });
   it('should render earn button if the stablecoin lending feature is enabled', () => {
     (
@@ -321,39 +323,8 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
-  it('should not show the swap button if the chain does not allow swaps', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-
-    const mockState: DeepPartial<RootState> = {
-      swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
-              id: 'sepolia',
-              nickname: 'Sepolia',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    };
-
-    const { queryByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockState,
-    });
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeNull();
-  });
 
   it('should call the goToSwaps function when the Swap button is pressed', async () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
@@ -508,6 +479,48 @@ describe('WalletActions', () => {
     });
   });
 
+  it('should render the Predict button if the Predict feature flag is enabled', () => {
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('should call the onPredict function when the Predict button is pressed', () => {
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
+      screen: 'WalletTabStackFlow',
+      params: {
+        screen: 'Predict',
+        params: {
+          screen: 'PredictMarketList',
+        },
+      },
+    });
+  });
+
   it('disables action buttons when the account cannot sign transactions', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
@@ -519,8 +532,17 @@ describe('WalletActions', () => {
         typeof selectPooledStakingEnabledFlag
       >
     ).mockReturnValue(true);
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPredictEnabledFlag as jest.MockedFunction<
+        typeof selectPredictEnabledFlag
+      >
+    ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
 
     // Import and mock selectIsSwapsEnabled to return false when can't sign
     const { selectIsSwapsEnabled } = jest.requireMock(
@@ -564,10 +586,18 @@ describe('WalletActions', () => {
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
+    const perpsButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+    );
+    const predictButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+    );
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
     fireEvent.press(earnButton);
+    fireEvent.press(perpsButton);
+    fireEvent.press(predictButton);
 
     // Since buttons are disabled, none of the mock functions should be called
     expect(mockNavigate).not.toHaveBeenCalled();

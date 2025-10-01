@@ -21,6 +21,9 @@ jest.mock('../../../../core/Engine', () => ({
     AccountTreeController: {
       setSelectedAccountGroup: (id: string) => mockSetSelectedAccountGroup(id),
     },
+    GatorPermissionsController: {
+      getState: () => ({}),
+    },
   },
 }));
 
@@ -39,6 +42,10 @@ jest.mock('../../../../selectors/assets/balances', () => {
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+  }),
 }));
 
 const mockNavigate = jest.fn();
@@ -83,7 +90,7 @@ const DEFAULT_PROPS = {
 
 const mockStore = configureStore([]);
 const buildState = (groups: AccountGroupObject[]) => {
-  const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+  const wallet = createMockWallet('keyring:test-group', 'Test Wallet', groups);
   const internalAccounts = createMockInternalAccountsFromGroups(groups);
   return createMockState([wallet], internalAccounts);
 };
@@ -331,7 +338,7 @@ describe('MultichainAccountsConnectedList', () => {
   describe('Selected Account Visual Indicator', () => {
     it('displays checkmark icon for the selected account', () => {
       // Given a list of connected accounts with the first account selected
-      const selectedAccountGroupId = 'keyring:test-group/group-1';
+      const selectedAccountGroupId = MOCK_ACCOUNT_GROUP_1.id;
       const groups = [MOCK_ACCOUNT_GROUP_1, MOCK_ACCOUNT_GROUP_2];
       const wallet = createMockWallet('test-group', 'Test Wallet', groups);
       const internalAccounts = createMockInternalAccountsFromGroups(groups);

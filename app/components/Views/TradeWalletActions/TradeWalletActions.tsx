@@ -47,12 +47,13 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
+import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -70,6 +71,7 @@ interface TradeWalletActionsParams {
 function TradeWalletActions() {
   const { navigate } = useNavigation();
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
   const postCallback = useRef<() => void>();
   const [visible, setIsVisible] = useState(true);
@@ -81,7 +83,7 @@ function TradeWalletActions() {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
+    selectIsSwapsEnabled(state),
   );
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
@@ -90,6 +92,7 @@ function TradeWalletActions() {
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(
@@ -127,9 +130,32 @@ function TradeWalletActions() {
   }, [goToSwapsBase, handleNavigateBack]);
 
   const onPerps = useCallback(() => {
-    postCallback.current = () => {
-      navigate(Routes.PERPS.ROOT, {
+    let params: Record<string, string> | null = null;
+    if (isFirstTimePerpsUser) {
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
+    } else {
+      params = {
         screen: Routes.PERPS.MARKETS,
+      };
+    }
+    postCallback.current = () => {
+      navigate(Routes.PERPS.ROOT, params);
+    };
+    handleNavigateBack();
+  }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
+
+  const onPredict = useCallback(() => {
+    postCallback.current = () => {
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
       });
     };
     handleNavigateBack();
@@ -251,7 +277,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+                {AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
                     label={strings('asset_overview.swap')}
                     description={strings('asset_overview.swap_description')}
@@ -268,6 +294,16 @@ function TradeWalletActions() {
                     iconName={IconName.Candlestick}
                     onPress={onPerps}
                     testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+                    isDisabled={!canSignTransactions}
+                  />
+                )}
+                {isPredictEnabled && isEvmSelected && (
+                  <ActionListItem
+                    label={strings('asset_overview.predict_button')}
+                    description={strings('asset_overview.predict_description')}
+                    iconName={IconName.Speedometer}
+                    onPress={onPredict}
+                    testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
                     isDisabled={!canSignTransactions}
                   />
                 )}

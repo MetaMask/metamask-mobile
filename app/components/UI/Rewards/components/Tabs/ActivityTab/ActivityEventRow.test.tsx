@@ -107,7 +107,6 @@ describe('ActivityEventRow', () => {
               decimals: 0,
               name: 'BIO',
               symbol: 'BIO',
-              iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
               amount: '287',
             },
           },
@@ -591,9 +590,7 @@ describe('ActivityEventRow', () => {
 
       // Assert
       expect(getByText('15/01/2024')).toBeOnTheScreen();
-      expect(mockFormatRewardsDate).toHaveBeenCalledWith(
-        event.timestamp.getTime(),
-      );
+      expect(mockFormatRewardsDate).toHaveBeenCalledWith(event.timestamp);
     });
   });
 });

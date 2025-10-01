@@ -66,7 +66,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
-        "name": "Ethereum Mainnet",
+        "name": "Ethereum",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -158,7 +158,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
-        "name": "Base Mainnet",
+        "name": "Base",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -197,7 +197,7 @@
       "tron": {
         "tron:2494104990": false,
         "tron:3448148188": false,
-        "tron:728126428": false
+        "tron:728126428": true
       }
     }
   },
@@ -639,10 +639,19 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEvents": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {}
+  },
+  "PredictController": {
+    "activeOrders": {},
+    "eligibility": {},
+    "lastError": null,
+    "lastUpdateTimestamp": 0,
+    "notifications": [],
+    "positions": []
   }
 }

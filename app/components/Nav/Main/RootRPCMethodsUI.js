@@ -326,12 +326,15 @@ const RootRPCMethodsUI = (props) => {
         // Queue txMetaId to listen for confirmation event
         addTransactionMetaIdForListening(transactionMeta.id);
 
-        await KeyringController.resetQRKeyringState();
-
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.txParams.from,
           [ExtendedKeyringTypes.ledger],
         );
+
+        // As the `TransactionController:unapprovedTransactionAdded` event is emitted
+        // before the approval request is added to `ApprovalController`, we need to wait
+        // for the next tick to make sure the approval request is present when auto-approve it
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // For Ledger Accounts we handover the signing to the confirmation flow
         if (isLedgerAccount) {
