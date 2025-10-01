@@ -14,9 +14,6 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainTokenListForAccountIdAnyChain } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
@@ -27,7 +24,7 @@ import { selectAccountsByChainId } from '../../../../../selectors/accountTracker
 import { toChecksumAddress } from '../../../../../util/address';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { EthScope } from '@metamask/keyring-api';
-import { useNonEvmAccountIds } from '../useNonEvmAccountIds';
+import { useNonEvmTokens } from '../useNonEvmTokens';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -157,8 +154,6 @@ export const useTokensWithBalance: ({
     account.scopes.includes(EthScope.Eoa),
   )?.address;
 
-  const nonEvmAccountIds = useNonEvmAccountIds();
-
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -176,19 +171,7 @@ export const useTokensWithBalance: ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useSelector((state: RootState) => {
-    const tokens: ReturnType<
-      typeof selectMultichainTokenListForAccountIdAnyChain
-    > = [];
-    for (const accountId of nonEvmAccountIds) {
-      const tokensForAccountId = selectMultichainTokenListForAccountIdAnyChain(
-        state,
-        accountId,
-      );
-      tokens.push(...tokensForAccountId);
-    }
-    return tokens;
-  });
+  const nonEvmTokens = useNonEvmTokens();
   ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
