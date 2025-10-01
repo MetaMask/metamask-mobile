@@ -3429,6 +3429,180 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('reset', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should skip reset when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      await controller.reset();
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+    });
+
+    it('should skip reset when no authenticated account exists', async () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.reset();
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No authenticated account found',
+      );
+    });
+
+    it('should clear last authenticated account only if subscription matches', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            lastCheckedAuthError: false,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastCheckedAuth: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.reset();
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+    });
+
+    it('should successfully complete full reset flow - happy path', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-456';
+      const mockActiveAccount = {
+        account: CAIP_ACCOUNT_1,
+        lastCheckedAuthError: false,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        perpsFeeDiscount: 10.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Mock getSelectedMultichainAccount to return valid account during initialization
+      mockMessenger.call.mockReturnValue(mockInternalAccount);
+
+      // Mock token storage to succeed during initialization
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: mockActiveAccount,
+          accounts: {
+            [CAIP_ACCOUNT_1]: mockActiveAccount,
+          },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Clear only the messenger calls made during initialization, preserve other mocks
+      mockMessenger.call.mockClear();
+      mockStoreSubscriptionToken.mockClear();
+      mockRemoveSubscriptionToken.mockClear();
+
+      // Mock token removal for the actual test
+      mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+      // Verify state is correctly set before calling reset
+      expect(controller.state.activeAccount).not.toBeNull();
+      expect(controller.state.activeAccount?.subscriptionId).toBe(
+        mockSubscriptionId,
+      );
+
+      // Act
+      await controller.reset();
+
+      // Assert - Verify session token removal was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+
+      // Assert - Verify state was cleared correctly
+      expect(controller.state.activeAccount).toEqual({
+        account: 'eip155:1:0x123',
+        hasOptedIn: false,
+        lastCheckedAuth: 1000000,
+        lastCheckedAuthError: false,
+        lastPerpsDiscountRateFetched: null,
+        perpsFeeDiscount: null,
+        subscriptionId: null,
+      });
+      expect(controller.state.accounts[CAIP_ACCOUNT_1]).toBeUndefined();
+
+      // Assert - Verify success was logged
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset completed successfully',
+      );
+
+      // Assert - Verify subscription data cleared
+      expect(
+        controller.state.subscriptions[mockSubscriptionId],
+      ).toBeUndefined();
+    });
+  });
+
   describe('logout', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);

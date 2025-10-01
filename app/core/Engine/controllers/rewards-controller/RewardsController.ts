@@ -1662,6 +1662,56 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Reset rewards account state
+   */
+  async reset(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      return;
+    }
+
+    if (!this.state.activeAccount?.subscriptionId) {
+      Logger.log('RewardsController: No authenticated account found');
+      return;
+    }
+
+    const subscriptionId = this.state.activeAccount.subscriptionId;
+
+    try {
+      const currentActiveAccount = this.state.activeAccount?.account;
+      this.resetState();
+      this.update((state: RewardsControllerState) => {
+        // Set activeAccount with optIn: false if there was an active account
+        if (currentActiveAccount) {
+          state.activeAccount = {
+            account: currentActiveAccount,
+            hasOptedIn: false,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          };
+        }
+      });
+
+      // Remove subscription token from secure storage
+      await removeSubscriptionToken(subscriptionId);
+
+      Logger.log('RewardsController: Reset completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Reset failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Logout user from rewards and clear associated data
    * @param subscriptionId - Optional subscription ID to logout from
    */
