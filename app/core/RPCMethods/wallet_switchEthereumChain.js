@@ -54,7 +54,6 @@ export const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-  // TODO: [SOLANA] - This do not support non evm networks
   const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
     store.getState(),
   );
@@ -80,10 +79,15 @@ export const wallet_switchEthereumChain = async ({
     );
 
     const toNetworkConfiguration =
-      hooks.getNetworkConfigurationByChainId(chainId);
+      hooks.getNetworkConfigurationByChainId(_chainId);
+
+    const networkClientIdToSwitchTo =
+      toNetworkConfiguration?.rpcEndpoints[
+        toNetworkConfiguration.defaultRpcEndpointIndex
+      ].networkClientId;
 
     await switchToNetwork({
-      network: existingNetwork,
+      networkClientId: networkClientIdToSwitchTo,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
