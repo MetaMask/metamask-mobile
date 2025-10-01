@@ -604,34 +604,53 @@ describe('Wallet', () => {
     });
 
     it('should handle onReceive callback correctly', () => {
-      // Mock the required selectors to ensure onReceive conditions are met
-      jest.mocked(useSelector).mockImplementation((callback) => {
-        const selectorString = callback.toString();
-        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
-          return false; // Test state1 path
-        }
-        if (selectorString.includes('selectSelectedInternalAccount')) {
-          return { address: '0x123456789' }; // Mock account with address
-        }
-        if (selectorString.includes('selectSelectedAccountGroupId')) {
-          return 'group-id-123'; // Mock group ID
-        }
-        if (selectorString.includes('selectChainId')) {
-          return '0x1'; // Mock chain ID
-        }
-        if (selectorString.includes('selectProviderConfig')) {
-          return { nickname: 'Ethereum Mainnet' }; // Mock provider config
-        }
-        return callback(mockInitialState);
-      });
+      // Arrange - Create mock state with required data for onReceive
+      const mockStateWithReceiveData = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...mockInitialState.engine.backgroundState.AccountsController,
+              internalAccounts: {
+                accounts: {
+                  'account-id-1': {
+                    address: '0x123456789',
+                    id: 'account-id-1',
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: 'account-id-1',
+              },
+            },
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'group-id-123',
+              },
+            },
+            NetworkController: {
+              ...mockInitialState.engine.backgroundState.NetworkController,
+              providerConfig: {
+                nickname: 'Ethereum Mainnet',
+                chainId: '0x1',
+              },
+            },
+          },
+        },
+      };
 
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(mockStateWithReceiveData));
+
+      // Act
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
-
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Verify navigation to ShareAddressQR modal for receiving funds
+      // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
         {
