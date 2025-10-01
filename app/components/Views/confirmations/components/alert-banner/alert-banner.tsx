@@ -4,29 +4,43 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
-import { RowAlertKey } from '../UI/info-row/alert-row/constants';
-
+import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { AlertKeys } from '../../constants/alerts';
 export interface AlertBannerProps {
-  blockingFields?: boolean;
-  excludeFields?: RowAlertKey[];
+  blockingOnly?: boolean;
+  excludeKeys?: AlertKeys[];
+  ignoreTypes?: TransactionType[];
+  includeFields?: boolean;
   inline?: boolean;
 }
 
 const AlertBanner = ({
-  blockingFields,
-  excludeFields,
+  blockingOnly,
+  excludeKeys,
+  ignoreTypes,
+  includeFields,
   inline,
 }: AlertBannerProps = {}) => {
   const { generalAlerts, fieldAlerts } = useAlerts();
   const { styles } = useStyles(styleSheet, { inline });
+  const { type } = useTransactionMetadataRequest() ?? {};
 
-  const alerts = blockingFields
-    ? fieldAlerts.filter(
-        (a) => a.isBlocking && !excludeFields?.includes(a.field as RowAlertKey),
-      )
-    : generalAlerts;
+  let alerts = [...generalAlerts];
 
-  if (alerts.length === 0) {
+  if (includeFields) {
+    alerts.push(...fieldAlerts);
+  }
+
+  if (blockingOnly) {
+    alerts = alerts.filter((a) => a.isBlocking);
+  }
+
+  if (excludeKeys) {
+    alerts = alerts.filter((a) => !excludeKeys.includes(a.key as AlertKeys));
+  }
+
+  if (alerts.length === 0 || ignoreTypes?.includes(type as TransactionType)) {
     return null;
   }
 

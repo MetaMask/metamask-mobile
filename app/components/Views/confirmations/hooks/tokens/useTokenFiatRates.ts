@@ -9,16 +9,17 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
 import { toChecksumAddress } from '../../../../../util/address';
-import { ARBITRUM_USDC_ADDRESS } from '../../external/perps-temp/hooks/usePerpsDepositInit';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 export interface TokenFiatRateRequest {
   address: Hex;
   chainId: Hex;
+  currency?: string;
 }
 
 export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
-  const currency = useSelector(selectCurrentCurrency);
+  const selectedCurrency = useSelector(selectCurrentCurrency);
   const tokenMarketDataByAddressByChainId = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -26,7 +27,9 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
 
   const result = useMemo(
     () =>
-      safeRequests.map(({ address, chainId }) => {
+      safeRequests.map(({ address, chainId, currency: currencyOverride }) => {
+        const currency = currencyOverride ?? selectedCurrency;
+
         if (
           currency.toLowerCase() === 'usd' &&
           address.toLowerCase() === ARBITRUM_USDC_ADDRESS.toLowerCase() &&
@@ -49,10 +52,10 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         return (token?.price ?? 1) * conversionRate;
       }),
     [
-      currency,
       currencyRates,
       networkConfigurations,
       safeRequests,
+      selectedCurrency,
       tokenMarketDataByAddressByChainId,
     ],
   );
@@ -60,7 +63,13 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   return useDeepMemo(() => result, [result]);
 }
 
-export function useTokenFiatRate(tokenAddress: Hex, chainId: Hex) {
-  const rates = useTokenFiatRates([{ address: tokenAddress, chainId }]);
+export function useTokenFiatRate(
+  tokenAddress: Hex,
+  chainId: Hex,
+  currency?: string,
+) {
+  const rates = useTokenFiatRates([
+    { address: tokenAddress, chainId, currency },
+  ]);
   return rates[0];
 }

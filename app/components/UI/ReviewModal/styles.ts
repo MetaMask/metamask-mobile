@@ -20,7 +20,7 @@ export const createStyles = (colors: any) =>
     optionIcon: { fontSize: 24 },
     optionLabel: {
       fontSize: 14,
-      fontFamily: 'CentraNo1-Book',
+      fontFamily: 'Geist Regular',
       color: colors.primary.default,
     },
     helpOption: { marginVertical: 12 },
@@ -29,14 +29,14 @@ export const createStyles = (colors: any) =>
     questionLabel: {
       fontSize: 18,
       paddingHorizontal: 30,
-      fontFamily: 'CentraNo1-Bold',
+      fontFamily: 'Geist Bold',
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 26,
     },
     description: {
       fontSize: 14,
-      fontFamily: 'CentraNo1-Book',
+      fontFamily: 'Geist Regular',
       color: colors.text.alternative,
       textAlign: 'center',
       lineHeight: 20,

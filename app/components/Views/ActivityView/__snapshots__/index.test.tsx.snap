@@ -384,7 +384,7 @@ exports[`ActivityView should render correctly 1`] = `
                               "paddingHorizontal": 12,
                             }
                           }
-                          testID="token-network-filter"
+                          testID="tokens-network-filter"
                         >
                           <View
                             style={
@@ -435,7 +435,7 @@ exports[`ActivityView should render correctly 1`] = `
                                 }
                               }
                             >
-                              All Networks
+                              Popular networks
                             </Text>
                           </View>
                           <SvgMock
@@ -506,7 +506,7 @@ exports[`ActivityView should render correctly 1`] = `
                                 }
                                 variant="sHeadingMD"
                               >
-                                You don't have any orders
+                                No bank or card transfers yet.
                               </Text>
                             </Row>
                           }
@@ -734,7 +734,7 @@ exports[`ActivityView should render correctly 1`] = `
                                   }
                                 }
                               >
-                                You don't have any orders
+                                No bank or card transfers yet.
                               </Text>
                             </View>
                           </View>

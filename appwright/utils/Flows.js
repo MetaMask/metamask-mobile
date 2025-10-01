@@ -10,44 +10,10 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
-import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
-
-/**
- * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
- * @param {Object} device - The device object from Appwright
- */
-export async function dismissSystemDialogs(device) {
-  await device.waitForTimeout(3000);
-
-  try {
-    // Wait 3 seconds for dialog to appear
-
-    // Try common permission dialog selectors using AppwrightSelectors
-    const dialogSelectors = ['Allow', 'OK', 'Allow Notifications'];
-
-    for (const selector of dialogSelectors) {
-      try {
-        const allowButton = await AppwrightSelectors.getElementByCatchAll(
-          device,
-          selector,
-        );
-        if (allowButton) {
-          await device.tap(allowButton);
-          console.log(`Tapped permission dialog button: ${selector}`);
-          return;
-        }
-      } catch (e) {
-        // Continue to next selector
-      }
-    }
-
-    console.log(
-      'No permission dialog found - autoAcceptAlerts may have handled it',
-    );
-  } catch (error) {
-    console.debug('Error handling permission dialog:', error.message);
-  }
-}
+import { getPasswordForScenario } from './TestConstants.js';
+import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
+import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
+import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -58,13 +24,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   CreatePasswordScreen.device = device;
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
-  await WelcomeScreen.clickGetStartedButton();
-  await TermOfUseScreen.isDisplayed();
 
-  await TermOfUseScreen.tapAgreeCheckBox();
-  await TermOfUseScreen.tapScrollEndButton();
-
-  await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.isScreenTitleVisible();
 
   await OnboardingScreen.tapHaveAnExistingWallet();
@@ -79,8 +39,12 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await CreatePasswordScreen.isVisible();
 
-  await CreatePasswordScreen.enterPassword('123456789');
-  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.enterPassword(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreatePasswordScreen.reEnterPassword(
+    getPasswordForScenario('onboarding'),
+  );
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
@@ -90,8 +54,10 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissMultichainAccountsIntroModal(device);
+
   await WalletMainScreen.isMainWalletViewVisible();
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {
@@ -120,7 +86,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -138,4 +104,41 @@ export async function importSRPFlow(device, srp) {
 
   timers.push(timer, timer2, timer3, timer4);
   return timers;
+}
+
+export async function login(device, options = {}) {
+  LoginScreen.device = device;
+  const { skipIntro = false, scenarioType = 'login' } = options;
+
+  const password = getPasswordForScenario(scenarioType);
+
+  // Type password and unlock
+  await LoginScreen.typePassword(password);
+  await LoginScreen.tapUnlockButton();
+  // Wait for app to settle after unlock
+
+  // Only tap intro screens on first login
+  if (!skipIntro) {
+    await dismissMultichainAccountsIntroModal(device);
+    await tapPerpsBottomSheetGotItButton(device);
+  }
+}
+export async function tapPerpsBottomSheetGotItButton(device) {
+  PerpsGTMModal.device = device;
+  const container = await PerpsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
+  }
+}
+
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
+  MultichainAccountEducationModal.device = device;
+  const closeButton = await MultichainAccountEducationModal.closeButton;
+  if (await closeButton.isVisible({ timeout })) {
+    await MultichainAccountEducationModal.tapGotItButton();
+  }
 }

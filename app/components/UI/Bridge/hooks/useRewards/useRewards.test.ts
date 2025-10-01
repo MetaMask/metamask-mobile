@@ -1,7 +1,7 @@
 import '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
-import { useRewards } from './useRewards';
+import { getUsdPricePerToken, useRewards } from './useRewards';
 import Engine from '../../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
@@ -221,6 +221,7 @@ describe('useRewards', () => {
           shouldShowRewardsRow: false,
           isLoading: false,
           estimatedPoints: null,
+          hasError: false,
         });
       });
 
@@ -264,6 +265,7 @@ describe('useRewards', () => {
           shouldShowRewardsRow: false,
           isLoading: false,
           estimatedPoints: null,
+          hasError: false,
         });
       });
 
@@ -311,6 +313,7 @@ describe('useRewards', () => {
           shouldShowRewardsRow: true,
           isLoading: false,
           estimatedPoints: 100,
+          hasError: false,
         });
       });
 
@@ -413,6 +416,7 @@ describe('useRewards', () => {
         shouldShowRewardsRow: false,
         isLoading: false,
         estimatedPoints: null,
+        hasError: false,
       });
 
       // Should not call Engine methods
@@ -441,6 +445,7 @@ describe('useRewards', () => {
         shouldShowRewardsRow: false,
         isLoading: false,
         estimatedPoints: null,
+        hasError: false,
       });
     });
 
@@ -466,6 +471,7 @@ describe('useRewards', () => {
         shouldShowRewardsRow: false,
         isLoading: false,
         estimatedPoints: null,
+        hasError: false,
       });
     });
 
@@ -491,6 +497,7 @@ describe('useRewards', () => {
         shouldShowRewardsRow: false,
         isLoading: false,
         estimatedPoints: null,
+        hasError: false,
       });
     });
   });
@@ -532,6 +539,154 @@ describe('useRewards', () => {
           shouldShowRewardsRow: true,
           isLoading: false,
           estimatedPoints: null,
+          hasError: true,
+        });
+      });
+    });
+
+    it('should set hasError to true when isRewardsFeatureEnabled throws an error', async () => {
+      mockCall.mockImplementation((method) => {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          throw new Error('Feature check failed');
+        }
+        return Promise.resolve(null);
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: defaultSourceToken,
+          destToken: defaultDestToken,
+          sourceAmount: '1',
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useRewards({
+            activeQuote: mockActiveQuote,
+            isQuoteLoading: false,
+          }),
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          shouldShowRewardsRow: false,
+          isLoading: false,
+          estimatedPoints: null,
+          hasError: true,
+        });
+      });
+    });
+
+    it('should set hasError to true when getHasAccountOptedIn throws an error', async () => {
+      mockCall.mockImplementation((method) => {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getHasAccountOptedIn') {
+          throw new Error('Opt-in check failed');
+        }
+        return Promise.resolve(null);
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: defaultSourceToken,
+          destToken: defaultDestToken,
+          sourceAmount: '1',
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useRewards({
+            activeQuote: mockActiveQuote,
+            isQuoteLoading: false,
+          }),
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          shouldShowRewardsRow: false,
+          isLoading: false,
+          estimatedPoints: null,
+          hasError: true,
+        });
+      });
+    });
+
+    it('should reset hasError to false when estimation succeeds after previous error', async () => {
+      // First mock returns error
+      mockCall.mockImplementationOnce((method) => {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getHasAccountOptedIn') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:estimatePoints') {
+          throw new Error('Network error');
+        }
+        return Promise.resolve(null);
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: defaultSourceToken,
+          destToken: defaultDestToken,
+          sourceAmount: '1',
+        },
+      });
+
+      const { result, rerender } = renderHookWithProvider(
+        (props: { activeQuote: typeof mockActiveQuote }) =>
+          useRewards({
+            activeQuote: props?.activeQuote || mockActiveQuote,
+            isQuoteLoading: false,
+          }),
+        { state: testState },
+      );
+
+      // Wait for first error
+      await waitFor(() => {
+        expect(result.current.hasError).toBe(true);
+      });
+
+      // Now mock successful response
+      mockCall.mockImplementation((method) => {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getHasAccountOptedIn') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:estimatePoints') {
+          return Promise.resolve({ pointsEstimate: 100 });
+        }
+        return Promise.resolve(null);
+      });
+
+      // Create a new quote with different requestId to trigger re-estimation
+      const updatedQuote = {
+        ...mockActiveQuote,
+        quote: {
+          ...mockActiveQuote.quote,
+          requestId: '0xnewrequestid' as Hex,
+        },
+      };
+
+      // Trigger re-render with new quote
+      rerender({ activeQuote: updatedQuote });
+
+      // Wait for successful retry
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          shouldShowRewardsRow: true,
+          isLoading: false,
+          estimatedPoints: 100,
+          hasError: false,
         });
       });
     });
@@ -558,5 +713,25 @@ describe('useRewards', () => {
 
       expect(result.current.isLoading).toBe(true);
     });
+  });
+});
+
+describe('getUsdPricePerToken', () => {
+  it('should calculate the USD price per token', () => {
+    expect(getUsdPricePerToken('39.39425', '8750000000000000', 18)).toBe(
+      '4502.2',
+    );
+  });
+
+  it('should return 0 when the total fee amount is 0', () => {
+    expect(getUsdPricePerToken('0', '8750000000000000', 18)).toBe(undefined);
+  });
+
+  it('should return undefined when the fee amount is 0', () => {
+    expect(getUsdPricePerToken('39.39425', '0', 18)).toBe(undefined);
+  });
+
+  it('should return undefined when the total fee amount is 0 and the fee amount is 0', () => {
+    expect(getUsdPricePerToken('0', '0', 18)).toBe(undefined);
   });
 });

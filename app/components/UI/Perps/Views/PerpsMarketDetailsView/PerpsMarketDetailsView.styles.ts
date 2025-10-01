@@ -70,7 +70,7 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       padding: 24,
     },
     riskDisclaimer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 4,
       paddingTop: 8,
       textAlign: 'left',
     },

@@ -36,11 +36,14 @@ describe('transactionTransforms', () => {
         asset: 'ETH',
         fill: {
           shortTitle: 'Opened long',
+          amount: '-$5.00', // For opens: show fee paid (negative)
+          amountNumber: 5.0,
           isPositive: false, // Opens are negative (cost)
           size: '1.5',
           entryPrice: '2000.00',
           pnl: '100.50',
           fee: '5.00',
+          points: '0',
           feeToken: 'USDC',
           action: 'Opened',
         },
@@ -62,7 +65,9 @@ describe('transactionTransforms', () => {
         title: 'Closed ETH short',
         fill: {
           shortTitle: 'Closed short',
-          isPositive: true, // Closes are positive (profit/loss)
+          amount: '+$70.25', // For closes: PnL minus fee (75.25 - 5.00)
+          amountNumber: 70.25,
+          isPositive: true, // Positive PnL after fee
           action: 'Closed',
         },
       });
@@ -99,8 +104,9 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([closedFill]);
 
-      // For closed positions, uses PnL - fee
+      // For closed positions, uses PnL - fee (150.75 - 5.00 = 145.75)
       expect(result[0].fill?.amount).toBe('+$145.75');
+      expect(result[0].fill?.amountNumber).toBe(145.75);
       expect(result[0].fill?.isPositive).toBe(true);
     });
 
@@ -115,6 +121,47 @@ describe('transactionTransforms', () => {
 
       // Should use PnL - fee = 0 - 5 = -5
       expect(result[0].fill?.amount).toBe('-$5.00');
+      expect(result[0].fill?.amountNumber).toBe(-5.0);
+      expect(result[0].fill?.isPositive).toBe(false);
+    });
+
+    it('should handle break-even PnL (PnL equals fee)', () => {
+      const breakEvenFill: OrderFill = {
+        ...mockOrderFill,
+        direction: 'Close Long',
+        pnl: '5.00', // Equals the fee
+        fee: '5.00',
+      };
+
+      const result = transformFillsToTransactions([breakEvenFill]);
+
+      // PnL - fee = 5 - 5 = 0, should show $0.00 and be treated as positive (green)
+      expect(result[0].fill?.amount).toBe('$0.00');
+      expect(result[0].fill?.amountNumber).toBe(0);
+      expect(result[0].fill?.isPositive).toBe(true); // Break-even treated as positive
+    });
+
+    it('should handle flipped positions correctly', () => {
+      const flippedFill: OrderFill = {
+        ...mockOrderFill,
+        direction: 'Short > Long',
+        pnl: '50.00',
+        fee: '10.00',
+      };
+
+      const result = transformFillsToTransactions([flippedFill]);
+
+      expect(result[0]).toMatchObject({
+        category: 'position_close', // Flips are treated as closes
+        title: 'Flipped ETH short > long',
+        fill: {
+          shortTitle: 'Flipped short > long',
+          amount: '+$40.00', // PnL minus fee (50 - 10)
+          amountNumber: 40.0,
+          isPositive: true,
+          action: 'Flipped',
+        },
+      });
     });
 
     it('should handle empty fills array', () => {
@@ -196,9 +243,10 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'BTC',
         order: {
-          text: '', // Open orders have empty text
+          text: '', // Open orders have empty text (PerpsOrderTransactionStatus.Open = '')
           statusType: 'pending',
           type: 'limit',
+          size: '45000', // originalSize * price
           limitPrice: '45000',
           filled: '50%', // (1.0 - 0.5) / 1.0 * 100
         },
@@ -218,6 +266,7 @@ describe('transactionTransforms', () => {
       expect(result[0].order).toMatchObject({
         text: 'Filled',
         statusType: 'filled',
+        size: '45000', // originalSize * price = 1.0 * 45000
         filled: '50%',
       });
     });
@@ -233,6 +282,7 @@ describe('transactionTransforms', () => {
       expect(result[0].order).toMatchObject({
         text: 'Canceled',
         statusType: 'canceled',
+        size: '45000',
       });
     });
 
@@ -247,6 +297,7 @@ describe('transactionTransforms', () => {
       expect(result[0].order).toMatchObject({
         text: 'Rejected',
         statusType: 'canceled', // Rejected maps to canceled
+        size: '45000',
       });
     });
 
@@ -261,6 +312,7 @@ describe('transactionTransforms', () => {
       expect(result[0].order).toMatchObject({
         text: 'Triggered',
         statusType: 'filled', // Triggered maps to filled
+        size: '45000',
       });
     });
 
@@ -273,6 +325,7 @@ describe('transactionTransforms', () => {
       const result = transformOrdersToTransactions([marketOrder]);
 
       expect(result[0].order?.type).toBe('market');
+      expect(result[0].order?.size).toBe('45000');
     });
 
     it('should handle sell orders', () => {
@@ -284,6 +337,7 @@ describe('transactionTransforms', () => {
       const result = transformOrdersToTransactions([sellOrder]);
 
       expect(result[0].title).toBe('Short limit');
+      expect(result[0].order?.size).toBe('45000');
     });
 
     it('should calculate order size correctly', () => {
@@ -291,6 +345,19 @@ describe('transactionTransforms', () => {
 
       // size = originalSize * price = 1.0 * 45000 = 45000
       expect(result[0].order?.size).toBe('45000');
+    });
+
+    it('should handle orders with zero remaining size (fully filled)', () => {
+      const fullyFilledOrder: Order = {
+        ...mockOrder,
+        size: '0', // No remaining size
+        status: 'filled',
+      };
+
+      const result = transformOrdersToTransactions([fullyFilledOrder]);
+
+      // When size is 0, filled should be 100%
+      expect(result[0].order?.filled).toBe('100%');
     });
 
     it('should handle empty orders array', () => {
@@ -318,7 +385,7 @@ describe('transactionTransforms', () => {
         type: 'funding',
         category: 'funding_fee',
         title: 'Received funding fee',
-        subtitle: '',
+        subtitle: 'ETH',
         timestamp: 1640995200000,
         asset: 'ETH',
         fundingAmount: {
@@ -407,6 +474,35 @@ describe('transactionTransforms', () => {
       const result = transformFundingToTransactions([largeRateFunding]);
 
       expect(result[0].fundingAmount?.rate).toBe('1%');
+    });
+
+    it('should sort funding by timestamp in descending order (newest first)', () => {
+      const olderFunding: Funding = {
+        symbol: 'BTC',
+        amountUsd: '10.00',
+        rate: '0.0001',
+        timestamp: 1640995200000, // Older timestamp
+      };
+
+      const newerFunding: Funding = {
+        symbol: 'ETH',
+        amountUsd: '15.00',
+        rate: '0.0002',
+        timestamp: 1640995300000, // Newer timestamp
+      };
+
+      // Pass in older first, newer second
+      const result = transformFundingToTransactions([
+        olderFunding,
+        newerFunding,
+      ]);
+
+      // Should be sorted with newer first
+      expect(result).toHaveLength(2);
+      expect(result[0].timestamp).toBe(1640995300000); // Newer first
+      expect(result[0].asset).toBe('ETH');
+      expect(result[1].timestamp).toBe(1640995200000); // Older second
+      expect(result[1].asset).toBe('BTC');
     });
   });
 });

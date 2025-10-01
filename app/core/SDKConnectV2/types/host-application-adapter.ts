@@ -1,4 +1,4 @@
-import { Connection } from './connection';
+import { Connection } from '../services/connection';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -9,18 +9,6 @@ import { Connection } from './connection';
  */
 export interface IHostApplicationAdapter {
   /**
-   * Triggers the UI flow to ask the user to approve or reject a new
-   * dApp connection request.
-   * @param connectionId The unique ID of the connection being requested.
-   * @param dappMetadata Metadata about the dApp to display to the user.
-   * @returns A promise that resolves when the user has made a choice.
-   */
-  showConnectionApproval(
-    connectionId: string,
-    dappMetadata: Connection['dappMetadata'],
-  ): Promise<void>;
-
-  /**
    * Displays a global, non-interactive loading modal. Used to indicate
    * background activity, such as the cryptographic handshake.
    */
@@ -30,6 +18,13 @@ export interface IHostApplicationAdapter {
    * Hides the global loading modal.
    */
   hideLoading(): void;
+
+  /**
+   * Displays a global, non-interactive alert.
+   * @param title The title of the alert.
+   * @param message The message to display in the alert.
+   */
+  showAlert(title: string, message: string): void;
 
   /**
    * Displays a modal for the user to enter a One-Time Password (OTP).
@@ -43,4 +38,12 @@ export interface IHostApplicationAdapter {
    * @param connections The complete array of active Connection objects.
    */
   syncConnectionList(connections: Connection[]): void;
+
+  /**
+   * Revokes all permissions associated with a given connection.
+   * This is the host application's responsibility, as it owns the PermissionController.
+   * The connection.id is the unique identifier for the connection, equivalent to the origin/channelId.
+   * @param id The ID of the connection to revoke permissions for.
+   */
+  revokePermissions(id: string): void;
 }

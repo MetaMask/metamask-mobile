@@ -13,6 +13,8 @@ import AnimatedSpinner, {
 } from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 export function TransactionDetailsStatusIcon({
   transactionMeta,
@@ -21,12 +23,13 @@ export function TransactionDetailsStatusIcon({
 }) {
   const { status: statusRaw } = transactionMeta;
 
-  const { isBridgeComplete } = useBridgeTxHistoryData({
+  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta: transactionMeta,
   });
 
-  const status =
-    isBridgeComplete === false ? TransactionStatus.submitted : statusRaw;
+  const status = bridgeTxHistoryItem
+    ? getBridgeStatus(bridgeTxHistoryItem)
+    : statusRaw;
 
   const iconName = getStatusIcon(status);
   const iconColour = getStatusColour(status);
@@ -105,4 +108,22 @@ function getErrorMessage(transactionMeta: TransactionMeta): string | undefined {
   }
 
   return error.message;
+}
+
+function getBridgeStatus(
+  bridgeTxHistoryItem: BridgeHistoryItem,
+): TransactionStatus {
+  if (bridgeTxHistoryItem.status.status === StatusTypes.COMPLETE) {
+    return TransactionStatus.confirmed;
+  }
+
+  if (
+    [StatusTypes.PENDING, StatusTypes.UNKNOWN].includes(
+      bridgeTxHistoryItem.status.status,
+    )
+  ) {
+    return TransactionStatus.submitted;
+  }
+
+  return TransactionStatus.failed;
 }

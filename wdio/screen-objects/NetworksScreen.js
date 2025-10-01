@@ -1,5 +1,6 @@
 import Selectors from '../helpers/Selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import { expect as appwrightExpect } from 'appwright';
 import {
@@ -14,12 +15,14 @@ import {
 import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksView.selectors';
 
 class NetworksScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get container() {
@@ -173,7 +176,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
     } else {
-      const networkElement = await AppwrightSelectors.getElementByText(this._device, network);
+      const networkElement = await AppwrightSelectors.getElementByCatchAll(this._device, network);
       await networkElement.tap();
     }
   }
@@ -192,7 +195,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -201,7 +204,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -210,7 +213,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -227,7 +230,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await element.fill(text);
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -244,7 +247,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await element.fill(text);
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -263,7 +266,7 @@ class NetworksScreen {
     } else {
       await this._device.tap({ x: 399, y: 400 });
       const element = await this.inputChainIdField;
-      await element.fill(text);
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -280,7 +283,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await element.fill(text);
+      await AppwrightGestures.typeText(element, text);
     }
   }
 
@@ -309,7 +312,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -326,7 +329,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -335,7 +338,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.tap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -427,7 +430,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -436,7 +439,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -445,7 +448,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 
@@ -454,7 +457,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
 }

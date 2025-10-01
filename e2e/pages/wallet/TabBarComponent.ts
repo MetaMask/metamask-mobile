@@ -54,11 +54,9 @@ class TabBarComponent {
   }
 
   async tapActions(): Promise<void> {
-    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarActionButton, {
       elemDescription: 'Tab Bar - Actions Button',
     });
-    await device.enableSynchronization();
   }
 
   async tapSettings(): Promise<void> {

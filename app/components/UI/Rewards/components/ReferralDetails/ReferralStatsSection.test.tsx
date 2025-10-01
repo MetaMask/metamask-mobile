@@ -4,7 +4,7 @@ import ReferralStatsSection from './ReferralStatsSection';
 
 // Mock the SVG component
 jest.mock(
-  '../../../../../images/metamask-rewards-points.svg',
+  '../../../../../images/rewards/metamask-rewards-points.svg',
   () => 'MetamaskRewardsPointsSvg',
 );
 
@@ -38,6 +38,7 @@ describe('ReferralStatsSection', () => {
     earnedPointsFromRefereesLoading: false,
     refereeCount: 5,
     refereeCountLoading: false,
+    refereeCountError: false,
   };
 
   describe('rendering', () => {
@@ -124,6 +125,107 @@ describe('ReferralStatsSection', () => {
     });
   });
 
+  describe('error states', () => {
+    it('should hide referee count section when error occurs and not loading with null count', () => {
+      // Arrange
+      const { queryByText } = render(
+        <ReferralStatsSection
+          {...defaultProps}
+          refereeCountError
+          refereeCountLoading={false}
+          refereeCount={null}
+        />,
+      );
+
+      // Assert
+      expect(queryByText('Referrals')).toBeNull();
+      expect(queryByText('5')).toBeNull();
+      // Earned points section should still be visible
+      expect(queryByText('Earned from referrals')).toBeTruthy();
+    });
+
+    it('should show referee count section when error occurs but loading', () => {
+      // Arrange
+      const { getByText, getByTestId } = render(
+        <ReferralStatsSection
+          {...defaultProps}
+          refereeCountError
+          refereeCountLoading
+          refereeCount={null}
+        />,
+      );
+
+      // Assert
+      expect(getByText('Referrals')).toBeTruthy();
+      expect(getByTestId('skeleton')).toBeTruthy();
+    });
+
+    it('should show referee count section when error occurs but count is not null', () => {
+      // Arrange
+      const { getByText } = render(
+        <ReferralStatsSection
+          {...defaultProps}
+          refereeCountError
+          refereeCount={3}
+        />,
+      );
+
+      // Assert
+      expect(getByText('Referrals')).toBeTruthy();
+      expect(getByText('3')).toBeTruthy();
+    });
+
+    it('should show referee count section when no error', () => {
+      // Arrange
+      const { getByText } = render(
+        <ReferralStatsSection
+          {...defaultProps}
+          refereeCountError={false}
+          refereeCount={7}
+        />,
+      );
+
+      // Assert
+      expect(getByText('Referrals')).toBeTruthy();
+      expect(getByText('7')).toBeTruthy();
+    });
+  });
+
+  describe('conditional rendering', () => {
+    it('should render earned points section regardless of referee count visibility', () => {
+      // Arrange
+      const { getByText } = render(
+        <ReferralStatsSection
+          {...defaultProps}
+          refereeCountError
+          refereeCountLoading={false}
+          refereeCount={null}
+        />,
+      );
+
+      // Assert - Earned points should always be visible
+      expect(getByText('Earned from referrals')).toBeTruthy();
+      expect(getByText('6,200')).toBeTruthy();
+    });
+
+    it('should handle null/undefined values with error states', () => {
+      // Arrange
+      const { getByText, queryByText } = render(
+        <ReferralStatsSection
+          earnedPointsFromReferees={null}
+          refereeCount={null}
+          refereeCountError
+          refereeCountLoading={false}
+        />,
+      );
+
+      // Assert
+      expect(getByText('Earned from referrals')).toBeTruthy();
+      expect(getByText('-')).toBeTruthy(); // Shows dash for null earned points
+      expect(queryByText('Referrals')).toBeNull(); // Hidden due to error + null count
+    });
+  });
+
   describe('accessibility', () => {
     it('should render text elements that are accessible', () => {
       const { getByText } = render(<ReferralStatsSection {...defaultProps} />);
@@ -137,6 +239,23 @@ describe('ReferralStatsSection', () => {
       expect(referralsLabel).toBeTruthy();
       expect(earnedValue).toBeTruthy();
       expect(referralsValue).toBeTruthy();
+    });
+
+    it('should maintain accessibility when referee count section is hidden', () => {
+      // Arrange
+      const { getByText, queryByText } = render(
+        <ReferralStatsSection
+          {...defaultProps}
+          refereeCountError
+          refereeCountLoading={false}
+          refereeCount={null}
+        />,
+      );
+
+      // Assert - Only earned points section should be accessible
+      expect(getByText('Earned from referrals')).toBeTruthy();
+      expect(getByText('6,200')).toBeTruthy();
+      expect(queryByText('Referrals')).toBeNull();
     });
   });
 });

@@ -26,13 +26,13 @@ jobs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
         with:
           platform: android
           setup-simulator: false
@@ -50,11 +50,40 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Build Android E2E APKs
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
+
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Generate current fingerprint
+        id: generate-fingerprint
         run: |
-          echo "🚀 Setting up project..."
-          yarn setup:github-ci --no-build-ios
-          
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
+      - name: Check and restore cached APKs if Fingerprint is found
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          key: android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          restore-keys: |
+            android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
+            android-apk-
+
+      - name: Build Android E2E APKs
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
@@ -65,19 +94,20 @@ jobs:
           METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
-          E2E: "true"
+          E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"
-          CI: "true"
-          NODE_OPTIONS: "--max-old-space-size=8192"
-          MM_UNIFIED_SWAPS_ENABLED: "true"
-          MM_BRIDGE_ENABLED: "true"
-          BRIDGE_USE_DEV_APIS: "true"
-          RAMP_INTERNAL_BUILD: "true"
-          SEEDLESS_ONBOARDING_ENABLED: "true"
-          MM_NOTIFICATIONS_UI_ENABLED: "true"
-          MM_SECURITY_ALERTS_API_ENABLED: "true"
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -94,6 +124,60 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      - name: Repack APK with JS updates using @expo/repack-app
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn build:repack
+          echo "📦 Final APK size: $(du -h "android/app/build/outputs/apk/prod/release/app-prod-release.apk" | cut -f1)"
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Cache build artifacts with the pre-build fingerprint
+      - name: Cache build artifacts
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          key: android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk

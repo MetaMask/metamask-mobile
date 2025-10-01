@@ -67,6 +67,23 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  useNetworksByCustomNamespace: () => ({
+    areAllNetworksSelected: false,
+    totalEnabledNetworksCount: 2,
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
 jest.mock('../Tokens/TokensBottomSheet', () => ({
   createTokenBottomSheetFilterNavDetails: () => [
     'RootModalFlow',
@@ -83,6 +100,10 @@ jest.mock('../NetworkManager', () => ({
     'RootModalFlow',
     { screen: 'NetworkManager' },
   ],
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
 }));
 
 const mockStore = configureMockStore();
@@ -202,7 +223,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    expect(getByText(strings('wallet.all_networks'))).toBeDefined();
+    expect(getByText(strings('wallet.popular_networks'))).toBeDefined();
   });
 
   it('should show current network name when isRemoveGlobalNetworkSelectorEnabled is true and single network enabled', () => {
@@ -217,6 +238,14 @@ describe('DeFiPositionsControlBar', () => {
       getNetworkInfo: jest.fn().mockReturnValue({
         networkName: 'Ethereum Mainnet',
       }),
+    });
+
+    const useNetworksByNamespaceModule = jest.requireMock(
+      '../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+    );
+    useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 1,
     });
 
     const mockState = createMockState();
@@ -241,6 +270,14 @@ describe('DeFiPositionsControlBar', () => {
     useCurrentNetworkInfoModule.useCurrentNetworkInfo = () => ({
       enabledNetworks: [{ chainId: '0x1' }],
       getNetworkInfo: jest.fn().mockReturnValue(null),
+    });
+
+    const useNetworksByNamespaceModule = jest.requireMock(
+      '../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+    );
+    useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 1,
     });
 
     const mockState = createMockState();

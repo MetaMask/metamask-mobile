@@ -5,6 +5,7 @@ const tags = {
   smokeConfirmations: 'SmokeConfirmations:',
   regressionConfirmations: 'RegressionConfirmations:',
   smokeConfirmationsRedesigned: 'SmokeConfirmationsRedesigned:',
+  regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
   SmokeSwaps: 'SmokeSwaps:',
   smokeWalletUX: 'SmokeWalletUX:',
   regressionWalletUX: 'RegressionWalletUX:',
@@ -41,6 +42,8 @@ const RegressionConfirmations = (testName) =>
   `${tags.regressionConfirmations} ${testName}`;
 const SmokeConfirmationsRedesigned = (testName) =>
   `${tags.smokeConfirmationsRedesigned} ${testName}`;
+const RegressionConfirmationsRedesigned = (testName) =>
+  `${tags.regressionConfirmationsRedesigned} ${testName}`;
 const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
@@ -76,7 +79,6 @@ const SmokeWalletUX = (testName) => `${tags.smokeWalletUX} ${testName}`;
 const RegressionWalletUX = (testName) =>
   `${tags.regressionWalletUX} ${testName}`;
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
-
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
 
 export {
@@ -87,6 +89,7 @@ export {
   SmokeConfirmations,
   RegressionConfirmations,
   SmokeConfirmationsRedesigned,
+  RegressionConfirmationsRedesigned,
   SmokeSwaps,
   SmokeStake,
   SmokeAssets,

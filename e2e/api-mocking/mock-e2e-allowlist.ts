@@ -40,6 +40,7 @@ export const ALLOWLISTED_URLS = [
   'https://rpc.atlantischain.network/',
   'https://rewards.dev-api.cx.metamask.io/auth/mobile-login',
   'https://tx-sentinel-localhost.api.cx.metamask.io/',
+  'https://tx-sentinel-127.0.0.1.api.cx.metamask.io/',
   'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
   'https://metamask.github.io/test-dapp/metamask-fox.svg',
   'https://dapp-scanning.api.cx.metamask.io/bulk-scan',

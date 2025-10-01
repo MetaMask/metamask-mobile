@@ -46,28 +46,8 @@ const styleSheet = (params: { theme: Theme }) => {
     loadingContainer: {
       padding: 24,
       alignItems: 'center',
-    },
-    firstTimeContainer: {
-      flex: 1,
-      padding: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    firstTimeContent: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    firstTimeTitle: {
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    firstTimeDescription: {
-      textAlign: 'center',
-      paddingHorizontal: 16,
-    },
-    startTradingButton: {
-      marginTop: 16,
+      marginTop: 10,
+      borderRadius: 12,
     },
     // Order card styles to match position cards
     positionCard: {

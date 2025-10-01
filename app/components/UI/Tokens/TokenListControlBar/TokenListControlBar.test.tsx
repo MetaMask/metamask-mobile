@@ -6,6 +6,7 @@ import { TokenListControlBar } from './TokenListControlBar';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 // Mock the feature flag
 jest.mock('../../../../util/networks', () => ({
@@ -17,6 +18,31 @@ jest.mock('../../../../util/networks', () => ({
 jest.mock('../../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: jest.fn(),
 }));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
+}));
+
+// Mock the useNetworksByNamespace hooks
+jest.mock(
+  '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+  () => ({
+    useNetworksByNamespace: () => ({
+      networks: [],
+      selectNetwork: jest.fn(),
+      selectCustomNetwork: jest.fn(),
+      selectPopularNetwork: jest.fn(),
+    }),
+    useNetworksByCustomNamespace: () => ({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 2,
+    }),
+    NetworkType: {
+      Popular: 'popular',
+      Custom: 'custom',
+    },
+  }),
+);
 
 // Mock the navigation hook
 jest.mock('@react-navigation/native', () => ({
@@ -246,16 +272,18 @@ describe('TokenListControlBar', () => {
 
         const { getByTestId } = renderComponent();
 
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+        );
         fireEvent.press(filterButton);
 
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
       });
 
-      it('should show "All Networks text when multiple networks are enabled', () => {
+      it('should show "Popular networks text when multiple networks are enabled', () => {
         const { getByText } = renderComponent();
 
-        expect(getByText('wallet.all_networks')).toBeTruthy();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
       });
 
       it('should show current network name when only one network is enabled', () => {
@@ -274,6 +302,14 @@ describe('TokenListControlBar', () => {
         };
         mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
 
+        const useNetworksByNamespaceModule = jest.requireMock(
+          '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+        );
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+        });
+
         const { getByText } = renderComponent();
 
         expect(getByText('Ethereum Mainnet')).toBeTruthy();
@@ -288,6 +324,14 @@ describe('TokenListControlBar', () => {
           hasEnabledNetworks: false,
         };
         mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
+
+        const useNetworksByNamespaceModule = jest.requireMock(
+          '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+        );
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+        });
 
         const { getByText } = renderComponent();
 
@@ -306,7 +350,9 @@ describe('TokenListControlBar', () => {
 
         const { getByTestId } = renderComponent();
 
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+        );
         fireEvent.press(filterButton);
 
         expect(mockNavigate).toHaveBeenCalledWith('TokenFilter', {});
@@ -360,21 +406,6 @@ describe('TokenListControlBar', () => {
 
       expect(goToAddToken).toHaveBeenCalled();
     });
-
-    it('should not call handleFilterControls when EVM is not selected', () => {
-      // Ensure EVM is not selected
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-      mockSelectChainId.mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-
-      const { getByTestId } = renderComponent();
-
-      const filterButton = getByTestId('token-network-filter');
-      fireEvent.press(filterButton);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
   });
 
   describe('Button states', () => {
@@ -386,7 +417,9 @@ describe('TokenListControlBar', () => {
       mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
 
       const { getByTestId } = renderComponent();
-      const filterButton = getByTestId('token-network-filter');
+      const filterButton = getByTestId(
+        WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+      );
 
       expect(filterButton.props.disabled).toBe(true);
     });

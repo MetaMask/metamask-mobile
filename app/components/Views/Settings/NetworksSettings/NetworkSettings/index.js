@@ -24,6 +24,7 @@ import Networks, {
   isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
+  isWhitelistedSymbol,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -34,7 +35,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
@@ -104,6 +105,7 @@ import {
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
+import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
 
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
@@ -1179,7 +1181,14 @@ export class NetworkSettings extends PureComponent {
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
   validateSymbol = (chainToMatch = null) => {
-    const { ticker, networkList } = this.state;
+    const { ticker, networkList, chainId } = this.state;
+
+    if (isWhitelistedSymbol(chainId, ticker)) {
+      return this.setState({
+        warningSymbol: undefined,
+        validatedSymbol: !!ticker,
+      });
+    }
 
     const { useSafeChainsListValidation } = this.props;
 
@@ -1211,8 +1220,12 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    // Get the name either from chainToMatch or networkList
-    const name = chainToMatch?.name || networkList?.name || null;
+    // Get the name either from NETWORK_TO_NAME_MAP or chainToMatch or networkList
+    const name =
+      NETWORK_TO_NAME_MAP[chainId] ||
+      chainToMatch?.name ||
+      networkList?.name ||
+      null;
 
     // Determine nameToUse based on chainId and nickname comparison
     const nameToUse = isValidNetworkName(chainId, name, nickname)
@@ -2446,7 +2459,7 @@ export class NetworkSettings extends PureComponent {
                             </View>
                           }
                           secondaryText={
-                            formattedName ? formatNetworkRpcUrl(rpcUrl) : ''
+                            formattedName ? formatNetworkRpcUrl(url) : ''
                           }
                           showSecondaryTextIcon={false}
                           isSelected={rpcUrl === url}

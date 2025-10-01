@@ -42,11 +42,10 @@ import { selectAccountGroupsByWallet } from '../../../../../selectors/multichain
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountItem from './components/AccountItem';
 import AddAccountItem from './components/AddAccountItem';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
-import { RootState } from '../../../../../reducers';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import WalletAddAccountActions from './components/WalletAddAccountActions';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -74,6 +73,8 @@ export const BaseWalletDetails = ({
     selectMultichainAccountsState2Enabled,
   );
 
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
   const accountGroups = useMemo(
     () =>
@@ -96,11 +97,7 @@ export const BaseWalletDetails = ({
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(wallet.id);
 
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {
@@ -203,7 +200,12 @@ export const BaseWalletDetails = ({
 
     return (
       <View style={accountBoxStyle}>
-        <AccountCell accountGroup={accountGroup} isSelected={false} hideMenu />
+        <AccountCell
+          accountGroup={accountGroup}
+          avatarAccountType={avatarAccountType}
+          isSelected={false}
+          hideMenu
+        />
       </View>
     );
   };

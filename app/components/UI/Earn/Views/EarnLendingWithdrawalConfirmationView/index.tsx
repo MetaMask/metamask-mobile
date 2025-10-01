@@ -24,7 +24,6 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
-import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
@@ -47,6 +46,7 @@ import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -92,9 +92,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
@@ -501,7 +499,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     <AccountTag
                       accountAddress={selectedAccount?.address}
                       accountName={selectedAccount.metadata.name}
-                      useBlockieIcon={useBlockieIcon}
+                      avatarAccountType={avatarAccountType}
                     />
                   ),
                 }}
@@ -523,7 +521,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     <ContractTag
                       contractAddress={lendingContractAddress}
                       contractName={capitalize(lendingProtocol)}
-                      useBlockieIcon={useBlockieIcon}
+                      avatarAccountType={avatarAccountType}
                     />
                   ),
                 }}

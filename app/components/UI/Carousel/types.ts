@@ -13,7 +13,7 @@ interface NavigationParams {
 
 interface NavigationScreen {
   screen: string;
-  params: NavigationParams;
+  params: NavigationParams | NavigationScreen;
 }
 
 export type NavigationRoute =
@@ -68,6 +68,10 @@ export interface CarouselProps {
    * Additional style for the container
    */
   style?: ViewStyle;
+  /**
+   * Callback when empty state should be shown
+   */
+  onEmptyState?: () => void;
 }
 
 export interface CarouselStyleSheetVars {

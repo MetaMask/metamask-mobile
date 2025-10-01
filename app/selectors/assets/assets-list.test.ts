@@ -204,6 +204,19 @@ const mockState = ({
             },
           },
         },
+        TokenListController: {
+          tokensChainsCache: {
+            '0x1': {
+              data: {
+                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
+                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+                  symbol: 'stETH',
+                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+                },
+              },
+            },
+          },
+        },
         MultichainAssetsController: {
           accountsAssets: {
             '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
@@ -494,31 +507,38 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
+        isStaked: false,
       },
       {
         address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
         chainId: '0xa',
+        isStaked: false,
       },
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0xa',
+        isStaked: false,
       },
       {
         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        isStaked: false,
       },
       {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         chainId: '0x1',
+        isStaked: false,
       },
       {
         address:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        isStaked: false,
       },
       {
         address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
         chainId: '0x1',
+        isStaked: false,
       },
     ]);
   });
@@ -536,14 +556,17 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
+        isStaked: false,
       },
       {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         chainId: '0x1',
+        isStaked: false,
       },
       {
         address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
         chainId: '0x1',
+        isStaked: false,
       },
     ]);
   });
@@ -555,6 +578,7 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
+      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -568,6 +592,7 @@ describe('selectAsset', () => {
       balanceFiat: '$24,000.00',
       isETH: true,
       isNative: true,
+      isStaked: false,
       logo: '../images/eth-logo-new.png',
       image: '',
       aggregators: [],
@@ -605,6 +630,7 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       chainId: '0x1',
+      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -618,6 +644,7 @@ describe('selectAsset', () => {
       balanceFiat: '$960.00',
       isETH: false,
       isNative: false,
+      isStaked: false,
       logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
@@ -630,6 +657,7 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -643,10 +671,54 @@ describe('selectAsset', () => {
       balanceFiat: '$1,635.50',
       isETH: false,
       isNative: true,
+      isStaked: false,
       logo: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       image:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       aggregators: [],
     });
+  });
+
+  it('returns asset with aggregators', () => {
+    const state = mockState();
+    const result = selectAsset(state, {
+      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      chainId: '0x1',
+      isStaked: false,
+    });
+
+    expect(result).toEqual({
+      chainId: '0x1',
+      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      symbol: 'stETH',
+      ticker: 'stETH',
+      name: 'Lido Staked Ether',
+      decimals: 18,
+      balance: '100',
+      balanceFiat: '$21.60',
+      isETH: false,
+      isNative: false,
+      isStaked: false,
+      logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+      image:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+      aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+    });
+  });
+
+  it('returns isStaked as false when asset.isStaked is undefined', () => {
+    // Arrange - Create a mock asset without the isStaked property
+    const state = mockState();
+
+    // Act - Get an asset that doesn't have isStaked property
+    const result = selectAsset(state, {
+      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      chainId: '0x1',
+      isStaked: false,
+    });
+
+    // Assert - isStaked should be false instead of undefined
+    expect(result?.isStaked).toBe(false);
+    expect(result?.isStaked).not.toBeUndefined();
   });
 });

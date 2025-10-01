@@ -15,9 +15,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import zxcvbn from 'zxcvbn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -29,7 +27,6 @@ import {
 } from '../../../util/validators';
 import Logger from '../../../util/Logger';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
@@ -42,20 +39,11 @@ import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import {
-  BIOMETRY_CHOICE_DISABLED,
-  TRUE,
-  PASSCODE_DISABLED,
-} from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -81,7 +69,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
@@ -103,12 +90,6 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInput from '../SrpInput';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
-
-// Custom masking function to replace characters with dots (avoids iOS ellipsis)
-const maskText = (text) => {
-  if (!text) return '';
-  return '••••';
-};
 
 /**
  * View where users can set restore their account
@@ -141,10 +122,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState();
   const [biometryType, setBiometryType] = useState(null);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
@@ -153,7 +131,6 @@ const ImportFromSecretRecoveryPhrase = ({
     useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
     useState(null);
-  const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
@@ -163,10 +140,13 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhrase.length),
-    [seedPhrase],
-  );
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -181,7 +161,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleClear = useCallback(() => {
     setSeedPhrase(['']);
     setErrorWordIndexes({});
-    setShowAllSeedPhrase(false);
     setError('');
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
@@ -212,22 +191,46 @@ const ImportFromSecretRecoveryPhrase = ({
           }
 
           // Build the new seed phrase array
-          const newSeedPhrase = [
+          const mergedSeedPhrase = [
             ...seedPhrase.slice(0, index),
             ...splitArray,
             ...seedPhrase.slice(index + 1),
           ];
 
-          // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace && index === seedPhrase.length - 1) {
-            newSeedPhrase.push('');
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
+
+          // Prepare next state, retaining a single trailing empty input only when appropriate
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
+          }
+
+          // Always update component state before handling keyboard/focus
+          setSeedPhrase(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
           }
 
           const targetIndex = Math.min(
-            newSeedPhrase.length - 1,
+            nextSeedPhraseState.length - 1,
             index + splitArray.length,
           );
-          setSeedPhrase(newSeedPhrase);
           setTimeout(() => {
             setNextSeedPhraseInputFocusedIndex(targetIndex);
           }, 0);
@@ -388,20 +391,10 @@ const ImportFromSecretRecoveryPhrase = ({
     updateNavBar();
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-        PASSCODE_DISABLED,
-      );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
 
@@ -409,16 +402,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
-
-  const termsOfUse = useCallback(async () => {
-    if (navigation) {
-      await navigateTermsOfUse(navigation.navigate);
-    }
-  }, [navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   useEffect(
     () => () => {
@@ -429,11 +412,6 @@ const ImportFromSecretRecoveryPhrase = ({
     },
     [],
   );
-
-  const updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    setBiometryChoice(biometryChoice);
-  };
 
   /**
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
@@ -455,14 +433,10 @@ const ImportFromSecretRecoveryPhrase = ({
       this.setState({ loading: false, error: err.toString() });
     }
     setBiometryType(newAuthData.availableBiometryType);
-    updateBiometryChoice(false);
   };
 
   const onPasswordChange = (value) => {
-    const passInfo = zxcvbn(value);
-
     setPassword(value);
-    setPasswordStrength(passInfo.score);
     if (value === '') {
       setConfirmPassword('');
     }
@@ -477,34 +451,12 @@ const ImportFromSecretRecoveryPhrase = ({
     current && current.focus();
   };
 
-  const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMe) => {
-      setRememberMe(rememberMe);
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
-
-  const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
-
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
       handleSeedPhraseChange(text);
     }
   }, [handleSeedPhraseChange]);
-
-  const toggleShowAllSeedPhrase = () => {
-    seedPhraseInputRefs.current.get(seedPhraseInputFocusedIndex)?.blur();
-    setSeedPhraseInputFocusedIndex(null);
-    setShowAllSeedPhrase((prev) => !prev);
-  };
 
   const validateSeedPhrase = () => {
     // Trim each word before joining to ensure proper validation
@@ -600,9 +552,23 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        trace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: {
+            is_social_login: oauthLoginSuccess,
+            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
+            biometrics_enabled: Boolean(biometryType),
+          },
+        });
+
+        // latest ux changes - we are forcing user to enable biometric by default
         const authData = await Authentication.componentAuthenticationType(
-          biometryChoice,
-          rememberMe,
+          true,
+          false,
         );
 
         try {
@@ -642,6 +608,7 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+        endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
         endTrace({ name: TraceName.OnboardingExistingSrpImport });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -698,13 +665,14 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
-  const canShowSeedPhraseWord = useCallback(
-    (index) =>
-      showAllSeedPhrase ||
-      errorWordIndexes[index] ||
-      index === seedPhraseInputFocusedIndex,
-    [showAllSeedPhrase, seedPhraseInputFocusedIndex, errorWordIndexes],
-  );
+  const getInputValue = (isFirstInput, index, item) => {
+    if (isFirstInput) {
+      return seedPhrase?.[0] || '';
+    }
+
+    // Show all words by default
+    return item;
+  };
 
   const learnMoreLink = () => {
     navigation.push('Webview', {
@@ -842,7 +810,7 @@ const ImportFromSecretRecoveryPhrase = ({
                           startAccessory={
                             !isFirstInput && (
                               <Text
-                                variant={TextVariant.BodyMD}
+                                variant={TextVariant.BodyMDBold}
                                 color={TextColor.Alternative}
                                 style={styles.inputIndex}
                               >
@@ -850,13 +818,7 @@ const ImportFromSecretRecoveryPhrase = ({
                               </Text>
                             )
                           }
-                          value={
-                            isFirstInput
-                              ? seedPhrase?.[0] || ''
-                              : canShowSeedPhraseWord(index)
-                              ? item
-                              : maskText(item)
-                          }
+                          value={getInputValue(isFirstInput, index, item)}
                           onFocus={(e) => {
                             handleOnFocus(index);
                           }}
@@ -864,10 +826,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             setNextSeedPhraseInputFocusedIndex(index);
                           }}
                           onChangeText={(text) => {
-                            // Don't process masked text input
-                            if (!isFirstInput && text.includes('•')) {
-                              return;
-                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index);
@@ -927,37 +885,23 @@ const ImportFromSecretRecoveryPhrase = ({
                       ))}
                     </View>
                   </View>
-                  <View style={styles.seedPhraseContainerCta}>
-                    <Button
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={toggleShowAllSeedPhrase}
-                      label={
-                        showAllSeedPhrase
-                          ? strings('import_from_seed.hide_all')
-                          : strings('import_from_seed.show_all')
-                      }
-                      width={ButtonWidthTypes.Full}
-                    />
-                    <Button
-                      label={
-                        trimmedSeedPhraseLength >= 1
-                          ? strings('import_from_seed.clear_all')
-                          : strings('import_from_seed.paste')
-                      }
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={() => {
-                        if (trimmedSeedPhraseLength >= 1) {
-                          handleClear();
-                        } else {
-                          handlePaste();
-                        }
-                      }}
-                      width={ButtonWidthTypes.Full}
-                    />
-                  </View>
                 </View>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Primary}
+                  style={styles.pasteText}
+                  onPress={() => {
+                    if (trimmedSeedPhraseLength >= 1) {
+                      handleClear();
+                    } else {
+                      handlePaste();
+                    }
+                  }}
+                >
+                  {trimmedSeedPhraseLength >= 1
+                    ? strings('import_from_seed.clear_all')
+                    : strings('import_from_seed.paste')}
+                </Text>
                 {Boolean(error) && (
                   <Text
                     variant={TextVariant.BodySMMedium}
@@ -1010,7 +954,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 {strings('import_from_seed.create_new_password')}
               </Label>
               <TextField
-                placeholder={strings('import_from_seed.enter_strong_password')}
                 size={TextFieldSize.Lg}
                 value={password}
                 onChangeText={onPasswordChange}
@@ -1038,7 +981,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 }
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               />
-              {Boolean(password) && password.length < MIN_PASSWORD_LENGTH && (
+              {(!password || password.length < MIN_PASSWORD_LENGTH) && (
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -1046,25 +989,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
-                </Text>
-              )}
-              {Boolean(password) && password.length >= MIN_PASSWORD_LENGTH && (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
-                >
-                  {strings('choose_password.password_strength')}
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles[`strength_${passwordStrengthWord}`]}
-                  >
-                    {' '}
-                    {strings(
-                      `choose_password.strength_${passwordStrengthWord}`,
-                    )}
-                  </Text>
                 </Text>
               )}
             </View>
@@ -1079,7 +1003,6 @@ const ImportFromSecretRecoveryPhrase = ({
               </Label>
               <TextField
                 ref={confirmPasswordInput}
-                placeholder={strings('import_from_seed.re_enter_password')}
                 size={TextFieldSize.Lg}
                 onChangeText={onPasswordConfirmChange}
                 secureTextEntry={showPasswordIndex.includes(1)}
@@ -1144,12 +1067,11 @@ const ImportFromSecretRecoveryPhrase = ({
             </View>
 
             <View style={styles.createPasswordCtaContainer}>
-              {renderSwitch()}
               <Button
                 loading={loading}
                 width={ButtonWidthTypes.Full}
                 variant={ButtonVariants.Primary}
-                label={strings('import_from_seed.create_password_cta')}
+                label={strings('import_from_seed.import_create_password_cta')}
                 onPress={onPressImport}
                 disabled={isContinueButtonDisabled}
                 size={ButtonSize.Lg}

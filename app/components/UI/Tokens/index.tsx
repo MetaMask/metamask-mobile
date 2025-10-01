@@ -1,5 +1,13 @@
-import React, { useRef, useState, LegacyRef, memo, useCallback } from 'react';
-import { View } from 'react-native';
+import React, {
+  useRef,
+  useState,
+  LegacyRef,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
+import { View, InteractionManager } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
@@ -19,13 +27,14 @@ import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
 import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import Loader from '../../../component-library/components-temp/Loader';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -54,18 +63,94 @@ const Tokens = memo(() => {
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
+  const [isTokensLoading, setIsTokensLoading] = useState(true);
+  const [renderedTokenKeys, setRenderedTokenKeys] = useState<
+    typeof sortedTokenKeys
+  >([]);
+  const [progressiveTokens, setProgressiveTokens] = useState<
+    typeof sortedTokenKeys
+  >([]);
+  const lastTokenDataRef = useRef<typeof sortedTokenKeys>();
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
+
+  // Memoize selector computation for better performance
   const sortedTokenKeys = useSelector(
-    isMultichainAccountsState2Enabled
-      ? selectSortedAssetsBySelectedAccountGroup
-      : selectSortedTokenKeys,
+    useMemo(
+      () =>
+        isMultichainAccountsState2Enabled
+          ? selectSortedAssetsBySelectedAccountGroup
+          : selectSortedTokenKeys,
+      [isMultichainAccountsState2Enabled],
+    ),
   );
+
+  // High-performance async rendering with progressive loading
+  useEffect(() => {
+    // Debounce rapid data changes
+    if (
+      JSON.stringify(sortedTokenKeys) ===
+      JSON.stringify(lastTokenDataRef.current)
+    ) {
+      return;
+    }
+    lastTokenDataRef.current = sortedTokenKeys;
+
+    if (sortedTokenKeys?.length) {
+      setIsTokensLoading(true);
+      setProgressiveTokens([]);
+
+      // Use InteractionManager for better performance than setTimeout
+      InteractionManager.runAfterInteractions(() => {
+        const CHUNK_SIZE = 20; // Process 20 tokens at a time
+        const chunks: (typeof sortedTokenKeys)[] = [];
+
+        for (let i = 0; i < sortedTokenKeys.length; i += CHUNK_SIZE) {
+          chunks.push(sortedTokenKeys.slice(i, i + CHUNK_SIZE));
+        }
+
+        // Progressive loading for better perceived performance
+        let currentChunkIndex = 0;
+        let accumulatedTokens: typeof sortedTokenKeys = [];
+
+        const processChunk = () => {
+          if (currentChunkIndex < chunks.length) {
+            accumulatedTokens = [
+              ...accumulatedTokens,
+              ...chunks[currentChunkIndex],
+            ];
+            setProgressiveTokens([...accumulatedTokens]);
+            currentChunkIndex++;
+
+            // Process next chunk after allowing UI to update
+            requestAnimationFrame(() => {
+              if (currentChunkIndex < chunks.length) {
+                setTimeout(processChunk, 0);
+              } else {
+                // All chunks processed
+                setRenderedTokenKeys(accumulatedTokens);
+                setIsTokensLoading(false);
+              }
+            });
+          }
+        };
+
+        processChunk();
+      });
+
+      return;
+    }
+
+    // No tokens to render
+    setRenderedTokenKeys([]);
+    setProgressiveTokens([]);
+    setIsTokensLoading(false);
+  }, [sortedTokenKeys]);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
@@ -79,8 +164,10 @@ const Tokens = memo(() => {
   );
 
   const onRefresh = useCallback(async () => {
-    requestAnimationFrame(() => {
-      setRefreshing(true);
+    setRefreshing(true);
+
+    // Use InteractionManager for better performance during refresh
+    InteractionManager.runAfterInteractions(() => {
       refreshTokens({
         isEvmSelected,
         evmNetworkConfigurationsByChainId,
@@ -144,9 +231,9 @@ const Tokens = memo(() => {
     [removeToken],
   );
 
-  const handleScamWarningModal = () => {
-    setShowScamWarningModal(!showScamWarningModal);
-  };
+  const handleScamWarningModal = useCallback(() => {
+    setShowScamWarningModal((prev) => !prev);
+  }, []);
 
   return (
     <View
@@ -155,14 +242,27 @@ const Tokens = memo(() => {
     >
       <AssetPollingProvider />
       <TokenListControlBar goToAddToken={goToAddToken} />
-      {sortedTokenKeys && (
-        <TokenList
-          tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          setShowScamWarningModal={handleScamWarningModal}
-        />
+      {!isTokensLoading &&
+      renderedTokenKeys.length === 0 &&
+      progressiveTokens.length === 0 ? (
+        <View style={styles.wrapper} />
+      ) : (
+        <>
+          {isTokensLoading && progressiveTokens.length === 0 && (
+            <Loader size="large" />
+          )}
+          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
+            <TokenList
+              tokenKeys={
+                isTokensLoading ? progressiveTokens : renderedTokenKeys
+              }
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              showRemoveMenu={showRemoveMenu}
+              setShowScamWarningModal={handleScamWarningModal}
+            />
+          )}
+        </>
       )}
       {showScamWarningModal && (
         <ScamWarningModal

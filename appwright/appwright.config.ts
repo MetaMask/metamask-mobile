@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
-  testMatch: '**/tests/performance/*.spec.js',
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
   expect: {
     timeout: 30 * 1000, //30 seconds
@@ -21,6 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
+      testMatch: '**/tests/performance/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -29,10 +29,12 @@ export default defineConfig({
           osVersion: '14', // this can be changed to your emulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'ios',
+      testMatch: '**/tests/performance/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -40,10 +42,12 @@ export default defineConfig({
           osVersion: '16.0', // this can be changed to your simulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .app file
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'browserstack-android',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -52,10 +56,12 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'browserstack-ios',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -63,7 +69,36 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: process.env.BROWSERSTACK_IOS_APP_URL, // Path to Browserstack url
+        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
+      },
+    },
+    {
+      name: 'android-onboarding',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+        },
+        buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
+      },
+    },
+    {
+      name: 'ios-onboarding',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
   ],

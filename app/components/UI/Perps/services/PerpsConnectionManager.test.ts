@@ -55,6 +55,19 @@ jest.mock('../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: jest.fn(() => mockStreamManagerInstance),
 }));
 
+// Mock Device and BackgroundTimer for grace period tests
+jest.mock('../../../../util/device', () => ({
+  isIos: jest.fn(),
+  isAndroid: jest.fn(),
+}));
+
+jest.mock('react-native-background-timer', () => ({
+  setTimeout: jest.fn(),
+  clearTimeout: jest.fn(),
+  start: jest.fn(),
+  stop: jest.fn(),
+}));
+
 // Import non-singleton modules first
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
@@ -78,6 +91,8 @@ const resetManager = (manager: unknown) => {
     previousAddress: string | undefined;
     previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
     error: string | null;
+    isInGracePeriod: boolean;
+    gracePeriodTimer: number | null;
   };
   m.isConnected = false;
   m.isConnecting = false;
@@ -88,6 +103,8 @@ const resetManager = (manager: unknown) => {
   m.previousAddress = undefined;
   m.previousPerpsNetwork = undefined;
   m.error = null;
+  m.isInGracePeriod = false;
+  m.gracePeriodTimer = null;
 };
 
 describe('PerpsConnectionManager', () => {
@@ -251,44 +268,32 @@ describe('PerpsConnectionManager', () => {
       expect(mockPerpsController.getAccountState).toHaveBeenCalledTimes(2);
     });
 
-    it('should wait for disconnection to complete before connecting', async () => {
+    it('should handle rapid disconnect-connect cycles with grace period', async () => {
       // Setup initial connection
       mockPerpsController.initializeProviders.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
 
-      // Mock disconnect to be slow so we can test the waiting behavior
-      let resolveDisconnect: () => void = () => {
-        // Initial placeholder function
-      };
-      const slowDisconnectPromise = new Promise<void>((resolve) => {
-        resolveDisconnect = resolve;
-      });
-      mockPerpsController.disconnect.mockReturnValue(slowDisconnectPromise);
-
       // Connect first
       await PerpsConnectionManager.connect();
-
-      // Start a disconnection but don't await it
-      const disconnectPromise = PerpsConnectionManager.disconnect();
-
-      // Immediately try to connect while disconnection is in progress
-      // This simulates the isDisconnecting && disconnectPromise condition
-      const connectPromise = PerpsConnectionManager.connect();
-
-      // Verify the waiting log was called immediately
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsConnectionManager: Waiting for disconnection to complete before connecting',
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
       );
 
-      // Now complete the disconnection
-      resolveDisconnect();
+      // Disconnect (enters grace period)
+      await PerpsConnectionManager.disconnect();
+      expect(PerpsConnectionManager.getConnectionState().isInGracePeriod).toBe(
+        true,
+      );
 
-      // Wait for both operations to complete
-      await disconnectPromise;
-      await connectPromise;
+      // Immediately reconnect (should cancel grace period)
+      await PerpsConnectionManager.connect();
 
-      // Verify that connect waited and then proceeded
-      expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(2);
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(true);
+      // The grace period cancellation might not be immediate - just ensure we're connected
+
+      // Should not have called actual disconnect due to grace period cancellation
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
     });
   });
 
@@ -314,7 +319,7 @@ describe('PerpsConnectionManager', () => {
       expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
     });
 
-    it('should only disconnect when reference count reaches zero', async () => {
+    it('should only start grace period when reference count reaches zero', async () => {
       await PerpsConnectionManager.connect();
       await PerpsConnectionManager.connect();
 
@@ -322,20 +327,23 @@ describe('PerpsConnectionManager', () => {
       expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
 
       await PerpsConnectionManager.disconnect();
-      expect(mockPerpsController.disconnect).toHaveBeenCalledTimes(1);
+      // Should enter grace period instead of immediate disconnection
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isInGracePeriod).toBe(
+        true,
+      );
     });
 
-    it('should handle disconnect errors gracefully', async () => {
-      const error = new Error('Disconnect failed');
-      mockPerpsController.disconnect.mockRejectedValueOnce(error);
-
+    it('should handle disconnect gracefully with grace period', async () => {
       await PerpsConnectionManager.connect();
+
+      // Disconnect should not throw even if controller would fail later
       await expect(PerpsConnectionManager.disconnect()).resolves.not.toThrow();
 
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Disconnection error'),
-        error,
-      );
+      // Should enter grace period without immediate disconnect
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isInGracePeriod).toBe(true);
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
     });
 
     it('should prevent negative reference count', async () => {
@@ -353,7 +361,7 @@ describe('PerpsConnectionManager', () => {
       expect(state.isConnected).toBe(false);
     });
 
-    it('should reset connection state on disconnect', async () => {
+    it('should maintain connection state during grace period', async () => {
       await PerpsConnectionManager.connect();
 
       const connectedState = PerpsConnectionManager.getConnectionState();
@@ -362,13 +370,15 @@ describe('PerpsConnectionManager', () => {
 
       await PerpsConnectionManager.disconnect();
 
-      const disconnectedState = PerpsConnectionManager.getConnectionState();
-      expect(disconnectedState.isConnected).toBe(false);
-      expect(disconnectedState.isInitialized).toBe(false);
-      expect(disconnectedState.isConnecting).toBe(false);
+      const gracePeriodState = PerpsConnectionManager.getConnectionState();
+      // Connection remains available during grace period
+      expect(gracePeriodState.isConnected).toBe(true);
+      expect(gracePeriodState.isInitialized).toBe(true);
+      expect(gracePeriodState.isConnecting).toBe(false);
+      expect(gracePeriodState.isInGracePeriod).toBe(true);
     });
 
-    it('should clean up state monitoring when reference count reaches zero', async () => {
+    it('should maintain state monitoring during grace period', async () => {
       // Connect to set up monitoring
       await PerpsConnectionManager.connect();
 
@@ -377,19 +387,19 @@ describe('PerpsConnectionManager', () => {
         .length;
       expect(subscribeCallsBefore).toBeGreaterThan(0);
 
-      // Disconnect - should clean up monitoring
+      // Disconnect - should enter grace period, maintaining monitoring
       await PerpsConnectionManager.disconnect();
 
-      // Verify cleanup was logged
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
+      // Should not clean up monitoring during grace period
+      expect(mockDevLogger.log).not.toHaveBeenCalledWith(
         'PerpsConnectionManager: State monitoring cleaned up',
       );
 
-      // Verify monitoring is cleaned up internally
+      // Verify monitoring is still active during grace period
       expect(
         (PerpsConnectionManager as unknown as { unsubscribeFromStore: unknown })
           .unsubscribeFromStore,
-      ).toBeNull();
+      ).not.toBeNull();
     });
   });
 
@@ -402,6 +412,7 @@ describe('PerpsConnectionManager', () => {
         isConnecting: false,
         isInitialized: false,
         isDisconnecting: false,
+        isInGracePeriod: false,
         error: null,
       });
     });
@@ -427,6 +438,83 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
+  describe('grace period functionality', () => {
+    beforeEach(async () => {
+      // Setup initial connection mocks
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      mockPerpsController.disconnect.mockResolvedValue();
+    });
+
+    it('maintains connection during grace period', async () => {
+      // Given: A connected manager
+      await PerpsConnectionManager.connect();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+
+      // When: All references are disconnected
+      await PerpsConnectionManager.disconnect();
+
+      // Then: Connection remains available during grace period
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(true); // Still connected for users
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled(); // No actual disconnection yet
+    });
+
+    it('cancels grace period when reconnecting', async () => {
+      // Given: A manager in grace period
+      await PerpsConnectionManager.connect();
+      await PerpsConnectionManager.disconnect(); // Enter grace period
+
+      // When: A new connection is requested
+      await PerpsConnectionManager.connect();
+
+      // Then: Connection is maintained without actual disconnection
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(true);
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+    });
+
+    it('schedules disconnection during grace period', async () => {
+      // Given: A manager in grace period
+      await PerpsConnectionManager.connect();
+
+      // When: Disconnection is requested
+      await PerpsConnectionManager.disconnect();
+
+      // Then: Grace period state is tracked correctly
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isInGracePeriod).toBe(true);
+      expect(state.isConnected).toBe(true); // Connection maintained during grace period
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled(); // No immediate disconnection
+    });
+
+    it('handles multiple references correctly', async () => {
+      // Given: Multiple connections
+      await PerpsConnectionManager.connect(); // refCount = 1
+      await PerpsConnectionManager.connect(); // refCount = 2
+
+      // When: First disconnect
+      await PerpsConnectionManager.disconnect(); // refCount = 1
+
+      // Then: No grace period yet (still has references)
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+
+      // When: Final disconnect
+      await PerpsConnectionManager.disconnect(); // refCount = 0
+
+      // Then: Grace period starts, connection maintained
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+    });
+  });
+
   describe('concurrent operations', () => {
     it('should handle multiple concurrent connect/disconnect operations', async () => {
       mockPerpsController.initializeProviders.mockResolvedValue();
@@ -448,8 +536,10 @@ describe('PerpsConnectionManager', () => {
       const finalDisconnect = PerpsConnectionManager.disconnect();
       await finalDisconnect;
 
-      // Should disconnect when ref count reaches 0
-      expect(mockPerpsController.disconnect).toHaveBeenCalledTimes(1);
+      // Should enter grace period when ref count reaches 0
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isInGracePeriod).toBe(true);
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
     });
   });
 
@@ -553,7 +643,7 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
-    it('should not trigger reconnection when not connected', async () => {
+    it('should continue monitoring during grace period', async () => {
       // Setup but don't connect
       mockPerpsController.initializeProviders.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
@@ -577,8 +667,8 @@ describe('PerpsConnectionManager', () => {
         // Trigger the store callback with changed values
         storeCallback();
 
-        // Should not log account change detection because not connected
-        expect(mockDevLogger.log).not.toHaveBeenCalledWith(
+        // Should still log account change detection during grace period
+        expect(mockDevLogger.log).toHaveBeenCalledWith(
           expect.stringContaining('Account or network change detected'),
           expect.any(Object),
         );

@@ -52,8 +52,6 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       width: '100%',
       marginTop: 'auto',
-      borderTopWidth: 1,
-      borderTopColor: colors.background.default,
     },
     seedPhraseDefaultInput: {
       borderWidth: 0,
@@ -61,11 +59,9 @@ const createStyles = (colors: any) =>
       display: 'flex',
       flex: 1,
       backgroundColor: importedColors.transparent,
-      height: 66,
     },
     textAreaInput: {
       display: 'flex',
-      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,
@@ -109,8 +105,13 @@ const createStyles = (colors: any) =>
     pasteButton: {
       paddingHorizontal: 16,
       paddingVertical: 16,
-      flex: 1,
       textAlign: 'center',
+    },
+    pasteText: {
+      textAlign: 'right',
+      paddingTop: 12,
+      paddingBottom: 16,
+      alignSelf: 'flex-end',
     },
     seedPhraseInputFocused: {
       borderColor: colors.primary.default,
@@ -131,18 +132,6 @@ const createStyles = (colors: any) =>
       fontSize: scale(10),
       color: colors.text.default,
       ...fontStyles.normal,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
     },
     input: {
       paddingVertical: Platform.select({
@@ -195,6 +184,9 @@ const createStyles = (colors: any) =>
       gap: 8,
       marginTop: 8,
       marginBottom: 16,
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
@@ -203,6 +195,7 @@ const createStyles = (colors: any) =>
       gap: 1,
       flexWrap: 'wrap',
       width: '90%',
+      marginTop: -6,
     },
     headerLeft: {
       marginLeft: 16,

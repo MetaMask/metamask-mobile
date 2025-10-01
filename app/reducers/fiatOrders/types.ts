@@ -3,7 +3,13 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import {
+  DepositOrder,
+  DepositOrderType,
+  DepositCryptoCurrency,
+  DepositPaymentMethod,
+  DepositRegion,
+} from '@consensys/native-ramps-sdk';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -20,6 +26,8 @@ import {
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
   setFiatOrdersRegionDeposit,
+  setFiatOrdersCryptoCurrencyDeposit,
+  setFiatOrdersPaymentMethodDeposit,
   updateFiatCustomIdData,
   updateFiatOrder,
   updateActivationKey,
@@ -31,7 +39,6 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
-import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
 
 interface WyreOrder {
   order: Record<string, unknown>;
@@ -59,6 +66,7 @@ export interface FiatOrder {
   orderType: OrderOrderTypeEnum | DepositOrderType; // Order type
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
+  forceUpdate?: boolean; // Force update when processing
   data: Order | WyreOrder | DepositOrder; // Original provider data
 }
 
@@ -87,6 +95,8 @@ export interface FiatOrdersState {
   networks: AggregatorNetwork[];
   selectedRegionAgg: Country | null;
   selectedRegionDeposit: DepositRegion | null;
+  selectedCryptoCurrencyDeposit: DepositCryptoCurrency | null;
+  selectedPaymentMethodDeposit: DepositPaymentMethod | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
   getStartedSell: boolean;
@@ -104,6 +114,8 @@ export const ACTIONS = {
   // aggregator actions
   FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
   FIAT_SET_REGION_DEPOSIT: 'FIAT_SET_REGION_DEPOSIT',
+  FIAT_SET_CRYPTO_CURRENCY_DEPOSIT: 'FIAT_SET_CRYPTO_CURRENCY_DEPOSIT',
+  FIAT_SET_PAYMENT_METHOD_DEPOSIT: 'FIAT_SET_PAYMENT_METHOD_DEPOSIT',
   FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
   FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
   FIAT_SET_GETSTARTED_SELL: 'FIAT_SET_GETSTARTED_SELL',
@@ -128,6 +140,8 @@ export type Action =
   | ReturnType<typeof updateFiatOrder>
   | ReturnType<typeof setFiatOrdersRegionAGG>
   | ReturnType<typeof setFiatOrdersRegionDeposit>
+  | ReturnType<typeof setFiatOrdersCryptoCurrencyDeposit>
+  | ReturnType<typeof setFiatOrdersPaymentMethodDeposit>
   | ReturnType<typeof setFiatOrdersPaymentMethodAGG>
   | ReturnType<typeof setFiatOrdersGetStartedAGG>
   | ReturnType<typeof setFiatOrdersGetStartedSell>

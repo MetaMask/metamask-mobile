@@ -14,7 +14,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers, BigNumber } from 'ethers';
+import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -28,7 +28,9 @@ import {
   selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
+  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -39,6 +41,7 @@ import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
+import { isNativeAddress } from '@metamask/bridge-controller';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -126,6 +129,7 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   latestAtomicBalance?: BigNumber;
+  isSourceToken?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -148,12 +152,16 @@ export const TokenInputArea = forwardRef<
       onInputPress,
       onMaxPress,
       latestAtomicBalance,
+      isSourceToken,
     },
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+    const isGaslessSwapEnabled = useSelector((state: RootState) =>
+      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
+    );
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -184,6 +192,12 @@ export const TokenInputArea = forwardRef<
         params: {
           shouldGoToTokens: true,
         } as BridgeDestNetworkSelectorRouteParams,
+      });
+    };
+
+    const navigateToSourceTokenSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       });
     };
 
@@ -225,8 +239,10 @@ export const TokenInputArea = forwardRef<
             token?.symbol
           }`
         : undefined;
+
+    const isNativeAsset = isNativeAddress(token?.address);
     const formattedAddress =
-      token?.address && token.address !== ethers.constants.AddressZero
+      token?.address && !isNativeAsset
         ? formatAddress(token?.address)
         : undefined;
 
@@ -239,11 +255,14 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
-    // TODO come up with a more robust way to check if the asset is native
-    // Maybe a util in BridgeController
-    const isNativeAsset =
-      token?.address === ethers.constants.AddressZero ||
-      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    let tokenButtonText = isUnifiedSwapsEnabled
+      ? 'bridge.swap_to'
+      : 'bridge.bridge_to';
+    if (isSourceToken) {
+      tokenButtonText = isUnifiedSwapsEnabled
+        ? 'bridge.swap_from'
+        : 'bridge.bridge_from';
+    }
 
     return (
       <Box>
@@ -293,10 +312,12 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(
-                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
-                )}
-                onPress={navigateToDestNetworkSelector}
+                label={strings(tokenButtonText)}
+                onPress={
+                  isSourceToken
+                    ? navigateToSourceTokenSelector
+                    : navigateToDestNetworkSelector
+                }
               />
             )}
           </Box>
@@ -314,7 +335,8 @@ export const TokenInputArea = forwardRef<
                   tokenType === TokenInputAreaType.Source &&
                   tokenBalance &&
                   onMaxPress &&
-                  !isNativeAsset ? (
+                  (!isNativeAsset ||
+                    (isNativeAsset && isGaslessSwapEnabled)) ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={
