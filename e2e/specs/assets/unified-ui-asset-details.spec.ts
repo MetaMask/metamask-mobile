@@ -6,13 +6,15 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { RegressionAssets } from '../../tags';
 import Assertions from '../../framework/Assertions';
+import QuoteView from '../../pages/swaps/QuoteView';
+import SendView from '../../pages/Send/SendView';
 
 describe(RegressionAssets('Unified UI Asset Details Actions'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
 
-  it('should display asset details actions when viewing a token', async () => {
+  it('displays actions and navigates when tapping swap from asset details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -25,38 +27,23 @@ describe(RegressionAssets('Unified UI Asset Details Actions'), () => {
         await WalletView.tapOnToken('Ethereum');
 
         // Verify essential action buttons are visible in asset details
-        await Assertions.checkIfVisible(TokenOverview.swapButton);
-        await Assertions.checkIfVisible(TokenOverview.sendButton);
-        await Assertions.checkIfVisible(TokenOverview.receiveButton);
-
-        // Note: Bridge button visibility depends on unified UI configuration
-        // We test the overall functionality without specific environment setup
-      },
-    );
-  });
-
-  it('should navigate when tapping swap button from asset details', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-
-        // Navigate to ETH token details
-        await WalletView.tapOnToken('Ethereum');
+        await Assertions.expectElementToBeVisible(TokenOverview.swapButton);
+        await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
+        await Assertions.expectElementToBeVisible(TokenOverview.receiveButton);
 
         // Tap swap button
         await TokenOverview.tapSwapButton();
 
-        // Verify we navigated away from token overview
-        // (The exact destination depends on unified UI configuration)
+        // Validate we navigated into the swap quote view
+        await device.disableSynchronization();
+        await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+          description: 'source token area should be visible on QuoteView',
+        });
       },
     );
   });
 
-  it('should navigate when tapping send button from asset details', async () => {
+  it('navigates when tapping send from asset details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -71,8 +58,11 @@ describe(RegressionAssets('Unified UI Asset Details Actions'), () => {
         // Tap send button
         await TokenOverview.tapSendButton();
 
-        // Verify we navigated away from token overview
-        await Assertions.checkIfNotVisible(TokenOverview.container);
+        // Verify we navigated into the send flow by checking an element on SendView
+        await device.disableSynchronization();
+        await Assertions.expectElementToBeVisible(SendView.addressInputField, {
+          description: 'address input should be visible on SendView',
+        });
       },
     );
   });
