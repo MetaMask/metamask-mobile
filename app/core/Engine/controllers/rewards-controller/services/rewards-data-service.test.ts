@@ -11,6 +11,7 @@ import type {
   SubscriptionReferralDetailsDto,
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
+  GetPointsEventsLastUpdatedDto,
   MobileLoginDto,
   MobileOptinDto,
 } from '../types';
@@ -500,6 +501,172 @@ describe('RewardsDataService', () => {
 
       await expect(
         service.getPointsEvents(mockGetPointsEventsRequest),
+      ).rejects.toThrow('Request timeout after 10000ms');
+    });
+  });
+
+  describe('getPointsEventsLastUpdated', () => {
+    const mockGetPointsEventsLastUpdatedRequest: GetPointsEventsLastUpdatedDto =
+      {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+
+    it('should successfully get points events last updated timestamp', async () => {
+      // Arrange
+      const mockLastUpdatedResponse = {
+        lastUpdated: '2024-01-01T10:00:00Z',
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLastUpdatedResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(result).toEqual(new Date('2024-01-01T10:00:00Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events/last-updated',
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-access-token': 'test-access-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('should return null when lastUpdated is not present in response', async () => {
+      // Arrange
+      const mockResponseWithoutLastUpdated = {};
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponseWithoutLastUpdated),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should include authentication headers with subscription token', async () => {
+      // Arrange
+      const mockLastUpdatedResponse = {
+        lastUpdated: '2024-01-01T10:00:00Z',
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLastUpdatedResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(
+        mockGetPointsEventsLastUpdatedRequest.subscriptionId,
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'rewards-access-token': 'test-access-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+
+      const mockLastUpdatedResponse = {
+        lastUpdated: '2024-01-01T10:00:00Z',
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLastUpdatedResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getPointsEventsLastUpdated(
+        mockGetPointsEventsLastUpdatedRequest,
+      );
+
+      // Assert
+      expect(result).toEqual(new Date('2024-01-01T10:00:00Z'));
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should handle get points events last updated errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getPointsEventsLastUpdated(
+          mockGetPointsEventsLastUpdatedRequest,
+        ),
+      ).rejects.toThrow('Get points events last update failed: 404');
+    });
+
+    it('should handle network errors', async () => {
+      // Arrange
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(
+        service.getPointsEventsLastUpdated(
+          mockGetPointsEventsLastUpdatedRequest,
+        ),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle timeout errors', async () => {
+      // Arrange
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Act & Assert
+      await expect(
+        service.getPointsEventsLastUpdated(
+          mockGetPointsEventsLastUpdatedRequest,
+        ),
       ).rejects.toThrow('Request timeout after 10000ms');
     });
   });
@@ -1626,6 +1793,7 @@ describe('RewardsDataService', () => {
 
     const mockOptInStatusResponse = {
       ois: [true, false, true],
+      sids: ['sub_123', null, 'sub_456'],
     };
 
     it('should successfully get opt-in status for multiple addresses', async () => {
@@ -1661,6 +1829,7 @@ describe('RewardsDataService', () => {
       };
       const singleAddressResponse = {
         ois: [true],
+        sids: ['sub_123'],
       };
 
       const mockResponse = {
