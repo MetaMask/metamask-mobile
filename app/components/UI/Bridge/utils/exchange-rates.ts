@@ -21,7 +21,7 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
-import { formatCurrency } from './format-currency';
+import { formatCurrency } from '../../Ramp/Deposit/utils';
 
 interface GetDisplayCurrencyValueParams {
   token: BridgeToken | undefined;
