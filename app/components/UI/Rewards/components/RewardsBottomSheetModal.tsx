@@ -167,7 +167,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     >
       {typeof description === 'string' ? (
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           style={tw.style('text-alternative text-center')}
         >
           {description}
