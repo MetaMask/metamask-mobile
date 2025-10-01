@@ -8,7 +8,7 @@ import {
   selectBridgeQuotes,
   selectIsSubmittingTx,
   selectBridgeFeatureFlags,
-  selectIsSolanaToEvm,
+  selectIsNonEvmToEvm,
   selectIsSolanaSwap,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
@@ -57,7 +57,7 @@ export const useBridgeQuoteData = ({
   const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const isSolanaToEvm = useSelector(selectIsNonEvmToEvm);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);

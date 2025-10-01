@@ -31,7 +31,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
-  selectIsEvmSolanaBridge,
+  selectIsEvmNonEvmBridge,
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectDestAddress,
@@ -123,7 +123,7 @@ const BridgeView = () => {
     selectNoFeeAssets(state, destToken?.chainId),
   );
 
-  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -151,7 +151,7 @@ const BridgeView = () => {
 
   useInitialSlippage();
 
-  const hasDestinationPicker = isEvmSolanaBridge;
+  const hasDestinationPicker = isEvmNonEvmBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -183,7 +183,7 @@ const BridgeView = () => {
     !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destinations address is only needed for EVM <> Solana bridges
-    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
+    (!isEvmNonEvmBridge || (isEvmNonEvmBridge && !!destAddress));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
