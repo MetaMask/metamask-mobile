@@ -24,7 +24,7 @@ import { selectAccountsByChainId } from '../../../../../selectors/accountTracker
 import { toChecksumAddress } from '../../../../../util/address';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { EthScope } from '@metamask/keyring-api';
-import { useNonEvmTokens } from '../useNonEvmTokens';
+import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -171,7 +171,7 @@ export const useTokensWithBalance: ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useNonEvmTokens();
+  const nonEvmTokens = useNonEvmTokensWithBalance();
   ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
