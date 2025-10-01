@@ -126,6 +126,7 @@ const PerpsMarketListView = ({
   };
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const {
@@ -195,24 +196,34 @@ const PerpsMarketListView = ({
       return true;
     });
 
-    // Then apply search filter if needed
-    if (!searchQuery.trim()) {
+    // If search is not visible, show all markets
+    if (!isSearchVisible) {
       return marketsWithVolume;
     }
+
+    // If search is visible but query is empty, show no markets
+    if (!searchQuery.trim()) {
+      return [];
+    }
+
+    // Filter based on search query
     const query = searchQuery.toLowerCase().trim();
     return marketsWithVolume.filter(
       (market: PerpsMarketData) =>
         market.symbol.toLowerCase().includes(query) ||
         market.name.toLowerCase().includes(query),
     );
-  }, [markets, searchQuery]);
+  }, [markets, searchQuery, isSearchVisible]);
 
   const handleSearchToggle = () => {
     setIsSearchVisible(!isSearchVisible);
+
     if (isSearchVisible) {
       // Clear search when hiding search bar
       setSearchQuery('');
+      setShouldShowNavbar(true);
     } else {
+      setShouldShowNavbar(false);
       // Track search bar clicked event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
@@ -221,14 +232,12 @@ const PerpsMarketListView = ({
     }
   };
 
-  // Auto-close search when keyboard is dismissed via back/dismiss button or gesture
+  // Render navbar when keyboard is dismissed. We hide the navbar to give extra room when the OS keyboard is visible.
   useEffect(() => {
     if (!isSearchVisible) return;
 
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      // Close search when keyboard is dismissed
-      setIsSearchVisible(false);
-      setSearchQuery('');
+      setShouldShowNavbar(true);
     });
 
     return () => {
@@ -472,12 +481,6 @@ const PerpsMarketListView = ({
     );
   };
 
-  const hideSearchIfOpen = () => {
-    if (isSearchVisible) {
-      setIsSearchVisible(false);
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
@@ -487,7 +490,7 @@ const PerpsMarketListView = ({
         style={hiddenButtonStyle}
       />
       {/* Header */}
-      <Pressable style={styles.header} onPress={hideSearchIfOpen}>
+      <Pressable style={styles.header} onPress={() => Keyboard.dismiss()}>
         <View style={styles.headerTitleContainer}>
           <Text
             variant={TextVariant.HeadingLG}
@@ -525,6 +528,7 @@ const PerpsMarketListView = ({
               placeholderTextColor={theme.colors.text.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onFocus={() => setShouldShowNavbar(false)}
               autoCapitalize="none"
               autoCorrect={false}
               autoFocus
@@ -548,7 +552,7 @@ const PerpsMarketListView = ({
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
       {/* Bottom navbar - hidden when search is visible */}
-      {!isSearchVisible && (
+      {shouldShowNavbar && (
         <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
       )}
     </SafeAreaView>
