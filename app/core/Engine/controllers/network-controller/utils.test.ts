@@ -61,6 +61,15 @@ describe('getIsMetaMaskInfuraEndpointUrl', () => {
     ).toBe(false);
   });
 
+  it('returns true given an Infura v3 URL with {infuraProjectId} at the end', () => {
+    expect(
+      getIsMetaMaskInfuraEndpointUrl(
+        'https://some-subdomain.infura.io/v3/{infuraProjectId}',
+        'the-infura-project-id',
+      ),
+    ).toBe(true);
+  });
+
   it('returns false if the URL does match an Infura URL', () => {
     expect(
       getIsMetaMaskInfuraEndpointUrl(

@@ -20,7 +20,7 @@ describe('networkConnectionBanner reducer', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
@@ -46,14 +46,14 @@ describe('networkConnectionBanner reducer', () => {
     });
   });
 
-  describe('SHOW_SLOW_RPC_CONNECTION_BANNER', () => {
+  describe('SHOW_DEGRADED_RPC_CONNECTION_BANNER', () => {
     it('should show banner with chainId, status, networkName and rpcUrl when action is dispatched', () => {
       const chainId = '0x1';
       const networkName = 'Ethereum Mainnet';
       const rpcUrl = 'https://mainnet.infura.io/v3/123';
       const action = showNetworkConnectionBanner({
         chainId,
-        status: 'slow',
+        status: 'degraded',
         networkName,
         rpcUrl,
       });
@@ -63,7 +63,7 @@ describe('networkConnectionBanner reducer', () => {
       expect(result).toStrictEqual({
         visible: true,
         chainId,
-        status: 'slow',
+        status: 'degraded',
         networkName,
         rpcUrl,
       });
@@ -73,7 +73,7 @@ describe('networkConnectionBanner reducer', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
@@ -83,7 +83,7 @@ describe('networkConnectionBanner reducer', () => {
       const newNetworkRpcUrl = 'https://polygon-rpc.com';
       const action = showNetworkConnectionBanner({
         chainId: newChainId,
-        status: 'slow',
+        status: 'degraded',
         networkName: newNetworkName,
         rpcUrl: newNetworkRpcUrl,
       });
@@ -93,19 +93,19 @@ describe('networkConnectionBanner reducer', () => {
       expect(result).toStrictEqual({
         visible: true,
         chainId: newChainId,
-        status: 'slow',
+        status: 'degraded',
         networkName: newNetworkName,
         rpcUrl: newNetworkRpcUrl,
       });
     });
   });
 
-  describe('HIDE_SLOW_RPC_CONNECTION_BANNER', () => {
+  describe('HIDE_DEGRADED_RPC_CONNECTION_BANNER', () => {
     it('should hide banner and clear chainId, status, networkName and rpcUrl when action is dispatched', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
@@ -134,7 +134,7 @@ describe('networkConnectionBanner reducer', () => {
       const rpcUrl = 'https://polygon-rpc.com';
       const showAction = showNetworkConnectionBanner({
         chainId,
-        status: 'slow',
+        status: 'degraded',
         networkName,
         rpcUrl,
       });
@@ -145,7 +145,7 @@ describe('networkConnectionBanner reducer', () => {
       expect(afterShow).toStrictEqual({
         visible: true,
         chainId,
-        status: 'slow',
+        status: 'degraded',
         networkName,
         rpcUrl,
       });
@@ -163,7 +163,7 @@ describe('networkConnectionBanner reducer', () => {
       const originalState = {
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
@@ -175,7 +175,7 @@ describe('networkConnectionBanner reducer', () => {
       expect(originalState).toStrictEqual({
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
       });
@@ -184,7 +184,7 @@ describe('networkConnectionBanner reducer', () => {
     it('should return new state object for show action', () => {
       const action = showNetworkConnectionBanner({
         chainId: '0x89',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
       });
@@ -195,7 +195,7 @@ describe('networkConnectionBanner reducer', () => {
       expect(result).toStrictEqual({
         visible: true,
         chainId: '0x89',
-        status: 'slow',
+        status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
       });
