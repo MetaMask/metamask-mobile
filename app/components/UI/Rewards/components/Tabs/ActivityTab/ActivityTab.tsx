@@ -19,17 +19,12 @@ import {
   selectSeasonStatusLoading,
 } from '../../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
 import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { setActiveTab } from '../../../../../../actions/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
 import { NameType } from '../../../../Name/Name.types';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -117,7 +112,7 @@ export const ActivityTab: React.FC = () => {
     if (isLoadingMore) {
       return <LoadingFooter />;
     }
-    return null;
+    return <Box twClassName="h-4" />;
   };
 
   if (
@@ -138,19 +133,15 @@ export const ActivityTab: React.FC = () => {
 
   if (error) {
     return (
-      <BannerAlert
-        severity={BannerAlertSeverity.Error}
+      <RewardsErrorBanner
         title={strings('rewards.active_activity_error.error_fetching_title')}
         description={strings(
           'rewards.active_activity_error.error_fetching_description',
         )}
-        actionButtonProps={{
-          size: ButtonSize.Md,
-          style: tw.style('mt-2'),
-          onPress: refresh,
-          label: strings('rewards.active_activity_error.retry_button'),
-          variant: ButtonVariants.Primary,
-        }}
+        onConfirm={refresh}
+        confirmButtonLabel={strings(
+          'rewards.active_activity_error.retry_button',
+        )}
       />
     );
   }

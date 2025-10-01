@@ -1,15 +1,21 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
+import Selectors from '../helpers/Selectors.js';
+import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+
 class BridgeScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
   get sourceTokenInput() {
     return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
@@ -29,6 +35,20 @@ class BridgeScreen {
   get seeAllDropDown(){
     return AppwrightSelectors.getElementByText(this._device, "See all");
 
+  }
+
+  getNetworkButton(networkName) {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${networkName}"]`);
+      } else {
+        return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
+      }
+    }
   }
 
   get getETHQuotesButton(){
@@ -52,31 +72,30 @@ class BridgeScreen {
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+          const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
           await numberKey.waitFor('visible',{ timeout: 30000 });
-          await numberKey.tap();
+          await AppwrightGestures.tap(numberKey);
         }
         else {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
+          const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
           await numberKey.waitFor('visible',{ timeout: 30000 });
-          await numberKey.tap();
+          await AppwrightGestures.tap(numberKey);
         }
       }
       else {
-        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         await numberKey.waitFor('visible', { timeout: 30000 });
-        await numberKey.tap();
+        await AppwrightGestures.tap(numberKey);
       }
     }
   }
 
   async selectNetworkAndTokenTo(network, token) {
-      const destinationToken = await this.destinationTokenArea;
-      await destinationToken.tap();
-      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);;
-      await networkButton.tap();
-      const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
-      await tokenField.fill(token);
+      const destinationToken = this.destinationTokenArea;
+      await AppwrightGestures.tap(destinationToken);
+      await AppwrightGestures.tap(this.getNetworkButton(network));
+      const tokenField = AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
+      await AppwrightGestures.typeText(tokenField, token);
       let tokenNetworkId;
       if (network == 'Ethereum'){
         tokenNetworkId = `0x1`;
@@ -108,23 +127,23 @@ class BridgeScreen {
       console.log('Token button found and visible');
       
       console.log('About to hide keyboard...');
-      await AppwrightSelectors.hideKeyboard(this._device);
+      await AppwrightGestures.hideKeyboard(this._device);
       console.log('Keyboard hidden successfully');
 
       console.log('About to tap token button...');
       
       // Try multiple tap strategies for iOS
       if (AppwrightSelectors.isAndroid(this._device)) {
-        await tokenButton.tap();
+        await AppwrightGestures.tap(tokenButton);
       } else {
         // iOS-specific tap strategy
         console.log('Using iOS-specific tap strategy...');
         try {
-          await tokenButton.tap();
+          await AppwrightGestures.tap(tokenButton);
           console.log('iOS click() succeeded');
         } catch (error) {
           console.log('iOS click() failed, trying tap()...');
-          await tokenButton.tap();
+          await AppwrightGestures.tap(tokenButton);
           console.log('iOS tap() succeeded');
         }
       }
@@ -143,7 +162,7 @@ class BridgeScreen {
         console.log('Number input field not visible - token tap may not have worked, trying alternative tap method...');
         
         // Try alternative tap methods for iOS
-        await tokenButton.tap(); // Try click instead of tap
+        await AppwrightGestures.tap(tokenButton); // Try click instead of tap
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         console.log('Tried alternative tap methods');
@@ -152,9 +171,9 @@ class BridgeScreen {
 
   async tapGetQuotes(network){
     if (network == 'Ethereum'){
-    const quotesButton = await this.getETHQuotesButton;
+    const quotesButton = this.getETHQuotesButton;
     await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
-    await quotesButton.tap();
+    await AppwrightGestures.tap(quotesButton);
     }
   }
 
@@ -168,8 +187,8 @@ class BridgeScreen {
   }
 
   async enterDestinationTokenAmount(amount) {
-    const element = await this.destTokenInput;
-    await element.fill(amount);
+    const element = this.destTokenInput;
+    await AppwrightGestures.typeText(element, amount);
   }
 
   async isVisible() {

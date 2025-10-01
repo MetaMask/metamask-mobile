@@ -5,8 +5,15 @@ import {
   GeoRewardsMetadata,
   PointsBoostDto,
   RewardDto,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
+import { CaipAccountId } from '@metamask/utils';
+
+export interface AccountOptInBannerInfoStatus {
+  caipAccountId: CaipAccountId;
+  hide: boolean;
+}
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels';
@@ -49,12 +56,16 @@ export interface RewardsState {
   optinAllowedForGeoError: boolean;
 
   // UI preferences
+  hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
 
   // Points Boost state
   activeBoosts: PointsBoostDto[] | null;
   activeBoostsLoading: boolean;
   activeBoostsError: boolean;
+
+  // Points Events state
+  pointsEvents: PointsEventDto[] | null;
 
   // Unlocked Rewards state
   unlockedRewards: RewardDto[] | null;
@@ -93,10 +104,13 @@ export const initialState: RewardsState = {
   optinAllowedForGeoLoading: false,
   optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
+  hideCurrentAccountNotOptedInBanner: [],
 
   activeBoosts: null,
   activeBoostsLoading: false,
   activeBoostsError: false,
+
+  pointsEvents: null,
 
   unlockedRewards: null,
   unlockedRewardLoading: false,
@@ -244,6 +258,27 @@ const rewardsSlice = createSlice({
       state.hideUnlinkedAccountsBanner = action.payload;
     },
 
+    setHideCurrentAccountNotOptedInBanner: (
+      state,
+      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+    ) => {
+      const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
+        (item) => item.caipAccountId === action.payload.accountId,
+      );
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        state.hideCurrentAccountNotOptedInBanner[existingIndex].hide =
+          action.payload.hide;
+      } else {
+        // Add new entry
+        state.hideCurrentAccountNotOptedInBanner.push({
+          caipAccountId: action.payload.accountId,
+          hide: action.payload.hide,
+        });
+      }
+    },
+
     setActiveBoosts: (
       state,
       action: PayloadAction<PointsBoostDto[] | null>,
@@ -283,6 +318,8 @@ const rewardsSlice = createSlice({
           // Restore only a few persistent state
           hideUnlinkedAccountsBanner:
             action.payload.rewards.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
         };
       }
       return state;
@@ -306,6 +343,7 @@ export const {
   setGeoRewardsMetadataLoading,
   setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
+  setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
   setActiveBoostsLoading,
   setActiveBoostsError,

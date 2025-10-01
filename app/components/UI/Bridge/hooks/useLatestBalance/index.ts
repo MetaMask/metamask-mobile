@@ -5,12 +5,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectSelectedInternalAccount,
-  ///: END:ONLY_INCLUDE_IF
-  selectSelectedInternalAccountFormattedAddress,
-} from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
@@ -19,6 +14,8 @@ import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 export async function fetchAtomicTokenBalance(
@@ -81,9 +78,14 @@ export const useLatestBalance = (token: {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Returns native SOL and SPL tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccountGroupInternalAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
+  const solanaInternalAccountId = selectedAccountGroupInternalAccounts.find(
+    (account) => account.scopes.includes(SolScope.Mainnet),
+  )?.id;
   const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, selectedAccount?.id),
+    selectMultichainTokenListForAccountId(state, solanaInternalAccountId),
   );
   ///: END:ONLY_INCLUDE_IF
 

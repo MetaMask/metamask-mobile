@@ -540,7 +540,7 @@ const CollectibleContracts = ({
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
         estimatedItemSize={100}
-        scrollEnabled={false}
+        scrollEnabled
       />
     ),
     [
@@ -578,7 +578,7 @@ const CollectibleContracts = ({
       <View style={styles.actionBarWrapper}>
         <View style={styles.controlButtonOuterWrapper}>
           <ButtonBase
-            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            testID={WalletViewSelectorsIDs.COLLECTIBLES_NETWORK_FILTER}
             label={
               <>
                 {isRemoveGlobalNetworkSelectorEnabled() ? (
@@ -597,7 +597,7 @@ const CollectibleContracts = ({
                       numberOfLines={1}
                     >
                       {enabledNetworks.length > 1
-                        ? strings('wallet.all_networks')
+                        ? strings('wallet.popular_networks')
                         : currentNetworkName ??
                           strings('wallet.current_network')}
                     </TextComponent>

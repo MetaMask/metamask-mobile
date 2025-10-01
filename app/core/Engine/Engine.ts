@@ -49,10 +49,6 @@ import {
 } from '@metamask/approval-controller';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import {
-  SelectedNetworkController,
-  SelectedNetworkControllerState,
-} from '@metamask/selected-network-controller';
-import {
   PermissionController,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
@@ -117,7 +113,7 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import { Hex, Json } from '@metamask/utils';
+import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -141,7 +137,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
-import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
   MetaMetricsEventName,
@@ -247,6 +242,7 @@ import { GatorPermissionsControllerInit } from './controllers/gator-permissions-
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
+import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -983,33 +979,6 @@ export class Engine {
       unrestrictedMethods,
     });
 
-    const selectedNetworkController = new SelectedNetworkController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SelectedNetworkController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-          'NetworkController:getSelectedNetworkClient',
-          'PermissionController:hasPermissions',
-          'PermissionController:getSubjectNames',
-        ],
-        allowedEvents: [
-          'NetworkController:stateChange',
-          'PermissionController:stateChange',
-        ],
-      }),
-      state:
-        initialState.SelectedNetworkController ||
-        ({
-          domains: {},
-          activeDappNetwork: null,
-        } as SelectedNetworkControllerState & {
-          activeDappNetwork: string | null;
-        }),
-
-      domainProxyMap: new DomainProxyMap(),
-    });
-
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1175,6 +1144,7 @@ export class Engine {
         AccountsController: accountsControllerInit,
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
+        SelectedNetworkController: selectedNetworkControllerInit,
         ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
@@ -1228,6 +1198,8 @@ export class Engine {
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
+    const selectedNetworkController =
+      controllersByName.SelectedNetworkController;
 
     // Initialize and store RewardsDataService
     this.rewardsDataService = new RewardsDataService({
@@ -2278,6 +2250,30 @@ export class Engine {
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
   }
+
+  /**
+   * Gathers metadata (primarily connectivity status) about the enabled networks and persists it to state.
+   */
+  async lookupEnabledNetworks(): Promise<void> {
+    const { NetworkController, NetworkEnablementController } = this.context;
+
+    const chainIds = Object.entries(
+      NetworkEnablementController.state?.enabledNetworkMap?.[
+        KnownCaipNamespace.Eip155
+      ] ?? {},
+    )
+      .filter(([, isEnabled]) => isEnabled)
+      .map(([networkChainId]) => networkChainId as Hex);
+
+    await Promise.allSettled(
+      chainIds
+        .map((chainId) =>
+          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
+        )
+        .filter((id): id is string => !!id)
+        .map((id) => NetworkController.lookupNetwork(id)),
+    );
+  }
 }
 
 /**
@@ -2489,6 +2485,11 @@ export default {
   getQrKeyringScanner: () => {
     assertEngineExists(instance);
     return instance.qrKeyringScanner;
+  },
+
+  lookupEnabledNetworks: () => {
+    assertEngineExists(instance);
+    instance.lookupEnabledNetworks();
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
