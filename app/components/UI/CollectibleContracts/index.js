@@ -522,7 +522,7 @@ const CollectibleContracts = ({
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
         testID={RefreshTestId}
-        itemHeight={100}
+        itemHeight={150}
         parentScrollY={parentScrollY}
         _parentViewportHeight={parentViewportHeight}
         ListEmptyComponent={renderEmpty()}

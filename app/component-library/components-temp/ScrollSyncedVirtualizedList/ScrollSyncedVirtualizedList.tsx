@@ -181,7 +181,7 @@ export function ScrollSyncedVirtualizedList<T>({
       onLayout={handleListLayout as (event: unknown) => void}
     >
       {renderHeader()}
-      <Box style={{ height: baseHeight }}>
+      <Box twClassName="w-full">
         <Box style={{ height: topSpacer }} />
         {(() => {
           const itemsToRender = data.slice(startIndex, endIndex + 1);
@@ -194,8 +194,8 @@ export function ScrollSyncedVirtualizedList<T>({
             return (
               <Box
                 key={key}
-                style={{ height: itemHeight }}
-                twClassName="overflow-hidden"
+                style={{ minHeight: itemHeight }}
+                twClassName="w-full"
               >
                 {renderItem({ item, index })}
               </Box>

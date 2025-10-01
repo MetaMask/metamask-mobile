@@ -12,7 +12,6 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
     onPress={[Function]}
     style={
       {
-        "flex": 1,
         "flexDirection": "row",
       }
     }
@@ -197,14 +196,13 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
     <View
       style={
         {
-          "flex": 1,
           "flexDirection": "row",
           "marginTop": 15,
         }
       }
     >
       <View
-        styles={
+        style={
           {
             "flex": 1,
             "flexDirection": "row",
@@ -359,7 +357,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
         </TouchableOpacity>
       </View>
       <View
-        styles={
+        style={
           {
             "flex": 1,
             "flexDirection": "row",
@@ -518,7 +516,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
         </TouchableOpacity>
       </View>
       <View
-        styles={
+        style={
           {
             "flex": 1,
             "flexDirection": "row",
@@ -676,14 +674,13 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
     <View
       style={
         {
-          "flex": 1,
           "flexDirection": "row",
           "marginTop": 15,
         }
       }
     >
       <View
-        styles={
+        style={
           {
             "flex": 1,
             "flexDirection": "row",

@@ -57,7 +57,6 @@ const createStyles = (colors, brandColors) =>
       marginHorizontal: 8,
     },
     collectiblesRowContainer: {
-      flex: 1,
       flexDirection: 'row',
       marginTop: 15,
     },
@@ -175,7 +174,7 @@ function CollectibleContractElement({
       return (
         <View
           key={collectible.address + collectible.tokenId}
-          styles={styles.collectibleBox}
+          style={styles.collectibleBox}
           testID={`collectible-${collectible.name}-${collectible.tokenId}`}
         >
           <TouchableOpacity

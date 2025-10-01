@@ -10,6 +10,8 @@ export interface ScrollSyncedVirtualizedListProps<T> {
   renderItem: (info: { item: T; index: number }) => React.ReactElement | null;
   /** Fixed height of each item in pixels */
   itemHeight: number;
+  /** Allow items to have dynamic heights instead of fixed itemHeight */
+  allowDynamicItemHeights?: boolean;
   /** Current scroll position of the parent ScrollView */
   parentScrollY: number;
   /** Viewport height of the parent scroll container */
