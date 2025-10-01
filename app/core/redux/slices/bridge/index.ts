@@ -415,6 +415,17 @@ export const selectIsNonEvmToEvm = createSelector(
     !isNonEvmChainId(destToken.chainId),
 );
 
+export const selectIsNonEvmToNonEvm = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    isNonEvmChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isNonEvmChainId(destToken.chainId) &&
+    sourceToken.chainId !== destToken.chainId,
+);
+
 export const selectIsSolanaSwap = createSelector(
   selectSourceToken,
   selectDestToken,
