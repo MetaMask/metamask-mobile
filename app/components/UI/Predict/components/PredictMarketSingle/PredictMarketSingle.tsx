@@ -6,6 +6,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Alert, Image, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -19,9 +20,11 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictMarketSingleProps {
   market: PredictMarketType;
@@ -38,6 +41,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
       Alert.alert('Order failed', error);
       reset();
     },
+  });
+  const navigation = useNavigation();
+  const { isEligible } = usePredictEligibility({
+    providerId: market.providerId,
   });
 
   const getOutcomePrices = (): number[] =>
@@ -66,6 +73,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   );
 
   const handleYes = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      return;
+    }
+
     placeBuyOrder({
       size: 1,
       outcomeId: outcome.id,
@@ -75,6 +87,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   const handleNo = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      return;
+    }
+
     placeBuyOrder({
       size: 1,
       outcomeId: outcome.id,

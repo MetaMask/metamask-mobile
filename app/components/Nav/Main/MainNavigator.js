@@ -99,6 +99,7 @@ import {
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import { PredictScreenStack, selectPredictEnabledFlag } from '../../UI/Predict';
+import PredictUnavailableModal from '../../UI/Predict/views/PredictUnavailableModal/PredictUnavailableModal';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -1034,13 +1035,20 @@ const MainNavigator = () => {
         </>
       )}
       {isPredictEnabled && (
-        <Stack.Screen
-          name={Routes.PREDICT.ROOT}
-          component={PredictScreenStack}
-          options={{
-            animationEnabled: false,
-          }}
-        />
+        <>
+          <Stack.Screen
+            name={Routes.PREDICT.ROOT}
+            component={PredictScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PREDICT.MODALS.UNAVAILABLE}
+            component={PredictUnavailableModal}
+            options={clearStackNavigatorOptions}
+          />
+        </>
       )}
       <Stack.Screen
         name="SetPasswordFlow"
