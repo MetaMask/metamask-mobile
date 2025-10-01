@@ -184,11 +184,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          EXIT_CODE=0
           {
             echo "summary<<EOF"
-            node scripts/generate-regression-slack-summary.mjs iOS
+            node scripts/generate-regression-slack-summary.mjs iOS || EXIT_CODE=$?
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
 
       - name: Prepare Slack Payload
         if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
