@@ -17,7 +17,7 @@ const AccountListCell = memo(
   }: AccountListCellProps) => {
     const showSelectedIndicator = isSelected && !showCheckbox;
     const { styles } = useStyles(createStyles, {
-      showSelectedIndicator,
+      isSelected,
     });
 
     const handlePress = useCallback(() => {

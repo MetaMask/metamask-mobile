@@ -3,10 +3,10 @@ import { Theme } from '../../../../util/theme/models';
 
 const createStyles = (params: {
   theme: Theme;
-  vars: { showSelectedIndicator: boolean };
+  vars: { isSelected: boolean };
 }) => {
   const { theme, vars } = params;
-  const { showSelectedIndicator } = vars;
+  const { isSelected } = vars;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -55,7 +55,7 @@ const createStyles = (params: {
       alignItems: 'center',
       paddingHorizontal: 16,
       width: '100%',
-      backgroundColor: showSelectedIndicator
+      backgroundColor: isSelected
         ? colors.info.muted
         : colors.background.default,
     },
