@@ -7,6 +7,7 @@ import {
   runOnJS,
   AnimatedStyle,
 } from 'react-native-reanimated';
+import { strings } from '../../../../../locales/i18n';
 
 // Rive animation constants - defined in rewards_icon_animations.riv
 const STATE_MACHINE_NAME = 'State Machine 1';
@@ -126,7 +127,7 @@ export const useRewardsAnimation = ({
     if (!riveRef.current) return;
     setHideValue(false);
     isAnimating.value = true;
-    setDisplayText("Couldn't Load");
+    setDisplayText(strings('rewards.animation.could_not_load'));
     createTimeout(() => {
       isAnimating.value = false;
     }, ANIMATION_DURATION.FAST);
