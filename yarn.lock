@@ -6660,15 +6660,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "@metamask/account-tree-controller@npm:1.3.0"
+"@metamask/account-tree-controller@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@metamask/account-tree-controller@npm:1.4.0"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/utils": ^11.8.1
     fast-deep-equal: ^3.1.3
     lodash: ^4.17.21
   peerDependencies:
@@ -6680,7 +6680,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: db9c6bf0c91d3afbcfecb41759066cac4ab527101c1a9698a0c5fef4c96fd3ed33e3481e17543e64de40ae9a817f97c5081ab5b19b53e543d3e26eaad0ccfd9c
+  checksum: d9dcf5a210445efa19550e1f3df69aeb9a6980c640864f3439d89b0d6ca1efddb0fda9dd37293a6b319887500b213cad9fd51531fcfc69d15cffe06f799384af
   languageName: node
   linkType: hard
 
@@ -33734,7 +33734,7 @@ __metadata:
     "@ledgerhq/react-native-hw-transport-ble": ^6.34.1
     "@metamask/abi-utils": ^3.0.0
     "@metamask/account-api": ^0.12.0
-    "@metamask/account-tree-controller": ^1.3.0
+    "@metamask/account-tree-controller": ^1.4.0
     "@metamask/accounts-controller": ^33.1.0
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
