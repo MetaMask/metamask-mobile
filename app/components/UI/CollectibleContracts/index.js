@@ -6,14 +6,9 @@ import React, {
   useRef,
 } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
-  View,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { FlashList } from '@shopify/flash-list';
+import { ScrollSyncedVirtualizedList } from '../../../component-library/components-temp/ScrollSyncedVirtualizedList';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -28,7 +23,6 @@ import {
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import AppConstants from '../../../core/AppConstants';
 import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
@@ -88,12 +82,10 @@ const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
       marginTop: 16,
     },
     BarWrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
     },
     actionBarWrapper: {
       flexDirection: 'row',
@@ -137,7 +129,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     footer: {
-      flex: 1,
       alignItems: 'center',
       marginTop: 8,
     },
@@ -173,6 +164,8 @@ const CollectibleContracts = ({
   useNftDetection,
   isIpfsGatewayEnabled,
   displayNftMedia,
+  parentScrollY = 0,
+  parentViewportHeight = 0,
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
@@ -514,7 +507,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <FlashList
+      <ScrollSyncedVirtualizedList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -529,32 +522,23 @@ const CollectibleContracts = ({
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
         testID={RefreshTestId}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
-        }
+        itemHeight={150}
+        parentScrollY={parentScrollY}
+        _parentViewportHeight={parentViewportHeight}
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
-        estimatedItemSize={100}
-        scrollEnabled
       />
     ),
     [
       renderFavoriteCollectibles,
       filteredCollectibleContracts,
-      colors.primary.default,
-      colors.icon.default,
-      refreshing,
-      onRefresh,
       renderCollectibleContract,
       renderFooter,
       renderEmpty,
       isCollectionDetectionBannerVisible,
       styles.emptyView,
+      parentScrollY,
+      parentViewportHeight,
     ],
   );
 
@@ -685,6 +669,14 @@ CollectibleContracts.propTypes = {
    * Boolean to show Nfts media stored on third parties
    */
   displayNftMedia: PropTypes.bool,
+  /**
+   * Parent scroll Y position for external virtualization
+   */
+  parentScrollY: PropTypes.number,
+  /**
+   * Parent viewport height for external virtualization
+   */
+  parentViewportHeight: PropTypes.number,
 };
 
 const mapStateToProps = (state) => {

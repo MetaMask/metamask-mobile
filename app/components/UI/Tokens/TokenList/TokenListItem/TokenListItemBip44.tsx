@@ -1,6 +1,6 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {

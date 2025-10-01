@@ -12,9 +12,7 @@ const styleSheet = () =>
       height: '100%',
       justifyContent: 'center',
     },
-    wrapper: {
-      flex: 1,
-    },
+    wrapper: {},
   });
 
 export default styleSheet;

@@ -13,6 +13,7 @@ import {
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  View,
 } from 'react-native';
 
 // External dependencies.
@@ -34,7 +35,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       Dimensions.get('window').width,
     );
     const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
+    const [tabHeights, setTabHeights] = useState<Map<number, number>>(
+      new Map(),
+    );
+    const [scrollViewHeight, setScrollViewHeight] = useState<
+      number | undefined
+    >(undefined);
     const scrollViewRef = useRef<ScrollView>(null);
+    const tabContentRefs = useRef<Map<number, View>>(new Map());
     const isScrolling = useRef(false);
     const isProgrammaticScroll = useRef(false);
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -122,15 +130,96 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       return !tabs[activeIndex]?.isDisabled;
     }, [hasAnyEnabledTabs, activeIndex, tabs]);
 
-    // Load tab content on-demand when tab becomes active for the first time
+    // Function to measure tab content height
+    const measureTabHeight = useCallback((tabIndex: number) => {
+      const tabContentRef = tabContentRefs.current.get(tabIndex);
+      if (tabContentRef) {
+        // Use requestAnimationFrame to ensure measurement happens after render
+        const rafId = requestAnimationFrame(() => {
+          // Check if component is still mounted and ref is still valid
+          if (tabContentRefs.current.has(tabIndex)) {
+            tabContentRef.measure(
+              (
+                _x: number,
+                _y: number,
+                _width: number,
+                height: number,
+                _pageX: number,
+                _pageY: number,
+              ) => {
+                // Double-check component is still mounted before updating state
+                if (height > 0 && tabContentRefs.current.has(tabIndex)) {
+                  setTabHeights((prev) => {
+                    const newHeights = new Map(prev);
+                    newHeights.set(tabIndex, height);
+                    return newHeights;
+                  });
+                }
+              },
+            );
+          }
+        });
+
+        // Return cleanup function to cancel RAF if needed
+        return () => cancelAnimationFrame(rafId);
+      }
+    }, []);
+
+    useEffect(() => {
+      const currentTabHeight = tabHeights.get(activeIndex);
+
+      if (currentTabHeight && currentTabHeight > 0) {
+        // If we have a cached height, use it immediately for smooth transitions
+        setScrollViewHeight(currentTabHeight);
+      } else if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
+        // If tab is loaded but height not measured, measure it quickly
+        // Use a ref to track if this measurement is still relevant
+        let isMeasurementRelevant = true;
+        let rafCleanup: (() => void) | undefined;
+
+        const timeoutId = setTimeout(() => {
+          if (isMeasurementRelevant) {
+            rafCleanup = measureTabHeight(activeIndex);
+          }
+        }, 50); // Reduced delay for faster measurement
+
+        return () => {
+          isMeasurementRelevant = false;
+          clearTimeout(timeoutId);
+          // Call RAF cleanup if it exists
+          if (rafCleanup) {
+            rafCleanup();
+          }
+        };
+      } else if (activeIndex >= 0) {
+        // For new tabs, use a reasonable default estimate for smoother initial animation
+        // Check if we have height information for any tabs
+        const heights = Array.from(tabHeights.values()).filter((h) => h > 0);
+        if (heights.length === 0) {
+          // No height information available, use default
+          setScrollViewHeight(400);
+        } else {
+          // Use average of existing heights as a better estimate
+          const avgHeight = Math.round(
+            heights.reduce((sum, h) => sum + h, 0) / heights.length,
+          );
+          setScrollViewHeight(Math.max(avgHeight, 200)); // Ensure minimum reasonable height
+        }
+      } else {
+        // No active tab, clear height to use minHeight fallback
+        setScrollViewHeight(0);
+      }
+    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight]);
+
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
         setLoadedTabs((prev) => {
-          // Only update if the tab isn't already loaded
-          if (!prev.has(activeIndex)) {
-            return new Set(prev).add(activeIndex);
-          }
-          return prev;
+          const newLoadedTabs = new Set(prev);
+
+          // Load the current tab (lazy loading with persistence)
+          newLoadedTabs.add(activeIndex);
+
+          return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
         });
       }
     }, [activeIndex, tabs.length]);
@@ -154,18 +243,16 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           clearTimeout(goToTabTimeout.current);
           goToTabTimeout.current = null;
         }
+        // Clear tab content refs to prevent memory leaks
+        tabContentRefs.current.clear();
       },
       [],
     );
 
-    // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
-      // Store the current active tab key for preservation
       const currentActiveTabKey = tabs[activeIndex]?.key;
 
-      // First, try to preserve the current active tab by key when tabs array changes
       if (currentActiveTabKey && tabs.length > 0) {
-        // Try to find the current active tab by key in the new tabs array
         const newIndexForCurrentTab = tabs.findIndex(
           (tab) => tab.key === currentActiveTabKey,
         );
@@ -201,7 +288,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, [initialActiveIndex, tabs, activeIndex]);
 
-    // Scroll to active tab when activeIndex changes
     useEffect(() => {
       if (scrollViewRef.current && containerWidth > 0) {
         const contentIndex = getContentIndexFromTabIndex(activeIndex);
@@ -228,29 +314,27 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const contentIndex = getContentIndexFromTabIndex(tabIndex);
         if (contentIndex < 0) return;
 
-        // Only update state and call callback if the tab actually changed
         const tabChanged = tabIndex !== activeIndex;
-
-        // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // Ensure the tab is loaded - small delay to let animation start first
         if (!loadedTabs.has(tabIndex)) {
-          // In tests, update synchronously to avoid act() warnings
           if (process.env.JEST_WORKER_ID) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else {
+            // Load tab content immediately for smoother experience
+            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+
+            // Measure height after a brief moment to allow content to render
             if (loadTabTimeout.current) {
               clearTimeout(loadTabTimeout.current);
             }
             loadTabTimeout.current = setTimeout(() => {
-              setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+              measureTabHeight(tabIndex);
               loadTabTimeout.current = null;
-            }, 10); // Small delay to let underline animation start
+            }, 100); // Allow time for content to render before measuring
           }
         }
 
-        // Set programmatic scroll flag AFTER state update
         isProgrammaticScroll.current = true;
 
         // Scroll to the content index, not the tab index
@@ -261,7 +345,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           });
         }
 
-        // Only call onChangeTab if the tab actually changed
         if (onChangeTab && tabChanged) {
           onChangeTab({
             i: tabIndex,
@@ -285,6 +368,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         containerWidth,
         getContentIndexFromTabIndex,
         loadedTabs,
+        measureTabHeight,
       ],
     );
 
@@ -302,8 +386,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const newTabIndex = getTabIndexFromContentIndex(contentIndex);
 
         if (newTabIndex >= 0 && newTabIndex !== activeIndex) {
-          // Update activeIndex immediately to trigger TabsBar animation alongside content scroll
-          // This matches the behavior of tab clicks
           setActiveIndex(newTabIndex);
           setLoadedTabs((prev) => new Set(prev).add(newTabIndex));
 
@@ -337,11 +419,13 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     }, []);
 
     const handleScrollEnd = useCallback(() => {
-      // Reset scrolling flag after a short delay
       scrollTimeout.current = setTimeout(() => {
         isScrolling.current = false;
+        if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
+          measureTabHeight(activeIndex);
+        }
       }, 150);
-    }, []);
+    }, [activeIndex, loadedTabs, measureTabHeight]);
 
     const handleLayout = useCallback(
       (layoutEvent: { nativeEvent: { layout: { width: number } } }) => {
@@ -428,39 +512,98 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     return (
-      <Box twClassName="flex-1" testID={testID} {...boxProps}>
+      <Box testID={testID} {...boxProps}>
         {/* Render TabsBar */}
         <TabsBar {...tabBarProps} />
 
-        {/* Horizontal ScrollView for tab contents */}
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          onScrollAnimationEnd={handleScrollEnd}
-          onScrollBeginDrag={handleScrollBegin}
-          onScrollEndDrag={handleScrollEnd}
-          onMomentumScrollBegin={handleScrollBegin}
-          onMomentumScrollEnd={handleScrollEnd}
-          scrollEventThrottle={16}
-          onLayout={handleLayout}
-          style={tw.style('flex-1 mt-2')}
-          decelerationRate="fast"
-          testID={testID ? `${testID}-content` : undefined}
+        {/* Horizontal ScrollView for tab contents with dynamic height */}
+        <View
+          style={tw.style(
+            'mt-2',
+            scrollViewHeight && scrollViewHeight > 0
+              ? { height: scrollViewHeight, overflow: 'hidden' }
+              : { minHeight: 400 },
+          )}
         >
-          {enabledTabs.map((enabledTab) => (
-            <Box
-              key={enabledTab.key}
-              style={tw.style('flex-1', { width: containerWidth })}
-            >
-              {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
-                ? enabledTab.content
-                : null}
-            </Box>
-          ))}
-        </ScrollView>
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            onScrollAnimationEnd={handleScrollEnd}
+            onScrollBeginDrag={handleScrollBegin}
+            onScrollEndDrag={handleScrollEnd}
+            onMomentumScrollBegin={handleScrollBegin}
+            onMomentumScrollEnd={handleScrollEnd}
+            scrollEventThrottle={16}
+            onLayout={handleLayout}
+            style={tw.style('w-full')}
+            contentContainerStyle={tw.style('h-full')}
+            decelerationRate="fast"
+            testID={testID ? `${testID}-content` : undefined}
+          >
+            {enabledTabs.map((enabledTab) => (
+              <View
+                key={enabledTab.key}
+                style={tw.style({ width: containerWidth })}
+              >
+                <View
+                  ref={(viewRef) => {
+                    if (viewRef) {
+                      tabContentRefs.current.set(
+                        enabledTab.originalIndex,
+                        viewRef,
+                      );
+                    }
+                  }}
+                  onLayout={(layoutEvent) => {
+                    const { height } = layoutEvent.nativeEvent.layout;
+                    if (height > 0) {
+                      const tabIndex = enabledTab.originalIndex;
+                      const currentHeight = tabHeights.get(tabIndex);
+
+                      // Only update if height has changed significantly (avoid micro-updates)
+                      if (
+                        !currentHeight ||
+                        Math.abs(currentHeight - height) > 5
+                      ) {
+                        // Use functional update to ensure we have the latest state
+                        setTabHeights((prev) => {
+                          // Double-check the height hasn't been updated by another source
+                          const latestHeight = prev.get(tabIndex);
+                          if (
+                            latestHeight &&
+                            Math.abs(latestHeight - height) <= 5
+                          ) {
+                            return prev; // No update needed
+                          }
+
+                          const newHeights = new Map(prev);
+                          newHeights.set(tabIndex, height);
+                          return newHeights;
+                        });
+
+                        // If this is the active tab, update height immediately for smooth experience
+                        // But only if the component is still mounted and this tab is still active
+                        if (
+                          tabIndex === activeIndex &&
+                          tabContentRefs.current.has(tabIndex)
+                        ) {
+                          setScrollViewHeight(height);
+                        }
+                      }
+                    }
+                  }}
+                >
+                  {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
+                    ? enabledTab.content
+                    : null}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </Box>
     );
   },
