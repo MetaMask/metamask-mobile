@@ -10,10 +10,7 @@ import {
   isStrictHexString,
 } from '@metamask/utils';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import {
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../../util/number';
+import { balanceToFiatNumber } from '../../../../util/number';
 import { BridgeToken } from '../types';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import {
@@ -50,7 +47,7 @@ export const getDisplayCurrencyValue = ({
   nonEvmMultichainAssetRates,
 }: GetDisplayCurrencyValueParams): string => {
   if (!token || !amount) {
-    return addCurrencySymbol('0', currentCurrency);
+    return formatCurrency('0', currentCurrency);
   }
 
   let currencyValue = 0;
