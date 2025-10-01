@@ -2023,7 +2023,7 @@ describe('RewardsController', () => {
     it('should perform silent auth when outside grace period', async () => {
       // Arrange
       const now = 1000000;
-      const outsideGracePeriod = now - 15 * 60 * 1000; // 15 minutes ago (outside grace period)
+      const outsideGracePeriod = now - 25 * 60 * 60 * 1000; // 25 hours ago (outside grace period)
 
       const accountState = {
         account: CAIP_ACCOUNT_1,
@@ -2061,7 +2061,7 @@ describe('RewardsController', () => {
       };
 
       mockMessenger.call
-        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount
+        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount (can be called multiple times)
         .mockResolvedValueOnce('0xsignature') // signPersonalMessage
         .mockResolvedValueOnce({
           // login

@@ -94,12 +94,6 @@ export const usePointsEvents = (
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
         setError(errorMessage);
-
-        // If it's a pagination error, don't clear existing data, but clear on initial fetch or refresh
-        if (isInitial) {
-          dispatch(setPointsEventsAction([]));
-          setPointsEvents([]);
-        }
       } finally {
         isLoadingRef.current = false;
         if (isInitial) {

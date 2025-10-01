@@ -230,7 +230,7 @@ describe('usePointsEvents', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to fetch');
-      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.pointsEvents).toEqual(null);
     });
 
     it('should handle unknown errors and manage loading state', async () => {
@@ -255,7 +255,7 @@ describe('usePointsEvents', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Unknown error occurred');
-      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.pointsEvents).toEqual(null);
     });
 
     it('should set loading to true at start and false after error', async () => {
@@ -889,7 +889,7 @@ describe('usePointsEvents', () => {
       });
     });
 
-    it('should dispatch setPointsEventsAction with empty array on initial fetch error', async () => {
+    it('should not dispatch setPointsEventsAction on initial fetch error to preserve stale state', async () => {
       const fetchError = new Error('Failed to fetch');
       mockCall.mockRejectedValueOnce(fetchError);
 
@@ -906,11 +906,52 @@ describe('usePointsEvents', () => {
         waitForOptions,
       );
 
-      // Verify dispatch was called with empty array
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'rewards/setPointsEvents',
-        payload: [],
+      // Verify dispatch was NOT called to preserve stale state
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('should preserve stale data when error occurs during refresh', async () => {
+      const { result } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Wait for initial load to complete
+      await waitFor(
+        () => expect(result.current.isLoading).toBe(false),
+        waitForOptions,
+      );
+
+      // Verify we have initial data
+      expect(result.current.pointsEvents).toEqual([mockPointsEvent]);
+      expect(result.current.error).toBeNull();
+
+      // Reset mock to track the next call
+      mockDispatch.mockClear();
+
+      // Mock error for refresh
+      const refreshError = new Error('Failed to refresh');
+      mockCall.mockRejectedValueOnce(refreshError);
+
+      // Call refresh
+      act(() => {
+        result.current.refresh();
       });
+
+      // Wait for refresh to complete with error
+      await waitFor(
+        () => expect(result.current.isRefreshing).toBe(false),
+        waitForOptions,
+      );
+
+      // Verify error was set but stale data is preserved
+      expect(result.current.error).toBe('Failed to refresh');
+      expect(result.current.pointsEvents).toEqual([mockPointsEvent]);
+
+      // Verify dispatch was NOT called to preserve stale state
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('should not dispatch setPointsEventsAction on pagination error', async () => {
