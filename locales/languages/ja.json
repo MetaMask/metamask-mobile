@@ -1037,6 +1037,7 @@
         "insufficient_funds": "資金不足",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "レバレッジが高くなると清算リスクが高まります",
         "invalid_take_profit": "{{positionType}}ポジションの利益確定ラインは、現在の価格より{{direction}}である必要があります",
         "invalid_stop_loss": "{{positionType}}ポジションの損切りラインは、現在の価格より{{direction}}である必要があります",
@@ -1459,6 +1460,8 @@
     "failed_to_load_market_data": "市場データを読み込めませんでした",
     "tap_to_retry": "タップして再試行",
     "search_by_token_symbol": "トークンシンボルで検索",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "テストネット",
     "mainnet": "メインネット",
     "developer_options": {
@@ -6011,7 +6014,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,6 +6026,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },
