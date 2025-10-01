@@ -33,6 +33,8 @@ ignores:
   - 'esbuild'
   - 'esbuild-register'
 
+  # Used in scripts/repack for CI optimization
+  - '@expo/repack-app'
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 
