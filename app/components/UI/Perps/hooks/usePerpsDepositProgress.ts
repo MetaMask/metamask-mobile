@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../reducers';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import {
   TransactionMeta,

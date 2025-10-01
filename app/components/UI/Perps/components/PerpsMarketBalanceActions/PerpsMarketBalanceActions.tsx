@@ -52,7 +52,6 @@ const PerpsMarketBalanceActions: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
   const { isDepositInProgress } = usePerpsDepositProgress();
-  console.log('isDepositInProgress', isDepositInProgress);
 
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -172,6 +171,15 @@ const PerpsMarketBalanceActions: React.FC<
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
+        {/* Deposit Progress Section */}
+        {isDepositInProgress && (
+          <Box twClassName="mb-4 pb-4 border-b border-muted">
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+              {strings('perps.deposit_in_progress')}
+            </Text>
+          </Box>
+        )}
+
         {/* Balance Section */}
         <Box twClassName="mb-4">
           <Box
