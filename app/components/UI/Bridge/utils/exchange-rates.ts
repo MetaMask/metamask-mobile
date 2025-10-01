@@ -1,7 +1,7 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isSolanaChainId,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import {
   Hex,
@@ -52,7 +52,7 @@ export const getDisplayCurrencyValue = ({
 
   let currencyValue = 0;
 
-  if (isSolanaChainId(token.chainId)) {
+  if (isNonEvmChainId(token.chainId)) {
     const assetId = token.address as CaipAssetType;
     // This rate is asset to fiat. Whatever the user selected display fiat currency is.
     // We don't need to have an additional conversion from native token to fiat.
@@ -116,8 +116,8 @@ export const fetchTokenExchangeRates = async (
   try {
     let exchangeRates: Record<string, number | undefined> = {};
 
-    // Solana
-    if (isSolanaChainId(chainId)) {
+    // Non-EVM
+    if (isNonEvmChainId(chainId)) {
       const queryParams = new URLSearchParams({
         assetIds: tokenAddresses
           .map((address) => toAssetId(address, SolScope.Mainnet))
@@ -183,7 +183,7 @@ export const getTokenExchangeRate = async (request: {
     tokenAddress,
   );
   const assetId = toAssetId(tokenAddress, formatChainIdToCaip(chainId));
-  if (isSolanaChainId(chainId) && assetId) {
+  if (isNonEvmChainId(chainId) && assetId) {
     return exchangeRates?.[assetId];
   }
   // The exchange rate can be checksummed or not, so we need to check both
