@@ -242,8 +242,9 @@ class WalletConnect2Session {
     };
 
     setTimeout(() => {
+      const redirect = this.session.peer.metadata.redirect;
+
       if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        const redirect = this.session.peer.metadata.redirect;
         const peerLink = redirect?.native || redirect?.universal;
         if (peerLink) {
           Linking.openURL(peerLink).catch((error) => {
@@ -252,12 +253,14 @@ class WalletConnect2Session {
             );
             showReturnNotification();
           });
-        } else {
-          showReturnNotification();
+          return;
         }
-      } else {
+      } else if (redirect) {
         Minimizer.goBack();
+        return;
       }
+
+      showReturnNotification();
     }, 100);
   };
 
