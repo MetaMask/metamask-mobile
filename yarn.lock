@@ -2030,9 +2030,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@consensys/native-ramps-sdk@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "@consensys/native-ramps-sdk@npm:2.1.1"
+"@consensys/native-ramps-sdk@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@consensys/native-ramps-sdk@npm:2.1.2"
   dependencies:
     "@metamask/utils": ^11.5.0
     async: ^3.2.3
@@ -2041,7 +2041,7 @@ __metadata:
     crypto-js: ^4.2.0
     reflect-metadata: ^0.1.13
     uuid: ^9.0.0
-  checksum: d2bd7f442ab9245b7abb83b2ff585662f4c48196593552267863723425d48b32f205da064b7ee2c9a30be333c93afad431603bec96936c2801aa12d74e1667ae
+  checksum: 6db885cebb8ccc6c859c55f22bf686d842b0975f97d98c09eec48b52e7601fdb338c9f201182ec9f32cac07e84a98dc3e981a675e6a71a4ea8dbc298bc5a0be0
   languageName: node
   linkType: hard
 
@@ -33713,7 +33713,7 @@ __metadata:
     "@babel/register": ^7.24.6
     "@babel/runtime": ^7.25.0
     "@config-plugins/detox": ^9.0.0
-    "@consensys/native-ramps-sdk": ^2.1.1
+    "@consensys/native-ramps-sdk": ^2.1.2
     "@consensys/on-ramp-sdk": 2.1.11
     "@craftzdog/react-native-buffer": ^6.1.0
     "@cucumber/message-streams": ^4.0.1
