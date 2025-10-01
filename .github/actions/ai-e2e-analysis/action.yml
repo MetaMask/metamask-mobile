@@ -38,6 +38,8 @@ runs:
         sparse-checkout: |
           .github/scripts
           e2e/scripts
+          e2e/specs
+          e2e/tags.js
           .nvmrc
         sparse-checkout-cone-mode: false
         fetch-depth: 1
