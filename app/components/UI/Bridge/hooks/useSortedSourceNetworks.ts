@@ -5,7 +5,7 @@ import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTok
 import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
 import { selectLastSelectedEvmAccount } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from './useTokensWithBalance';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 
@@ -15,7 +15,7 @@ export const useSortedSourceNetworks = () => {
   // Calculate total fiat value per EVM chain (native + tokens)
   const enabledEvmSourceChainIds = enabledSourceChains
     .map((chain) => chain.chainId)
-    .filter((chainId) => !isSolanaChainId(chainId));
+    .filter((chainId) => !isNonEvmChainId(chainId));
 
   const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
 

@@ -12,7 +12,7 @@ import { useNetworkInfo } from '../../../../../selectors/selectedNetworkControll
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   getNativeAssetForChainId,
-  isSolanaChainId,
+  isNonEvmChainId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
@@ -29,7 +29,7 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
 
   // getNativeAssetForChainId returns zero address for Solana, we need the assetId to get balances properly for native SOL
-  const address = isSolanaChainId(chainId)
+  const address = isNonEvmChainId(chainId)
     ? nativeAsset.assetId
     : nativeAsset.address;
 

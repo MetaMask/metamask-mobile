@@ -2,7 +2,7 @@ import { useTokensWithBalance } from './useTokensWithBalance';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useTopTokens } from './useTopTokens';
 import { BridgeToken } from '../types';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { normalizeToCaipAssetType } from '../utils';
 
 interface UseTokensProps {
@@ -40,8 +40,8 @@ export function useTokens({
     address: string;
     chainId: Hex | CaipChainId;
   }) => {
-    // Use the shared utility for Solana normalization to ensure consistent deduplication
-    const normalizedAddress = isSolanaChainId(token.chainId)
+    // Use the shared utility for non-EVM normalization to ensure consistent deduplication
+    const normalizedAddress = isNonEvmChainId(token.chainId)
       ? normalizeToCaipAssetType(token.address, token.chainId)
       : token.address.toLowerCase();
     return `${normalizedAddress}-${token.chainId}`;
