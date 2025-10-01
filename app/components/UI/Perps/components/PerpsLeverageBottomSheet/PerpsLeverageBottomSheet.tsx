@@ -412,7 +412,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   // Track leverage screen viewed event - separate concern
   useEffect(() => {
     if (isVisible && !hasTrackedLeverageView.current) {
-      track(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.LEVERAGE,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           direction === 'long'
@@ -577,7 +579,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const footerButtonProps = [
     {
-      label: `Set ${displayLeverage}x`,
+      label: strings('perps.order.leverage_modal.set_leverage', {
+        leverage: displayLeverage,
+      }),
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
@@ -622,12 +626,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              You will be liquidated if price{' '}
-              {direction === 'long' ? 'drops' : 'rises'} by{' '}
               {!isDragging && isCalculating ? (
-                <Skeleton height={16} width={40} />
+                <Skeleton height={16} width={200} />
               ) : (
-                `${liquidationDropPercentage.toFixed(1)}%`
+                strings('perps.order.leverage_modal.liquidation_warning', {
+                  direction:
+                    direction === 'long'
+                      ? strings('perps.order.leverage_modal.drops')
+                      : strings('perps.order.leverage_modal.rises'),
+                  percentage: `${liquidationDropPercentage.toFixed(1)}%`,
+                })
               )}
             </Text>
           </View>

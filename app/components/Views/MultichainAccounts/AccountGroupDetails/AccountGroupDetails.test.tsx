@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
@@ -171,6 +172,52 @@ describe('AccountGroupDetails', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('handles hardware back press by navigating back and prevents default', () => {
+    const removeMock = jest.fn();
+    const addListenerSpy = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation(
+        (
+          event: 'hardwareBackPress',
+          _handler: () => boolean | null | undefined,
+        ): NativeEventSubscription => {
+          expect(event).toBe('hardwareBackPress');
+          return { remove: removeMock } as unknown as NativeEventSubscription;
+        },
+      );
+
+    const { unmount } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+
+    // Multiple subscriptions may exist. Invoke handlers until we find the one that triggers goBack.
+    let foundHandlerCalledGoBack = false;
+    let observedResult: boolean | null | undefined;
+    for (const call of addListenerSpy.mock.calls) {
+      const maybeHandler = call?.[1] as
+        | (() => boolean | null | undefined)
+        | undefined;
+      if (!maybeHandler) {
+        continue;
+      }
+      mockGoBack.mockClear();
+      observedResult = maybeHandler();
+      if (mockGoBack.mock.calls.length > 0) {
+        foundHandlerCalledGoBack = true;
+        break;
+      }
+    }
+
+    expect(foundHandlerCalledGoBack).toBe(true);
+    expect(observedResult).toBe(true);
+
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+
+    addListenerSpy.mockRestore();
+  });
+
   it('displays unlock to reveal text for private keys', () => {
     const { getByText } = renderWithProvider(
       <AccountGroupDetails {...defaultProps} />,
@@ -238,12 +285,26 @@ describe('AccountGroupDetails', () => {
       ['account-1', 'account-2'],
     );
 
+    // Create a new mock state with the multi-account group
+    const multiAccountGroups = [multiAccountGroup];
+    const multiAccountWallet = createMockWallet(
+      'keyring:test-wallet',
+      'Test Wallet',
+      multiAccountGroups,
+    );
+    const multiAccountInternalAccounts =
+      createMockInternalAccountsFromGroups(multiAccountGroups);
+    const multiAccountState = createMockState(
+      [multiAccountWallet],
+      multiAccountInternalAccounts,
+    );
+
     const { queryByText, queryByTestId } = renderWithProvider(
       <AccountGroupDetails
         {...defaultProps}
         route={{ params: { accountGroup: multiAccountGroup } }}
       />,
-      { state: mockState },
+      { state: multiAccountState },
     );
 
     expect(queryByText('Remove account')).toBeNull();

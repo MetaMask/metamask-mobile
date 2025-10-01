@@ -5,7 +5,7 @@ import {
   ToastSelectorsText,
 } from '../../e2e/selectors/wallet/ToastModal.selectors';
 import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 
 class CommonScreen {
 

@@ -69,6 +69,7 @@ import {
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import type {
+  InputMethod,
   OrderParams,
   OrderType,
   PerpsNavigationParamList,
@@ -148,6 +149,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const isSubmittingRef = useRef(false);
   const hasShownSubmittedToastRef = useRef(false);
+  const orderStartTimeRef = useRef<number>(0);
+  const inputMethodRef = useRef<InputMethod>('default');
 
   const { account } = usePerpsLiveAccount();
 
@@ -278,6 +281,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     if (!hasTrackedTradingView.current) {
       const eventProps = {
         [PerpsEventProperties.TIMESTAMP]: Date.now(),
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.TRADING,
         [PerpsEventProperties.ASSET]: orderForm.asset,
         [PerpsEventProperties.DIRECTION]:
           orderForm.direction === 'long'
@@ -285,7 +290,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             : PerpsEventValues.DIRECTION.SHORT,
       };
 
-      track(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED, eventProps);
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, eventProps);
 
       hasTrackedTradingView.current = true;
     }
@@ -326,7 +331,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
       parseFloat(orderForm.amount) > 0 &&
       !hasTrackedOrderTypeView.current
     ) {
-      track(MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.ORDER_TYPE_VIEWED,
         [PerpsEventProperties.ASSET]: orderForm.asset,
         [PerpsEventProperties.DIRECTION]:
           orderForm.direction === 'long'
@@ -380,26 +387,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
-      onSuccess: (position) => {
-        // Track successful position open
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED, {
-          [PerpsEventProperties.ASSET]: orderForm.asset,
-          [PerpsEventProperties.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderTypeRef.current,
-          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-          [PerpsEventProperties.ORDER_SIZE]: position?.size || orderForm.amount,
-          [PerpsEventProperties.ASSET_PRICE]: position?.entryPrice,
-          [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
-          [PerpsEventProperties.METAMASK_FEE]: feeResults?.metamaskFee,
-          [PerpsEventProperties.METAMASK_FEE_RATE]: feeResults?.metamaskFeeRate,
-          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-            feeResults?.feeDiscountPercentage,
-          [PerpsEventProperties.ESTIMATED_REWARDS]: feeResults?.estimatedPoints,
-        });
-
+      onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].confirmed(
             orderForm.direction,
@@ -498,30 +486,42 @@ const PerpsOrderViewContentBase: React.FC = () => {
         : price; // fallback to current price for market orders or when no limit price set
 
     if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
-      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
-        currentPrice: price,
-        direction: orderForm.direction,
-        leverage: orderForm.leverage,
-        entryPrice,
-      });
+      const tpRoE = calculateRoEForPrice(
+        orderForm.takeProfitPrice,
+        true,
+        false,
+        {
+          currentPrice: price,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          entryPrice,
+        },
+      );
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
         absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
     if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
-      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
-        currentPrice: price,
-        direction: orderForm.direction,
-        leverage: orderForm.leverage,
-        entryPrice,
-      });
+      const slRoE = calculateRoEForPrice(
+        orderForm.stopLossPrice,
+        false,
+        false,
+        {
+          currentPrice: price,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          entryPrice,
+        },
+      );
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
         absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
-    return `TP ${tpDisplay}, SL ${slDisplay}`;
+    return `${strings('perps.order.tp')} ${tpDisplay}, ${strings(
+      'perps.order.sl',
+    )} ${slDisplay}`;
   }, [
     currentPrice?.price,
     orderForm.takeProfitPrice,
@@ -613,6 +613,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       // Enforce 9-digit limit (ignoring non-digits like separators)
       const digitCount = (value.match(/\d/g) || []).length;
       if (digitCount > 9) {
@@ -624,10 +625,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     handleMaxAmount();
   };
 
@@ -663,6 +666,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     }
     isSubmittingRef.current = true;
 
+    orderStartTimeRef.current = Date.now();
+
     try {
       // Validation errors are shown in the UI
       if (!orderValidation.isValid) {
@@ -674,7 +679,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         );
 
         // Track validation failure as error encountered
-        track(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED, {
+        track(MetaMetricsEvents.PERPS_ERROR, {
           [PerpsEventProperties.ERROR_TYPE]:
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]: firstError,
@@ -683,19 +688,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         isSubmittingRef.current = false; // Reset flag on early return
         return;
       }
-
-      // Track trade transaction initiated
-      track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED, {
-        [PerpsEventProperties.ASSET]: orderForm.asset,
-        [PerpsEventProperties.DIRECTION]:
-          orderForm.direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-        [PerpsEventProperties.ORDER_SIZE]: positionSize,
-        [PerpsEventProperties.MARGIN_USED]: marginRequired,
-      });
 
       const tpParams = orderForm.takeProfitPrice?.trim()
         ? { takeProfitPrice: orderForm.takeProfitPrice }
@@ -720,6 +712,25 @@ const PerpsOrderViewContentBase: React.FC = () => {
           : {}),
         ...tpParams,
         ...slParams,
+        // Add tracking data for MetaMetrics events
+        trackingData: {
+          marginUsed: Number(marginRequired),
+          totalFee: Number(feeResults.totalFee),
+          marketPrice: Number(currentPrice?.price || assetData.price),
+          metamaskFee: feeResults.metamaskFee
+            ? Number(feeResults.metamaskFee)
+            : undefined,
+          metamaskFeeRate: feeResults.metamaskFeeRate
+            ? Number(feeResults.metamaskFeeRate)
+            : undefined,
+          feeDiscountPercentage: feeResults.feeDiscountPercentage
+            ? Number(feeResults.feeDiscountPercentage)
+            : undefined,
+          estimatedPoints: feeResults.estimatedPoints
+            ? Number(feeResults.estimatedPoints)
+            : undefined,
+          inputMethod: inputMethodRef.current,
+        },
       };
 
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -728,18 +739,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           market: navigationMarketData,
           isNavigationFromOrderSuccess: false,
         },
-      });
-
-      // Track trade transaction submitted
-      track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
-        [PerpsEventProperties.ASSET]: orderForm.asset,
-        [PerpsEventProperties.DIRECTION]:
-          orderForm.direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-        [PerpsEventProperties.ORDER_SIZE]: positionSize,
       });
 
       // Check if TP/SL should be handled separately (for new positions or position flips)
@@ -765,18 +764,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
       }
 
       await executeOrder(orderParams);
-    } catch (error) {
-      // Track trade transaction failed
-      track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
-        [PerpsEventProperties.ASSET]: orderForm.asset,
-        [PerpsEventProperties.DIRECTION]:
-          orderForm.direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.ERROR_MESSAGE]:
-          error instanceof Error ? error.message : 'Unknown error',
-      });
-      throw error;
     } finally {
       // Always reset submission flag
       isSubmittingRef.current = false;
@@ -789,19 +776,25 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.direction,
     orderForm.type,
     orderForm.leverage,
+    orderForm.limitPrice,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
-    orderForm.limitPrice,
     positionSize,
-    marginRequired,
     assetData.price,
     navigation,
     navigationMarketData,
+    existingPosition,
     executeOrder,
     showToast,
     PerpsToastOptions.formValidation.orderForm,
-    existingPosition,
     updatePositionTPSL,
+    marginRequired,
+    feeResults.totalFee,
+    feeResults.metamaskFee,
+    feeResults.metamaskFeeRate,
+    feeResults.feeDiscountPercentage,
+    feeResults.estimatedPoints,
+    currentPrice?.price,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -872,7 +865,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={parseFloat(orderForm.amount || '0')}
-              onValueChange={(value) => setAmount(Math.floor(value).toString())}
+              onValueChange={(value) => {
+                inputMethodRef.current = 'slider';
+                setAmount(Math.floor(value).toString());
+              }}
               minimumValue={0}
               maximumValue={amountTimesLeverage}
               step={1}
@@ -1103,7 +1099,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {strings('perps.points')}
+                  {strings('perps.estimated_points')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => handleTooltipPress('points')}
@@ -1274,7 +1270,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 : PerpsEventValues.INPUT_METHOD.PRESET;
           }
 
-          track(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED, eventProperties);
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            ...eventProperties,
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
+            [PerpsEventProperties.SETTING_TYPE]:
+              PerpsEventValues.SETTING_TYPE.LEVERAGE,
+          });
         }}
         leverage={orderForm.leverage}
         minLeverage={1}

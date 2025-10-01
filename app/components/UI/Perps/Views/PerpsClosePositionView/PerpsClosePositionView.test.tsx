@@ -29,6 +29,16 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+// Mock React Native Linking specifically for this test to prevent NavigationContainer errors
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  getInitialURL: jest.fn().mockResolvedValue(''),
+  sendIntent: jest.fn(),
+}));
+
 // Mock hooks
 jest.mock('../../hooks', () => ({
   useMinimumOrderAmount: jest.fn(),
@@ -442,16 +452,15 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - receiveAmount = (initialMargin + effectivePnL) - fees
-      // effectivePnL = (150 - 100) * 1 = 50
-      // effectiveMargin = 1000 + 50 = 1050
-      // receiveAmount = 1050 - 50 = 1000
+      // Assert - receiveAmount = initialMargin + P&L - fees (P&L now included in calculation)
+      // P&L = (150 - 100) * 1 = 50
+      // receiveAmount = 1000 + 50 - 50 = 1000
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
       // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText(/1,000/)).toBeDefined();
+      expect(getByText('$1,000.00')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
@@ -488,15 +497,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // For 100% close (default):
-      // effectivePnL = (75 - 100) * 2 = -50
-      // effectiveMargin = 2000 + (-50) = 1950
-      // receiveAmount = 1950 - 25 = 1925
+      // For 100% close (default) with new calculation:
+      // P&L = (75 - 100) * 2 = -50 (loss)
+      // receiveAmount = 2000 + (-50) - 25 = 1925
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1925 in the display (effective margin - fees)
+      // Look for 1925 in the display (margin + P&L - fees)
       expect(getByText(/1,925/)).toBeDefined();
     });
   });
@@ -1873,15 +1881,17 @@ describe('PerpsClosePositionView', () => {
         defaultPerpsPositionMock,
         '', // Empty string when closePercentage is 100
         'market',
-        undefined,
+        undefined, // limitPrice is undefined for market orders
         {
-          error: null,
-          isLoadingMetamaskFee: false,
-          metamaskFee: 0,
-          metamaskFeeRate: 0,
-          protocolFee: 45,
-          protocolFeeRate: 0.00045,
           totalFee: 45,
+          marketPrice: 3000,
+          receivedAmount: 1555, // 1450 (margin) + 150 (P&L) - 45 (fees)
+          realizedPnl: 150,
+          metamaskFeeRate: 0,
+          feeDiscountPercentage: undefined,
+          metamaskFee: 0,
+          estimatedPoints: undefined,
+          inputMethod: 'default',
         },
       );
     });
@@ -1953,6 +1963,16 @@ describe('PerpsClosePositionView', () => {
                   '',
                   orderType,
                   orderType === 'limit' ? limitPrice : undefined,
+                  {
+                    totalFee: 45,
+                    marketPrice: 3000,
+                    receivedAmount: 1405,
+                    realizedPnl: 150,
+                    metamaskFeeRate: 0,
+                    feeDiscountPercentage: undefined,
+                    metamaskFee: 0,
+                    estimatedPoints: undefined,
+                  },
                 );
               }}
             >
@@ -1974,6 +1994,14 @@ describe('PerpsClosePositionView', () => {
           '',
           'limit',
           '50000',
+          expect.objectContaining({
+            totalFee: expect.any(Number),
+            marketPrice: expect.any(Number),
+            receivedAmount: expect.any(Number),
+            realizedPnl: expect.any(Number),
+            metamaskFeeRate: expect.any(Number),
+            metamaskFee: expect.any(Number),
+          }),
         );
       });
     });

@@ -21,6 +21,16 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useFocusEffect: jest.fn(),
+}));
+
+// Mock route params
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    referral: undefined,
+    isFromDeeplink: false,
+  }),
 }));
 
 // Mock dispatch
@@ -303,7 +313,7 @@ describe('OnboardingStep', () => {
       fireEvent.press(closeButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(expect.any(Object));
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
     });
 
     it('should disable next button when onNextDisabled is true', () => {
@@ -1101,16 +1111,6 @@ describe('OnboardingStep4', () => {
       );
       // Button should be disabled - in real implementation this would be tested via accessibility states
       expect(nextButton).toBeDefined();
-    });
-  });
-
-  describe('error handling', () => {
-    it('should display opt-in error when present', () => {
-      mockUseOptin.optinError = 'Something went wrong';
-
-      renderWithProviders(<OnboardingStep4 />);
-
-      expect(screen.getByText('Something went wrong')).toBeDefined();
     });
   });
 

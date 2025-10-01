@@ -10,7 +10,6 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
@@ -30,6 +29,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
@@ -54,9 +54,10 @@ const WalletActions = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
+    selectIsSwapsEnabled(state),
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -144,6 +145,20 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser]);
 
+  const onPredict = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
+      });
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
       !isStablecoinLendingEnabled ||
@@ -158,7 +173,7 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+        {AppConstants.SWAPS.ACTIVE && (
           <ActionListItem
             label={strings('asset_overview.swap')}
             description={strings('asset_overview.swap_description')}
@@ -187,6 +202,17 @@ const WalletActions = () => {
             iconName={IconName.Stake}
             onPress={onEarn}
             testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            isDisabled={!canSignTransactions}
+          />
+        )}
+
+        {isPredictEnabled && (
+          <ActionListItem
+            label={strings('asset_overview.predict_button')}
+            description={strings('asset_overview.predict_description')}
+            iconName={IconName.Speedometer}
+            onPress={onPredict}
+            testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
             isDisabled={!canSignTransactions}
           />
         )}

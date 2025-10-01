@@ -45,7 +45,7 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
-  usePerpsAccount,
+  usePerpsLiveAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
@@ -82,8 +82,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.liquidation_price': 'Liquidation price',
       'perps.order.fees': 'Fees',
       'perps.order.off': 'off',
+      'perps.order.tp': 'TP',
+      'perps.order.sl': 'SL',
       'perps.order.button.long': 'Long {{asset}}',
       'perps.order.button.short': 'Short {{asset}}',
+      'perps.market.long': 'Long',
+      'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
@@ -119,7 +123,7 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(),
+  usePerpsLiveAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
   usePerpsPrices: jest.fn(),
@@ -336,7 +340,7 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
     PERPS_ORDER_TYPE_VIEWED: 'PERPS_ORDER_TYPE_VIEWED',
     PERPS_TRADE_TRANSACTION_INITIATED: 'PERPS_TRADE_TRANSACTION_INITIATED',
     PERPS_TRADE_TRANSACTION_SUBMITTED: 'PERPS_TRADE_TRANSACTION_SUBMITTED',
-    PERPS_ERROR_ENCOUNTERED: 'PERPS_ERROR_ENCOUNTERED',
+    PERPS_ERROR: 'PERPS_ERROR',
   },
 }));
 
@@ -459,7 +463,7 @@ const defaultMockRoute = {
 };
 
 const defaultMockHooks = {
-  usePerpsAccount: {
+  usePerpsLiveAccount: {
     balance: '1000',
     availableBalance: '1000',
     accountInfo: {
@@ -581,8 +585,8 @@ describe('PerpsOrderView', () => {
     (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
 
     // Set up default mock implementations
-    (usePerpsAccount as jest.Mock).mockReturnValue(
-      defaultMockHooks.usePerpsAccount,
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue(
+      defaultMockHooks.usePerpsLiveAccount,
     );
     (usePerpsTrading as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsTrading,
@@ -1075,7 +1079,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles zero balance warning', async () => {
-    (usePerpsAccount as jest.Mock).mockReturnValue({
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '0',
       availableBalance: '0',
       accountInfo: {
@@ -1096,7 +1100,7 @@ describe('PerpsOrderView', () => {
 
   it('validates order before placement', async () => {
     // Mock insufficient balance
-    (usePerpsAccount as jest.Mock).mockReturnValue({
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '10',
       availableBalance: '10',
       accountInfo: {
@@ -1826,7 +1830,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
     });
 
@@ -1854,7 +1858,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.queryByText('Points')).toBeFalsy();
+        expect(screen.queryByText('perps.estimated_points')).toBeFalsy();
       });
     });
 
@@ -1881,11 +1885,11 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
 
       // Assert - Points text and tooltip should be present
-      expect(screen.getByText('Points')).toBeTruthy();
+      expect(screen.getByText('perps.estimated_points')).toBeTruthy();
     });
   });
 
@@ -2084,7 +2088,7 @@ describe('PerpsOrderView', () => {
 
       // Verify points section is displayed
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The points tooltip is handled by the handleTooltipPress('points') function
@@ -2116,7 +2120,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The RewardPointsDisplay component is rendered with the correct props
@@ -2327,7 +2331,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
         expect(screen.getByText('Fees')).toBeDefined();
         // Should render both points and fees with discount integration (targets lines 1081, 214-229)
       });

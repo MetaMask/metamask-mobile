@@ -11,19 +11,26 @@ import {
   selectBalanceRefereePortion,
   selectReferralCode,
   selectReferralCount,
+  selectReferralDetailsError,
   selectReferralDetailsLoading,
   selectSeasonStatusLoading,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 
 const ReferralDetails: React.FC = () => {
   const referralCode = useSelector(selectReferralCode);
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
+  const seasonStatusError = useSelector(selectSeasonStatusError);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
+  const referralDetailsError = useSelector(selectReferralDetailsError);
 
-  useReferralDetails();
+  const { fetchReferralDetails } = useReferralDetails();
 
   const handleCopyCode = async () => {
     if (referralCode) {
@@ -44,22 +51,52 @@ const ReferralDetails: React.FC = () => {
     });
   };
 
+  if (seasonStatusError && !seasonStartDate) {
+    return (
+      <RewardsErrorBanner
+        title={strings('rewards.season_status_error.error_fetching_title')}
+        description={strings(
+          'rewards.season_status_error.error_fetching_description',
+        )}
+      />
+    );
+  }
+
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-8">
+    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
       <ReferralInfoSection />
-      <ReferralStatsSection
-        earnedPointsFromReferees={balanceRefereePortion}
-        refereeCount={refereeCount}
-        earnedPointsFromRefereesLoading={seasonStatusLoading}
-        refereeCountLoading={referralDetailsLoading}
-      />
-      <ReferralActionsSection
-        referralCode={referralCode}
-        referralCodeLoading={referralDetailsLoading}
-        onCopyCode={handleCopyCode}
-        onCopyLink={handleCopyLink}
-        onShareLink={handleShareLink}
-      />
+
+      {!referralDetailsLoading && referralDetailsError && !referralCode ? (
+        <RewardsErrorBanner
+          title={strings('rewards.referral_details_error.error_fetching_title')}
+          description={strings(
+            'rewards.referral_details_error.error_fetching_description',
+          )}
+          onConfirm={fetchReferralDetails}
+          confirmButtonLabel={strings(
+            'rewards.referral_details_error.retry_button',
+          )}
+        />
+      ) : (
+        <>
+          <ReferralStatsSection
+            earnedPointsFromReferees={balanceRefereePortion}
+            refereeCount={refereeCount}
+            earnedPointsFromRefereesLoading={seasonStatusLoading}
+            refereeCountLoading={referralDetailsLoading}
+            refereeCountError={referralDetailsError}
+          />
+
+          <ReferralActionsSection
+            referralCode={referralCode}
+            referralCodeLoading={referralDetailsLoading}
+            referralCodeError={referralDetailsError}
+            onCopyCode={handleCopyCode}
+            onCopyLink={handleCopyLink}
+            onShareLink={handleShareLink}
+          />
+        </>
+      )}
     </Box>
   );
 };

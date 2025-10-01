@@ -15,11 +15,19 @@ import {
 import {
   createMockAccountGroup,
   createMockWallet,
+  createMockEntropyWallet,
   createMockState,
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 import { ReactTestInstance } from 'react-test-renderer';
+
+// Mock the new hook to avoid dependencies
+jest.mock('../../../../components/UI/Assets/hooks', () => ({
+  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
+    updateBalances: jest.fn(),
+  })),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -649,19 +657,22 @@ describe('MultichainAccountSelectorList', () => {
   describe('Account Creation and Scrolling', () => {
     it('renders AccountListFooter with correct props', () => {
       const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
+        'entropy:wallet1/group1',
         'Account 1',
       );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
 
       const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
         />,
-        { state: createMockState([wallet1], internalAccounts) },
+        { state: mockState },
       );
 
       // Verify the component renders correctly with AccountListFooter
@@ -671,15 +682,19 @@ describe('MultichainAccountSelectorList', () => {
 
     it('handles multiple wallets with AccountListFooter', () => {
       const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
+        'entropy:wallet1/group1',
         'Account 1',
       );
       const account2 = createMockAccountGroup(
-        'keyring:wallet2/group2',
+        'entropy:wallet2/group2',
         'Account 2',
       );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
+      const wallet2 = createMockEntropyWallet('wallet2', 'Wallet 2', [
+        account2,
+      ]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([
         account1,
@@ -701,10 +716,12 @@ describe('MultichainAccountSelectorList', () => {
 
     it('passes walletId to AccountListFooter', () => {
       const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
+        'entropy:wallet1/group1',
         'Account 1',
       );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
 
@@ -772,6 +789,147 @@ describe('MultichainAccountSelectorList', () => {
       // Without initialScrollIndex, this would not be visible initially
       expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
       expect(queryByText('Account 1')).toBeFalsy();
+    });
+  });
+
+  describe('Keyboard Avoiding View', () => {
+    it('enables keyboard avoiding view when there is 1 account', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
+
+      renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Should be called with true since there is only 1 account
+      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(true);
+    });
+
+    it('disables keyboard avoiding view when there are more than 2 accounts', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Account 2',
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet1/group3',
+        'Account 3',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+        account3,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+        account3,
+      ]);
+      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
+
+      renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Should be called with false since there are 3 accounts
+      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(false);
+    });
+
+    it('does not call setKeyboardAvoidingViewEnabled when prop is not provided', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      // Render without setKeyboardAvoidingViewEnabled prop
+      const result = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Should render without errors when prop is not provided
+      expect(result).toBeTruthy();
+    });
+
+    it('updates keyboard avoiding view when filtered data changes', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Test Account',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'My Account',
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet1/group3',
+        'Another Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+        account3,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+        account3,
+      ]);
+      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Initially called with false (3 accounts)
+      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(false);
+
+      // Search to filter down to 1 account
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+      fireEvent.changeText(searchInput, 'Test');
+
+      // Wait for debounce and re-render
+      await waitFor(
+        () => {
+          // Should be called with true since filtered results show only 1 account
+          expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenLastCalledWith(
+            true,
+          );
+        },
+        { timeout: 500 },
+      );
     });
   });
 

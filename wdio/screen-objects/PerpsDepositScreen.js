@@ -1,12 +1,15 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
 class PerpsDepositScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get continueButton() {
@@ -35,27 +38,23 @@ class PerpsDepositScreen {
 
   async selectPayTokenByText(networkId, token) {
     const networkButton = await AppwrightSelectors.getElementByID(this._device, `asset-${networkId}-${token}`);
-    await networkButton.tap();
+    await AppwrightGestures.tap(networkButton); // Use static tap method with retry logic
   }
 
   async fillUsdAmount(amount) {
-    const input = await this.amountInput;
-    await input.fill(String(amount));
+    await AppwrightGestures.typeText(this.amountInput, String(amount));
   }
 
   async tapPayWith() {
-    const btn = await this.payWithButton;
-    await btn.tap();
+    await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
   }
 
   async tapContinue() {
-    const btn = await this.continueButton;
-    await btn.tap();
+    await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
   }
 
   async tapCancel() {
-    const btn = await this.cancelButton;
-    await btn.tap();
+    await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
   }
 }
 

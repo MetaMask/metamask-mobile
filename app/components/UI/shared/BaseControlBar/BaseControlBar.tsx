@@ -114,6 +114,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
+  const currentNetworkCaipChainId = getNetworkInfo(0)?.caipChainId;
 
   useEffect(() => {
     if (
@@ -192,9 +193,10 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             variant={TextVariant.BodyMDMedium}
             style={styles.controlButtonText}
             numberOfLines={1}
+            testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
           >
             {displayAllNetworks
-              ? strings('wallet.all_networks')
+              ? strings('wallet.popular_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
         </View>

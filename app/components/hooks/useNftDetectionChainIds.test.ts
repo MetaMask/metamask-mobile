@@ -6,12 +6,8 @@ import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { useNftDetectionChainIds } from './useNftDetectionChainIds';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectAllPopularNetworkConfigurations,
-} from '../../selectors/networkController';
+import { selectChainId } from '../../selectors/networkController';
+import { useCurrentNetworkInfo } from './useCurrentNetworkInfo';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -27,45 +23,52 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('./useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: jest.fn(),
+}));
+
 describe('useNftDetectionChainIds', () => {
-  it('returns current chain id when filtered on current network', async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns current chain id when enabledNetworks is empty', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectIsAllNetworks) {
-        return false; // to show all networks
-      }
       if (selector === selectChainId) {
         return '0x1';
       }
       return null;
     });
+
+    (useCurrentNetworkInfo as jest.Mock).mockReturnValue({
+      enabledNetworks: [], // Empty array should fallback to current chainId
+    });
+
     const { result } = renderHookWithProvider(() => useNftDetectionChainIds(), {
       state: mockInitialState,
     });
     expect(result?.current).toEqual(['0x1']);
   });
-  it('returns array of all popular networks when there is no filter on networks', async () => {
+
+  it('returns array of enabled network chain ids when enabledNetworks has networks', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectIsAllNetworks) {
-        return true;
-      }
-      if (selector === selectIsPopularNetwork) {
-        return true;
-      }
-      if (selector === selectAllPopularNetworkConfigurations) {
-        return {
-          '0x1': {
-            chainId: '0x1',
-          },
-          '0x2': {
-            chainId: '0x2',
-          },
-        };
+      if (selector === selectChainId) {
+        return '0x1';
       }
       return null;
     });
+
+    (useCurrentNetworkInfo as jest.Mock).mockReturnValue({
+      enabledNetworks: [
+        { chainId: '0x1', enabled: true },
+        { chainId: '0x89', enabled: true },
+        { chainId: '0xa', enabled: true },
+      ],
+    });
+
     const { result } = renderHookWithProvider(() => useNftDetectionChainIds(), {
       state: mockInitialState,
     });
-    expect(result?.current).toEqual(['0x1', '0x2']);
+    expect(result?.current).toEqual(['0x1', '0x89', '0xa']);
   });
 });

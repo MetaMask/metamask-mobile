@@ -37,14 +37,15 @@ import {
   HYPERLIQUID_ASSET_CONFIGS,
   USDC_DECIMALS,
   USDC_SYMBOL,
+  USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
-  usePerpsAccount,
   usePerpsNetwork,
   usePerpsWithdrawQuote,
   useWithdrawTokens,
 } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
@@ -70,11 +71,13 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
-const USDC_TOKEN_URL =
-  'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
 
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
@@ -96,7 +99,7 @@ const PerpsWithdrawView: React.FC = () => {
   const { track: trackEvent } = usePerpsEventTracking();
   const { startMeasure, endMeasure } = usePerpsPerformance();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
@@ -106,10 +109,10 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Parse available balance from perps account state
   const availableBalance = useMemo(() => {
-    if (!cachedAccountState?.availableBalance) return 0;
+    if (!account?.availableBalance) return 0;
     // Use parseCurrencyString to properly parse formatted currency
-    return parseCurrencyString(cachedAccountState.availableBalance);
-  }, [cachedAccountState?.availableBalance]);
+    return parseCurrencyString(account.availableBalance);
+  }, [account?.availableBalance]);
 
   const formattedBalance = useMemo(
     () => formatPerpsFiat(availableBalance),
@@ -156,7 +159,10 @@ const PerpsWithdrawView: React.FC = () => {
   useEffect(() => {
     if (!hasTrackedWithdrawView.current) {
       endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
-      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED);
+      trackEvent(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
+      });
       hasTrackedWithdrawView.current = true;
     }
   }, [trackEvent, endMeasure]);
@@ -240,7 +246,8 @@ const PerpsWithdrawView: React.FC = () => {
     if (!hasValidInputs || isSubmittingTx) return;
 
     setIsSubmittingTx(true);
-    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
+    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
       amount: withdrawAmountDetailed,
     });
 
@@ -297,7 +304,8 @@ const PerpsWithdrawView: React.FC = () => {
         );
 
         // Track withdrawal completed with duration
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.COMPLETED,
           amount: withdrawAmountDetailed,
           completionDuration: confirmationDuration,
         });
@@ -310,7 +318,8 @@ const PerpsWithdrawView: React.FC = () => {
         );
 
         // Track withdrawal failed
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           errorMessage: result.error || 'Unknown error',
         });
 
@@ -346,7 +355,8 @@ const PerpsWithdrawView: React.FC = () => {
       );
 
       // Track withdrawal failed
-      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
       });
 
@@ -506,7 +516,7 @@ const PerpsWithdrawView: React.FC = () => {
               <AvatarToken
                 name={destToken.symbol}
                 // hardcoding usdc token image url until we support other withdrawal token types
-                imageSource={{ uri: USDC_TOKEN_URL }}
+                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>

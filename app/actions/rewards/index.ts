@@ -2,6 +2,7 @@ export {
   setActiveTab,
   setReferralDetails,
   setSeasonStatus,
+  setSeasonStatusError,
   resetRewardsState,
   resetOnboarding,
   setOnboardingActiveStep,

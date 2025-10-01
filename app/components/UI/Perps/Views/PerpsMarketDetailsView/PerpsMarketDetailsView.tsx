@@ -230,20 +230,32 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       market &&
       marketStats &&
       !isLoadingHistory &&
+      !isLoadingPosition &&
       !hasTrackedAssetView.current
     ) {
       // Track asset screen loaded
       endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
 
       // Track asset screen viewed event - only once
-      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
         [PerpsEventProperties.ASSET]: market.symbol,
         [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
+        [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
       });
 
       hasTrackedAssetView.current = true;
     }
-  }, [market, marketStats, isLoadingHistory, track, endMeasure]);
+  }, [
+    market,
+    marketStats,
+    isLoadingHistory,
+    isLoadingPosition,
+    existingPosition,
+    track,
+    endMeasure,
+  ]);
 
   useEffect(() => {
     if (!isLoadingPosition && market) {
@@ -257,9 +269,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
-      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
-        [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
@@ -611,6 +624,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
         onPeriodChange={handleCandlePeriodChange}
         showAllPeriods
+        asset={market?.symbol}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
       />
 

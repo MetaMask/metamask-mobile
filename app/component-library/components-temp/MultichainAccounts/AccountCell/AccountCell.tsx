@@ -90,7 +90,7 @@ const AccountCell = ({
       </View>
       <View style={styles.accountName}>
         <Text
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           numberOfLines={1}
           style={styles.accountNameText}
@@ -104,12 +104,13 @@ const AccountCell = ({
             size={IconSize.Md}
             style={styles.checkIcon}
             color={TextColor.Primary}
+            testID={AccountCellIds.CHECK_ICON}
           />
         )}
       </View>
       <View style={styles.endContainer}>
         <Text
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           testID={AccountCellIds.BALANCE}
         >

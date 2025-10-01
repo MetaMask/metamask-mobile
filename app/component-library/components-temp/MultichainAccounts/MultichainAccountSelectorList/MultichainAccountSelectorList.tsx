@@ -34,6 +34,9 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import { useAssetsUpdateAllAccountBalances } from '../../../../components/UI/Assets/hooks';
+
+const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE = 2000; // About 30 items to pre-render - cell size is about 65px
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -41,6 +44,7 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
+  setKeyboardAvoidingViewEnabled,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -65,6 +69,10 @@ const MultichainAccountSelectorList = ({
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
+
+  // Update balances for all accounts when component mounts
+  // This ensures all account balances are visible without requiring user interaction
+  useAssetsUpdateAllAccountBalances();
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -164,7 +172,7 @@ const MultichainAccountSelectorList = ({
     const idx = flattenedData.findIndex(
       (item) => item.type === 'cell' && item.data.id === targetId,
     );
-    return idx > 0 ? idx : undefined;
+    return idx >= 0 ? idx : undefined;
   }, [flattenedData, selectedAccountGroups]);
 
   // Reset scroll to top when search text changes
@@ -201,6 +209,16 @@ const MultichainAccountSelectorList = ({
     }
   }, [lastCreatedAccountId, flattenedData, listRefToUse]);
 
+  // Enable keyboard avoiding view when list has 2 or fewer items
+  useEffect(() => {
+    if (setKeyboardAvoidingViewEnabled) {
+      const accountCellsCount = flattenedData.filter(
+        (item) => item.type === 'cell',
+      ).length;
+
+      setKeyboardAvoidingViewEnabled(accountCellsCount <= 2);
+    }
+  }, [flattenedData, setKeyboardAvoidingViewEnabled]);
   // Handle account creation callback
   const handleAccountCreated = useCallback((newAccountId: string) => {
     setLastCreatedAccountId(newAccountId);
@@ -325,6 +343,9 @@ const MultichainAccountSelectorList = ({
             renderScrollComponent={
               ScrollView as React.ComponentType<ScrollViewProps>
             }
+            // Performance optimizations
+            removeClippedSubviews
+            drawDistance={MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE}
             {...props}
           />
         )}

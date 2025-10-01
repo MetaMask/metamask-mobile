@@ -14,6 +14,33 @@ export * from '../../types/navigation';
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
+// Input method for amount entry tracking
+export type InputMethod =
+  | 'default'
+  | 'slider'
+  | 'keypad'
+  | 'percentage'
+  | 'max';
+
+// Unified tracking data interface for analytics events (never persisted in state)
+export interface TrackingData {
+  // Common to all operations
+  totalFee: number; // Total fee for the operation
+  marketPrice: number; // Market price at operation time
+  metamaskFee?: number; // MetaMask fee amount
+  metamaskFeeRate?: number; // MetaMask fee rate
+  feeDiscountPercentage?: number; // Fee discount percentage
+  estimatedPoints?: number; // Estimated reward points
+
+  // Order-specific (used for trade operations)
+  marginUsed?: number; // Margin required for this order
+  inputMethod?: InputMethod; // How user set the amount
+
+  // Close-specific (used for position close operations)
+  receivedAmount?: number; // Amount user receives after close
+  realizedPnl?: number; // Realized P&L from close
+}
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
@@ -32,6 +59,9 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export type OrderResult = {
@@ -84,6 +114,8 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export interface InitializeResult {

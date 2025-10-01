@@ -13,6 +13,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
@@ -206,7 +207,10 @@ const PerpsMarketListView = ({
       setSearchQuery('');
     } else {
       // Track search bar clicked event
-      track(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED, {});
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.SEARCH_CLICKED,
+      });
     }
   };
 
@@ -232,7 +236,9 @@ const PerpsMarketListView = ({
     // Track markets screen viewed event - only once when data is loaded
     if (markets.length > 0 && !hasTrackedMarketsView.current) {
       // Track event
-      track(MetaMetricsEvents.PERPS_MARKETS_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.MARKETS,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
       });
@@ -273,6 +279,34 @@ const PerpsMarketListView = ({
               {strings('perps.tap_to_retry')}
             </Text>
           </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // Empty search results
+    if (searchQuery.trim() && filteredMarkets.length === 0) {
+      return (
+        <View style={styles.emptyStateContainer}>
+          <Icon
+            name={IconName.Search}
+            size={IconSize.Xl}
+            color={theme.colors.icon.muted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_tokens_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_tokens_found_description', { searchQuery })}
+          </Text>
         </View>
       );
     }
@@ -393,7 +427,11 @@ const PerpsMarketListView = ({
                   ? strings('bottom_nav.rewards')
                   : strings('bottom_nav.settings')
               }
-              iconName={isRewardsEnabled ? IconName.Star : IconName.Setting}
+              iconName={
+                isRewardsEnabled
+                  ? IconName.MetamaskFoxOutline
+                  : IconName.Setting
+              }
               onPress={handleRewardsOrSettingsPress}
               isActive={false}
               testID={
@@ -478,6 +516,10 @@ const PerpsMarketListView = ({
           </View>
         </View>
       )}
+
+      {/* Balance Actions Component */}
+      <PerpsMarketBalanceActions />
+
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
       <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>

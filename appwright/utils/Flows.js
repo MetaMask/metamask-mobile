@@ -12,30 +12,8 @@ import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsS
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
 import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
-import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
-import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
-
-/**
- * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
- * @param {Object} device - The device object from Appwright
- */
-export async function dismissSystemDialogs(device) {
-  if (!AppwrightSelectors.isAndroid(device)) {
-    console.log('system alerts are accepted as expected on android');
-    return;
-  }
-  try {
-    await AppwrightSelectors.dismissAlert(device);
-  } catch (error) {
-    // Ignore "no such alert" errors - this is normal when no dialogs are present
-    if (
-      !error.message.includes('no such alert') &&
-      !error.message.includes('modal dialog when one was not open')
-    ) {
-      console.log(`Alert dismissal error: ${error.message}`);
-    }
-  }
-}
+import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
+import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -76,10 +54,10 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  await OnboardingSheet.tapNotNow();
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissMultichainAccountsIntroModal(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {
@@ -108,7 +86,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -128,30 +106,39 @@ export async function importSRPFlow(device, srp) {
   return timers;
 }
 
-export async function login(device, scenarioType) {
+export async function login(device, options = {}) {
   LoginScreen.device = device;
+  const { skipIntro = false, scenarioType = 'login' } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await tapPerpsBottomSheetGotItButton(device);
   // Wait for app to settle after unlock
-  await dismissSystemDialogs(device);
+
+  // Only tap intro screens on first login
+  if (!skipIntro) {
+    await dismissMultichainAccountsIntroModal(device);
+    await tapPerpsBottomSheetGotItButton(device);
+  }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
-  // Only skip perps onboarding on Android devices
-  if (!AppwrightSelectors.isAndroid(device)) {
-    console.log('Skipping perps onboarding skip - not an Android device');
-    return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
+  PerpsGTMModal.device = device;
+  const container = await PerpsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
   }
+}
 
-  console.log('Looking for perps onboarding button...');
-  const button = await AppwrightSelectors.getElementByID(
-    device,
-    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
-  );
-  await button.tap();
-  console.log('Perps onboarding dismissed');
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
+  MultichainAccountEducationModal.device = device;
+  const closeButton = await MultichainAccountEducationModal.closeButton;
+  if (await closeButton.isVisible({ timeout })) {
+    await MultichainAccountEducationModal.tapGotItButton();
+  }
 }

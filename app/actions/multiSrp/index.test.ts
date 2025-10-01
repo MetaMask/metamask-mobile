@@ -104,7 +104,10 @@ jest.mock('../../multichain-accounts/discovery', () => ({
     mockDiscoverAccounts(entropySource),
 }));
 
+const mockGetSnapKeyring = jest.fn().mockResolvedValue(true);
+
 jest.mock('../../core/Engine', () => ({
+  getSnapKeyring: () => mockGetSnapKeyring(),
   context: {
     KeyringController: {
       addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
@@ -145,6 +148,7 @@ describe('MultiSRP Actions', () => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
     mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+    mockGetSnapKeyring.mockResolvedValue(true);
   });
 
   describe('importNewSecretRecoveryPhrase', () => {
@@ -177,7 +181,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 10,
+        discoveredAccountsCount: 15,
       });
     });
 
@@ -191,6 +195,7 @@ describe('MultiSRP Actions', () => {
       mockDiscoverAccounts.mockResolvedValue(5);
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
       mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockGetSnapKeyring.mockResolvedValue(true);
 
       const mockCallback = jest.fn();
 
@@ -207,15 +212,16 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
-      expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately for multichain accounts state 2
       });
 
-      // Assert callback receives the actual discovered accounts count
+      // Assert async operations and callback receive the actual discovered accounts count
       await waitFor(() => {
+        expect(mockGetSnapKeyring).toHaveBeenCalled();
+        expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
+        expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
         expect(mockCallback).toHaveBeenCalledWith({
           address: testAddress,
           discoveredAccountsCount: 5,
@@ -233,6 +239,7 @@ describe('MultiSRP Actions', () => {
       mockDiscoverAccounts.mockRejectedValue(new Error('Discovery failed'));
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
       mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockGetSnapKeyring.mockResolvedValue(true);
 
       const mockCallback = jest.fn();
 
@@ -244,15 +251,16 @@ describe('MultiSRP Actions', () => {
       );
 
       // Assert synchronous return
-      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
-      expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
       });
 
-      // Assert callback receives 0 when discovery fails
+      // Assert async operations and callback receives 0 when discovery fails
       await waitFor(() => {
+        expect(mockGetSnapKeyring).toHaveBeenCalled();
+        expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
+        expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
         expect(mockCallback).toHaveBeenCalledWith({
           address: testAddress,
           discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
@@ -395,7 +403,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 6,
+        discoveredAccountsCount: 9,
       });
     });
 
@@ -439,7 +447,7 @@ describe('MultiSRP Actions', () => {
       expect(mockAddNewSecretData).not.toHaveBeenCalled();
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 4, // bitcoin + solana
+        discoveredAccountsCount: 6, // bitcoin + solana + tron
       });
     });
 
@@ -463,7 +471,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 2, // bitcoin + solana
+        discoveredAccountsCount: 3, // bitcoin + solana + tron
       });
     });
   });
