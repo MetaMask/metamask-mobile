@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -93,7 +93,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
 
       // Track homescreen tab viewed event with exact property names from requirements
-      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
         [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
           [PerpsEventProperties.ASSET]: p.coin,
           [PerpsEventProperties.LEVERAGE]: p.leverage.value,
@@ -242,7 +244,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <View style={styles.content}>
+        <ScrollView style={styles.content}>
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
@@ -257,7 +259,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               </View>
             )}
           </View>
-        </View>
+        </ScrollView>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

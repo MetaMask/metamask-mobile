@@ -34,14 +34,14 @@ const NetworkConnectionBanner: React.FC = () => {
         variant={BannerVariant.Alert}
         severity={BannerAlertSeverity.Warning}
         startAccessory={
-          networkConnectionBannerState.status === 'slow' ? (
+          networkConnectionBannerState.status === 'degraded' ? (
             <Spinner size={SpinnerSize.SM} />
           ) : (
             <Icon name={IconName.Danger} size={IconSize.Md} />
           )
         }
         title={strings(
-          networkConnectionBannerState.status === 'slow'
+          networkConnectionBannerState.status === 'degraded'
             ? 'network_connection_banner.still_connecting_network'
             : 'network_connection_banner.unable_to_connect_network',
           {

@@ -1,7 +1,5 @@
 import { fireEvent } from '@testing-library/react-native';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
-import { selectChainId } from '../../../selectors/networkController';
 import {
   DeepPartial,
   renderScreen,
@@ -138,15 +136,10 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
   selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
-  selectIsSwapsLive: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
-}));
-
-jest.mock('../../../components/UI/Swaps/utils', () => ({
-  isSwapsAllowed: jest.fn().mockReturnValue(true),
 }));
 
 const mockGoToSwaps = jest.fn();
@@ -363,67 +356,6 @@ describe('TradeWalletActions', () => {
     ).toBeDefined();
   });
 
-  it('should not show the swap button if the chain does not allow swaps', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-
-    const mockState: DeepPartial<RootState> = {
-      swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
-              id: 'sepolia',
-              nickname: 'Sepolia',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    };
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeNull();
-  });
-
-  it.skip('should call the goToSwaps function when the Swap button is pressed', async () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    );
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    expect(mockOnDismiss).toHaveBeenCalled();
-    expect(mockGoToSwaps).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
   it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
@@ -636,7 +568,6 @@ describe('TradeWalletActions', () => {
       >
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =
       {
