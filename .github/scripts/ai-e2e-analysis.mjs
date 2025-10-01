@@ -5,14 +5,12 @@ import { appendFileSync } from 'fs';
 /**
  * AI E2E Analysis Script
  * This script handles the complex logic for running AI analysis and processing results
- * Usage: node ai-e2e-analysis.mjs <event_name> [base_branch] [include_main_changes] [changed_files]
+ * Usage: node ai-e2e-analysis.mjs <event_name> <changed_files>
  */
 
 const args = process.argv.slice(2);
 const EVENT_NAME = args[0];
-const BASE_BRANCH = args[1] || '';
-const INCLUDE_MAIN_CHANGES = args[2] || 'false';
-const CHANGED_FILES = args[3] || process.env.CHANGED_FILES || '';
+const CHANGED_FILES = args[1] || process.env.CHANGED_FILES || '';
 
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 const GITHUB_STEP_SUMMARY = process.env.GITHUB_STEP_SUMMARY;
@@ -58,55 +56,13 @@ function appendStepSummary(content) {
 }
 
 console.log('🤖 Running AI analysis...');
+console.log(`📋 Event name: ${EVENT_NAME}`);
+console.log('📋 Using pre-computed changed files from needs_e2e_build');
 
-// Build command with dynamic arguments based on trigger type
-let baseCmd = 'node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts --output json';
-
-// Check if changed files were provided
-if (CHANGED_FILES && CHANGED_FILES.trim()) {
-  console.log('📋 Using pre-computed changed files from needs-e2e-build');
-  // Pass changed files directly to the AI selector
-  baseCmd += ` --changed-files '${CHANGED_FILES}'`;
-
-  if (INCLUDE_MAIN_CHANGES === 'true') {
-    baseCmd += ' --include-main-changes';
-  }
-} else {
-  console.log('📋 Computing changed files via git');
-
-  // Add base branch if specified (manual trigger)
-  if (BASE_BRANCH && BASE_BRANCH !== 'origin/main') {
-    baseCmd += ` --base-branch '${BASE_BRANCH}'`;
-  }
-
-  // Add include-main-changes flag
-  if (EVENT_NAME === 'workflow_dispatch') {
-    if (INCLUDE_MAIN_CHANGES === 'true') {
-      baseCmd += ' --include-main-changes';
-    }
-  } else {
-    // For PR triggers, always include main changes for comprehensive analysis
-    baseCmd += ' --include-main-changes';
-  }
-
-  // Debug git state
-  console.log('🔍 Git debug info:');
-  const filesWithMain = execCommand('git diff --name-only origin/main..HEAD 2>/dev/null | wc -l', {
-    silent: true,
-    ignoreError: true,
-    defaultValue: 'ERROR'
-  });
-  const filesWithoutMain = execCommand('git diff --name-only origin/main...HEAD 2>/dev/null | wc -l', {
-    silent: true,
-    ignoreError: true,
-    defaultValue: 'ERROR'
-  });
-  console.log(`- Files with include-main: ${filesWithMain}`);
-  console.log(`- Files without include-main: ${filesWithoutMain}`);
-}
+// Build command with changed files from needs_e2e_build job
+const baseCmd = `node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts --output json --changed-files '${CHANGED_FILES}'`;
 
 console.log(`🤖 Running AI analysis with command: ${baseCmd}`);
-console.log(`📋 Event name: ${EVENT_NAME}`);
 
 // Execute the AI analysis command
 const result = execCommand(baseCmd, { silent: true });

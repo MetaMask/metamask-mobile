@@ -2,20 +2,11 @@ name: 'AI E2E Analysis'
 description: 'Run AI-powered E2E test selection analysis based on code changes'
 inputs:
   changed-files:
-    description: 'Pre-computed list of changed files (optional - if not provided, will compute via git)'
-    required: false
-    default: ''
-  event-name:
-    description: 'GitHub event name (pull_request, workflow_dispatch, etc.)'
+    description: 'Pre-computed list of changed files from needs_e2e_build job'
     required: true
-  base-branch:
-    description: 'Base branch to compare against (only used if changed-files not provided)'
-    required: false
-    default: 'origin/main'
-  include-main-changes:
-    description: 'Include recent changes from main branch (only used if changed-files not provided)'
-    required: false
-    default: 'false'
+  event-name:
+    description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
+    required: true
   claude-api-key:
     description: 'Claude API key for AI analysis'
     required: true
@@ -44,7 +35,7 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version-file: '.nvmrc'
 
     - name: Install minimal dependencies for AI analysis
       shell: bash
@@ -57,20 +48,14 @@ runs:
         npm install @anthropic-ai/sdk@latest esbuild-register@latest --no-audit --no-fund
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
-    - name: Checkout repository
+    - name: Minimal checkout for AI analysis
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-        # Ensure we get the full branch history for proper diff analysis
-        ref: ${{ github.head_ref || github.ref }}
-
-    - name: Setup git for comprehensive analysis
-      shell: bash
-      run: |
-        echo "🔧 Ensuring complete git history..."
-        git fetch --unshallow --all || echo "Already unshallow"
-        git fetch origin main:main 2>/dev/null || echo "Main already available"
-        echo "✅ Git setup complete"
+        sparse-checkout: |
+          scripts
+          .nvmrc
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
 
     - name: Copy AI dependencies to workspace
       shell: bash
@@ -91,8 +76,6 @@ runs:
       run: |
         node .github/scripts/ai-e2e-analysis.mjs \
           "${{ inputs.event-name }}" \
-          "${{ inputs.base-branch }}" \
-          "${{ inputs.include-main-changes }}" \
           "$CHANGED_FILES"
 
     - name: Delete existing AI E2E comments
