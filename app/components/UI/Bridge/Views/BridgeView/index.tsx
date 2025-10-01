@@ -39,6 +39,7 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectNoFeeAssets,
+  selectIsNonEvmToNonEvm,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -124,6 +125,7 @@ const BridgeView = () => {
   );
 
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
+  const isNonEvmToNonEvmBridge = useSelector(selectIsNonEvmToNonEvm);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -151,7 +153,7 @@ const BridgeView = () => {
 
   useInitialSlippage();
 
-  const hasDestinationPicker = isEvmNonEvmBridge;
+  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmToNonEvmBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -183,7 +185,9 @@ const BridgeView = () => {
     !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destinations address is only needed for EVM <> Solana bridges
-    (!isEvmNonEvmBridge || (isEvmNonEvmBridge && !!destAddress));
+    (!isEvmNonEvmBridge ||
+      (isEvmNonEvmBridge && Boolean(destAddress)) ||
+      (isNonEvmToNonEvmBridge && Boolean(destAddress)));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
