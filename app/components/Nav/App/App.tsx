@@ -29,6 +29,7 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
+import type { AuthData } from '../../../core/Authentication/Authentication';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -55,6 +56,7 @@ import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
@@ -1076,6 +1078,29 @@ const App: React.FC = () => {
 
           if (previousRoute === Routes.SETTINGS_VIEW) {
             return;
+          }
+
+          // Try dev auto-login first
+          const autoLoginPassword = process.env.MM_DEV_AUTO_LOGIN_PASSWORD;
+          if (autoLoginPassword) {
+            try {
+              const authType: AuthData = {
+                currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+              };
+              await Authentication.userEntryAuth(autoLoginPassword, authType);
+
+              navigation.reset({
+                routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+              });
+
+              Logger.log('[DEV] Auto-login successful - bypassed login screen');
+              return;
+            } catch (autoLoginError) {
+              Logger.error(
+                autoLoginError as Error,
+                '[DEV] Auto-login failed, falling back to normal auth',
+              );
+            }
           }
 
           // This should only be called if the auth type is not password, which is not the case so consider removing it
