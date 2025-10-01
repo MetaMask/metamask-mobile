@@ -10,11 +10,8 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
 import { isNativeAddress, isNonEvmChainId } from '@metamask/bridge-controller';
-import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain/multichain';
-import { RootState } from '../../../../../reducers';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
-import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { SolScope } from '@metamask/keyring-api';
+import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -75,15 +72,7 @@ export const useLatestBalance = (token: {
 
   // Returns native non-EVM asset and non-EVM tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
-  const selectedAccountGroupInternalAccounts = useSelector(
-    selectSelectedAccountGroupInternalAccounts,
-  );
-  const solanaInternalAccountId = selectedAccountGroupInternalAccounts.find(
-    (account) => account.scopes.includes(SolScope.Mainnet),
-  )?.id;
-  const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, solanaInternalAccountId),
-  );
+  const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const chainId = token.chainId;
 
