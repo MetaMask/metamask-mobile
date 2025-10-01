@@ -12,7 +12,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -176,7 +176,6 @@ const CollectibleContracts = ({
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
-  const tw = useTailwind();
   if (isFirstRender.current) {
     trace({ name: TraceName.CollectibleContractsComponent });
   }
@@ -500,16 +499,21 @@ const CollectibleContracts = ({
 
   const renderEmpty = useCallback(
     () => (
-      <CollectiblesEmptyState
-        onDiscoverCollectibles={goToAddCollectible}
-        actionButtonProps={{
-          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-          isDisabled: !isAddNFTEnabled,
-        }}
-        style={tw.style('mx-auto')}
-      />
+      <>
+        {!isNftFetchingProgress && (
+          <CollectiblesEmptyState
+            onAction={goToAddCollectible}
+            actionButtonProps={{
+              testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+              isDisabled: !isAddNFTEnabled,
+            }}
+            twClassName="mx-auto mt-4"
+            testID="collectibles-empty-state"
+          />
+        )}
+      </>
     ),
-    [goToAddCollectible, tw, isAddNFTEnabled],
+    [goToAddCollectible, isAddNFTEnabled, isNftFetchingProgress],
   );
 
   const renderList = useCallback(

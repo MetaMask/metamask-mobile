@@ -4,7 +4,7 @@ const CollectiblesEmptyStateMeta = {
   title: 'Components / UI / CollectiblesEmptyState',
   component: CollectiblesEmptyStateComponent,
   argTypes: {
-    onDiscoverCollectibles: { action: 'onDiscoverCollectibles' },
+    onAction: { action: 'onAction' },
   },
 };
 
@@ -12,9 +12,9 @@ export default CollectiblesEmptyStateMeta;
 
 export const Default = {
   args: {
-    onDiscoverCollectibles: () => {
+    onAcion: () => {
       // eslint-disable-next-line no-console
-      console.log('onDiscoverCollectibles');
+      console.log('onAction');
     },
   },
 };
