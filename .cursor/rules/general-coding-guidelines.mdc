@@ -116,31 +116,13 @@ ComponentName/
 4. **VERIFY** the command exists before using it
 
 ## Quick Reference
-```bash
-# Check coding guidelines
-cat .github/guidelines/CODING_GUIDELINES.md
 
-# Review main documentation
-cat README.md
-
-# Check architecture
-cat docs/readme/architecture.md
-
-# Review testing docs
-cat docs/readme/testing.md
-
-# Check unit testing guidelines
-cat .cursor/rules/unit-testing-guidelines.mdc
-
-# Check component library
-cat app/component-library/README.md
-
-# Check E2E mocking guide
-cat e2e/MOCKING.md
-
-# Check confirmations guide
-cat docs/confirmations.md
-
-# Check project changelog
-cat CHANGELOG.md
-```
+- **Coding Guidelines**: `.github/guidelines/CODING_GUIDELINES.md`
+- **Main Documentation**: `README.md`
+- **Architecture**: `docs/readme/architecture.md`
+- **Testing**: `docs/readme/testing.md`
+- **Unit Testing Guidelines**: `.cursor/rules/unit-testing-guidelines.mdc`
+- **Component Library**: `app/component-library/README.md`
+- **E2E Mocking Guide**: `e2e/MOCKING.md`
+- **Confirmations Guide**: `docs/confirmations.md`
+- **Project Changelog**: `CHANGELOG.md`
