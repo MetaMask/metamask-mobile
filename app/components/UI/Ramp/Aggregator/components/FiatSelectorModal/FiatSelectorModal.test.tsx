@@ -91,7 +91,7 @@ describe('FiatSelectorModal', () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
     };
-    mockUseParams.mockReturnValue({ 
+    mockUseParams.mockReturnValue({
       currencies: mockCurrencies,
       title: 'Select Currency',
     });
@@ -100,5 +100,26 @@ describe('FiatSelectorModal', () => {
   it('renders the modal with currency list', () => {
     const { toJSON } = render(FiatSelectorModal);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('search', () => {
+    it('displays filtered currencies when search string matches results', () => {
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
+      const searchInput = getByTestId('textfieldsearch');
+      searchInput.props.onChangeText('USD');
+      expect(toJSON()).toMatchSnapshot();
+    });
+    it('displays filtered currencies when search string does not match results', () => {
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
+      const searchInput = getByTestId('textfieldsearch');
+      searchInput.props.onChangeText('Nonexistent Currency');
+      expect(toJSON()).toMatchSnapshot();
+    });
+    it('displays max 20 results', () => {
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
+      const searchInput = getByTestId('textfieldsearch');
+      searchInput.props.onChangeText('u');
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 });
