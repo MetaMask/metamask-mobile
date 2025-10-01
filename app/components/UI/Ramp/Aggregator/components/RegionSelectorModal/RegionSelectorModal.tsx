@@ -148,8 +148,8 @@ function RegionSelectorModal() {
         country_id: regionInTransit?.id ?? region.id,
         state_id: regionInTransit ? region.id : undefined,
         location: isBuy ? 'Amount to Buy Screen' : 'Amount to Sell Screen',
-        is_unsupported_onramp: region.support.buy,
-        is_unsupported_offramp: region.support.sell,
+        is_unsupported_onramp: !region.support.buy,
+        is_unsupported_offramp: !region.support.sell,
       });
 
       setSelectedRegion(region);
