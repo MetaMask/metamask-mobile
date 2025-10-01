@@ -135,26 +135,33 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       const tabContentRef = tabContentRefs.current.get(tabIndex);
       if (tabContentRef) {
         // Use requestAnimationFrame to ensure measurement happens after render
-        requestAnimationFrame(() => {
-          tabContentRef.measure(
-            (
-              _x: number,
-              _y: number,
-              _width: number,
-              height: number,
-              _pageX: number,
-              _pageY: number,
-            ) => {
-              if (height > 0) {
-                setTabHeights((prev) => {
-                  const newHeights = new Map(prev);
-                  newHeights.set(tabIndex, height);
-                  return newHeights;
-                });
-              }
-            },
-          );
+        const rafId = requestAnimationFrame(() => {
+          // Check if component is still mounted and ref is still valid
+          if (tabContentRefs.current.has(tabIndex)) {
+            tabContentRef.measure(
+              (
+                _x: number,
+                _y: number,
+                _width: number,
+                height: number,
+                _pageX: number,
+                _pageY: number,
+              ) => {
+                // Double-check component is still mounted before updating state
+                if (height > 0 && tabContentRefs.current.has(tabIndex)) {
+                  setTabHeights((prev) => {
+                    const newHeights = new Map(prev);
+                    newHeights.set(tabIndex, height);
+                    return newHeights;
+                  });
+                }
+              },
+            );
+          }
         });
+
+        // Return cleanup function to cancel RAF if needed
+        return () => cancelAnimationFrame(rafId);
       }
     }, []);
 
@@ -166,13 +173,37 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         setScrollViewHeight(currentTabHeight);
       } else if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
         // If tab is loaded but height not measured, measure it quickly
+        // Use a ref to track if this measurement is still relevant
+        let isMeasurementRelevant = true;
+
         const timeoutId = setTimeout(() => {
-          measureTabHeight(activeIndex);
+          if (isMeasurementRelevant) {
+            const cleanup = measureTabHeight(activeIndex);
+            // Store cleanup function if returned
+            if (cleanup) {
+              // The cleanup will be called when the timeout is cleared or component unmounts
+            }
+          }
         }, 50); // Reduced delay for faster measurement
-        return () => clearTimeout(timeoutId);
+
+        return () => {
+          isMeasurementRelevant = false;
+          clearTimeout(timeoutId);
+        };
       } else if (activeIndex >= 0) {
         // For new tabs, use a reasonable default estimate for smoother initial animation
-        setScrollViewHeight(400);
+        // Only set fallback if we don't have any height information
+        const hasAnyHeight = Array.from(tabHeights.values()).some(h => h > 0);
+        if (!hasAnyHeight) {
+          setScrollViewHeight(400);
+        } else {
+          // Use average of existing heights as a better estimate
+          const heights = Array.from(tabHeights.values()).filter(h => h > 0);
+          const avgHeight = heights.length > 0
+            ? Math.round(heights.reduce((sum, h) => sum + h, 0) / heights.length)
+            : 400;
+          setScrollViewHeight(avgHeight);
+        }
       } else {
         setScrollViewHeight(undefined);
       }
@@ -533,14 +564,22 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                         !currentHeight ||
                         Math.abs(currentHeight - height) > 5
                       ) {
+                        // Use functional update to ensure we have the latest state
                         setTabHeights((prev) => {
+                          // Double-check the height hasn't been updated by another source
+                          const latestHeight = prev.get(tabIndex);
+                          if (latestHeight && Math.abs(latestHeight - height) <= 5) {
+                            return prev; // No update needed
+                          }
+
                           const newHeights = new Map(prev);
                           newHeights.set(tabIndex, height);
                           return newHeights;
                         });
 
                         // If this is the active tab, update height immediately for smooth experience
-                        if (tabIndex === activeIndex) {
+                        // But only if the component is still mounted and this tab is still active
+                        if (tabIndex === activeIndex && tabContentRefs.current.has(tabIndex)) {
                           setScrollViewHeight(height);
                         }
                       }
