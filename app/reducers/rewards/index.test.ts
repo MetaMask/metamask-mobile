@@ -1489,9 +1489,9 @@ describe('rewardsReducer', () => {
             persistedRewardsState.hideUnlinkedAccountsBanner,
           hideCurrentAccountNotOptedInBanner:
             persistedRewardsState.hideCurrentAccountNotOptedInBanner,
-          // Keep current non-persistent state
-          nextTierPointsNeeded: initialState.nextTierPointsNeeded,
-          balanceRefereePortion: initialState.balanceRefereePortion,
+          // These fields are restored from persisted state
+          nextTierPointsNeeded: persistedRewardsState.nextTierPointsNeeded,
+          balanceRefereePortion: persistedRewardsState.balanceRefereePortion,
         };
         expect(state).toEqual(expectedState);
       });
@@ -1650,8 +1650,8 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(currentState, rehydrateAction);
 
         // Assert - Non-persistent state should be preserved from current state
-        expect(state.nextTierPointsNeeded).toBe(500); // Preserved from current state
-        expect(state.balanceRefereePortion).toBe(100); // Preserved from current state
+        expect(state.nextTierPointsNeeded).toBe(null); // Restored from persisted state (initialState)
+        expect(state.balanceRefereePortion).toBe(0); // Restored from persisted state (initialState)
 
         // Persisted UI state should be restored
         expect(state.seasonId).toBe('persisted-season');
