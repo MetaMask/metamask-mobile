@@ -596,8 +596,19 @@ describe('WalletConnect2Session', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('allows backward navigation for non-iOS devices', () => {
+    it('allows backward navigation for non-iOS devices when redirect metadata exists', () => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
+      session.session = {
+        ...mockSession,
+        peer: {
+          metadata: {
+            ...mockSession.peer.metadata,
+            redirect: {
+              native: 'https://example.com',
+            },
+          },
+        },
+      } as any;
 
       session.redirect('test');
       jest.runAllTimers();
@@ -605,6 +616,31 @@ describe('WalletConnect2Session', () => {
       expect(Minimizer.goBack).toHaveBeenCalled();
       expect(Linking.openURL).not.toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('shows return notification when redirect metadata does not exist', () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      session.session = {
+        ...mockSession,
+        peer: {
+          metadata: {
+            ...mockSession.peer.metadata,
+            redirect: undefined,
+          },
+        },
+      } as any;
+
+      session.redirect('test');
+      jest.runAllTimers();
+
+      expect(Minimizer.goBack).not.toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
+        },
+      );
     });
 
     describe('iOS specific behavior', () => {
@@ -716,6 +752,17 @@ describe('WalletConnect2Session', () => {
 
       it('skips iOS specific logic for iOS versions below 17', () => {
         jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.0');
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                native: 'https://example.com',
+              },
+            },
+          },
+        } as any;
 
         session.redirect('test');
         jest.runAllTimers();
