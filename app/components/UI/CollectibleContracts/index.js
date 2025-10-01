@@ -568,7 +568,7 @@ const CollectibleContracts = ({
   });
 
   // Determine if we should show the network selector
-  // Show when there are NFTs (contracts, collectibles, or favorites) and not in loading state
+  // Show when there are NFTs (contracts, collectibles, or favorites)
   const shouldShowNetworkSelector =
     filteredCollectibleContracts.length > 0 ||
     collectibles.length > 0 ||
