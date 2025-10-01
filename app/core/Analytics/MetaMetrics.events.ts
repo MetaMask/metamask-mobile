@@ -525,7 +525,6 @@ enum EVENT_NAME {
 
   // Perps Trading
   // Perps Events - Consolidated
-  PERPS_TUTORIAL_CAROUSEL_NAVIGATED = 'Perp Tutorial Carousel Navigated',
   PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
   PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
   PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
@@ -1334,9 +1333,6 @@ const events = {
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
   // Perps Events - Consolidated
-  PERPS_TUTORIAL_CAROUSEL_NAVIGATED: generateOpt(
-    EVENT_NAME.PERPS_TUTORIAL_CAROUSEL_NAVIGATED,
-  ),
   PERPS_WITHDRAWAL_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_WITHDRAWAL_TRANSACTION,
   ),

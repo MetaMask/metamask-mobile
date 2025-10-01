@@ -154,6 +154,7 @@ export const PerpsEventValues = {
     SETTING_CHANGED: 'setting_changed',
     TUTORIAL_STARTED: 'tutorial_started',
     TUTORIAL_COMPLETED: 'tutorial_completed',
+    TUTORIAL_NAVIGATION: 'tutorial_navigation',
     CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
     CANDLE_PERIOD_CHANGED: 'candle_period_changed',
   },

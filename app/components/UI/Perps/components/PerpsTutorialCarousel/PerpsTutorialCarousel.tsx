@@ -248,7 +248,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Only track if tab actually changed (user swipe)
       if (newTab !== previousTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
           [PerpsEventProperties.PREVIOUS_SCREEN]:
             tutorialScreens[previousTab]?.id || 'unknown',
           [PerpsEventProperties.CURRENT_SCREEN]:
@@ -337,7 +339,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track carousel navigation via continue button (immediate, no debounce needed for button clicks)
       if (nextTab !== currentTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
           [PerpsEventProperties.PREVIOUS_SCREEN]:
             tutorialScreens[currentTab]?.id || 'unknown',
           [PerpsEventProperties.CURRENT_SCREEN]:
