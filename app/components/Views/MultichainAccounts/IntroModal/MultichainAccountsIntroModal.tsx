@@ -24,6 +24,8 @@ import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './MultichainAccountsIn
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { captureException } from '@sentry/react-native';
+import LottieView from 'lottie-react-native';
+import multichainAccountsIntro from '../../../../animations/Multichain_Accounts.json';
 
 // Minimum timeout duration for wallet alignment process (2 seconds)
 export const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
@@ -145,9 +147,11 @@ const MultichainAccountsIntroModal = () => {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <View
+          <LottieView
             style={styles.imagePlaceholder}
-            testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.IMAGE_PLACEHOLDER}
+            autoPlay
+            loop
+            source={multichainAccountsIntro}
           />
 
           <View style={styles.section}>
