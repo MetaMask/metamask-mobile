@@ -1,1 +1,4 @@
-export { default, createFiatSelectorModalNavigationDetails } from './FiatSelectorModal';
+export {
+  default,
+  createFiatSelectorModalNavigationDetails,
+} from './FiatSelectorModal';
