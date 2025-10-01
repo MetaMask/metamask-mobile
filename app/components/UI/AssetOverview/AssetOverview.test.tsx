@@ -24,6 +24,20 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+jest.mock('../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../selectors/accountsController'),
+  selectSelectedInternalAccount: jest.fn(),
+}));
+
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroup: jest.fn(),
+  }),
+);
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -199,6 +213,15 @@ describe('AssetOverview', () => {
       sendNonEvmAsset: mockSendNonEvmAsset,
       isNonEvmAccount: false,
     });
+
+    // Default selected internal account to an EVM account so token balance flow uses EVM path
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
+    });
   });
 
   afterEach(() => {
@@ -370,17 +393,14 @@ describe('AssetOverview', () => {
 
   it('should handle receive button press', async () => {
     // Arrange - Mock the selectors directly to ensure conditions are met
-    const mockUseSelector = jest.fn();
-    mockUseSelector
-      .mockReturnValueOnce(MOCK_ADDRESS_2) // selectedInternalAccountAddress
-      .mockReturnValueOnce({ id: 'group-id-123' }) // selectedAccountGroup
-      .mockReturnValueOnce(MOCK_CHAIN_ID); // chainId
-
-    // Replace useSelector for this test
-    jest.doMock('react-redux', () => ({
-      ...jest.requireActual('react-redux'),
-      useSelector: mockUseSelector,
-    }));
+    const { selectSelectedInternalAccount } = jest.requireMock(
+      '../../../selectors/accountsController',
+    );
+    const { selectSelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    );
+    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
+    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -412,6 +432,10 @@ describe('AssetOverview', () => {
         }),
       },
     );
+
+    // Cleanup mocks for isolation
+    selectSelectedInternalAccount.mockReset();
+    selectSelectedAccountGroup.mockReset();
   });
 
   it('should handle bridge button press', async () => {
