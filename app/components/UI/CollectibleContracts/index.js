@@ -82,12 +82,10 @@ const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      // Remove flex: 1 to allow dynamic height
       marginTop: 16,
     },
     BarWrapper: {
       backgroundColor: colors.background.default,
-      // Remove flex: 1 to allow dynamic height
     },
     actionBarWrapper: {
       flexDirection: 'row',
@@ -131,7 +129,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     footer: {
-      // Remove flex: 1 to allow dynamic height
       alignItems: 'center',
       marginTop: 8,
     },

@@ -200,7 +200,6 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       paddingHorizontal: 16,
-      // Remove flex: 1 to allow dynamic height for proper virtualization
     },
     loader: {
       backgroundColor: colors.background.default,

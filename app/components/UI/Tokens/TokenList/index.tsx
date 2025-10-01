@@ -55,14 +55,8 @@ const TokenListComponent = ({
     ? TokenListItemBip44
     : TokenListItem;
 
-  // const listRef = useRef<FlashListRef<FlashListAssetKey>>(null); // Not needed with ExternalVirtualized
-
   const styles = createStyles(colors);
   const navigation = useNavigation();
-
-  // useLayoutEffect(() => {
-  //   listRef.current?.recomputeViewableItems();
-  // }, [isTokenNetworkFilterEqualCurrentNetwork]); // Not needed with ExternalVirtualized
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {

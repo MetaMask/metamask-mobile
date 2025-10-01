@@ -164,38 +164,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         }, 50); // Reduced delay for faster measurement
         return () => clearTimeout(timeoutId);
       } else if (activeIndex >= 0) {
-        // For new tabs, estimate height based on tab type for smoother initial animation
-        const currentTab = tabs[activeIndex];
-        let estimatedHeight = 400; // Default fallback
-
-        if (currentTab?.key) {
-          // Provide better estimates based on tab type
-          switch (currentTab.key) {
-            case 'tokens-tab':
-              estimatedHeight = 500; // Tokens usually have more items
-              break;
-            case 'defi-tab':
-              estimatedHeight = 350; // DeFi positions are typically fewer
-              break;
-            case 'nfts-tab':
-              estimatedHeight = 450; // NFTs can vary
-              break;
-            case 'perps-tab':
-              estimatedHeight = 300; // Perps positions are usually compact
-              break;
-            case 'predict-tab':
-              estimatedHeight = 350; // Predict positions similar to DeFi
-              break;
-            default:
-              estimatedHeight = 400;
-          }
-        }
-
-        setScrollViewHeight(estimatedHeight);
+        // For new tabs, use a reasonable default estimate for smoother initial animation
+        setScrollViewHeight(400);
       } else {
         setScrollViewHeight(undefined);
       }
-    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight, tabs]);
+    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight]);
 
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {

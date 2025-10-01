@@ -12,9 +12,6 @@ const styleSheet = () =>
       height: '100%',
       justifyContent: 'center',
     },
-    wrapper: {
-      // Remove flex: 1 to allow dynamic height
-    },
   });
 
 export default styleSheet;

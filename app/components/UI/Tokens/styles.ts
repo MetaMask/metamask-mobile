@@ -11,7 +11,6 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      // Remove flex: 1 to allow dynamic height
     },
     bottomSheetWrapper: {
       alignItems: 'flex-start',
@@ -64,7 +63,6 @@ const createStyles = (colors: Colors) =>
       ...fontStyles.normal,
     },
     footer: {
-      // Remove flex: 1 to allow dynamic height
       paddingBottom: 30,
       alignItems: 'center',
       marginTop: 9,
