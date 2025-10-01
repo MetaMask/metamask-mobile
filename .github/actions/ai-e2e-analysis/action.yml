@@ -32,6 +32,15 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Minimal checkout for AI analysis
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          e2e/scripts
+          .nvmrc
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -47,15 +56,6 @@ runs:
         npm init -y
         npm install @anthropic-ai/sdk@latest esbuild-register@latest --no-audit --no-fund
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
-
-    - name: Minimal checkout for AI analysis
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          e2e/scripts
-          .nvmrc
-        sparse-checkout-cone-mode: false
-        fetch-depth: 1
 
     - name: Copy AI dependencies to workspace
       shell: bash
