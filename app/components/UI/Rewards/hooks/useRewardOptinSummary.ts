@@ -11,6 +11,8 @@ import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-cont
 import Logger from '../../../../util/Logger';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { selectRewardsActiveAccountSubscriptionId } from '../../../../selectors/rewards';
+import { convertInternalAccountToCaipAccountId } from '../utils';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -36,6 +38,9 @@ export const useRewardOptinSummary = (
   const { enabled = true } = options;
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const activeAccountSubscriptionId = useSelector(
+    selectRewardsActiveAccountSubscriptionId,
+  );
 
   const [optedInAccounts, setOptedInAccounts] = useState<
     AccountWithOptInStatus[]
@@ -135,8 +140,37 @@ export const useRewardOptinSummary = (
     return { linkedAccounts: linked, unlinkedAccounts: unlinked };
   }, [optedInAccounts]);
 
+  const coercedLinkedAccounts = useMemo(() => {
+    const firstSubscriptionId = Engine.controllerMessenger.call(
+      'RewardsController:getFirstSubscriptionId',
+    );
+    if (
+      activeAccountSubscriptionId &&
+      firstSubscriptionId &&
+      activeAccountSubscriptionId !== firstSubscriptionId
+    ) {
+      const accountsForSameSubscription = linkedAccounts.filter((account) => {
+        const caipAccount = convertInternalAccountToCaipAccountId(account);
+        if (!caipAccount) {
+          return false;
+        }
+        try {
+          const actualSubscriptionId = Engine.controllerMessenger.call(
+            'RewardsController:getActualSubscriptionId',
+            caipAccount,
+          );
+          return actualSubscriptionId === activeAccountSubscriptionId;
+        } catch (error) {
+          return false;
+        }
+      });
+      return accountsForSameSubscription;
+    }
+    return linkedAccounts;
+  }, [activeAccountSubscriptionId, linkedAccounts]);
+
   return {
-    linkedAccounts,
+    linkedAccounts: coercedLinkedAccounts,
     unlinkedAccounts,
     isLoading: isLoading && !optedInAccounts.length, // prevent flickering if accounts are being populated via i.e. profile sync
     hasError,

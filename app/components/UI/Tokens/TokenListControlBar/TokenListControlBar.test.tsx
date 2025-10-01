@@ -280,10 +280,10 @@ describe('TokenListControlBar', () => {
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
       });
 
-      it('should show "All Networks text when multiple networks are enabled', () => {
+      it('should show "Popular networks text when multiple networks are enabled', () => {
         const { getByText } = renderComponent();
 
-        expect(getByText('wallet.all_networks')).toBeTruthy();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
       });
 
       it('should show current network name when only one network is enabled', () => {

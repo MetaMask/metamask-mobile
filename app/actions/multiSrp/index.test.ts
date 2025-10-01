@@ -181,7 +181,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 10,
+        discoveredAccountsCount: 15,
       });
     });
 
@@ -403,7 +403,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 6,
+        discoveredAccountsCount: 9,
       });
     });
 
@@ -447,7 +447,7 @@ describe('MultiSRP Actions', () => {
       expect(mockAddNewSecretData).not.toHaveBeenCalled();
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 4, // bitcoin + solana
+        discoveredAccountsCount: 6, // bitcoin + solana + tron
       });
     });
 
@@ -471,7 +471,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 2, // bitcoin + solana
+        discoveredAccountsCount: 3, // bitcoin + solana + tron
       });
     });
   });

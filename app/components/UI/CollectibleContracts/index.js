@@ -540,7 +540,7 @@ const CollectibleContracts = ({
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
         estimatedItemSize={100}
-        scrollEnabled={false}
+        scrollEnabled
       />
     ),
     [
@@ -597,7 +597,7 @@ const CollectibleContracts = ({
                       numberOfLines={1}
                     >
                       {enabledNetworks.length > 1
-                        ? strings('wallet.all_networks')
+                        ? strings('wallet.popular_networks')
                         : currentNetworkName ??
                           strings('wallet.current_network')}
                     </TextComponent>

@@ -221,7 +221,7 @@ describe('ActivityView', () => {
       it('shows "All Networks" text when multiple networks are enabled', () => {
         const { getByText } = renderComponent(mockInitialState);
 
-        expect(getByText('All Networks')).toBeTruthy();
+        expect(getByText('Popular networks')).toBeTruthy();
       });
 
       it('shows current network name when only one network is enabled', () => {

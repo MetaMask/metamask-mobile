@@ -9,6 +9,12 @@ import { RootState } from '../../reducers';
 export const selectRewardsControllerState = (state: RootState) =>
   state.engine.backgroundState.RewardsController;
 
+export const selectRewardsActiveAccountSubscriptionId = createSelector(
+  selectRewardsControllerState,
+  (rewardsControllerState): string | null =>
+    rewardsControllerState.activeAccount?.subscriptionId ?? null,
+);
+
 /**
  * A memoized selector that returns the rewards subscription id,
  * falling back to candidateSubscriptionId if not 'pending' or 'error'
