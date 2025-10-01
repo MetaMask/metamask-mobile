@@ -72,7 +72,7 @@ describe('formatUtils', () => {
 
   describe('formatRewardsDate', () => {
     it('formats timestamp correctly with default locale', () => {
-      const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
+      const timestamp = new Date('2024-01-15T14:30:00Z');
 
       const result = formatRewardsDate(timestamp);
 
@@ -81,7 +81,7 @@ describe('formatUtils', () => {
 
     it('formats timestamp correctly with custom locale', () => {
       // Given a timestamp and custom locale
-      const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
+      const timestamp = new Date('2024-01-15T14:30:00Z');
       const locale = 'fr-FR';
 
       // When formatting the date
