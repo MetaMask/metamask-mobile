@@ -25,6 +25,13 @@ jest.mock('../AssetDetails/AssetDetailsActions', () =>
   jest.fn((_props) => null),
 );
 
+// Mock NFT auto detection modal hook to prevent interference with navigation tests
+jest.mock('../../hooks/useCheckNftAutoDetectionModal', () =>
+  jest.fn(() => {
+    // Hook implementation mocked to prevent modal interference
+  }),
+);
+
 // Mock PerpsTabView
 jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
   __esModule: true,
