@@ -111,12 +111,18 @@ export const useSwapBridgeNavigation = ({
 
       const candidateSourceToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
-      const sourceToken = isBridgeEnabledSource
+      let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
 
       if (!sourceToken) {
-        return;
+        // fallback to ETH on mainnet
+        sourceToken = {
+          address: ethers.constants.AddressZero,
+          chainId: EthScope.Mainnet,
+          symbol: 'ETH',
+          decimals: 18,
+        };
       }
 
       const params: BridgeRouteParams = {

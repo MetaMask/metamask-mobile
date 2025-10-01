@@ -440,7 +440,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
-            chainId={chainId}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
