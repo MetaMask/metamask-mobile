@@ -242,21 +242,19 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <View style={styles.content}>
-          <View style={styles.contentContainer}>
-            {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <PerpsEmptyState
-                onStartTrading={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
-              />
-            ) : (
-              <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
-              </View>
-            )}
-          </View>
+        <View>
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <PerpsEmptyState
+              onStartTrading={handleNewTrade}
+              testID="perps-empty-state"
+              twClassName="mx-auto"
+            />
+          ) : (
+            <View style={styles.tradeInfoContainer}>
+              <View style={styles.section}>{renderPositionsSection()}</View>
+              <View style={styles.section}>{renderOrdersSection()}</View>
+            </View>
+          )}
         </View>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.

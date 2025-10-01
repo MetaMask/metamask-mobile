@@ -43,7 +43,7 @@ exports[`TabsList handles empty children gracefully 1`] = `
     style={
       {
         "marginTop": 8,
-        "minHeight": 200,
+        "minHeight": 400,
       }
     }
   >

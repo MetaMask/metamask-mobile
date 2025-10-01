@@ -18,8 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
     },
-    content: {},
-    contentContainer: {},
     section: {},
     sectionHeader: {
       flexDirection: 'row',
