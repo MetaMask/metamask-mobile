@@ -178,6 +178,11 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       },
     });
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(false);
+    otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue({
+      ticker: 'ETH',
+      rpcEndpoints: [{ networkClientId: 'test-network-configuration-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
 
     const spyOnSetNetworkClientIdForDomain = jest.spyOn(
       Engine.context.SelectedNetworkController,
@@ -202,10 +207,6 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 
   it('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
     const origin = 'https://test.com';
-    const spyOnGrantPermissionsIncremental = jest.spyOn(
-      Engine.context.PermissionController,
-      'grantPermissionsIncremental',
-    );
 
     jest
       .spyOn(
@@ -232,6 +233,11 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         sessionProperties: {},
       },
     });
+    otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue({
+      ticker: 'ETH',
+      rpcEndpoints: [{ networkClientId: 'test-network-configuration-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
 
     await wallet_switchEthereumChain({
       req: {
@@ -241,30 +247,13 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       ...otherOptions,
     });
 
-    expect(otherOptions.requestUserApproval).toHaveBeenCalled();
-    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
-    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-      approvedPermissions: {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: {
-                isMultichainOrigin: false,
-                optionalScopes: {
-                  'eip155:100': {
-                    accounts: [],
-                  },
-                },
-                requiredScopes: {},
-                sessionProperties: {},
-              },
-            },
-          ],
-        },
-      },
-      subject: {
-        origin,
+    expect(
+      otherOptions.hooks.requestPermittedChainsPermissionIncrementalForOrigin,
+    ).toHaveBeenCalledWith({
+      chainId: '0x64',
+      autoApprove: false,
+      metadata: {
+        isSwitchEthereumChain: true,
       },
     });
     expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledWith(
