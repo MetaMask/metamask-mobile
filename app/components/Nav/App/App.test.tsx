@@ -148,6 +148,7 @@ jest.mock('../../../core', () => ({
     appTriggeredAuth: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn(),
     checkIsSeedlessPasswordOutdated: jest.fn(),
+    userEntryAuth: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -889,6 +890,159 @@ describe('App', () => {
             },
           },
         ],
+      });
+    });
+  });
+
+  describe('Auto-login in development', () => {
+    const mockUserEntryAuth = Authentication.userEntryAuth as jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return true;
+        }
+        return null;
+      });
+    });
+
+    it('successfully auto-logs in when in development with password set', async () => {
+      // Arrange
+      jest.replaceProperty(process, 'env', {
+        ...process.env,
+        NODE_ENV: 'development',
+        MM_DEV_AUTO_LOGIN_PASSWORD: 'test-password-123',
+      });
+      mockUserEntryAuth.mockResolvedValue(undefined);
+
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === EXISTING_USER) {
+          return true;
+        }
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return true;
+        }
+        return null;
+      });
+
+      const loggedInState = {
+        ...initialState,
+        user: {
+          existingUser: true,
+          userLoggedIn: false,
+        },
+      };
+
+      // Act
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockUserEntryAuth).toHaveBeenCalledWith(
+          'test-password-123',
+          expect.objectContaining({
+            currentAuthType: 'password',
+          }),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        });
+      });
+    });
+
+    it('skips auto-login when not in development mode', async () => {
+      // Arrange
+      jest.replaceProperty(process, 'env', {
+        ...process.env,
+        NODE_ENV: 'production',
+        MM_DEV_AUTO_LOGIN_PASSWORD: 'test-password-123',
+      });
+
+      const loggedInState = {
+        ...initialState,
+        user: {
+          existingUser: true,
+          userLoggedIn: false,
+        },
+      };
+
+      // Act
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      // Assert - auto-login should not be called
+      await waitFor(() => {
+        expect(mockUserEntryAuth).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips auto-login when password is not set', async () => {
+      // Arrange
+      jest.replaceProperty(process, 'env', {
+        ...process.env,
+        NODE_ENV: 'development',
+        MM_DEV_AUTO_LOGIN_PASSWORD: '',
+      });
+
+      const loggedInState = {
+        ...initialState,
+        user: {
+          existingUser: true,
+          userLoggedIn: false,
+        },
+      };
+
+      // Act
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      // Assert - auto-login should not be called
+      await waitFor(() => {
+        expect(mockUserEntryAuth).not.toHaveBeenCalled();
+      });
+    });
+
+    it('falls back to normal authentication when auto-login fails', async () => {
+      // Arrange
+      jest.replaceProperty(process, 'env', {
+        ...process.env,
+        NODE_ENV: 'development',
+        MM_DEV_AUTO_LOGIN_PASSWORD: 'wrong-password',
+      });
+      const mockAppTriggeredAuth = Authentication.appTriggeredAuth as jest.Mock;
+      mockUserEntryAuth.mockRejectedValue(new Error('Invalid password'));
+      mockAppTriggeredAuth.mockResolvedValue(undefined);
+
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === EXISTING_USER) {
+          return true;
+        }
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return true;
+        }
+        return null;
+      });
+
+      const loggedInState = {
+        ...initialState,
+        user: {
+          existingUser: true,
+          userLoggedIn: false,
+        },
+      };
+
+      // Act
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      // Assert - should attempt auto-login, fail, then fall back to normal auth
+      await waitFor(() => {
+        expect(mockUserEntryAuth).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockAppTriggeredAuth).toHaveBeenCalled();
       });
     });
   });
