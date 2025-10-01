@@ -1238,18 +1238,8 @@ const Wallet = ({
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const newScrollY = event.nativeEvent.contentOffset.y;
       setScrollY(newScrollY);
-
-      // Debug logging for scroll events (development only)
-      if (__DEV__ && false) {
-        // Disabled for now
-        // eslint-disable-next-line no-console
-        console.log('🔍 Wallet Scroll Debug:', {
-          scrollY: newScrollY,
-          screenHeight,
-        });
-      }
     },
-    [screenHeight],
+    [],
   );
 
   const renderContent = useCallback(
