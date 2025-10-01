@@ -1020,13 +1020,57 @@ export class PerpsController extends BaseController<
    * Cancel an existing order
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
+
+    // Track order cancel submitted
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+      )
+        .addProperties({
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUBMITTED,
+          [PerpsEventProperties.ASSET]: params.coin,
+        })
+        .build(),
+    );
+
     const result = await provider.cancelOrder(params);
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Track order cancel executed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          })
+          .build(),
+      );
+    } else {
+      // Track order cancel failed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+          })
+          .build(),
+      );
     }
 
     return result;
