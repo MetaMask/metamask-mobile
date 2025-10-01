@@ -218,7 +218,7 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  * @returns a null response on success or an error if user rejects an approval when autoApprove is false or on unexpected errors.
  */
 export async function switchToNetwork({
-  network,
+  networkClientId,
   chainId,
   requestUserApproval,
   analytics,
@@ -238,8 +238,6 @@ export async function switchToNetwork({
   } = hooks;
   const { MultichainNetworkController, SelectedNetworkController } =
     Engine.context;
-
-  const [networkConfigurationId, networkConfiguration] = network;
 
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
@@ -293,11 +291,11 @@ export async function switchToNetwork({
   if (isPerDappSelectedNetworkEnabled()) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
-      networkConfigurationId || networkConfiguration.networkType,
+      networkClientId,
     );
   } else {
     await MultichainNetworkController.setActiveNetwork(
-      networkConfigurationId || networkConfiguration.networkType,
+      networkClientId,
     );
   }
 
