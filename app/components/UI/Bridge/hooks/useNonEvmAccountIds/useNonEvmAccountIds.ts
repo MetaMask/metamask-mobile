@@ -1,16 +1,19 @@
 import { useSelector } from 'react-redux';
-import { CaipChainId } from '@metamask/utils';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useMemo } from 'react';
-
-const NON_EVM_CHAIN_IDS: CaipChainId[] = [SolScope.Mainnet, BtcScope.Mainnet];
+import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 
 /**
  * Hook to get account IDs for non-EVM accounts
  * @returns {string[]} Array of account IDs for accounts that have non-EVM scopes
  */
 export const useNonEvmAccountIds = (): string[] => {
+  const enabledSourceChains = useSelector(selectEnabledSourceChains);
+  const enabledSourceChainIds = useMemo(
+    () => enabledSourceChains.map((chain) => chain.chainId),
+    [enabledSourceChains],
+  );
+
   const selectedAccountGroupInternalAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
   );
@@ -19,10 +22,10 @@ export const useNonEvmAccountIds = (): string[] => {
     () =>
       selectedAccountGroupInternalAccounts
         .filter((account) =>
-          account.scopes.some((scope) => NON_EVM_CHAIN_IDS.includes(scope)),
+          account.scopes.some((scope) => enabledSourceChainIds.includes(scope)),
         )
         .map((account) => account.id),
-    [selectedAccountGroupInternalAccounts],
+    [selectedAccountGroupInternalAccounts, enabledSourceChainIds],
   );
 
   return nonEvmAccountIds;
