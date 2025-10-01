@@ -129,7 +129,7 @@ export const ActivityEventRow: React.FC<{
             {eventDetails.details}
           </Text>
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {formatRewardsDate(new Date(event.timestamp).getTime())}
+            {formatRewardsDate(new Date(event.timestamp))}
           </Text>
         </Box>
       </Box>
