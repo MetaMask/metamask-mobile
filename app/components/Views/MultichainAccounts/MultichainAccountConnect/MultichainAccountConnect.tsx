@@ -289,7 +289,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
 
-  const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+  const dappUrl =
+    sdkConnection?.originatorInfo?.url ??
+    sdkV2Connection?.originatorInfo?.url ??
+    '';
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
@@ -326,10 +329,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   ]);
 
   const urlWithProtocol =
-    hostname && !isUUID(hostname)
-      ? isOriginMMSDKV2RemoteConn
-        ? hostname // TODO [ffmcgee]: clean up this mess!!!!
-        : prefixUrlWithProtocol(getHost(hostname))
+    hostname && !isUUID(hostname) && !isOriginMMSDKV2RemoteConn
+      ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
   const { hostname: hostnameFromUrlObj } = getUrlObj(urlWithProtocol);

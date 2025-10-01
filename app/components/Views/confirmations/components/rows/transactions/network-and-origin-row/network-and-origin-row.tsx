@@ -74,7 +74,7 @@ export const NetworkAndOriginRow = () => {
           style={styles.infoRowOverride}
         >
           <Text variant={TextVariant.BodyMD}>
-            {isMMDSDKV2Origin ? sdkV2Connection?.originatorInfo?.title : origin}
+            {isMMDSDKV2Origin ? sdkV2Connection?.origin : origin}
           </Text>
         </AlertRow>
       )}
