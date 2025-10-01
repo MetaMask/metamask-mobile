@@ -28,7 +28,7 @@ import {
   endTrace,
   trace,
 } from '../../../../../util/trace';
-import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { useAccountWalletOperationsLoadingStates } from '../../../../../util/accounts/useAccountWalletOperationsLoadingStates';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
@@ -40,14 +40,14 @@ const AccountListFooter = memo(
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
     const {
-      isAccountSyncingInProgress,
+      areAnyOperationsLoading,
       loadingMessage: accountOperationLoadingMessage,
-    } = useAccountsOperationsLoadingStates();
+    } = useAccountWalletOperationsLoadingStates(walletId);
 
-    const isLoadingState = isLoading || isAccountSyncingInProgress;
+    const isLoadingState = areAnyOperationsLoading;
 
     const actionLabel = useMemo(() => {
-      if (isAccountSyncingInProgress) {
+      if (areAnyOperationsLoading) {
         return accountOperationLoadingMessage;
       }
 
@@ -58,8 +58,8 @@ const AccountListFooter = memo(
       return strings('multichain_accounts.wallet_details.create_account');
     }, [
       isLoadingState,
+      areAnyOperationsLoading,
       accountOperationLoadingMessage,
-      isAccountSyncingInProgress,
     ]);
 
     // Get wallet information to find the keyringId
