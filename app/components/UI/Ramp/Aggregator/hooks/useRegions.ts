@@ -59,7 +59,7 @@ export default function useRegions() {
   useEffect(() => {
     if (!updatedRegion) return;
     setSelectedRegion(updatedRegion);
-  }, [updatedRegion, setSelectedRegion, selectedRegion]);
+  }, [updatedRegion, setSelectedRegion]);
 
   return {
     data,
