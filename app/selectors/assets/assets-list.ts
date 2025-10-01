@@ -6,6 +6,7 @@ import {
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
+import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
