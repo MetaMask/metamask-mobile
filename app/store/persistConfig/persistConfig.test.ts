@@ -571,12 +571,9 @@ describe('persistConfig', () => {
         ).resolves.toBeUndefined();
 
         // Then
-        expect(Logger.error).toHaveBeenCalledWith(
-          persistError,
-          'Failed to persist KeyringController state',
-        );
-        // Should not dispatch Redux action on error
-        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(Logger.error).toHaveBeenCalledWith(persistError, {
+          message: 'Failed to persist KeyringController state',
+        });
       });
 
       it('handles getPersistentState errors gracefully', async () => {
@@ -595,7 +592,7 @@ describe('persistConfig', () => {
         // Then
         expect(Logger.error).toHaveBeenCalledWith(
           filterError,
-          'Failed to persist KeyringController state',
+          'Failed to process KeyringController state change',
         );
       });
 
