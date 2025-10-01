@@ -238,8 +238,8 @@ jobs:
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/*.apk
+          name: ${{ steps.determine-target-paths.outputs.apk-target-path }}/app-prod-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/app-prod-release.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -247,8 +247,8 @@ jobs:
         id: upload-test-apk
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
-          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/*.apk
+          name: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/app-prod-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/app-prod-release-androidTest.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -256,18 +256,8 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
-          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/*.aab
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
-
-      - name: Upload Android Source Map
-        id: upload-sourcemap
-        uses: actions/upload-artifact@v4
-        with:
-          name: index.android.bundle.map
-          path: sourcemaps/android/index.android.bundle.map
+          name: ${{ steps.determine-target-paths.outputs.aab-target-path }}/app-prod-release.aab
+          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/app-prod-release.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
