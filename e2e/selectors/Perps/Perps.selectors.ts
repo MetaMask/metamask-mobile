@@ -388,7 +388,6 @@ export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
   CAROUSEL: 'perps-tutorial-carousel',
-  CARD: 'perps-tutorial-card',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
 } as const;
