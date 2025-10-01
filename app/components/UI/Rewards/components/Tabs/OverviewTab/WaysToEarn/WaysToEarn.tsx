@@ -13,6 +13,7 @@ import {
   IconSize,
   IconColor,
   ButtonVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -272,19 +273,21 @@ export const WaysToEarn = () => {
                 </Box>
 
                 <Box>
-                  <Text variant={TextVariant.SectionHeading}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
                     {wayToEarn.title}
                   </Text>
                   <Text
                     variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                   >
                     {wayToEarn.description}
                   </Text>
                 </Box>
               </Box>
-
-              <Icon name={IconName.ArrowRight} size={IconSize.Md} />
             </ButtonBase>
           )}
         />
