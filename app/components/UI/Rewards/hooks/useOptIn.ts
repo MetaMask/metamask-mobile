@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import { deriveAccountMetricProps, handleRewardsErrorMessage } from '../utils';
+import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
@@ -33,7 +33,6 @@ export const useOptin = (): UseOptinResult => {
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
-  const accountMetricsProps = deriveAccountMetricProps(account);
 
   const handleOptin = useCallback(
     async ({ referralCode }: { referralCode?: string }) => {
@@ -46,8 +45,6 @@ export const useOptin = (): UseOptinResult => {
           .addProperties({
             referred,
             referral_code_used: referralCode,
-            // TODO: add referral_code_input_type
-            ...accountMetricsProps,
           })
           .build(),
       );
@@ -71,7 +68,6 @@ export const useOptin = (): UseOptinResult => {
               .addProperties({
                 referred,
                 referral_code_used: referralCode,
-                ...accountMetricsProps,
               })
               .build(),
           );
@@ -82,7 +78,6 @@ export const useOptin = (): UseOptinResult => {
             .addProperties({
               referred,
               referral_code_used: referralCode,
-              ...accountMetricsProps,
             })
             .build(),
         );
@@ -92,14 +87,7 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(false);
       }
     },
-    [
-      account,
-      createEventBuilder,
-      dispatch,
-      trackEvent,
-      addTraitsToUser,
-      accountMetricsProps,
-    ],
+    [account, createEventBuilder, dispatch, trackEvent, addTraitsToUser],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);
