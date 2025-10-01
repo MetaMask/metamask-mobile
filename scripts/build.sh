@@ -31,8 +31,8 @@ loadJSEnv
 
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
-export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-"$MODE"}
+export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-"$ENVIRONMENT"}
 export EXPO_NO_TYPESCRIPT_SETUP=1
 
 echo "PLATFORM = $PLATFORM"
@@ -72,7 +72,7 @@ printTitle(){
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
-	echo "  🚀 BUILDING $PLATFORM for $MODE target with $ENVIRONMENT environment" | tr [a-z] [A-Z]
+	echo "  🚀 BUILDING $PLATFORM for $METAMASK_BUILD_TYPE target with $METAMASK_ENVIRONMENT environment" | tr [a-z] [A-Z]
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
@@ -576,7 +576,7 @@ buildAndroidReleaseE2E(){
 }
 
 buildAndroid() {
-	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
+	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
 		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
@@ -584,7 +584,7 @@ buildAndroid() {
 		else
 			buildAndroidMainProduction
 		fi
-	elif [ "$MODE" == "flask" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidFlaskLocal
 		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
@@ -592,7 +592,7 @@ buildAndroid() {
 		else
 			buildAndroidFlaskProduction
 		fi
-	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidQALocal
 		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
@@ -600,9 +600,9 @@ buildAndroid() {
 		else
 			buildAndroidQaProduction
 		fi
-	elif [ "$MODE" == "releaseE2E" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
-  	elif [ "$MODE" == "debugE2E" ] ; then
+  	elif [ "$METAMASK_BUILD_TYPE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	else
 		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
@@ -621,8 +621,8 @@ buildAndroidRunE2E(){
 }
 
 buildIos() {
-	echo "Build iOS $MODE started..."
-	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
+	echo "Build iOS $METAMASK_BUILD_TYPE started..."
+	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosMainLocal
 		else
@@ -633,7 +633,7 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask"
 		fi
-	elif [ "$MODE" == "flask" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosFlaskLocal
 		else
@@ -644,7 +644,7 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask-Flask"
 		fi
-	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildIosQALocal
 		else
@@ -655,13 +655,13 @@ buildIos() {
 			# Generate iOS binary
 			generateIosBinary "MetaMask-QA"
 		fi
-	elif [ "$MODE" == "releaseE2E" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
-	elif [ "$MODE" == "debugE2E" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "debugE2E" ] ; then
 			buildIosSimulatorE2E
-	elif [ "$MODE" == "qadebugE2E" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "qadebugE2E" ] ; then
 			buildIosQASimulatorE2E
-	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+	elif [ "$METAMASK_BUILD_TYPE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
 	else
 		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized"
@@ -690,7 +690,7 @@ checkAuthToken() {
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-		if [ "$ENVIRONMENT" == "production" ]; then
+		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 			printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
 			exit 1
 		else
@@ -703,7 +703,7 @@ checkAuthToken() {
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
 			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 		else
-			if [ "$ENVIRONMENT" == "production" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 				printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
 				exit 1
 			else
@@ -720,50 +720,50 @@ printTitle
 
 # Map environment variables based on mode.
 # TODO: MODE should be renamed to TARGET
-if [ "$MODE" == "main" ]; then
+if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 	export GENERATE_BUNDLE=true # Used only for Android
 	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-	if [ "$ENVIRONMENT" == "production" ]; then
+	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 		remapMainProdEnvVariables
-	elif [ "$ENVIRONMENT" == "beta" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
 		remapMainBetaEnvVariables
-	elif [ "$ENVIRONMENT" == "rc" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
 		remapMainReleaseCandidateEnvVariables
-	elif [ "$ENVIRONMENT" == "exp" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
 		remapMainExperimentalEnvVariables
-	elif [ "$ENVIRONMENT" == "test" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
 		remapMainTestEnvVariables
-	elif [ "$ENVIRONMENT" == "e2e" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 		remapMainE2EEnvVariables
-	elif [ "$ENVIRONMENT" == "dev" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
 		remapMainDevEnvVariables
 	fi
-elif [ "$MODE" == "flask" ]; then
+elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
 	# TODO: Map environment variables based on environment
-	if [ "$ENVIRONMENT" == "production" ]; then
+	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 		remapFlaskProdEnvVariables
-	elif [ "$ENVIRONMENT" == "test" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
 		remapFlaskTestEnvVariables
-	elif [ "$ENVIRONMENT" == "e2e" ]; then
+	elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 		remapFlaskE2EEnvVariables
 	fi
-elif [ "$MODE" == "qa" ] || [ "$MODE" == "QA" ]; then
+elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
 fi
 
-if [ "$ENVIRONMENT" == "e2e" ]; then
+if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 	# Build for simulator
 	export IS_SIM_BUILD="true"
 	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
+if [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ] || [ "$MODE" == "main" ]; then
+elif [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
