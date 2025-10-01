@@ -33,6 +33,7 @@ import { applyVaultInitialization } from '../../util/generateSkipOnboardingState
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { selectExistingUser } from '../../reducers/user';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -172,43 +173,45 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = yield select(selectCompletedOnboarding);
     }
 
-    if (!completedOnboarding) {
+    const existingUser: boolean = yield select(selectExistingUser);
+    if (!existingUser) {
       const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
       if (onboardingDeeplink?.includes('onboarding')) {
         const url = new URL(onboardingDeeplink);
-        let onboardingType;
-        url.search
-          .slice(1)
-          .split('&')
-          .forEach((param) => {
-            const [paramKey, paramValue] = param.split('=');
-            if (paramKey === 'type') {
-              onboardingType = paramValue;
-            }
-          });
+        if (url.pathname.startsWith('/onboarding')) {
+          let onboardingType;
+          url.search
+            .slice(1)
+            .split('&')
+            .forEach((param) => {
+              const [paramKey, paramValue] = param.split('=');
+              if (paramKey === 'type') {
+                onboardingType = paramValue;
+              }
+            });
 
-        if (onboardingType) {
-          const resetRoute = {
-            routes: [
-              {
-                name: Routes.ONBOARDING.ROOT_NAV,
-                params: {
-                  screen: Routes.ONBOARDING.NAV,
+          if (onboardingType) {
+            const resetRoute = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
                   params: {
-                    screen: Routes.ONBOARDING.ONBOARDING,
+                    screen: Routes.ONBOARDING.NAV,
                     params: {
-                      onboardingType,
+                      screen: Routes.ONBOARDING.ONBOARDING,
+                      params: {
+                        onboardingType,
+                      },
                     },
                   },
                 },
-              },
-            ],
-          };
-          NavigationService.navigation?.navigate(resetRoute.routes[0]);
+              ],
+            };
+            NavigationService.navigation?.navigate(resetRoute.routes[0]);
+          }
+          AppStateEventProcessor.clearPendingDeeplink();
+          continue;
         }
-
-        AppStateEventProcessor.clearPendingDeeplink();
-        continue;
       }
     }
 
