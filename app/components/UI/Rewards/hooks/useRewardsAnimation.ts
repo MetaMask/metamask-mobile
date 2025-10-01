@@ -41,7 +41,6 @@ interface UseRewardsAnimationResult {
   rivePositionStyle: AnimatedStyle;
   displayValue: number;
   displayText: string | null;
-  isAnimating: boolean;
   hideValue: boolean;
 }
 
@@ -65,22 +64,23 @@ export const useRewardsAnimation = ({
 }: UseRewardsAnimationParams): UseRewardsAnimationResult => {
   const riveRef = useRef<RiveRef>(null);
   const previousValueRef = useRef<number | null>(null);
+  const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
 
   const animatedValue = useSharedValue(0);
   const rivePosition = useSharedValue(0);
+  const isAnimating = useSharedValue(false);
 
   const [displayValue, setDisplayValue] = useState(0);
   const [displayText, setDisplayText] = useState<string | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [hideValue, setHideValue] = useState(false);
 
   // Animate number value changes
   useEffect(() => {
-    setIsAnimating(true);
+    isAnimating.value = true;
     animatedValue.value = withTiming(value, { duration }, () => {
-      runOnJS(setIsAnimating)(false);
+      isAnimating.value = false;
     });
-  }, [value, duration, animatedValue]);
+  }, [value, duration, animatedValue, isAnimating]);
 
   const triggerRiveAnimation = useCallback((trigger: RewardsIconTriggers) => {
     try {
@@ -90,13 +90,29 @@ export const useRewardsAnimation = ({
     }
   }, []);
 
+  // Helper function to manage timeouts and prevent memory leaks
+  const createTimeout = useCallback((callback: () => void, delay: number) => {
+    const timeoutId = setTimeout(callback, delay);
+    timeoutRefs.current.add(timeoutId);
+    return timeoutId;
+  }, []);
+
+  // Clear all timeouts on unmount
+  useEffect(() => {
+    const timeouts = timeoutRefs.current;
+    return () => {
+      timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+      timeouts.clear();
+    };
+  }, []);
+
   const handleLoadingState = useCallback(() => {
     if (!riveRef.current) return;
 
     setDisplayText(null);
     rivePosition.value = withTiming(0, { duration: ANIMATION_DURATION.NORMAL });
 
-    setTimeout(() => setHideValue(true), ANIMATION_DURATION.SLOW);
+    createTimeout(() => setHideValue(true), ANIMATION_DURATION.SLOW);
     if (animatedValue.value > 0) {
       animatedValue.value = withTiming(0, {
         duration: ANIMATION_DURATION.SLOW,
@@ -104,21 +120,23 @@ export const useRewardsAnimation = ({
     }
 
     triggerRiveAnimation(RewardsIconTriggers.Disable);
-  }, [animatedValue, rivePosition, triggerRiveAnimation]);
+  }, [animatedValue, rivePosition, triggerRiveAnimation, createTimeout]);
 
   const handleErrorState = useCallback(() => {
     if (!riveRef.current) return;
     setHideValue(false);
-    setIsAnimating(true);
+    isAnimating.value = true;
     setDisplayText("Couldn't Load");
-    setTimeout(() => setIsAnimating(false), ANIMATION_DURATION.FAST);
+    createTimeout(() => {
+      isAnimating.value = false;
+    }, ANIMATION_DURATION.FAST);
 
     rivePosition.value = withTiming(BASE_FOX_POSITION, {
       duration: ANIMATION_DURATION.SLOW,
     });
 
     triggerRiveAnimation(RewardsIconTriggers.Disable);
-  }, [rivePosition, triggerRiveAnimation]);
+  }, [rivePosition, triggerRiveAnimation, createTimeout, isAnimating]);
 
   const handleIdleState = useCallback(() => {
     if (!riveRef.current) return;
@@ -146,7 +164,8 @@ export const useRewardsAnimation = ({
 
   // State machine effect - triggers appropriate animation based on state
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timeouts = timeoutRefs.current;
+    const timer = createTimeout(() => {
       if (!riveRef.current) return;
 
       switch (state) {
@@ -163,13 +182,23 @@ export const useRewardsAnimation = ({
       }
     }, 100); // Delay ensures Rive component is loaded
 
-    return () => clearTimeout(timer);
-  }, [state, value, handleLoadingState, handleErrorState, handleIdleState]);
+    return () => {
+      clearTimeout(timer);
+      timeouts.delete(timer);
+    };
+  }, [
+    state,
+    value,
+    handleLoadingState,
+    handleErrorState,
+    handleIdleState,
+    createTimeout,
+  ]);
 
   // Animated style for number text with bounce effect
   const animatedStyle = useAnimatedStyle(() => {
     const currentValue = Math.round(animatedValue.value);
-    const bounce = isAnimating ? 1.05 : 1;
+    const bounce = isAnimating.value ? 1.05 : 1;
 
     runOnJS(setDisplayValue)(currentValue);
 
@@ -192,7 +221,6 @@ export const useRewardsAnimation = ({
     rivePositionStyle,
     displayValue,
     displayText,
-    isAnimating,
     hideValue,
   };
 };
