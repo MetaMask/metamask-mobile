@@ -14,7 +14,7 @@ import { ImageURISource } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { wait } from '../../../core/SDKConnect/utils/wait.util.ts';
 
-export interface ReturnToAppToastProps {
+export interface ReturnToAppNotificationProps {
   route: {
     params: {
       method?: string;
@@ -54,7 +54,7 @@ const diplayToast = (
  * Fake modal that displays a toast instead of rendering a component.
  * We need to trigger a toast from an SDK service that cannot access a component.
  */
-const ReturnToAppToast = (props: ReturnToAppToastProps) => {
+const ReturnToAppNotification = (props: ReturnToAppNotificationProps) => {
   const delayAfterMethod: number = 1200;
   const delayBetweenToast: number = 1500;
   const { method, origin, hideReturnToApp } = props.route.params ?? {};
@@ -108,4 +108,4 @@ const ReturnToAppToast = (props: ReturnToAppToastProps) => {
   return <></>;
 };
 
-export default ReturnToAppToast;
+export default ReturnToAppNotification;

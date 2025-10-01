@@ -237,7 +237,7 @@ class WalletConnect2Session {
 
     const showReturnModal = () => {
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
       });
     };
 

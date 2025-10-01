@@ -212,7 +212,7 @@ async function connectToChannel({
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         });
         return;
       }
@@ -284,9 +284,9 @@ async function connectToChannel({
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_TOAST`);
+        DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_NOTIFCATION`);
         connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         });
       }
     }

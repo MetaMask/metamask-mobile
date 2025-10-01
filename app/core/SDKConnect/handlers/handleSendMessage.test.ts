@@ -282,7 +282,7 @@ describe('handleSendMessage', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         method: 'test-method',
         origin: 'https://example.com',
         hideReturnToApp: true,
@@ -302,7 +302,7 @@ describe('handleSendMessage', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         method: 'test-method',
         origin: 'https://example.com',
         hideReturnToApp: false,
@@ -322,7 +322,7 @@ describe('handleSendMessage', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         method: 'test-method',
         origin: 'https://example.com',
         hideReturnToApp: undefined,

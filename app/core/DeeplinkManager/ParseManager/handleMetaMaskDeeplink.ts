@@ -55,7 +55,7 @@ export function handleMetaMaskDeeplink({
       SDKConnect.getInstance().state.navigation?.navigate(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+          screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
           hideReturnToApp: params.hr,
         },
       );

@@ -297,7 +297,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should displays RETURN_TO_DAPP_TOAST', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFCATION', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -316,12 +316,12 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         hideReturnToApp: false,
       });
     });
 
-    it('should displays RETURN_TO_DAPP_TOAST with hideReturnToApp set to true', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFCATION with hideReturnToApp set to true', () => {
       params.redirect = 'true';
       params.hr = true;
       // Mock Device.isIos() to return true
@@ -341,12 +341,12 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         hideReturnToApp: true,
       });
     });
 
-    it('should displays RETURN_TO_DAPP_TOAST with hideReturnToApp set to false', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFCATION with hideReturnToApp set to false', () => {
       params.redirect = 'true';
       params.hr = false;
       // Mock Device.isIos() to return true
@@ -366,7 +366,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFCATION,
         hideReturnToApp: false,
       });
     });
