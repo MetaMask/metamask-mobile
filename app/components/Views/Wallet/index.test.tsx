@@ -604,6 +604,27 @@ describe('Wallet', () => {
     });
 
     it('should handle onReceive callback correctly', () => {
+      // Mock the required selectors to ensure onReceive conditions are met
+      jest.mocked(useSelector).mockImplementation((callback) => {
+        const selectorString = callback.toString();
+        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
+          return false; // Test state1 path
+        }
+        if (selectorString.includes('selectSelectedInternalAccount')) {
+          return { address: '0x123456789' }; // Mock account with address
+        }
+        if (selectorString.includes('selectSelectedAccountGroupId')) {
+          return 'group-id-123'; // Mock group ID
+        }
+        if (selectorString.includes('selectChainId')) {
+          return '0x1'; // Mock chain ID
+        }
+        if (selectorString.includes('selectProviderConfig')) {
+          return { nickname: 'Ethereum Mainnet' }; // Mock provider config
+        }
+        return callback(mockInitialState);
+      });
+
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
