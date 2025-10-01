@@ -44,7 +44,7 @@ jobs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
       aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
-      artifact-name: ${{ steps.determine-target-paths.outputs.artifact-name }}
+      artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
 
     steps:
       - name: Checkout repo
@@ -99,39 +99,39 @@ jobs:
           aab_target_path=""
           artifact_name=""
           echo "Determining target paths and Artifact Names..."
-          if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
             apk_target_path="android/app/build/outputs/apk/flask/release"
             test_apk_target_path="android/app/build/outputs/apk/androidTest/flask/release"
             aab_target_path="android/app/build/outputs/bundle/flaskRelease"
-            artifact-name="app-flask-release"
+            artifact_name="app-flask-release"
             echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
             echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
-            echo "artifact_name=${artifact-name}" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=${artifact_name}" >> "$GITHUB_OUTPUT"
           else
             apk_target_path="android/app/build/outputs/apk/prod/release"
             test_apk_target_path="android/app/build/outputs/apk/androidTest/prod/release"
             aab_target_path="android/app/build/outputs/bundle/prodRelease"
-            artifact-name="app-prod-release"
+            artifact_name="app-prod-release"
             echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
             echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
-            echo "artifact-name=${artifact-name}" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=${artifact_name}" >> "$GITHUB_OUTPUT"
           fi
           echo "Determine target paths and Artifact Names results:"
           echo "apk-target-path=${apk_target_path}"
           echo "test-apk-target-path=${test_apk_target_path}"
           echo "aab-target-path=${aab_target_path}"
-          echo "artifact-name=${artifact-name}"
+          echo "artifact_name=${artifact_name}"
 
       - name: Check and restore cached APKs if Fingerprint is found
         id: cache-restore
         uses: actions/cache@v4
         with:
           path: |
-            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.apk
-            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}-androidTest.apk
-            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.aab
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
@@ -196,7 +196,7 @@ jobs:
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
           yarn build:repack
-          echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/app-${{ steps.determine-target-paths.outputs.artifact-name }}.apk" | cut -f1)"
+          echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" | cut -f1)"
         env:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
@@ -248,17 +248,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.apk
-            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}-androidTest.apk
-            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.aab
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.apk
-          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -266,8 +266,8 @@ jobs:
         id: upload-test-apk
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}-androidTest.apk
-          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -275,8 +275,8 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.aab
-          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact-name }}.aab
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
+          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
