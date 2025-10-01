@@ -6,6 +6,7 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
+import { useSDKV2Connection } from '../../../../../../hooks/useSDKV2Connection';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import Text, {
   TextVariant,
@@ -24,7 +25,6 @@ import Address from '../../../UI/info-row/info-value/address';
 import styleSheet from './network-and-origin-row.styles';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import AlertRow from '../../../UI/info-row/alert-row';
-import { ConnectionProps } from '../../../../../../../core/SDKConnect/Connection';
 
 export const NetworkAndOriginRow = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -34,20 +34,14 @@ export const NetworkAndOriginRow = () => {
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
+  const { isV2: isMMDSDKV2Origin, sdkV2Connection } =
+    useSDKV2Connection(origin);
 
   const networkConfiguration = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
 
-  const { v2Connections } = useSelector((state: RootState) => state.sdk);
-
-  const sdkV2Connection: ConnectionProps & { isV2?: boolean } =
-    v2Connections[origin ?? ''];
-
   const isDappOrigin = origin !== MMM_ORIGIN;
-
-  const isMMDSDKV2Origin = sdkV2Connection?.isV2;
-  const SDKV2Origin = sdkV2Connection.originatorInfo?.title ?? ''; // TODO [ffmcgee] useMemo
 
   const networkImage = getNetworkImageSource({ chainId: chainId as Hex });
 
@@ -80,7 +74,7 @@ export const NetworkAndOriginRow = () => {
           style={styles.infoRowOverride}
         >
           <Text variant={TextVariant.BodyMD}>
-            {isMMDSDKV2Origin ? SDKV2Origin : origin}
+            {isMMDSDKV2Origin ? sdkV2Connection?.originatorInfo?.title : origin}
           </Text>
         </AlertRow>
       )}
