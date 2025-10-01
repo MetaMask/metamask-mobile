@@ -1058,7 +1058,11 @@ export class RewardsController extends BaseController<
         for (let i = 0; i < addressesNeedingFresh.length; i++) {
           const address = addressesNeedingFresh[i];
           const hasOptedIn = freshOptInResults[i];
-          const subscriptionId = freshSubscriptionIds[i];
+          const subscriptionId =
+            Array.isArray(freshSubscriptionIds) &&
+            i < freshSubscriptionIds.length
+              ? freshSubscriptionIds[i]
+              : null;
           const internalAccount = addressToAccountMap.get(
             address.toLowerCase(),
           );
@@ -1866,7 +1870,12 @@ export class RewardsController extends BaseController<
         if (silentAuthAttempts > maxSilentAuthAttempts) break;
         const account = supportedAccounts[i];
         if (!account || optInStatusResponse.ois[i] === false) continue;
-        let subscriptionId = optInStatusResponse.sids[i];
+        // Defensive: Ensure sids is an array and i is within bounds
+        let subscriptionId =
+          Array.isArray(optInStatusResponse?.sids) &&
+          i < optInStatusResponse.sids.length
+            ? optInStatusResponse.sids[i]
+            : null;
         if (subscriptionId) return subscriptionId;
         try {
           silentAuthAttempts++;
