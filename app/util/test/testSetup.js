@@ -201,27 +201,14 @@ jest.mock(
 );
 
 jest.mock('react-native-keychain', () => ({
-  SECURITY_LEVEL_ANY: 'MOCK_SECURITY_LEVEL_ANY',
-  SECURITY_LEVEL_SECURE_SOFTWARE: 'MOCK_SECURITY_LEVEL_SECURE_SOFTWARE',
-  SECURITY_LEVEL_SECURE_HARDWARE: 'MOCK_SECURITY_LEVEL_SECURE_HARDWARE',
-  setGenericPassword: jest.fn(),
-  getGenericPassword: jest.fn(),
-  resetGenericPassword: jest.fn(),
-  BIOMETRY_TYPE: {
-    TOUCH_ID: 'TouchID',
-    FACE_ID: 'FaceID',
-    FINGERPRINT: 'Fingerprint',
-    FACE: 'Face',
-    IRIS: 'Iris',
+  // Security Level enum
+  SECURITY_LEVEL: {
+    ANY: 'MOCK_SECURITY_LEVEL_ANY',
+    SECURE_SOFTWARE: 'MOCK_SECURITY_LEVEL_SECURE_SOFTWARE',
+    SECURE_HARDWARE: 'MOCK_SECURITY_LEVEL_SECURE_HARDWARE',
   },
-  getSupportedBiometryType: jest.fn().mockReturnValue('FaceID'),
-  setInternetCredentials: jest
-    .fn(('server', 'username', 'password'))
-    .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
-  getInternetCredentials: jest
-    .fn()
-    .mockResolvedValue({ password: 'mock-credentials-password' }),
-  resetInternetCredentials: jest.fn().mockResolvedValue(),
+
+  // Accessible enum
   ACCESSIBLE: {
     WHEN_UNLOCKED: 'AccessibleWhenUnlocked',
     AFTER_FIRST_UNLOCK: 'AccessibleAfterFirstUnlock',
@@ -231,8 +218,98 @@ jest.mock('react-native-keychain', () => ({
     WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'AccessibleWhenUnlockedThisDeviceOnly',
     AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY:
       'AccessibleAfterFirstUnlockThisDeviceOnly',
-    ALWAYS_THIS_DEVICE_ONLY: 'AccessibleAlwaysThisDeviceOnly',
   },
+
+  // Access Control enum
+  ACCESS_CONTROL: {
+    USER_PRESENCE: 'UserPresence',
+    BIOMETRY_ANY: 'BiometryAny',
+    BIOMETRY_CURRENT_SET: 'BiometryCurrentSet',
+    DEVICE_PASSCODE: 'DevicePasscode',
+    APPLICATION_PASSWORD: 'ApplicationPassword',
+    BIOMETRY_ANY_OR_DEVICE_PASSCODE: 'BiometryAnyOrDevicePasscode',
+    BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE:
+      'BiometryCurrentSetOrDevicePasscode',
+  },
+
+  // Authentication Type enum
+  AUTHENTICATION_TYPE: {
+    DEVICE_PASSCODE_OR_BIOMETRICS: 'AuthenticationWithBiometricsDevicePasscode',
+    BIOMETRICS: 'AuthenticationWithBiometrics',
+  },
+
+  // Biometry Type enum
+  BIOMETRY_TYPE: {
+    TOUCH_ID: 'TouchID',
+    FACE_ID: 'FaceID',
+    OPTIC_ID: 'OpticID',
+    FINGERPRINT: 'Fingerprint',
+    FACE: 'Face',
+    IRIS: 'Iris',
+  },
+
+  // Storage Type enum
+  STORAGE_TYPE: {
+    FB: 'FacebookConceal',
+    AES: 'KeystoreAES',
+    AES_CBC: 'KeystoreAESCBC',
+    AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
+    AES_GCM: 'KeystoreAESGCM',
+    RSA: 'KeystoreRSAECB',
+  },
+
+  // Security Rules enum
+  SECURITY_RULES: {
+    NONE: 'none',
+    AUTOMATIC_UPGRADE: 'automaticUpgradeToMoreSecuredStorage',
+  },
+
+  // Generic password functions
+  setGenericPassword: jest
+    .fn()
+    .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
+  getGenericPassword: jest.fn().mockResolvedValue({
+    service: 'metamask',
+    username: 'mock-username',
+    password: 'mock-password',
+    storage: 'storage',
+  }),
+  hasGenericPassword: jest.fn().mockResolvedValue(true),
+  resetGenericPassword: jest.fn().mockResolvedValue(true),
+  getAllGenericPasswordServices: jest.fn().mockResolvedValue(['metamask']),
+
+  // Internet credentials functions
+  setInternetCredentials: jest
+    .fn()
+    .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
+  getInternetCredentials: jest.fn().mockResolvedValue({
+    server: 'mock-server',
+    username: 'mock-username',
+    password: 'mock-credentials-password',
+    storage: 'storage',
+  }),
+  hasInternetCredentials: jest.fn().mockResolvedValue(true),
+  resetInternetCredentials: jest.fn().mockResolvedValue(),
+
+  // Biometry and authentication functions
+  getSupportedBiometryType: jest.fn().mockResolvedValue('FaceID'),
+  canImplyAuthentication: jest.fn().mockResolvedValue(true),
+  getSecurityLevel: jest
+    .fn()
+    .mockResolvedValue('MOCK_SECURITY_LEVEL_SECURE_SOFTWARE'),
+
+  // Shared web credentials (iOS only)
+  requestSharedWebCredentials: jest.fn().mockResolvedValue({
+    server: 'mock-server',
+    username: 'mock-username',
+    password: 'mock-password',
+  }),
+  setSharedWebCredentials: jest.fn().mockResolvedValue(),
+
+  // Legacy exports for backward compatibility
+  SECURITY_LEVEL_ANY: 'MOCK_SECURITY_LEVEL_ANY',
+  SECURITY_LEVEL_SECURE_SOFTWARE: 'MOCK_SECURITY_LEVEL_SECURE_SOFTWARE',
+  SECURITY_LEVEL_SECURE_HARDWARE: 'MOCK_SECURITY_LEVEL_SECURE_HARDWARE',
 }));
 
 jest.mock('react-native-share', () => 'RNShare');

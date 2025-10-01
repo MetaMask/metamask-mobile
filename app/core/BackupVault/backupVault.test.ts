@@ -11,10 +11,11 @@ import {
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import {
   getInternetCredentials,
-  Options,
   resetInternetCredentials,
-  Result,
   setInternetCredentials,
+  type SetOptions,
+  type Result,
+  STORAGE_TYPE,
 } from 'react-native-keychain';
 
 let mockKeychainState: Record<string, { username: string; password: string }> =
@@ -28,12 +29,12 @@ jest.mock('react-native-keychain', () => ({
       server: string,
       username: string,
       password: string,
-      _?: Options,
+      _?: SetOptions,
     ): Promise<Result> => {
       mockKeychainState[server] = { username, password };
       return {
         service: 'service',
-        storage: 'storage',
+        storage: 'storage' as STORAGE_TYPE,
       };
     },
   ),
@@ -41,7 +42,10 @@ jest.mock('react-native-keychain', () => ({
     async (server: string) => mockKeychainState[server],
   ),
   resetInternetCredentials: jest.fn(
-    async (server: string, _?: Options) => delete mockKeychainState[server],
+    async (serverOrOptions: { server: string }, _?: SetOptions) => {
+      const server = serverOrOptions.server;
+      delete mockKeychainState[server];
+    },
   ),
 }));
 

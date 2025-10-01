@@ -34068,7 +34068,7 @@ __metadata:
     react-native-inappbrowser-reborn: ^3.7.0
     react-native-jazzicon: ^0.1.2
     react-native-keyboard-aware-scroll-view: ^0.9.5
-    react-native-keychain: 8.0.0
+    react-native-keychain: ^9.0.0
     react-native-launch-arguments: ^4.0.1
     react-native-level-fs: 3.0.1
     react-native-linear-gradient: ^2.8.3
@@ -38628,10 +38628,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-keychain@npm:8.0.0":
-  version: 8.0.0
-  resolution: "react-native-keychain@npm:8.0.0"
-  checksum: cbab1cef8565743072f919663068727df20fc0ef5edd53b0aa96fac74c11fcd0daa197968b06cabed4f1b3f8e5e5ae73b6db8543ed9adbecc13662c38958c9ce
+"react-native-keychain@npm:^9.0.0":
+  version: 9.2.3
+  resolution: "react-native-keychain@npm:9.2.3"
+  checksum: 2a5bef250efdf0aef4f13cab0f24eab127bfb52ad88f9475ff0eab199d4f0ca4807bb5f22e8a3b89978e8e8573c274c6284ec6aa9ab182382edfe20af76802ff
   languageName: node
   linkType: hard
 
