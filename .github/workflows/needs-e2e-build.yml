@@ -89,7 +89,7 @@ jobs:
               - 'wdio/**'                          # WebDriver test files
               - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
-
+              - 'scripts/build.sh'                 # Build.sh
 
             ignore:
               - '**/*.md'                          # Documentation files
@@ -107,7 +107,9 @@ jobs:
               - 'crowdin.yml'                      # Translation config
               - 'bitrise.yml'                      # CI config (non-GitHub)
               - 'sonar-project.properties'         # SonarQube config
-              - 'scripts/**'                       # Build/utility scripts
+              - 'scripts/*'                        # Build/utility scripts
+              - 'scripts/*/**'                     # Subdirectories in scripts/   
+              - '!scripts/build.sh'                # But NOT build.sh
               - 'patches/**'                       # Dependency patches
               - 'ppom/**'                          # PPOM sub-project
 
