@@ -283,6 +283,34 @@ const PerpsMarketListView = ({
       );
     }
 
+    // Empty search results
+    if (searchQuery.trim() && filteredMarkets.length === 0) {
+      return (
+        <View style={styles.emptyStateContainer}>
+          <Icon
+            name={IconName.Search}
+            size={IconSize.Xl}
+            color={theme.colors.icon.muted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_tokens_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_tokens_found_description', { searchQuery })}
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <>
         <PerpsMarketListHeader />
