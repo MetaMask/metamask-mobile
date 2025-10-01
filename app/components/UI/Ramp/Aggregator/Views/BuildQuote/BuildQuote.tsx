@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Pressable,
-  View,
-  BackHandler,
-  LayoutChangeEvent,
-  InteractionManager,
-} from 'react-native';
+import { Pressable, View, BackHandler, LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -36,8 +30,6 @@ import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 
-import useModalHandler from '../../../../../Base/hooks/useModalHandler';
-
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
 
@@ -50,7 +42,6 @@ import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
-import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import SkeletonText from '../../components/SkeletonText';
@@ -78,6 +69,7 @@ import { createTokenSelectModalNavigationDetails } from '../../components/TokenS
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
+import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
 import { QuickAmount, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
@@ -102,7 +94,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
-import { Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
@@ -135,14 +126,6 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
-
-  const [
-    isPaymentMethodModalVisible,
-    ,
-    showPaymentMethodsModal,
-    hidePaymentMethodModal,
-  ] = useModalHandler(false);
-
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -153,7 +136,6 @@ const BuildQuote = () => {
    */
   const {
     selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
@@ -232,25 +214,29 @@ const BuildQuote = () => {
     setAmountNumber(0);
   }, [selectedRegion]);
 
+  const shouldShowUnsupportedModal = useMemo(() => (
+      regions &&
+      selectedRegion &&
+      (selectedRegion.unsupported ||
+        (isBuy && !selectedRegion.support?.buy) ||
+        (isSell && !selectedRegion.support?.sell) ||
+        selectedRegion?.name === 'Afghanistan')
+    ), [regions, selectedRegion, isBuy, isSell]);
+
   useFocusEffect(
     useCallback(() => {
-      if (
-        regions &&
-        selectedRegion &&
-        (selectedRegion.unsupported ||
-          (isBuy && !selectedRegion.support?.buy) ||
-          (isSell && !selectedRegion.support?.sell))
-      ) {
-        InteractionManager.runAfterInteractions(() => {
+      if (shouldShowUnsupportedModal && selectedRegion) {
+        // Use requestAnimationFrame to ensure navigation happens after render
+        requestAnimationFrame(() => {
           navigation.navigate(
             ...createUnsupportedRegionModalNavigationDetails({
-              regions,
+              regions: regions ?? [],
               region: selectedRegion,
             }),
           );
         });
       }
-    }, [selectedRegion, navigation, isBuy, isSell, regions]),
+    }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
 
   useEffect(() => {
@@ -598,15 +584,15 @@ const BuildQuote = () => {
    * * PaymentMethod handlers
    */
 
-  const handleChangePaymentMethod = useCallback(
-    (paymentMethodId?: Payment['id']) => {
-      if (paymentMethodId) {
-        setSelectedPaymentMethodId(paymentMethodId);
-      }
-      hidePaymentMethodModal();
-    },
-    [hidePaymentMethodModal, setSelectedPaymentMethodId],
-  );
+  const handleShowPaymentMethodsModal = useCallback(() => {
+    setAmountFocused(false);
+    navigation.navigate(
+      ...createPaymentMethodSelectorModalNavigationDetails({
+        paymentMethods,
+        location: screenLocation,
+      }),
+    );
+  }, [navigation, paymentMethods, screenLocation]);
 
   /**
    * * Get Quote handlers
@@ -777,26 +763,10 @@ const BuildQuote = () => {
                 ? 'fiat_on_ramp_aggregator.change_payment_method'
                 : 'fiat_on_ramp_aggregator.change_cash_destination',
             )}
-            ctaOnPress={showPaymentMethodsModal as () => void}
+            ctaOnPress={handleShowPaymentMethodsModal}
             location={screenLocation}
           />
         </ScreenLayout.Body>
-        <PaymentMethodModal
-          isVisible={isPaymentMethodModalVisible}
-          dismiss={hidePaymentMethodModal as () => void}
-          title={strings(
-            isBuy
-              ? 'fiat_on_ramp_aggregator.select_payment_method'
-              : 'fiat_on_ramp_aggregator.select_cash_destination',
-          )}
-          paymentMethods={paymentMethods}
-          selectedPaymentMethodId={selectedPaymentMethodId}
-          selectedPaymentMethodType={currentPaymentMethod?.paymentType}
-          onItemPress={handleChangePaymentMethod}
-          selectedRegion={selectedRegion}
-          location={screenLocation}
-          rampType={rampType}
-        />
       </ScreenLayout>
     );
   }
@@ -1054,7 +1024,7 @@ const BuildQuote = () => {
                   />
                 }
                 name={currentPaymentMethod?.name}
-                onPress={showPaymentMethodsModal as () => void}
+                onPress={handleShowPaymentMethodsModal}
                 paymentMethodIcons={paymentMethodIcons}
               />
             </Row>
@@ -1110,22 +1080,6 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-      <PaymentMethodModal
-        isVisible={isPaymentMethodModalVisible}
-        dismiss={hidePaymentMethodModal as () => void}
-        title={strings(
-          isBuy
-            ? 'fiat_on_ramp_aggregator.select_payment_method'
-            : 'fiat_on_ramp_aggregator.select_cash_destination',
-        )}
-        paymentMethods={paymentMethods}
-        selectedPaymentMethodId={selectedPaymentMethodId}
-        selectedPaymentMethodType={currentPaymentMethod?.paymentType}
-        onItemPress={handleChangePaymentMethod}
-        selectedRegion={selectedRegion}
-        location={screenLocation}
-        rampType={rampType}
-      />
     </ScreenLayout>
   );
 };

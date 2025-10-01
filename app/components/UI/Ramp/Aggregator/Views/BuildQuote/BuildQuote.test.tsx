@@ -608,12 +608,18 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedPaymentMethodId when selecting a payment method', async () => {
+    it('navigates to payment method selector when payment method button is pressed', async () => {
       render(BuildQuote);
-      fireEvent.press(getByRoleButton(mockPaymentMethods[0].name));
-      fireEvent.press(getByRoleButton(mockPaymentMethods[1].name));
-      expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
-        mockPaymentMethods[1]?.id,
+      fireEvent.press(getByRoleButton('Change'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentMethodSelectorModal',
+          params: expect.objectContaining({
+            paymentMethods: mockPaymentMethods,
+            location: 'Amount to Buy Screen',
+          }),
+        }),
       );
     });
   });
