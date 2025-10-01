@@ -237,6 +237,14 @@ jobs:
     outputs:
       test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
     steps:
+      - name: Checkout for action definition
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/actions/ai-e2e-analysis
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
       - name: Run AI E2E Analysis
         id: ai-analysis
         uses: ./.github/actions/ai-e2e-analysis

@@ -73,10 +73,23 @@ runs:
       env:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         CHANGED_FILES: ${{ inputs.changed-files }}
+        EVENT_NAME: ${{ inputs.event-name }}
       run: |
-        node .github/scripts/ai-e2e-analysis.mjs \
-          "${{ inputs.event-name }}" \
-          "$CHANGED_FILES"
+        # Only run AI analysis for pull_request events with changed files
+        if [[ "$EVENT_NAME" == "pull_request" ]] && [[ -n "$CHANGED_FILES" ]]; then
+          echo "✅ Running AI analysis for PR with changed files"
+          node .github/scripts/ai-e2e-analysis.mjs \
+            "$EVENT_NAME" \
+            "$CHANGED_FILES"
+        else
+          echo "⏭️ Skipping AI analysis - only runs on PRs with changed files (event: $EVENT_NAME, has files: $([ -n "$CHANGED_FILES" ] && echo 'yes' || echo 'no'))"
+          echo "test_matrix=[]" >> "$GITHUB_OUTPUT"
+          echo "tags=" >> "$GITHUB_OUTPUT"
+          echo "tags_display=None (AI analysis skipped)" >> "$GITHUB_OUTPUT"
+          echo "risk_level=N/A" >> "$GITHUB_OUTPUT"
+          echo "reasoning=AI analysis only runs for pull_request events with changed files" >> "$GITHUB_OUTPUT"
+          echo "confidence=0" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Delete existing AI E2E comments
       if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
