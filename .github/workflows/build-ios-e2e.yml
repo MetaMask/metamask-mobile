@@ -114,7 +114,7 @@ jobs:
         env:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: main
-          METAMASK_BUILD_TYPE: main
+          METAMASK_BUILD_TYPE: qa
           IS_TEST: true
           IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
