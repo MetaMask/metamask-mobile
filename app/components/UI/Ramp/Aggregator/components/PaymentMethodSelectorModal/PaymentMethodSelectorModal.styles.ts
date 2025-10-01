@@ -15,7 +15,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     scrollView: {
-      height: screenHeight * 0.8,
+      maxHeight: screenHeight * 0.8,
     },
     content: {
       paddingHorizontal: 16,
