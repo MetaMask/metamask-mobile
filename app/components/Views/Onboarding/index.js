@@ -745,7 +745,7 @@ class Onboarding extends PureComponent {
       <View style={styles.loaderWrapper}>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText} color={importedColors.btnBlack}>
+          <Text style={styles.loadingText} color={colors.text.default}>
             {this.props.loadingMsg}
           </Text>
         </View>
