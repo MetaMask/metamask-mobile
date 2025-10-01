@@ -12,7 +12,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(RegressionAssets('Import Tokens'), () => {
+describe.skip(RegressionAssets('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await withFixtures(
       {

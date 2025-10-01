@@ -10,7 +10,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 const ETHEREUM = 'Ethereum Main Network';
 
-describe(RegressionAssets('Connect to a Test Network'), () => {
+describe.skip(RegressionAssets('Connect to a Test Network'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

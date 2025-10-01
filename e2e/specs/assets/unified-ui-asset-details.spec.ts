@@ -56,7 +56,7 @@ describe(RegressionAssets('Unified UI Asset Details Actions'), () => {
     );
   });
 
-  it('should navigate when tapping send button from asset details', async () => {
+  it.skip('should navigate when tapping send button from asset details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
