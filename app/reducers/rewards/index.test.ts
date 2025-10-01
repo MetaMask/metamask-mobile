@@ -69,6 +69,8 @@ describe('rewardsReducer', () => {
     activeBoostsLoading: false,
     activeBoostsError: false,
 
+    pointsEvents: null,
+
     unlockedRewards: null,
     unlockedRewardLoading: false,
     unlockedRewardError: false,
@@ -1356,6 +1358,7 @@ describe('rewardsReducer', () => {
               backgroundColor: '#FF0000',
             },
           ],
+          pointsEvents: null,
           activeBoostsLoading: false,
           activeBoostsError: false,
           unlockedRewards: [],
@@ -1442,6 +1445,7 @@ describe('rewardsReducer', () => {
               backgroundColor: '#FF0000',
             },
           ],
+          pointsEvents: null,
           seasonStatusError: null,
           activeBoostsLoading: false,
           activeBoostsError: false,

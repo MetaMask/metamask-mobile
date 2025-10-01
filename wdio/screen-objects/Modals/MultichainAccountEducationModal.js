@@ -1,14 +1,11 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from "../../../e2e/framework/AppwrightGestures";
 import { expect } from 'appwright';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../../app/components/Views/MultichainAccounts/IntroModal/testIds';
 
-class MultichainAccountEducationModal extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class MultichainAccountEducationModal {
 
   get device() {
     return this._device;
@@ -16,7 +13,7 @@ class MultichainAccountEducationModal extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get closeButton() {
@@ -40,7 +37,7 @@ class MultichainAccountEducationModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.closeButton);
     } else {
-      await this.tap(this.closeButton);
+      await AppwrightGestures.tap(this.closeButton);
     }
   }
 }
