@@ -9,12 +9,12 @@ import React, {
 import { useDispatch, useSelector } from 'react-redux';
 import {
   OnRampSdk,
-  Environment,
   Context,
   RegionsService,
   CryptoCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
+import { getSdkEnvironment } from './getSdkEnvironment';
 import { getCaipChainIdFromCryptoCurrency } from '../utils';
 
 import Logger from '../../../../../util/Logger';
@@ -44,12 +44,7 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = Environment.Production;
-if (isInternalBuild) {
-  environment = Environment.Staging;
-} else if (isDevelopment) {
-  environment = Environment.Development;
-}
+const environment = getSdkEnvironment();
 
 let context = Context.Mobile;
 if (Device.isAndroid()) {
