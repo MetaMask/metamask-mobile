@@ -265,7 +265,7 @@ const BankDetails = () => {
       if (!hasDepositOrderField(order?.data, 'paymentMethod')) {
         console.error('Payment method not found or empty');
         Logger.error(
-          new Error('Order or payment details not found'),
+          new Error('Payment method not found or empty'),
           'BankDetails: handleBankTransferSent',
         );
         return;
