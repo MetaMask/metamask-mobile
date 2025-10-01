@@ -24,6 +24,15 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+// Mock route params
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    referral: undefined,
+    isFromDeeplink: false,
+  }),
+}));
+
 // Mock dispatch
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
