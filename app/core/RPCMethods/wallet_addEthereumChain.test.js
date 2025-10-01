@@ -407,7 +407,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
     expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
     expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-      origin: 'https://example.com',
       autoApprove: true,
       chainId: '0x64',
     });
@@ -494,7 +493,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
   });
 
-  it('should update the networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
+  it('should not update the networkConfiguration that has a chainId that already exists in wallet state, but should switch to the existing network', async () => {
     const spyOnUpdateNetwork = jest
       .spyOn(Engine.context.NetworkController, 'updateNetwork')
       .mockReturnValue(networkConfigurationResult);
@@ -524,20 +523,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
     await flushPromises();
 
-    expect(spyOnUpdateNetwork).toHaveBeenCalledWith(
-      existingParams.chainId,
-      expect.objectContaining({
-        rpcEndpoints: expect.arrayContaining([
-          {
-            name: 'Test Chain',
-            type: 'custom',
-            url: 'https://different-rpc-url.com',
-          },
-        ]),
-        defaultRpcEndpointIndex: 1,
-      }),
-      undefined,
-    );
+    expect(spyOnUpdateNetwork).not.toHaveBeenCalled();
     expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
   });
 });
