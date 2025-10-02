@@ -253,35 +253,48 @@ export function usePerpsDataMonitor(
       return;
     }
 
+    // Check BOTH conditions before deciding what to report
+    let hasNewOrders = false;
+    let hasPositionChanged = false;
+
+    // Check for new orders if monitoring orders
+    if (monitorOrders && orders) {
+      const currentAssetOrders = orders.filter(
+        (order) => order.symbol === asset,
+      );
+      hasNewOrders = currentAssetOrders.length > initialOrderCount;
+    }
+
+    // Check for position changes if monitoring positions
+    if (monitorPositions) {
+      hasPositionChanged = hasPositionChangedForAsset(asset);
+    }
+
+    // Determine what to report based on priority:
+    // - If orders detected, prioritize orders (more relevant for limit orders)
+    // - Otherwise, report positions if changed
+    // - Only notify once per monitoring session
     let shouldNotify = false;
     let detectedData: 'orders' | 'positions' | undefined;
     let reason = '';
 
-    // Check for new orders if monitoring orders
-    if (monitorOrders && !shouldNotify && orders) {
-      const currentAssetOrders = orders.filter(
-        (order) => order.symbol === asset,
-      );
-      const hasNewOrders = currentAssetOrders.length > initialOrderCount;
-
-      if (hasNewOrders) {
-        shouldNotify = true;
-        detectedData = 'orders';
-        reason = 'new_orders_detected';
-      }
+    if (hasNewOrders) {
+      shouldNotify = true;
+      detectedData = 'orders';
+      reason = hasPositionChanged
+        ? 'new_orders_detected_with_position_change'
+        : 'new_orders_detected';
+    } else if (hasPositionChanged) {
+      shouldNotify = true;
+      detectedData = 'positions';
+      reason = 'position_changed';
     }
 
-    // Check for position changes if monitoring positions
-    if (monitorPositions && !shouldNotify) {
-      if (hasPositionChangedForAsset(asset)) {
-        shouldNotify = true;
-        detectedData = 'positions';
-        reason = 'position_changed';
-      }
-    }
-
-    // Handle data detection
+    // Handle data detection - only fires ONCE
     if (shouldNotify && detectedData) {
+      // Mark as completed FIRST to prevent race conditions
+      hasCompletedRef.current = true;
+
       DevLogger.log(
         `usePerpsDataMonitor: ${reason}, detected ${detectedData}`,
         {
@@ -289,14 +302,13 @@ export function usePerpsDataMonitor(
           monitorOrders,
           monitorPositions,
           reason,
+          hasNewOrders,
+          hasPositionChanged,
         },
       );
 
       // Always use callback - no fallback navigation
       onDataDetected({ detectedData, asset, reason });
-
-      // Mark as completed to prevent restart loops
-      hasCompletedRef.current = true;
 
       // Clear monitoring state
       cleanupMonitoring();

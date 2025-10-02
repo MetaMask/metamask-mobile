@@ -682,11 +682,11 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       });
       rerender({});
 
-      // Should detect orders first (based on the order of checks in the code)
+      // Should prioritize orders and indicate both were detected
       expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'orders',
         asset: 'BTC',
-        reason: 'new_orders_detected',
+        reason: 'new_orders_detected_with_position_change',
       });
     });
   });
