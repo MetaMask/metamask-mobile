@@ -1332,8 +1332,8 @@
         "error_message": "No se encontraron datos de mercado. Vuelve atrás e inténtalo de nuevo."
       },
       "statistics": "Resumen",
-      "24hr_high": "Máximo de 24 h",
-      "24hr_low": "Mínimo de 24 h",
+      "24h_high": "Máximo de 24 h",
+      "24h_low": "Mínimo de 24 h",
       "24h_volume": "Volumen de 24 h",
       "open_interest": "Interés abierto",
       "funding_rate": "Tasa de financiación",
