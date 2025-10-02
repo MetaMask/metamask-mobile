@@ -120,7 +120,14 @@ const getPerpsEventDetails = (
     case PerpsEventType.CLOSE_POSITION:
     case PerpsEventType.TAKE_PROFIT:
     case PerpsEventType.STOP_LOSS:
-      return `$${symbol} ${formattedAmount}`;
+      if (payload.pnl) {
+        const pnl = Number(payload.pnl);
+        if (isNaN(pnl)) return `${symbol}`;
+        const sign = pnl > 0 ? '+' : pnl < 0 ? '-' : '';
+        const formattedAbsPnl = Math.round(Math.abs(pnl) * 100) / 100;
+        return `${symbol} ${sign}$${formattedAbsPnl}`;
+      }
+      return `${symbol}`;
     default:
       return undefined;
   }

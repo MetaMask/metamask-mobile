@@ -44,11 +44,11 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
   selectSeasonId: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
+  selectHideUnlinkedAccountsBanner: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-  selectHideUnlinkedAccountsBanner: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
@@ -58,12 +58,10 @@ jest.mock('../../../../selectors/accountsController', () => ({
 import {
   selectActiveTab,
   selectSeasonId,
+  selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
-import {
-  selectRewardsSubscriptionId,
-  selectHideUnlinkedAccountsBanner,
-} from '../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 

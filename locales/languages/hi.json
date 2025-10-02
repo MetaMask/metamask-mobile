@@ -1037,6 +1037,7 @@
         "insufficient_funds": "अपर्याप्त फंड",
         "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
         "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "उच्च लेवरेज से लिक्विडेशन जोखिम बढ़ जाता है",
         "invalid_take_profit": "{{positionType}} पोजीशन के लिए टेक प्रॉफ़िट वर्तमान प्राइस {{direction}} होना चाहिए",
         "invalid_stop_loss": "{{positionType}} पोजीशन के लिए स्टॉप लॉस वर्तमान प्राइस {{direction}} होना चाहिए",
@@ -1459,6 +1460,8 @@
     "failed_to_load_market_data": "मार्केट डाटा लोड नहीं हो पाया",
     "tap_to_retry": "फिर से प्रयास करने के लिए टैप करें",
     "search_by_token_symbol": "टोकन सिंबल से ढूंढें",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "टैस्टनेट (testnet)",
     "mainnet": "मेननेट (mainnet)",
     "developer_options": {
@@ -1611,8 +1614,7 @@
     "accept": "स्वीकार करें"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "QR कोड स्कैन करें",
-    "receive_tab": "आपका QR कोड"
+    "scanner_tab": "QR कोड स्कैन करें"
   },
   "banner": {
     "bridge": {
@@ -6011,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,6 +6025,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },

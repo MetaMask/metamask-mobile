@@ -72,19 +72,19 @@ class BridgeScreen {
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
-          const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-          await numberKey.waitFor('visible',{ timeout: 30000 });
+          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+          await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
           await AppwrightGestures.tap(numberKey);
         }
         else {
-          const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
-          await numberKey.waitFor('visible',{ timeout: 30000 });
+          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
+          await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
           await AppwrightGestures.tap(numberKey);
         }
       }
       else {
-        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await numberKey.waitFor('visible', { timeout: 30000 });
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
         await AppwrightGestures.tap(numberKey);
       }
     }
@@ -123,7 +123,7 @@ class BridgeScreen {
           console.log('Found token button by ID');
         }
       }
-      await tokenButton.waitFor('visible',{ timeout: 10000 });
+      await appwrightExpect(tokenButton).toBeVisible({ timeout: 10000 });
       console.log('Token button found and visible');
       
       console.log('About to hide keyboard...');
@@ -156,7 +156,7 @@ class BridgeScreen {
       // Check if number input field is available
       try {
         const testNumberButton = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="1"]`) : await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='1']`);
-        await testNumberButton.waitFor('visible', { timeout: 5000 });
+        await appwrightExpect(testNumberButton).toBeVisible({ timeout: 5000 });
         console.log('Number input field is visible - token tap worked');
       } catch (error) {
         console.log('Number input field not visible - token tap may not have worked, trying alternative tap method...');

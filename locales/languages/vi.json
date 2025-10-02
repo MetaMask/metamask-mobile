@@ -1037,6 +1037,7 @@
         "insufficient_funds": "Không đủ tiền",
         "insufficient_balance": "Số dư không đủ. Yêu cầu: ${{required}}, Khả dụng: ${{available}}",
         "invalid_leverage": "Đòn bẩy phải nằm trong khoảng từ x{{min}} đến x{{max}}",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Đòn bẩy cao làm tăng rủi ro bị thanh lý",
         "invalid_take_profit": "Điểm Chốt lời phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
         "invalid_stop_loss": "Điểm Cắt lỗ phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
@@ -1459,6 +1460,8 @@
     "failed_to_load_market_data": "Không thể tải dữ liệu thị trường",
     "tap_to_retry": "Nhấn để thử lại",
     "search_by_token_symbol": "Tìm kiếm theo biểu tượng token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Mạng thử nghiệm",
     "mainnet": "Mạng chính thức",
     "developer_options": {
@@ -1611,8 +1614,7 @@
     "accept": "Chấp nhận"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Quét mã QR",
-    "receive_tab": "Mã QR của bạn"
+    "scanner_tab": "Quét mã QR"
   },
   "banner": {
     "bridge": {
@@ -6011,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,6 +6025,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },

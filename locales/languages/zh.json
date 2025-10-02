@@ -1037,6 +1037,7 @@
         "insufficient_funds": "资金不足",
         "insufficient_balance": "余额不足。需要：${{required}}，可用：${{available}}",
         "invalid_leverage": "杠杆必须介于 {{min}} 倍和 {{max}} 倍之间",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "高杠杆会增加清算风险",
         "invalid_take_profit": "对于 {{positionType}} 头寸，止盈必须设置为 {{direction}} 的当前价格",
         "invalid_stop_loss": "对于 {{positionType}} 头寸，止损必须设置为 {{direction}} 的当前价格",
@@ -1459,6 +1460,8 @@
     "failed_to_load_market_data": "市场数据加载失败",
     "tap_to_retry": "点击重试",
     "search_by_token_symbol": "按代币符号搜索",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "测试网",
     "mainnet": "主网",
     "developer_options": {
@@ -1611,8 +1614,7 @@
     "accept": "接受"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "扫描二维码",
-    "receive_tab": "您的二维码"
+    "scanner_tab": "扫描二维码"
   },
   "banner": {
     "bridge": {
@@ -6011,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,6 +6025,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },

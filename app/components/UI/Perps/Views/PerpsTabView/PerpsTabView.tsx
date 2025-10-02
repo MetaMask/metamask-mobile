@@ -38,6 +38,7 @@ import {
   usePerpsLivePositions,
   usePerpsPerformance,
 } from '../../hooks';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
@@ -210,14 +211,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => {
-            const sizeValue = parseFloat(position.size);
-            const directionSegment = Number.isFinite(sizeValue)
-              ? sizeValue > 0
-                ? 'long'
-                : sizeValue < 0
-                ? 'short'
-                : 'unknown'
-              : 'unknown';
+            const directionSegment = getPositionDirection(position.size);
             return (
               <View
                 key={`${position.coin}-${index}`}
@@ -248,14 +242,14 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <PerpsEmptyState
-                onStartTrading={handleNewTrade}
+                onAction={handleNewTrade}
                 testID="perps-empty-state"
                 twClassName="mx-auto"
               />
             ) : (
               <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
+                <View>{renderPositionsSection()}</View>
+                <View>{renderOrdersSection()}</View>
               </View>
             )}
           </View>
