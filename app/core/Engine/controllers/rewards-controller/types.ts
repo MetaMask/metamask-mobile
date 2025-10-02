@@ -905,6 +905,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for resetting controller state
+ */
+export interface RewardsControllerResetAllAction {
+  type: 'RewardsController:resetAll';
+  handler: () => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -929,7 +937,8 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerClaimRewardAction;
+  | RewardsControllerClaimRewardAction
+  | RewardsControllerResetAllAction;
 
 export const CURRENT_SEASON_ID = 'current';
 
