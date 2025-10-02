@@ -416,19 +416,19 @@ buildAndroidFlaskLocal(){
 # Builds and installs the Main iOS app for local development
 buildIosMainLocal(){
 	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device "$IOS_SIMULATOR"
 }
 
 # Builds and installs the Flask iOS app for local development
 buildIosFlaskLocal(){
 	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device "$IOS_SIMULATOR"
 }
 
 # Builds and installs the QA iOS app for local development
 buildIosQALocal(){
   	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device "$IOS_SIMULATOR"
 }
 
 buildIosSimulatorE2E(){
@@ -800,5 +800,3 @@ elif [ "$PLATFORM" == "android" ]; then
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
 fi
-	
-

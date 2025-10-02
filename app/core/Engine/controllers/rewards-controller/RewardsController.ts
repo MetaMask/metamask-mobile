@@ -31,6 +31,7 @@ import type { RewardsControllerMessenger } from '../../messengers/rewards-contro
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -462,6 +463,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getFirstSubscriptionId',
       this.getFirstSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:resetAll',
+      this.resetAll.bind(this),
     );
   }
 
@@ -983,8 +988,11 @@ export class RewardsController extends BaseController<
   async getOptInStatus(params: OptInStatusInputDto): Promise<OptInStatusDto> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
-      // Return empty array when feature flag is disabled
-      return { ois: params.addresses.map(() => false) };
+      // Return empty arrays when feature flag is disabled
+      return {
+        ois: params.addresses.map(() => false),
+        sids: params.addresses.map(() => null),
+      };
     }
 
     try {
@@ -1000,7 +1008,10 @@ export class RewardsController extends BaseController<
       }
 
       // Arrays to track cached vs fresh data needed
-      const cachedResults: (boolean | null)[] = new Array(
+      const cachedOptInResults: (boolean | null)[] = new Array(
+        params.addresses.length,
+      ).fill(null);
+      const cachedSubscriptionIds: (string | null)[] = new Array(
         params.addresses.length,
       ).fill(null);
       const addressesNeedingFresh: string[] = [];
@@ -1017,7 +1028,8 @@ export class RewardsController extends BaseController<
             const accountState = this.#getAccountState(caipAccount);
             if (accountState?.hasOptedIn !== undefined) {
               // Use cached data
-              cachedResults[i] = accountState.hasOptedIn;
+              cachedOptInResults[i] = accountState.hasOptedIn;
+              cachedSubscriptionIds[i] = accountState.subscriptionId || null;
               continue;
             }
           }
@@ -1028,12 +1040,13 @@ export class RewardsController extends BaseController<
       }
 
       // Make fresh API call only for addresses without cached data
-      let freshResults: boolean[] = [];
+      let freshOptInResults: boolean[] = [];
+      let freshSubscriptionIds: (string | null)[] = [];
       if (addressesNeedingFresh.length > 0) {
         Logger.log(
           'RewardsController: Making fresh opt-in status API call for addresses without cached data',
           {
-            cachedCount: cachedResults.filter((result) => result !== null)
+            cachedCount: cachedOptInResults.filter((result) => result !== null)
               .length,
             needFreshCount: addressesNeedingFresh.length,
           },
@@ -1043,12 +1056,18 @@ export class RewardsController extends BaseController<
           'RewardsDataService:getOptInStatus',
           { addresses: addressesNeedingFresh },
         );
-        freshResults = freshResponse.ois;
+        freshOptInResults = freshResponse.ois;
+        freshSubscriptionIds = freshResponse.sids;
 
         // Update state with fresh results for future caching
         for (let i = 0; i < addressesNeedingFresh.length; i++) {
           const address = addressesNeedingFresh[i];
-          const hasOptedIn = freshResults[i];
+          const hasOptedIn = freshOptInResults[i];
+          const subscriptionId =
+            Array.isArray(freshSubscriptionIds) &&
+            i < freshSubscriptionIds.length
+              ? freshSubscriptionIds[i]
+              : null;
           const internalAccount = addressToAccountMap.get(
             address.toLowerCase(),
           );
@@ -1058,12 +1077,12 @@ export class RewardsController extends BaseController<
               this.convertInternalAccountToCaipAccountId(internalAccount);
             if (caipAccount) {
               this.update((state: RewardsControllerState) => {
-                // Update or create account state with fresh opt-in status
+                // Update or create account state with fresh opt-in status and subscription ID
                 if (!state.accounts[caipAccount]) {
                   state.accounts[caipAccount] = {
                     account: caipAccount,
                     hasOptedIn,
-                    subscriptionId: null,
+                    subscriptionId,
                     lastCheckedAuth: Date.now(),
                     lastCheckedAuthError: false,
                     perpsFeeDiscount: null,
@@ -1071,6 +1090,7 @@ export class RewardsController extends BaseController<
                   };
                 } else {
                   state.accounts[caipAccount].hasOptedIn = hasOptedIn;
+                  state.accounts[caipAccount].subscriptionId = subscriptionId;
                   state.accounts[caipAccount].lastCheckedAuth = Date.now();
                 }
               });
@@ -1080,21 +1100,24 @@ export class RewardsController extends BaseController<
       }
 
       // Combine cached and fresh results in the correct order
-      const finalResults: boolean[] = [];
+      const finalOptInResults: boolean[] = [];
+      const finalSubscriptionIds: (string | null)[] = [];
       let freshIndex = 0;
 
       for (let i = 0; i < params.addresses.length; i++) {
-        if (cachedResults[i] !== null) {
+        if (cachedOptInResults[i] !== null) {
           // Use cached result
-          finalResults[i] = cachedResults[i] as boolean;
+          finalOptInResults[i] = cachedOptInResults[i] as boolean;
+          finalSubscriptionIds[i] = cachedSubscriptionIds[i];
         } else {
           // Use fresh result
-          finalResults[i] = freshResults[freshIndex];
+          finalOptInResults[i] = freshOptInResults[freshIndex];
+          finalSubscriptionIds[i] = freshSubscriptionIds[freshIndex];
           freshIndex++;
         }
       }
 
-      return { ois: finalResults };
+      return { ois: finalOptInResults, sids: finalSubscriptionIds };
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get opt-in status:',
@@ -1644,6 +1667,48 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Reset rewards account state and clear all access tokens
+   */
+  async resetAll(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      return;
+    }
+
+    try {
+      const currentActiveAccount = this.state.activeAccount?.account;
+      this.resetState();
+      this.update((state: RewardsControllerState) => {
+        if (currentActiveAccount) {
+          state.activeAccount = {
+            account: currentActiveAccount,
+            hasOptedIn: false,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          };
+        }
+      });
+
+      // Remove all tokens from secure storage
+      await resetAllSubscriptionTokens();
+
+      Logger.log('RewardsController: Reset completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Reset failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Logout user from rewards and clear associated data
    * @param subscriptionId - Optional subscription ID to logout from
    */
@@ -1852,9 +1917,16 @@ export class RewardsController extends BaseController<
         if (silentAuthAttempts > maxSilentAuthAttempts) break;
         const account = supportedAccounts[i];
         if (!account || optInStatusResponse.ois[i] === false) continue;
+        // Defensive: Ensure sids is an array and i is within bounds
+        let subscriptionId =
+          Array.isArray(optInStatusResponse?.sids) &&
+          i < optInStatusResponse.sids.length
+            ? optInStatusResponse.sids[i]
+            : null;
+        if (subscriptionId) return subscriptionId;
         try {
           silentAuthAttempts++;
-          const subscriptionId = await this.#performSilentAuth(
+          subscriptionId = await this.#performSilentAuth(
             account,
             false, // shouldBecomeActiveAccount = false
             false, // respectSkipSilentAuth = false
@@ -2051,7 +2123,6 @@ export class RewardsController extends BaseController<
         const currentActiveAccount = this.state.activeAccount?.account;
         this.resetState();
         this.update((state: RewardsControllerState) => {
-          // Set activeAccount with optIn: false if there was an active account
           if (currentActiveAccount) {
             state.activeAccount = {
               account: currentActiveAccount,
