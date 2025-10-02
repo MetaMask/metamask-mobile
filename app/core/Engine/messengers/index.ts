@@ -49,6 +49,8 @@ import {
   getPermissionControllerInitMessenger,
   getPermissionControllerMessenger,
 } from './permission-controller-messenger';
+import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
+import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -86,6 +88,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getAppMetadataControllerMessenger,
     getInitMessenger: noop,
   },
+  PreferencesController: {
+    getMessenger: getPreferencesControllerMessenger,
+    getInitMessenger: noop,
+  },
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
     getInitMessenger: noop,
@@ -121,6 +127,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   NotificationServicesPushController: {
     getMessenger: getNotificationServicesPushControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SubjectMetadataController: {
+    getMessenger: getSubjectMetadataControllerMessenger,
     getInitMessenger: noop,
   },
   WebSocketService: {
