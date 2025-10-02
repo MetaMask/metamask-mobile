@@ -979,22 +979,17 @@ export class PerpsController extends BaseController<
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     const startTime = performance.now();
-
-    trace({
-      name: TraceName.PerpsOrderExecution,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        assetId: params.newOrder.coin,
-        orderType: params.newOrder.orderType,
-        provider: this.state.activeProvider,
-        isTestnet: this.state.isTestnet,
-      },
-    });
-
     const provider = this.getActiveProvider();
 
     const result = await provider.editOrder(params);
     const completionDuration = performance.now() - startTime;
+
+    // Record operation duration as measurement
+    setMeasurement(
+      PerpsMeasurementName.ORDER_EDIT_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
 
     if (result.success) {
       this.update((state) => {
@@ -1024,13 +1019,6 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-
-      endTrace({
-        name: TraceName.PerpsOrderExecution,
-        data: {
-          success: true,
-        },
-      });
     } else {
       // Track order edit failed
       MetaMetrics.getInstance().trackEvent(
@@ -1052,14 +1040,6 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-
-      endTrace({
-        name: TraceName.PerpsOrderExecution,
-        data: {
-          success: false,
-          error: result.error || 'Unknown error',
-        },
-      });
     }
 
     return result;
@@ -1070,20 +1050,17 @@ export class PerpsController extends BaseController<
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
     const startTime = performance.now();
-
-    trace({
-      name: TraceName.PerpsCancelOrder,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        assetId: params.coin,
-        provider: this.state.activeProvider,
-        isTestnet: this.state.isTestnet,
-      },
-    });
-
     const provider = this.getActiveProvider();
 
     const result = await provider.cancelOrder(params);
+    const completionDuration = performance.now() - startTime;
+
+    // Record operation duration as measurement
+    setMeasurement(
+      PerpsMeasurementName.ORDER_CANCEL_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
 
     if (result.success) {
       this.update((state) => {
@@ -1091,7 +1068,6 @@ export class PerpsController extends BaseController<
       });
 
       // Track order cancel executed
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
@@ -1103,16 +1079,8 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-
-      endTrace({
-        name: TraceName.PerpsCancelOrder,
-        data: {
-          success: true,
-        },
-      });
     } else {
       // Track order cancel failed
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
@@ -1126,14 +1094,6 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-
-      endTrace({
-        name: TraceName.PerpsCancelOrder,
-        data: {
-          success: false,
-          error: result.error || 'Unknown error',
-        },
-      });
     }
 
     return result;
@@ -1434,20 +1394,17 @@ export class PerpsController extends BaseController<
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
     const startTime = performance.now();
-
-    trace({
-      name: TraceName.PerpsClosePosition,
-      op: TraceOperation.PerpsPositionManagement,
-      tags: {
-        assetId: params.coin,
-        provider: this.state.activeProvider,
-        isTestnet: this.state.isTestnet,
-      },
-    });
-
     const provider = this.getActiveProvider();
 
     const result = await provider.updatePositionTPSL(params);
+    const completionDuration = performance.now() - startTime;
+
+    // Record operation duration as measurement
+    setMeasurement(
+      PerpsMeasurementName.POSITION_TPSL_UPDATE_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
 
     if (result.success) {
       this.update((state) => {
@@ -1455,7 +1412,6 @@ export class PerpsController extends BaseController<
       });
 
       // Track TP/SL update executed - ONE event with both properties
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
@@ -1477,16 +1433,8 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-
-      endTrace({
-        name: TraceName.PerpsClosePosition,
-        data: {
-          success: true,
-        },
-      });
     } else {
       // Track TP/SL update failed - ONE event with both properties
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
@@ -1510,14 +1458,6 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-
-      endTrace({
-        name: TraceName.PerpsClosePosition,
-        data: {
-          success: false,
-          error: result.error || 'Unknown error',
-        },
-      });
     }
 
     return result;

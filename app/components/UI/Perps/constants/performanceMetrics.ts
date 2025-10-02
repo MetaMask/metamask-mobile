@@ -52,4 +52,9 @@ export enum PerpsMeasurementName {
   WEBSOCKET_CONNECTION_WITH_PRELOAD = 'websocket_connection_with_preload',
   WEBSOCKET_FIRST_POSITION_DATA = 'websocket_first_position_data',
   WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION = 'websocket_account_switch_reconnection',
+
+  // Transaction Operation Metrics (milliseconds)
+  ORDER_EDIT_OPERATION = 'order_edit_operation',
+  ORDER_CANCEL_OPERATION = 'order_cancel_operation',
+  POSITION_TPSL_UPDATE_OPERATION = 'position_tpsl_update_operation',
 }
