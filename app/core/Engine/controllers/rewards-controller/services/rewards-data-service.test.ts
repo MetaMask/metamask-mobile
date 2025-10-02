@@ -1016,7 +1016,7 @@ describe('RewardsDataService', () => {
 
       expect(caughtError).toBeInstanceOf(AuthorizationFailedError);
       const authError = caughtError as AuthorizationFailedError;
-      expect(authError.name).toBe('RewardsAuthorizationFailedError');
+      expect(authError.name).toBe('AuthorizationFailedError');
       expect(authError.message).toBe(
         'Rewards authorization failed. Please login and try again.',
       );
