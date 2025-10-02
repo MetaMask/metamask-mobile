@@ -1,14 +1,10 @@
 import { Hex } from '@metamask/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import { isENS, isValidHexAddress } from '../../../../../util/address';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import {
-  shouldSkipValidation,
   validateHexAddress,
   validateSolanaAddress,
 } from '../../utils/send-address-validations';
@@ -24,8 +20,6 @@ interface ValidationResult {
 }
 
 export const useToAddressValidation = () => {
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const addressBook = useSelector(selectAddressBook);
   const { chainId, to } = useSendContext();
   const { isEvmSendType, isSolanaSendType } = useSendType();
   const { validateName } = useNameValidation();
@@ -34,22 +28,16 @@ export const useToAddressValidation = () => {
   const prevAddressValidated = useRef<string>();
   const unmountedRef = useRef(false);
 
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       unmountedRef.current = true;
-    }, []);
+    },
+    [],
+  );
 
   const validateToAddress = useCallback(
     async (toAddress?: string) => {
-      if (
-        !toAddress ||
-        !chainId ||
-        shouldSkipValidation({
-          toAddress,
-          chainId,
-          addressBook,
-          internalAccounts,
-        })
-      ) {
+      if (!toAddress || !chainId) {
         return {};
       }
 
@@ -72,14 +60,7 @@ export const useToAddressValidation = () => {
         error: strings('send.invalid_address'),
       };
     },
-    [
-      addressBook,
-      chainId,
-      internalAccounts,
-      isEvmSendType,
-      isSolanaSendType,
-      validateName,
-    ],
+    [chainId, isEvmSendType, isSolanaSendType, validateName],
   );
 
   useEffect(() => {
