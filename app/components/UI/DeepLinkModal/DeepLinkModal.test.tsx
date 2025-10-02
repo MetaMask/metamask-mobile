@@ -10,7 +10,7 @@ import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useNavigation } from '@react-navigation/native';
 import { Linking, Platform } from 'react-native';
-import { createDeepLinkUsedEvent } from '../../../util/deeplinks/deepLinkAnalytics';
+import { createDeepLinkUsedEventBuilder } from '../../../util/deeplinks/deepLinkAnalytics';
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
@@ -110,20 +110,21 @@ describe('DeepLinkModal', () => {
     });
 
     // Set up default mock for createDeepLinkUsedEvent
-    (createDeepLinkUsedEvent as jest.Mock).mockImplementation((context) =>
-      Promise.resolve({
-        route: 'invalid',
-        was_app_installed: true,
-        signature: 'missing',
-        interstitial: context.interstitialAction || 'not shown',
-        attribution_id: '',
-        utm_source: '',
-        utm_medium: '',
-        utm_campaign: '',
-        utm_term: '',
-        utm_content: '',
-        target: '',
-      }),
+    (createDeepLinkUsedEventBuilder as jest.Mock).mockImplementation(
+      (context) =>
+        Promise.resolve({
+          route: 'invalid',
+          was_app_installed: true,
+          signature: 'missing',
+          interstitial: context.interstitialAction || 'not shown',
+          attribution_id: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          target: '',
+        }),
     );
   });
 

@@ -10,7 +10,7 @@ import {
   determineSignatureStatus,
   extractRouteFromUrl,
   mapSupportedActionToRoute,
-  createDeepLinkUsedEvent,
+  createDeepLinkUsedEventBuilder,
 } from './deepLinkAnalytics';
 import { ACTIONS } from '../../constants/deeplinks';
 import {
@@ -21,7 +21,7 @@ import {
 } from '../../core/DeeplinkManager/types/deepLinkAnalytics';
 
 // Mock Logger to avoid console output during tests
-jest.mock('../../../util/Logger', () => ({
+jest.mock('../Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
 }));
@@ -429,7 +429,7 @@ describe('deepLinkAnalytics', () => {
     });
   });
 
-  describe('createDeepLinkUsedEvent', () => {
+  describe('createDeepLinkUsedEventBuilder', () => {
     let mockDetectAppInstallation: jest.MockedFunction<
       typeof import('./deepLinkAnalytics').detectAppInstallation
     >;
@@ -460,14 +460,15 @@ describe('deepLinkAnalytics', () => {
         interstitialAction: InterstitialState.ACCEPTED,
       };
 
-      const result = await createDeepLinkUsedEvent(context);
+      const eventBuilder = await createDeepLinkUsedEventBuilder(context);
+      const result = eventBuilder.build();
 
-      expect(result.route).toBe('swap');
-      expect(result.was_app_installed).toBe(true);
-      expect(result.signature).toBe(SignatureStatus.MISSING);
-      expect(result.interstitial).toBe(InterstitialState.ACCEPTED);
-      expect(result.utm_source).toBe('twitter');
-      expect(result.utm_campaign).toBe('swap_promo');
+      expect(result.properties.route).toBe('swap');
+      expect(result.properties.was_app_installed).toBe(true);
+      expect(result.properties.signature).toBe(SignatureStatus.MISSING);
+      expect(result.properties.interstitial).toBe(InterstitialState.ACCEPTED);
+      expect(result.properties.utm_source).toBe('twitter');
+      expect(result.properties.utm_campaign).toBe('swap_promo');
       expect(result.sensitiveProperties).toEqual({
         from: 'ETH',
         to: 'USDC',
@@ -494,12 +495,13 @@ describe('deepLinkAnalytics', () => {
         interstitialDisabled: false,
       };
 
-      const result = await createDeepLinkUsedEvent(context);
+      const eventBuilder = await createDeepLinkUsedEventBuilder(context);
+      const result = eventBuilder.build();
 
-      expect(result.route).toBe('invalid');
-      expect(result.was_app_installed).toBe(false);
-      expect(result.signature).toBe(SignatureStatus.INVALID);
-      expect(result.target).toBe(
+      expect(result.properties.route).toBe('invalid');
+      expect(result.properties.was_app_installed).toBe(false);
+      expect(result.properties.signature).toBe(SignatureStatus.INVALID);
+      expect(result.properties.target).toBe(
         'https://link.metamask.io/invalid-route?test=param',
       );
     });
@@ -519,10 +521,11 @@ describe('deepLinkAnalytics', () => {
         interstitialDisabled: false,
       };
 
-      const result = await createDeepLinkUsedEvent(context);
+      const eventBuilder = await createDeepLinkUsedEventBuilder(context);
+      const result = eventBuilder.build();
 
       expect(result).toBeDefined();
-      expect(result.was_app_installed).toBe(true);
+      expect(result.properties.was_app_installed).toBe(true);
     });
   });
 });

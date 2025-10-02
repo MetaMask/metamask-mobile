@@ -6,13 +6,13 @@
 import branch from 'react-native-branch';
 import Logger from '../Logger';
 import {
-  DeepLinkUsedEventProperties,
   InterstitialState,
   SignatureStatus,
   DeepLinkRoute,
-  SensitiveProperties,
   DeepLinkAnalyticsContext,
 } from '../../core/DeeplinkManager/types/deepLinkAnalytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { ACTIONS } from '../../constants/deeplinks';
 
 /**
@@ -102,14 +102,14 @@ export const detectAppInstallation = async (): Promise<boolean> => {
  * Only includes relevant parameters for each route
  * @param route - The deep link route type
  * @param urlParams - URL parameters from the deep link
- * @returns SensitiveProperties - Route-specific sensitive parameters
+ * @returns Record<string, string> - Route-specific sensitive parameters
  */
 export const extractSensitiveProperties = (
   route: DeepLinkRoute,
   urlParams: Record<string, string>,
-): SensitiveProperties => {
+): Record<string, string> => {
   try {
-    const sensitiveProps: SensitiveProperties = {};
+    const sensitiveProps: Record<string, string> = {};
 
     // Extract route-specific properties based on route type
     switch (route) {
@@ -140,10 +140,14 @@ export const extractSensitiveProperties = (
         if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
         if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
         if (urlParams.provider) sensitiveProps.provider = urlParams.provider;
-        if (urlParams.payment_method) sensitiveProps.payment_method = urlParams.payment_method;
-        if (urlParams.sub_payment_method) sensitiveProps.sub_payment_method = urlParams.sub_payment_method;
-        if (urlParams.fiat_currency) sensitiveProps.fiat_currency = urlParams.fiat_currency;
-        if (urlParams.fiat_quantity) sensitiveProps.fiat_quantity = urlParams.fiat_quantity;
+        if (urlParams.payment_method)
+          sensitiveProps.payment_method = urlParams.payment_method;
+        if (urlParams.sub_payment_method)
+          sensitiveProps.sub_payment_method = urlParams.sub_payment_method;
+        if (urlParams.fiat_currency)
+          sensitiveProps.fiat_currency = urlParams.fiat_currency;
+        if (urlParams.fiat_quantity)
+          sensitiveProps.fiat_quantity = urlParams.fiat_quantity;
         break;
 
       case DeepLinkRoute.TRANSACTION:
@@ -162,8 +166,10 @@ export const extractSensitiveProperties = (
         if (urlParams.to) sensitiveProps.to = urlParams.to;
         if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
         if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.crypto_currency) sensitiveProps.crypto_currency = urlParams.crypto_currency;
-        if (urlParams.crypto_amount) sensitiveProps.crypto_amount = urlParams.crypto_amount;
+        if (urlParams.crypto_currency)
+          sensitiveProps.crypto_currency = urlParams.crypto_currency;
+        if (urlParams.crypto_amount)
+          sensitiveProps.crypto_amount = urlParams.crypto_amount;
         break;
 
       case DeepLinkRoute.HOME:
@@ -309,11 +315,11 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
 /**
  * Create the consolidated deep link analytics event
  * @param context - Deep link analytics context
- * @returns Promise<DeepLinkUsedEventProperties> - The consolidated analytics event properties
+ * @returns Promise<MetricsEventBuilder> - The event builder ready for additional properties and tracking
  */
-export const createDeepLinkUsedEvent = async (
+export const createDeepLinkUsedEventBuilder = async (
   context: DeepLinkAnalyticsContext,
-): Promise<DeepLinkUsedEventProperties> => {
+): Promise<MetricsEventBuilder> => {
   const { url, urlParams, signatureStatus } = context;
 
   // Detect app installation status
@@ -329,7 +335,7 @@ export const createDeepLinkUsedEvent = async (
   const interstitial = determineInterstitialState(context);
 
   // Build the event properties
-  const eventProperties: DeepLinkUsedEventProperties = {
+  const eventProperties = {
     route: route.toString(),
     was_app_installed: wasAppInstalled,
     signature: signatureStatus,
@@ -341,12 +347,18 @@ export const createDeepLinkUsedEvent = async (
     utm_term: urlParams.utm_term,
     utm_content: urlParams.utm_content,
     target: route === DeepLinkRoute.INVALID ? url : undefined,
-    sensitiveProperties,
   };
 
-  Logger.log(
-    'DeepLinkAnalytics: Created deep link used event:',
-    eventProperties,
-  );
-  return eventProperties;
+  // Create the MetricsEventBuilder with all deep link properties
+  const eventBuilder = MetricsEventBuilder.createEventBuilder(
+    MetaMetricsEvents.DEEP_LINK_USED,
+  )
+    .addProperties(eventProperties)
+    .addSensitiveProperties(sensitiveProperties);
+
+  Logger.log('DeepLinkAnalytics: Created deep link event builder:', {
+    properties: eventProperties,
+    sensitiveProperties,
+  });
+  return eventBuilder;
 };

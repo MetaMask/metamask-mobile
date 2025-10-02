@@ -30,12 +30,11 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import Checkbox from '../../../component-library/components/Checkbox';
 import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { createDeepLinkUsedEvent } from '../../../util/deeplinks/deepLinkAnalytics';
+import { createDeepLinkUsedEventBuilder } from '../../../util/deeplinks/deepLinkAnalytics';
 import {
   InterstitialState,
   SignatureStatus,
@@ -134,16 +133,15 @@ const DeepLinkModal = () => {
   const [isChecked, setIsChecked] = useState(false);
   const dispatch = useDispatch();
 
+  interface ModalConfig {
+    title: string;
+    description: string;
+    checkboxLabel?: string;
+    buttonLabel?: string;
+  }
+
   const LINK_TYPE_MAP = useMemo(
-    (): Record<
-      DeepLinkModalLinkType,
-      {
-        title: string;
-        description: string;
-        checkboxLabel?: string;
-        buttonLabel?: string;
-      }
-    > => ({
+    (): Record<DeepLinkModalLinkType, ModalConfig> => ({
       [DeepLinkModalLinkType.PUBLIC]: {
         title: strings('deep_link_modal.public_link.title'),
         description: strings('deep_link_modal.public_link.description', {
@@ -169,7 +167,7 @@ const DeepLinkModal = () => {
   useEffect(() => {
     const trackModalViewed = async () => {
       try {
-        const eventProperties = await createDeepLinkUsedEvent({
+        const eventBuilder = await createDeepLinkUsedEventBuilder({
           url: '', // URL not available in modal context
           route: DeepLinkRoute.INVALID, // Will be determined by the calling context
           urlParams: {},
@@ -179,16 +177,8 @@ const DeepLinkModal = () => {
           interstitialAction: InterstitialState.NOT_SHOWN, // Will be updated when user acts
         });
 
-        const { sensitiveProperties, ...regularProperties } = eventProperties;
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.DEEP_LINK_USED)
-            .addProperties({
-              ...generateDeviceAnalyticsMetaData(),
-              ...regularProperties,
-            })
-            .addSensitiveProperties(sensitiveProperties || {})
-            .build(),
-        );
+        eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
+        trackEvent(eventBuilder.build());
       } catch (error) {
         Logger.error(
           error as Error,
@@ -206,7 +196,7 @@ const DeepLinkModal = () => {
   const onDimiss = useCallback(() => {
     dismissModal(async () => {
       try {
-        const eventProperties = await createDeepLinkUsedEvent({
+        const eventBuilder = await createDeepLinkUsedEventBuilder({
           url: '', // URL not available in modal context
           route: DeepLinkRoute.INVALID, // Will be determined by the calling context
           urlParams: {},
@@ -216,16 +206,8 @@ const DeepLinkModal = () => {
           interstitialAction: InterstitialState.REJECTED,
         });
 
-        const { sensitiveProperties, ...regularProperties } = eventProperties;
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.DEEP_LINK_USED)
-            .addProperties({
-              ...generateDeviceAnalyticsMetaData(),
-              ...regularProperties,
-            })
-            .addSensitiveProperties(sensitiveProperties || {})
-            .build(),
-        );
+        eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
+        trackEvent(eventBuilder.build());
       } catch (error) {
         Logger.error(
           error as Error,
@@ -234,7 +216,7 @@ const DeepLinkModal = () => {
       }
       onBack?.();
     });
-  }, [trackEvent, createEventBuilder, onBack]);
+  }, [trackEvent, onBack]);
 
   const openMetaMaskStore = useCallback(() => {
     // Open appropriate store based on platform
@@ -254,7 +236,7 @@ const DeepLinkModal = () => {
   const onPrimaryButtonPressed = useCallback(() => {
     dismissModal(async () => {
       try {
-        const eventProperties = await createDeepLinkUsedEvent({
+        const eventBuilder = await createDeepLinkUsedEventBuilder({
           url: '', // URL not available in modal context
           route: DeepLinkRoute.INVALID, // Will be determined by the calling context
           urlParams: {},
@@ -264,17 +246,11 @@ const DeepLinkModal = () => {
           interstitialAction: InterstitialState.ACCEPTED,
         });
 
-        const { sensitiveProperties, ...regularProperties } = eventProperties;
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.DEEP_LINK_USED)
-            .addProperties({
-              ...generateDeviceAnalyticsMetaData(),
-              ...regularProperties,
-              pageTitle,
-            })
-            .addSensitiveProperties(sensitiveProperties || {})
-            .build(),
-        );
+        eventBuilder.addProperties({
+          ...generateDeviceAnalyticsMetaData(),
+          pageTitle,
+        });
+        trackEvent(eventBuilder.build());
       } catch (error) {
         Logger.error(
           error as Error,
@@ -295,11 +271,11 @@ const DeepLinkModal = () => {
         params.onContinue();
       }
     });
-  }, [trackEvent, createEventBuilder, linkType, params, navigation, pageTitle]);
+  }, [trackEvent, linkType, params, navigation, pageTitle]);
 
   const onDontRemindMeAgainPressed = useCallback(async () => {
     try {
-      const eventProperties = await createDeepLinkUsedEvent({
+      const eventBuilder = await createDeepLinkUsedEventBuilder({
         url: '', // URL not available in modal context
         route: DeepLinkRoute.INVALID, // Will be determined by the calling context
         urlParams: {},
@@ -311,16 +287,8 @@ const DeepLinkModal = () => {
           : InterstitialState.ACCEPTED,
       });
 
-      const { sensitiveProperties, ...regularProperties } = eventProperties;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.DEEP_LINK_USED)
-          .addProperties({
-            ...generateDeviceAnalyticsMetaData(),
-            ...regularProperties,
-          })
-          .addSensitiveProperties(sensitiveProperties || {})
-          .build(),
-      );
+      eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
+      trackEvent(eventBuilder.build());
     } catch (error) {
       Logger.error(
         error as Error,
@@ -330,7 +298,7 @@ const DeepLinkModal = () => {
 
     dispatch(setDeepLinkModalDisabled(!isChecked));
     setIsChecked((prev) => !prev);
-  }, [isChecked, trackEvent, createEventBuilder, dispatch]);
+  }, [isChecked, trackEvent, dispatch]);
 
   const shouldShowCheckbox = linkType === 'private';
 

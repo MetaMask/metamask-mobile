@@ -14,7 +14,7 @@ import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
 import {
-  createDeepLinkUsedEvent,
+  createDeepLinkUsedEventBuilder,
   mapSupportedActionToRoute,
 } from '../../../util/deeplinks/deepLinkAnalytics';
 import {
@@ -22,8 +22,7 @@ import {
   SignatureStatus,
   InterstitialState,
 } from '../types/deepLinkAnalytics';
-import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { MetaMetrics } from '../../Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import ReduxService from '../../redux';
@@ -217,22 +216,16 @@ async function handleUniversalLink({
     };
 
     // Create and track the consolidated event
-    const eventProperties = await createDeepLinkUsedEvent(analyticsContext);
+    const eventBuilder = await createDeepLinkUsedEventBuilder(analyticsContext);
 
     const metrics = MetaMetrics.getInstance();
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.DEEP_LINK_USED,
-    );
-    eventBuilder.addProperties({
-      ...generateDeviceAnalyticsMetaData(),
-      ...eventProperties,
-    });
+    eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
 
     metrics.trackEvent(eventBuilder.build());
 
     DevLogger.log(
       'DeepLinkAnalytics: Tracked consolidated deep link event:',
-      eventProperties,
+      eventBuilder.build(),
     );
   } catch (error) {
     DevLogger.log('DeepLinkAnalytics: Error tracking deep link event:', error);

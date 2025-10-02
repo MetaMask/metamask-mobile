@@ -6,7 +6,7 @@ import {
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
-import { createDeepLinkUsedEvent } from '../../../util/deeplinks/deepLinkAnalytics';
+import { createDeepLinkUsedEventBuilder } from '../../../util/deeplinks/deepLinkAnalytics';
 import {
   InterstitialState,
   SignatureStatus,
@@ -24,7 +24,7 @@ const handleDeepLinkModalDisplay = async (params: DeepLinkModalParams) => {
     // Skip interstitial if don't remind me again was toggled
     // Track the skipped interstitial state
     try {
-      const eventProperties = await createDeepLinkUsedEvent({
+      const eventProperties = await createDeepLinkUsedEventBuilder({
         url: '', // URL not available in this context
         route: DeepLinkRoute.INVALID, // Will be determined by the calling context
         urlParams: {},
