@@ -1037,6 +1037,7 @@
         "insufficient_funds": "자금 부족",
         "insufficient_balance": "잔액이 부족합니다. 필요: ${{required}}, 사용 가능: ${{available}}",
         "invalid_leverage": "레버리지는 {{min}}x~{{max}}x 사이여야 합니다",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "레버리지가 높을수록 청산 위험이 증가합니다",
         "invalid_take_profit": "{{positionType}} 포지션의 경우 익절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
         "invalid_stop_loss": "{{positionType}} 포지션의 경우 손절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
@@ -1459,6 +1460,8 @@
     "failed_to_load_market_data": "마켓 데이터 불러오기에 실패했습니다",
     "tap_to_retry": "탭하여 다시 시도",
     "search_by_token_symbol": "토큰 심볼별 검색",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "테스트넷",
     "mainnet": "메인넷",
     "developer_options": {
@@ -6011,7 +6014,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,6 +6026,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },
