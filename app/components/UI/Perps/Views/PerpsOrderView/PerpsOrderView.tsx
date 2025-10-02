@@ -153,6 +153,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
+  // Timeout refs for cleanup
+  const optimizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const keypadOptimizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { account } = usePerpsLiveAccount();
 
   // Get real HyperLiquid USDC balance
@@ -579,7 +583,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
     // Optimize after setting the amount
-    setTimeout(() => {
+    optimizeTimeoutRef.current = setTimeout(() => {
       optimizeOrderAmount(assetData.price, marketData?.szDecimals);
     }, 0);
   };
@@ -608,7 +612,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
       // Optimize the amount after keypad input is complete
       // Use a timeout to ensure the amount has been set first
-      setTimeout(() => {
+      keypadOptimizeTimeoutRef.current = setTimeout(() => {
         optimizeOrderAmount(assetData.price, marketData?.szDecimals);
       }, 0);
     }
