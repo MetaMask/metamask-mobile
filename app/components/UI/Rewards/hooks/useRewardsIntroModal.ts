@@ -7,11 +7,15 @@ import {
 } from '../../../../selectors/featureFlagController/rewards';
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
 import StorageWrapper from '../../../../store/storage-wrapper';
-import { REWARDS_GTM_MODAL_SHOWN } from '../../../../constants/storage';
+import {
+  LAST_APP_VERSION,
+  REWARDS_GTM_MODAL_SHOWN,
+} from '../../../../constants/storage';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { setOnboardingActiveStep } from '../../../../reducers/rewards';
 import { OnboardingStep } from '../../../../reducers/rewards/types';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 const isE2ETest =
   process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
@@ -34,6 +38,9 @@ export const useRewardsIntroModal = () => {
   const isRewardsAnnouncementEnabled = useSelector(
     selectRewardsAnnouncementModalEnabledFlag,
   );
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const hasSeenBIP44IntroModal = useSelector(
     selectMultichainAccountsIntroModalSeen,
@@ -45,10 +52,17 @@ export const useRewardsIntroModal = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   const checkAndShowRewardsIntroModal = useCallback(async () => {
+    // Check if this is a fresh install
+    const lastAppVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
+    const isFreshInstall = !lastAppVersion;
+
     const shouldShow =
       isRewardsFeatureEnabled &&
       isRewardsAnnouncementEnabled &&
-      hasSeenBIP44IntroModal &&
+      // BIP44 intro modal has been seen or it's a fresh install (which doesnt trigger bip44 modal) or bip44 is not enabled
+      (!isMultichainAccountsState2Enabled ||
+        hasSeenBIP44IntroModal ||
+        isFreshInstall) &&
       !hasSeenRewardsIntroModal &&
       !subscriptionId;
 
@@ -61,6 +75,7 @@ export const useRewardsIntroModal = () => {
     }
   }, [
     isRewardsFeatureEnabled,
+    isMultichainAccountsState2Enabled,
     isRewardsAnnouncementEnabled,
     hasSeenBIP44IntroModal,
     hasSeenRewardsIntroModal,
