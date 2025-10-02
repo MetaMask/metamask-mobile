@@ -2,7 +2,7 @@ import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 import {
   AMOUNT_ERROR,
   AMOUNT_SCREEN,
@@ -67,14 +67,14 @@ class AmountScreen {
     console.log('Amount digits:', digits);
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-        await numberKey.waitFor('visible',{ timeout: 30000 });
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
         await AppwrightGestures.tap(numberKey);
       }
       else {
-        const numberKey = AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await numberKey.waitFor('visible', { timeout: 30000 });
-        await AppwrightGestures.tap(numberKey); 
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        await AppwrightGestures.tap(numberKey);
       }
     }
     }
@@ -95,7 +95,7 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    await AppwrightGestures.tap(this.nextButton);
+    await AppwrightGestures.tap(this.nextButton, );
   }
 
   async isVisible() {
@@ -104,7 +104,7 @@ class AmountScreen {
       await element.waitForDisplayed();
     } else {
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, '25%');
-      await expect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible();
     }
   }
 }
