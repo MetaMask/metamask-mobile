@@ -280,13 +280,12 @@ export const PrivateKeyList = () => {
 
   const privateKeyBannerDescription = useMemo(
     () => (
-      <Text variant={TextVariant.BodyMD}>
+      <Text>
         {`${strings(
           'multichain_accounts.private_key_list.warning_description',
         )} `}
         <Text
           color={TextColor.Primary}
-          variant={TextVariant.BodyMDBold}
           onPress={() => Linking.openURL(PRIVATE_KEY_GUIDE_URL)}
         >
           {strings('reveal_credential.learn_more')}
