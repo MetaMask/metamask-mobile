@@ -238,6 +238,11 @@ const mockInitialState = {
   metamask: {
     isDataCollectionForMarketingEnabled: true,
   },
+  rewards: {
+    candidateSubscriptionId: null,
+    hideUnlinkedAccountsBanner: false,
+    seasonStatusError: null,
+  },
   multichain: {
     dismissedBanners: [], // Added missing property
   },
@@ -274,6 +279,9 @@ const mockInitialState = {
             ],
           },
         },
+      },
+      RewardsController: {
+        activeAccount: null,
       },
       PreferencesController: {
         selectedAddress: MOCK_ADDRESS,
