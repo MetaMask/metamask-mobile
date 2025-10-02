@@ -140,7 +140,7 @@ exports[`SecureExistingWallet renders match snapshot 1`] = `
             }
           }
         >
-          Unlock your wallet
+          Unlock wallet
         </Text>
       </TouchableOpacity>
     </View>
@@ -288,7 +288,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
             }
           }
         >
-          Unlock your wallet
+          Unlock wallet
         </Text>
       </TouchableOpacity>
     </View>

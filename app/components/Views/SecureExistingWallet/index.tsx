@@ -103,7 +103,7 @@ const SecureExistingWallet = () => {
             testID={OnboardingSelectorIDs.SECURE_EXISTING_WALLET_BUTTON}
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            label={strings('onboarding.unlock_your_wallet')}
+            label={strings('onboarding.unlock_wallet')}
             onPress={handleSecureWallet}
           />
         </View>
