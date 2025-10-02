@@ -167,6 +167,13 @@ const DeepLinkModal = () => {
         event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
         eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
       },
+      [DeepLinkModalLinkType.UNSUPPORTED]: {
+        title: strings('deep_link_modal.unsupported.title'),
+        description: strings('deep_link_modal.unsupported.description'),
+        buttonLabel: strings('deep_link_modal.go_to_home_button'),
+        event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
+        eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
+      },
     }),
     [pageTitle],
   );
