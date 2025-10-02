@@ -1793,6 +1793,7 @@ describe('RewardsDataService', () => {
 
     const mockOptInStatusResponse = {
       ois: [true, false, true],
+      sids: ['sub_123', null, 'sub_456'],
     };
 
     it('should successfully get opt-in status for multiple addresses', async () => {
@@ -1828,6 +1829,7 @@ describe('RewardsDataService', () => {
       };
       const singleAddressResponse = {
         ois: [true],
+        sids: ['sub_123'],
       };
 
       const mockResponse = {
