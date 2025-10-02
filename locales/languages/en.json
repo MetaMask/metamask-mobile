@@ -6069,6 +6069,9 @@
       "reward_claimed": "Reward claimed",
       "time_left": "left",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
