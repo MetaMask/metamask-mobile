@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -36,10 +36,10 @@ import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
-  usePerpsPerformance,
 } from '../../hooks';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
 
@@ -54,14 +54,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     useState(false);
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { track } = usePerpsEventTracking();
   const { account } = usePerpsLiveAccount();
-
-  const hasTrackedHomescreen = useRef(false);
-  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
+  });
+
+  // Track Perps tab load performance - measures time from tab mount to data ready
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.PERPS_TAB_LOADED,
+    conditions: [
+      !isInitialLoading,
+      !!positions,
+      account?.totalBalance !== undefined,
+    ],
   });
 
   const orders = usePerpsLiveOrders({
@@ -77,39 +83,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Start measuring position data load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-  }, [startMeasure]);
-
-  // Track homescreen tab viewed - only once when positions and account are loaded
-  useEffect(() => {
-    if (
-      !hasTrackedHomescreen.current &&
-      !isInitialLoading &&
-      positions &&
-      account?.totalBalance !== undefined
-    ) {
-      // Track position data loaded performance
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-
-      // Track homescreen tab viewed event with exact property names from requirements
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
-        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
-          [PerpsEventProperties.ASSET]: p.coin,
-          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(p.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-        })),
-      });
-
-      hasTrackedHomescreen.current = true;
-    }
-  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
+  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [
+      !isInitialLoading,
+      !!positions,
+      account?.totalBalance !== undefined,
+    ],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+    },
+  });
 
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {
@@ -132,6 +119,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
+        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     }
   }, [navigation, isFirstTimeUser]);
@@ -178,7 +166,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {orders.map((order) => (
-            <PerpsCard key={order.orderId} order={order} />
+            <PerpsCard
+              key={order.orderId}
+              order={order}
+              source={PerpsEventValues.SOURCE.POSITION_TAB}
+            />
           ))}
           {(!positions || positions.length === 0) && renderStartTradeCTA()}
         </View>
@@ -220,6 +212,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 <PerpsCard
                   key={`${position.coin}-${index}`}
                   position={position}
+                  source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />
               </View>
             );
