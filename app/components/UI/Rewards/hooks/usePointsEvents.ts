@@ -1,10 +1,13 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
-
+import {
+  selectActiveTab,
+  selectPointsEvents,
+} from '../../../../reducers/rewards/selectors';
+import { setPointsEvents as setPointsEventsAction } from '../../../../reducers/rewards';
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
   subscriptionId: string;
@@ -25,8 +28,9 @@ export const usePointsEvents = (
   options: UsePointsEventsOptions,
 ): UsePointsEventsResult => {
   const { seasonId, subscriptionId } = options;
+  const dispatch = useDispatch();
   const activeTab = useSelector(selectActiveTab);
-
+  const uiStorePointsEvents = useSelector(selectPointsEvents);
   const [pointsEvents, setPointsEvents] = useState<PointsEventDto[] | null>(
     null,
   );
@@ -73,12 +77,15 @@ export const usePointsEvents = (
 
         if (isInitial) {
           setPointsEvents(pointsEventsData.results);
+          dispatch(setPointsEventsAction(pointsEventsData.results));
         } else {
-          setPointsEvents((prev) =>
-            prev
+          setPointsEvents((prev) => {
+            const newPointsEvents = prev
               ? [...prev, ...pointsEventsData.results]
-              : pointsEventsData.results,
-          );
+              : pointsEventsData.results;
+            dispatch(setPointsEventsAction(newPointsEvents));
+            return newPointsEvents;
+          });
         }
 
         setCursor(pointsEventsData.cursor);
@@ -87,11 +94,6 @@ export const usePointsEvents = (
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
         setError(errorMessage);
-
-        // If it's a pagination error, don't clear existing data, but clear on initial fetch or refresh
-        if (isInitial) {
-          setPointsEvents([]);
-        }
       } finally {
         isLoadingRef.current = false;
         if (isInitial) {
@@ -101,7 +103,7 @@ export const usePointsEvents = (
         }
       }
     },
-    [seasonId, subscriptionId],
+    [seasonId, subscriptionId, dispatch],
   );
 
   const loadMore = useCallback(() => {
@@ -112,6 +114,22 @@ export const usePointsEvents = (
       });
     }
   }, [isLoadingMore, hasMore, cursor, fetchPointsEvents]);
+
+  useEffect(() => {
+    if (
+      pointsEvents === null &&
+      uiStorePointsEvents !== null &&
+      uiStorePointsEvents?.length > 0
+    ) {
+      setPointsEvents(uiStorePointsEvents);
+    }
+  }, [
+    pointsEvents,
+    seasonId,
+    subscriptionId,
+    fetchPointsEvents,
+    uiStorePointsEvents,
+  ]);
 
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
