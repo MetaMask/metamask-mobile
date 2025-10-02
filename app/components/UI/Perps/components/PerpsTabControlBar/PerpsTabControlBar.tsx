@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -164,15 +164,22 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
             </Text>
           </View>
           <View style={styles.rightSection}>
-            <Animated.View style={[getBalanceAnimatedStyle]}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
-              >
-                {formatPerpsFiat(availableBalance)}
-              </Text>
-            </Animated.View>
+            {isDepositInProgress ? (
+              <ActivityIndicator
+                size="small"
+                color={styles.activityIndicator.color}
+              />
+            ) : (
+              <Animated.View style={[getBalanceAnimatedStyle]}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
+                >
+                  {formatPerpsFiat(availableBalance)}
+                </Text>
+              </Animated.View>
+            )}
           </View>
         </TouchableOpacity>
       )}

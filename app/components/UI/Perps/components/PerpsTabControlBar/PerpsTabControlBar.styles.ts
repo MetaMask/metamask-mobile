@@ -80,6 +80,9 @@ const styleSheet = (params: { theme: Theme }) => {
     arrowContainer: {
       marginLeft: 12,
     },
+    activityIndicator: {
+      color: colors.primary.default,
+    },
   });
 };
 
