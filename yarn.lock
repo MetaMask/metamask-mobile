@@ -8291,7 +8291,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/providers@npm:^22.1.0, @metamask/providers@npm:^22.1.1":
+"@metamask/providers@npm:^22.1.1":
   version: 22.1.1
   resolution: "@metamask/providers@npm:22.1.1"
   dependencies:
@@ -8634,19 +8634,6 @@ __metadata:
     "@metamask/superstruct": ^3.2.1
     "@metamask/utils": ^11.8.1
   checksum: ba9fc76e084a96c1af7ada03c8c6e06630866c6b3c41e7f3f8fe3ab39f2262b09a0d8f7d3fb7d3c8e93680dc2804ff080595aff43e2f41b62c7dd4eb32cede49
-  languageName: node
-  linkType: hard
-
-"@metamask/snaps-sdk@npm:^9.0.0, @metamask/snaps-sdk@npm:^9.3.0":
-  version: 9.3.0
-  resolution: "@metamask/snaps-sdk@npm:9.3.0"
-  dependencies:
-    "@metamask/key-tree": ^10.1.1
-    "@metamask/providers": ^22.1.0
-    "@metamask/rpc-errors": ^7.0.3
-    "@metamask/superstruct": ^3.2.1
-    "@metamask/utils": ^11.4.2
-  checksum: 0ddffc266c3802ab97724af94d07356ac8e55d91030d3f246e5f2c9154c61e8eae6f0b320cafd9bd8eca245d83c5603d0aae8c7426ed12496d512728970f4153
   languageName: node
   linkType: hard
 
