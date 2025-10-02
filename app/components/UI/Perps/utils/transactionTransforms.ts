@@ -99,7 +99,7 @@ export function transformFillsToTransactions(
       id: orderId || `fill-${timestamp}`,
       type: 'trade',
       category: isOpened ? 'position_open' : 'position_close',
-      title: `${action} ${symbol} ${
+      title: `${action} ${
         isFlipped ? direction?.toLowerCase() || '' : part2?.toLowerCase() || ''
       }`,
       subtitle: `${size} ${symbol}`,

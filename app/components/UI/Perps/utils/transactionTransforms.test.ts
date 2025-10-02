@@ -30,7 +30,7 @@ describe('transactionTransforms', () => {
         id: '12345',
         type: 'trade',
         category: 'position_open',
-        title: 'Opened ETH long',
+        title: 'Opened long',
         subtitle: '1.5 ETH',
         timestamp: 1640995200000,
         asset: 'ETH',
@@ -62,7 +62,7 @@ describe('transactionTransforms', () => {
 
       expect(result[0]).toMatchObject({
         category: 'position_close',
-        title: 'Closed ETH short',
+        title: 'Closed short',
         fill: {
           shortTitle: 'Closed short',
           amount: '+$70.25', // For closes: PnL minus fee (75.25 - 5.00)
@@ -153,7 +153,7 @@ describe('transactionTransforms', () => {
 
       expect(result[0]).toMatchObject({
         category: 'position_close', // Flips are treated as closes
-        title: 'Flipped ETH short > long',
+        title: 'Flipped short > long',
         fill: {
           shortTitle: 'Flipped short > long',
           amount: '+$40.00', // PnL minus fee (50 - 10)
