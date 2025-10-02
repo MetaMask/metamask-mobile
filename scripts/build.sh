@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 set -o pipefail
 
 readonly __DIRNAME__="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
