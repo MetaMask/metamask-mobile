@@ -323,11 +323,13 @@
     "title": "Welcome Back!",
     "password": "Password",
     "password_placeholder": "Enter MetaMask password",
+    "pin_placeholder": "Enter MetaMask PIN",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
     "invalid_password": "Password is incorrect, try again.",
+    "invalid_pin": "Password/PIN is incorrect. try again.",
     "type_delete": "Type ‘%{erase}’ to confirm",
     "erase_my": "Yes, reset wallet",
     "cancel": "Cancel",
@@ -5419,11 +5421,13 @@
   "account_status": {
     "account_already_exists": "Wallet already exists",
     "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "account_already_exists_ios_new_userd_escription": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
     "log_in": "Log in",
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
-    "use_different_login_method": "Use a different login method"
+    "use_different_login_method": "Use a different login method",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Still there?",

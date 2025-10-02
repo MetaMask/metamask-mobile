@@ -3,7 +3,7 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert } from 'react-native';
+import { InteractionManager, BackHandler, Alert, Platform } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
@@ -749,6 +749,7 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      Platform.OS = 'android';
     });
 
     afterEach(() => {
@@ -843,6 +844,36 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         'Error: Some unexpected error',
       );
+    });
+  });
+
+  describe('PIN Error Handling', () => {
+    beforeEach(() => {
+      Platform.OS = 'ios';
+    });
+
+    afterEach(() => {
+      Platform.OS = 'android';
+    });
+
+    it('should handle WRONG_PIN_ERROR', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Decrypt failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(strings('login.invalid_pin'));
     });
   });
 
