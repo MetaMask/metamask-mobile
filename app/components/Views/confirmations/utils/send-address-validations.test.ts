@@ -57,7 +57,10 @@ describe('validateHexAddress', () => {
         '0x1',
         '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
       ),
-    ).toStrictEqual({ error: 'send.contractAddressError' });
+    ).toStrictEqual({
+      error:
+        "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    });
   });
   it('returns warning if address is contract address', async () => {
     mockMemoizedGetTokenStandardAndDetails.mockResolvedValue({
