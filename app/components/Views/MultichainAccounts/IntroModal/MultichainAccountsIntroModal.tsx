@@ -157,6 +157,7 @@ const MultichainAccountsIntroModal = () => {
             autoPlay
             loop
             source={multichainAccountsIntro}
+            testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.IMAGE_PLACEHOLDER}
           />
 
           <View style={styles.section}>
