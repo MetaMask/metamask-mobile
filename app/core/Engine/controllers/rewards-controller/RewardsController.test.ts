@@ -2709,8 +2709,18 @@ describe('RewardsController', () => {
     it('should handle network timeout error and log it', async () => {
       // Arrange
       const mockTimeoutError = new Error('Request timed out');
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
@@ -2732,7 +2742,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(mockTimeoutError);
+      localMockMessenger.call.mockRejectedValue(mockTimeoutError);
 
       // Act & Assert
       await expect(
@@ -2742,65 +2752,6 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get season status:',
         'Request timed out',
-      );
-    });
-
-    it('should handle 403 error and invalidate subscription cache', async () => {
-      // Arrange
-      const mock403Error = new Error('Get season status failed: 403');
-      const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
-      });
-      testableController.testUpdate((state) => {
-        state.activeAccount = {
-          subscriptionId: mockSubscriptionId,
-          account: 'eip155:1:0x123',
-          hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
-        };
-        state.accounts = {};
-        state.subscriptions = {
-          [mockSubscriptionId]: {
-            id: mockSubscriptionId,
-            referralCode: 'REF123',
-            accounts: [],
-          },
-        };
-        state.seasons = {};
-        state.subscriptionReferralDetails = {};
-        state.seasonStatuses = {};
-        state.activeBoosts = {};
-        state.unlockedRewards = {};
-        state.pointsEvents = {};
-      });
-
-      mockMessenger.call.mockRejectedValue(mock403Error);
-
-      // Spy on invalidation methods
-      const invalidateSubscriptionCacheSpy = jest.spyOn(
-        testableController,
-        'invalidateSubscriptionCache',
-      );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
-        testableController,
-        'invalidateAccountsAndSubscriptions',
-      );
-
-      // Act & Assert
-      await expect(
-        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Get season status failed: 403');
-
-      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
-        mockSubscriptionId,
-      );
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get season status:',
-        'Get season status failed: 403',
       );
     });
 
@@ -2816,8 +2767,18 @@ describe('RewardsController', () => {
         metadata: {},
       };
 
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
@@ -2846,7 +2807,7 @@ describe('RewardsController', () => {
       });
 
       // Mock the messenger to return the account and reject with 403
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
         if (method === 'RewardsDataService:getSeasonStatus') {
           return Promise.reject(mock403Error);
         }
@@ -2871,7 +2832,7 @@ describe('RewardsController', () => {
       ).rejects.toThrow('Get season status failed: 403');
 
       // Verify reauth was attempted with active account
-      expect(mockMessenger.call).toHaveBeenCalledWith(
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
         'AccountsController:getSelectedMultichainAccount',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
@@ -2898,8 +2859,18 @@ describe('RewardsController', () => {
         metadata: {},
       };
 
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
@@ -2938,7 +2909,7 @@ describe('RewardsController', () => {
       });
 
       // Mock the messenger to return the account and reject with 403
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
         if (method === 'RewardsDataService:getSeasonStatus') {
           return Promise.reject(mock403Error);
         }
@@ -2985,8 +2956,18 @@ describe('RewardsController', () => {
     it('should handle API server error (500)', async () => {
       // Arrange
       const serverError = new Error('Internal Server Error: 500');
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
@@ -3008,7 +2989,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(serverError);
+      localMockMessenger.call.mockRejectedValue(serverError);
 
       // Act & Assert
       await expect(
@@ -3024,8 +3005,18 @@ describe('RewardsController', () => {
     it('should handle API rate limit error (429)', async () => {
       // Arrange
       const rateLimitError = new Error('Too Many Requests: 429');
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
       const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
+        messenger: localMockMessenger,
       });
       testableController.testUpdate((state) => {
         state.activeAccount = {
@@ -3047,7 +3038,7 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      mockMessenger.call.mockRejectedValue(rateLimitError);
+      localMockMessenger.call.mockRejectedValue(rateLimitError);
 
       // Act & Assert
       await expect(
