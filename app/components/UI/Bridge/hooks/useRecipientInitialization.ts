@@ -3,12 +3,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   selectDestAddress,
   setDestAddress,
-  selectIsEvmToSolana,
-  selectIsSolanaToEvm,
+  selectDestToken,
 } from '../../../../core/redux/slices/bridge';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { isNonEvmAddress } from '../../../../core/Multichain/utils';
+import {
+  isNonEvmAddress,
+  isNonEvmChainId,
+} from '../../../../core/Multichain/utils';
 import { useDestinationAccounts } from './useDestinationAccounts';
 
 export const useRecipientInitialization = (
@@ -19,8 +21,7 @@ export const useRecipientInitialization = (
   const currentlySelectedAccount = useSelector(selectSelectedAccountGroup);
 
   const destAddress = useSelector(selectDestAddress);
-  const isEvmToSolana = useSelector(selectIsEvmToSolana);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const destToken = useSelector(selectDestToken);
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -39,11 +40,18 @@ export const useRecipientInitialization = (
       return;
     }
 
-    // Check if current destAddress matches the network type
+    // Check if current destAddress matches the destination chain type
+    const isDestChainNonEvm =
+      destToken?.chainId && isNonEvmChainId(destToken.chainId);
+    const isDestAddressNonEvm = destAddress && isNonEvmAddress(destAddress);
+
+    // Address format should match the destination chain type:
+    // - If dest chain is non-EVM (e.g., Solana, Bitcoin), dest address should be non-EVM
+    // - If dest chain is EVM, dest address should be EVM
     const doesDestAddrMatchNetworkType =
       destAddress &&
-      ((isSolanaToEvm && !isNonEvmAddress(destAddress)) || // Solana→EVM: dest address should be EVM
-        (isEvmToSolana && isNonEvmAddress(destAddress))); // EVM→Solana: dest address should be Solana
+      destToken?.chainId &&
+      isDestChainNonEvm === isDestAddressNonEvm;
 
     // Only initialize in these specific cases:
     // 1. Never initialized AND no destAddress set
@@ -70,8 +78,7 @@ export const useRecipientInitialization = (
     }
   }, [
     destAddress,
-    isEvmToSolana,
-    isSolanaToEvm,
+    destToken,
     destinationAccounts,
     handleSelectAccount,
     currentlySelectedAccount,
