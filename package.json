@@ -728,7 +728,7 @@
       "appwright>@empiricalrun/llm>sharp": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
-      "react-native-nitro-modules": false
+      "react-native-nitro-modules": false,
       "esbuild": false
     }
   },
