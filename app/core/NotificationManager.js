@@ -11,7 +11,7 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 
 import Logger from '../util/Logger';
 import {
