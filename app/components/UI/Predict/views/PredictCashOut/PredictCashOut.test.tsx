@@ -8,7 +8,11 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictPosition, PredictPositionStatus } from '../../types';
+import {
+  PredictOutcome,
+  PredictPosition,
+  PredictPositionStatus,
+} from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictCashOut from './PredictCashOut';
 
@@ -70,11 +74,17 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   },
 }));
 
-// Mock usePredictExpectedAmount hook
-let mockExpectedAmount = 60;
-jest.mock('../../hooks/usePredictExpectedAmount', () => ({
-  usePredictExpectedAmount: () => ({
-    expectedAmount: mockExpectedAmount,
+// Mock usePredictCashOutAmounts hook
+let mockCashOutAmounts = {
+  currentValue: 60,
+  percentPnl: 20,
+  cashPnl: 10,
+};
+jest.mock('../../hooks/usePredictCashOutAmounts', () => ({
+  usePredictCashOutAmounts: () => ({
+    cashOutAmounts: mockCashOutAmounts,
+    isCalculating: false,
+    error: null,
   }),
 }));
 
@@ -188,11 +198,31 @@ const mockPosition: PredictPosition = {
   endDate: '2024-12-31',
 };
 
+const mockOutcome: PredictOutcome = {
+  id: 'outcome-123',
+  providerId: 'polymarket',
+  marketId: 'market-123',
+  title: 'Bitcoin Price Outcome',
+  description: 'Outcome description',
+  image: 'https://example.com/outcome.png',
+  status: 'open',
+  tokens: [
+    {
+      id: 'outcome-token-123',
+      title: 'Yes',
+      price: 0.5,
+    },
+  ],
+  volume: 1000000,
+  groupItemTitle: 'Bitcoin Price',
+};
+
 const mockRoute: RouteProp<PredictNavigationParamList, 'PredictCashOut'> = {
   key: 'PredictCashOut-key',
   name: 'PredictCashOut',
   params: {
     position: mockPosition,
+    outcome: mockOutcome,
   },
 };
 
@@ -230,7 +260,11 @@ describe('PredictCashOut', () => {
     jest.clearAllMocks();
 
     // Reset mock values to defaults
-    mockExpectedAmount = 60;
+    mockCashOutAmounts = {
+      currentValue: 60,
+      percentPnl: 20,
+      cashPnl: 10,
+    };
     mockLoadingState = false;
 
     // Setup default mocks
@@ -271,15 +305,20 @@ describe('PredictCashOut', () => {
 
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
-      const { getByText } = renderWithProvider(<PredictCashOut />, {
-        state: initialState,
-      });
+      const { getByText, queryByText } = renderWithProvider(
+        <PredictCashOut />,
+        {
+          state: initialState,
+        },
+      );
 
       expect(getByText('Cash Out')).toBeOnTheScreen();
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('$50.00 on Yes')).toBeOnTheScreen();
-      expect(getByText('Resolves automatically in 9 days')).toBeOnTheScreen();
-      expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
+
+      expect(
+        queryByText('Funds will be added to your available balance'),
+      ).toBeOnTheScreen();
     });
 
     it('displays current value and P&L correctly', () => {
@@ -301,8 +340,12 @@ describe('PredictCashOut', () => {
     });
 
     it('displays negative P&L in error color', () => {
-      // Set expected amount lower than initial value to create negative P&L
-      mockExpectedAmount = 40; // initialValue is 50, so (40-50)/50 * 100 = -20%
+      // Set mock to return negative P&L
+      mockCashOutAmounts = {
+        currentValue: 40,
+        percentPnl: -20,
+        cashPnl: -10,
+      };
 
       const negativePnLPosition = {
         ...mockPosition,

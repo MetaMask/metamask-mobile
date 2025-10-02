@@ -33,11 +33,11 @@ const PredictCashOut = () => {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictCashOut'>>();
-  const { position, outcome } = route.params;
+  const { position } = route.params;
 
   const { icon, title, outcome: outcomeSideText, initialValue } = position;
 
-  const outcomeTitle = outcome.groupItemTitle ? outcome.groupItemTitle : title;
+  const outcomeTitle = title;
 
   const { placeOrder, isLoading } = usePredictPlaceOrder({
     onComplete: () => {
