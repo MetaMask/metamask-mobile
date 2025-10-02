@@ -383,12 +383,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(
-    () =>
-      // Show loading if we're connecting or if any data sources are loading
-      isConnecting || fillsLoading || ordersLoading || fundingLoading,
-    [isConnecting, fillsLoading, ordersLoading, fundingLoading],
-  );
+  const isInitialLoading = useMemo(() =>
+    // Show loading if we're connecting or if any data sources are loading
+     isConnecting || fillsLoading || ordersLoading || fundingLoading
+  , [isConnecting, fillsLoading, ordersLoading, fundingLoading]);
 
   // Determine if we should show empty state (only after loading is complete and no data)
   const shouldShowEmptyState = useMemo(() => {
