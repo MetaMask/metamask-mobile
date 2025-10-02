@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import Routes from '../../../../constants/navigation/Routes';
@@ -10,9 +10,12 @@ import {
 } from '../../../../selectors/featureFlagController/rewards';
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { setOnboardingActiveStep } from '../../../../reducers/rewards';
+import { OnboardingStep } from '../../../../reducers/rewards/types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -20,6 +23,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -27,6 +31,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 describe('useRewardsIntroModal', () => {
   const originalEnv = process.env;
   const navigate = jest.fn();
+  const mockDispatch = jest.fn();
 
   beforeEach(() => {
     jest.resetModules();
@@ -38,6 +43,8 @@ describe('useRewardsIntroModal', () => {
       navigate,
       setOptions: jest.fn(),
     } as unknown as ReturnType<typeof useNavigation>);
+
+    mockUseDispatch.mockReturnValue(mockDispatch);
 
     // Default selector values: all conditions satisfied
     mockUseSelector.mockImplementation((selector: unknown) => {
@@ -63,6 +70,9 @@ describe('useRewardsIntroModal', () => {
         screen: Routes.REWARDS_ONBOARDING_FLOW,
         params: { screen: Routes.MODAL.REWARDS_INTRO_MODAL },
       });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setOnboardingActiveStep(OnboardingStep.INTRO_MODAL),
+      );
     });
   });
 
@@ -142,6 +152,7 @@ describe('useRewardsIntroModal', () => {
 
     await waitFor(() => {
       expect(navigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 
