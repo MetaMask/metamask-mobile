@@ -23,9 +23,9 @@ import {
   selectNextTierPointsNeeded,
   selectCurrentTier,
   selectNextTier,
+  selectSeasonStatusError,
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
-import { selectSeasonStatusError } from '../../../../../selectors/rewards';
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
