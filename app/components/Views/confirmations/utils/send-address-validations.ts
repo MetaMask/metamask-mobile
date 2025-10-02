@@ -55,7 +55,7 @@ export const validateHexAddress = async (
           warning: strings('send.token_contract_warning'),
         };
       }
-    } catch (e) {
+    } catch {
       // Not a token address
     }
   }
