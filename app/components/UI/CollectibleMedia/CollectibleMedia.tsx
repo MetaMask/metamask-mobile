@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { getNftImage } from '../../../util/get-nft-image';
+import RemoteImageBadgeWrapper from '../../Base/RemoteImage/RemoteImageBadgeWrapper';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -126,9 +127,11 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           )}
         </View>
       ) : (
-        <View>
-          <RemoteImage
-            source={NftFallbackImage}
+        <RemoteImageBadgeWrapper
+          chainId={collectible.chainId}
+          isFullRatio={isFullRatio}
+        >
+          <View
             style={[
               styles.textContainer,
               style,
@@ -138,11 +141,18 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
               cover && styles.cover,
             ]}
             testID="fallback-nft-with-token-id"
-            tokenId={collectible.tokenId}
-            isTokenImage
-            fadeIn
-          />
-        </View>
+          >
+            <Text
+              big={big}
+              small={tiny ?? small}
+              style={tiny ? styles.textWrapperIcon : styles.textWrapper}
+            >
+              {collectible.tokenId
+                ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
+                : ''}
+            </Text>
+          </View>
+        </RemoteImageBadgeWrapper>
       ),
     [
       styles,
@@ -152,6 +162,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       small,
       tiny,
       collectible,
+      isFullRatio,
       onPressColectible,
       pressNft,
     ],

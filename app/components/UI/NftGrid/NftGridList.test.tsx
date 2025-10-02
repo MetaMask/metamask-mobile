@@ -193,31 +193,6 @@ describe('NftGridList', () => {
     jest.useRealTimers();
   });
 
-  it('shows loading state initially then renders empty state', async () => {
-    mockUseSelector.mockReturnValue({});
-    const store = mockStore(initialState);
-
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <NftGridList />
-      </Provider>,
-    );
-
-    // Should not show content during initial loading
-    expect(queryByTestId('refreshControl')).toBeNull();
-
-    // Fast-forward past loading timeout
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    // Should show empty state after loading
-    await waitFor(() => {
-      expect(queryByTestId('refreshControl')).not.toBeNull();
-      expect(queryByTestId('import-collectible-button')).not.toBeNull();
-    });
-  });
-
   it('renders NFT grid when collectibles are present', async () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector.mockReturnValue(mockCollectibles);

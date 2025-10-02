@@ -55,10 +55,12 @@ const styleSheet = (params: {
       borderRadius: 8,
     },
     textWrapper: {
+      flex: 1,
       textAlign: 'center',
       marginTop: 16,
     },
     textWrapperIcon: {
+      flex: 1,
       textAlign: 'center',
       fontSize: 18,
       marginTop: 16,
