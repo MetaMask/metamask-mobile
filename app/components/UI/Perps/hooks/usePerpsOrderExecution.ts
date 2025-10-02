@@ -12,6 +12,7 @@ import {
   PerpsEventValues,
 } from '../constants/eventNames';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { usePerpsMeasurement } from './usePerpsMeasurement';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -40,30 +41,28 @@ export function usePerpsOrderExecution(
   const [lastResult, setLastResult] = useState<OrderResult>();
   const [error, setError] = useState<string>();
 
+  // Track order submission toast with unified measurement hook
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
+    startConditions: [isPlacing], // Start when placing begins
+    endConditions: [!!lastResult || !!error], // End when we have result or error
+    resetConditions: [!isPlacing], // Reset when not placing
+  });
+
   const placeOrder = useCallback(
     async (orderParams: OrderParams) => {
       try {
         setIsPlacing(true);
         setError(undefined);
+        setLastResult(undefined);
 
         DevLogger.log(
           'usePerpsOrderExecution: Placing order',
           JSON.stringify(orderParams, null, 2),
         );
 
-        // Track order submission toast timing
-        const orderSubmissionStart = performance.now();
-
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);
-
-        // Measure order submission toast loaded
-        const submissionDuration = performance.now() - orderSubmissionStart;
-        setMeasurement(
-          PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
-          submissionDuration,
-          'millisecond',
-        );
 
         if (result.success) {
           DevLogger.log(

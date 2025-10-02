@@ -10,6 +10,23 @@ import {
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 
+// Mock @consensys/native-ramps-sdk to provide missing enum
+jest.mock('@consensys/native-ramps-sdk', () => ({
+  ...jest.requireActual('@consensys/native-ramps-sdk'),
+  DepositPaymentMethodDuration: {
+    instant: 'instant',
+    oneToTwoDays: 'oneToTwoDays',
+  },
+}));
+
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
+
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
@@ -205,12 +222,6 @@ jest.mock('../../hooks', () => ({
     error: null,
     refresh: jest.fn(),
     isRefreshing: false,
-  })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
   })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
