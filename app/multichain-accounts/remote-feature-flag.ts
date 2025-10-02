@@ -63,11 +63,25 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     return override === 'true';
   }
 
+  const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
+  const enableMultichainAccountsState2 =
+    remoteFeatureFlags.enableMultichainAccountsState2;
+
+  const isState1Undefined =
+    !enableMultichainAccounts ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts);
+  const isState2Undefined =
+    !enableMultichainAccountsState2 ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccountsState2);
+  if (isState1Undefined && isState2Undefined) {
+    return true;
+  }
+
   for (const { version, featureKey } of featureVersionsToCheck) {
     const featureFlag = remoteFeatureFlags[featureKey];
 
     if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
-      return true;
+      continue;
     }
 
     const { enabled, featureVersion, minimumVersion } = featureFlag;
