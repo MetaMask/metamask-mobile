@@ -1,10 +1,10 @@
-import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import React from 'react';
 import PredictMarketMultiple from '.';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PredictMarket, Recurrence } from '../../types';
 import Button from '../../../../../component-library/components/Buttons/Button';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { PredictMarket, Recurrence } from '../../types';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -31,6 +31,7 @@ const mockMarket: PredictMarket = {
     {
       id: 'outcome-1',
       marketId: 'test-market-1',
+      providerId: 'test-provider',
       title: 'Yes',
       description: 'Bitcoin will reach $150,000',
       image: 'https://example.com/bitcoin.png',
@@ -90,7 +91,7 @@ describe('PredictMarket', () => {
       screen: 'PredictPlaceBet',
       params: {
         market: mockMarket,
-        outcomeId: mockMarket.outcomes[0].id,
+        outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[0],
       },
     });
@@ -101,7 +102,7 @@ describe('PredictMarket', () => {
       screen: 'PredictPlaceBet',
       params: {
         market: mockMarket,
-        outcomeId: mockMarket.outcomes[0].id,
+        outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[1],
       },
     });

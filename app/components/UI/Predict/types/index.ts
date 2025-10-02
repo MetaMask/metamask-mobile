@@ -105,6 +105,7 @@ export type PredictCategory =
 
 export type PredictOutcome = {
   id: string;
+  providerId: string;
   marketId: string;
   title: string;
   description: string;

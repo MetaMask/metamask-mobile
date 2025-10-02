@@ -1210,6 +1210,7 @@ describe('polymarket utils', () => {
         outcomes: [
           {
             id: 'market-1',
+            providerId: 'polymarket',
             marketId: 'event-1',
             title: 'Will it rain?',
             description: 'Weather prediction',

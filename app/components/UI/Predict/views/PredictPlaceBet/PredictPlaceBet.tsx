@@ -47,7 +47,7 @@ const PredictPlaceBet = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictPlaceBet'>>();
 
-  const { outcomeId, outcomeToken, market } = route.params;
+  const { market, outcome, outcomeToken } = route.params;
   const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const [currentValue, setCurrentValue] = useState(1);
@@ -57,21 +57,21 @@ const PredictPlaceBet = () => {
     betAmounts: { toWin },
   } = usePredictBetAmounts({
     outcomeToken,
-    providerId: market.providerId,
+    providerId: outcome.providerId,
     userBetAmount: currentValue,
   });
 
-  const hasMultipleOutcomes = market.outcomes.length > 1;
-  const outcome = market.outcomes.find((o) => o.id === outcomeId);
+  const title =
+    market.outcomes.length > 1 ? `${outcome.groupItemTitle} •` : market.title;
 
   const onPlaceBet = () => {
     // Implement cash out action here
     placeOrder({
-      outcomeId,
+      outcomeId: outcome.id,
       outcomeTokenId: outcomeToken.id,
       side: Side.BUY,
       size: 1,
-      providerId: market.providerId,
+      providerId: outcome.providerId,
     });
     setTimeout(() => {
       dispatch(StackActions.pop());
@@ -103,55 +103,25 @@ const PredictPlaceBet = () => {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {market.title}
+              {title}
             </Text>
           </Box>
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Box flexDirection={BoxFlexDirection.Row}>
-              {hasMultipleOutcomes && (
-                <>
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Alternative}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {outcome?.groupItemTitle} •
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={
-                      outcomeToken?.title === 'Yes'
-                        ? TextColor.Success
-                        : TextColor.Error
-                    }
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {' '}
-                    {outcomeToken?.title} at{' '}
-                    {formatCents(outcomeToken?.price ?? 0)}
-                  </Text>
-                </>
-              )}
-
-              {!hasMultipleOutcomes && (
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={
-                    outcomeToken?.title === 'Yes'
-                      ? TextColor.Success
-                      : TextColor.Error
-                  }
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {outcomeToken?.title} at{' '}
-                  {formatCents(outcomeToken?.price ?? 0)}
-                </Text>
-              )}
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={
+                  outcomeToken?.title === 'Yes'
+                    ? TextColor.Success
+                    : TextColor.Error
+                }
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {outcomeToken?.title} at {formatCents(outcomeToken?.price ?? 0)}
+              </Text>
             </Box>
           </Box>
         </Box>

@@ -25,10 +25,10 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
-const mockUsePredictBuy = jest.fn();
 
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
+  providerId: 'test-provider',
   marketId: 'test-market-1',
   title: 'Will Bitcoin reach $150,000 by end of year?',
   description: 'Bitcoin price prediction market',
@@ -111,7 +111,7 @@ describe('PredictMarketSingle', () => {
       screen: 'PredictPlaceBet',
       params: {
         market: mockMarket,
-        outcomeId: mockOutcome.id,
+        outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[0],
       },
     });
@@ -121,7 +121,7 @@ describe('PredictMarketSingle', () => {
       screen: 'PredictPlaceBet',
       params: {
         market: mockMarket,
-        outcomeId: mockOutcome.id,
+        outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[1],
       },
     });

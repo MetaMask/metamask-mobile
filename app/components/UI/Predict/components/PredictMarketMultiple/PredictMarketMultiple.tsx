@@ -5,11 +5,9 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import { Alert, Image, View, TouchableOpacity } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -30,9 +28,6 @@ import { PredictMarket, PredictOutcome } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
-import Routes from '../../../../../constants/navigation/Routes';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictMarketMultipleProps {
   market: PredictMarket;
@@ -47,9 +42,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
@@ -84,7 +76,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
         market,
-        outcomeId: outcome.id,
+        outcome,
         outcomeToken: outcome.tokens[0],
       },
     });
@@ -95,7 +87,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
         market,
-        outcomeId: outcome.id,
+        outcome,
         outcomeToken: outcome.tokens[1],
       },
     });
@@ -174,37 +166,38 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   </Text>
                 </Box>
 
-              <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  width={ButtonWidthTypes.Full}
-                  label={
-                    <Text
-                      style={tw.style('font-medium')}
-                      color={TextColor.Success}
-                    >
-                      {truncateLabel(outcomeLabels[0])}
-                    </Text>
-                  }
-                  onPress={() => handleYes(outcome)}
-                  style={styles.buttonYes}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  width={ButtonWidthTypes.Full}
-                  label={
-                    <Text
-                      style={tw.style('font-medium')}
-                      color={TextColor.Error}
-                    >
-                      {truncateLabel(outcomeLabels[1])}
-                    </Text>
-                  }
-                  onPress={() => handleNo(outcome)}
-                  style={styles.buttonNo}
-                />
+                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Md}
+                    width={ButtonWidthTypes.Full}
+                    label={
+                      <Text
+                        style={tw.style('font-medium')}
+                        color={TextColor.Success}
+                      >
+                        {truncateLabel(outcomeLabels[0])}
+                      </Text>
+                    }
+                    onPress={() => handleYes(outcome)}
+                    style={styles.buttonYes}
+                  />
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Md}
+                    width={ButtonWidthTypes.Full}
+                    label={
+                      <Text
+                        style={tw.style('font-medium')}
+                        color={TextColor.Error}
+                      >
+                        {truncateLabel(outcomeLabels[1])}
+                      </Text>
+                    }
+                    onPress={() => handleNo(outcome)}
+                    style={styles.buttonNo}
+                  />
+                </Box>
               </Box>
             );
           })}

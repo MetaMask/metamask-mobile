@@ -21,6 +21,10 @@ interface UsePredictPositionsOptions {
    * @default true
    */
   refreshOnFocus?: boolean;
+  /**
+   * The market ID to load positions for
+   */
+  marketId?: string;
 
   /**
    * The parameters to load positions for
@@ -49,6 +53,7 @@ export function usePredictPositions(
     loadOnMount = true,
     refreshOnFocus = true,
     claimable = false,
+    marketId,
   } = options;
 
   const { getPositions } = usePredictTrading();
@@ -80,6 +85,7 @@ export function usePredictPositions(
           address: selectedInternalAccountAddress,
           providerId,
           claimable,
+          marketId,
         });
         const validPositions = positionsData ?? [];
 
@@ -105,7 +111,13 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
-    [getPositions, selectedInternalAccountAddress, providerId, claimable],
+    [
+      getPositions,
+      selectedInternalAccountAddress,
+      providerId,
+      claimable,
+      marketId,
+    ],
   );
 
   // Load positions on mount if enabled

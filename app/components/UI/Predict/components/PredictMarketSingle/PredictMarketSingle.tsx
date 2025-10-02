@@ -4,9 +4,9 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import { Alert, Image, View, TouchableOpacity } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -24,8 +24,6 @@ import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictNavigationParamList } from '../../types/navigation';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
@@ -40,8 +38,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -67,7 +63,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
       screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
         market,
-        outcomeId: outcome.id,
+        outcome,
         outcomeToken: outcome.tokens[0],
       },
     });
@@ -78,7 +74,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
       screen: Routes.PREDICT.MODALS.PLACE_BET,
       params: {
         market,
-        outcomeId: outcome.id,
+        outcome,
         outcomeToken: outcome.tokens[1],
       },
     });
@@ -226,8 +222,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={handleYes}
             style={styles.buttonYes}
-            disabled={loading}
-            loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -240,8 +234,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={handleNo}
             style={styles.buttonNo}
-            disabled={loading}
-            loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
           />
         </View>
         <View style={styles.marketFooter}>

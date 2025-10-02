@@ -639,6 +639,7 @@ export const parsePolymarketEvents = (
           return {
             id: market.conditionId,
             marketId: event.id,
+            providerId: 'polymarket',
             title: market.question,
             description: market.description,
             image: market.icon ?? market.image,

@@ -271,14 +271,24 @@ export class PolymarketProvider implements PredictProvider {
     limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
     claimable = false,
+    marketId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     // NOTE: hardcoded address for testing
     // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
 
+    const queryParams = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+      user: address || '',
+      sortBy: 'CURRENT',
+      redeemable: claimable.toString(),
+      ...(marketId && { eventId: marketId }),
+    });
+
     const response = await fetch(
-      `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}&sortBy=CURRENT&redeemable=${claimable}`,
+      `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`,
       {
         method: 'GET',
         headers: {

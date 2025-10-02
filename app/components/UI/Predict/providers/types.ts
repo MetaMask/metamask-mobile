@@ -1,7 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
   GetPriceHistoryParams,
-  OffchainTradeParams,
   PredictActivity,
   PredictCategory,
   PredictClaim,
@@ -92,6 +91,7 @@ export interface GetPositionsParams {
   limit?: number;
   offset?: number;
   claimable?: boolean;
+  marketId?: string;
 }
 
 export interface PredictProvider {
