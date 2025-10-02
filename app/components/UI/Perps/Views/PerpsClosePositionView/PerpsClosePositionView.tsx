@@ -30,7 +30,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { OrderType, Position } from '../../controllers/types';
+import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
@@ -70,6 +70,7 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -80,6 +81,7 @@ const PerpsClosePositionView: React.FC = () => {
   const { position } = route.params as { position: Position };
 
   const hasTrackedCloseView = useRef(false);
+  const inputMethodRef = useRef<InputMethod>('default');
   const { track } = usePerpsEventTracking();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -151,7 +153,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = absSize * effectivePrice;
+  const positionValue = useMemo(
+    () => absSize * effectivePrice,
+    [absSize, effectivePrice], // Round to 2 decimal places
+  );
 
   // Calculate P&L based on effective price (limit price for limit orders)
   const entryPrice = parseFloat(position.entryPrice);
@@ -172,30 +177,43 @@ const PerpsClosePositionView: React.FC = () => {
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
-  const closingValue = positionValue * (closePercentage / 100);
+  const closingValue = useMemo(
+    () => positionValue * (closePercentage / 100), // Round to 2 decimal places
+    [positionValue, closePercentage],
+  );
+  const closingValueString = useMemo(
+    () => closingValue.toString(),
+    [closingValue],
+  );
   const feeResults = usePerpsOrderFees({
     orderType,
-    amount: closingValue.toString(),
+    amount: closingValueString,
     isMaker: false, // Closing positions are typically taker orders
     coin: position.coin,
     isClosing: true, // This is a position closing operation
   });
 
   // Simple boolean calculation for rewards state
-  const hasValidAmount = closePercentage > 0 && closingValue > 0;
+  const hasValidAmount = useMemo(
+    () => closePercentage > 0 && closingValue > 0,
+    [closePercentage, closingValue],
+  );
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
     feeResults,
     hasValidAmount,
     isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: closingValue.toString(),
+    orderAmount: closingValueString,
   });
 
-  // Calculate what user will receive (initial margin - fees)
+  // Calculate what user will receive (initial margin + P&L - fees)
   // P&L is already shown separately in the margin section as "includes P&L"
-  const receiveAmount =
-    (closePercentage / 100) * initialMargin - feeResults.totalFee;
+  const receiveAmount = useMemo(() => {
+    const marginPortion = (closePercentage / 100) * initialMargin;
+    const pnlPortion = effectivePnL * (closePercentage / 100);
+    return marginPortion + pnlPortion - feeResults.totalFee;
+  }, [closePercentage, initialMargin, effectivePnL, feeResults.totalFee]);
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -232,7 +250,9 @@ const PerpsClosePositionView: React.FC = () => {
       const unrealizedPnlPercent =
         initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
 
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.DIRECTION]: isLong
           ? PerpsEventValues.DIRECTION.LONG
@@ -277,7 +297,8 @@ const PerpsClosePositionView: React.FC = () => {
         ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
         : 0;
 
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.DIRECTION]: isLong
         ? PerpsEventValues.DIRECTION.LONG
@@ -297,7 +318,8 @@ const PerpsClosePositionView: React.FC = () => {
     });
 
     // Track position close submitted
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUBMITTED,
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.ORDER_TYPE]: orderType,
     });
@@ -327,6 +349,7 @@ const PerpsClosePositionView: React.FC = () => {
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
         estimatedPoints: rewardsState.estimatedPoints,
+        inputMethod: inputMethodRef.current,
       },
     );
   };
@@ -337,6 +360,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
@@ -409,6 +433,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     const newPercentage = percentage * 100;
     setClosePercentage(newPercentage);
 
@@ -418,6 +443,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     setClosePercentage(100);
 
     // Update USD input to match calculated value for keypad display consistency
@@ -431,6 +457,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleSliderChange = (value: number) => {
+    inputMethodRef.current = 'slider';
     setClosePercentage(value);
   };
 
@@ -485,9 +512,13 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(initialMargin * (closePercentage / 100), {
-              maximumDecimals: 2,
-            })}
+            {formatPrice(
+              (closePercentage / 100) * initialMargin +
+                effectivePnL * (closePercentage / 100),
+              {
+                maximumDecimals: 2,
+              },
+            )}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
@@ -559,6 +590,38 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
       </View>
+
+      {/* Rewards Points Estimation */}
+      {rewardsState.shouldShowRewardsRow && (
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryLabel}>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('points')}
+              style={styles.labelWithTooltip}
+              testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('perps.estimated_points')}
+              </Text>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.summaryValue}>
+            <RewardPointsDisplay
+              estimatedPoints={rewardsState.estimatedPoints}
+              bonusBips={rewardsState.bonusBips}
+              isLoading={rewardsState.isLoading}
+              hasError={rewardsState.hasError}
+              shouldShow={rewardsState.shouldShowRewardsRow}
+              isRefresh={rewardsState.isRefresh}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 

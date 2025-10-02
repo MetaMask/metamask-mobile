@@ -8,6 +8,8 @@ import {
   OffchainTradeResponse,
   OnchainTradeParams,
   PredictActivity,
+  PredictClaim,
+  PredictClaimStatus,
   PredictMarket,
   PredictOrder,
   PredictPosition,
@@ -18,6 +20,8 @@ import {
   BuyOrderParams,
   PredictProvider,
   SellOrderParams,
+  ClaimOrderParams,
+  GetPositionsParams,
 } from '../types';
 import { POLYGON_MAINNET_CHAIN_ID, ROUNDING_CONFIG } from './constants';
 import {
@@ -29,17 +33,20 @@ import {
   PolymarketPosition,
   SignatureType,
   TickSize,
+  CONDITIONAL_TOKEN_DECIMALS,
 } from './types';
+import { parseUnits } from 'ethers/lib/utils';
 import {
   buildMarketOrderCreationArgs,
   calculateMarketPrice,
   createApiKey,
   encodeApprove,
+  encodeClaim,
   encodeErc1155Approve,
   getContractConfig,
   getL2Headers,
-  getMarketFromPolymarketApi,
   getMarketsFromPolymarketApi,
+  getParsedMarketsFromPolymarketApi,
   getOrderTypedData,
   getPolymarketEndpoints,
   getTickSize,
@@ -48,6 +55,7 @@ import {
   submitClobOrder,
 } from './utils';
 import { generateOrderId } from '../../utils/orders';
+import { Hex } from '@metamask/utils';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -100,12 +108,12 @@ export class PolymarketProvider implements PredictProvider {
     const [tickSizeResponse, price, marketData] = await Promise.all([
       getTickSize({ tokenId }),
       calculateMarketPrice(tokenId, side, size, OrderType.FOK),
-      getMarketFromPolymarketApi({ conditionId }),
+      getMarketsFromPolymarketApi({ conditionIds: [conditionId] }),
     ]);
 
     const tickSize = tickSizeResponse.minimum_tick_size;
 
-    const negRisk = marketData.negRisk;
+    const negRisk = marketData[0].negRisk;
 
     const order = await buildMarketOrderCreationArgs({
       signer: address,
@@ -158,7 +166,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const markets = await getMarketsFromPolymarketApi(params);
+      const markets = await getParsedMarketsFromPolymarketApi(params);
       return markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
@@ -170,15 +178,12 @@ export class PolymarketProvider implements PredictProvider {
     address,
     limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
-  }: {
-    address: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<PredictPosition[]> {
+    claimable = false,
+  }: GetPositionsParams): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     const response = await fetch(
-      `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}&sortBy=CURRENT`,
+      `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}&sortBy=CURRENT&redeemable=${claimable}`,
       {
         method: 'GET',
         headers: {
@@ -190,11 +195,16 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Failed to get positions');
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
-    const parsedPositions = parsePolymarketPositions({
+    const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
     });
 
-    return parsedPositions;
+    // TODO: Remove this the filtering when polymarket api is fixed
+    const filteredPositions = claimable
+      ? parsedPositions
+      : parsedPositions.filter((position) => !position.claimable);
+
+    return filteredPositions;
   }
 
   public async prepareBuyOrder({
@@ -434,6 +444,37 @@ export class PolymarketProvider implements PredictProvider {
       offchainTradeParams: { clobOrder, headers },
       isBuy: false,
     };
+  }
+
+  public prepareClaim(params: ClaimOrderParams): PredictClaim {
+    const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+    const { position } = params;
+    const amounts: bigint[] = [0n, 0n];
+    amounts[position.outcomeIndex] = BigInt(
+      parseUnits(
+        position.size.toString(),
+        CONDITIONAL_TOKEN_DECIMALS,
+      ).toString(),
+    );
+
+    const negRisk = !!position.negRisk;
+
+    const to = (
+      negRisk ? contractConfig.negRiskAdapter : contractConfig.conditionalTokens
+    ) as Hex;
+    const callData = encodeClaim(position.outcomeId, negRisk, amounts);
+
+    const response: PredictClaim = {
+      positionId: position.id,
+      chainId: POLYGON_MAINNET_CHAIN_ID,
+      status: PredictClaimStatus.IDLE,
+      txParams: {
+        data: callData,
+        to,
+        value: '0x0',
+      },
+    };
+    return response;
   }
 
   public async submitOffchainTrade(

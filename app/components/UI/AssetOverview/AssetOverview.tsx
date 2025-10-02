@@ -6,6 +6,7 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -78,6 +79,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -240,10 +242,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onBuy = () => {
+    let assetId: string | undefined;
+    try {
+      if (isCaipAssetType(asset.address)) {
+        assetId = asset.address;
+      } else {
+        assetId = parseRampIntent({
+          chainId: getDecimalChainId(chainId),
+          address: asset.address,
+        })?.assetId;
+      }
+    } catch {
+      assetId = undefined;
+    }
+
     navigation.navigate(
       ...createBuyNavigationDetails({
-        address: asset.address,
-        chainId: getDecimalChainId(chainId),
+        assetId,
       }),
     );
     trackEvent(
@@ -425,7 +440,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
-            chainId={chainId}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}

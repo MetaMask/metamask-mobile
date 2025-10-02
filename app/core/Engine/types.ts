@@ -705,7 +705,8 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
-  | 'GatorPermissionsController';
+  | 'GatorPermissionsController'
+  | 'SelectedNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

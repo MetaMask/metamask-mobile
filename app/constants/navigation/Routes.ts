@@ -13,9 +13,6 @@ const Routes = {
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
-    REGION: 'Region',
-    REGION_HAS_STARTED: 'RegionHasStarted',
-    NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
@@ -23,7 +20,11 @@ const Routes = {
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
+      FIAT_SELECTOR: 'RampFiatSelectorModal',
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
+      REGION_SELECTOR: 'RampRegionSelectorModal',
+      UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
     },
   },
   DEPOSIT: {

@@ -127,7 +127,8 @@ describe('useInitialSourceToken', () => {
         address: mockNativeAsset.address,
         name: mockNativeAsset.name,
         symbol: mockNativeAsset.symbol,
-        image: '',
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
         decimals: mockNativeAsset.decimals,
         chainId: mockChainId,
       });
