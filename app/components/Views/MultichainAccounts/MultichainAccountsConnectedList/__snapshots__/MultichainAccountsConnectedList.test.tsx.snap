@@ -154,37 +154,23 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       <View
                         style={
                           {
-                            "alignItems": "center",
-                            "borderColor": "#4459ff",
+                            "backgroundColor": "#ffffff",
                             "borderRadius": 8,
-                            "borderWidth": 2,
-                            "height": 36,
-                            "justifyContent": "center",
-                            "width": 36,
+                            "height": 32,
+                            "overflow": "hidden",
+                            "width": 32,
                           }
                         }
+                        testID="multichain-account-cell-avatar"
                       >
                         <View
                           style={
                             {
-                              "backgroundColor": "#ffffff",
-                              "borderRadius": 8,
                               "height": 32,
-                              "overflow": "hidden",
                               "width": 32,
                             }
                           }
-                          testID="multichain-account-cell-avatar"
-                        >
-                          <View
-                            style={
-                              {
-                                "height": 32,
-                                "width": 32,
-                              }
-                            }
-                          />
-                        </View>
+                        />
                       </View>
                       <View
                         style={
@@ -355,37 +341,23 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       <View
                         style={
                           {
-                            "alignItems": "center",
-                            "borderColor": "transparent",
+                            "backgroundColor": "#ffffff",
                             "borderRadius": 8,
-                            "borderWidth": 2,
-                            "height": 36,
-                            "justifyContent": "center",
-                            "width": 36,
+                            "height": 32,
+                            "overflow": "hidden",
+                            "width": 32,
                           }
                         }
+                        testID="multichain-account-cell-avatar"
                       >
                         <View
                           style={
                             {
-                              "backgroundColor": "#ffffff",
-                              "borderRadius": 8,
                               "height": 32,
-                              "overflow": "hidden",
                               "width": 32,
                             }
                           }
-                          testID="multichain-account-cell-avatar"
-                        >
-                          <View
-                            style={
-                              {
-                                "height": 32,
-                                "width": 32,
-                              }
-                            }
-                          />
-                        </View>
+                        />
                       </View>
                       <View
                         style={
