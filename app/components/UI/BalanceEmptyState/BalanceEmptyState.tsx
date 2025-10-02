@@ -9,14 +9,14 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
+import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
 
 // Bank transfer image from Figma
-const bankTransferImage =
-  'http://localhost:3845/assets/380bd6dd5c4ed318751b45ce142a72e476987493.png';
+const bankTransferImage = require('../../../images/bank.transfer.png');
 
 /**
  * BalanceEmptyState component displays an empty state for wallet balance
@@ -24,62 +24,60 @@ const bankTransferImage =
  */
 const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   onAction,
-  testID = 'balance-empty-state',
-  title = 'Fund your wallet',
-  subtitle = 'Buy tokens to get started',
-  actionText = 'Buy crypto',
+  testID,
+  title,
+  subtitle,
+  actionText,
 }) => {
   const tw = useTailwind();
 
   return (
     <Box
-      twClassName="rounded-xl"
+      twClassName="rounded-2xl"
       paddingLeft={4}
       paddingRight={4}
       paddingTop={3}
-      paddingBottom={3}
-      flexDirection={BoxFlexDirection.Column}
-      alignItems={BoxAlignItems.Center}
+      paddingBottom={4}
       justifyContent={BoxJustifyContent.Center}
-      backgroundColor={BoxBackgroundColor.BackgroundAlternative}
-      gap={1}
+      backgroundColor={BoxBackgroundColor.BackgroundSection}
+      gap={5}
       testID={testID}
     >
-      <Image
-        source={{ uri: bankTransferImage }}
-        style={tw.style('w-[100px] h-[100px] mb-2')}
-        resizeMode="cover"
-        testID={`${testID}-image`}
-      />
-      {/* Content Container */}
-      <Box twClassName="flex flex-col items-center gap-5 px-4 w-full">
-        {/* Text Content */}
-        <Box twClassName="flex flex-col items-center gap-1 w-full max-w-[274px]">
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        gap={1}
+        alignItems={BoxAlignItems.Center}
+      >
+        <Image
+          source={bankTransferImage}
+          style={tw.style('w-[100px] h-[100px]')}
+          resizeMode="cover"
+        />
+        {title && (
           <Text
             variant={TextVariant.HeadingLg}
             color={TextColor.TextDefault}
             twClassName="text-center"
-            testID={`${testID}-title`}
           >
             {title}
           </Text>
+        )}
+        {subtitle && (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
             twClassName="text-center"
-            testID={`${testID}-subtitle`}
           >
             {subtitle}
           </Text>
-        </Box>
-        <ButtonHero
-          onPress={onAction}
-          testID={`${testID}-action-button`}
-          isFullWidth
-        >
+        )}
+      </Box>
+      {actionText && onAction && (
+        <ButtonHero onPress={onAction} isFullWidth>
           {actionText}
         </ButtonHero>
-      </Box>
+      )}
     </Box>
   );
 };

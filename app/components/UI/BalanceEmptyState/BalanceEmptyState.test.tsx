@@ -6,34 +6,18 @@ import BalanceEmptyState from './BalanceEmptyState';
 describe('BalanceEmptyState', () => {
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <BalanceEmptyState />,
-    );
-
-    expect(getByTestId('balance-empty-state')).toBeTruthy();
-    expect(getByText('Fund your wallet')).toBeTruthy();
-    expect(getByText('Buy tokens to get started')).toBeTruthy();
-    expect(getByText('Buy crypto')).toBeTruthy();
-  });
-
-  it('renders with custom props', () => {
-    const customTitle = 'Custom wallet title';
-    const customSubtitle = 'Custom subtitle text';
-    const customActionText = 'Custom action';
-    const customTestID = 'custom-test-id';
-
-    const { getByTestId, getByText } = renderWithProvider(
       <BalanceEmptyState
-        title={customTitle}
-        subtitle={customSubtitle}
-        actionText={customActionText}
-        testID={customTestID}
+        title="Fund your wallet"
+        subtitle="Buy tokens to get started"
+        actionText="Buy crypto"
+        testID="balance-empty-state"
       />,
     );
 
-    expect(getByTestId(customTestID)).toBeTruthy();
-    expect(getByText(customTitle)).toBeTruthy();
-    expect(getByText(customSubtitle)).toBeTruthy();
-    expect(getByText(customActionText)).toBeTruthy();
+    expect(getByTestId('balance-empty-state')).toBeDefined();
+    expect(getByText('Fund your wallet')).toBeDefined();
+    expect(getByText('Buy tokens to get started')).toBeDefined();
+    expect(getByText('Buy crypto')).toBeDefined();
   });
 
   it('calls onAction when button is pressed', () => {
