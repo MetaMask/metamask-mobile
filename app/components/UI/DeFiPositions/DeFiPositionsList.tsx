@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { View, FlatList } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -41,7 +40,6 @@ export interface DeFiPositionsListProps {
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const { styles } = useStyles(styleSheet, undefined);
-  const tw = useTailwind();
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const currentChainId = useSelector(selectChainId) as Hex;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -139,7 +137,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     return (
       <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
         <DeFiPositionsControlBar />
-        <DefiEmptyState style={tw.style('mx-auto')} />
+        <DefiEmptyState twClassName="mx-auto mt-4" />
       </View>
     );
   }
