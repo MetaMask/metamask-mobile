@@ -32,8 +32,8 @@ const DestinationAccountSelector = () => {
   const privacyMode = useSelector(selectPrivacyMode);
 
   const destAddress = useSelector(selectDestAddress);
-  const selectedAccount = destinationAccounts.find((account) =>
-    areAddressesEqual(account.address, destAddress),
+  const selectedAccount = destinationAccounts.find(
+    (account) => destAddress && areAddressesEqual(account.address, destAddress),
   );
   const caipDestAddress = selectedAccount
     ? selectedAccount.caipAccountId
