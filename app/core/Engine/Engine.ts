@@ -10,7 +10,6 @@ import {
 import {
   AccountTrackerController,
   AssetsContractController,
-  CodefiTokenPricesServiceV2,
   NftController,
   NftDetectionController,
   TokenBalancesController,
@@ -18,6 +17,7 @@ import {
   TokenListController,
   TokenRatesController,
   TokensController,
+  CodefiTokenPricesServiceV2,
   TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
@@ -26,7 +26,9 @@ import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   KeyringControllerState,
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
   getDefaultNetworkControllerState,
@@ -47,7 +49,9 @@ import {
   type CaveatSpecificationConstraint,
   PermissionController,
   type PermissionSpecificationConstraint,
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
@@ -65,23 +69,23 @@ import {
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
-  deprecatedGetNetworkId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
-  balanceToFiatNumber,
-  hexToBN,
   renderFromTokenMinimalUnit,
-  renderFromWei,
-  toHexadecimal,
+  balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
+  hexToBN,
+  renderFromWei,
 } from '../../util/number';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
-import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
+import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
@@ -110,7 +114,13 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import { ChainId, toHex, type TraceCallback } from '@metamask/controller-utils';
+import {
+  ChainId,
+  type TraceCallback,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  toHex,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   MetaMetricsEventCategory,
@@ -135,20 +145,20 @@ import { multichainAccountServiceInit } from './controllers/multichain-account-s
 import {
   cronjobControllerInit,
   executionServiceInit,
-  SnapControllerGetSnapAction,
-  SnapControllerHandleRequestAction,
   snapControllerInit,
-  SnapControllerIsMinimumPlatformVersionAction,
   snapInterfaceControllerInit,
   snapsRegistryInit,
+  SnapControllerGetSnapAction,
+  SnapControllerIsMinimumPlatformVersionAction,
+  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
   BaseControllerMessenger,
-  EngineContext,
   EngineState,
+  EngineContext,
   StatefulControllers,
 } from './types';
 import {
@@ -189,8 +199,8 @@ import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import {
   MultichainRouter,
-  MultichainRouterArgs,
   MultichainRouterMessenger,
+  MultichainRouterArgs,
 } from '@metamask/snaps-controllers';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
