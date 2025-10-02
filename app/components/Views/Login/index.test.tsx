@@ -857,6 +857,12 @@ describe('Login', () => {
     });
 
     it('should handle WRONG_PIN_ERROR', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Decrypt failed'),
       );

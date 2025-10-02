@@ -178,7 +178,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 
   const invalidCredentialsError = () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios' && isComingFromOauthOnboarding) {
       return strings('login.invalid_pin');
     }
     return strings('login.invalid_password');
@@ -800,7 +800,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              {Platform.OS === 'android' && (
+              {(Platform.OS === 'android' || !isComingFromOauthOnboarding) && (
                 <Label
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Default}
@@ -812,7 +812,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={
-                  Platform.OS === 'ios'
+                  Platform.OS === 'ios' && isComingFromOauthOnboarding
                     ? strings('login.pin_placeholder')
                     : strings('login.password_placeholder')
                 }
