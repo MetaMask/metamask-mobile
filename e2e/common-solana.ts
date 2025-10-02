@@ -15,11 +15,13 @@ export async function withSolanaAccountEnabled(
     solanaAccountPermitted,
     evmAccountPermitted,
     dappVariant,
+    skipAccountsCreation,
   }: {
     numberOfAccounts?: number;
     solanaAccountPermitted?: boolean;
     evmAccountPermitted?: boolean;
     dappVariant?: DappVariants;
+    skipAccountsCreation?: boolean;
   },
   test: () => Promise<void>,
 ) {
@@ -43,10 +45,13 @@ export async function withSolanaAccountEnabled(
       ],
       restartDevice: true,
       testSpecificMock: async (mockServer: Mockttp) => {
-        await setupRemoteFeatureFlagsMock(
-          mockServer,
-          remoteFeatureMultichainAccountsAccountDetailsV2(),
-        );
+        if (!skipAccountsCreation) {
+          // We use this only in tests that are checking multichain accounts state 1 code
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(),
+          );
+        }
       },
     },
     async () => {
@@ -54,10 +59,13 @@ export async function withSolanaAccountEnabled(
       await loginToApp();
 
       // Create Solana accounts through the wallet view
-      for (let i = 0; i < numberOfAccounts; i++) {
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButtonV2();
-        await AccountListBottomSheet.tapAccountByNameV2(`Account ${i + 1}`);
+      // This is multichain accounts state 2 code, so we need to use it conditionally
+      if (!skipAccountsCreation) {
+        for (let i = 0; i < numberOfAccounts; i++) {
+          await WalletView.tapCurrentMainWalletAccountActions();
+          await AccountListBottomSheet.tapAddAccountButtonV2();
+          await AccountListBottomSheet.tapAccountByNameV2(`Account ${i + 1}`);
+        }
       }
 
       await test();
