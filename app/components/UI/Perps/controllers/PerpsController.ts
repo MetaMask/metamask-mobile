@@ -979,6 +979,18 @@ export class PerpsController extends BaseController<
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     const startTime = performance.now();
+
+    trace({
+      name: TraceName.PerpsOrderExecution,
+      op: TraceOperation.PerpsOperation,
+      tags: {
+        assetId: params.newOrder.coin,
+        orderType: params.newOrder.orderType,
+        provider: this.state.activeProvider,
+        isTestnet: this.state.isTestnet,
+      },
+    });
+
     const provider = this.getActiveProvider();
 
     const result = await provider.editOrder(params);
@@ -1012,6 +1024,13 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
+
+      endTrace({
+        name: TraceName.PerpsOrderExecution,
+        data: {
+          success: true,
+        },
+      });
     } else {
       // Track order edit failed
       MetaMetrics.getInstance().trackEvent(
@@ -1033,6 +1052,14 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
+
+      endTrace({
+        name: TraceName.PerpsOrderExecution,
+        data: {
+          success: false,
+          error: result.error || 'Unknown error',
+        },
+      });
     }
 
     return result;
@@ -1043,6 +1070,17 @@ export class PerpsController extends BaseController<
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
     const startTime = performance.now();
+
+    trace({
+      name: TraceName.PerpsCancelOrder,
+      op: TraceOperation.PerpsOperation,
+      tags: {
+        assetId: params.coin,
+        provider: this.state.activeProvider,
+        isTestnet: this.state.isTestnet,
+      },
+    });
+
     const provider = this.getActiveProvider();
 
     const result = await provider.cancelOrder(params);
@@ -1065,6 +1103,13 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
+
+      endTrace({
+        name: TraceName.PerpsCancelOrder,
+        data: {
+          success: true,
+        },
+      });
     } else {
       // Track order cancel failed
       const completionDuration = performance.now() - startTime;
@@ -1081,6 +1126,14 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
+
+      endTrace({
+        name: TraceName.PerpsCancelOrder,
+        data: {
+          success: false,
+          error: result.error || 'Unknown error',
+        },
+      });
     }
 
     return result;
@@ -1381,6 +1434,17 @@ export class PerpsController extends BaseController<
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
     const startTime = performance.now();
+
+    trace({
+      name: TraceName.PerpsClosePosition,
+      op: TraceOperation.PerpsPositionManagement,
+      tags: {
+        assetId: params.coin,
+        provider: this.state.activeProvider,
+        isTestnet: this.state.isTestnet,
+      },
+    });
+
     const provider = this.getActiveProvider();
 
     const result = await provider.updatePositionTPSL(params);
@@ -1413,6 +1477,13 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
+
+      endTrace({
+        name: TraceName.PerpsClosePosition,
+        data: {
+          success: true,
+        },
+      });
     } else {
       // Track TP/SL update failed - ONE event with both properties
       const completionDuration = performance.now() - startTime;
@@ -1439,6 +1510,14 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
+
+      endTrace({
+        name: TraceName.PerpsClosePosition,
+        data: {
+          success: false,
+          error: result.error || 'Unknown error',
+        },
+      });
     }
 
     return result;
