@@ -9,8 +9,8 @@ const styleSheet = (params: { theme: Theme }) => {
   const baseRowStyle = {
     display: 'flex',
     marginBottom: 2,
-    paddingTop: 14,
-    paddingBottom: 14,
+    paddingTop: 16,
+    paddingBottom: 16,
     paddingLeft: 16,
     paddingRight: 16,
     flexDirection: 'row',
@@ -18,12 +18,13 @@ const styleSheet = (params: { theme: Theme }) => {
     alignItems: 'center',
     gap: 8,
     alignSelf: 'stretch',
-    backgroundColor: colors.background.alternative,
+    backgroundColor: colors.background.muted,
   } as ViewStyle;
 
   return StyleSheet.create({
     safeArea: {
       flex: 1,
+      backgroundColor: colors.background.default,
     },
 
     container: {
@@ -81,7 +82,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingRight: 16,
     },
     accountGroupBox: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       paddingLeft: 16,
       paddingRight: 16,
     },

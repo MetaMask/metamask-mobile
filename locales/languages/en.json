@@ -575,7 +575,8 @@
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
     "could_not_resolve_name": "Couldn't resolve name",
-    "invalid_address": "Invalid address"
+    "invalid_address": "Invalid address",
+    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
   },
   "deposit": {
     "title": "Deposit",
@@ -1332,9 +1333,9 @@
         "error_message": "Market data not found. Please go back and try again."
       },
       "statistics": "Overview",
-      "24hr_high": "24hr high",
-      "24hr_low": "24hr low",
-      "24h_volume": "24hr volume",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
@@ -1506,7 +1507,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -1538,7 +1539,10 @@
         "description": "Fund your perps account with any token and make your first trade in seconds.",
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
-      "got_it": "Got it"
+      "got_it": "Got it",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Points",
     "estimated_points": "Est. Points",
@@ -1614,8 +1618,7 @@
     "accept": "Accept"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Scan QR code",
-    "receive_tab": "Your QR code"
+    "scanner_tab": "Scan QR code"
   },
   "banner": {
     "bridge": {
@@ -5602,7 +5605,7 @@
       "section_1_title": "What are multichain accounts?",
       "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
+      "section_2_description": "We’ve grouped your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged",
         "view_accounts_button": "View accounts",
         "learn_more_button": "Learn more",
         "setting_up_accounts": "Setting up your accounts"
@@ -5656,6 +5659,7 @@
       "balance": "Balance",
       "create_account": "Create account",
       "creating_account": "Creating account...",
+      "discovering_accounts": "Discovering accounts...",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },
@@ -5752,6 +5756,11 @@
       "swap": "Fund with crypto",
       "swap_description": "Swap tokens into {{symbol}} on Linea",
       "select_method": "Select method"
+    },
+    "card_onboarding": {
+      "title": "Welcome to Card",
+      "description": "To use card features, you’ll need to verify your account with our partner.",
+      "verify_account_button": "Verify account"
     },
     "card_home": {
       "error_title": "Can’t fetch data",
@@ -5903,9 +5912,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Rewards are here",
+      "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
+      "gtm_confirm":"Get started",
+      "intro_title": "Season 1 \nis Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
