@@ -3,7 +3,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
   Icon,
   IconName,
   IconSize,
@@ -16,7 +15,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Image, ScrollView, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
@@ -34,11 +33,15 @@ import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import PredictKeypad from '../../components/PredictKeypad';
+import PredictFeeSummary from '../../components/PredictFeeSummary';
+import PredictKeypad, {
+  PredictKeypadHandles,
+} from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PredictPlaceBet = () => {
   const tw = useTailwind();
+  const keypadRef = useRef<PredictKeypadHandles>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -50,7 +53,6 @@ const PredictPlaceBet = () => {
   const [currentValue, setCurrentValue] = useState(1);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('1');
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isUserInputActive, setIsUserInputActive] = useState(false);
   const {
     betAmounts: { toWin },
   } = usePredictBetAmounts({
@@ -59,33 +61,8 @@ const PredictPlaceBet = () => {
     userBetAmount: currentValue,
   });
 
-  // TODO: change to load fee from provider
-  const providerFee = useMemo(() => currentValue * 0, [currentValue]);
-
-  // TODO: change to load fee from metamask
-  const metamaskFee = useMemo(() => currentValue * 0.04, [currentValue]);
-
-  const total = useMemo(
-    () => currentValue + providerFee + metamaskFee,
-    [currentValue, providerFee, metamaskFee],
-  );
-
   const hasMultipleOutcomes = market.outcomes.length > 1;
   const outcome = market.outcomes.find((o) => o.id === outcomeId);
-
-  const handleAmountPress = () => {
-    setIsInputFocused(true);
-  };
-
-  const handleKeypadAmountPress = (amount: number) => {
-    setCurrentValue(amount);
-    setCurrentValueUSDString(amount.toString());
-  };
-
-  const handleDonePress = () => {
-    setIsInputFocused(false);
-    setIsUserInputActive(false);
-  };
 
   const onPlaceBet = () => {
     // Implement cash out action here
@@ -101,65 +78,6 @@ const PredictPlaceBet = () => {
       dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
     }, 1000);
   };
-
-  const handleKeypadChange = useCallback(
-    ({ value }: { value: string; valueAsNumber: number }) => {
-      const previousValue = currentValue.toString();
-      // Special handling for decimal point deletion
-      // If previous value had a decimal and new value is the same, force remove the decimal
-      let adjustedValue = value;
-
-      // Check if we're stuck on a decimal (e.g., "2." -> "2." means delete didn't work)
-      if (previousValue.endsWith('.') && value === previousValue) {
-        adjustedValue = value.slice(0, -1);
-      }
-      // Also handle case where decimal is in middle (e.g., "2.5" -> "2." should become "25")
-      else if (
-        previousValue.includes('.') &&
-        value.endsWith('.') &&
-        value.length === previousValue.length - 1
-      ) {
-        // User deleted a digit after decimal, remove the decimal too
-        adjustedValue = value.replace('.', '');
-      }
-
-      // Set both focus flags immediately to prevent useEffect interference
-      if (!isInputFocused) {
-        setIsInputFocused(true);
-      }
-      if (!isUserInputActive) {
-        setIsUserInputActive(true);
-      }
-
-      // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
-      const digitCount = (adjustedValue.match(/\d/g) || []).length;
-      if (digitCount > 9) {
-        return; // Ignore input that would exceed 9 digits
-      }
-
-      // For USD mode, preserve user input exactly as typed for proper delete operations
-      // Only limit decimal places if there are digits after the decimal point
-      let formattedUSDString = adjustedValue;
-      if (adjustedValue.includes('.')) {
-        const parts = adjustedValue.split('.');
-        const integerPart = parts[0] || '';
-        const decimalPart = parts[1] || '';
-
-        // If there's a decimal part, limit it to 2 digits
-        if (decimalPart.length > 0) {
-          formattedUSDString = integerPart + '.' + decimalPart.slice(0, 2);
-        } else {
-          // Keep the decimal point if user just typed it (like "2.")
-          formattedUSDString = integerPart + '.';
-        }
-      }
-
-      // Update all states in batch to prevent race conditions
-      setCurrentValueUSDString(formattedUSDString);
-      setCurrentValue(parseFloat(formattedUSDString));
-    },
-    [currentValue, isInputFocused, isUserInputActive],
-  );
 
   const renderHeader = () => (
     <Box
@@ -256,7 +174,7 @@ const PredictPlaceBet = () => {
         <Box twClassName="text-center leading-[72px]">
           <PredictAmountDisplay
             amount={currentValueUSDString}
-            onPress={handleAmountPress}
+            onPress={() => keypadRef.current?.handleAmountPress()}
             isActive={isInputFocused}
           />
         </Box>
@@ -272,59 +190,6 @@ const PredictPlaceBet = () => {
       </Box>
     </ScrollView>
   );
-
-  const renderSummary = () => {
-    if (isInputFocused) return null;
-    return (
-      <Box twClassName="p-4 flex-col gap-2">
-        <Box twClassName="flex-row justify-between items-center">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2 items-center"
-          >
-            <Text color={TextColor.Alternative}>Provider fee</Text>
-            <ButtonIcon
-              iconName={IconName.Info}
-              twClassName="text-alternative"
-            />
-          </Box>
-          <Text color={TextColor.Alternative}>
-            {formatPrice(providerFee, {
-              maximumDecimals: 2,
-            })}
-          </Text>
-        </Box>
-        <Box twClassName="flex-row justify-between items-center">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2 items-center"
-          >
-            <Text color={TextColor.Alternative}>MetaMask fee</Text>
-            <ButtonIcon iconName={IconName.Info} />
-          </Box>
-          <Text color={TextColor.Alternative}>
-            {formatPrice(metamaskFee, {
-              maximumDecimals: 2,
-            })}
-          </Text>
-        </Box>
-        <Box twClassName="flex-row justify-between items-center">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2 items-center"
-          >
-            <Text color={TextColor.Alternative}>Total</Text>
-            <ButtonIcon iconName={IconName.Info} />
-          </Box>
-          <Text color={TextColor.Alternative}>
-            {formatPrice(total, {
-              maximumDecimals: 2,
-            })}
-          </Text>
-        </Box>
-      </Box>
-    );
-  };
 
   const renderBottomContent = () => {
     if (isInputFocused) {
@@ -372,13 +237,18 @@ const PredictPlaceBet = () => {
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       {renderHeader()}
       {renderAmount()}
-      {renderSummary()}
-      <PredictKeypad
+      <PredictFeeSummary
         isInputFocused={isInputFocused}
+        currentValue={currentValue}
+      />
+      <PredictKeypad
+        ref={keypadRef}
+        isInputFocused={isInputFocused}
+        currentValue={currentValue}
         currentValueUSDString={currentValueUSDString}
-        onKeypadChange={handleKeypadChange}
-        onKeypadAmountPress={handleKeypadAmountPress}
-        onDonePress={handleDonePress}
+        setCurrentValue={setCurrentValue}
+        setCurrentValueUSDString={setCurrentValueUSDString}
+        setIsInputFocused={setIsInputFocused}
       />
       {renderBottomContent()}
     </SafeAreaView>
