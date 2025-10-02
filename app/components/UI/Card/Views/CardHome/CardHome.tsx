@@ -100,7 +100,8 @@ const CardHome = () => {
     isLoading: isLoadingPriorityToken,
     error,
   } = useGetPriorityCardToken();
-  const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
+  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
+    useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
@@ -176,14 +177,22 @@ const CardHome = () => {
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
             token_symbol_priority: priorityToken?.symbol,
-            token_raw_balance_priority: mainBalance,
-            token_fiat_balance_priority: balanceFiat,
+            token_raw_balance_priority: rawTokenBalance,
+            token_fiat_balance_priority: rawFiatNumber,
           })
           .build(),
       );
       hasTrackedCardHomeView.current = true;
     }
-  }, [trackEvent, createEventBuilder, priorityToken, mainBalance, balanceFiat]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    priorityToken,
+    mainBalance,
+    balanceFiat,
+    rawFiatNumber,
+    rawTokenBalance,
+  ]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
