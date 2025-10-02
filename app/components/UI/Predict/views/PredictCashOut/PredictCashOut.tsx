@@ -7,7 +7,6 @@ import {
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Alert, Image, View } from 'react-native';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -25,8 +24,11 @@ import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictCashOut.styles';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PredictCashOut = () => {
+  const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { goBack, dispatch } =
@@ -75,7 +77,7 @@ const PredictCashOut = () => {
   };
 
   return (
-    <BottomSheet isFullscreen>
+    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <BottomSheetHeader onClose={() => goBack()}>
         <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
       </BottomSheetHeader>
@@ -134,7 +136,7 @@ const PredictCashOut = () => {
           </View>
         </View>
       </View>
-    </BottomSheet>
+    </SafeAreaView>
   );
 };
 
