@@ -8,6 +8,7 @@ import {
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
+  CURRENT_APP_VERSION,
   LAST_APP_VERSION,
   REWARDS_GTM_MODAL_SHOWN,
 } from '../../../../constants/storage';
@@ -53,8 +54,9 @@ export const useRewardsIntroModal = () => {
 
   const checkAndShowRewardsIntroModal = useCallback(async () => {
     // Check if this is a fresh install
+    const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
     const lastAppVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
-    const isFreshInstall = !lastAppVersion;
+    const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
     const shouldShow =
       isRewardsFeatureEnabled &&
@@ -62,7 +64,7 @@ export const useRewardsIntroModal = () => {
       // BIP44 intro modal has been seen or it's a fresh install (which doesnt trigger bip44 modal) or bip44 is not enabled
       (!isMultichainAccountsState2Enabled ||
         hasSeenBIP44IntroModal ||
-        isFreshInstall) &&
+        !isUpdate) &&
       !hasSeenRewardsIntroModal &&
       !subscriptionId;
 
