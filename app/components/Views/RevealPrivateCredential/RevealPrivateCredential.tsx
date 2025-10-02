@@ -609,14 +609,7 @@ const RevealPrivateCredential = ({
 
   const renderPrivateKeyBannerDescription = () => (
     <Text variant={TextVariant.BodyMD}>
-      {strings('multichain_accounts.reveal_private_key.banner_description')}{' '}
-      <Text
-        color={colors.primary.default}
-        variant={TextVariant.BodyMDBold}
-        onPress={() => Linking.openURL(PRIVATE_KEY_GUIDE_URL)}
-      >
-        {strings('reveal_credential.learn_more')}
-      </Text>
+      {strings('multichain_accounts.reveal_private_key.banner_description')}
     </Text>
   );
 
@@ -691,6 +684,11 @@ const RevealPrivateCredential = ({
                     'multichain_accounts.reveal_private_key.banner_title',
                   )}
                   description={renderPrivateKeyBannerDescription()}
+                  actionButtonProps={{
+                    variant: ButtonVariants.Link,
+                    label: strings('reveal_credential.learn_more'),
+                    onPress: () => Linking.openURL(PRIVATE_KEY_GUIDE_URL),
+                  }}
                 />
               </>
             ) : (
