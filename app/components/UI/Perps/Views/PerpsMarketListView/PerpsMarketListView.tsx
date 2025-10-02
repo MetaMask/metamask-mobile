@@ -220,7 +220,7 @@ const PerpsMarketListView = ({
     conditions: [filteredMarkets.length > 0],
   });
 
-  // Track markets screen viewed event - declarative (using main's event name)
+  // Track markets screen viewed event
   const source =
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
   usePerpsEventTracking({

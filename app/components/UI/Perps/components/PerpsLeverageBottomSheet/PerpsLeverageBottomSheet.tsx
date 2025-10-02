@@ -398,7 +398,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     }
   }, [isVisible, initialLeverage]);
 
-  // Track leverage screen viewed event - declarative (main's consolidated event)
+  // Track leverage screen viewed event
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [isVisible],
