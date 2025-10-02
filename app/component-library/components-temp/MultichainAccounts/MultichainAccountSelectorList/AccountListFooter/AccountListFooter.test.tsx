@@ -5,10 +5,10 @@ import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
-import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 import Logger from '../../../../../util/Logger';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { useAccountWalletOperationsLoadingStates } from '../../../../../util/accounts/useAccountWalletOperationsLoadingStates';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
@@ -36,21 +36,14 @@ jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../util/accounts/useAccountsOperationsLoadingStates',
-  () => ({
-    useAccountsOperationsLoadingStates: jest.fn(),
-  }),
-);
-
 // Mock InteractionManager
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn();
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
-const mockUseAccountsOperationsLoadingStates =
-  useAccountsOperationsLoadingStates as jest.MockedFunction<
-    typeof useAccountsOperationsLoadingStates
+const mockUseAccountWalletOperationsLoadingStates =
+  useAccountWalletOperationsLoadingStates as jest.MockedFunction<
+    typeof useAccountWalletOperationsLoadingStates
   >;
 
 describe('AccountListFooter', () => {
@@ -91,8 +84,7 @@ describe('AccountListFooter', () => {
 
     (useWalletInfo as jest.Mock).mockReturnValue(mockWalletInfo);
 
-    mockUseAccountsOperationsLoadingStates.mockReturnValue({
-      isAccountSyncingInProgress: false,
+    mockUseAccountWalletOperationsLoadingStates.mockReturnValue({
       areAnyOperationsLoading: false,
       loadingMessage: undefined,
     });
@@ -258,6 +250,53 @@ describe('AccountListFooter', () => {
         expect(getByText('Create account')).toBeOnTheScreen();
       });
     });
+
+    it('handles loading state transitions correctly', () => {
+      // Start with no loading
+      mockUseAccountWalletOperationsLoadingStates.mockReturnValue({
+        areAnyOperationsLoading: false,
+        loadingMessage: undefined,
+      });
+
+      const { getByText, rerender } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Create account')).toBeOnTheScreen();
+
+      // Simulate account syncing starting
+      mockUseAccountWalletOperationsLoadingStates.mockReturnValue({
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      rerender(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Syncing...')).toBeOnTheScreen();
+
+      // Simulate syncing completing
+      mockUseAccountWalletOperationsLoadingStates.mockReturnValue({
+        areAnyOperationsLoading: false,
+        loadingMessage: undefined,
+      });
+
+      rerender(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Create account')).toBeOnTheScreen();
+    });
   });
 
   describe('InteractionManager Integration', () => {
@@ -337,56 +376,6 @@ describe('AccountListFooter', () => {
   describe('Wallet Type Filtering', () => {
     it('renders create account button only for Entropy wallet type', () => {
       const { getByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Create account')).toBeOnTheScreen();
-    });
-
-    it('handles loading state transitions correctly', () => {
-      // Start with no loading
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: false,
-        areAnyOperationsLoading: false,
-        loadingMessage: undefined,
-      });
-
-      const { getByText, rerender } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Create account')).toBeOnTheScreen();
-
-      // Simulate account syncing starting
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      rerender(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Syncing...')).toBeOnTheScreen();
-
-      // Simulate syncing completing
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: false,
-        areAnyOperationsLoading: false,
-        loadingMessage: undefined,
-      });
-
-      rerender(
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
