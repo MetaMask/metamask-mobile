@@ -7,6 +7,7 @@ import {
   selectActiveTab,
   selectPointsEvents,
 } from '../../../../reducers/rewards/selectors';
+import { strings } from '../../../../../locales/i18n';
 import { setPointsEvents as setPointsEventsAction } from '../../../../reducers/rewards';
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
@@ -92,7 +93,9 @@ export const usePointsEvents = (
         setHasMore(pointsEventsData.has_more);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : 'Unknown error occurred';
+          err instanceof Error
+            ? err.message
+            : strings('rewards.error_messages.unknown_error');
         setError(errorMessage);
       } finally {
         isLoadingRef.current = false;
