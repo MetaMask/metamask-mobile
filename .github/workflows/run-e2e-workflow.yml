@@ -122,18 +122,15 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
-      # TODO IMPLEMENT THIS + reuse this in the run-e2e-workflow.yml to avoid repeating and adding more steps, make it a new workflow
       - name: Determine android target paths
         id: determine-target-paths
         if: ${{ inputs.platform == 'android' }}
         run: |
           if [[ "${{ inputs.build_type }}" == "flask" ]]; then
-            # TODO
             echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release" >> "$GITHUB_OUTPUT"
-            echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease" >> "$GITHUB_OUTPUT" # TODO: CONFIRM THIS
+            echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease" >> "$GITHUB_OUTPUT"
           else
-            # TODO
             echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release" >> "$GITHUB_OUTPUT"
             echo "aab-target-path=android/app/build/outputs/bundle/prodRelease" >> "$GITHUB_OUTPUT"
@@ -153,15 +150,6 @@ jobs:
         with:
           path: artifacts/
 
-      - name: Debug artifacts (Android)
-        if: ${{ inputs.platform == 'android' }}
-        run: |
-          echo "📁 artifacts/ (maxdepth 4):"
-          find artifacts -maxdepth 4 -print | sed -n '1,500p'
-          echo ""
-          echo "📄 Top-level listing:"
-          ls -la artifacts || true
-
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
@@ -172,7 +160,7 @@ jobs:
           fi
 
           # Copy from artifacts to expected locations
-          # Warning: each artifact is uploaded as a folder so we need to cp from inside the folder
+          # Each artifact is uploaded as a folder so we need to cp from inside the folder
           cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/${artifact_name}.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${artifact_name}.apk
           cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${artifact_name}-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${artifact_name}-androidTest.apk
           cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab/${artifact_name}.aab ${{ steps.determine-target-paths.outputs.aab-target-path }}/${artifact_name}.aab
@@ -191,15 +179,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-
-      - name: Debug artifacts (iOS)
-        if: ${{ inputs.platform == 'ios' }}
-        run: |
-          echo "📁 artifacts/ (maxdepth 4):"
-          find artifacts -maxdepth 4 -print | sed -n '1,500p'
-          echo ""
-          echo "📄 Top-level listing:"
-          ls -la artifacts || true
 
       - name: Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}

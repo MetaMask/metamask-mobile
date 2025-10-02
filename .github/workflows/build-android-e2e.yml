@@ -84,42 +84,18 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
-
-
-      # TODO IMPLEMENT THIS + reuse this in the run-e2e-workflow.yml to avoid repeating and adding more steps, make it a new workflow
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
         run: |
-          # TODO: debugging vars
-          apk_target_path=""
-          test_apk_target_path=""
-          aab_target_path=""
-          artifact_name=""
-          echo "Determining target paths and Artifact Names..."
           if [[ "${{ inputs.build_type }}" == "flask" ]]; then
-            apk_target_path="android/app/build/outputs/apk/flask/release"
-            test_apk_target_path="android/app/build/outputs/apk/androidTest/flask/release"
-            aab_target_path="android/app/build/outputs/bundle/flaskRelease"
-            artifact_name="app-flask-release"
-            echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
-            echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
-            echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
-            echo "artifact_name=${artifact_name}" >> "$GITHUB_OUTPUT"
+            echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
+            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release" >> "$GITHUB_OUTPUT"
+            echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease" >> "$GITHUB_OUTPUT"
           else
-            apk_target_path="android/app/build/outputs/apk/prod/release"
-            test_apk_target_path="android/app/build/outputs/apk/androidTest/prod/release"
-            aab_target_path="android/app/build/outputs/bundle/prodRelease"
-            artifact_name="app-prod-release"
-            echo "apk-target-path=${apk_target_path}" >> "$GITHUB_OUTPUT"
-            echo "test-apk-target-path=${test_apk_target_path}" >> "$GITHUB_OUTPUT"
-            echo "aab-target-path=${aab_target_path}" >> "$GITHUB_OUTPUT"
-            echo "artifact_name=${artifact_name}" >> "$GITHUB_OUTPUT"
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
+            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release" >> "$GITHUB_OUTPUT"
+            echo "aab-target-path=android/app/build/outputs/bundle/prodRelease" >> "$GITHUB_OUTPUT"
           fi
-          echo "Determine target paths and Artifact Names results:"
-          echo "apk-target-path=${apk_target_path}"
-          echo "test-apk-target-path=${test_apk_target_path}"
-          echo "aab-target-path=${aab_target_path}"
-          echo "artifact_name=${artifact_name}"
 
       - name: Check and restore cached APKs if Fingerprint is found
         id: cache-restore
