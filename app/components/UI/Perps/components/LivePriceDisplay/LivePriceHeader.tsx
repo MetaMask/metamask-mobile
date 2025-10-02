@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Text, {
   TextVariant,
@@ -11,6 +11,7 @@ import {
   formatPercentage,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface LivePriceHeaderProps {
   symbol: string;
@@ -61,6 +62,23 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const isPositiveChange = displayChange >= 0;
   const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
 
+  // Format price display with edge case handling
+  const formattedPrice = useMemo(() => {
+    // Handle invalid or edge case values
+    if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+
+    try {
+      return formatPerpsFiat(displayPrice, {
+        ranges: PRICE_RANGES_DETAILED_VIEW,
+      });
+    } catch {
+      // Fallback if formatPrice throws
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+  }, [displayPrice]);
+
   return (
     <View style={styles.container}>
       <Text
@@ -68,7 +86,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         color={TextColor.Default}
         testID={testIDPrice}
       >
-        {formatPerpsFiat(displayPrice, { ranges: PRICE_RANGES_DETAILED_VIEW })}
+        {formattedPrice}
       </Text>
       <Text
         variant={TextVariant.BodyMD}
