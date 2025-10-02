@@ -190,6 +190,17 @@ describe('AccountCell', () => {
     expect(mockOnSelectAccount).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onSelectAccount when avatar is pressed', () => {
+    const mockOnSelectAccount = jest.fn();
+    const { getByTestId } = renderAccountCell({
+      onSelectAccount: mockOnSelectAccount,
+    });
+
+    fireEvent.press(getByTestId(AccountCellIds.AVATAR));
+
+    expect(mockOnSelectAccount).toHaveBeenCalledTimes(1);
+  });
+
   it('does not call onSelectAccount when menu button is pressed', () => {
     const mockOnSelectAccount = jest.fn();
     const { getByTestId } = renderAccountCell({
