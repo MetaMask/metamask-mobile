@@ -4807,7 +4807,7 @@ describe('RewardsController', () => {
           methods: [],
         },
       ];
-      const mockOptInResponse = { ois: [false, false] }; // No accounts opted in
+      const mockOptInResponse = { ois: [false, false], sids: [null, null] }; // No accounts opted in
 
       mockMessenger.call
         .mockReturnValueOnce(mockInternalAccounts) // getInternalAccounts
@@ -4827,6 +4827,58 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toBeNull();
+    });
+
+    it('should return subscription ID from sids array when available', async () => {
+      // Arrange
+      const mockInternalAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockOptInResponse = {
+        ois: [true, false],
+        sids: ['sub-from-sids-123', null], // First account has subscription ID in sids
+      };
+
+      mockMessenger.call.mockReturnValueOnce(mockInternalAccounts); // listMultichainAccounts
+
+      // Mock the getOptInStatus method to return our test response
+      jest
+        .spyOn(controller, 'getOptInStatus')
+        .mockResolvedValueOnce(mockOptInResponse);
+
+      // Act
+      const result = await controller.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBe('sub-from-sids-123');
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
     });
 
     it('should return active account subscription ID when available', async () => {
@@ -5477,7 +5529,10 @@ describe('RewardsController', () => {
         { address: '0x123', type: 'eip155:eoa' as const },
         { address: '0x456', type: 'eip155:eoa' as const },
       ];
-      const mockOptInStatusResponse = { ois: [false, false] };
+      const mockOptInStatusResponse = {
+        ois: [false, false],
+        sids: [null, null],
+      };
 
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -5517,7 +5572,10 @@ describe('RewardsController', () => {
         { address: '0x123', type: 'eip155:eoa' as const },
         { address: '0x456', type: 'eip155:eoa' as const },
       ];
-      const mockOptInStatusResponse = { ois: [true, true] };
+      const mockOptInStatusResponse = {
+        ois: [true, true],
+        sids: [null, null], // No subscription IDs, forcing silent auth
+      };
 
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -5645,7 +5703,7 @@ describe('RewardsController', () => {
       // Mock Solana address check (return false for all - they are not Solana)
       mockIsSolanaAddress.mockReturnValue(false);
 
-      const mockOptInResponse = { ois: [false, false] }; // Only 2 accounts checked (hardware excluded)
+      const mockOptInResponse = { ois: [false, false], sids: [null, null] }; // Only 2 accounts checked (hardware excluded)
 
       // Create a spy on the getOptInStatus method to directly verify the call
       const getOptInStatusSpy = jest.spyOn(
@@ -6353,7 +6411,7 @@ describe('RewardsController', () => {
 
   describe('getOptInStatus', () => {
     const mockParams = { addresses: ['0x123', '0x456'] };
-    const mockResponse = { ois: [true, false] };
+    const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
@@ -6368,14 +6426,38 @@ describe('RewardsController', () => {
       const result = await controller.getOptInStatus(mockParams);
 
       // Assert
-      expect(result).toEqual({ ois: [false, false] });
+      expect(result).toEqual({ ois: [false, false], sids: [null, null] });
     });
 
     it('should successfully get opt-in status from service', async () => {
       // Arrange
       const mockAccounts = [
-        { address: '0x123', type: 'eip155:eoa' as const },
-        { address: '0x456', type: 'eip155:eoa' as const },
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
       ];
 
       // Mock both messenger calls to succeed
@@ -6394,12 +6476,93 @@ describe('RewardsController', () => {
       );
     });
 
+    it('should cache subscription IDs from sids array in account state', async () => {
+      // Arrange
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
+
+      // Act
+      const result = await controller.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Check that subscription IDs were cached in account state
+      const state = controller.state;
+      const account1State = state.accounts['eip155:1:0x123'];
+      const account2State = state.accounts['eip155:1:0x456'];
+
+      expect(account1State).toBeDefined();
+      expect(account1State.hasOptedIn).toBe(true);
+      expect(account1State.subscriptionId).toBe('sub_123');
+
+      expect(account2State).toBeDefined();
+      expect(account2State.hasOptedIn).toBe(false);
+      expect(account2State.subscriptionId).toBe(null);
+    });
+
     it('should handle service errors and rethrow them', async () => {
       // Arrange
       const mockError = new Error('Service error');
       const mockAccounts = [
-        { address: '0x123', type: 'eip155:eoa' as const },
-        { address: '0x456', type: 'eip155:eoa' as const },
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
       ];
 
       // Mock AccountsController call to succeed, then RewardsDataService call to fail
@@ -6439,6 +6602,254 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get opt-in status:',
         'String error',
+      );
+    });
+
+    it('should use cached data when account state has hasOptedIn defined', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x456'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+
+      // Set up controller with cached account state
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            'eip155:1:0x123': {
+              account: 'eip155:1:0x123',
+              hasOptedIn: true,
+              subscriptionId: 'cached_sub_123',
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            'eip155:1:0x456': {
+              account: 'eip155:1:0x456',
+              hasOptedIn: false,
+              subscriptionId: null,
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+        },
+      });
+
+      // Clear any previous calls and mock only the accounts call
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual({
+        ois: [true, false],
+        sids: ['cached_sub_123', null],
+      });
+
+      // Verify that only the accounts call was made, not the service call since we used cached data
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        expect.anything(),
+      );
+    });
+
+    it('should update existing account state when fresh data is fetched', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockResponse = { ois: [true], sids: ['fresh_sub_123'] };
+
+      // Set up controller with existing account state that has undefined hasOptedIn
+      // This will force a fresh API call instead of using cached data
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            'eip155:1:0x123': {
+              account: 'eip155:1:0x123',
+              hasOptedIn: undefined, // This will force fresh API call
+              subscriptionId: 'old_sub_123', // Will be updated to fresh_sub_123
+              lastCheckedAuth: Date.now() - 1000, // Will be updated to current time
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+        },
+      });
+
+      // Clear any previous calls and mock both messenger calls
+      mockMessenger.call.mockClear();
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Verify that the existing account state was updated (not created new)
+      const updatedAccountState =
+        testController.state.accounts['eip155:1:0x123'];
+      expect(updatedAccountState).toBeDefined();
+      expect(updatedAccountState.hasOptedIn).toBe(true);
+      expect(updatedAccountState.subscriptionId).toBe('fresh_sub_123');
+      expect(updatedAccountState.lastCheckedAuth).toBeGreaterThan(
+        Date.now() - 100,
+      );
+    });
+
+    it('should use cached results in final combination loop', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x456', '0x789'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x789',
+          type: 'eip155:eoa' as const,
+          id: 'account3',
+          options: {},
+          metadata: {
+            name: 'Account 3',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+
+      // Set up controller with mixed cached and non-cached data
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            // First account has cached data
+            'eip155:1:0x123': {
+              account: 'eip155:1:0x123',
+              hasOptedIn: true,
+              subscriptionId: 'cached_sub_123',
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            // Second account has cached data
+            'eip155:1:0x456': {
+              account: 'eip155:1:0x456',
+              hasOptedIn: false,
+              subscriptionId: null,
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            // Third account has no cached data, will need fresh API call
+          },
+        },
+      });
+
+      // Mock the fresh API response for only the third account
+      const mockFreshResponse = { ois: [true], sids: ['fresh_sub_789'] };
+
+      // Clear any previous calls and mock both messenger calls
+      mockMessenger.call.mockClear();
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockFreshResponse); // RewardsDataService:getOptInStatus (only for 0x789)
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual({
+        ois: [true, false, true], // First two from cache, third from fresh API
+        sids: ['cached_sub_123', null, 'fresh_sub_789'],
+      });
+
+      // Verify that the service was called with only the non-cached address
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        { addresses: ['0x789'] },
       );
     });
   });
