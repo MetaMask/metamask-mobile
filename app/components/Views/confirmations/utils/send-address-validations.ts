@@ -32,7 +32,7 @@ export const validateHexAddress = async (
 
   if (toAddress?.toLowerCase() === assetAddress?.toLowerCase()) {
     return {
-      error: 'send.contractAddressError',
+      error: strings('send.contractAddressError'),
     };
   }
 
