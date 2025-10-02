@@ -37,6 +37,7 @@ import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import {
   KEEP_SRP_SAFE_URL,
   NON_CUSTODIAL_WALLET_URL,
+  PRIVATE_KEY_GUIDE_URL,
   SRP_GUIDE_URL,
 } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -550,7 +551,13 @@ const RevealPrivateCredential = ({
             <Text
               color={colors.primary.default}
               variant={TextVariant.BodyMDBold}
-              onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
+              onPress={() =>
+                Linking.openURL(
+                  isPrivateKeyReveal
+                    ? PRIVATE_KEY_GUIDE_URL
+                    : KEEP_SRP_SAFE_URL,
+                )
+              }
             >
               {strings('reveal_credential.reveal_credential_modal')[4]}
             </Text>
