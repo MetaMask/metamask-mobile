@@ -42,7 +42,7 @@ This directory contains the End-to-End (E2E) testing framework for MetaMask Mobi
 - Node.js and Yarn installed
 - iOS Simulator or Android Emulator set up
 - MetaMask Mobile development environment configured
-- **📖 [Testing Setup Guide](../../docs/readme/testing.md)** - Essential reading for:
+- **📖 [Testing Setup Guide](../../docs/readme/e2e-testing.md)** - Essential reading for:
   - Local environment setup and configuration
   - Test wallet setup with testnet/mainnet access
   - Environment variables configuration (`.e2e.env`, `.js.env`)
