@@ -7,12 +7,17 @@ import React, {
 } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import { RefreshTestId } from '../CollectibleContracts/constants';
+import {
+  RefreshTestId,
+  SpinnerTestId,
+} from '../CollectibleContracts/constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { Nft } from '@metamask/assets-controllers';
-import { multichainCollectiblesByEnabledNetworksSelector } from '../../../reducers/collectibles';
+import {
+  isNftFetchingProgressSelector,
+  multichainCollectiblesByEnabledNetworksSelector,
+} from '../../../reducers/collectibles';
 import NftGridListRefreshControl from './NftGridListRefreshControl';
-import NftGridEmpty from './NftGridEmpty';
 import NftGridFooter from './NftGridFooter';
 import NftGridItem from './NftGridItem';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -20,6 +25,9 @@ import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import { useNavigation } from '@react-navigation/native';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { ActivityIndicator } from 'react-native';
 
 const NftGridList = () => {
   const navigation = useNavigation();
@@ -27,6 +35,8 @@ const NftGridList = () => {
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [longPressedCollectible, setLongPressedCollectible] =
     useState<Nft | null>(null);
+
+  const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
   const actionSheetRef = useRef<typeof ActionSheet>();
 
@@ -71,16 +81,30 @@ const NftGridList = () => {
         testID={RefreshTestId}
         refreshControl={<NftGridListRefreshControl />}
         ListEmptyComponent={
-          <NftGridEmpty
-            isAddNFTEnabled={isAddNFTEnabled}
-            goToAddCollectible={goToAddCollectible}
-          />
+          !isNftFetchingProgress ? (
+            <CollectiblesEmptyState
+              onAction={goToAddCollectible}
+              actionButtonProps={{
+                testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+                isDisabled: !isAddNFTEnabled,
+              }}
+              twClassName="mx-auto mt-4"
+              testID="collectibles-empty-state"
+            />
+          ) : null
         }
         ListFooterComponent={
-          <NftGridFooter
-            isAddNFTEnabled={isAddNFTEnabled}
-            goToAddCollectible={goToAddCollectible}
-          />
+          <>
+            {isNftFetchingProgress && (
+              <ActivityIndicator size="large" testID={SpinnerTestId} />
+            )}
+            {allFilteredCollectibles.length > 0 && (
+              <NftGridFooter
+                isAddNFTEnabled={isAddNFTEnabled}
+                goToAddCollectible={goToAddCollectible}
+              />
+            )}
+          </>
         }
         numColumns={3}
       />

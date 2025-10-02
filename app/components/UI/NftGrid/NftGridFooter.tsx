@@ -1,14 +1,6 @@
-import {
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import React from 'react';
-import { isNftFetchingProgressSelector } from '../../../reducers/collectibles';
 import TextComponent from '../../../component-library/components/Texts/Text';
-import { useSelector } from 'react-redux';
-import { SpinnerTestId } from '../CollectibleContracts/constants';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { ThemeColors } from '@metamask/design-tokens';
@@ -47,18 +39,8 @@ const NftGridFooter = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
-
   return (
     <View style={styles.footer} key={'collectible-contracts-footer'}>
-      {isNftFetchingProgress ? (
-        <ActivityIndicator
-          size="large"
-          style={styles.spinner}
-          testID={SpinnerTestId}
-        />
-      ) : null}
-
       <TextComponent style={styles.emptyText}>
         {strings('wallet.no_collectibles')}
       </TextComponent>

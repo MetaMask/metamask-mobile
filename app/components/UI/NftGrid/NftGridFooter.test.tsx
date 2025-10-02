@@ -54,10 +54,7 @@ describe('NftGridFooter', () => {
     goToAddCollectible: mockGoToAddCollectible,
   };
 
-  const createInitialState = (isNftFetchingProgress = false) => ({
-    collectibles: {
-      isNftFetchingProgress,
-    },
+  const createInitialState = () => ({
     engine: {
       backgroundState,
     },
@@ -78,30 +75,6 @@ describe('NftGridFooter', () => {
     expect(getByText('No NFTs yet')).toBeDefined();
     expect(getByText('Import NFTs')).toBeDefined();
     expect(getByTestId('import-collectible-button')).toBeDefined();
-  });
-
-  it('shows spinner when NFTs are being fetched', () => {
-    const store = mockStore(createInitialState(true));
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGridFooter {...defaultProps} />
-      </Provider>,
-    );
-
-    const spinner = getByTestId('collectible-contracts-spinner');
-    expect(spinner).toBeDefined();
-    expect(spinner.type).toBe('ActivityIndicator');
-  });
-
-  it('hides spinner when NFTs are not being fetched', () => {
-    const store = mockStore(createInitialState(false));
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <NftGridFooter {...defaultProps} />
-      </Provider>,
-    );
-
-    expect(queryByTestId('collectible-contracts-spinner')).toBeNull();
   });
 
   it('calls goToAddCollectible when import button is pressed', () => {
