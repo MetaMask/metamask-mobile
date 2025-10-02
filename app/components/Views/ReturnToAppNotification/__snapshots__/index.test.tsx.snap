@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ReturnToAppToast renders correctly with default message 1`] = `
+exports[`ReturnToAppNotification renders correctly with default message 1`] = `
 <RNCSafeAreaProvider
   onInsetsChange={[Function]}
   style={
