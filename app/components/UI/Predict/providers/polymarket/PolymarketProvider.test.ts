@@ -631,6 +631,226 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('prepareBuyOrder with Safe fee authorization', () => {
+    it('computes Safe address before creating order', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      expect(mockComputeSafeAddress).toHaveBeenCalledWith(mockSigner);
+    });
+
+    it('calculates 4% fee from maker amount', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      const expectedFeeAmount = (BigInt(1000000) * BigInt(4)) / BigInt(100);
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: expectedFeeAmount,
+        }),
+      );
+    });
+
+    it('creates fee authorization with correct parameters', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith({
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        signer: mockSigner,
+        amount: expect.any(BigInt),
+        to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+      });
+    });
+
+    it('includes feeAuthorization in offchainTradeParams', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      const result = await provider.prepareBuyOrder(orderParams);
+
+      expect(result.offchainTradeParams).toBeDefined();
+      expect(result.offchainTradeParams).toHaveProperty('feeAuthorization');
+      expect(result.offchainTradeParams?.feeAuthorization).toEqual({
+        type: 'safe-transaction',
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      });
+    });
+
+    it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+        }),
+      );
+    });
+  });
+
+  describe('submitOffchainTrade with fee authorization', () => {
+    it('passes feeAuthorization to submitClobOrder when provided', async () => {
+      const provider = createProvider();
+      jest.clearAllMocks();
+      mockSubmitClobOrder.mockResolvedValue({
+        success: true,
+        errorMsg: '',
+        makingAmount: '1000000',
+        orderID: 'order-123',
+        status: 'success',
+        takingAmount: '0',
+        transactionsHashes: [],
+      });
+
+      const feeAuth = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      const offchainTradeParams: OffchainTradeParams = {
+        clobOrder: {
+          order: {
+            maker: '0x123',
+            taker: '0x000',
+            tokenId: '0',
+            makerAmount: '1000000',
+            takerAmount: '0',
+            side: Side.BUY,
+            feeRateBps: '0',
+            nonce: '123',
+            expiration: '0',
+            signatureType: 0,
+            salt: 12345,
+            signature: '0xsignature',
+          },
+          owner: 'test-owner',
+          orderType: OrderType.FOK,
+        },
+        headers: {
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        },
+        feeAuthorization: feeAuth,
+      };
+
+      await provider.submitOffchainTrade(offchainTradeParams);
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
+        headers: offchainTradeParams.headers,
+        clobOrder: offchainTradeParams.clobOrder,
+        feeAuthorization: feeAuth,
+      });
+    });
+
+    it('handles undefined feeAuthorization', async () => {
+      const provider = createProvider();
+      jest.clearAllMocks();
+      mockSubmitClobOrder.mockResolvedValue({
+        success: true,
+        errorMsg: '',
+        makingAmount: '1000000',
+        orderID: 'order-123',
+        status: 'success',
+        takingAmount: '0',
+        transactionsHashes: [],
+      });
+
+      const offchainTradeParams: OffchainTradeParams = {
+        clobOrder: {
+          order: {
+            maker: '0x123',
+            taker: '0x000',
+            tokenId: '0',
+            makerAmount: '1000000',
+            takerAmount: '0',
+            side: Side.BUY,
+            feeRateBps: '0',
+            nonce: '123',
+            expiration: '0',
+            signatureType: 0,
+            salt: 12345,
+            signature: '0xsignature',
+          },
+          owner: 'test-owner',
+          orderType: OrderType.FOK,
+        },
+        headers: {
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        },
+      };
+
+      await provider.submitOffchainTrade(offchainTradeParams);
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
+        headers: offchainTradeParams.headers,
+        clobOrder: offchainTradeParams.clobOrder,
+        feeAuthorization: undefined,
+      });
+    });
+  });
+
   describe('getActivity', () => {
     it('throws error when method is not implemented', () => {
       const provider = createProvider();

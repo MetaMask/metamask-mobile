@@ -34,6 +34,7 @@ import {
   buildMarketOrderCreationArgs,
   buildPolyHmacSignature,
   calculateBuyMarketPrice,
+  calculateFeeAmount,
   calculateMarketPrice,
   calculateSellMarketPrice,
   createApiKey,
@@ -1071,6 +1072,84 @@ describe('polymarket utils', () => {
         }),
       ).rejects.toThrow('Network error');
     });
+
+    it('includes feeAuthorization in request body when provided', async () => {
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({ ...mockClobOrder, feeAuthorization }),
+        },
+      );
+    });
+
+    it('omits feeAuthorization when undefined', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization: undefined,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
+        },
+      );
+    });
+
+    it('serializes feeAuthorization correctly to JSON', async () => {
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0x1234567890123456789012345678901234567890',
+            operation: 0,
+            data: '0xabcdef',
+            value: '100',
+          },
+          sig: '0xdeadbeef',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody).toHaveProperty('feeAuthorization');
+      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
   });
 
   describe('parsePolymarketEvents', () => {
@@ -1754,6 +1833,89 @@ describe('polymarket utils', () => {
 
       expect(typeof result).toBe('string');
       expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('calculateFeeAmount', () => {
+    it('calculates 4% fee for BUY orders', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '1000000',
+        takerAmount: '500000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(40000));
+    });
+
+    it('returns zero fee for SELL orders', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '1000000',
+        takerAmount: '500000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.SELL,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(0));
+    });
+
+    it('handles large maker amounts correctly', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '100000000000',
+        takerAmount: '50000000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(4000000000));
+    });
+
+    it('returns bigint type', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '250000',
+        takerAmount: '125000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(typeof feeAmount).toBe('bigint');
+      expect(feeAmount).toBe(BigInt(10000));
     });
   });
 });
