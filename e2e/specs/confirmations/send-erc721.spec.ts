@@ -12,7 +12,7 @@ import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -62,8 +62,8 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterCurrent();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Localhost');
 
         // Assert collectible is sent
         await Assertions.expectTextDisplayed(
