@@ -261,7 +261,7 @@ export const selectWalletStatus = createSelector(
     (walletId: AccountWalletId): AccountWalletObject['status'] | null => {
       if (!wallets) return null;
 
-      return wallets[walletId].status ?? null;
+      return wallets[walletId]?.status ?? null;
     },
 );
 
