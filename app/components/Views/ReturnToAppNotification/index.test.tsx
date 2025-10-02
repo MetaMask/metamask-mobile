@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import ReturnToAppToast from '.';
-import { ReturnToAppToastProps } from './ReturnToAppToast';
+import ReturnToAppNotification from './index.tsx';
+import { ReturnToAppNotificationProps } from './ReturnToAppNotification.tsx';
 import { ToastContext } from '../../../component-library/components/Toast/index.ts';
 
 jest.mock('../../../../locales/i18n.js', () => ({
@@ -30,18 +30,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('ReturnToAppToast', () => {
+describe('ReturnToAppNotification', () => {
   const createToastRef = () => ({
     current: { showToast: jest.fn(), closeToast: jest.fn() },
   });
 
-  const renderWithProviders = (route: ReturnToAppToastProps['route']) => {
+  const renderWithProviders = (
+    route: ReturnToAppNotificationProps['route'],
+  ) => {
     const toastRef = createToastRef();
 
     const ui = (
       <SafeAreaProvider>
         <ToastContext.Provider value={{ toastRef }}>
-          <ReturnToAppToast route={route} />
+          <ReturnToAppNotification route={route} />
         </ToastContext.Provider>
       </SafeAreaProvider>
     );
@@ -50,7 +52,7 @@ describe('ReturnToAppToast', () => {
     return { ...utils, toastRef };
   };
 
-  const mockRoute: ReturnToAppToastProps['route'] = {
+  const mockRoute: ReturnToAppNotificationProps['route'] = {
     params: {
       method: undefined,
       origin: 'https://example.com',
