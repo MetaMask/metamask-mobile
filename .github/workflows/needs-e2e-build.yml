@@ -68,7 +68,6 @@ jobs:
 
       - name: Paths filter (Android/iOS impact)
         id: filter
-        if: github.event_name != 'schedule'
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         with:
           filters: |
@@ -124,9 +123,9 @@ jobs:
           # Compute outputs using Node script
           GITHUB_EVENT_NAME="${{ github.event_name }}" \
           SHOULD_SKIP_E2E="${{ steps.skip-tag.outputs.SKIP == 'true' || steps.skip-label.outputs.SKIP == 'true' }}" \
-          ANDROID="${{ steps.filter.outputs.android }}" \
-          IOS="${{ steps.filter.outputs.ios }}" \
-          SHARED="${{ steps.filter.outputs.shared }}" \
+          ANDROID="${{ github.event_name == 'schedule' && '' || steps.filter.outputs.android }}" \
+          IOS="${{ github.event_name == 'schedule' && '' || steps.filter.outputs.ios }}" \
+          SHARED="${{ github.event_name == 'schedule' && '' || steps.filter.outputs.shared }}" \
           IGNORE_FILES="${{ github.event_name == 'schedule' && '' || steps.filter.outputs.ignore_files }}" \
           CATCH_ALL_FILES="${{ github.event_name == 'schedule' && '' || steps.filter.outputs.catch_all_files }}" \
           node .github/scripts/needs-e2e-builds.mjs
