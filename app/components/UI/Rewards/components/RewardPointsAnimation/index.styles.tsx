@@ -32,9 +32,6 @@ const createRewardPointsAnimationStyles = (params: {
       flexDirection: 'row',
       position: 'relative',
       alignItems: 'center',
-      // Pre-calculate width based on target value to prevent jittering
-      // TODO: This solution doesn't quite work, although it stops the jittering the set width interferes with the parent layout
-      // width: isErrorState ? '100%' : containerWidth,
     },
     riveIcon: {
       width,
