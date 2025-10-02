@@ -25,7 +25,7 @@ export const usePredictBetAmounts = ({
   const { calculateBetAmounts: controllerCalculateBetAmounts } =
     usePredictTrading();
 
-  const calculateExpectedAmount = useCallback(async () => {
+  const calculateBetAmounts = useCallback(async () => {
     if (!outcomeToken || userBetAmount <= 0) {
       setBetAmounts({ toWin: 0, sharePrice: 0 });
       setIsCalculating(false);
@@ -50,11 +50,11 @@ export const usePredictBetAmounts = ({
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      calculateExpectedAmount();
+      calculateBetAmounts();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [calculateExpectedAmount]);
+  }, [calculateBetAmounts]);
 
   // Auto-refresh functionality
   useEffect(() => {
@@ -63,13 +63,13 @@ export const usePredictBetAmounts = ({
     }
 
     const refreshTimer = setInterval(() => {
-      calculateExpectedAmount();
+      calculateBetAmounts();
     }, autoRefreshTimeout);
 
     return () => {
       clearInterval(refreshTimer);
     };
-  }, [calculateExpectedAmount, autoRefreshTimeout]);
+  }, [calculateBetAmounts, autoRefreshTimeout]);
 
   return {
     betAmounts,

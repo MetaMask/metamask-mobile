@@ -34,11 +34,11 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   }),
 }));
 
-// Mock usePredictExpectedAmount hook
+// Mock usePredictBetAmounts hook
 let mockExpectedAmount = 120;
-jest.mock('../../hooks/usePredictExpectedAmount', () => ({
-  usePredictExpectedAmount: () => ({
-    expectedAmount: mockExpectedAmount,
+jest.mock('../../hooks/usePredictBetAmounts', () => ({
+  usePredictBetAmounts: () => ({
+    betAmounts: { toWin: mockExpectedAmount },
   }),
 }));
 
@@ -174,7 +174,11 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictPlaceBet'> = {
   params: {
     market: mockMarket,
     outcomeId: 'outcome-456',
-    outcomeTokenId: 'outcome-token-789',
+    outcomeToken: {
+      id: 'outcome-token-789',
+      title: 'Yes',
+      price: 0.5,
+    },
   },
 };
 
@@ -468,14 +472,22 @@ describe('PredictPlaceBet', () => {
         ],
       };
 
-      mockUseRoute.mockReturnValue({
+      const singleOutcomeRoute = {
         ...mockRoute,
         params: {
           ...mockRoute.params,
           market: singleOutcomeMarket,
+          outcomeToken: {
+            id: 'outcome-token-single',
+            title: 'Yes',
+            price: 0.75,
+          },
           outcomeTokenId: 'outcome-token-single',
         },
-      });
+      };
+
+      // Set up the mock before rendering
+      mockUseRoute.mockReturnValue(singleOutcomeRoute);
 
       const { getByText } = renderWithProvider(<PredictPlaceBet />, {
         state: initialState,
@@ -562,14 +574,22 @@ describe('PredictPlaceBet', () => {
         ],
       };
 
-      mockUseRoute.mockReturnValue({
+      const noOutcomeRoute = {
         ...mockRoute,
         params: {
           ...mockRoute.params,
           market: noOutcomeMarket,
+          outcomeToken: {
+            id: 'outcome-token-no',
+            title: 'No',
+            price: 0.6,
+          },
           outcomeTokenId: 'outcome-token-no',
         },
-      });
+      };
+
+      // Set up the mock before rendering
+      mockUseRoute.mockReturnValue(noOutcomeRoute);
 
       const { getByText } = renderWithProvider(<PredictPlaceBet />, {
         state: initialState,
