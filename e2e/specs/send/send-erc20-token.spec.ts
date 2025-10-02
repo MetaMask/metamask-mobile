@@ -11,8 +11,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
-describe('Send native asset', () => {
-  it('should send ETH to an address', async () => {
+describe('Send ERC20 asset', () => {
+  it('should send USDC to an address', async () => {
     await withFixtures(
       {
         dapps: [
@@ -25,15 +25,36 @@ describe('Send native asset', () => {
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
+          .withTokensForAllPopularNetworks([
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'Ethereum',
+            },
+            {
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+            },
+            {
+              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+              symbol: 'DAI',
+              decimals: 18,
+              name: 'Dai Stablecoin',
+            },
+          ])
           .build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        // send 5 ETH
+
+        // send 5 USDC
         await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
+        await SendView.selectERC20Token();
         await SendView.pressAmountFiveButton();
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
@@ -42,10 +63,9 @@ describe('Send native asset', () => {
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
 
-        // send 50% ETH
-        await TabBarComponent.tapWallet();
+        // send 50% USDC
         await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
+        await SendView.selectERC20Token();
         await SendView.pressFiftyPercentButton();
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
@@ -54,9 +74,9 @@ describe('Send native asset', () => {
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
 
-        // send Max ETH
+        // send Max USDC
         await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
+        await SendView.selectERC20Token();
         await SendView.pressAmountMaxButton();
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);

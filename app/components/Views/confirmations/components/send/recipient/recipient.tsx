@@ -12,6 +12,8 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+
+import { RedesignedSendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/RedesignedSendView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import Banner, {
   BannerAlertSeverity,
@@ -206,7 +208,7 @@ export const Recipient = () => {
                 />
               )}
               <Button
-                testID="review-button-send"
+                testID={RedesignedSendViewSelectorsIDs.REVIEW_BUTTON}
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
                 onPress={handleReview}

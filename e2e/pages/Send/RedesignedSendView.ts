@@ -7,8 +7,32 @@ class SendView {
     return Matchers.getElementByText('Ethereum');
   }
 
+  get solanaTokenButton(): DetoxElement {
+    return Matchers.getElementByText('SOL');
+  }
+
+  get erc20TokenButton(): DetoxElement {
+    return Matchers.getElementByText('USD Coin');
+  }
+
+  get dotButton(): DetoxElement {
+    return Matchers.getElementByText('.');
+  }
+
+  get zeroButton(): DetoxElement {
+    return Matchers.getElementByText('0');
+  }
+
   get amountFiveButton(): DetoxElement {
     return Matchers.getElementByText('5');
+  }
+
+  get fiftyPercentButton(): DetoxElement {
+    return Matchers.getElementByText('Max');
+  }
+
+  get maxButton(): DetoxElement {
+    return Matchers.getElementByText('Max');
   }
 
   get continueButton(): DetoxElement {
@@ -21,13 +45,13 @@ class SendView {
     );
   }
 
-  // get nextButton(): DetoxElement {
-  //   return device.getPlatform() === 'ios'
-  //     ? Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON)
-  //     : Matchers.getElementByLabel(
-  //         SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
-  //       );
-  // }
+  get reviewButton(): DetoxElement {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON)
+      : Matchers.getElementByLabel(
+          RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        );
+  }
 
   async selectEthereumToken(): Promise<void> {
     await Gestures.waitAndTap(this.ethereumTokenButton, {
@@ -35,9 +59,54 @@ class SendView {
     });
   }
 
+  async selectSolanaToken(): Promise<void> {
+    await Gestures.waitAndTap(this.solanaTokenButton, {
+      elemDescription: 'Select ethereum token',
+    });
+  }
+
+  async selectERC20Token(): Promise<void> {
+    await Gestures.waitAndTap(this.erc20TokenButton, {
+      elemDescription: 'Select ERC20 token',
+    });
+  }
+
+  async enterSmallAmount(): Promise<void> {
+    await Gestures.waitAndTap(this.zeroButton, {
+      elemDescription: '0 button',
+    });
+    await Gestures.waitAndTap(this.dotButton, {
+      elemDescription: '. button',
+    });
+    await Gestures.waitAndTap(this.zeroButton, {
+      elemDescription: '0 button',
+    });
+    await Gestures.waitAndTap(this.zeroButton, {
+      elemDescription: '0 button',
+    });
+    await Gestures.waitAndTap(this.zeroButton, {
+      elemDescription: '0 button',
+    });
+    await Gestures.waitAndTap(this.amountFiveButton, {
+      elemDescription: '5 button',
+    });
+  }
+
   async pressAmountFiveButton(): Promise<void> {
     await Gestures.waitAndTap(this.amountFiveButton, {
       elemDescription: 'Amount 5',
+    });
+  }
+
+  async pressFiftyPercentButton(): Promise<void> {
+    await Gestures.waitAndTap(this.fiftyPercentButton, {
+      elemDescription: 'Amount 50%',
+    });
+  }
+
+  async pressAmountMaxButton(): Promise<void> {
+    await Gestures.waitAndTap(this.maxButton, {
+      elemDescription: 'Amount Max',
     });
   }
 
@@ -53,11 +122,11 @@ class SendView {
     });
   }
 
-  // async tapNextButton(): Promise<void> {
-  //   await Gestures.waitAndTap(this.nextButton, {
-  //     elemDescription: 'Next Button in Send View',
-  //   });
-  // }
+  async pressReviewButton() {
+    await Gestures.waitAndTap(this.reviewButton, {
+      elemDescription: 'Continue button',
+    });
+  }
 }
 
 export default new SendView();
