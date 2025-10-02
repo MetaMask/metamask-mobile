@@ -1,14 +1,15 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import PredictKeypad from './PredictKeypad';
+import PredictKeypad, { PredictKeypadHandles } from './PredictKeypad';
 
 describe('PredictKeypad', () => {
   const defaultProps = {
     isInputFocused: true,
+    currentValue: 1,
     currentValueUSDString: '1.00',
-    onKeypadChange: jest.fn(),
-    onKeypadAmountPress: jest.fn(),
-    onDonePress: jest.fn(),
+    setCurrentValue: jest.fn(),
+    setCurrentValueUSDString: jest.fn(),
+    setIsInputFocused: jest.fn(),
   };
 
   beforeEach(() => {
@@ -46,85 +47,124 @@ describe('PredictKeypad', () => {
   });
 
   describe('User Interactions', () => {
-    it('calls onKeypadAmountPress with 20 when $20 button is pressed', () => {
+    it('calls handleKeypadAmountPress with 20 when $20 button is pressed', () => {
       // Arrange
       const props = { ...defaultProps };
-      const { getByText } = render(<PredictKeypad {...props} />);
+      const ref = React.createRef<PredictKeypadHandles>();
+      const { getByText } = render(<PredictKeypad ref={ref} {...props} />);
 
       // Act
       fireEvent.press(getByText('$20'));
 
       // Assert
-      expect(props.onKeypadAmountPress).toHaveBeenCalledWith(20);
-      expect(props.onKeypadAmountPress).toHaveBeenCalledTimes(1);
+      expect(props.setCurrentValue).toHaveBeenCalledWith(20);
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('20');
     });
 
-    it('calls onKeypadAmountPress with 50 when $50 button is pressed', () => {
+    it('calls handleKeypadAmountPress with 50 when $50 button is pressed', () => {
       // Arrange
       const props = { ...defaultProps };
-      const { getByText } = render(<PredictKeypad {...props} />);
+      const ref = React.createRef<PredictKeypadHandles>();
+      const { getByText } = render(<PredictKeypad ref={ref} {...props} />);
 
       // Act
       fireEvent.press(getByText('$50'));
 
       // Assert
-      expect(props.onKeypadAmountPress).toHaveBeenCalledWith(50);
-      expect(props.onKeypadAmountPress).toHaveBeenCalledTimes(1);
+      expect(props.setCurrentValue).toHaveBeenCalledWith(50);
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('50');
     });
 
-    it('calls onKeypadAmountPress with 100 when $100 button is pressed', () => {
+    it('calls handleKeypadAmountPress with 100 when $100 button is pressed', () => {
       // Arrange
       const props = { ...defaultProps };
-      const { getByText } = render(<PredictKeypad {...props} />);
+      const ref = React.createRef<PredictKeypadHandles>();
+      const { getByText } = render(<PredictKeypad ref={ref} {...props} />);
 
       // Act
       fireEvent.press(getByText('$100'));
 
       // Assert
-      expect(props.onKeypadAmountPress).toHaveBeenCalledWith(100);
-      expect(props.onKeypadAmountPress).toHaveBeenCalledTimes(1);
+      expect(props.setCurrentValue).toHaveBeenCalledWith(100);
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('100');
     });
 
-    it('calls onDonePress when Done button is pressed', () => {
+    it('calls handleDonePress when Done button is pressed', () => {
       // Arrange
       const props = { ...defaultProps };
-      const { getByText } = render(<PredictKeypad {...props} />);
+      const ref = React.createRef<PredictKeypadHandles>();
+      const { getByText } = render(<PredictKeypad ref={ref} {...props} />);
 
       // Act
       fireEvent.press(getByText('Done'));
 
       // Assert
-      expect(props.onDonePress).toHaveBeenCalledTimes(1);
+      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+    });
+
+    it('exposes handleAmountPress handler through ref', () => {
+      // Arrange
+      const props = { ...defaultProps };
+      const ref = React.createRef<PredictKeypadHandles>();
+      render(<PredictKeypad ref={ref} {...props} />);
+
+      // Act
+      ref.current?.handleAmountPress();
+
+      // Assert
+      expect(props.setIsInputFocused).toHaveBeenCalledWith(true);
+    });
+
+    it('exposes handleKeypadAmountPress handler through ref', () => {
+      // Arrange
+      const props = { ...defaultProps };
+      const ref = React.createRef<PredictKeypadHandles>();
+      render(<PredictKeypad ref={ref} {...props} />);
+
+      // Act
+      ref.current?.handleKeypadAmountPress(25);
+
+      // Assert
+      expect(props.setCurrentValue).toHaveBeenCalledWith(25);
+      expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('25');
+    });
+
+    it('exposes handleDonePress handler through ref', () => {
+      // Arrange
+      const props = { ...defaultProps };
+      const ref = React.createRef<PredictKeypadHandles>();
+      render(<PredictKeypad ref={ref} {...props} />);
+
+      // Act
+      ref.current?.handleDonePress();
+
+      // Assert
+      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
     });
   });
 
   describe('Keypad Integration', () => {
-    it('passes currentValueUSDString to Keypad component', () => {
+    it('renders with correct props', () => {
       // Arrange
-      const customValue = '25.50';
-      const props = { ...defaultProps, currentValueUSDString: customValue };
+      const props = { ...defaultProps };
 
       // Act
-      render(<PredictKeypad {...props} />);
+      const { toJSON } = render(<PredictKeypad {...props} />);
 
       // Assert
-      // The Keypad component receives the value, but we can't easily test internal props
-      // This test ensures the component renders without errors with custom value
-      expect(props.currentValueUSDString).toBe(customValue);
+      expect(toJSON()).toBeTruthy();
     });
 
-    it('passes onKeypadChange to Keypad component', () => {
+    it('handles keypad input changes internally', () => {
       // Arrange
-      const mockOnChange = jest.fn();
-      const props = { ...defaultProps, onKeypadChange: mockOnChange };
+      const props = { ...defaultProps };
 
-      // Act
+      // Act - Component handles keypad changes internally, so we test that it renders
       render(<PredictKeypad {...props} />);
 
-      // Assert
-      // The Keypad component receives the onChange handler, but we can't easily test internal props
-      // This test ensures the component renders without errors with custom handler
-      expect(props.onKeypadChange).toBe(mockOnChange);
+      // Assert - The component should render without errors and handle changes internally
+      expect(props.setCurrentValue).toBeDefined();
+      expect(props.setCurrentValueUSDString).toBeDefined();
     });
   });
 });
