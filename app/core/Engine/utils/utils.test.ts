@@ -77,7 +77,9 @@ import {
   CaveatSpecificationConstraint,
   PermissionController,
   PermissionSpecificationConstraint,
+  SubjectMetadataController,
 } from '@metamask/permission-controller';
+import { subjectMetadataControllerInit } from '../controllers/subject-metadata-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -123,6 +125,7 @@ jest.mock(
 );
 jest.mock('../controllers/selected-network-controller-init');
 jest.mock('../controllers/permission-controller-init');
+jest.mock('../controllers/subject-metadata-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -190,6 +193,9 @@ describe('initModularizedControllers', () => {
   const mockGatorPermissionsControllerInit = jest.mocked(
     GatorPermissionsControllerInit,
   );
+  const mockSubjectMetadataControllerInit = jest.mocked(
+    subjectMetadataControllerInit,
+  );
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -235,6 +241,7 @@ describe('initModularizedControllers', () => {
           RewardsController: mockRewardsControllerInit,
           PredictController: mockPredictControllerInit,
           GatorPermissionsController: mockGatorPermissionsControllerInit,
+          SubjectMetadataController: mockSubjectMetadataControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -334,6 +341,9 @@ describe('initModularizedControllers', () => {
     });
     mockGatorPermissionsControllerInit.mockReturnValue({
       controller: {} as unknown as GatorPermissionsController,
+    });
+    mockSubjectMetadataControllerInit.mockReturnValue({
+      controller: {} as unknown as SubjectMetadataController,
     });
   });
 
