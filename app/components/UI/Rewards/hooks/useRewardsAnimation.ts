@@ -4,7 +4,6 @@ import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  runOnJS,
   AnimatedStyle,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
@@ -13,6 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 const STATE_MACHINE_NAME = 'State Machine 1';
 const BASE_FOX_POSITION = -20;
 const ANIMATION_DURATION = {
+  BLAZING_FAST: 100,
   FAST: 200,
   NORMAL: 300,
   SLOW: 600,
@@ -22,12 +22,16 @@ export enum RewardAnimationState {
   Loading = 'loading',
   ErrorState = 'error',
   Idle = 'idle',
+  RefreshLoading = 'refresh_loading',
+  RefreshFinished = 'refresh_finished',
 }
 
 enum RewardsIconTriggers {
   Disable = 'Disable',
   Start = 'Start',
-  Refresh = 'Refresh',
+  RefreshRight = 'Refresh_right',
+  RefreshLeft = 'Refresh_left',
+  RefreshDoubleFlip = 'Refresh_doubleflip',
 }
 
 interface UseRewardsAnimationParams {
@@ -56,11 +60,11 @@ interface UseRewardsAnimationResult {
  * - Loading: Fox on top of number, counts down to 0
  * - ErrorState: Shows "Couldn't Load" with fox on left
  * - Idle: Normal state with animated fox on left
+ * - RefreshLoading: Fox moves right, counts down to 0 (for data refresh)
+ * - RefreshFinished: Fox moves back left, shows new value
  */
-
 export const useRewardsAnimation = ({
   value,
-  duration = 1000,
   state = RewardAnimationState.Idle,
 }: UseRewardsAnimationParams): UseRewardsAnimationResult => {
   const riveRef = useRef<RiveRef>(null);
@@ -78,10 +82,14 @@ export const useRewardsAnimation = ({
   // Animate number value changes
   useEffect(() => {
     isAnimating.value = true;
-    animatedValue.value = withTiming(value, { duration }, () => {
-      isAnimating.value = false;
-    });
-  }, [value, duration, animatedValue, isAnimating]);
+    animatedValue.value = withTiming(
+      value,
+      { duration: ANIMATION_DURATION.FAST },
+      () => {
+        isAnimating.value = false;
+      },
+    );
+  }, [value, animatedValue, isAnimating]);
 
   const triggerRiveAnimation = useCallback((trigger: RewardsIconTriggers) => {
     try {
@@ -128,10 +136,10 @@ export const useRewardsAnimation = ({
     setDisplayText(null);
     rivePosition.value = withTiming(0, { duration: ANIMATION_DURATION.NORMAL });
 
-    createTimeout(() => setHideValue(true), ANIMATION_DURATION.SLOW);
+    createTimeout(() => setHideValue(true), ANIMATION_DURATION.FAST);
     if (animatedValue.value > 0) {
       animatedValue.value = withTiming(0, {
-        duration: ANIMATION_DURATION.SLOW,
+        duration: ANIMATION_DURATION.FAST,
       });
     }
 
@@ -158,7 +166,7 @@ export const useRewardsAnimation = ({
     }, ANIMATION_DURATION.FAST);
 
     rivePosition.value = withTiming(BASE_FOX_POSITION, {
-      duration: ANIMATION_DURATION.SLOW,
+      duration: ANIMATION_DURATION.FAST,
     });
 
     triggerRiveAnimation(RewardsIconTriggers.Disable);
@@ -184,19 +192,63 @@ export const useRewardsAnimation = ({
 
     // Always reposition fox on state transitions
     rivePosition.value = withTiming(BASE_FOX_POSITION, {
-      duration: ANIMATION_DURATION.NORMAL,
+      duration: ANIMATION_DURATION.FAST,
     });
 
     // Only trigger Rive animation if value changed
     if (currentValue !== previousValue) {
       const trigger =
         currentValue > 0
-          ? RewardsIconTriggers.Start
+          ? RewardsIconTriggers.RefreshLeft
           : RewardsIconTriggers.Disable;
+
       triggerRiveAnimation(trigger);
       previousValueRef.current = currentValue;
     }
   }, [value, rivePosition, triggerRiveAnimation, clearAllTimeouts]);
+
+  const handleRefreshLoadingState = useCallback(() => {
+    if (!riveRef.current) return;
+
+    // Clear any pending timeouts to prevent race conditions
+    clearAllTimeouts();
+
+    setDisplayText(null);
+    rivePosition.value = withTiming(0, { duration: ANIMATION_DURATION.FAST });
+
+    createTimeout(() => setHideValue(true), ANIMATION_DURATION.FAST);
+    if (animatedValue.value > 0) {
+      animatedValue.value = withTiming(0, {
+        duration: ANIMATION_DURATION.FAST,
+      });
+    }
+
+    triggerRiveAnimation(RewardsIconTriggers.RefreshRight);
+  }, [
+    triggerRiveAnimation,
+    animatedValue,
+    clearAllTimeouts,
+    createTimeout,
+    rivePosition,
+    setHideValue,
+  ]);
+
+  const handleRefreshFinishedState = useCallback(() => {
+    if (!riveRef.current) return;
+
+    // Clear any pending timeouts to prevent race conditions
+    clearAllTimeouts();
+
+    setHideValue(false);
+    setDisplayText(null);
+
+    // Always reposition fox on state transitions
+    rivePosition.value = withTiming(BASE_FOX_POSITION, {
+      duration: ANIMATION_DURATION.FAST,
+    });
+
+    triggerRiveAnimation(RewardsIconTriggers.RefreshLeft);
+  }, [triggerRiveAnimation, clearAllTimeouts, rivePosition]);
 
   // State machine effect - triggers appropriate animation based on state
   useEffect(() => {
@@ -212,6 +264,14 @@ export const useRewardsAnimation = ({
           handleErrorState();
           break;
         case RewardAnimationState.Idle:
+          handleIdleState();
+          break;
+        case RewardAnimationState.RefreshLoading:
+          handleRefreshLoadingState();
+          break;
+        case RewardAnimationState.RefreshFinished:
+          handleRefreshFinishedState();
+          break;
         default:
           handleIdleState();
           break;
@@ -228,15 +288,25 @@ export const useRewardsAnimation = ({
     handleLoadingState,
     handleErrorState,
     handleIdleState,
+    handleRefreshLoadingState,
+    handleRefreshFinishedState,
     createTimeout,
+    clearAllTimeouts,
   ]);
+
+  // Update display value when animated value changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentValue = Math.round(animatedValue.value);
+      setDisplayValue(currentValue);
+    }, 16); // ~60fps
+
+    return () => clearInterval(interval);
+  }, [animatedValue]);
 
   // Animated style for number text with bounce effect
   const animatedStyle = useAnimatedStyle(() => {
-    const currentValue = Math.round(animatedValue.value);
     const bounce = isAnimating.value ? 1.05 : 1;
-
-    runOnJS(setDisplayValue)(currentValue);
 
     return {
       opacity: 1,

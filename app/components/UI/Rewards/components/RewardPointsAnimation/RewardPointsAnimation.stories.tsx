@@ -2,7 +2,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-native/no-color-literals */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import RewardPointsAnimationComponent, { RewardAnimationState } from './index';
 
@@ -92,18 +92,20 @@ const InteractiveStory = (args: {
    * 2. On success: update value and set to idle
    * 3. On error: set error state
    */
-  const handleRefresh = useCallback(async () => {
-    setAnimationState(RewardAnimationState.Loading);
+  const simulateApiCall = useCallback(async () => {
+    setAnimationState(RewardAnimationState.RefreshLoading);
 
+    const randomPromiseMSLength = Math.floor(Math.random() * 1000) + 1000;
+    const randomPoints = Math.floor(Math.random() * 10000);
     try {
       const response = await new Promise<{ points: number }>((resolve) => {
         setTimeout(() => {
-          resolve({ points: Math.floor(Math.random() * 10000) });
-        }, 1000);
+          resolve({ points: Math.floor(Math.random() * randomPoints) });
+        }, randomPromiseMSLength);
       });
 
       setCurrentValue(response.points);
-      setAnimationState(RewardAnimationState.Idle);
+      setAnimationState(RewardAnimationState.RefreshFinished);
     } catch (error) {
       setAnimationState(RewardAnimationState.ErrorState);
     }
@@ -118,6 +120,10 @@ const InteractiveStory = (args: {
     const newValue = Math.floor(Math.random() * 10000);
     setCurrentValue(newValue);
   }, []);
+
+  useEffect(() => {
+    handleIdle();
+  }, [handleIdle]);
 
   return (
     <View style={styles.container}>
@@ -141,7 +147,7 @@ const InteractiveStory = (args: {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={handleRefresh}
+            onPress={simulateApiCall}
           >
             <Text style={styles.buttonText}>Simulate API call</Text>
           </TouchableOpacity>
