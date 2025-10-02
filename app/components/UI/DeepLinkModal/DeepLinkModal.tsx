@@ -1,4 +1,3 @@
-// Uses consolidated DEEP_LINK_USED event with interstitial state tracking
 import React, {
   useCallback,
   useRef,
@@ -36,7 +35,7 @@ import Checkbox from '../../../component-library/components/Checkbox';
 import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { createDeepLinkUsedEvent } from '../../../core/DeeplinkManager/utils/deepLinkAnalytics';
+import { createDeepLinkUsedEvent } from '../../../util/deeplinks/deepLinkAnalytics';
 import {
   InterstitialState,
   SignatureStatus,

@@ -12,13 +12,13 @@ import {
   mapSupportedActionToRoute,
   createDeepLinkUsedEvent,
 } from './deepLinkAnalytics';
-import { ACTIONS } from '../../../constants/deeplinks';
+import { ACTIONS } from '../../constants/deeplinks';
 import {
   DeepLinkRoute,
   InterstitialState,
   SignatureStatus,
   DeepLinkAnalyticsContext,
-} from '../types/deepLinkAnalytics';
+} from '../../core/DeeplinkManager/types/deepLinkAnalytics';
 
 // Mock Logger to avoid console output during tests
 jest.mock('../../../util/Logger', () => ({

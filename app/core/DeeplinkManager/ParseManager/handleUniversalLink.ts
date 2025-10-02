@@ -16,7 +16,7 @@ import { capitalize } from '../../../util/general';
 import {
   createDeepLinkUsedEvent,
   mapSupportedActionToRoute,
-} from '../utils/deepLinkAnalytics';
+} from '../../../util/deeplinks/deepLinkAnalytics';
 import {
   DeepLinkAnalyticsContext,
   SignatureStatus,

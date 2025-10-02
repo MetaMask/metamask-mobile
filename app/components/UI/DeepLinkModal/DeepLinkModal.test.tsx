@@ -10,7 +10,7 @@ import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useNavigation } from '@react-navigation/native';
 import { Linking, Platform } from 'react-native';
-import { createDeepLinkUsedEvent } from '../../../core/DeeplinkManager/utils/deepLinkAnalytics';
+import { createDeepLinkUsedEvent } from '../../../util/deeplinks/deepLinkAnalytics';
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),

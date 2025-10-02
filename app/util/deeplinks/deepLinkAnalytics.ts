@@ -4,7 +4,7 @@
  */
 
 import branch from 'react-native-branch';
-import Logger from '../../../util/Logger';
+import Logger from '../Logger';
 import {
   DeepLinkUsedEventProperties,
   InterstitialState,
@@ -12,8 +12,8 @@ import {
   DeepLinkRoute,
   SensitiveProperties,
   DeepLinkAnalyticsContext,
-} from '../types/deepLinkAnalytics';
-import { ACTIONS } from '../../../constants/deeplinks';
+} from '../../core/DeeplinkManager/types/deepLinkAnalytics';
+import { ACTIONS } from '../../constants/deeplinks';
 
 /**
  * Determine app installation status from Branch.io parameters

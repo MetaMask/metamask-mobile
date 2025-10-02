@@ -6,7 +6,7 @@ import {
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
-import { createDeepLinkUsedEvent } from '../utils/deepLinkAnalytics';
+import { createDeepLinkUsedEvent } from '../../../util/deeplinks/deepLinkAnalytics';
 import {
   InterstitialState,
   SignatureStatus,
