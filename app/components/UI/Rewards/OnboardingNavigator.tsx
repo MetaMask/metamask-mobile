@@ -63,24 +63,17 @@ const OnboardingNavigator: React.FC = () => {
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_1}
           component={OnboardingStep1}
-          options={{
-            headerShown: false,
-            //cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-          }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_2}
           component={OnboardingStep2}
-          options={{
-            headerShown: false,
-          }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_3}
           component={OnboardingStep3}
-          options={{
-            headerShown: false,
-          }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_4}
