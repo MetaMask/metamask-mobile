@@ -248,8 +248,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               />
             ) : (
               <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
+                <View>{renderPositionsSection()}</View>
+                <View>{renderOrdersSection()}</View>
               </View>
             )}
           </View>
