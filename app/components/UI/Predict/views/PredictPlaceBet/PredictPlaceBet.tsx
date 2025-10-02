@@ -17,7 +17,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -33,8 +33,8 @@ import { usePredictBetAmounts } from '../../hooks/usePredictBetAmounts';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatCents, formatPrice } from '../../utils/format';
-import Keypad from '../../../../Base/Keypad';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
+import PredictKeypad from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PredictPlaceBet = () => {
@@ -44,7 +44,7 @@ const PredictPlaceBet = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictPlaceBet'>>();
 
-  const { outcomeId, outcomeTokenId, market } = route.params;
+  const { outcomeId, outcomeToken, market } = route.params;
   const { placeOrder, isLoading } = usePredictPlaceOrder();
 
   const [currentValue, setCurrentValue] = useState(1);
@@ -54,7 +54,7 @@ const PredictPlaceBet = () => {
   const {
     betAmounts: { toWin },
   } = usePredictBetAmounts({
-    outcomeTokenId,
+    outcomeToken,
     providerId: market.providerId,
     userBetAmount: currentValue,
   });
@@ -72,9 +72,6 @@ const PredictPlaceBet = () => {
 
   const hasMultipleOutcomes = market.outcomes.length > 1;
   const outcome = market.outcomes.find((o) => o.id === outcomeId);
-  const outcomeToken = outcome?.tokens.find(
-    (token) => token.id === outcomeTokenId,
-  );
 
   const handleAmountPress = () => {
     setIsInputFocused(true);
@@ -94,7 +91,7 @@ const PredictPlaceBet = () => {
     // Implement cash out action here
     placeOrder({
       outcomeId,
-      outcomeTokenId,
+      outcomeTokenId: outcomeToken.id,
       side: Side.BUY,
       size: 1,
       providerId: market.providerId,
@@ -329,52 +326,6 @@ const PredictPlaceBet = () => {
     );
   };
 
-  const renderKeypad = () => {
-    if (!isInputFocused) return null;
-    return (
-      <View style={tw.style('pt-4 bg-background-section pb-8 rounded-t-3xl')}>
-        {/* Summary shown above keypad while editing */}
-        <View style={tw.style('flex-row space-between px-4 mb-3 gap-2')}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="$20"
-            onPress={() => handleKeypadAmountPress(20)}
-            style={tw.style('flex-1')}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="$50"
-            onPress={() => handleKeypadAmountPress(50)}
-            style={tw.style('flex-1')}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="$100"
-            onPress={() => handleKeypadAmountPress(100)}
-            style={tw.style('flex-1')}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="Done"
-            onPress={handleDonePress}
-            style={tw.style('flex-1')}
-          />
-        </View>
-        <Keypad
-          value={currentValueUSDString}
-          onChange={handleKeypadChange}
-          currency={'USD'}
-          decimals={2}
-          style={tw.style('px-4')}
-        />
-      </View>
-    );
-  };
-
   const renderBottomContent = () => {
     if (isInputFocused) {
       return null;
@@ -422,7 +373,13 @@ const PredictPlaceBet = () => {
       {renderHeader()}
       {renderAmount()}
       {renderSummary()}
-      {renderKeypad()}
+      <PredictKeypad
+        isInputFocused={isInputFocused}
+        currentValueUSDString={currentValueUSDString}
+        onKeypadChange={handleKeypadChange}
+        onKeypadAmountPress={handleKeypadAmountPress}
+        onDonePress={handleDonePress}
+      />
       {renderBottomContent()}
     </SafeAreaView>
   );

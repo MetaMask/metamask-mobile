@@ -112,7 +112,7 @@ describe('PredictMarketSingle', () => {
       params: {
         market: mockMarket,
         outcomeId: mockOutcome.id,
-        outcomeTokenId: mockOutcome.tokens[0].id,
+        outcomeToken: mockOutcome.tokens[0],
       },
     });
 
@@ -122,7 +122,7 @@ describe('PredictMarketSingle', () => {
       params: {
         market: mockMarket,
         outcomeId: mockOutcome.id,
-        outcomeTokenId: mockOutcome.tokens[1].id,
+        outcomeToken: mockOutcome.tokens[1],
       },
     });
   });

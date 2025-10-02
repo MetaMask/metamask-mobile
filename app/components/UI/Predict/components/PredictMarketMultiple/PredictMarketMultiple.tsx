@@ -83,7 +83,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       params: {
         market,
         outcomeId: outcome.id,
-        outcomeTokenId: outcome.tokens[0].id,
+        outcomeToken: outcome.tokens[0],
       },
     });
   };
@@ -94,7 +94,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       params: {
         market,
         outcomeId: outcome.id,
-        outcomeTokenId: outcome.tokens[1].id,
+        outcomeToken: outcome.tokens[1],
       },
     });
   };

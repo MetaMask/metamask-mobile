@@ -91,7 +91,7 @@ describe('PredictMarket', () => {
       params: {
         market: mockMarket,
         outcomeId: mockMarket.outcomes[0].id,
-        outcomeTokenId: mockMarket.outcomes[0].tokens[0].id,
+        outcomeToken: mockMarket.outcomes[0].tokens[0],
       },
     });
 
@@ -102,7 +102,7 @@ describe('PredictMarket', () => {
       params: {
         market: mockMarket,
         outcomeId: mockMarket.outcomes[0].id,
-        outcomeTokenId: mockMarket.outcomes[0].tokens[1].id,
+        outcomeToken: mockMarket.outcomes[0].tokens[1],
       },
     });
   });
