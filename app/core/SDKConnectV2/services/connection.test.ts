@@ -12,6 +12,7 @@ import {
 import { KVStore } from '../store/kv-store';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
+import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 
 jest.mock('@metamask/mobile-wallet-protocol-wallet-client');
 jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
@@ -53,6 +54,8 @@ const mockConnectionInfo: ConnectionInfo = {
   id: mockConnectionRequest.sessionRequest.id,
   metadata: mockConnectionRequest.metadata,
 };
+
+const mockHostApp = new HostApplicationAdapter();
 
 describe('Connection', () => {
   let mockKeyManager: KeyManager;
@@ -115,6 +118,7 @@ describe('Connection', () => {
         mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
+        mockHostApp,
       );
 
       expect(WebSocketTransport.create).toHaveBeenCalledWith({
@@ -155,6 +159,7 @@ describe('Connection', () => {
         mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
+        mockHostApp,
       );
       const sessionRequest: SessionRequest =
         mockConnectionRequest.sessionRequest;
@@ -170,7 +175,12 @@ describe('Connection', () => {
 
   describe('Message Forwarding', () => {
     it('should forward messages from the dApp (via client) to the bridge', async () => {
-      await Connection.create(mockConnectionInfo, mockKeyManager, RELAY_URL);
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
 
       const dAppPayload = { id: 1, method: 'eth_accounts', params: [] };
       // Simulate the WalletClient receiving a message
@@ -181,7 +191,12 @@ describe('Connection', () => {
     });
 
     it('should forward responses from the bridge to the dApp (via client)', async () => {
-      await Connection.create(mockConnectionInfo, mockKeyManager, RELAY_URL);
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
 
       const walletPayload = { id: 1, result: ['0x123'] };
       // Simulate the RPCBridgeAdapter emitting a response
@@ -200,6 +215,7 @@ describe('Connection', () => {
         mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
+        mockHostApp,
       );
 
       await connection.disconnect();
