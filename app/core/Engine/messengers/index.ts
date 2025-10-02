@@ -45,6 +45,11 @@ import { getMultichainAccountServiceMessenger } from './multichain-account-servi
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
+import {
+  getPermissionControllerInitMessenger,
+  getPermissionControllerMessenger,
+} from './permission-controller-messenger';
+
 /**
  * The messengers for the controllers that have been.
  */
@@ -141,6 +146,10 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
+  PermissionController: {
+    getMessenger: getPermissionControllerMessenger,
+    getInitMessenger: getPermissionControllerInitMessenger,
+  },
   SeedlessOnboardingController: {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,

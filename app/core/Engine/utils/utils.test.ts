@@ -72,6 +72,12 @@ import { PredictController } from '../../../components/UI/Predict/controllers/Pr
 import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { selectedNetworkControllerInit } from '../controllers/selected-network-controller-init';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import { permissionControllerInit } from '../controllers/permission-controller-init';
+import {
+  CaveatSpecificationConstraint,
+  PermissionController,
+  PermissionSpecificationConstraint,
+} from '@metamask/permission-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -116,10 +122,12 @@ jest.mock(
   '../controllers/gator-permissions-controller/gator-permissions-controller-init',
 );
 jest.mock('../controllers/selected-network-controller-init');
+jest.mock('../controllers/permission-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
   const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
+  const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
   const mockSelectedNetworkControllerInit = jest.mocked(
     selectedNetworkControllerInit,
   );
@@ -192,6 +200,7 @@ describe('initModularizedControllers', () => {
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
           AccountTreeController: mockAccountTreeControllerInit,
+          PermissionController: mockPermissionControllerInit,
           SelectedNetworkController: mockSelectedNetworkControllerInit,
           ApprovalController: mockApprovalControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
@@ -244,6 +253,12 @@ describe('initModularizedControllers', () => {
     });
     mockApprovalControllerInit.mockReturnValue({
       controller: {} as unknown as ApprovalController,
+    });
+    mockPermissionControllerInit.mockReturnValue({
+      controller: {} as unknown as PermissionController<
+        PermissionSpecificationConstraint,
+        CaveatSpecificationConstraint
+      >,
     });
     mockSelectedNetworkControllerInit.mockReturnValue({
       controller: {} as unknown as SelectedNetworkController,

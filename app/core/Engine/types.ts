@@ -698,6 +698,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
+  | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
   | 'BridgeController'
