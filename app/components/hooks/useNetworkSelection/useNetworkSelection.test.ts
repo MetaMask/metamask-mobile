@@ -142,7 +142,6 @@ jest.mock('../../../selectors/smartTransactionsController', () => ({
   selectSortedTransactions: jest.fn(),
   selectNonReplacedTransactions: jest.fn(),
   selectPendingSmartTransactionsBySender: jest.fn(),
-  selectPendingSmartTransactionsForSelectedAccountGroup: jest.fn(),
 }));
 
 jest.mock('../../../selectors/accountsController', () => ({
@@ -575,8 +574,7 @@ describe('useNetworkSelection', () => {
       // Mock multichain enabled
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
+        .mockReturnValueOnce(true); // isMultichainAccountsState2Enabled = true
 
       const customChainId = 'eip155:999' as CaipChainId;
       const mockCallback = jest.fn();
@@ -595,8 +593,7 @@ describe('useNetworkSelection', () => {
       // Mock multichain enabled
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
+        .mockReturnValueOnce(true); // isMultichainAccountsState2Enabled = true
 
       const solanaMainnet =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
@@ -614,8 +611,7 @@ describe('useNetworkSelection', () => {
       // Mock multichain enabled
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
+        .mockReturnValueOnce(true); // isMultichainAccountsState2Enabled = true
 
       // Mock setActiveNetwork to throw an error
       const mockSetActiveNetwork = jest
@@ -647,12 +643,58 @@ describe('useNetworkSelection', () => {
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
     });
 
+    it('selectPopularNetwork with Solana mainnet logs console.warn when setActiveNetwork fails', async () => {
+      // Arrange
+      jest.clearAllMocks();
+
+      // Mock multichain enabled
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return mockPopularNetworkConfigurations;
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true; // isMultichainAccountsState2Enabled = true
+        }
+        if (selector === selectInternalAccounts) {
+          return [];
+        }
+        return undefined;
+      });
+
+      // Mock setActiveNetwork to throw an error
+      const testError = new Error('Solana network connection failed');
+      mockSetActiveNetwork.mockRejectedValue(testError);
+
+      // Setup engine context mocks
+      Engine.context.MultichainNetworkController.setActiveNetwork =
+        mockSetActiveNetwork;
+
+      const solanaMainnet =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      // Act
+      await result.current.selectPopularNetwork(solanaMainnet);
+
+      // Assert
+      expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
+      expect(mockSetActiveNetwork).toHaveBeenCalledWith(solanaMainnet);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        `Error setting active network: ${testError}`,
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
     it('selectPopularNetwork with EVM network and multichain enabled calls NetworkController', async () => {
       // Mock multichain enabled
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
+        .mockReturnValueOnce(true); // isMultichainAccountsState2Enabled = true
 
       const evmChainId = 'eip155:1' as CaipChainId;
 
@@ -754,8 +796,7 @@ describe('useNetworkSelection', () => {
 
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
-        .mockReturnValueOnce([]); // selectInternalAccounts
+        .mockReturnValueOnce(true); // isMultichainAccountsState2Enabled = true
 
       const { result } = renderHook(() =>
         useNetworkSelection({ networks: networksWithSolana }),
@@ -884,18 +925,9 @@ describe('useNetworkSelection', () => {
         },
       ];
 
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
-          return initialPopularNetworks;
-        }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
-        if (selector === selectInternalAccounts) {
-          return [];
-        }
-        return undefined;
-      });
+      mockUseSelector
+        .mockReturnValueOnce(initialPopularNetworks)
+        .mockReturnValueOnce(false); // isMultichainAccountsState2Enabled
 
       const { result } = renderHook(() =>
         useNetworkSelection({ networks: mockNetworks }),
@@ -1369,6 +1401,87 @@ describe('useNetworkSelection', () => {
         );
 
         expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+      });
+    });
+
+    describe('MultichainNetworkController error scenarios', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        // Enable multichain for these tests
+        mockUseSelector.mockImplementation((selector) => {
+          if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+            return mockPopularNetworkConfigurations;
+          }
+          if (selector === selectMultichainAccountsState2Enabled) {
+            return true; // isMultichainAccountsState2Enabled = true
+          }
+          if (selector === selectInternalAccounts) {
+            return [];
+          }
+          return undefined;
+        });
+
+        // Setup engine context mocks
+        Engine.context.MultichainNetworkController.setActiveNetwork =
+          mockSetActiveNetwork;
+        Engine.context.NetworkController.findNetworkClientIdByChainId =
+          mockFindNetworkClientIdByChainId;
+      });
+
+      it('handles MultichainNetworkController.setActiveNetwork failures for custom networks', async () => {
+        const customChainId = 'eip155:999' as CaipChainId;
+        mockSetActiveNetwork.mockRejectedValue(
+          new Error('SetActiveNetwork failed'),
+        );
+        mockFindNetworkClientIdByChainId.mockReturnValue('client-id-999');
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectCustomNetwork(customChainId),
+        ).rejects.toThrow('SetActiveNetwork failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+        expect(mockSetActiveNetwork).toHaveBeenCalledWith('client-id-999');
+      });
+
+      it('handles NetworkController.findNetworkClientIdByChainId failures', async () => {
+        const customChainId = 'eip155:999' as CaipChainId;
+        mockFindNetworkClientIdByChainId.mockImplementation(() => {
+          throw new Error('Find client ID failed');
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectCustomNetwork(customChainId),
+        ).rejects.toThrow('Find client ID failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+        expect(mockFindNetworkClientIdByChainId).toHaveBeenCalled();
+      });
+
+      it('handles non-EVM network setActiveNetwork failures for popular networks', async () => {
+        const evmChainId = 'eip155:1' as CaipChainId;
+        mockSetActiveNetwork.mockRejectedValue(
+          new Error('SetActiveNetwork failed'),
+        );
+        mockFindNetworkClientIdByChainId.mockReturnValue('client-id-1');
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectPopularNetwork(evmChainId),
+        ).rejects.toThrow('SetActiveNetwork failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(evmChainId);
+        expect(mockSetActiveNetwork).toHaveBeenCalledWith('client-id-1');
       });
     });
   });

@@ -1,8 +1,7 @@
-import React, { useCallback, ReactNode, useMemo, useEffect } from 'react';
+import React, { useCallback, ReactNode } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { SolScope } from '@metamask/keyring-api';
 import { strings } from '../../../../../locales/i18n';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import ButtonIcon, {
@@ -41,8 +40,6 @@ import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 export interface BaseControlBarProps {
   /**
@@ -96,17 +93,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     selectMultichainAccountsState2Enabled,
   );
 
-  const selectedSolanaAccount =
-    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
-
   // Shared hooks
   const {
     enabledNetworks,
     getNetworkInfo,
     isDisabled: hookIsDisabled,
   } = useCurrentNetworkInfo();
-
-  const { enableAllPopularNetworks } = useNetworkEnablement();
   const { areAllNetworksSelected, totalEnabledNetworksCount } =
     useNetworksByCustomNamespace({
       networkType: NetworkType.Popular,
@@ -114,38 +106,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
-  const currentNetworkCaipChainId = getNetworkInfo(0)?.caipChainId;
 
-  useEffect(() => {
-    if (
-      !selectedSolanaAccount &&
-      enabledNetworks.length === 1 &&
-      enabledNetworks[0].chainId === SolScope.Mainnet
-    ) {
-      enableAllPopularNetworks();
-    }
-  }, [
-    currentNetworkName,
-    enabledNetworks,
-    selectedSolanaAccount,
-    enableAllPopularNetworks,
-  ]);
-
-  // Determine if disabled based on context
-  const isDisabled = useMemo(() => {
-    // If custom disabled logic is provided, respect it
-    if (customIsDisabled !== undefined) {
-      return customIsDisabled;
-    }
-
-    // If multichain accounts state 2 is enabled, enable the button
-    if (isMultichainAccountsState2Enabled) {
-      return false;
-    }
-
-    // Otherwise, use the hook's logic
-    return hookIsDisabled;
-  }, [customIsDisabled, isMultichainAccountsState2Enabled, hookIsDisabled]);
+  // Determine if disabled (use custom logic if provided, otherwise use hook logic)
+  const isDisabled = customIsDisabled ?? hookIsDisabled;
 
   const displayAllNetworks = isMultichainAccountsState2Enabled
     ? totalEnabledNetworksCount > 1
@@ -193,10 +156,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             variant={TextVariant.BodyMDMedium}
             style={styles.controlButtonText}
             numberOfLines={1}
-            testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
           >
             {displayAllNetworks
-              ? strings('wallet.popular_networks')
+              ? strings('wallet.all_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
         </View>

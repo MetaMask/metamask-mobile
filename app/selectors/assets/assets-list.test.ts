@@ -507,38 +507,31 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
-        isStaked: false,
       },
       {
         address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
         chainId: '0xa',
-        isStaked: false,
       },
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0xa',
-        isStaked: false,
       },
       {
         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        isStaked: false,
       },
       {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         chainId: '0x1',
-        isStaked: false,
       },
       {
         address:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        isStaked: false,
       },
       {
         address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
         chainId: '0x1',
-        isStaked: false,
       },
     ]);
   });
@@ -556,17 +549,14 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
-        isStaked: false,
       },
       {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         chainId: '0x1',
-        isStaked: false,
       },
       {
         address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
         chainId: '0x1',
-        isStaked: false,
       },
     ]);
   });
@@ -578,7 +568,6 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
-      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -630,7 +619,6 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       chainId: '0x1',
-      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -657,7 +645,6 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -684,7 +671,6 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
       chainId: '0x1',
-      isStaked: false,
     });
 
     expect(result).toEqual({
@@ -714,7 +700,6 @@ describe('selectAsset', () => {
     const result = selectAsset(state, {
       address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       chainId: '0x1',
-      isStaked: false,
     });
 
     // Assert - isStaked should be false instead of undefined

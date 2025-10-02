@@ -9,8 +9,12 @@ const flexRow: ViewStyle = {
 const pill: ViewStyle = {
   ...flexRow,
   borderRadius: 99,
+
   // Padding
   paddingVertical: 4,
+  paddingLeft: 8,
+  paddingRight: 8,
+
   gap: 5,
 };
 

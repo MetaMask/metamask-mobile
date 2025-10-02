@@ -2,29 +2,56 @@ import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { DepositOrderType } from '@consensys/native-ramps-sdk';
 import getDepositAnalyticsPayload from './getDepositAnalyticsPayload';
-import {
-  MOCK_ANALYTICS_DEPOSIT_ORDER,
-  MOCK_USDC_TOKEN,
-  MOCK_US_REGION,
-} from '../testUtils/constants';
 
-export const MOCK_ROOT_STATE = {
+const mockState = {
   engine: {
     backgroundState,
   },
   fiatOrders: {
-    selectedRegionDeposit: MOCK_US_REGION,
+    selectedRegionDeposit: {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      currency: 'USD',
+      supported: true,
+    },
   },
 } as RootState;
 
 describe('getDepositAnalyticsPayload', () => {
-  const mockDepositOrder = MOCK_ANALYTICS_DEPOSIT_ORDER;
+  const mockDepositOrder = {
+    id: '123',
+    provider: 'DEPOSIT',
+    createdAt: Date.now(),
+    account: '0x1234567890123456789012345678901234567890',
+    excludeFromPurchases: false,
+    orderType: DepositOrderType.Deposit,
+    amount: '100',
+    currency: 'USD',
+    cryptoAmount: '0.05',
+    cryptocurrency: 'USDC',
+    fee: '2.50',
+    state: FIAT_ORDER_STATES.COMPLETED,
+    network: 'eip155:1',
+    data: {
+      cryptoCurrency: 'USDC',
+      network: 'ethereum',
+      fiatAmount: '100',
+      exchangeRate: '2000',
+      totalFeesFiat: '2.50',
+      networkFees: '1.25',
+      partnerFees: '1.25',
+      paymentMethod: 'credit_debit_card',
+      fiatCurrency: 'USD',
+    },
+  };
 
   it('returns correct parameters for completed deposit order', () => {
     const [eventName, params] = getDepositAnalyticsPayload(
-      mockDepositOrder as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockDepositOrder as unknown as unknown as FiatOrder,
+      mockState,
     );
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
@@ -39,7 +66,8 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: 'US',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
     });
   });
@@ -56,7 +84,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       failedOrder as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
@@ -71,7 +99,8 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: 'US',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
       error_message: 'Payment failed',
     });
@@ -85,7 +114,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       failedOrder as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
@@ -100,7 +129,8 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: 'US',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
       error_message: 'transaction_failed',
     });
@@ -122,7 +152,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       orderWithStringNumbers as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
@@ -137,7 +167,8 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: 'US',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
     });
   });
@@ -150,7 +181,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       pendingOrder as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBeNull();
@@ -165,7 +196,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       createdOrder as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBeNull();
@@ -180,7 +211,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       cancelledOrder as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBeNull();
@@ -198,7 +229,26 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       orderWithoutCryptoCurrency as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
+    );
+
+    expect(eventName).toBeNull();
+    expect(params).toBeNull();
+  });
+
+  it('returns null when cryptoCurrency mapping is not found', () => {
+    const orderWithUnknownCrypto = {
+      ...mockDepositOrder,
+      data: {
+        ...mockDepositOrder.data,
+        cryptoCurrency: 'UNKNOWN_CRYPTO',
+        network: 'unknown_network',
+      },
+    };
+
+    const [eventName, params] = getDepositAnalyticsPayload(
+      orderWithUnknownCrypto as unknown as FiatOrder,
+      mockState,
     );
 
     expect(eventName).toBeNull();
@@ -216,7 +266,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       orderWithoutNetworkFees as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
@@ -231,7 +281,8 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: 'US',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
     });
   });
@@ -247,7 +298,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     const [eventName, params] = getDepositAnalyticsPayload(
       orderWithoutPartnerFees as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
+      mockState,
     );
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
@@ -262,16 +313,17 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: 'US',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
     });
   });
 
   it('handles missing selectedRegion with empty country string', () => {
     const stateWithoutRegion = {
-      ...MOCK_ROOT_STATE,
+      ...mockState,
       fiatOrders: {
-        ...MOCK_ROOT_STATE.fiatOrders,
+        ...mockState.fiatOrders,
         selectedRegionDeposit: null,
       },
     } as RootState;
@@ -293,7 +345,8 @@ describe('getDepositAnalyticsPayload', () => {
       payment_method_id: 'credit_debit_card',
       country: '',
       chain_id: 'eip155:1',
-      currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       currency_source: 'USD',
     });
   });

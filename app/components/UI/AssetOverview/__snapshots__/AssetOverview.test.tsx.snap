@@ -2175,8 +2175,10 @@ exports[`AssetOverview should render native balances even if there are no accoun
             <View
               useNativeDriver={true}
             >
-              <View
+              <Image
                 fadeIn={true}
+                onError={[Function]}
+                onLoadEnd={[Function]}
                 source={
                   {
                     "uri": "",
@@ -3394,8 +3396,10 @@ exports[`AssetOverview should render native balances when non evm network is sel
             <View
               useNativeDriver={true}
             >
-              <View
+              <Image
                 fadeIn={true}
+                onError={[Function]}
+                onLoadEnd={[Function]}
                 source={
                   {
                     "uri": "",

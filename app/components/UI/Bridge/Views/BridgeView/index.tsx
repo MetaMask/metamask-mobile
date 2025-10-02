@@ -8,7 +8,6 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import Button, {
-  ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -38,7 +37,6 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
-  selectNoFeeAssets,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -51,9 +49,7 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -76,9 +72,7 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
-import { RootState } from '../../../../../reducers/index.ts';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { isNullOrUndefined } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -119,9 +113,6 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
-  const noFeeDestAssets = useSelector((state: RootState) =>
-    selectNoFeeAssets(state, destToken?.chainId),
-  );
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -157,6 +148,7 @@ const BridgeView = () => {
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
   });
 
   const {
@@ -369,17 +361,9 @@ const BridgeView = () => {
       );
     }
 
-    // TODO: remove this once controller types are updated
-    // @ts-expect-error: controller types are not up to date yet
-    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
-    const feePercentage = !isNullOrUndefined(quoteBpsFee)
-      ? quoteBpsFee / 100
-      : BRIDGE_MM_FEE_RATE;
-
-    const hasFee = activeQuote && feePercentage > 0;
-
-    const isNoFeeDestinationAsset =
-      destToken?.address && noFeeDestAssets?.includes(destToken.address);
+    const hasFee =
+      activeQuote &&
+      new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
 
     return (
       activeQuote &&
@@ -400,9 +384,17 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer')}
+            </Text>
+          ) : null}
           <Button
             variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
@@ -415,28 +407,6 @@ const BridgeView = () => {
               !hasSufficientGas
             }
           />
-          {hasFee ? (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.disclaimerText}
-            >
-              {strings('bridge.fee_disclaimer', {
-                feePercentage,
-              })}
-            </Text>
-          ) : null}
-          {!hasFee && isNoFeeDestinationAsset ? (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.disclaimerText}
-            >
-              {strings('bridge.no_mm_fee_disclaimer', {
-                destTokenSymbol: destToken?.symbol,
-              })}
-            </Text>
-          ) : null}
           {activeQuote?.approval && sourceAmount && sourceToken && (
             <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
           )}
@@ -475,16 +445,14 @@ const BridgeView = () => {
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
-            isSourceToken
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
               <ButtonIcon
-                iconName={IconName.SwapVertical}
+                iconName={IconName.Arrow2Down}
                 onPress={handleSwitchTokens}
                 disabled={!destChainId || !destToken}
                 testID="arrow-button"
-                size={ButtonIconSizes.Lg}
               />
             </Box>
           </Box>
@@ -500,7 +468,6 @@ const BridgeView = () => {
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
             isLoading={isLoading}
-            style={styles.destTokenArea}
           />
         </Box>
 

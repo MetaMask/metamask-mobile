@@ -54,10 +54,6 @@ jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
-  useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
-}));
-
 describe('Approve', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);

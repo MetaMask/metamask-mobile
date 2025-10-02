@@ -164,7 +164,7 @@ class SignatureRequest extends PureComponent {
      */
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
-    pendingScanRequest: PropTypes.object,
+    QRState: PropTypes.object,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
     /**
@@ -371,13 +371,13 @@ class SignatureRequest extends PureComponent {
   }
 
   renderQRDetails() {
-    const { pendingScanRequest, fromAddress } = this.props;
+    const { QRState, fromAddress } = this.props;
     const styles = this.getStyles();
 
     return (
       <View style={[styles.root]}>
         <QRSigningDetails
-          pendingScanRequest={pendingScanRequest}
+          QRState={QRState}
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}

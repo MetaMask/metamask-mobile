@@ -40,11 +40,6 @@ const ApplePayButton = ({
   const lockTime = useSelector((state: any) => state.settings.lockTime);
 
   const handlePress = useCallback(async () => {
-    if (!selectedAddress) {
-      Logger.error(new Error('No address available for selected asset'));
-      return;
-    }
-
     const prevLockTime = lockTime;
     dispatch(setLockTime(-1));
     try {

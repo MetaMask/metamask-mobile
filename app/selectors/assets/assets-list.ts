@@ -6,7 +6,6 @@ import {
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
-import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
@@ -219,28 +218,17 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       tokenSortConfig,
     );
 
-    // Remove duplicates by creating a unique key for deduplication
-    const uniqueTokensMap = new Map();
-
-    tokensSorted.forEach(
-      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-        const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-        if (!uniqueTokensMap.has(uniqueKey)) {
-          uniqueTokensMap.set(uniqueKey, {
-            address: assetId || '',
-            chainId: chainId?.toString() || '',
-            isStaked: Boolean(isStaked),
-          });
-        }
-      },
+    return tokensSorted.map(
+      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => ({
+        address: assetId,
+        chainId,
+        isStaked,
+      }),
     );
-
-    return Array.from(uniqueTokensMap.values());
   },
 );
 
-// TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
-export const selectAsset = createSelector(
+export const selectAsset = createDeepEqualSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
@@ -249,28 +237,18 @@ export const selectAsset = createSelector(
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params.address,
-    (
-      _state: RootState,
-      params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params.chainId,
-    (
-      _state: RootState,
-      params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params.isStaked,
+    ) => params,
   ],
-  (assets, stakedAssets, tokensChainsCache, address, chainId, isStaked) => {
+  (assets, stakedAssets, tokensChainsCache, { address, chainId, isStaked }) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
             item.chainId === chainId && item.stakedAsset.assetId === address,
         )?.stakedAsset
-      : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
-          // Normalize isStaked values: treat undefined as false
-          const itemIsStaked = Boolean(item.isStaked);
-          const targetIsStaked = Boolean(isStaked);
-          return item.assetId === address && itemIsStaked === targetIsStaked;
-        });
+      : assets[chainId]?.find(
+          (item: Asset & { isStaked?: boolean }) =>
+            item.assetId === address && item.isStaked === isStaked,
+        );
 
     return asset ? assetToToken(asset, tokensChainsCache) : undefined;
   },

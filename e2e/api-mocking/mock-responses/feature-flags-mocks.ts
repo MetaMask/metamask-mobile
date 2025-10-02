@@ -123,7 +123,7 @@ export const remoteFeatureMultichainAccountsAccountDetails = (
 export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   enabled = true,
 ) => ({
-  enableMultichainAccountsState2: {
+  enableMultichainAccounts: {
     enabled,
     featureVersion: '2',
     minimumVersion: '7.46.0',

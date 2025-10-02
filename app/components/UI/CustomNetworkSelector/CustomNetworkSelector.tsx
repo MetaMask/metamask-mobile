@@ -35,7 +35,6 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -43,8 +42,8 @@ import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
-import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -99,7 +98,7 @@ const CustomNetworkSelector = ({
       };
 
       return (
-        <View>
+        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
@@ -115,10 +114,6 @@ const CustomNetworkSelector = ({
             buttonProps={{
               onButtonClick: handleMenuPress,
             }}
-            testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
-              caipChainId,
-              isSelected,
-            )}
           />
         </View>
       );
@@ -148,10 +143,7 @@ const CustomNetworkSelector = ({
   );
 
   return (
-    <ScrollView
-      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER}
-      style={styles.container}
-    >
+    <ScrollView style={styles.container}>
       <FlashList
         data={networksToUse}
         renderItem={renderNetworkItem}

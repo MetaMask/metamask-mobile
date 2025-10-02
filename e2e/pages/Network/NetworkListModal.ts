@@ -50,10 +50,8 @@ class NetworkListModal {
     return Matchers.getElementByID('delete-network-button');
   }
 
-  get popularNetworksContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
-    );
+  get networkMultiSelectorContainer(): DetoxElement {
+    return Matchers.getElementByID(NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER);
   }
 
   async getCustomNetwork(
@@ -128,16 +126,14 @@ class NetworkListModal {
   }
 
   async scrollToBottomOfNetworkMultiSelector(): Promise<void> {
-    await Gestures.swipe(this.popularNetworksContainer, 'up', {
+    await Gestures.swipe(this.networkMultiSelectorContainer, 'up', {
       speed: 'fast',
     });
   }
 
   async tapNetworkMenuButton(networkName: string): Promise<void> {
     const networkCell = Matchers.getElementByText(networkName);
-    await Gestures.waitAndTap(networkCell, {
-      elemDescription: `Network ${networkName}`,
-    });
+    await Gestures.waitAndTap(networkCell);
   }
 
   async tapOnCustomTab(): Promise<void> {

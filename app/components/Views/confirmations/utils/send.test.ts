@@ -5,6 +5,8 @@ import {
 } from '@metamask/transaction-controller';
 
 // eslint-disable-next-line import/no-namespace
+import * as ConfusablesUtils from '../../../../util/confusables';
+// eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
 import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtils';
@@ -17,10 +19,10 @@ import {
   fromBNWithDecimals,
   fromHexWithDecimals,
   fromTokenMinUnits,
+  getConfusableCharacterInfo,
   getFractionLength,
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
-  isValidPositiveNumericString,
   prepareEVMTransaction,
   submitEvmTransaction,
   toBNWithDecimals,
@@ -134,7 +136,7 @@ describe('prepareEVMTransaction', () => {
         { from: '0x123', to: '0x456', value: '100' },
       ),
     ).toStrictEqual({
-      data: '0xf242432a000000000000000000000000000000000000000000000000000000000000012300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000',
+      data: '0xf242432a0000000000000000000000000000000000000000000000000000000000000123000000000000000000000000000000000000000000000000000000000000045600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064',
       from: '0x123',
       to: '0x123',
       value: '0x0',
@@ -328,23 +330,36 @@ describe('convertCurrency', () => {
   });
 });
 
-describe('isValidPositiveNumericString', () => {
-  it('return true for decimal values and false otherwise', () => {
-    expect(isValidPositiveNumericString('10')).toBe(true);
-    expect(isValidPositiveNumericString('10.01')).toBe(true);
-    expect(isValidPositiveNumericString('.01')).toBe(true);
-    expect(isValidPositiveNumericString('-0.01')).toBe(false);
-    expect(isValidPositiveNumericString('abc')).toBe(false);
-    expect(isValidPositiveNumericString(' ')).toBe(false);
+describe('getConfusableCharacterInfo', () => {
+  it('returns empty object if there is no error', async () => {
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual(
+      {},
+    );
   });
-});
 
-describe('addLeadingZeroIfNeeded', () => {
-  it('add zero to decimal value if needed', () => {
-    expect(addLeadingZeroIfNeeded(undefined)).toEqual(undefined);
-    expect(addLeadingZeroIfNeeded('')).toEqual('');
-    expect(addLeadingZeroIfNeeded('.001')).toEqual('0.001');
-    expect(addLeadingZeroIfNeeded('0.001')).toEqual('0.001');
-    expect(addLeadingZeroIfNeeded('100')).toEqual('100');
+  it('returns warning for confusables', async () => {
+    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
+      warning: "transaction.confusable_msg - 'ⅼ' is similar to 'l'",
+    });
+  });
+
+  it('returns error and warning for confusables if it has hasZeroWidthPoints', async () => {
+    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
+    jest.spyOn(ConfusablesUtils, 'hasZeroWidthPoints').mockReturnValue(true);
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
+      error: 'transaction.invalid_address',
+      warning: 'send.invisible_character_error',
+    });
+  });
+
+  describe('addLeadingZeroIfNeeded', () => {
+    it('add zero to decimal value if needed', () => {
+      expect(addLeadingZeroIfNeeded(undefined)).toEqual(undefined);
+      expect(addLeadingZeroIfNeeded('')).toEqual('');
+      expect(addLeadingZeroIfNeeded('.001')).toEqual('0.001');
+      expect(addLeadingZeroIfNeeded('0.001')).toEqual('0.001');
+      expect(addLeadingZeroIfNeeded('100')).toEqual('100');
+    });
   });
 });

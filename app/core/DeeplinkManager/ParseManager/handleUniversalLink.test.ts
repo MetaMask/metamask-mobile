@@ -46,7 +46,6 @@ describe('handleUniversalLinks', () => {
   const mockHandleSwap = jest.fn();
   const mockHandleCreateAccount = jest.fn();
   const mockHandlePerps = jest.fn();
-  const mockHandleRewards = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -68,7 +67,6 @@ describe('handleUniversalLinks', () => {
     _handleSwap: mockHandleSwap,
     _handleCreateAccount: mockHandleCreateAccount,
     _handlePerps: mockHandlePerps,
-    _handleRewards: mockHandleRewards,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -482,53 +480,6 @@ describe('handleUniversalLinks', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockHandlePerps).toHaveBeenCalledWith('');
-    });
-  });
-
-  describe('ACTIONS.REWARDS', () => {
-    it('calls _handleRewards when action is REWARDS without referral', async () => {
-      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}`;
-      const rewardsUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: rewardsUrl,
-        pathname: `/${ACTIONS.REWARDS}`,
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: rewardsUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: rewardsUrl,
-        source: 'test-source',
-      });
-
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandleRewards).toHaveBeenCalledWith('');
-    });
-
-    it('calls _handleRewards when action is REWARDS with referral code', async () => {
-      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?referral=code123`;
-      const rewardsUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: rewardsUrl,
-        pathname: `/${ACTIONS.REWARDS}`,
-        search: '?referral=code123',
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: rewardsUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: rewardsUrl,
-        source: 'test-source',
-      });
-
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandleRewards).toHaveBeenCalledWith('?referral=code123');
     });
   });
 

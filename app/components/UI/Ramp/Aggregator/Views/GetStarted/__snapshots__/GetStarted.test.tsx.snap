@@ -129,7 +129,7 @@ exports[`GetStarted renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -153,6 +153,30 @@ exports[`GetStarted renders correctly 1`] = `
                 >
                   What to Expect
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -379,15 +403,7 @@ exports[`GetStarted renders correctly 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -624,7 +640,7 @@ exports[`GetStarted renders correctly 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -766,7 +782,7 @@ exports[`GetStarted renders correctly 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -790,6 +806,30 @@ exports[`GetStarted renders correctly 2`] = `
                 >
                   What to Expect
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1016,15 +1056,7 @@ exports[`GetStarted renders correctly 2`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -1261,7 +1293,7 @@ exports[`GetStarted renders correctly 2`] = `
                           </View>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1403,7 +1435,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -1427,6 +1459,30 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 >
                   What to Expect
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1653,15 +1709,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -1679,7 +1727,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                           ]
                         }
                       />
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1821,7 +1869,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -1845,6 +1893,30 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 >
                   What to Expect
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2071,15 +2143,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -2301,7 +2365,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

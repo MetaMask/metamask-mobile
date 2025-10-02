@@ -27,8 +27,10 @@ exports[`TokenValueStack render matches snapshot 1`] = `
       <View
         useNativeDriver={true}
       >
-        <View
+        <Image
           fadeIn={true}
+          onError={[Function]}
+          onLoadEnd={[Function]}
           source={
             {
               "uri": "",

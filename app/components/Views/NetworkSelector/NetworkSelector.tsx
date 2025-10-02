@@ -40,6 +40,7 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
   isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -96,7 +97,6 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
   ///: END:ONLY_INCLUDE_IF
-  selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
@@ -161,7 +161,6 @@ const NetworkSelector = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -361,11 +360,7 @@ const NetworkSelector = () => {
       return chainId === browserChainId;
     }
 
-    if (!isEvmSelected) {
-      return chainId === selectedNonEvmChainId;
-    }
-
-    return chainId === selectedChainId;
+    return !isEvmSelected ? false : chainId === selectedChainId;
   };
 
   const {
@@ -379,7 +374,10 @@ const NetworkSelector = () => {
     origin,
     selectedChainId,
     selectedNetworkName,
-    dismissModal: () => sheetRef.current?.dismissModal(),
+    dismissModal: () =>
+      isRemoveGlobalNetworkSelectorEnabled()
+        ? undefined
+        : sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
   });
@@ -619,7 +617,7 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getAllNetworksTyped =
       getAllNetworks() as unknown as InfuraNetworkType[];
-    const getOtherNetworks = () => getAllNetworksTyped.slice(3);
+    const getOtherNetworks = () => getAllNetworksTyped.slice(2);
     return getOtherNetworks().map((networkType: InfuraNetworkType) => {
       const TypedNetworks = Networks as unknown as Record<
         string,
@@ -713,7 +711,9 @@ const NetworkSelector = () => {
     }
 
     return networks.map((network) => {
-      const isSelected = isNetworkSelected(network.chainId);
+      const isSelected =
+        network.chainId === browserChainId ||
+        (!isEvmSelected && !browserChainId);
       return (
         <Cell
           key={network.chainId}

@@ -34,9 +34,6 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
-  EXPLORE_TOKENS: {
-    URL: `${PORTFOLIO_URL}/explore/tokens?MetaMaskEntry=mobile`,
-  },
   CARD: {
     URL: 'https://card.metamask.io',
   },
@@ -134,6 +131,7 @@ export default {
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
       'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
+    NFT: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
     SECURITY:
       'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
     TOKEN_BALANCE:
@@ -157,17 +155,12 @@ export default {
       'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
     TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
-    MULTICHAIN_ACCOUNTS:
-      'https://support.metamask.io/configure/accounts/multichain-accounts/',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
-  REWARDS_API_URL: {
-    DEV: 'https://rewards.dev-api.cx.metamask.io',
-    UAT: 'https://rewards.uat-api.cx.metamask.io',
-    PRD: 'https://rewards.api.cx.metamask.io',
-  },
+  REWARDS_API_URL:
+    process.env.REWARDS_API_URL || 'https://rewards.dev-api.cx.metamask.io',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
@@ -219,7 +212,6 @@ export default {
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
-    SDK_CONNECT_V2_ORIGIN: 'MMSDKCONNECTV2::',
     UNKNOWN_PARAM: 'UNKNOWN',
   },
   CANCEL_RATE: 'Transactions (Cancel)',

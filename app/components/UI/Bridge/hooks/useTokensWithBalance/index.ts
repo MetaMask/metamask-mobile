@@ -3,6 +3,12 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
+import {
+  selectLastSelectedEvmAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectLastSelectedSolanaAccount,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -25,8 +31,6 @@ import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { toChecksumAddress } from '../../../../../util/address';
-import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { EthScope, SolScope } from '@metamask/keyring-api';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -149,15 +153,12 @@ export const useTokensWithBalance: ({
     selectNetworkConfigurations,
   );
 
-  const selectedAccountGroupInternalAccounts = useSelector(
-    selectSelectedAccountGroupInternalAccounts,
+  const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const lastSelectedSolanaAccount = useSelector(
+    selectLastSelectedSolanaAccount,
   );
-  const evmAddress = selectedAccountGroupInternalAccounts.find((account) =>
-    account.scopes.includes(EthScope.Eoa),
-  )?.address;
-  const solanaInternalAccountId = selectedAccountGroupInternalAccounts.find(
-    (account) => account.scopes.includes(SolScope.Mainnet),
-  )?.id;
+  ///: END:ONLY_INCLUDE_IF
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -166,7 +167,10 @@ export const useTokensWithBalance: ({
   // All EVM tokens across chains and their balances
   // Includes native and non-native ERC20 tokens in TokenI format, i.e. balance is possibly to be "< 0.00001"
   const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChainsForAddress(state, evmAddress),
+    selectAccountTokensAcrossChainsForAddress(
+      state,
+      lastSelectedEvmAccount?.address,
+    ),
   );
   // EVM native token balances in atomic hex amount
   const evmAccountsByChainId = useSelector(selectAccountsByChainId);
@@ -177,7 +181,7 @@ export const useTokensWithBalance: ({
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
   const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, solanaInternalAccountId),
+    selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
   );
   ///: END:ONLY_INCLUDE_IF
 
@@ -205,7 +209,7 @@ export const useTokensWithBalance: ({
       networkConfigurationsByChainId,
       multiChainCurrencyRates,
       currentCurrency,
-      selectedAddress: evmAddress as Hex,
+      selectedAddress: lastSelectedEvmAccount?.address as Hex,
       evmAccountsByChainId,
     });
 
@@ -252,7 +256,7 @@ export const useTokensWithBalance: ({
     multiChainCurrencyRates,
     currentCurrency,
     tokenSortConfig,
-    evmAddress,
+    lastSelectedEvmAccount?.address,
     chainIds,
     evmAccountsByChainId,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

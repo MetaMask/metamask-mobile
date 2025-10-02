@@ -1,10 +1,10 @@
-import { useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   getChainIdsCaveat,
   getLookupMatchersCaveat,
 } from '@metamask/snaps-rpc-methods';
-import { DomainLookupResult } from '@metamask/snaps-sdk';
+import { AddressResolution, DomainLookupResult } from '@metamask/snaps-sdk';
 import { HandlerType } from '@metamask/snaps-utils';
 import { handleSnapRequest } from '../../../core/Snaps/utils';
 import Engine from '../../../core/Engine';
@@ -19,17 +19,20 @@ import { getNameLookupSnaps } from '../../../selectors/snaps';
  * @returns The results of the name resolution and a flag to determine if the
  * results are loading.
  */
-export function useSnapNameResolution() {
+export function useSnapNameResolution({
+  chainId,
+  domain,
+}: {
+  chainId: string;
+  domain: string;
+}) {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<AddressResolution[]>([]);
+
   const snaps = useSelector(getNameLookupSnaps);
 
-  /**
-   * Filters the available snaps based on the provided chain ID and domain.
-   * @param chainId - The CAIP-2 chain ID.
-   * @param domain - The domain to resolve.
-   * @returns The filtered snap IDs.
-   */
-  const getAvailableSnaps = useCallback(
-    (chainId: string, domain: string) =>
+  const filteredSnaps = useMemo(
+    () =>
       snaps
         .filter(({ permission }) => {
           const chainIdCaveat = getChainIdsCaveat(permission);
@@ -51,26 +54,17 @@ export function useSnapNameResolution() {
           return true;
         })
         .map(({ id }) => id),
-    [snaps],
+    [snaps, chainId, domain],
   );
 
-  /**
-   * Fetches name resolutions from the available snaps for the given chain ID and domain.
-   * @param chainId - The CAIP-2 chain ID.
-   * @param domain - The domain to resolve.
-   * @returns An object containing the resolutions and any errors encountered.
-   */
-  const fetchResolutions = useCallback(
-    async (chainId: string, domain: string) => {
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchResolutions() {
+      setLoading(true);
+
       const controllerMessenger = Engine.controllerMessenger;
-      const availableSnaps = getAvailableSnaps(chainId, domain);
-
-      if (availableSnaps.length === 0) {
-        return [];
-      }
-
       const responses = await Promise.allSettled(
-        availableSnaps.map(
+        filteredSnaps.map(
           (id) =>
             handleSnapRequest(controllerMessenger, {
               snapId: id,
@@ -88,21 +82,27 @@ export function useSnapNameResolution() {
         ),
       );
 
-      /**
-       * Filters the responses from the snap requests into successful resolutions and errors.
-       */
-      const resolutions = responses
-        .filter((response) => response.status === 'fulfilled' && response.value)
-        .flatMap(
-          (response) =>
-            (response as PromiseFulfilledResult<DomainLookupResult>).value
-              .resolvedAddresses,
-        );
+      if (!cancelled) {
+        const resolutions = responses
+          .filter(
+            (response) => response.status === 'fulfilled' && response.value,
+          )
+          .flatMap(
+            (response) =>
+              (response as PromiseFulfilledResult<DomainLookupResult>).value
+                .resolvedAddresses,
+          );
+        setResults(resolutions);
+        setLoading(false);
+      }
+    }
 
-      return resolutions;
-    },
-    [getAvailableSnaps],
-  );
+    fetchResolutions();
 
-  return { fetchResolutions };
+    return () => {
+      cancelled = true;
+    };
+  }, [filteredSnaps, domain, chainId]);
+
+  return { results, loading };
 }

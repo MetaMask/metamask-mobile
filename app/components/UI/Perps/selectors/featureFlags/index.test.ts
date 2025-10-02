@@ -1,18 +1,14 @@
 import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
+  perpsRemoteFeatureFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
   mockedEmptyFlagsState,
 } from '../../../../../selectors/featureFlagController/mocks';
-import {
-  VersionGatedFeatureFlag,
-  validatedVersionGatedFeatureFlag,
-} from '../../../../../util/remoteFeatureFlag';
-// eslint-disable-next-line import/no-namespace
-import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
+import { PerpsLaunchDarklyFlag } from '../../types';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -22,30 +18,29 @@ jest.mock('../../../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-jest.mock(
-  '../../../../../core/Engine/controllers/remote-feature-flag-controller',
-  () => ({
-    isRemoteFeatureFlagOverrideActivated: false,
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn(),
+}));
+
+// Import the mocked function to control its behavior
+import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
+const mockHasMinimumRequiredVersion =
+  hasMinimumRequiredVersion as jest.MockedFunction<
+    typeof hasMinimumRequiredVersion
+  >;
 
 describe('Perps Feature Flag Selectors', () => {
   const originalEnv = process.env;
-  let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    mockHasMinimumRequiredVersion = jest.spyOn(
-      remoteFeatureFlagModule,
-      'hasMinimumRequiredVersion',
-    );
+    // Default to version check passing
     mockHasMinimumRequiredVersion.mockReturnValue(true);
   });
 
   afterEach(() => {
     process.env = originalEnv;
-    mockHasMinimumRequiredVersion?.mockRestore();
   });
 
   describe('selectPerpsEnabledFlag', () => {
@@ -356,36 +351,34 @@ describe('Perps Feature Flag Selectors', () => {
   });
 
   describe('perpsRemoteFeatureFlag', () => {
-    const validRemoteFlag: VersionGatedFeatureFlag = {
+    const validRemoteFlag: PerpsLaunchDarklyFlag = {
       enabled: true,
       minimumVersion: '1.0.0',
     };
 
-    const disabledRemoteFlag: VersionGatedFeatureFlag = {
+    const disabledRemoteFlag: PerpsLaunchDarklyFlag = {
       enabled: false,
       minimumVersion: '1.0.0',
     };
 
     describe('valid remote flag scenarios', () => {
       it('returns true when flag is enabled and version check passes', () => {
-        // With device version 1.0.0 and minimum version 1.0.0, version check should pass
-        const result = validatedVersionGatedFeatureFlag(validRemoteFlag);
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        const result = perpsRemoteFeatureFlag(validRemoteFlag);
         expect(result).toBe(true);
+        expect(mockHasMinimumRequiredVersion).toHaveBeenCalledWith('1.0.0');
       });
 
       it('returns false when flag is enabled but version check fails', () => {
-        // Create a flag with a higher minimum version to simulate version check failure
-        const flagWithHigherVersion: VersionGatedFeatureFlag = {
-          enabled: true,
-          minimumVersion: '99.0.0',
-        };
-        const result = validatedVersionGatedFeatureFlag(flagWithHigherVersion);
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        const result = perpsRemoteFeatureFlag(validRemoteFlag);
         expect(result).toBe(false);
+        expect(mockHasMinimumRequiredVersion).toHaveBeenCalledWith('1.0.0');
       });
 
       it('returns false when flag is disabled but version check passes', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        const result = validatedVersionGatedFeatureFlag(disabledRemoteFlag);
+        const result = perpsRemoteFeatureFlag(disabledRemoteFlag);
         expect(result).toBe(false);
         // hasMinimumRequiredVersion should not be called due to short-circuit evaluation
         expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
@@ -393,7 +386,7 @@ describe('Perps Feature Flag Selectors', () => {
 
       it('returns false when flag is disabled and version check fails', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
-        const result = validatedVersionGatedFeatureFlag(disabledRemoteFlag);
+        const result = perpsRemoteFeatureFlag(disabledRemoteFlag);
         expect(result).toBe(false);
         // hasMinimumRequiredVersion should not be called due to short-circuit evaluation
         expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
@@ -402,15 +395,15 @@ describe('Perps Feature Flag Selectors', () => {
 
     describe('invalid remote flag scenarios', () => {
       it('returns undefined when remote flag is null', () => {
-        const result = validatedVersionGatedFeatureFlag(
-          null as unknown as VersionGatedFeatureFlag,
+        const result = perpsRemoteFeatureFlag(
+          null as unknown as PerpsLaunchDarklyFlag,
         );
         expect(result).toBeUndefined();
       });
 
       it('returns undefined when remote flag is undefined', () => {
-        const result = validatedVersionGatedFeatureFlag(
-          undefined as unknown as VersionGatedFeatureFlag,
+        const result = perpsRemoteFeatureFlag(
+          undefined as unknown as PerpsLaunchDarklyFlag,
         );
         expect(result).toBeUndefined();
       });
@@ -418,16 +411,16 @@ describe('Perps Feature Flag Selectors', () => {
       it('returns undefined when enabled property is missing', () => {
         const malformedFlag = {
           minimumVersion: '1.0.0',
-        } as VersionGatedFeatureFlag;
-        const result = validatedVersionGatedFeatureFlag(malformedFlag);
+        } as PerpsLaunchDarklyFlag;
+        const result = perpsRemoteFeatureFlag(malformedFlag);
         expect(result).toBeUndefined();
       });
 
       it('returns undefined when minimumVersion property is missing', () => {
         const malformedFlag = {
           enabled: true,
-        } as VersionGatedFeatureFlag;
-        const result = validatedVersionGatedFeatureFlag(malformedFlag);
+        } as PerpsLaunchDarklyFlag;
+        const result = perpsRemoteFeatureFlag(malformedFlag);
         expect(result).toBeUndefined();
       });
 
@@ -435,8 +428,8 @@ describe('Perps Feature Flag Selectors', () => {
         const wrongTypeFlag = {
           enabled: 'true',
           minimumVersion: '1.0.0',
-        } as unknown as VersionGatedFeatureFlag;
-        const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
+        } as unknown as PerpsLaunchDarklyFlag;
+        const result = perpsRemoteFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
 
@@ -444,8 +437,8 @@ describe('Perps Feature Flag Selectors', () => {
         const wrongTypeFlag = {
           enabled: true,
           minimumVersion: 100,
-        } as unknown as VersionGatedFeatureFlag;
-        const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
+        } as unknown as PerpsLaunchDarklyFlag;
+        const result = perpsRemoteFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
 
@@ -453,8 +446,8 @@ describe('Perps Feature Flag Selectors', () => {
         const wrongTypeFlag = {
           enabled: 'true',
           minimumVersion: 123,
-        } as unknown as VersionGatedFeatureFlag;
-        const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
+        } as unknown as PerpsLaunchDarklyFlag;
+        const result = perpsRemoteFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
     });

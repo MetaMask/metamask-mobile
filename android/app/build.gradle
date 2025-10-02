@@ -187,8 +187,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.57.0"
-        versionCode 2296
+        versionName "7.56.1"
+        versionCode 2622
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
@@ -325,13 +325,13 @@ android {
                 signingConfig signingConfigs.mainTest
             } else if (env == 'e2e') {
                 signingConfig signingConfigs.mainE2e
-            } else if (env == 'production') {
+            } else if (env == 'prod') {
                 signingConfig signingConfigs.mainProd
             } else if (env == 'rc') {
                 signingConfig signingConfigs.mainRc
             } else if (env == 'beta') {
                 signingConfig signingConfigs.mainBeta
-            } else if (env == 'dev') {
+            } else if (env == 'local') {
                 signingConfig signingConfigs.mainDev
             } else {
                 signingConfig signingConfigs.mainProd
@@ -346,9 +346,9 @@ android {
               signingConfig signingConfigs.flaskTest
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
               signingConfig signingConfigs.flaskE2e
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'production')  {
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'prod')  {
               signingConfig signingConfigs.flaskProd
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'dev') {
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'local') {
               signingConfig signingConfigs.flaskDev
             }
           }

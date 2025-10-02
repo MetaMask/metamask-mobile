@@ -27,9 +27,6 @@ module.exports = {
 
     'expo-apple-authentication',
   ],
-  android: {
-    package: 'io.metamask', // Required for @expo/repack-app Android repacking
-  },
   ios: {
     usesAppleSignIn: true,
   },

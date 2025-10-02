@@ -18,8 +18,8 @@ const styleSheet = (params: {
     },
     avatarWrapper: {
       borderRadius: 8,
-      width: isSelected ? 40 : 36, // 36 (avatar size) + 2*2 (border width) when selected, 32 + 2*2 when not
-      height: isSelected ? 40 : 36, // 36 (avatar size) + 2*2 (border width) when selected, 32 + 2*2 when not
+      width: 36, // 32 (avatar size) + 2*2 (border width)
+      height: 36, // 32 (avatar size) + 2*2 (border width)
       borderWidth: 2,
       borderColor: isSelected ? colors.info.default : staticColors.transparent,
       justifyContent: 'center',
@@ -27,11 +27,9 @@ const styleSheet = (params: {
     },
     avatar: {
       borderRadius: 6, // Slightly smaller to account for wrapper border
-      width: isSelected ? 36 : 32, // Increase size to maintain 32x32 content area with 2px border
-      height: isSelected ? 36 : 32, // Increase size to maintain 32x32 content area with 2px border
+      width: 32,
+      height: 32,
       backgroundColor: colors.background.muted,
-      borderWidth: isSelected ? 2 : 0,
-      borderColor: isSelected ? staticColors.white : staticColors.transparent,
     },
     accountName: {
       display: 'flex',
@@ -43,10 +41,6 @@ const styleSheet = (params: {
     },
     accountNameText: {
       minWidth: 0,
-      flex: 1,
-    },
-    checkIcon: {
-      marginLeft: 8,
     },
     endContainer: {
       display: 'flex',

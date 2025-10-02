@@ -37,7 +37,11 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { processFiatOrder } from '../../../index';
 import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
-import { hasDepositOrderField } from '../../utils';
+import {
+  getCryptoCurrencyFromTransakId,
+  getPaymentMethodByTransakId,
+  hasDepositOrderField,
+} from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import Button, {
   ButtonSize,
@@ -62,8 +66,7 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk, selectedRegion, logoutFromProvider, selectedCryptoCurrency } =
-    useDepositSDK();
+  const { sdk, selectedRegion, logoutFromProvider } = useDepositSDK();
   const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
@@ -221,14 +224,19 @@ const BankDetails = () => {
   const bic = getFieldValue('BIC');
 
   useEffect(() => {
+    const paymentMethod =
+      hasDepositOrderField(order?.data, 'paymentMethod') &&
+      order?.data.paymentMethod
+        ? getPaymentMethodByTransakId(order.data.paymentMethod)
+        : null;
+    const paymentMethodName = paymentMethod?.shortName ?? '';
+
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
         {
           title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: hasDepositOrderField(order?.data, 'paymentMethod')
-              ? order.data.paymentMethod?.shortName
-              : '',
+            paymentMethod: paymentMethodName,
           }),
         },
         theme,
@@ -255,17 +263,24 @@ const BankDetails = () => {
         destination: Routes.DEPOSIT.BANK_DETAILS,
       },
     });
-  }, [navigation, theme, order?.data]);
+  }, [navigation, theme, order]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
     if (isLoadingConfirmPayment || !order) return;
     try {
       setIsLoadingConfirmPayment(true);
-      if (
-        !hasDepositOrderField(order?.data, 'paymentMethod') ||
-        !order.data.paymentMethod.id
-      ) {
+      if (!hasDepositOrderField(order?.data, 'paymentDetails')) {
+        console.error('Order or payment details not found');
+        Logger.error(
+          new Error('Order or payment details not found'),
+          'BankDetails: handleBankTransferSent',
+        );
+        return;
+      }
+
+      const paymentMethod = order.data.paymentDetails?.[0]?.paymentMethod;
+      if (!paymentMethod) {
         console.error('Payment method not found or empty');
         Logger.error(
           new Error('Payment method not found or empty'),
@@ -274,8 +289,11 @@ const BankDetails = () => {
         return;
       }
 
-      const paymentMethodId = order.data.paymentMethod.id;
-      await confirmPayment(order.id, paymentMethodId);
+      const cryptoCurrency = getCryptoCurrencyFromTransakId(
+        order.data.cryptoCurrency,
+        order.data.network,
+      );
+      await confirmPayment(order.id, paymentMethod);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
@@ -285,10 +303,10 @@ const BankDetails = () => {
         gas_fee: 0, //Number(order.data.gasFee),
         processing_fee: 0, //Number(order.data.processingFee),
         total_fee: Number(order.data.totalFeesFiat),
-        payment_method_id: paymentMethodId,
+        payment_method_id: order.data.paymentMethod,
         country: selectedRegion?.isoCode || '',
-        chain_id: selectedCryptoCurrency?.chainId || '',
-        currency_destination: selectedCryptoCurrency?.assetId || '',
+        chain_id: cryptoCurrency?.chainId || '',
+        currency_destination: cryptoCurrency?.assetId || '',
         currency_source: order.data.fiatCurrency,
       });
 
@@ -314,8 +332,6 @@ const BankDetails = () => {
     order,
     trackEvent,
     selectedRegion?.isoCode,
-    selectedCryptoCurrency?.assetId,
-    selectedCryptoCurrency?.chainId,
     confirmPayment,
     handleOnRefresh,
     handleLogoutError,

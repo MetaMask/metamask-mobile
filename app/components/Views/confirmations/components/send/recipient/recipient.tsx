@@ -64,7 +64,8 @@ export const Recipient = () => {
     useCallback(() => {
       setIsSubmittingTransaction(false);
       setIsRecipientSelectedFromList(false);
-    }, [setIsSubmittingTransaction, setIsRecipientSelectedFromList]),
+      updateTo('');
+    }, [updateTo]),
   );
 
   const handleReview = useCallback(async () => {

@@ -115,13 +115,9 @@ jest.mock(
 jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/multichainAccounts/accountTreeController',
-    ),
     selectAccountTreeControllerState: jest.fn(),
     selectSelectedAccountGroupId: jest.fn(),
     selectAccountGroupsByWallet: jest.fn(),
-    selectSelectedAccountGroupInternalAccounts: jest.fn(),
     selectAccountGroupWithInternalAccounts: jest.fn(),
   }),
 );

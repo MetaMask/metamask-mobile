@@ -13,7 +13,6 @@ import {
   defaultPerpsClosePositionMock,
   defaultPerpsEventTrackingMock,
   defaultMinimumOrderAmountMock,
-  defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -47,7 +46,6 @@ jest.mock('../../hooks', () => ({
   usePerpsClosePosition: jest.fn(),
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
-  usePerpsRewards: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -139,7 +137,6 @@ describe('PerpsClosePositionView', () => {
   const usePerpsMarketDataMock =
     jest.requireMock('../../hooks').usePerpsMarketData;
   const usePerpsToastsMock = jest.requireMock('../../hooks').usePerpsToasts;
-  const usePerpsRewardsMock = jest.requireMock('../../hooks').usePerpsRewards;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -174,9 +171,6 @@ describe('PerpsClosePositionView', () => {
 
     // Setup usePerpsToasts mock
     usePerpsToastsMock.mockReturnValue(defaultPerpsToastsMock);
-
-    // Setup usePerpsRewards mock
-    usePerpsRewardsMock.mockReturnValue(defaultPerpsRewardsMock);
   });
 
   describe('Component Rendering', () => {
@@ -452,15 +446,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - receiveAmount = initialMargin + P&L - fees (P&L now included in calculation)
-      // P&L = (150 - 100) * 1 = 50
-      // receiveAmount = 1000 + 50 - 50 = 1000
+      // Assert - receiveAmount = initialMargin - fees (P&L is shown separately in UI)
+      // receiveAmount = 1000 - 50 = 950
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText('$1,000.00')).toBeDefined();
+      // Look for 950 in the display (margin - fees, P&L shown separately)
+      expect(getByText('$950.00')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
@@ -498,14 +491,13 @@ describe('PerpsClosePositionView', () => {
       );
 
       // For 100% close (default) with new calculation:
-      // P&L = (75 - 100) * 2 = -50 (loss)
-      // receiveAmount = 2000 + (-50) - 25 = 1925
+      // receiveAmount = initialMargin - fees = 2000 - 25 = 1975
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1925 in the display (margin + P&L - fees)
-      expect(getByText(/1,925/)).toBeDefined();
+      // Look for 1975 in the display (initial margin - fees)
+      expect(getByText(/1,975/)).toBeDefined();
     });
   });
 
@@ -1885,13 +1877,12 @@ describe('PerpsClosePositionView', () => {
         {
           totalFee: 45,
           marketPrice: 3000,
-          receivedAmount: 1555, // 1450 (margin) + 150 (P&L) - 45 (fees)
+          receivedAmount: 1405,
           realizedPnl: 150,
           metamaskFeeRate: 0,
           feeDiscountPercentage: undefined,
           metamaskFee: 0,
           estimatedPoints: undefined,
-          inputMethod: 'default',
         },
       );
     });

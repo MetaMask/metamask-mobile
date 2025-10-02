@@ -35,10 +35,6 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
     MobileIOS: 'mobile-ios',
     MobileAndroid: 'mobile-android',
   },
-  DepositPaymentMethodDuration: {
-    instant: 'instant',
-    oneToTwoDays: '1_to_2_days',
-  },
   NativeRampsSdk: jest.fn(),
 }));
 

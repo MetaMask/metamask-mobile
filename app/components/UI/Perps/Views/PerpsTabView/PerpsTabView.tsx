@@ -8,12 +8,18 @@ import {
   PerpsTabViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -38,13 +44,11 @@ import {
   usePerpsLivePositions,
   usePerpsPerformance,
 } from '../../hooks';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { PerpsEmptyState } from '../PerpsEmptyState';
 
 interface PerpsTabViewProps {}
 
@@ -73,6 +77,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
+  const firstTimeUserIconSize = 48 as unknown as IconSize;
+
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
@@ -94,9 +100,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
 
       // Track homescreen tab viewed event with exact property names from requirements
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
         [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
           [PerpsEventProperties.ASSET]: p.coin,
           [PerpsEventProperties.LEVERAGE]: p.leverage.value,
@@ -211,7 +215,14 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => {
-            const directionSegment = getPositionDirection(position.size);
+            const sizeValue = parseFloat(position.size);
+            const directionSegment = Number.isFinite(sizeValue)
+              ? sizeValue > 0
+                ? 'long'
+                : sizeValue < 0
+                ? 'short'
+                : 'unknown'
+              : 'unknown';
             return (
               <View
                 key={`${position.coin}-${index}`}
@@ -241,15 +252,42 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         <ScrollView style={styles.content}>
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <PerpsEmptyState
-                onAction={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
-              />
+              <View style={styles.firstTimeContent}>
+                <View style={styles.firstTimeContainer}>
+                  <Icon
+                    name={IconName.Details}
+                    color={IconColor.Muted}
+                    size={firstTimeUserIconSize}
+                    style={styles.firstTimeIcon}
+                  />
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    color={TextColor.Default}
+                    style={styles.firstTimeTitle}
+                  >
+                    {strings('perps.position.list.first_time_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.firstTimeDescription}
+                  >
+                    {strings('perps.position.list.first_time_description')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    size={ButtonSize.Lg}
+                    label={strings('perps.position.list.start_trading')}
+                    onPress={handleNewTrade}
+                    style={styles.startTradingButton}
+                    width={ButtonWidthTypes.Full}
+                  />
+                </View>
+              </View>
             ) : (
               <View style={styles.tradeInfoContainer}>
-                <View>{renderPositionsSection()}</View>
-                <View>{renderOrdersSection()}</View>
+                <View style={styles.section}>{renderPositionsSection()}</View>
+                <View style={styles.section}>{renderOrdersSection()}</View>
               </View>
             )}
           </View>

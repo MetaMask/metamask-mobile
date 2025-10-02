@@ -435,7 +435,7 @@ exports[`ActivityView should render correctly 1`] = `
                                 }
                               }
                             >
-                              Popular networks
+                              All Networks
                             </Text>
                           </View>
                           <SvgMock

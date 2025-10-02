@@ -178,11 +178,6 @@ const NetworkMultiSelector = ({
   const selectAllNetworksComponent = useMemo(
     () => (
       <Cell
-        testID={
-          areAllNetworksSelectedCombined
-            ? NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_POPULAR_NETWORKS_SELECTED
-            : NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED
-        }
         isSelected={areAllNetworksSelectedCombined}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
@@ -201,7 +196,7 @@ const NetworkMultiSelector = ({
     <ScrollView
       style={styles.bodyContainer}
       contentContainerStyle={styles.scrollContentContainer}
-      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER}
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER}
     >
       <NetworkMultiSelectorList
         openModal={openModal}

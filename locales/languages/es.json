@@ -404,7 +404,7 @@
     "show": "Mostrar",
     "hide": "Ocultar",
     "seed_phrase": "Frase secreta de recuperación",
-    "must_be_at_least": "Debe tener al menos {{number}} caracteres",
+    "must_be_at_least": "La contraseña debe tener al menos {{number}} caracteres",
     "remember_me": "Recordarme",
     "security_alert_title": "Alerta de seguridad",
     "security_alert_message": "Para continuar, debe activar el código de acceso o cualquier método de autenticación biométrica compatible con su dispositivo (FaceID, TouchID o huella dactilar)",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "Fondos insuficientes",
         "insufficient_balance": "Saldo insuficiente. Necesitas: ${{required}}, Disponible: ${{available}}",
         "invalid_leverage": "El apalancamiento debe estar entre {{min}}x y {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Un apalancamiento elevado aumenta el riesgo de liquidación",
         "invalid_take_profit": "La toma de ganancias debe estar {{direction}} del precio actual para posiciones {{positionType}}",
         "invalid_stop_loss": "El límite de pérdidas debe estar {{direction}} del precio actual para posiciones {{positionType}}",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "El precio límite está por debajo del precio actual"
       },
       "leverage_modal": {
-        "title": "Apalancamiento",
+        "title": "Leverage",
         "confirm": "Confirmar",
         "entry_price": "Precio de entrada",
         "current_price": "Precio actual",
@@ -1460,8 +1459,6 @@
     "failed_to_load_market_data": "Error al cargar los datos del mercado",
     "tap_to_retry": "Toca para volver a intentarlo",
     "search_by_token_symbol": "Buscar por símbolo de token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Red de pruebas",
     "mainnet": "Red principal",
     "developer_options": {
@@ -1708,6 +1705,7 @@
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "No tiene ningún token.",
     "show_tokens_without_balance": "Mostrar tokens sin saldo",
+    "no_nfts_yet": "No hay ningún NFT aún",
     "nfts_autodetection_title": "Detección de NFT",
     "nfts_autodetection_desc": "Deje que MetaMask detecte y muestre automáticamente los NFT en su monedero.",
     "network_details_check": "Verificación de detalles de la red",
@@ -6002,6 +6000,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Referir a un amigo",
         "share_referral_subject": "Únete a MetaMask Rewards"
@@ -6014,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6025,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

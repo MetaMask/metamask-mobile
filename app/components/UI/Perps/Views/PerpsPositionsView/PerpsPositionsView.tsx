@@ -24,7 +24,6 @@ import type { Position } from '../../controllers/types';
 import { usePerpsLivePositions, usePerpsTPSLUpdate } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -126,7 +125,14 @@ const PerpsPositionsView: React.FC = () => {
           </Text>
         </View>
         {positions.map((position, index) => {
-          const directionSegment = getPositionDirection(position.size);
+          const sizeValue = parseFloat(position.size);
+          const directionSegment = Number.isFinite(sizeValue)
+            ? sizeValue > 0
+              ? 'long'
+              : sizeValue < 0
+              ? 'short'
+              : 'unknown'
+            : 'unknown';
           return (
             <View
               key={`${position.coin}-${index}`}

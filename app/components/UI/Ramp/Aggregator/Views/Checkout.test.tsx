@@ -6,8 +6,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { Network } from '@consensys/on-ramp-sdk/dist/API';
-import Logger from '../../../../../util/Logger';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -38,6 +36,7 @@ jest.mock('../orderProcessor/customOrderId');
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedAddress: '0x123',
+  selectedChainId: '1',
   selectedAsset: undefined,
   sdkError: undefined,
   callbackBaseUrl: 'https://callback.test',
@@ -127,14 +126,14 @@ describe('Checkout', () => {
     );
   });
 
-  it('uses selectedAsset network chainId when chainId is 1', () => {
+  it('falls back to selectedChainId when selectedAsset network is not available', () => {
     mockUseRampSDKValues.selectedAsset = {
       id: '1',
       idv2: '2',
       legacyId: 'legacy-1',
       network: {
         active: true,
-        chainId: '1',
+        chainId: '',
         chainName: 'Test',
         shortName: 'Test',
       },
@@ -158,89 +157,16 @@ describe('Checkout', () => {
     );
   });
 
-  it('handles undefined selectedAsset gracefully', () => {
+  it('falls back to selectedChainId when selectedAsset is undefined', () => {
     mockUseRampSDKValues.selectedAsset = undefined;
 
     render();
 
-    expect(createCustomOrderIdData).not.toHaveBeenCalled();
-  });
-
-  it('returns early from handleCancelPress when chainId is not available', () => {
-    mockUseRampSDKValues.selectedAsset = {
-      id: '1',
-      idv2: '2',
-      legacyId: 'legacy-1',
-      network: {
-        active: true,
-        chainId: undefined as unknown as string, // No chainId
-        chainName: 'Test',
-        shortName: 'Test',
-      },
-      symbol: 'USDC',
-      logo: 'logo',
-      decimals: 6,
-      address: '0x123',
-      name: 'USD Coin',
-      limits: ['1', '1000'],
-      sellEnabled: true,
-      assetId: 'asset-1',
-    } as const;
-
-    render();
-
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
-  it('returns early from handleCancelPress when selectedAsset network is undefined', () => {
-    mockUseRampSDKValues.selectedAsset = {
-      id: '1',
-      idv2: '2',
-      legacyId: 'legacy-1',
-      network: undefined as unknown as Network, // No network
-      symbol: 'USDC',
-      logo: 'logo',
-      decimals: 6,
-      address: '0x123',
-      name: 'USD Coin',
-      limits: ['1', '1000'],
-      sellEnabled: true,
-      assetId: 'asset-1',
-    } as const;
-
-    render();
-
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
-  it('handles navigation state change when selectedAddress is undefined', () => {
-    mockUseRampSDKValues.selectedAddress = undefined;
-
-    render();
-
-    expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
-  });
-
-  it('logs error when selectedAddress is undefined during navigation state change', async () => {
-    mockUseRampSDKValues.selectedAddress = undefined;
-
-    const mockLoggerError = jest.spyOn(Logger, 'error');
-
-    const { getByTestId } = render();
-
-    const webView = getByTestId('checkout-webview');
-    if (webView?.props?.onNavigationStateChange) {
-      await webView.props.onNavigationStateChange({
-        url: 'https://callback.test?success=true',
-        loading: false,
-        title: '',
-        canGoBack: false,
-        canGoForward: false,
-      });
-    }
-
-    expect(mockLoggerError).toHaveBeenCalledWith(
-      new Error('No address available for selected asset'),
+    expect(createCustomOrderIdData).toHaveBeenCalledWith(
+      'test-order-id',
+      '1',
+      '0x123',
+      'BUY',
     );
   });
 });

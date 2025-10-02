@@ -1,4 +1,5 @@
 import React from 'react';
+import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
@@ -15,17 +16,11 @@ import {
 } from '../../../__mocks__/send.mock';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
-import { useSendContext } from '../../../context/send-context';
+import { SendContextProvider } from '../../../context/send-context';
 import { Amount } from './amount';
 import { getFontSizeForInputLength } from './amount.styles';
 
-jest.mock('../../../context/send-context', () => ({
-  useSendContext: jest.fn(),
-}));
-
 jest.mock('../../../hooks/send/useCurrencyConversions');
-
-jest.mock('../../../hooks/send/useRouteParams');
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -66,24 +61,6 @@ jest.mock('../../../../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
-  useAmountSelectionMetrics: jest.fn(),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    goBack: jest.fn(),
-    navigate: jest.fn(),
-  }),
-  useRoute: jest.fn(),
-}));
-
-const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
-const mockUseCurrencyConversion = jest.mocked(useCurrencyConversions);
-const mockUseSendContext = useSendContext as jest.MockedFunction<
-  typeof useSendContext
->;
 const mockAmountSelectionMetrics = {
   captureAmountSelected: jest.fn(),
   setAmountInputMethodManual: jest.fn(),
@@ -92,28 +69,54 @@ const mockAmountSelectionMetrics = {
   setAmountInputTypeToken: jest.fn(),
 };
 
+jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
+  useAmountSelectionMetrics: jest.fn(),
+}));
+
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+  }),
+  useRoute: jest.fn(),
+}));
+
+const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
+const mockUseCurrencyConversion = jest.mocked(useCurrencyConversions);
+
 const renderComponent = (mockState?: ProviderValues['state']) => {
   const state = mockState
     ? merge(evmSendStateMock, mockState)
     : evmSendStateMock;
 
-  return renderWithProvider(<Amount />, { state });
+  return renderWithProvider(
+    <SendContextProvider>
+      <Amount />
+    </SendContextProvider>,
+    { state },
+  );
 };
 
 describe('Amount', () => {
+  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockedUseAmountSelectionMetrics.mockReturnValue(mockAmountSelectionMetrics);
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        chainId: '0x1',
-        address: ETHEREUM_ADDRESS,
-        isNative: true,
-        symbol: 'ETH',
-        decimals: 18,
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: {
+          chainId: '0x1',
+          address: ETHEREUM_ADDRESS,
+          isNative: true,
+          symbol: 'ETH',
+          decimals: 18,
+        },
       },
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    } as RouteProp<ParamListBase, string>);
     mockUseCurrencyConversion.mockReturnValue({
       conversionSupportedForAsset: true,
       fiatCurrencySymbol: 'USD',
@@ -140,31 +143,32 @@ describe('Amount', () => {
   });
 
   it('asset passed in nav params should be used if present', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        name: 'Ethereum',
-        address: TOKEN_ADDRESS_MOCK_1,
-        ticker: 'ETH',
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: TOKEN_ADDRESS_MOCK_1,
+          ticker: 'ETH',
+        },
       },
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
-
+    } as RouteProp<ParamListBase, string>);
     const { getByText } = renderComponent();
     expect(getByText('ETH')).toBeTruthy();
   });
 
   it('display fiat conversion of amount entered', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        name: 'Ethereum',
-        address: ETHEREUM_ADDRESS,
-        isNative: true,
-        chainId: '0x1',
-        symbol: 'ETH',
-        decimals: 18,
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: ETHEREUM_ADDRESS,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+          decimals: 18,
+        },
       },
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    } as RouteProp<ParamListBase, string>);
 
     const { getByRole, getByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
@@ -181,10 +185,11 @@ describe('Amount', () => {
       getNativeValue: () => '1',
     } as unknown as ReturnType<typeof useCurrencyConversions>);
 
-    mockUseSendContext.mockReturnValue({
-      asset: SOLANA_ASSET,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { getByRole, getByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
@@ -192,28 +197,18 @@ describe('Amount', () => {
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
-    mockUseCurrencyConversion.mockReturnValue({
-      conversionSupportedForAsset: true,
-      fiatConversionRate: 10,
-      fiatCurrencySymbol: 'USD',
-      getFiatValue: () => '250',
-      getFiatDisplayValue: () => '$ 250.00',
-      getNativeValue: () => '1',
-    } as unknown as ReturnType<typeof useCurrencyConversions>);
-
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        name: 'Ethereum',
-        address: ETHEREUM_ADDRESS,
-        isNative: true,
-        chainId: '0x1',
-        symbol: 'ETH',
-        decimals: 18,
-        rawBalance: '0x5',
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: ETHEREUM_ADDRESS,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+          decimals: 18,
+        },
       },
-      updateValue: jest.fn(),
-      value: '1',
-    } as unknown as ReturnType<typeof useSendContext>);
+    } as RouteProp<ParamListBase, string>);
 
     const { getByRole, getByText, getByTestId } = renderComponent();
     fireEvent.press(getByTestId('fiat_toggle'));
@@ -231,17 +226,18 @@ describe('Amount', () => {
       setAmountInputTypeToken: mockSetAmountInputTypeToken,
     });
 
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        name: 'Ethereum',
-        address: ETHEREUM_ADDRESS,
-        isNative: true,
-        chainId: '0x1',
-        symbol: 'ETH',
-        decimals: 18,
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: ETHEREUM_ADDRESS,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+          decimals: 18,
+        },
       },
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    } as RouteProp<ParamListBase, string>);
 
     const { getByTestId } = renderComponent();
     fireEvent.press(getByTestId('fiat_toggle'));
@@ -259,20 +255,22 @@ describe('Amount', () => {
       getNativeValue: () => '1',
     } as unknown as ReturnType<typeof useCurrencyConversions>);
 
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_NFT1155,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { queryByTestId } = renderComponent();
     expect(queryByTestId('fiat_toggle')).toBeNull();
   });
 
   it('display image and NFT details for NFT asset', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_NFT1155,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { getByTestId, getByText } = renderComponent();
     expect(getByTestId('nft-image')).toBeTruthy();
@@ -296,24 +294,26 @@ describe('Amount', () => {
   // });
 
   it('display total balance correctly for non-evm token', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: { ...SOLANA_ASSET, rawBalance: '0x17D78400', decimals: 6 },
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { getByText } = renderComponent(solanaSendStateMock);
     expect(getByText('400 SOL available')).toBeTruthy();
   });
 
   it('on amount page options - 25%, 50%, 75%, Max are present', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        address: TOKEN_ADDRESS_MOCK_1,
-        decimals: 2,
-        symbol: 'TKN',
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: {
+          address: TOKEN_ADDRESS_MOCK_1,
+          decimals: 2,
+          symbol: 'TKN',
+        },
       },
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    } as RouteProp<ParamListBase, string>);
 
     const { getByText } = renderComponent();
     expect(getByText('25%')).toBeTruthy();
@@ -323,10 +323,11 @@ describe('Amount', () => {
   });
 
   it('percentage options are not present as amount value is entered', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: SOLANA_ASSET,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { getByRole, queryByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
@@ -337,10 +338,11 @@ describe('Amount', () => {
   });
 
   it('percentage options are not present for NFT send', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_NFT1155,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { getByText, queryByText } = renderComponent();
     expect(getByText('Next')).toBeTruthy();
@@ -351,10 +353,11 @@ describe('Amount', () => {
   });
 
   it('on amount page options optionMax is not visible for non-evm native tokens', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: SOLANA_ASSET,
-      updateValue: jest.fn(),
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
 
     const { queryByText } = renderComponent(solanaSendStateMock);
     expect(queryByText('25%')).toBeTruthy();
@@ -364,13 +367,14 @@ describe('Amount', () => {
   });
 
   it('show error in case of insufficient balance for ERC1155 token', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_NFT1155,
-      updateValue: jest.fn(),
-      value: '10',
-    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseRoute.mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
 
-    const { getByText } = renderComponent();
+    const { getByRole, getByText } = renderComponent();
+    fireEvent.press(getByRole('button', { name: '9' }));
     expect(getByText('Insufficient funds')).toBeTruthy();
   });
 

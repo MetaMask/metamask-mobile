@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -71,19 +70,6 @@ export const BridgeDestTokenSelector: React.FC = () => {
     [dispatch, navigation],
   );
 
-  const debouncedTokenPress = useMemo(
-    () => debounce(handleTokenPress, 500),
-    [handleTokenPress],
-  );
-
-  // Cleanup debounced function on unmount and dependency changes
-  useEffect(
-    () => () => {
-      debouncedTokenPress.cancel();
-    },
-    [debouncedTokenPress],
-  );
-
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
       // This is to support a partial loading state for top tokens
@@ -126,7 +112,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       return (
         <TokenSelectorItem
           token={item}
-          onPress={debouncedTokenPress}
+          onPress={handleTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({
             chainId: item.chainId as Hex,
@@ -148,7 +134,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       );
     },
     [
-      debouncedTokenPress,
+      handleTokenPress,
       networkConfigurations,
       selectedDestToken,
       navigation,

@@ -363,7 +363,7 @@ describe('BridgeView', () => {
     });
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
-    expect(getByText('$19,000.00')).toBeTruthy();
+    expect(getByText('$19000')).toBeTruthy();
   });
 
   it('should display source token symbol and balance', async () => {
@@ -391,7 +391,7 @@ describe('BridgeView', () => {
     expect(input.props.value).toBe('1.5');
 
     // Verify fiat value is displayed (1.5 ETH * $2000 = $3000)
-    expect(getByText('$3,000.00')).toBeTruthy();
+    expect(getByText('$3000')).toBeTruthy();
 
     // Verify balance is displayed
     await waitFor(() => {

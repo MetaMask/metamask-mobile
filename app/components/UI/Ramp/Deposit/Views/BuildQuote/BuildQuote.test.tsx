@@ -6,35 +6,11 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { trace, endTrace } from '../../../../../../util/trace';
-import { useRegions } from '../../hooks/useRegions';
-import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
-import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 import {
-  createMockSDKReturn,
-  MOCK_USE_REGIONS_ERROR,
-  MOCK_USE_CRYPTOCURRENCIES_ERROR,
-  MOCK_USE_PAYMENT_METHODS_ERROR,
-  MOCK_USE_REGIONS_EMPTY,
-  MOCK_USE_CRYPTOCURRENCIES_EMPTY,
-  MOCK_USE_PAYMENT_METHODS_EMPTY,
-  createMockSDKMethods,
-  createMockNavigation,
-  MOCK_REGIONS,
-  MOCK_US_REGION,
-  MOCK_EUR_REGION,
-  MOCK_USDC_TOKEN,
-  MOCK_CREDIT_DEBIT_CARD,
-  MOCK_USE_REGIONS_RETURN,
-  MOCK_USE_CRYPTOCURRENCIES_RETURN,
-  MOCK_USE_PAYMENT_METHODS_RETURN,
-  MOCK_CRYPTOCURRENCIES,
-  MOCK_PAYMENT_METHODS,
-} from '../../testUtils';
-
-const createMockInteractionManager = () => ({
-  runAfterInteractions: jest.fn((callback) => callback()),
-});
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
+} from '../../constants';
+import { trace, endTrace } from '../../../../../../util/trace';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -42,21 +18,36 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-const mockInteractionManager = createMockInteractionManager();
+const mockInteractionManager = {
+  runAfterInteractions: jest.fn((callback) => callback()),
+};
 
-const { mockNavigate, mockGoBack, mockSetNavigationOptions, mockSetParams } =
-  createMockNavigation();
-
-const {
-  mockGetQuote,
-  mockRouteAfterAuthentication,
-  mockNavigateToVerifyIdentity,
-  mockTrackEvent,
-} = createMockSDKMethods();
-
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetNavigationOptions = jest.fn();
+const mockSetParams = jest.fn();
+const mockGetQuote = jest.fn();
+const mockRouteAfterAuthentication = jest.fn();
+const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+const mockUseAccountTokenCompatible = jest.fn();
+const mockTrackEvent = jest.fn();
 const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
+
+const createMockSDKReturn = (overrides = {}) => ({
+  isAuthenticated: false,
+  selectedWalletAddress: '0x123',
+  selectedRegion: {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    currency: 'USD',
+    supported: true,
+  },
+  setSelectedRegion: jest.fn(),
+  ...overrides,
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -93,6 +84,11 @@ jest.mock(
   () => () => mockUseDepositTokenExchange(),
 );
 
+jest.mock(
+  '../../hooks/useAccountTokenCompatible',
+  () => () => mockUseAccountTokenCompatible(),
+);
+
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
@@ -100,18 +96,12 @@ jest.mock('../../hooks/useDepositRouting', () => ({
   })),
 }));
 
-jest.mock('../../hooks/usePaymentMethods', () => ({
-  usePaymentMethods: jest.fn(),
-}));
+const mockUsePaymentMethods = jest
+  .fn()
+  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
+jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
 
-jest.mock('../../hooks/useRegions', () => ({
-  useRegions: jest.fn(),
-}));
-
-jest.mock('../../hooks/useCryptoCurrencies', () => ({
-  useCryptoCurrencies: jest.fn(),
-}));
-
+// Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../../util/trace', () => ({
@@ -147,22 +137,12 @@ function render(Component: React.ComponentType) {
 describe('BuildQuote Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const mockSDK = createMockSDKReturn();
-
-    mockUseDepositSDK.mockReturnValue(mockSDK);
+    mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
+    mockUseAccountTokenCompatible.mockReturnValue(true);
     mockUseRoute.mockReturnValue({ params: {} });
-
-    jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_RETURN);
-    jest
-      .mocked(useCryptoCurrencies)
-      .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_RETURN);
-    jest
-      .mocked(usePaymentMethods)
-      .mockReturnValue(MOCK_USE_PAYMENT_METHODS_RETURN);
-
     mockTrackEvent.mockClear();
     (trace as jest.MockedFunction<typeof trace>).mockClear();
     (endTrace as jest.MockedFunction<typeof endTrace>).mockClear();
@@ -186,21 +166,18 @@ describe('BuildQuote Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
-        params: {
-          regions: MOCK_REGIONS,
-        },
       });
     });
 
     it('displays EUR currency when selectedRegion is EUR', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
-          selectedRegion: MOCK_EUR_REGION,
-          fiatCurrency: {
-            id: 'EUR',
-            name: 'Euro',
-            symbol: '€',
-            emoji: '🇪🇺',
+          selectedRegion: {
+            isoCode: 'DE',
+            flag: '🇩🇪',
+            name: 'Germany',
+            currency: 'EUR',
+            supported: true,
           },
         }),
       );
@@ -214,7 +191,6 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           selectedRegion: {
-            ...MOCK_US_REGION,
             isoCode: 'XX',
             flag: '🏳️',
             name: 'Unsupported Region',
@@ -232,32 +208,6 @@ describe('BuildQuote Component', () => {
         });
       });
     });
-
-    it('does not open region modal when regions error occurs', () => {
-      jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_ERROR);
-
-      render(BuildQuote);
-
-      expect(screen.toJSON()).toMatchSnapshot();
-
-      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: expect.any(Object),
-      });
-    });
-
-    it('does not open region modal when regions array is empty', () => {
-      jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_EMPTY);
-
-      render(BuildQuote);
-
-      expect(screen.toJSON()).toMatchSnapshot();
-
-      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: expect.any(Object),
-      });
-    });
   });
 
   describe('Payment Method Selection', () => {
@@ -268,39 +218,32 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
         params: {
-          paymentMethods: MOCK_PAYMENT_METHODS,
+          handleSelectPaymentMethodId: expect.any(Function),
+          selectedPaymentMethodId: 'credit_debit_card',
         },
       });
     });
 
-    it('does not open payment method modal when payment methods error occurs', () => {
-      jest
-        .mocked(usePaymentMethods)
-        .mockReturnValue(MOCK_USE_PAYMENT_METHODS_ERROR);
-
+    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
       render(BuildQuote);
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
+          'credit_debit_card',
+        ),
+      );
 
-      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositPaymentMethodSelectorModal',
-        params: expect.any(Object),
-      });
-    });
-
-    it('does not open payment method modal when payment methods array is empty', () => {
-      jest
-        .mocked(usePaymentMethods)
-        .mockReturnValue(MOCK_USE_PAYMENT_METHODS_EMPTY);
-
-      render(BuildQuote);
-
-      expect(screen.toJSON()).toMatchSnapshot();
-
-      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositPaymentMethodSelectorModal',
-        params: expect.any(Object),
-      });
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: 'US',
+          payment_method_id: 'credit_debit_card',
+          is_authenticated: false,
+        },
+      );
     });
   });
 
@@ -312,38 +255,32 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
         params: {
-          cryptoCurrencies: MOCK_CRYPTOCURRENCIES,
+          handleSelectAssetId: expect.any(Function),
+          selectedAssetId:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         },
       });
     });
 
-    it('does not open token modal when crypto currencies error occurs', () => {
-      jest
-        .mocked(useCryptoCurrencies)
-        .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_ERROR);
-
+    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
       render(BuildQuote);
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
 
-      expect(screen.toJSON()).toMatchSnapshot();
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        ),
+      );
 
-      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositTokenSelectorModal',
-        params: expect.any(Object),
-      });
-    });
-
-    it('does not open token modal when crypto currencies array is empty', () => {
-      jest
-        .mocked(useCryptoCurrencies)
-        .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_EMPTY);
-
-      render(BuildQuote);
-
-      expect(screen.toJSON()).toMatchSnapshot();
-
-      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositTokenSelectorModal',
-        params: expect.any(Object),
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+        chain_id: 'eip155:1',
+        currency_destination:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        currency_source: 'USD',
+        is_authenticated: false,
       });
     });
   });
@@ -382,7 +319,13 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockGetQuote).toHaveBeenCalled();
+        expect(mockGetQuote).toHaveBeenCalledWith(
+          'USD',
+          'USDC',
+          'ethereum',
+          'credit_debit_card',
+          '0',
+        );
       });
     });
 
@@ -402,11 +345,12 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 0,
           amount_destination: 0,
-          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
-          region: MOCK_US_REGION.isoCode,
-          chain_id: MOCK_USDC_TOKEN.chainId,
-          currency_destination: MOCK_USDC_TOKEN.assetId,
-          currency_source: MOCK_US_REGION.currency,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
           is_authenticated: false,
         });
       });
@@ -447,11 +391,8 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates to incompatible token modal when selectedWalletAddress is null', async () => {
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ selectedWalletAddress: null }),
-      );
-
+    it('navigates to incompatible token modal when user they are not compatible', async () => {
+      mockUseAccountTokenCompatible.mockReturnValue(false);
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
@@ -501,11 +442,12 @@ describe('BuildQuote Component', () => {
           gas_fee: 0.01,
           processing_fee: 0.02,
           total_fee: 0.03,
-          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
-          region: MOCK_US_REGION.isoCode,
-          chain_id: MOCK_USDC_TOKEN.chainId,
-          currency_destination: MOCK_USDC_TOKEN.assetId,
-          currency_source: MOCK_US_REGION.currency,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
         });
       });
     });
@@ -542,11 +484,12 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 0,
           amount_destination: 0,
-          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
-          region: MOCK_US_REGION.isoCode,
-          chain_id: MOCK_USDC_TOKEN.chainId,
-          currency_destination: MOCK_USDC_TOKEN.assetId,
-          currency_source: MOCK_US_REGION.currency,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
         });
@@ -585,11 +528,12 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 0,
           amount_destination: 0,
-          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
-          region: MOCK_US_REGION.isoCode,
-          chain_id: MOCK_USDC_TOKEN.chainId,
-          currency_destination: MOCK_USDC_TOKEN.assetId,
-          currency_source: MOCK_US_REGION.currency,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
         });
@@ -648,11 +592,12 @@ describe('BuildQuote Component', () => {
           ramp_type: 'DEPOSIT',
           amount_source: 100,
           amount_destination: 0.05,
-          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
-          region: MOCK_US_REGION.isoCode,
-          chain_id: MOCK_USDC_TOKEN.chainId,
-          currency_destination: MOCK_USDC_TOKEN.assetId,
-          currency_source: MOCK_US_REGION.currency,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
         });
@@ -671,7 +616,13 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       await waitFor(() => {
-        expect(mockGetQuote).toHaveBeenCalled();
+        expect(mockGetQuote).toHaveBeenCalledWith(
+          'USD',
+          'USDC',
+          'ethereum',
+          'credit_debit_card',
+          '0',
+        );
       });
     });
   });
@@ -716,8 +667,8 @@ describe('BuildQuote Component', () => {
           name: 'Deposit Continue Flow',
           tags: {
             amount: 0,
-            currency: MOCK_USDC_TOKEN.symbol,
-            paymentMethod: MOCK_CREDIT_DEBIT_CARD.id,
+            currency: 'USDC',
+            paymentMethod: 'credit_debit_card',
             authenticated: false,
           },
         });

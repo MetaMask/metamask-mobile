@@ -19,7 +19,7 @@ import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import Logger from '../../../util/Logger';
-import { SolAccountType, TrxScope } from '@metamask/keyring-api';
+import { SolAccountType } from '@metamask/keyring-api';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
@@ -66,7 +66,6 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   WalletClientType: {
     Bitcoin: 'bitcoin',
     Solana: 'solana',
-    Tron: 'tron',
   },
   MultichainWalletSnapFactory: {
     createClient: jest
@@ -311,21 +310,6 @@ describe('AddNewAccount', () => {
         clientType: WalletClientType.Solana,
         expectedName: 'Solana Account 1',
       },
-      {
-        scope: TrxScope.Mainnet,
-        clientType: WalletClientType.Tron,
-        expectedName: 'Tron Account 1',
-      },
-      {
-        scope: TrxScope.Nile,
-        clientType: WalletClientType.Tron,
-        expectedName: 'Tron Nile Account 1',
-      },
-      {
-        scope: TrxScope.Shasta,
-        clientType: WalletClientType.Tron,
-        expectedName: 'Tron Shasta Account 1',
-      },
     ])(
       'suggested name is $expectedName for scope: $scope',
       async ({ scope, clientType, expectedName }) => {
@@ -368,10 +352,6 @@ describe('AddNewAccount', () => {
       {
         scope: MultichainNetwork.Bitcoin,
         clientType: WalletClientType.Bitcoin,
-      },
-      {
-        scope: TrxScope.Mainnet,
-        clientType: WalletClientType.Tron,
       },
     ])(
       'handles error when creating $clientType account fails',
@@ -420,11 +400,6 @@ describe('AddNewAccount', () => {
         scope: MultichainNetwork.Bitcoin,
         clientType: WalletClientType.Bitcoin,
         expectedHeader: 'account_actions.headers.bitcoin',
-      },
-      {
-        scope: TrxScope.Mainnet,
-        clientType: WalletClientType.Tron,
-        expectedHeader: 'account_actions.headers.tron',
       },
     ])(
       'shows the correct header for $clientType',

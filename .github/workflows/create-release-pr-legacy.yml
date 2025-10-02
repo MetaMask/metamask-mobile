@@ -36,23 +36,3 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-
-  add-e2e-label:
-    needs: create-release-pr
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Add Run Smoke E2E label to release PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Find the release PR that was just created
-          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "release/${{ inputs.semver-version }}" --json number --jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo ${{ github.repository }} --add-label "Run Smoke E2E"
-            echo "Added 'Run Smoke E2E' label to PR #$PR_NUMBER"
-          else
-            echo "Could not find release PR for release/${{ inputs.semver-version }}"
-            exit 1
-          fi

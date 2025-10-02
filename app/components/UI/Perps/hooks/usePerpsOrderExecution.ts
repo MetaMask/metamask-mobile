@@ -80,13 +80,11 @@ export function usePerpsOrderExecution(
 
           if (isPartiallyFilled) {
             // Track partially filled event
-            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-              [PerpsEventProperties.STATUS]:
-                PerpsEventValues.STATUS.PARTIALLY_FILLED,
+            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED, {
               [PerpsEventProperties.ASSET]: orderParams.coin,
               [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
+                ? 'Long'
+                : 'Short',
               [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
               [PerpsEventProperties.ORDER_SIZE]: orderSize,
               [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
@@ -145,8 +143,7 @@ export function usePerpsOrderExecution(
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
           // Track order failure with specific event
-          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
             [PerpsEventProperties.ASSET]: orderParams.coin,
             [PerpsEventProperties.DIRECTION]: orderParams.isBuy
               ? PerpsEventValues.DIRECTION.LONG
@@ -188,8 +185,7 @@ export function usePerpsOrderExecution(
         });
 
         // Track exception with specific event
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
           [PerpsEventProperties.ASSET]: orderParams.coin,
           [PerpsEventProperties.DIRECTION]: orderParams.isBuy
             ? PerpsEventValues.DIRECTION.LONG

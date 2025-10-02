@@ -1,4 +1,10 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import Engine from '../../../core/Engine';
 import {
   StyleSheet,
@@ -17,6 +23,7 @@ import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { fontStyles } from '../../../styles/common';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
+import { IQRState } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
@@ -27,10 +34,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 interface IQRSigningDetails {
-  pendingScanRequest: QrScanRequest;
+  QRState: IQRState;
   successCallback?: () => void;
   failureCallback?: (error: string) => void;
   cancelCallback?: () => void;
@@ -111,7 +117,7 @@ const createStyles = (colors: any) =>
   });
 
 const QRSigningDetails = ({
-  pendingScanRequest,
+  QRState,
   successCallback,
   failureCallback,
   cancelCallback,
@@ -127,6 +133,12 @@ const QRSigningDetails = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
+  const KeyringController = useMemo(() => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { KeyringController: keyring } = Engine.context as any;
+    return keyring;
+  }, []);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shouldPause, setShouldPause] = useState(false);
@@ -183,14 +195,11 @@ const QRSigningDetails = ({
         return;
       }
       e.preventDefault();
-      if (pendingScanRequest) {
-        Engine.getQrKeyringScanner().rejectPendingScan(
-          new Error('Scan canceled'),
-        );
-      }
-      navigation.dispatch(e.data.action);
+      KeyringController.cancelQRSignRequest().then(() => {
+        navigation.dispatch(e.data.action);
+      });
     });
-  }, [pendingScanRequest, hasSentOrCanceled, navigation]);
+  }, [KeyringController, hasSentOrCanceled, navigation]);
 
   const resetError = () => {
     setErrorMessage('');
@@ -206,15 +215,11 @@ const QRSigningDetails = ({
   };
 
   const onCancel = useCallback(async () => {
-    if (pendingScanRequest) {
-      Engine.getQrKeyringScanner().rejectPendingScan(
-        new Error('Scan canceled'),
-      );
-    }
+    await KeyringController.cancelQRSignRequest();
     setSentOrCanceled(true);
     hideScanner();
     cancelCallback?.();
-  }, [pendingScanRequest, cancelCallback]);
+  }, [KeyringController, cancelCallback]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
@@ -223,11 +228,11 @@ const QRSigningDetails = ({
       const buffer = signature.getRequestId();
       if (buffer) {
         const requestId = uuidStringify(buffer);
-        if (pendingScanRequest?.request?.requestId === requestId) {
-          Engine.getQrKeyringScanner().resolvePendingScan({
-            type: ur.type,
-            cbor: ur.cbor.toString('hex'),
-          });
+        if (QRState.sign.request?.requestId === requestId) {
+          KeyringController.submitQRSignature(
+            QRState.sign.request?.requestId as string,
+            ur.cbor.toString('hex'),
+          );
           setSentOrCanceled(true);
           successCallback?.();
           return;
@@ -245,7 +250,8 @@ const QRSigningDetails = ({
       failureCallback?.(strings('transaction.mismatched_qr_request_id'));
     },
     [
-      pendingScanRequest?.request?.requestId,
+      KeyringController,
+      QRState.sign.request?.requestId,
       failureCallback,
       successCallback,
       trackEvent,
@@ -281,7 +287,7 @@ const QRSigningDetails = ({
 
   return (
     <Fragment>
-      {pendingScanRequest?.request && (
+      {QRState?.sign?.request && (
         <ScrollView contentContainerStyle={styles.wrapper}>
           <ActionView
             confirmDisabled={!hasCameraPermission}
@@ -320,8 +326,8 @@ const QRSigningDetails = ({
                 </Text>
               </View>
               <AnimatedQRCode
-                cbor={pendingScanRequest.request.payload.cbor}
-                type={pendingScanRequest.request.payload.type}
+                cbor={QRState.sign.request.payload.cbor}
+                type={QRState.sign.request.payload.type}
                 shouldPause={
                   scannerVisible || !shouldStartAnimated || shouldPause
                 }
@@ -362,7 +368,7 @@ const QRSigningDetails = ({
       <AnimatedQRScannerModal
         pauseQRCode={setShouldPause}
         visible={scannerVisible}
-        purpose={QrScanRequestType.SIGN}
+        purpose={'sign'}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
         hideModal={hideScanner}

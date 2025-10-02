@@ -15,7 +15,7 @@ const AccountListHeader = memo(({ title }: AccountListHeaderProps) => {
   return (
     <View style={styles.sectionHeader}>
       <Text
-        variant={TextVariant.BodyMDMedium}
+        variant={TextVariant.BodyMDBold}
         color={TextColor.Alternative}
         style={styles.sectionHeaderText}
       >

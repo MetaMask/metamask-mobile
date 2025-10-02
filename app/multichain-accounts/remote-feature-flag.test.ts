@@ -1,53 +1,13 @@
 import {
   assertMultichainAccountsFeatureFlagType,
   isMultichainAccountsRemoteFeatureEnabled,
-  STATE_1_FLAG,
-  STATE_2_FLAG,
-  MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-  MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
 } from './remote-feature-flag';
 
 jest.mock('../../package.json', () => ({
   version: '15.0.0',
 }));
 
-const disabledStateMock = {
-  enabled: false,
-  featureVersion: null,
-  minimumVersion: null,
-};
-
-const state1Mock = {
-  enabled: true,
-  featureVersion: '1',
-  minimumVersion: '13.0.0',
-};
-
-const state2Mock = {
-  enabled: true,
-  featureVersion: '2',
-  minimumVersion: '14.0.0',
-};
-
-const mockState1FeatureVersionsToCheck = [
-  {
-    version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-    featureKey: STATE_1_FLAG,
-  },
-];
-
-const mockState2FeatureVersionsToCheck = [
-  {
-    version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-    featureKey: STATE_2_FLAG,
-  },
-];
-
 describe('Multichain Accounts Feature Flag', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('assertMultichainAccountsFeatureFlagType', () => {
     it('returns true for valid feature flag type', () => {
       const validFlag = {
@@ -72,80 +32,22 @@ describe('Multichain Accounts Feature Flag', () => {
     });
   });
 
-  describe('isMultichainAccountsRemoteFeatureEnabled - State 1', () => {
-    it('returns false when the feature flag is not defined', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          // @ts-expect-error Testing undefined flag
-          [STATE_1_FLAG]: undefined,
-        },
-        mockState1FeatureVersionsToCheck,
-      );
+  describe('isMultichainAccountsRemoteFeatureEnabled', () => {
+    it('returns false when the feature flag is not available', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled({}, ['1']);
       expect(result).toBe(false);
-    });
-
-    it('returns true when the feature flag meets all conditions', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: state1Mock,
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-      expect(result).toBe(true);
     });
 
     it('returns false when the feature is not enabled', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
-          [STATE_1_FLAG]: disabledStateMock,
-        },
-        mockState1FeatureVersionsToCheck,
-      );
-      expect(result).toBe(false);
-    });
-
-    it('returns false when the feature version does not match', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_1_FLAG]: {
-            ...state1Mock,
-            featureVersion: '3',
+          enableMultichainAccounts: {
+            enabled: false,
+            featureVersion: null,
+            minimumVersion: null,
           },
         },
-        mockState1FeatureVersionsToCheck,
-      );
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isMultichainAccountsRemoteFeatureEnabled - State 2', () => {
-    it('returns false when the feature flag is not defined', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          // @ts-expect-error Testing undefined flag
-          [STATE_2_FLAG]: undefined,
-        },
-        mockState2FeatureVersionsToCheck,
-      );
-      expect(result).toBe(false);
-    });
-
-    it('returns true when the feature flag meets all conditions', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_2_FLAG]: state2Mock,
-        },
-        mockState2FeatureVersionsToCheck,
-      );
-      expect(result).toBe(true);
-    });
-
-    it('returns false when the feature is not enabled', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_2_FLAG]: disabledStateMock,
-        },
-        mockState2FeatureVersionsToCheck,
+        ['1'],
       );
       expect(result).toBe(false);
     });
@@ -153,47 +55,41 @@ describe('Multichain Accounts Feature Flag', () => {
     it('returns false when the feature version does not match', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
-          [STATE_2_FLAG]: {
-            ...state2Mock,
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '2',
+            minimumVersion: '1.0.0',
+          },
+        },
+        ['1'],
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true when the minimum version is met', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          enableMultichainAccounts: {
+            enabled: true,
             featureVersion: '1',
+            minimumVersion: '6.0.0',
           },
         },
-        mockState2FeatureVersionsToCheck,
-      );
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isMultichainAccountsRemoteFeatureEnabled - Local override', () => {
-    it('returns true when the override is enabled', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_2_FLAG]: disabledStateMock,
-        },
-        mockState2FeatureVersionsToCheck,
-        'true',
+        ['1'],
       );
       expect(result).toBe(true);
     });
 
-    it('returns false when the override is disabled', () => {
+    it('returns false when the minimum version is not met', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
-          [STATE_2_FLAG]: disabledStateMock,
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '16.0.0',
+          },
         },
-        mockState2FeatureVersionsToCheck,
-        'false',
-      );
-      expect(result).toBe(false);
-    });
-
-    it('returns false when the override is undefined', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled(
-        {
-          [STATE_2_FLAG]: disabledStateMock,
-        },
-        mockState2FeatureVersionsToCheck,
-        undefined,
+        ['1'],
       );
       expect(result).toBe(false);
     });

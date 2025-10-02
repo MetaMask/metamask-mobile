@@ -5,7 +5,6 @@ import {
 } from '@consensys/on-ramp-sdk';
 import {
   AggregatorNetwork,
-  CryptoCurrency,
   OrderOrderTypeEnum,
   Provider,
   QuoteSortMetadata,
@@ -26,8 +25,6 @@ import {
   isSellFiatOrder,
   getNotificationDetails,
   sortQuotes,
-  getCaipChainIdFromCryptoCurrency,
-  getHexChainIdFromCryptoCurrency,
 } from '.';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
@@ -648,69 +645,5 @@ describe('sortQuotes', () => {
 
   it('should handle undefined sortingArray gracefully', () => {
     expect(sortQuotes(quotes, undefined, QuoteSortBy.price)).toEqual(quotes);
-  });
-});
-
-describe('getCaipChainIdFromCryptoCurrency', () => {
-  it('should return null when cryptoCurrency is null', () => {
-    expect(getCaipChainIdFromCryptoCurrency(null)).toBe(null);
-  });
-
-  it('should return null when cryptoCurrency has no network chainId', () => {
-    const cryptoCurrency = { network: {} } as CryptoCurrency;
-    expect(getCaipChainIdFromCryptoCurrency(cryptoCurrency)).toBe(null);
-  });
-
-  it('should return chainId when already in CAIP format', () => {
-    const cryptoCurrency = {
-      network: { chainId: 'eip155:1' },
-    } as CryptoCurrency;
-    expect(getCaipChainIdFromCryptoCurrency(cryptoCurrency)).toBe('eip155:1');
-  });
-
-  it('should convert decimal chainId to CAIP format', () => {
-    const cryptoCurrency = {
-      network: { chainId: '1' },
-    } as CryptoCurrency;
-    expect(getCaipChainIdFromCryptoCurrency(cryptoCurrency)).toBe('eip155:1');
-  });
-
-  it('should return null for invalid chainId format', () => {
-    const cryptoCurrency = {
-      network: { chainId: 'invalid' },
-    } as CryptoCurrency;
-    expect(getCaipChainIdFromCryptoCurrency(cryptoCurrency)).toBe(null);
-  });
-});
-
-describe('getHexChainIdFromCryptoCurrency', () => {
-  it('should return undefined when cryptoCurrency is null', () => {
-    expect(getHexChainIdFromCryptoCurrency(null)).toBeUndefined();
-  });
-
-  it('should return undefined when cryptoCurrency has no network chainId', () => {
-    const cryptoCurrency = { network: {} } as CryptoCurrency;
-    expect(getHexChainIdFromCryptoCurrency(cryptoCurrency)).toBeUndefined();
-  });
-
-  it('should convert decimal chainId to hex', () => {
-    const cryptoCurrency = {
-      network: { chainId: '1' },
-    } as CryptoCurrency;
-    expect(getHexChainIdFromCryptoCurrency(cryptoCurrency)).toBe('0x1');
-  });
-
-  it('should extract reference from CAIP chainId and convert to hex', () => {
-    const cryptoCurrency = {
-      network: { chainId: 'eip155:137' },
-    } as CryptoCurrency;
-    expect(getHexChainIdFromCryptoCurrency(cryptoCurrency)).toBe('0x89');
-  });
-
-  it('should return undefined for invalid chainId format', () => {
-    const cryptoCurrency = {
-      network: { chainId: 'invalid' },
-    } as CryptoCurrency;
-    expect(getHexChainIdFromCryptoCurrency(cryptoCurrency)).toBeUndefined();
   });
 });

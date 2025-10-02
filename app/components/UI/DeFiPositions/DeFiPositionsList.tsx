@@ -33,13 +33,13 @@ import Icon, {
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
-import { DefiEmptyState } from '../DefiEmptyState';
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
 
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const { styles } = useStyles(styleSheet, undefined);
+
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const currentChainId = useSelector(selectChainId) as Hex;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -137,7 +137,14 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     return (
       <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
         <DeFiPositionsControlBar />
-        <DefiEmptyState twClassName="mx-auto mt-4" />
+        <View style={styles.emptyView}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.no_visible_positions')}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.not_supported')}
+          </Text>
+        </View>
       </View>
     );
   }

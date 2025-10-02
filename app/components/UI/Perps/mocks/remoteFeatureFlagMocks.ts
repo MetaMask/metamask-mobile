@@ -1,4 +1,4 @@
-import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { PerpsLaunchDarklyFlag } from '../types';
 
 const mockEnabledPerpsLDFlag = {
   enabled: true,
@@ -7,7 +7,7 @@ const mockEnabledPerpsLDFlag = {
 
 export const mockedPerpsFeatureFlagsEnabledState: Record<
   string,
-  VersionGatedFeatureFlag
+  PerpsLaunchDarklyFlag
 > = {
   perpsPerpTradingEnabled: mockEnabledPerpsLDFlag,
   perpsPerpTradingServiceInterruptionBannerEnabled: mockEnabledPerpsLDFlag,

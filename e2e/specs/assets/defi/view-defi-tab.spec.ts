@@ -12,7 +12,6 @@ import {
   defiPositionsWithData,
   defiPositionsWithNoData,
 } from '../../../api-mocking/mock-responses/defi-api-mocks';
-import NetworkManager from '../../../pages/wallet/NetworkManager';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
@@ -41,10 +40,10 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
         await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_EMPTY_STATE_DESCRIPTION,
+          WalletViewSelectorsText.DEFI_NO_VISIBLE_POSITIONS,
         );
         await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_EMPTY_STATE_EXPLORE_BUTTON,
+          WalletViewSelectorsText.DEFI_NOT_SUPPORTED,
         );
       },
     );
@@ -116,10 +115,6 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
 
         await WalletView.tapOnDeFiTab();
 
-        await WalletView.tapOnDeFiNetworksFilter();
-        await NetworkManager.tapNetwork('eip155:1');
-        await NetworkManager.closeNetworkManager();
-
         await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
         await Assertions.expectTextDisplayed('Aave V2');
@@ -132,8 +127,7 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.expectTextNotDisplayed('$8.48');
 
         await WalletView.tapOnDeFiNetworksFilter();
-        await NetworkManager.tapSelectAllPopularNetworks();
-        await NetworkManager.closeNetworkManager();
+        await WalletView.tapTokenNetworkFilterAll();
 
         await Assertions.expectTextDisplayed('Aave V2');
         await Assertions.expectTextDisplayed('$14.74');

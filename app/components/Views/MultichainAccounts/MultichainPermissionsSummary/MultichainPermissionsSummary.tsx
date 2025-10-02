@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -65,9 +65,6 @@ import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
-import { RootState } from '../../../../reducers';
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -319,6 +316,36 @@ const MultichainPermissionsSummary = ({
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);
 
+  const getAccountLabel = useCallback(() => {
+    const firstAccountGroup = accountGroups.find((accountGroup) =>
+      selectedAccountGroupIds.includes(accountGroup.id),
+    );
+    if (isAlreadyConnected) {
+      if (selectedAccountGroupIds.length === 1) {
+        return `${strings('permissions.connected_to')} ${
+          firstAccountGroup?.metadata.name
+        }`;
+      }
+
+      return `${selectedAccountGroupIds.length} ${strings(
+        'accounts.accounts_connected',
+      )}`;
+    }
+
+    if (
+      selectedAccountGroupIds.length === 1 &&
+      selectedAccountGroupIds.length >= 1
+    ) {
+      return `${strings('permissions.requesting_for')}${
+        firstAccountGroup?.metadata.name
+      }`;
+    }
+
+    return strings('permissions.requesting_for_accounts', {
+      numberOfAccounts: selectedAccountGroupIds.length,
+    });
+  }, [accountGroups, selectedAccountGroupIds, isAlreadyConnected]);
+
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {
       return networkAvatars.length === 1
@@ -346,19 +373,6 @@ const MultichainPermissionsSummary = ({
         selectedAccountGroupIds.includes(accountGroup.id),
       ),
     [accountGroups, selectedAccountGroupIds],
-  );
-
-  const iconSeedAddresses = useSelector((state: RootState) =>
-    selectIconSeedAddressesByAccountGroupIds(state, selectedAccountGroupIds),
-  );
-
-  const renderAccountAvatar = useCallback(
-    (accountGroup: AccountGroupObject) => ({
-      variant: AvatarVariant.Account as const,
-      accountAddress: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
-      size: AvatarSize.Xs,
-    }),
-    [iconSeedAddresses],
   );
 
   function renderAccountPermissionsRequestInfoCard() {
@@ -390,14 +404,18 @@ const MultichainPermissionsSummary = ({
                   ellipsizeMode="tail"
                 >
                   <TextComponent variant={TextVariant.BodySM}>
-                    {strings('permissions.requesting_for')}
+                    {getAccountLabel()}
                   </TextComponent>
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={selectedAccountGroups.map((accountGroup) =>
-                    renderAccountAvatar(accountGroup),
+                  avatarPropsList={selectedAccountGroups.map(
+                    (accountGroup) => ({
+                      variant: AvatarVariant.Account,
+                      accountAddress: accountGroup.id,
+                      size: AvatarSize.Xs,
+                    }),
                   )}
                 />
               </View>

@@ -3,7 +3,7 @@ import { DeFiPositionsControllerState } from '@metamask/assets-controllers';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { selectLastSelectedEvmAccount } from './accountsController';
+import { selectSelectedInternalAccountAddress } from './accountsController';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
 
 const selectDeFiPositionsControllerState = (state: RootState) =>
@@ -11,33 +11,30 @@ const selectDeFiPositionsControllerState = (state: RootState) =>
 
 export const selectDeFiPositionsByAddress = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
-  selectLastSelectedEvmAccount,
+  selectSelectedInternalAccountAddress,
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
-    _eoaAccounts: ReturnType<typeof selectLastSelectedEvmAccount>,
+    selectedAddress: string | undefined,
   ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined =>
-    defiPositionsControllerState?.allDeFiPositions[
-      _eoaAccounts?.address as Hex
-    ],
+    defiPositionsControllerState?.allDeFiPositions[selectedAddress as Hex],
 );
 
 export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
-  selectLastSelectedEvmAccount,
+  selectSelectedInternalAccountAddress,
   selectEnabledNetworksByNamespace,
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
-    _eoaAccounts: ReturnType<typeof selectLastSelectedEvmAccount>,
+    selectedAddress: string | undefined,
     enabledNetworks: NetworkEnablementControllerState['enabledNetworkMap'],
   ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined => {
-    if (!_eoaAccounts) {
+    if (!selectedAddress) {
       return {};
     }
 
     const defiPositionByAddress =
-      defiPositionsControllerState.allDeFiPositions[
-        _eoaAccounts?.address as Hex
-      ] ?? {};
+      defiPositionsControllerState.allDeFiPositions[selectedAddress as Hex] ??
+      {};
 
     if (Object.keys(defiPositionByAddress).length === 0) {
       return {};

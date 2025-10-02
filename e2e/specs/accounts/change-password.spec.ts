@@ -69,13 +69,13 @@ describe(RegressionAccounts('change password'), () => {
           Matchers.getElementByText('Account 2'),
         );
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('Account 2', 1),
+          Matchers.getElementByText('Account 3'),
         );
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('Account 1', 1),
+          Matchers.getElementByText('Account 4'),
         );
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('QR'),
+          Matchers.getElementByText('QR 1'),
         );
 
         await AccountListBottomSheet.swipeToDismissAccountsModal();
@@ -94,13 +94,13 @@ describe(RegressionAccounts('change password'), () => {
           Matchers.getElementByText('Account 2'),
         );
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('Account 2', 1),
+          Matchers.getElementByText('Account 3'),
         );
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('Account 1', 1),
+          Matchers.getElementByText('Account 4'),
         );
         await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText('QR'),
+          Matchers.getElementByText('QR 1'),
         );
       },
     );

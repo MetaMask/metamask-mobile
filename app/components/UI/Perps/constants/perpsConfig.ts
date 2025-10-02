@@ -97,12 +97,6 @@ export const PERFORMANCE_CONFIG = {
   // Max leverage cache duration (milliseconds)
   // How long to cache max leverage values per asset (leverage rarely changes)
   MAX_LEVERAGE_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
-
-  // Rewards cache durations (milliseconds)
-  // How long to cache fee discount data from rewards API
-  FEE_DISCOUNT_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
-  // How long to cache points calculation parameters from rewards API
-  POINTS_CALCULATION_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 /**
@@ -139,26 +133,6 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations
   LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
   SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
-} as const;
-
-/**
- * HyperLiquid order limits based on leverage
- * From: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/contract-specifications
- */
-export const HYPERLIQUID_ORDER_LIMITS = {
-  // Market orders
-  MARKET_ORDER_LIMITS: {
-    // $15,000,000 for max leverage >= 25
-    HIGH_LEVERAGE: 15_000_000,
-    // $5,000,000 for max leverage in [20, 25)
-    MEDIUM_HIGH_LEVERAGE: 5_000_000,
-    // $2,000,000 for max leverage in [10, 20)
-    MEDIUM_LEVERAGE: 2_000_000,
-    // $500,000 for max leverage < 10
-    LOW_LEVERAGE: 500_000,
-  },
-  // Limit orders are 10x market order limits
-  LIMIT_ORDER_MULTIPLIER: 10,
 } as const;
 
 /**
@@ -207,20 +181,3 @@ export const FUNDING_RATE_CONFIG = {
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
-
-/**
- * Development-only configuration for testing and debugging
- * These constants are only active when __DEV__ is true
- */
-export const DEVELOPMENT_CONFIG = {
-  // Magic number to simulate fee discount state (20% discount)
-  SIMULATE_FEE_DISCOUNT_AMOUNT: 41,
-
-  // Magic number to simulate rewards error state (set order amount to this value)
-  SIMULATE_REWARDS_ERROR_AMOUNT: 42,
-
-  // Magic number to simulate rewards loading state
-  SIMULATE_REWARDS_LOADING_AMOUNT: 43,
-
-  // Future: Add other development helpers as needed
-} as const;

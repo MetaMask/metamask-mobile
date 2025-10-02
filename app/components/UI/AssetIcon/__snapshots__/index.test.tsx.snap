@@ -9,8 +9,10 @@ exports[`AssetIcon should render correctly 1`] = `
   }
   useNativeDriver={true}
 >
-  <View
+  <Image
     fadeIn={true}
+    onError={[Function]}
+    onLoadEnd={[Function]}
     placeholderStyle={
       {
         "backgroundColor": "#f3f5f9",

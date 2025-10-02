@@ -2,7 +2,6 @@ import BigNumber from 'bignumber.js';
 import {
   NestedTransactionMetadata,
   SimulationData,
-  SimulationErrorCode,
   SimulationTokenBalanceChange,
   SimulationTokenStandard,
   TransactionMeta,
@@ -28,7 +27,6 @@ import { Severity } from '../../types/alerts';
 import { ApproveMethod } from '../../types/approve';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { TokenStandard } from '../../../../UI/SimulationDetails/types';
-import { RootState } from '../../../../../reducers';
 
 const TOKEN_ADDRESS_1 = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_ADDRESS_2 = '0x2345678901234567890123456789012345678901' as Hex;
@@ -70,34 +68,13 @@ const unusedApprovalsAlert = [
   },
 ];
 
-function runHook(
-  transactionMeta?: TransactionMeta,
-  preferenceState?: Partial<RootState>,
-) {
-  const state = getAppStateForConfirmation(
-    transactionMeta ?? batchApprovalConfirmation,
-  );
+function runHook(transactionMeta?: TransactionMeta) {
   const { result, rerender } = renderHookWithProvider(
     useBatchedUnusedApprovalsAlert,
     {
-      state: {
-        ...state,
-        engine: {
-          ...state.engine,
-          backgroundState: {
-            ...state.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              ...state.engine.backgroundState.RemoteFeatureFlagController,
-              remoteFeatureFlags: {
-                ...state.engine.backgroundState.RemoteFeatureFlagController
-                  .remoteFeatureFlags,
-                nonZeroUnusedApprovals: ['https://allowed-origin.com'],
-              },
-            },
-            ...preferenceState,
-          },
-        },
-      },
+      state: getAppStateForConfirmation(
+        transactionMeta ?? batchApprovalConfirmation,
+      ),
     },
   );
   return { result, rerender };
@@ -683,117 +660,6 @@ describe('useBatchedUnusedApprovalsAlert', () => {
 
       await waitFor(() => {
         expect(result.current).toEqual(unusedApprovalsAlert);
-      });
-    });
-  });
-
-  describe('simulation errors', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
-        .mockReturnValue({
-          name: ApproveMethod.APPROVE,
-          amountOrTokenId: new BigNumber('1000'),
-          tokenAddress: undefined,
-          isRevokeAll: false,
-        });
-    });
-    it('does not show alert when simulation is disabled via preferences', async () => {
-      const { result } = runHook(
-        { ...batchApprovalConfirmation, simulationData: undefined },
-        {
-          PreferencesController: { useTransactionSimulations: false },
-        } as unknown as Partial<RootState>,
-      );
-      await waitFor(() => {
-        expect(result.current).toEqual([]);
-      });
-    });
-
-    it.each([
-      SimulationErrorCode.ChainNotSupported,
-      SimulationErrorCode.Disabled,
-    ])(
-      'does not show alert when simulation returned error %s',
-      async (errorCode) => {
-        const simulationData: SimulationData = {
-          error: { code: errorCode },
-        } as SimulationData;
-
-        const { result } = runHook({
-          ...batchApprovalConfirmation,
-          simulationData,
-        });
-
-        await waitFor(() => {
-          expect(result.current).toEqual([]);
-        });
-      },
-    );
-
-    it('shows alert when simulation is enabled and supported', async () => {
-      const simulationData: SimulationData = {
-        tokenBalanceChanges: [{ address: TOKEN_ADDRESS_1, isDecrease: true }],
-      } as SimulationData;
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        simulationData,
-      });
-      await waitFor(() => {
-        expect(result.current).toEqual(unusedApprovalsAlert);
-      });
-    });
-  });
-
-  describe('Non zero unused approvals', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
-        .mockReturnValue({
-          name: ApproveMethod.APPROVE,
-          amountOrTokenId: new BigNumber('1000'),
-          tokenAddress: undefined,
-          isRevokeAll: false,
-        });
-    });
-
-    it('does not show alert when origin is in the allow list', async () => {
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        origin: 'https://allowed-origin.com',
-      });
-      await waitFor(() => {
-        expect(result.current).toEqual([]);
-      });
-    });
-
-    it('shows alert when origin is not in the allow list', async () => {
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        origin: 'https://not-allowed-origin.com',
-      });
-      await waitFor(() => {
-        expect(result.current).toEqual(unusedApprovalsAlert);
-      });
-    });
-
-    it('shows alert when allow list is empty', async () => {
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        origin: 'https://not-allowed-origin.com',
-      });
-      await waitFor(() => {
-        expect(result.current).toEqual(unusedApprovalsAlert);
-      });
-    });
-
-    it('does not show alert when origin is undefined', async () => {
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        origin: undefined,
-      });
-      await waitFor(() => {
-        expect(result.current).toEqual([]);
       });
     });
   });

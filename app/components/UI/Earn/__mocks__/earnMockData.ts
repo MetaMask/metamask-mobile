@@ -1,7 +1,7 @@
 import { EarnControllerState } from '@metamask/earn-controller';
+import { EarnLaunchDarklyFlag } from '../selectors/featureFlags/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { hexToDecimal } from '../../../../util/conversions';
-import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 const mockEnabledEarnLDFlag = {
   enabled: true,
@@ -10,7 +10,7 @@ const mockEnabledEarnLDFlag = {
 
 const mockedPooledStakingFeatureFlagState: Record<
   string,
-  VersionGatedFeatureFlag
+  EarnLaunchDarklyFlag
 > = {
   earnPooledStakingEnabled: mockEnabledEarnLDFlag,
   earnPooledStakingServiceInterruptionBannerEnabled: mockEnabledEarnLDFlag,
@@ -18,7 +18,7 @@ const mockedPooledStakingFeatureFlagState: Record<
 
 const mockedStablecoinLendingFeatureFlagState: Record<
   string,
-  VersionGatedFeatureFlag
+  EarnLaunchDarklyFlag
 > = {
   earnStablecoinLendingEnabled: mockEnabledEarnLDFlag,
   earnStablecoinLendingServiceInterruptionBannerEnabled: mockEnabledEarnLDFlag,

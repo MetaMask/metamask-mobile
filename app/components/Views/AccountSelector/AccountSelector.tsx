@@ -26,8 +26,6 @@ import {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
@@ -56,14 +54,6 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
-import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
-import { ActivityIndicator } from 'react-native';
-import { Box } from '../../UI/Box/Box';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../UI/Box/box.types';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -88,28 +78,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const {
-    isAccountSyncingInProgress,
-    loadingMessage: accountOperationLoadingMessage,
-  } = useAccountsOperationsLoadingStates();
-
   useSyncSRPs();
-
-  const buttonLabel = useMemo(() => {
-    if (isAccountSyncingInProgress) {
-      return accountOperationLoadingMessage;
-    }
-
-    if (isMultichainAccountsState2Enabled) {
-      return strings('multichain_accounts.add_wallet');
-    }
-
-    return strings('account_actions.add_account_or_hardware_wallet');
-  }, [
-    isAccountSyncingInProgress,
-    accountOperationLoadingMessage,
-    isMultichainAccountsState2Enabled,
-  ]);
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
@@ -131,9 +100,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
-  const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
-    useState(false);
-
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -225,38 +191,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => [
       {
         variant: ButtonVariants.Secondary,
-        isDisabled: isAccountSyncingInProgress,
-        label: (
-          <Box
-            alignItems={AlignItems.center}
-            justifyContent={JustifyContent.center}
-            flexDirection={FlexDirection.Row}
-            gap={8}
-          >
-            {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
-            <Text
-              variant={
-                isMultichainAccountsState2Enabled
-                  ? TextVariant.BodyMDBold
-                  : TextVariant.BodyMD
-              }
-            >
-              {buttonLabel}
-            </Text>
-          </Box>
-        ),
+        label: isMultichainAccountsState2Enabled
+          ? strings('multichain_accounts.add_wallet')
+          : strings('account_actions.add_account_or_hardware_wallet'),
         size: ButtonSize.Lg,
         width: ButtonWidthTypes.Full,
         onPress: handleAddAccount,
         testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       },
     ],
-    [
-      handleAddAccount,
-      isMultichainAccountsState2Enabled,
-      buttonLabel,
-      isAccountSyncingInProgress,
-    ],
+    [handleAddAccount, isMultichainAccountsState2Enabled],
   );
 
   const renderAccountSelector = useCallback(
@@ -268,7 +212,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             onSelectAccount={_onSelectMultichainAccount}
             selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
           />
         ) : (
           <EvmAccountSelectorList
@@ -335,7 +278,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       style={styles.bottomSheetContent}
       ref={sheetRef}
       onOpen={onOpen}
-      keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
+      keyboardAvoidingViewEnabled={false}
     >
       {renderAccountScreens()}
     </BottomSheet>

@@ -1,9 +1,6 @@
-import { useCallback, useRef, useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
@@ -11,7 +8,7 @@ export interface UsePointsEventsOptions {
 }
 
 export interface UsePointsEventsResult {
-  pointsEvents: PointsEventDto[] | null;
+  pointsEvents: PointsEventDto[];
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -25,33 +22,20 @@ export const usePointsEvents = (
   options: UsePointsEventsOptions,
 ): UsePointsEventsResult => {
   const { seasonId, subscriptionId } = options;
-  const activeTab = useSelector(selectActiveTab);
 
-  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[] | null>(
-    null,
-  );
+  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[]>([]);
   const [isLoading, setIsLoading] = useState(!!seasonId && !!subscriptionId);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null);
-  const isLoadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPointsEvents = useCallback(
-    async ({
-      isInitial,
-      currentCursor = null,
-      forceFresh = false,
-    }: {
-      isInitial: boolean;
-      currentCursor?: string | null;
-      forceFresh?: boolean;
-    }) => {
-      if (isLoadingRef.current) {
-        return;
-      }
-      isLoadingRef.current = true;
+    async (
+      isInitial: boolean,
+      currentCursor: string | null = null,
+    ): Promise<void> => {
       if (isInitial) {
         setIsLoading(true);
         setError(null);
@@ -60,25 +44,20 @@ export const usePointsEvents = (
       }
 
       try {
-        if (!seasonId || !subscriptionId) return;
+        if (!seasonId) return;
         const pointsEventsData = await Engine.controllerMessenger.call(
           'RewardsController:getPointsEvents',
           {
             seasonId,
             subscriptionId,
             cursor: currentCursor,
-            forceFresh,
           },
         );
 
         if (isInitial) {
           setPointsEvents(pointsEventsData.results);
         } else {
-          setPointsEvents((prev) =>
-            prev
-              ? [...prev, ...pointsEventsData.results]
-              : pointsEventsData.results,
-          );
+          setPointsEvents((prev) => [...prev, ...pointsEventsData.results]);
         }
 
         setCursor(pointsEventsData.cursor);
@@ -93,7 +72,6 @@ export const usePointsEvents = (
           setPointsEvents([]);
         }
       } finally {
-        isLoadingRef.current = false;
         if (isInitial) {
           setIsLoading(false);
         } else {
@@ -106,10 +84,7 @@ export const usePointsEvents = (
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && hasMore && cursor) {
-      fetchPointsEvents({
-        isInitial: false,
-        currentCursor: cursor,
-      });
+      fetchPointsEvents(false, cursor);
     }
   }, [isLoadingMore, hasMore, cursor, fetchPointsEvents]);
 
@@ -117,29 +92,16 @@ export const usePointsEvents = (
     setIsRefreshing(true);
     setCursor(null);
     setHasMore(true);
-    await fetchPointsEvents({
-      isInitial: true,
-      forceFresh: true,
-    });
+    await fetchPointsEvents(true);
     setIsRefreshing(false);
   }, [fetchPointsEvents]);
 
-  // Listen for activeTab changes to refresh when switching to activity tab
+  // Initial data fetch
   useEffect(() => {
-    if (activeTab === 'activity') {
-      fetchPointsEvents({ isInitial: true });
+    if (seasonId && subscriptionId) {
+      fetchPointsEvents(true);
     }
-  }, [activeTab, fetchPointsEvents]);
-
-  // Listen for reward claimed events to trigger refetch
-  useInvalidateByRewardEvents(
-    [
-      'RewardsController:accountLinked',
-      'RewardsController:rewardClaimed',
-      'RewardsController:pointsEventsUpdated',
-    ],
-    refresh,
-  );
+  }, [seasonId, subscriptionId, fetchPointsEvents]);
 
   return {
     pointsEvents,

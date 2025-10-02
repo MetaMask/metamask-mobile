@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Icon, {
+import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
@@ -147,15 +148,15 @@ export const Amount = () => {
           </View>
         </View>
         {conversionSupportedForAsset && (
-          <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
-            <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
-              <Icon
-                color={IconColor.Alternative}
-                name={IconName.SwapVertical}
-              />
-            </TagBase>
-          </TouchableOpacity>
+          <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
+            <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+            <ButtonIcon
+              iconColor={IconColor.Alternative}
+              iconName={IconName.SwapVertical}
+              onPress={toggleFiatMode}
+              testID="fiat_toggle"
+            />
+          </TagBase>
         )}
       </View>
       <View>

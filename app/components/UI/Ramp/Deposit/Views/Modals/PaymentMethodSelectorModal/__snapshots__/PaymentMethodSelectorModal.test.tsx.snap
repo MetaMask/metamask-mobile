@@ -536,8 +536,8 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                   "duration": "instant",
                                   "icon": "Apple",
                                   "iconColor": {
-                                    "dark": "var(--color-icon-default)",
-                                    "light": "var(--color-icon-default)",
+                                    "dark": "#FFFFFF",
+                                    "light": "#000000",
                                   },
                                   "id": "apple_pay",
                                   "name": "Apple Pay",
@@ -797,7 +797,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           }
                                         >
                                           <SvgMock
-                                            color="var(--color-icon-default)"
+                                            color="#000000"
                                             fill="currentColor"
                                             height={20}
                                             name="Apple"

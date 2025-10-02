@@ -26,9 +26,9 @@ const GetStarted: React.FC = () => {
     getStarted,
     setGetStarted,
     sdkError,
+    selectedChainId,
     isBuy,
     setIntent,
-    selectedAsset,
   } = useRampSDK();
   const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
@@ -38,21 +38,18 @@ const GetStarted: React.FC = () => {
   const { colors } = useTheme();
 
   const handleCancelPress = useCallback(() => {
-    const chainId = selectedAsset?.network?.chainId;
-    if (!chainId) return;
-
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_destination: chainId,
+        chain_id_destination: selectedChainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_source: chainId,
+        chain_id_source: selectedChainId,
       });
     }
-  }, [isBuy, trackEvent, selectedAsset]);
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     if (params) {
@@ -87,6 +84,21 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     if (getStarted) {
+      // Redirects to Network Switcher view if the current network is not supported by Ramp
+      // or if the chainId from the URL params doesn't match the selected chainId.
+      // The Network Switcher handles adding or switching to the network specified in the URL params
+      // and continues the intent with any additional params (like token and amount).
+      if (
+        !isNetworkRampSupported ||
+        (params?.chainId && params.chainId !== selectedChainId)
+      ) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
+        });
+        return;
+      }
+
       if (selectedRegion) {
         navigation.reset({
           index: 0,
@@ -97,9 +109,21 @@ const GetStarted: React.FC = () => {
             },
           ],
         });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
+        });
       }
     }
-  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);
+  }, [
+    getStarted,
+    isNetworkRampSupported,
+    navigation,
+    selectedChainId,
+    selectedRegion,
+    params,
+  ]);
 
   if (sdkError) {
     return (

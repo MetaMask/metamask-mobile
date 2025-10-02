@@ -11,10 +11,6 @@ import {
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
 import { Mockttp } from 'mockttp';
-import {
-  USER_STORAGE_GROUPS_FEATURE_KEY,
-  USER_STORAGE_WALLETS_FEATURE_KEY,
-} from '@metamask/account-tree-controller';
 
 export interface IdentityFixtureOptions {
   fixture?: object;
@@ -25,7 +21,6 @@ export interface IdentityFixtureOptions {
   >;
   sharedUserStorageController?: UserStorageMockttpController;
   mockBalancesAccounts?: string[];
-  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
 }
 
 export interface IdentityTestContext {
@@ -44,8 +39,6 @@ export async function withIdentityFixtures(
     userStorageFeatures = [
       USER_STORAGE_FEATURE_NAMES.accounts,
       USER_STORAGE_FEATURE_NAMES.addressBook,
-      USER_STORAGE_GROUPS_FEATURE_KEY,
-      USER_STORAGE_WALLETS_FEATURE_KEY,
     ],
     userStorageOverrides,
     sharedUserStorageController,
@@ -67,10 +60,6 @@ export async function withIdentityFixtures(
     for (const feature of userStorageFeatures) {
       const overrides = userStorageOverrides?.[feature] || {};
       await userStorageController.setupPath(feature, mockServer, overrides);
-    }
-
-    if (options.testSpecificMock) {
-      await options.testSpecificMock(mockServer);
     }
   };
 

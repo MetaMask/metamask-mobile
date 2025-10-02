@@ -404,7 +404,7 @@
     "show": "Hiển thị",
     "hide": "Ẩn",
     "seed_phrase": "Cụm từ khôi phục bí mật",
-    "must_be_at_least": "Phải dài ít nhất {{number}} ký tự",
+    "must_be_at_least": "Mật khẩu phải có ít nhất {{number}} ký tự",
     "remember_me": "Ghi nhớ",
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "Không đủ tiền",
         "insufficient_balance": "Số dư không đủ. Yêu cầu: ${{required}}, Khả dụng: ${{available}}",
         "invalid_leverage": "Đòn bẩy phải nằm trong khoảng từ x{{min}} đến x{{max}}",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Đòn bẩy cao làm tăng rủi ro bị thanh lý",
         "invalid_take_profit": "Điểm Chốt lời phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
         "invalid_stop_loss": "Điểm Cắt lỗ phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "Giá giới hạn thấp hơn giá hiện tại"
       },
       "leverage_modal": {
-        "title": "Đòn bẩy",
+        "title": "Leverage",
         "confirm": "Xác nhận",
         "entry_price": "Giá vào lệnh",
         "current_price": "Giá hiện tại",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "Chốt lời và cắt lỗ",
       "description": "Chọn phần trăm lãi hoặc lỗ, hoặc nhập giá kích hoạt tùy chỉnh để tự động đóng vị thế của bạn.",
+      "set": "Đặt",
+      "updating": "Đang cập nhật...",
       "off": "Tắt",
       "current_price": "Giá hiện tại",
       "entry_price": "Giá vào lệnh",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "Giá cắt lỗ {{direction}} giá thanh lý",
       "above": "cao hơn",
       "below": "thấp hơn",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Đóng"
     },
     "token_selector": {
       "no_tokens": "Không có token khả dụng"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "Không thể tải dữ liệu thị trường",
     "tap_to_retry": "Nhấn để thử lại",
     "search_by_token_symbol": "Tìm kiếm theo biểu tượng token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Mạng thử nghiệm",
     "mainnet": "Mạng chính thức",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có Token nào!",
     "show_tokens_without_balance": "Hiển thị token không kèm số dư",
+    "no_nfts_yet": "Chưa có NFT",
     "nfts_autodetection_title": "Phát hiện NFT",
     "nfts_autodetection_desc": "Cho phép MetaMask tự động phát hiện và hiển thị NFT trong ví của bạn.",
     "network_details_check": "Kiểm tra thông tin mạng",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Giới thiệu bạn bè",
         "share_referral_subject": "Tham gia MetaMask Phần thưởng"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

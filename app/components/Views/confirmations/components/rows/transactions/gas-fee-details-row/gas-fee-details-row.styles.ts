@@ -34,13 +34,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    gasFeeTokenContainer: {
-      flexDirection: 'row',
-    },
-    gasFeeTokenText: {
-      textAlign: 'left',
-      flex: 1,
-    },
   });
 };
 

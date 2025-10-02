@@ -53,14 +53,6 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonItemRows: {
       flex: 1,
     },
-    tokensList: {
-      marginTop: 10,
-    },
-    searchInput: {
-      borderRadius: 12,
-      borderWidth: 0,
-      backgroundColor: theme.colors.background.section,
-    },
   });
 };
 
@@ -133,7 +125,7 @@ export const BridgeTokenSelectorBase: React.FC<
   title,
   scrollResetKey,
 }) => {
-  const { styles, theme } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles, {});
   const {
     searchString,
     setSearchString,
@@ -211,8 +203,6 @@ export const BridgeTokenSelectorBase: React.FC<
       return tokensToRenderWithSearch;
     }, [pending, tokensToRenderWithSearch]);
 
-  const placeholderTextColor = theme.colors.text.alternative;
-
   return (
     <BottomSheet
       ref={sheetRef}
@@ -228,7 +218,7 @@ export const BridgeTokenSelectorBase: React.FC<
         </Text>
       </BottomSheetHeader>
 
-      <Box style={styles.buttonContainer} gap={20}>
+      <Box style={styles.buttonContainer} gap={16}>
         {networksBar}
 
         <TextFieldSearch
@@ -236,15 +226,12 @@ export const BridgeTokenSelectorBase: React.FC<
           onChangeText={handleSearchTextChange}
           placeholder={strings('swaps.search_token')}
           testID="bridge-token-search-input"
-          style={styles.searchInput}
-          placeholderTextColor={placeholderTextColor}
         />
       </Box>
 
       {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
       <View>
         <ListComponent
-          style={styles.tokensList}
           key={scrollResetKey}
           data={
             shouldRenderOverallLoading

@@ -105,4 +105,28 @@ describe('useInitialDestToken', () => {
       );
     });
   });
+
+  it('should not set dest token when source token address matches default token address', () => {
+    const matchingSourceToken: BridgeToken = {
+      ...mockSourceToken,
+      address: DefaultSwapDestTokens[SolScope.Mainnet].address,
+    };
+
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
+    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
+
+    renderHookWithProvider(() => useInitialDestToken(matchingSourceToken), {
+      state: initialState,
+    });
+
+    expect(setDestToken).toHaveBeenCalledWith({
+      address: '0x456',
+      symbol: 'NATIVE',
+      decimals: 18,
+      name: 'Native Token',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
+  });
 });

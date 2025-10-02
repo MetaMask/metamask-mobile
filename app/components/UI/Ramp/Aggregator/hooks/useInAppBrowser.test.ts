@@ -44,10 +44,8 @@ const mockUseRampSDKInitialValues: DeepPartial<RampSDK> = {
   selectedPaymentMethodId: 'mocked-payment-method-id',
   selectedAsset: {
     symbol: 'mocked-asset-symbol',
-    network: {
-      chainId: '56',
-    },
   },
+  selectedChainId: '56',
   isBuy: true,
 };
 
@@ -176,12 +174,9 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('uses selectedAsset network chainId when available', async () => {
+    it('falls back to selectedChainId when selectedAsset network is not available', async () => {
       mockUseRampSDKValues.selectedAsset = {
         symbol: 'USDC',
-        network: {
-          chainId: '56',
-        },
       };
 
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
@@ -491,7 +486,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).toHaveBeenCalled();
     });
 
-    it('creates transformed order with network from aggregatorOrderToFiatOrder', async () => {
+    it('creates transformed order with network from aggregatorOrderToFiatOrder, not selectedChainId', async () => {
       const mockOrder = {
         id: 'test-order-id',
         status: OrderStatusEnum.Pending,
@@ -533,65 +528,6 @@ describe('useInAppBrowser', () => {
       await result.current(buyAction, testProvider);
 
       expect(mockLoggerError).toHaveBeenCalled();
-    });
-
-    it('logs error and returns early when chainId is not available', async () => {
-      mockUseRampSDKValues.selectedAsset = {
-        symbol: 'USDC',
-        network: {
-          chainId: undefined,
-        },
-      };
-
-      const mockLoggerError = jest.spyOn(Logger, 'error');
-
-      const { result } = renderHookWithProvider(() => useInAppBrowser(), {
-        state: defaultState,
-      });
-
-      await result.current(buyAction, testProvider);
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        new Error('No chainId available for selected asset'),
-      );
-      expect(buyAction.createWidget).not.toHaveBeenCalled();
-    });
-
-    it('logs error and returns early when selectedAsset network is not available', async () => {
-      mockUseRampSDKValues.selectedAsset = {
-        symbol: 'USDC',
-        network: undefined,
-      };
-
-      const mockLoggerError = jest.spyOn(Logger, 'error');
-
-      const { result } = renderHookWithProvider(() => useInAppBrowser(), {
-        state: defaultState,
-      });
-
-      await result.current(buyAction, testProvider);
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        new Error('No chainId available for selected asset'),
-      );
-      expect(buyAction.createWidget).not.toHaveBeenCalled();
-    });
-
-    it('logs error and returns early when selectedAddress is not available', async () => {
-      mockUseRampSDKValues.selectedAddress = undefined;
-
-      const mockLoggerError = jest.spyOn(Logger, 'error');
-
-      const { result } = renderHookWithProvider(() => useInAppBrowser(), {
-        state: defaultState,
-      });
-
-      await result.current(buyAction, testProvider);
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        new Error('No address available for selected asset'),
-      );
-      expect(buyAction.createWidget).not.toHaveBeenCalled();
     });
   });
 });

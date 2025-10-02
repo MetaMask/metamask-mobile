@@ -1,18 +1,18 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { RegressionAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
-import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
+import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
@@ -22,7 +22,7 @@ const IMPORTED_ACCOUNT_INDEX = 1;
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    remoteFeatureMultichainAccountsAccountDetailsV2(true),
+    remoteFeatureMultichainAccountsAccountDetails(false),
   );
 };
 
@@ -42,35 +42,17 @@ describe(RegressionAccounts('Change Account Name'), () => {
         // Open account actions and edit account name
         await TabBarComponent.tapWallet();
         await WalletView.tapIdenticon();
-
-        // Tap the V2 ellipsis button (3-dot menu) for the main account
-        await AccountListBottomSheet.tapAccountEllipsisButtonV2(
+        await AccountListBottomSheet.tapEditAccountActionsAtIndex(
           MAIN_ACCOUNT_INDEX,
         );
-        // V2 flow: Now goes directly to AccountDetails sheet
-        await AccountDetails.tapEditAccountName();
+        await AccountActionsBottomSheet.tapEditAccount();
+        await EditAccountNameView.updateAccountName(NEW_ACCOUNT_NAME);
+        await EditAccountNameView.tapSave();
 
-        await EditAccountName.updateAccountName(NEW_ACCOUNT_NAME);
-        await EditAccountName.tapSave();
-
-        // Navigate back to wallet view
-        await AccountDetails.tapBackButton();
-        // In the new flow, tapping back might already dismiss the modal
-        // Try to dismiss only if the modal is still visible
-        try {
-          await AccountListBottomSheet.dismissAccountListModalV2();
-        } catch (error) {
-          // Modal might already be dismissed, continue with test
-          console.log('Modal already dismissed or not found, continuing...');
-        }
-
-        // Verify updated name appears in wallet view
+        // Verify updated name
         await Assertions.expectElementToHaveText(
           WalletView.accountName,
           NEW_ACCOUNT_NAME,
-          {
-            description: 'verify account name was updated in wallet view',
-          },
         );
 
         // Lock wallet
@@ -106,40 +88,24 @@ describe(RegressionAccounts('Change Account Name'), () => {
         await loginToApp();
         // Open account actions bottom sheet and choose imported account
         await WalletView.tapIdenticon();
-
-        // Tap the V2 ellipsis button (3-dot menu) for the main account
-        await AccountListBottomSheet.tapAccountEllipsisButtonV2(
+        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(
           IMPORTED_ACCOUNT_INDEX,
         );
 
-        // V2 flow: Now goes directly to AccountDetails sheet
-        await AccountDetails.tapEditAccountName();
-
-        await EditAccountName.updateAccountName(NEW_IMPORTED_ACCOUNT_NAME);
-        await EditAccountName.tapSave();
-
-        // Navigate back to wallet view
-        await AccountDetails.tapBackButton();
-        await AccountListBottomSheet.tapAccountByNameV2(
-          NEW_IMPORTED_ACCOUNT_NAME,
+        // Edit imported account name
+        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapEditAccountActionsAtIndex(
+          IMPORTED_ACCOUNT_INDEX,
         );
+        await AccountActionsBottomSheet.tapEditAccount();
 
-        // In the new flow, tapping back might already dismiss the modal
-        // Try to dismiss only if the modal is still visible
-        try {
-          await AccountListBottomSheet.dismissAccountListModalV2();
-        } catch (error) {
-          // Modal might already be dismissed, continue with test
-          console.log('Modal already dismissed or not found, continuing...');
-        }
+        await EditAccountNameView.updateAccountName(NEW_IMPORTED_ACCOUNT_NAME);
+        await EditAccountNameView.tapSave();
 
         // Verify updated name
         await Assertions.expectElementToHaveText(
           WalletView.accountName,
           NEW_IMPORTED_ACCOUNT_NAME,
-          {
-            description: 'verify account name was updated in wallet view',
-          },
         );
 
         // Lock wallet

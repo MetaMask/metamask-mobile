@@ -1,14 +1,8 @@
-import { useContext } from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import ClipboardManager from '../../../core/ClipboardManager';
-import {
-  act,
-  fireEvent,
-  userEvent,
-  waitFor,
-} from '@testing-library/react-native';
+import { act, fireEvent, userEvent } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
 import {
   MOCK_HD_ACCOUNTS,
@@ -18,23 +12,14 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-import {
-  ImportNewSecretRecoveryPhraseOptions,
-  ImportNewSecretRecoveryPhraseReturnType,
-} from '../../../actions/multiSrp';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
-import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockLockAccountSyncing = jest.fn();
+const mockUnlockAccountSyncing = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
-const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(true);
-const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -49,8 +34,13 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../actions/multiSrp', () => ({
   ...jest.requireActual('../../../actions/multiSrp'),
-  importNewSecretRecoveryPhrase: (...args: unknown[]) =>
-    mockImportNewSecretRecoveryPhrase(...args),
+  importNewSecretRecoveryPhrase: (srp: string) =>
+    mockImportNewSecretRecoveryPhrase(srp),
+}));
+
+jest.mock('../../../actions/identity', () => ({
+  lockAccountSyncing: () => mockLockAccountSyncing(),
+  unlockAccountSyncing: () => mockUnlockAccountSyncing(),
 }));
 
 jest.mock('../../../core', () => ({
@@ -68,16 +58,6 @@ jest.mock('../../../core/ClipboardManager', () => ({
 jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   __esModule: true,
   default: jest.fn(),
-}));
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
-}));
-
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn(),
 }));
 
 const valid12WordMnemonic =
@@ -130,44 +110,11 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
 describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
 
-    (useContext as jest.Mock).mockImplementation((context) => {
-      if (context === ToastContext) {
-        return {
-          toastRef: {
-            current: {
-              showToast: mockShowToast,
-              closeToast: jest.fn(),
-            },
-          },
-        };
-      }
-      return jest.requireActual('react').useContext(context);
+    mockImportNewSecretRecoveryPhrase.mockResolvedValue({
+      address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
+      discoveredAccountsCount: 3,
     });
-
-    mockImportNewSecretRecoveryPhrase.mockImplementation(
-      (
-        _srp: string,
-        _options: ImportNewSecretRecoveryPhraseOptions,
-        callback?: (options: ImportNewSecretRecoveryPhraseReturnType) => void,
-      ) => {
-        // Simulate the async callback behavior
-        if (callback) {
-          // Use Promise.resolve().then() to ensure proper async execution
-          Promise.resolve().then(() => {
-            callback({
-              address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
-              discoveredAccountsCount: 3,
-            });
-          });
-        }
-        return Promise.resolve({
-          address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
-          discoveredAccountsCount: 0, // Returns 0 immediately for multichain accounts state 2
-        });
-      },
-    );
 
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -201,8 +148,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid12WordMnemonic,
-      undefined,
-      expect.any(Function),
     );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
@@ -239,8 +184,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
     );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
@@ -265,8 +208,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
     );
   });
 
@@ -290,8 +231,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
     );
   });
   it('imports valid SRP', async () => {
@@ -304,8 +243,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
     );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
@@ -329,60 +266,14 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
   });
 
-  it('(state 2) - tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+  it('locks and unlocks account syncing on import', async () => {
     const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
       valid24WordMnemonic,
     );
-
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     await fireEvent.press(importButton);
-
-    // Check that the import function was called with the correct parameters
-    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
-      valid24WordMnemonic,
-      undefined,
-      expect.any(Function),
-    );
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        )
-          .addProperties({
-            number_of_solana_accounts_discovered: 3,
-          })
-          .build(),
-      );
-    });
-  });
-
-  it('displays success toast after successful SRP import', async () => {
-    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
-      valid24WordMnemonic,
-    );
-
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
-    });
-
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        {
-          label: 'Wallet 2 imported',
-        },
-      ],
-      iconName: IconName.Check,
-      hasNoTimeout: false,
-    });
+    expect(mockLockAccountSyncing).toHaveBeenCalledTimes(1);
+    expect(mockUnlockAccountSyncing).toHaveBeenCalledTimes(1);
   });
 
   describe('errors', () => {

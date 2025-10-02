@@ -4,7 +4,6 @@ import {
   BtcScope,
   SolAccountType,
   SolScope,
-  TrxScope,
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
@@ -19,9 +18,6 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [SolScope.Mainnet]: imageIcons.SOLANA,
   [SolScope.Devnet]: imageIcons.SOLANA,
   [SolScope.Testnet]: imageIcons.SOLANA,
-  [TrxScope.Mainnet]: imageIcons.TRON,
-  [TrxScope.Nile]: imageIcons.TRON,
-  [TrxScope.Shasta]: imageIcons.TRON,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
@@ -62,21 +58,6 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     url: 'https://solscan.io',
     address: 'https://solscan.io/account/{address}?cluster=testnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
-  },
-  [TrxScope.Mainnet]: {
-    url: 'https://tronscan.org/',
-    address: 'https://tronscan.org/#/address/{address}',
-    transaction: 'https://tronscan.org/#/transaction/{txId}',
-  },
-  [TrxScope.Nile]: {
-    url: 'https://nile.tronscan.org/',
-    address: 'https://nile.tronscan.org/#/address/{address}',
-    transaction: 'https://nile.tronscan.org/#/transaction/{txId}',
-  },
-  [TrxScope.Shasta]: {
-    url: 'https://shasta.tronscan.org/',
-    address: 'https://shasta.tronscan.org/#/address/{address}',
-    transaction: 'https://shasta.tronscan.org/#/transaction/{txId}',
   },
 } as const;
 

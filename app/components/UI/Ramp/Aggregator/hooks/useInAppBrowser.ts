@@ -20,8 +20,13 @@ import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
 import Device from '../../../../../util/device';
 
 export default function useInAppBrowser() {
-  const { selectedPaymentMethodId, selectedAsset, selectedAddress, isBuy } =
-    useRampSDK();
+  const {
+    selectedAddress,
+    selectedPaymentMethodId,
+    selectedAsset,
+    selectedChainId,
+    isBuy,
+  } = useRampSDK();
 
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
@@ -37,16 +42,6 @@ export default function useInAppBrowser() {
       amount?: number,
       fiatSymbol?: string,
     ) => {
-      if (!selectedAsset?.network?.chainId) {
-        Logger.error(new Error('No chainId available for selected asset'));
-        return;
-      }
-
-      if (!selectedAddress) {
-        Logger.error(new Error('No address available for selected asset'));
-        return;
-      }
-
       const deeplinkRedirectUrl = `${callbackBaseDeeplink}on-ramp${provider.id}`;
       const { url, orderId: customOrderId } = await buyAction.createWidget(
         deeplinkRedirectUrl,
@@ -57,7 +52,7 @@ export default function useInAppBrowser() {
       if (customOrderId) {
         customIdData = createCustomOrderIdData(
           customOrderId,
-          selectedAsset.network.chainId,
+          selectedAsset?.network?.chainId || selectedChainId,
           selectedAddress,
           isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
         );
@@ -75,7 +70,7 @@ export default function useInAppBrowser() {
           if (result.type !== 'success' || !result.url) {
             trackEvent('ONRAMP_PURCHASE_CANCELLED', {
               amount: amount as number,
-              chain_id_destination: selectedAsset?.network?.chainId,
+              chain_id_destination: selectedChainId,
               currency_destination: isBuy
                 ? (selectedAsset?.symbol as string)
                 : (fiatSymbol as string),
@@ -143,8 +138,9 @@ export default function useInAppBrowser() {
       handleSuccessfulOrder,
       isBuy,
       lockTime,
-      selectedAsset,
       selectedAddress,
+      selectedAsset,
+      selectedChainId,
       selectedPaymentMethodId,
       trackEvent,
     ],

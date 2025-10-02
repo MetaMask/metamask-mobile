@@ -70,6 +70,9 @@ import {
 
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
 
 const trackEvent = (event, params = {}) => {
@@ -1847,6 +1850,8 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
+  const leftAction = () => navigation.pop();
+
   return {
     headerTitle: () => (
       <NavbarTitle
@@ -1856,14 +1861,20 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: null,
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => navigation.dangerouslyGetParent()?.pop()}
         style={styles.closeButton}
       >
-        <Icon name={IconName.Close} size={IconSize.Lg} />
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
@@ -2040,7 +2051,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title = '', showBack = true, showCancel = true, showNetwork = false } = {},
+  { title, showBack = true, showCancel = true, showNetwork = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -2341,39 +2352,6 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
-    ),
-  };
-}
-
-/**
- * Function that returns the navigation options for the Address List screen
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @param {string} title - Title in string format
- * @param {string} testID - Test ID for the back button
- * @returns {Object} - Corresponding navbar options
- */
-export function getAddressListNavbarOptions(navigation, title, testID) {
-  const innerStyles = StyleSheet.create({
-    headerLeft: {
-      marginHorizontal: 8,
-    },
-  });
-  return {
-    headerTitleAlign: 'center',
-    headerTitle: () => (
-      <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
-    ),
-    headerLeft: () => (
-      <View style={innerStyles.headerLeft}>
-        <ButtonIcon
-          testID={testID}
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={() => navigation.goBack()}
-        />
-      </View>
     ),
   };
 }

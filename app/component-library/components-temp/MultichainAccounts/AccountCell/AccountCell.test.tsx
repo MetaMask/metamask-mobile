@@ -13,6 +13,7 @@ import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 import { Maskicon } from '@metamask/design-system-react-native';
 import JazzIcon from 'react-native-jazzicon';
 import { Image as RNImage } from 'react-native';
+import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -31,18 +32,6 @@ jest.mock('../../../../selectors/assets/balances', () => {
       totalBalanceInUserCurrency: mockBalance.value,
       userCurrency: mockBalance.currency,
     }),
-  };
-});
-
-// Mock account selector to avoid deep store dependencies
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
-  const actual = jest.requireActual(
-    '../../../../selectors/multichainAccounts/accounts',
-  );
-  return {
-    ...actual,
-    selectIconSeedAddressByAccountGroupId: () => () =>
-      '0x1234567890abcdef1234567890abcdef12345678',
   };
 });
 
@@ -127,33 +116,42 @@ describe('AccountCell', () => {
     expect(queryByTestId('multichain-account-cell-menu')).toBeNull();
   });
 
-  it('navigates to account group details when menu button is pressed', () => {
+  it('navigates to account actions when menu button is pressed', () => {
     const { getByTestId } = renderAccountCell();
     const menuButton = getByTestId('multichain-account-cell-menu');
     fireEvent.press(menuButton);
-    expect(mockNavigate).toHaveBeenCalledWith('MultichainAccountGroupDetails', {
-      accountGroup: mockAccountGroup,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'MultichainAccountActions',
+        params: {
+          accountGroup: mockAccountGroup,
+        },
+      },
+    );
   });
 
   it('renders Maskicon AvatarAccount when avatarAccountType is Maskicon', () => {
-    const { UNSAFE_getByType } = renderAccountCell({
+    const { getByTestId } = renderAccountCell({
       avatarAccountType: AvatarAccountType.Maskicon,
     });
-    expect(UNSAFE_getByType(Maskicon)).toBeTruthy();
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(Maskicon)).not.toThrow();
   });
 
   it('renders JazzIcon AvatarAccount when avatarAccountType is JazzIcon', () => {
-    const { UNSAFE_getByType } = renderAccountCell({
+    const { getByTestId } = renderAccountCell({
       avatarAccountType: AvatarAccountType.JazzIcon,
     });
-    expect(UNSAFE_getByType(JazzIcon)).toBeTruthy();
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(JazzIcon)).not.toThrow();
   });
 
   it('renders Blockies AvatarAccount when avatarAccountType is Blockies', () => {
-    const { UNSAFE_getByType } = renderAccountCell({
+    const { getByTestId } = renderAccountCell({
       avatarAccountType: AvatarAccountType.Blockies,
     });
-    expect(UNSAFE_getByType(RNImage)).toBeTruthy();
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(RNImage)).not.toThrow();
   });
 });

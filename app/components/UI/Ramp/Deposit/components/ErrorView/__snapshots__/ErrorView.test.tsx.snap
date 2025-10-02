@@ -312,15 +312,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -448,7 +440,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -773,15 +765,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -873,7 +857,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                           </Text>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

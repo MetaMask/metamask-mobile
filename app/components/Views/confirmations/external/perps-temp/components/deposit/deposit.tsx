@@ -36,10 +36,6 @@ export function PerpsDeposit() {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingAlerts = usePerpsDepositAlerts({ pendingTokenAmount });
 
-  const { isFullView, isPayTokenSelected } = usePerpsDepositView({
-    isKeyboardVisible,
-  });
-
   const filteredConfirmationAlerts = useMemo(
     () =>
       confirmationAlerts.filter(
@@ -55,6 +51,10 @@ export function PerpsDeposit() {
       ),
     [filteredConfirmationAlerts, pendingAlerts],
   );
+
+  const { isFullView, isPayTokenSelected } = usePerpsDepositView({
+    isKeyboardVisible,
+  });
 
   const handleChange = useCallback((amount: string) => {
     setPendingTokenAmount(amount);

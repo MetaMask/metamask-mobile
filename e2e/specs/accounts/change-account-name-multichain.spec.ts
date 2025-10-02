@@ -6,9 +6,9 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Matchers from '../../framework/Matchers';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { Mockttp } from 'mockttp';
@@ -51,23 +51,16 @@ describe(
             MAIN_ACCOUNT_INDEX,
           );
 
-          // V2 flow: Now goes directly to AccountDetails sheet
-          await AccountDetails.tapEditAccountName();
+          // V2 flow: Navigate through MultichainAccountActions modal
+          await AccountActionsBottomSheet.tapRenameAccount();
 
           // Now use the EditAccountName screen
           await EditAccountName.updateAccountName(NEW_ACCOUNT_NAME);
           await EditAccountName.tapSave();
 
-          // Navigate back to wallet view
-          await AccountDetails.tapBackButton();
-          // In the new flow, tapping back might already dismiss the modal
-          // Try to dismiss only if the modal is still visible
-          try {
-            await AccountListBottomSheet.dismissAccountListModalV2();
-          } catch (error) {
-            // Modal might already be dismissed, continue with test
-            console.log('Modal already dismissed or not found, continuing...');
-          }
+          // EditAccountName screen auto-dismisses after save in V2
+          // Only need to dismiss the AccountList bottom sheet
+          await AccountListBottomSheet.dismissAccountListModalV2();
 
           // Verify updated name appears in wallet view
           await Assertions.expectElementToHaveText(
@@ -130,23 +123,16 @@ describe(
             IMPORTED_ACCOUNT_INDEX,
           );
 
-          // V2 flow: Now goes directly to AccountDetails sheet
-          await AccountDetails.tapEditAccountName();
+          // V2 flow: Navigate through MultichainAccountActions modal
+          await AccountActionsBottomSheet.tapRenameAccount();
 
           // Now use the EditAccountName screen
           await EditAccountName.updateAccountName(NEW_IMPORTED_ACCOUNT_NAME);
           await EditAccountName.tapSave();
 
-          // Navigate back to wallet view
-          await AccountDetails.tapBackButton();
-          // In the new flow, tapping back might already dismiss the modal
-          // Try to dismiss only if the modal is still visible
-          try {
-            await AccountListBottomSheet.dismissAccountListModalV2();
-          } catch (error) {
-            // Modal might already be dismissed, continue with test
-            console.log('Modal already dismissed or not found, continuing...');
-          }
+          // EditAccountName screen auto-dismisses after save in V2
+          // Only need to dismiss the AccountList bottom sheet
+          await AccountListBottomSheet.dismissAccountListModalV2();
 
           // Verify updated name appears in wallet view
           await Assertions.expectElementToHaveText(

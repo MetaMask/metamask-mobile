@@ -77,8 +77,8 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
-    "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
+    "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
+    "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
@@ -404,7 +404,7 @@
     "show": "दिखाएं",
     "hide": "छिपाएं",
     "seed_phrase": "सीक्रेट रिकवरी फ्रेज ",
-    "must_be_at_least": "कम से कम {{number}} कैरेक्टर होने चाहिएं",
+    "must_be_at_least": "पासवर्ड में कम से कम {{number}} कैरैक्टर होने चाहिए",
     "remember_me": "मुझे याद रखें",
     "security_alert_title": "सुरक्षा चेतावनी",
     "security_alert_message": "आगे बढ़ने के दौरान, आपको अपने पासकोड या आपके डिवाइस का समर्थन करने वाले किसी बायोमेट्रिक प्रमाणित तरीके को चालू करने की जरुरत है (फेसID, टचID या फिंगरप्रिंट)",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "अपर्याप्त फंड",
         "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
         "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "उच्च लेवरेज से लिक्विडेशन जोखिम बढ़ जाता है",
         "invalid_take_profit": "{{positionType}} पोजीशन के लिए टेक प्रॉफ़िट वर्तमान प्राइस {{direction}} होना चाहिए",
         "invalid_stop_loss": "{{positionType}} पोजीशन के लिए स्टॉप लॉस वर्तमान प्राइस {{direction}} होना चाहिए",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "लिमिट प्राइस वर्तमान प्राइस से नीचे है"
       },
       "leverage_modal": {
-        "title": "लीवरेज",
+        "title": "Leverage",
         "confirm": "कन्फर्म करें",
         "entry_price": "एंट्री प्राइस",
         "current_price": "वर्तमान प्राइस",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "टेक प्रॉफ़िट और स्टॉप लॉस",
       "description": "प्रतिशत मुनाफ़ा या नुकसान चुनें, या अपनी पोजीशन को स्वचालित रूप से बंद करने के लिए एक कस्टम ट्रिगर प्राइस दर्ज करें।",
+      "set": "निर्धारित करें",
+      "updating": "अपडेट हो रहा है...",
       "off": "बंद",
       "current_price": "वर्तमान प्राइस",
       "entry_price": "एंट्री प्राइस",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "स्टॉप लॉस {{direction}} लिक्विडेशन प्राइस का है",
       "above": "ऊपर",
       "below": "नीचे",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "खारिज करें"
     },
     "token_selector": {
       "no_tokens": "कोई टोकन उपलब्ध नहीं है"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "मार्केट डाटा लोड नहीं हो पाया",
     "tap_to_retry": "फिर से प्रयास करने के लिए टैप करें",
     "search_by_token_symbol": "टोकन सिंबल से ढूंढें",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "टैस्टनेट (testnet)",
     "mainnet": "मेननेट (mainnet)",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "{{asset}} खरीदें",
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
     "show_tokens_without_balance": "बैलेंस के बिना टोकन दिखाएं",
+    "no_nfts_yet": "अभी तक कोई NFT नहीं है",
     "nfts_autodetection_title": "NFT का पता लगाना",
     "nfts_autodetection_desc": "MetaMask को ऑटोमेटिक तरीके से NFTs का पता लगाने और आपके वॉलेट में दिखाने के लिए अनुमति दें।",
     "network_details_check": "नेटवर्क डिटेल्स की जांच",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "एक मित्र को रेफर करें",
         "share_referral_subject": "MetaMask पुरस्कार में शामिल हों"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

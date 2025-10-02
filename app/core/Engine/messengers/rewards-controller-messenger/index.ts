@@ -10,7 +10,8 @@ import {
   RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
-  RewardsDataServiceMobileOptinAction,
+  RewardsDataServiceGenerateChallengeAction,
+  RewardsDataServiceOptinAction,
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
@@ -29,10 +30,6 @@ import {
 import {
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceGetPointsEventsAction,
-  RewardsDataServiceGetActivePointsBoostsAction,
-  RewardsDataServiceGetUnlockedRewardsAction,
-  RewardsDataServiceClaimRewardAction,
-  RewardsDataServiceGetPointsEventsLastUpdatedAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
@@ -44,21 +41,18 @@ type AllowedActions =
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
-  | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
-  | RewardsDataServiceMobileOptinAction
+  | RewardsDataServiceGenerateChallengeAction
+  | RewardsDataServiceOptinAction
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
-  | RewardsDataServiceOptOutAction
-  | RewardsDataServiceGetActivePointsBoostsAction
-  | RewardsDataServiceGetUnlockedRewardsAction
-  | RewardsDataServiceClaimRewardAction;
+  | RewardsDataServiceOptOutAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -87,21 +81,18 @@ export function getRewardsControllerMessenger(
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
       'RewardsDataService:getPointsEvents',
-      'RewardsDataService:getPointsEventsLastUpdated',
       'RewardsDataService:estimatePoints',
       'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
-      'RewardsDataService:mobileOptin',
+      'RewardsDataService:generateChallenge',
+      'RewardsDataService:optin',
       'RewardsDataService:logout',
       'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',
       'RewardsDataService:mobileJoin',
       'RewardsDataService:getOptInStatus',
       'RewardsDataService:optOut',
-      'RewardsDataService:getActivePointsBoosts',
-      'RewardsDataService:getUnlockedRewards',
-      'RewardsDataService:claimReward',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',

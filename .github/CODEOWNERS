@@ -82,12 +82,10 @@ app/core/Encryptor/                                         @MetaMask/accounts-e
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
-**/Identity/**                                              @MetaMask/accounts-engineers
-**/identity/**                                              @MetaMask/accounts-engineers
 
-# Co-owned by accounts and mobile-core-ux
-app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
+# Co-owned by accounts and wallet-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/wallet-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/wallet-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
@@ -105,6 +103,10 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 **/Notification/** @MetaMask/notifications
 **/notifications/** @MetaMask/notifications
 **/notification/** @MetaMask/notifications
+
+# Identity Team
+**/Identity/** @MetaMask/identity
+**/identity/** @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -184,25 +186,25 @@ app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamas
 app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
-app/components/Views/AccountActions @MetaMask/mobile-core-ux
-app/components/Views/AccountSelector @MetaMask/mobile-core-ux
-app/components/Views/AddressQRCode @MetaMask/mobile-core-ux
-app/components/Views/EditAccountName @MetaMask/mobile-core-ux
-app/components/Views/LockScreen @MetaMask/mobile-core-ux
-app/components/Views/Login @MetaMask/mobile-core-ux
-app/components/Views/NetworkConnect @MetaMask/mobile-core-ux
-app/components/Views/NetworkSelector @MetaMask/mobile-core-ux
-app/components/Views/OnboardingCarousel @MetaMask/mobile-core-ux
-app/components/Views/OnboardingSuccess @MetaMask/mobile-core-ux
-app/components/Views/QRAccountDisplay @MetaMask/mobile-core-ux
-app/components/Views/QRScanner @MetaMask/mobile-core-ux
-app/components/Views/Settings @MetaMask/mobile-core-ux
-app/components/Views/TermsAndConditions @MetaMask/mobile-core-ux
-app/reducers/experimentalSettings @MetaMask/mobile-core-ux
-app/reducers/modals @MetaMask/mobile-core-ux
-app/reducers/navigation @MetaMask/mobile-core-ux
-app/reducers/privacy @MetaMask/mobile-core-ux
-app/reducers/settings @MetaMask/mobile-core-ux
+app/components/Views/AccountActions @MetaMask/wallet-ux
+app/components/Views/AccountSelector @MetaMask/wallet-ux
+app/components/Views/AddressQRCode @MetaMask/wallet-ux
+app/components/Views/EditAccountName @MetaMask/wallet-ux
+app/components/Views/LockScreen @MetaMask/wallet-ux
+app/components/Views/Login @MetaMask/wallet-ux
+app/components/Views/NetworkConnect @MetaMask/wallet-ux
+app/components/Views/NetworkSelector @MetaMask/wallet-ux
+app/components/Views/OnboardingCarousel @MetaMask/wallet-ux
+app/components/Views/OnboardingSuccess @MetaMask/wallet-ux
+app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
+app/components/Views/QRScanner @MetaMask/wallet-ux
+app/components/Views/Settings @MetaMask/wallet-ux
+app/components/Views/TermsAndConditions @MetaMask/wallet-ux
+app/reducers/experimentalSettings @MetaMask/wallet-ux
+app/reducers/modals @MetaMask/wallet-ux
+app/reducers/navigation @MetaMask/wallet-ux
+app/reducers/privacy @MetaMask/wallet-ux
+app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
@@ -214,9 +216,6 @@ app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
-# Delegation team
-app/core/Engine/controllers/gator-permissions-controller    @MetaMask/delegation
-app/core/Engine/messengers/gator-permissions-controller-messenger      @MetaMask/delegation
 # QA Team - E2E Framework
 e2e/api-mocking/                             @MetaMask/qa
 e2e/fixtures/                                @MetaMask/qa

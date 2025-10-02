@@ -443,7 +443,6 @@ export const PerpsClosePositionViewSelectorsIDs = {
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
   FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
-  POINTS_TOOLTIP_BUTTON: 'close-position-points-tooltip-button',
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
 };
 

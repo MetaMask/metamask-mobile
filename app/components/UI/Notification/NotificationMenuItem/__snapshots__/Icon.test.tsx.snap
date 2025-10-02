@@ -37,7 +37,6 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
           }
         >
           <View
-            source={1}
             style={
               {
                 "height": "80%",

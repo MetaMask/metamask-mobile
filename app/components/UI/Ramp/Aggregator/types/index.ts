@@ -17,7 +17,8 @@ export interface QuickAmount {
 }
 
 export interface RampIntent {
-  assetId?: string;
+  address?: string;
+  chainId?: string;
   amount?: string;
   currency?: string;
 }

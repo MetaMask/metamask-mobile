@@ -24,7 +24,7 @@ const internalAccount1 = createMockInternalAccount(
 
 const MOCK_TOKEN_ID = '12345';
 
-export const MOCK_TX_NFT_TRANSFER = {
+const MOCK_TX_NFT_TRANSFER = {
   id: '123-345-678',
   type: TransactionType.tokenMethodTransfer,
   txParams: {

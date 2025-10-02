@@ -6,7 +6,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { formatNumberToTemplate } from './formatNumberToTemplate.ts';
-import { DepositRegion } from '@consensys/native-ramps-sdk';
+import { DepositRegion } from '../../constants';
 import { useDepositSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';
@@ -18,7 +18,6 @@ interface PhoneFieldProps {
   onChangeText: (text: string) => void;
   error?: string;
   onSubmitEditing?: () => void;
-  regions: DepositRegion[];
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -41,12 +40,9 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
-  (
-    { label, value = '', onChangeText, error, onSubmitEditing, regions },
-    ref,
-  ) => {
+  ({ label, value = '', onChangeText, error, onSubmitEditing }, ref) => {
     const { styles } = useStyles(styleSheet, {});
-    const { selectedRegion } = useDepositSDK();
+    const { selectedRegion, setSelectedRegion } = useDepositSDK();
     const navigation = useNavigation();
     const template = selectedRegion?.phone?.template ?? '(XXX) XXX-XXXX';
 
@@ -74,13 +70,22 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
       [onChangeText, selectedRegion],
     );
 
+    const handleRegionSelect = useCallback(
+      (newRegion: DepositRegion) => {
+        onChangeText('');
+        setSelectedRegion(newRegion);
+      },
+      [setSelectedRegion, onChangeText],
+    );
+
     const handleFlagPress = useCallback(() => {
       navigation.navigate(
         ...createRegionSelectorModalNavigationDetails({
-          regions,
+          selectedRegionCode: selectedRegion?.isoCode,
+          handleSelectRegion: handleRegionSelect,
         }),
       );
-    }, [navigation, regions]);
+    }, [navigation, selectedRegion, handleRegionSelect]);
 
     const countryPrefixAccessory = (
       <TouchableOpacity

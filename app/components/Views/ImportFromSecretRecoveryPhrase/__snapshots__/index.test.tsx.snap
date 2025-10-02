@@ -637,26 +637,96 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     </View>
                                   </View>
                                 </View>
-                              </View>
-                              <Text
-                                accessibilityRole="text"
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignSelf": "flex-end",
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "paddingBottom": 16,
-                                    "paddingTop": 12,
-                                    "textAlign": "right",
+                                <View
+                                  style={
+                                    {
+                                      "borderTopColor": "#ffffff",
+                                      "borderTopWidth": 1,
+                                      "flexDirection": "row",
+                                      "justifyContent": "space-between",
+                                      "marginTop": "auto",
+                                      "width": "100%",
+                                    }
                                   }
-                                }
-                              >
-                                Paste
-                              </Text>
+                                >
+                                  <Text
+                                    accessibilityRole="link"
+                                    accessible={true}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "transparent",
+                                        "color": "#121314",
+                                        "flex": 1,
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 16,
+                                        "textAlign": "center",
+                                      }
+                                    }
+                                    suppressHighlighting={true}
+                                    width="full"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Show all
+                                    </Text>
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="link"
+                                    accessible={true}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "transparent",
+                                        "color": "#121314",
+                                        "flex": 1,
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 16,
+                                        "textAlign": "center",
+                                      }
+                                    }
+                                    suppressHighlighting={true}
+                                    width="full"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Paste
+                                    </Text>
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={

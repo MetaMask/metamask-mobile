@@ -675,7 +675,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -699,6 +699,30 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1329,7 +1353,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                 }
                                               }
                                             >
-                                              <View
+                                              <Image
+                                                onError={[Function]}
                                                 source={
                                                   {
                                                     "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png",
@@ -1681,7 +1706,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -1705,6 +1730,30 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2757,7 +2806,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -2781,6 +2830,30 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3200,15 +3273,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                               </View>
                             </View>
                           </View>
-                          <RNCSafeAreaView
-                            edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "off",
-                              }
-                            }
+                          <RCTSafeAreaView
                             style={
                               {
                                 "flex": 1,
@@ -3565,7 +3630,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         }
                                                       }
                                                     >
-                                                      <View
+                                                      <Image
+                                                        onError={[Function]}
                                                         source={
                                                           {
                                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
@@ -3910,7 +3976,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         }
                                                       }
                                                     >
-                                                      <View
+                                                      <Image
+                                                        onError={[Function]}
                                                         source={
                                                           {
                                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
@@ -4180,7 +4247,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         }
                                                       }
                                                     >
-                                                      <View
+                                                      <Image
+                                                        onError={[Function]}
                                                         source={
                                                           {
                                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_light.png",
@@ -4380,7 +4448,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 </RCTScrollView>
                               </View>
                             </View>
-                          </RNCSafeAreaView>
+                          </RCTSafeAreaView>
                         </View>
                       </View>
                     </View>
@@ -4547,7 +4615,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -4571,6 +4639,30 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -5289,7 +5381,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   }
                                                 }
                                               >
-                                                <View
+                                                <Image
+                                                  onError={[Function]}
                                                   source={
                                                     {
                                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
@@ -5703,7 +5796,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -5727,6 +5820,30 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -6428,7 +6545,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -6452,6 +6569,30 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -7153,7 +7294,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -7177,6 +7318,30 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -7878,7 +8043,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -7902,6 +8067,30 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 >
                   Select a Quote
                 </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
             <View

@@ -47,6 +47,8 @@ export const usePerpsNetworkManagement = () => {
 
     // Check if network already exists
     if (networkConfigurations[chainId]) {
+      // Network exists, just enable it
+      enableNetwork(arbitrumCaipChainId);
       return;
     }
 

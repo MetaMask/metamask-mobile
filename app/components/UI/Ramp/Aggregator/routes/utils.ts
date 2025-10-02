@@ -6,16 +6,7 @@ function createRampNavigationDetails(rampType: RampType, intent?: RampIntent) {
   if (!intent) {
     return [route] as const;
   }
-  return [
-    route,
-    {
-      screen: Routes.RAMP.GET_STARTED,
-      params: {
-        screen: Routes.RAMP.GET_STARTED,
-        params: intent,
-      },
-    },
-  ] as const;
+  return [route, { screen: Routes.RAMP.GET_STARTED, params: intent }] as const;
 }
 
 export function createBuyNavigationDetails(intent?: RampIntent) {

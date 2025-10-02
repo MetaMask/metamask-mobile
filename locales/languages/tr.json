@@ -404,7 +404,7 @@
     "show": "Göster",
     "hide": "Gizle",
     "seed_phrase": "Gizli Kurtarma İfadesi",
-    "must_be_at_least": "En az {{number}} karakter olmalıdır",
+    "must_be_at_least": "Şifre en az {{number}} karakterden oluşmalıdır",
     "remember_me": "Beni hatırla",
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometri kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "Yetersiz bakiye",
         "insufficient_balance": "Bakiye yetersiz. Gereken: {{required}}$, Kullanılabilir: {{available}}$",
         "invalid_leverage": "Kaldıraç {{min}} katı ile {{max}} katı arasında olmalıdır",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Yüksek kaldıraç likidasyon riskini artırır",
         "invalid_take_profit": "Kazancı al, {{positionType}} pozisyonlar için {{direction}} güncel fiyat olmalıdır",
         "invalid_stop_loss": "Zararda dur, {{positionType}} pozisyonlar için {{direction}} güncel fiyat olmalıdır",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "Limit fiyat, güncel fiyatın altında"
       },
       "leverage_modal": {
-        "title": "Kaldıraç",
+        "title": "Leverage",
         "confirm": "Onayla",
         "entry_price": "Giriş Fiyatı",
         "current_price": "Mevcut fiyat",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "Kazancı al ve zararda durdur",
       "description": "Bir kazanç veya kayıp yüzdesi ya da pozisyonunuzun otomatik olarak kapanacağı özel bir tetikleme fiyatı girin.",
+      "set": "Ayarla",
+      "updating": "Güncelleniyor...",
       "off": "Kapalı",
       "current_price": "Mevcut fiyat",
       "entry_price": "Giriş fiyatı",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "Zararda durdur emri {{direction}} yönünde likidasyon fiyatında",
       "above": "üzerinde",
       "below": "altında",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Yok say"
     },
     "token_selector": {
       "no_tokens": "Token yok"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "Piyasa verileri yüklenemedi",
     "tap_to_retry": "Tekrar denemek için dokunun",
     "search_by_token_symbol": "Token sembolüne göre ara",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Test Ağı",
     "mainnet": "Ana Ağ",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "{{asset}} satın alın",
     "no_tokens": "Tokeniniz yok!",
     "show_tokens_without_balance": "Bakiyesi olmayan token'leri göster",
+    "no_nfts_yet": "Henüz NFT yok",
     "nfts_autodetection_title": "NFT algılama",
     "nfts_autodetection_desc": "MetaMask'in otomatik olarak cüzdanınızdaki NFT'leri algılayıp göstermesine izin verin.",
     "network_details_check": "Ağ bilgileri kontrolü",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Bir arkadaşına öner",
         "share_referral_subject": "MetaMask Ödüllerine katıl"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

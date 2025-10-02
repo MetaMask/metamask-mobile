@@ -3,7 +3,6 @@ import { isProduction } from '../../../util/environment';
 import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
 import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
-import { getContentPreviewToken } from '../../../actions/notification/helpers';
 
 export interface ContentfulCarouselSlideFields {
   headline: string;
@@ -21,40 +20,11 @@ export interface ContentfulCarouselSlideFields {
 export type ContentfulSlideSkeleton =
   EntrySkeletonType<ContentfulCarouselSlideFields>;
 
-export const getContentfulEnvironmentDetails = () => {
-  // If preview mode, then show preview prod master content
-  const previewToken = getContentPreviewToken();
-  if (previewToken) {
-    return {
-      environment: 'master',
-      domain: 'preview.contentful.com',
-      accessToken: previewToken,
-      spaceId: SPACE_ID(),
-    };
-  }
-
-  const isProd = isProduction();
-
-  // If production, show prod master content
-  if (isProd) {
-    return {
-      environment: 'master',
-      domain: 'cdn.contentful.com',
-      accessToken: ACCESS_TOKEN(),
-      spaceId: SPACE_ID(),
-    };
-  }
-
-  // Default to preview dev content
-  return {
-    environment: 'dev',
-    domain: 'preview.contentful.com',
-    accessToken: ACCESS_TOKEN(),
-    spaceId: SPACE_ID(),
-  };
-};
-
+const ENVIRONMENT = isProduction() ? 'master' : 'dev';
 const CONTENT_TYPE = 'promotionalBanner';
+const DEFAULT_DOMAIN = isProduction()
+  ? 'cdn.contentful.com'
+  : 'preview.contentful.com';
 
 interface ContentfulSysField {
   sys: { id: string };
@@ -64,8 +34,8 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
   prioritySlides: CarouselSlide[];
   regularSlides: CarouselSlide[];
 }> {
-  const { spaceId, accessToken, environment, domain } =
-    getContentfulEnvironmentDetails();
+  const spaceId = SPACE_ID();
+  const accessToken = ACCESS_TOKEN();
 
   if (!spaceId || !accessToken) {
     console.warn(
@@ -74,14 +44,14 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
     return { prioritySlides: [], regularSlides: [] };
   }
 
-  const host = `https://${domain}/spaces/${spaceId}/environments/${environment}/entries`;
+  const host = `https://${DEFAULT_DOMAIN}/spaces/${spaceId}/environments/${ENVIRONMENT}/entries`;
 
   // First try through the Contentful Client
   try {
     const contentfulClient = createClient({
       space: spaceId,
       accessToken,
-      environment,
+      environment: ENVIRONMENT,
       host,
     });
 

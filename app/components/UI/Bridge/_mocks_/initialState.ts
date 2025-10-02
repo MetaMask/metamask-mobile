@@ -1,15 +1,8 @@
 import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
-import {
-  SolScope,
-  EthScope,
-  EthAccountType,
-  SolAccountType,
-} from '@metamask/keyring-api';
-import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
+import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
-import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 jest.mock(
   '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -76,35 +69,11 @@ export const initialState = {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isUnifiedUIEnabled: true,
-                isGaslessSwapEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isUnifiedUIEnabled: true,
-              },
-            },
-            bip44DefaultPairs: {
-              bip122: {
-                other: {},
-                standard: {
-                  'bip122:000000000019d6689c085ae165831e93/slip44:0':
-                    'eip155:1/slip44:60',
-                },
-              },
-              eip155: {
-                other: {},
-                standard: {
-                  'eip155:1/slip44:60':
-                    'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-                },
-              },
-              solana: {
-                other: {},
-                standard: {
-                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501':
-                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                },
               },
             },
           },
@@ -310,8 +279,7 @@ export const initialState = {
               id: evmAccountId,
               address: evmAccountAddress,
               name: 'Account 1',
-              type: EthAccountType.Eoa,
-              scopes: [EthScope.Eoa],
+              type: 'eip155:eoa' as const,
               metadata: {
                 lastSelected: 0,
               },
@@ -320,8 +288,7 @@ export const initialState = {
               id: solanaAccountId,
               address: solanaAccountAddress,
               name: 'Account 2',
-              type: SolAccountType.DataAccount,
-              scopes: [SolScope.Mainnet],
+              type: 'solana:data-account' as const,
               metadata: {
                 lastSelected: 0,
               },
@@ -331,35 +298,8 @@ export const initialState = {
       },
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
-          wallets: {
-            [`${AccountWalletType.Entropy}:wallet1`]: {
-              id: `${AccountWalletType.Entropy}:wallet1`,
-              type: AccountWalletType.Entropy,
-              metadata: {
-                name: 'Test Wallet 1',
-                entropy: {
-                  id: 'wallet1',
-                },
-              },
-              groups: {
-                [`${AccountWalletType.Entropy}:wallet1/0`]: {
-                  id: `${AccountWalletType.Entropy}:wallet1/0`,
-                  type: AccountGroupType.MultichainAccount,
-                  metadata: {
-                    name: 'Test Group 1',
-                    pinned: false,
-                    hidden: false,
-                    entropy: {
-                      groupIndex: 0,
-                    },
-                  },
-                  accounts: [evmAccountId, solanaAccountId],
-                },
-              },
-            },
-          },
-        } as AccountTreeControllerState['accountTree']['wallets'],
+          wallets: {},
+        },
       },
       SmartTransactionsController: {
         smartTransactionsState: {
@@ -422,8 +362,8 @@ export const initialState = {
           order: 'dsc' as const,
         },
         tokenNetworkFilter: {
-          [ethChainId]: true,
-          [optimismChainId]: true,
+          [ethChainId]: 'true',
+          [optimismChainId]: 'true',
         },
       },
       TokenListController: {

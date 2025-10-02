@@ -3,13 +3,31 @@ name: Create Release Pull Request
 on:
   workflow_dispatch:
     inputs:
+      checkout-base-branch:
+        description: 'The base branch, tag, or SHA for git operations. Usually `main`'
+        required: true
+      release-pr-base-branch:
+        description: 'The base branch, tag, or SHA for the release pull request. Usually `stable`'
+        required: true
       semver-version:
-        description: 'A semantic version, eg: x.x.x'
+        description: 'A semantic version. eg: x.x.x'
+        required: true
+      previous-version-ref:
+        description: 'Previous release version branch name, tag or commit hash (e.g., release/7.7.0, v7.7.0, or 76fbc500034db9779e9ff7ce637ac5be1da0493d)'
         required: true
 
   workflow_call:
     inputs:
+      checkout-base-branch:
+        required: true
+        type: string
+      release-pr-base-branch:
+        required: true
+        type: string
       semver-version:
+        required: true
+        type: string
+      previous-version-ref:
         required: true
         type: string
     secrets:
@@ -23,67 +41,25 @@ on:
         required: false
 
 jobs:
-  resolve-bases:
-    # Determines if the release is hotfix or not based on semver. Then sets the appropriate base branches for the checkout and release PR.
-    runs-on: ubuntu-latest
-    outputs:
-      checkout_base: ${{ steps.out.outputs.checkout_base }}
-      release_base: ${{ steps.out.outputs.release_base }}
-    steps:
-      - id: out
-        shell: bash
-        env:
-          SEMVER: ${{ inputs.semver-version }}
-        run: |
-          set -euo pipefail
-
-          echo "Provided semver input: ${SEMVER}"
-          # Validate semver
-          if ! [[ "${SEMVER:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: semver-version must be numeric X.Y.Z, got: ${SEMVER:-<empty>}" >&2
-            exit 1
-          fi
-
-          patch="${SEMVER##*.}"
-          if [ "$patch" -gt 0 ]; then
-            echo "Detected hotfix (patch=$patch): using stable for checkout and stable for release PR base."
-            echo "checkout_base=stable" >> "$GITHUB_OUTPUT"
-          else
-            echo "Detected non-hotfix (patch=0): using main for checkout and stable for release PR base."
-            echo "checkout_base=main" >> "$GITHUB_OUTPUT"
-          fi
-          echo "release_base=stable" >> "$GITHUB_OUTPUT"
-
-  resolve-previous-ref:
-    needs: resolve-bases
-    runs-on: ubuntu-latest
-    outputs:
-      previous_ref: ${{ steps.out.outputs.previous_ref }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - id: out
-        shell: bash
-        env:
-          SEMVER: ${{ inputs.semver-version }}
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          .github/scripts/resolve-previous-ref.sh
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+    permissions:
+      id-token: write
 
   create-release-pr:
-    needs: [resolve-bases, resolve-previous-ref]
-    name: Create Release Pull Request using Github Tools
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@6090afa85c94a6b64a79e992d94b11610d02181a
+    needs: generate-build-version
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@ddac3ee395896ff15df6fc561ff710efbb0dd3fa
     with:
       platform: mobile
-      checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
-      release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
+      checkout-base-branch: ${{ inputs.checkout-base-branch }}
+      release-pr-base-branch: ${{ inputs.release-pr-base-branch }}
       semver-version: ${{ inputs.semver-version }}
-      previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
-      github-tools-version: 6090afa85c94a6b64a79e992d94b11610d02181a
+      previous-version-ref: ${{ inputs.previous-version-ref }}
+      mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+      github-tools-version: ddac3ee395896ff15df6fc561ff710efbb0dd3fa
+
     secrets:
-      # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
+      # This token needs write permissions to metamask-extension & read permissions to metamask-planning
       # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
       # (this is due to github limitations on fetching secrets from called workflows).
       github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
@@ -91,23 +67,3 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-
-  add-e2e-label:
-    needs: create-release-pr
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Add Run Smoke E2E label to release PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Find the release PR that was just created
-          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "release/${{ inputs.semver-version }}" --json number --jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo ${{ github.repository }} --add-label "Run Smoke E2E"
-            echo "Added 'Run Smoke E2E' label to PR #$PR_NUMBER"
-          else
-            echo "Could not find release PR for release/${{ inputs.semver-version }}"
-            exit 1
-          fi

@@ -3,10 +3,6 @@ import { UserStorageMockttpController } from './user-storage/userStorageMockttpC
 import { getDecodedProxiedURL } from './helpers';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { Mockttp } from 'mockttp';
-import {
-  USER_STORAGE_GROUPS_FEATURE_KEY,
-  USER_STORAGE_WALLETS_FEATURE_KEY,
-} from '@metamask/account-tree-controller';
 
 const AuthMocks = AuthenticationController.Mocks;
 
@@ -53,14 +49,6 @@ export async function mockIdentityServices(server: Mockttp) {
   );
   await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.addressBook,
-    server,
-  );
-  await userStorageMockttpControllerInstance.setupPath(
-    USER_STORAGE_WALLETS_FEATURE_KEY,
-    server,
-  );
-  await userStorageMockttpControllerInstance.setupPath(
-    USER_STORAGE_GROUPS_FEATURE_KEY,
     server,
   );
 
@@ -168,7 +156,7 @@ export const setupAccountMockedBalances = async (
         return url.includes(INFURA_URL);
       })
       .withJsonBodyIncluding({
-        method: 'eth_getTransactionCount',
+        method: 'eth_getBalance',
         params: [account.toLowerCase()],
       })
       .thenCallback(() => ({

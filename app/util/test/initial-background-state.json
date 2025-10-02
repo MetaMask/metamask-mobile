@@ -23,9 +23,7 @@
       "wallets": {}
     },
     "accountGroupsMetadata": {},
-    "accountWalletsMetadata": {},
-    "hasAccountTreeSyncingSyncedAtLeastOnce": false,
-    "isAccountTreeSyncingInProgress": false
+    "accountWalletsMetadata": {}
   },
   "AddressBookController": {
     "addressBook": {}
@@ -66,7 +64,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
-        "name": "Ethereum",
+        "name": "Ethereum Mainnet",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -158,7 +156,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
-        "name": "Base",
+        "name": "Base Mainnet",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -176,28 +174,17 @@
       "bip122": {
         "bip122:000000000019d6689c085ae165831e93": true,
         "bip122:000000000933ea01ad0ee984209779ba": false,
-        "bip122:00000008819873e925422c1ff0f99f7c": false,
-        "bip122:00000000da84f2bafbbc53dee25a72ae": false,
-        "bip122:regtest": false
+        "bip122:00000008819873e925422c1ff0f99f7c": false
       },
       "eip155": {
         "0x1": true,
-        "0x18c6": false,
         "0x2105": true,
-        "0x279f": false,
-        "0xaa36a7": false,
-        "0xe705": false,
         "0xe708": true
       },
       "solana": {
         "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
-      },
-      "tron": {
-        "tron:2494104990": false,
-        "tron:3448148188": false,
-        "tron:728126428": true
       }
     }
   },
@@ -457,6 +444,9 @@
     "isUpdatingFCMToken": false
   },
   "UserStorageController": {
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false,
+    "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
@@ -532,24 +522,6 @@
         "isEvm": false,
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
-      },
-      "tron:2494104990": {
-        "chainId": "tron:2494104990",
-        "isEvm": false,
-        "name": "Tron Shasta",
-        "nativeCurrency": "tron:2494104990/slip44:195"
-      },
-      "tron:3448148188": {
-        "chainId": "tron:3448148188",
-        "isEvm": false,
-        "name": "Tron Nile",
-        "nativeCurrency": "tron:3448148188/slip44:195"
-      },
-      "tron:728126428": {
-        "chainId": "tron:728126428",
-        "isEvm": false,
-        "name": "Tron",
-        "nativeCurrency": "tron:728126428/slip44:195"
       }
     }
   },
@@ -638,20 +610,9 @@
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
-    "activeBoosts": {},
-    "pointsEvents": {},
-    "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {}
-  },
-  "PredictController": {
-    "activeOrders": {},
-    "eligibility": {},
-    "lastError": null,
-    "lastUpdateTimestamp": 0,
-    "notifications": [],
-    "positions": []
   }
 }

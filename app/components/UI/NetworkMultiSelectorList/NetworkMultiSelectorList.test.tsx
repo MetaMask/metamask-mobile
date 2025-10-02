@@ -32,6 +32,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
+jest.mock('@metamask/utils', () => ({
+  KnownCaipNamespace: { Eip155: 'eip155' },
+  parseCaipChainId: jest.fn(),
+  CaipChainId: jest.fn(),
+}));
+
 jest.mock('@metamask/controller-utils', () => ({
   toHex: jest.fn(),
 }));
@@ -68,6 +74,10 @@ jest.mock('../../../util/networks/index.js', () => ({
   isTestNet: jest.fn(),
 }));
 
+jest.mock('../../../util/device/index.js', () => ({
+  getDeviceHeight: jest.fn(() => 800),
+}));
+
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
   selectChainId: jest.fn(),
@@ -75,31 +85,6 @@ jest.mock('../../../selectors/networkController', () => ({
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
-}));
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/index.ts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsRemoteFeatureEnabled: jest.fn(),
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1: 'v1',
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2: 'v2',
-}));
-
-jest.mock('@metamask/utils', () => ({
-  KnownCaipNamespace: { Eip155: 'eip155' },
-  parseCaipChainId: jest.fn(),
-  CaipChainId: jest.fn(),
-  hasProperty: jest.fn(),
-}));
-
-jest.mock('@metamask/rpc-errors', () => ({
-  rpcErrors: {},
-  serializeError: jest.fn(),
 }));
 
 // Mock component library components
@@ -219,18 +204,8 @@ describe('NetworkMultiSelectorList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup useSelector to return different values based on the selector function
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectChainId) {
-        return '0x1';
-      }
-      if (selector === mockSelectIsEvmNetworkSelected) {
-        return true;
-      }
-      // Default return for selectMultichainAccountsState2Enabled
-      return false;
-    });
-
+    mockUseSelector.mockReturnValue('0x1');
+    mockSelectIsEvmNetworkSelected.mockReturnValue(true);
     mockUseSafeAreaInsets.mockReturnValue({
       top: 0,
       right: 0,

@@ -379,15 +379,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -573,7 +565,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                <View
+                                <Image
+                                  onError={[Function]}
                                   source={
                                     {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
@@ -771,7 +764,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1163,15 +1156,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -1361,7 +1346,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   ]
                                 }
                               >
-                                <View
+                                <Image
+                                  onError={[Function]}
                                   source={
                                     {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
@@ -1473,7 +1459,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                           </View>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1865,15 +1851,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -2063,7 +2041,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   ]
                                 }
                               >
-                                <View
+                                <Image
+                                  onError={[Function]}
                                   source={
                                     {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
@@ -2261,7 +2240,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

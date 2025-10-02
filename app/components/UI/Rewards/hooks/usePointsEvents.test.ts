@@ -1,680 +1,600 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+jest.mock('../../../../core/Engine/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+}));
+
+import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-
-// Add longer timeout for waitFor to prevent test flakiness
-const waitForOptions = { timeout: 5000 };
 import { usePointsEvents } from './usePointsEvents';
-
-// Mock Engine
-const mockCall = jest.fn();
-jest.mock('../../../../core/Engine', () => {
-  const engineInstance = {
-    context: {
-      EngineController: {
-        notifyOnStateChange: jest.fn(),
-      },
-    },
-    controllerMessenger: {
-      call: (...args: unknown[]) => mockCall(...args),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    },
-  };
-
-  return {
-    __esModule: true,
-    default: engineInstance,
-    instance: engineInstance,
-  };
-});
-
-// Mock Engine/Engine to fix the instance check
-jest.mock('../../../../core/Engine/Engine', () => {
-  const engineInstance = {
-    context: {
-      EngineController: {
-        notifyOnStateChange: jest.fn(),
-      },
-    },
-    controllerMessenger: {
-      call: (...args: unknown[]) => mockCall(...args),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    },
-  };
-
-  return {
-    __esModule: true,
-    default: engineInstance,
-    instance: engineInstance,
-  };
-});
-
-// Mock useInvalidateByRewardEvents
-const mockUseInvalidateByRewardEvents = jest.fn();
-jest.mock('./useInvalidateByRewardEvents', () => ({
-  useInvalidateByRewardEvents: (...args: string[]) =>
-    mockUseInvalidateByRewardEvents(...args),
-}));
-
-// Mock Redux hooks
-const mockUseSelector = jest.fn();
-jest.mock('react-redux', () => ({
-  useSelector: (...args: unknown[]) => mockUseSelector(...args),
-}));
+import Engine from '../../../../core/Engine/Engine';
+import {
+  PointsEventDto,
+  PaginatedPointsEventsDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 
 describe('usePointsEvents', () => {
-  const mockPointsEvent = {
-    id: 'event-1',
-    title: 'Test Event',
-    description: 'Test Description',
-    points: 100,
-    createdAt: '2023-01-01T00:00:00Z',
+  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
+    typeof Engine.controllerMessenger.call
+  >;
+  const mockPointsEvent: PointsEventDto = {
+    id: '01974010-377f-7553-a365-0c33c8130980',
+    timestamp: new Date('2024-01-01T00:00:00.000Z'),
+    type: 'SWAP',
+    payload: {
+      srcAsset: {
+        amount: '1000000000000000000',
+        type: 'eip155:1/slip44:60',
+        decimals: 18,
+        name: 'Ether',
+        symbol: 'ETH',
+      },
+      destAsset: {
+        amount: '1000000',
+        type: 'eip155:1/erc20:0xa0b86991c431c924c4c4c4c4c4c4c4c4c4c4c',
+        decimals: 6,
+        name: 'USD Coin',
+        symbol: 'USDC',
+      },
+      txHash: '0x123456789',
+    },
+    value: 100,
+    bonus: {
+      bips: 1000,
+      bonuses: ['bonus1'],
+    },
+    accountAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
   };
 
-  const mockPaginatedResponse = {
+  const mockPaginatedResponse: PaginatedPointsEventsDto = {
     results: [mockPointsEvent],
     has_more: true,
     cursor: 'next-cursor',
     total_results: 10,
   };
 
+  const defaultOptions = {
+    seasonId: 'season-123',
+    subscriptionId: 'subscription-456',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCall.mockResolvedValue(mockPaginatedResponse);
-
-    // Reset the mocked hooks
-    mockUseInvalidateByRewardEvents.mockImplementation(() => {
-      // Mock implementation
-    });
-
-    // Default mock for useSelector to return 'activity' tab to trigger initial fetch
-    mockUseSelector.mockReturnValue('activity');
   });
 
   describe('initialization', () => {
-    it('should return refresh and loadMore functions', () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+    it('should initialize with correct default values when seasonId and subscriptionId are provided', async () => {
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
 
-      expect(result.current.refresh).toBeDefined();
-      expect(typeof result.current.refresh).toBe('function');
-      expect(result.current.loadMore).toBeDefined();
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      // Initial state before any async operations
+      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.isLoadingMore).toBe(false);
+      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.hasMore).toBe(true);
+      expect(result.current.error).toBeNull();
       expect(typeof result.current.loadMore).toBe('function');
-    });
+      expect(typeof result.current.refresh).toBe('function');
 
-    it('should initialize with empty data and not fetch when seasonId is undefined', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: undefined,
-          subscriptionId: 'sub-1',
-        }),
-      );
+      // Wait for the initial fetch to complete
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-      expect(result.current.pointsEvents).toEqual(null);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasMore).toBe(true);
-      expect(result.current.error).toBeNull();
-      expect(mockCall).not.toHaveBeenCalled();
-    });
-
-    it('should initialize with empty data and not fetch when subscriptionId is empty', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: '',
-        }),
-      );
-
-      expect(result.current.pointsEvents).toEqual(null);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasMore).toBe(true);
-      expect(result.current.error).toBeNull();
-      expect(mockCall).not.toHaveBeenCalled();
-    });
-
-    it('should fetch data when both seasonId and subscriptionId are provided', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
-
-      // Initial state should show loading
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.error).toBeNull();
-
-      // Wait for the data to load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
-
-      // Verify the API was called correctly
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getPointsEvents',
-        {
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-          cursor: null,
-          forceFresh: false,
-        },
-      );
-
-      // Verify the data was loaded correctly
       expect(result.current.pointsEvents).toEqual([mockPointsEvent]);
-      expect(result.current.hasMore).toBe(true);
-      expect(result.current.error).toBeNull();
+    });
+
+    it('should initialize with isLoading false when seasonId is missing', () => {
+      const options = {
+        seasonId: undefined,
+        subscriptionId: 'subscription-456',
+      };
+
+      const { result } = renderHook(() => usePointsEvents(options));
+
       expect(result.current.isLoading).toBe(false);
     });
 
-    it('should set loading to true at start and false after successful completion', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+    it('should initialize with isLoading false when subscriptionId is missing', () => {
+      const options = {
+        seasonId: 'season-123',
+        subscriptionId: '',
+      };
 
-      // Should start with loading true
-      expect(result.current.isLoading).toBe(true);
+      const { result } = renderHook(() => usePointsEvents(options));
 
-      // Wait for the data to load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
-
-      // Should end with loading false and no error
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
     });
   });
 
-  describe('error handling', () => {
-    it('should handle fetch errors and manage loading state', async () => {
-      const fetchError = new Error('Failed to fetch');
-      mockCall.mockRejectedValueOnce(fetchError);
+  describe('initial data fetching', () => {
+    it('should fetch points events successfully on mount', async () => {
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
 
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        {
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-456',
+          cursor: null,
+        },
       );
 
-      // Initial state should show loading
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.pointsEvents).toEqual([mockPointsEvent]);
+      expect(result.current.hasMore).toBe(true);
       expect(result.current.error).toBeNull();
-
-      // Wait for the error to be set
-      await waitFor(
-        () => expect(result.current.error).not.toBeNull(),
-        waitForOptions,
-      );
-
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe('Failed to fetch');
-      expect(result.current.pointsEvents).toEqual([]);
     });
 
-    it('should handle unknown errors and manage loading state', async () => {
-      mockCall.mockRejectedValueOnce({});
+    it('should not fetch data when seasonId is undefined', () => {
+      const options = {
+        seasonId: undefined,
+        subscriptionId: 'subscription-456',
+      };
 
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+      renderHook(() => usePointsEvents(options));
 
-      // Initial state should show loading
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.error).toBeNull();
-
-      // Wait for the error to be set
-      await waitFor(
-        () => expect(result.current.error).not.toBeNull(),
-        waitForOptions,
-      );
-
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe('Unknown error occurred');
-      expect(result.current.pointsEvents).toEqual([]);
+      expect(mockEngineCall).not.toHaveBeenCalled();
     });
 
-    it('should set loading to true at start and false after error', async () => {
-      const fetchError = new Error('Network error');
-      mockCall.mockRejectedValueOnce(fetchError);
+    it('should not fetch data when subscriptionId is empty', () => {
+      const options = {
+        seasonId: 'season-123',
+        subscriptionId: '',
+      };
 
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+      renderHook(() => usePointsEvents(options));
 
-      // Should start with loading true
-      expect(result.current.isLoading).toBe(true);
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
 
-      // Wait for the error to be set
-      await waitFor(
-        () => expect(result.current.error).not.toBeNull(),
-        waitForOptions,
-      );
+    it('should handle initial fetch errors', async () => {
+      const mockError = new Error('Network error');
+      mockEngineCall.mockRejectedValueOnce(mockError);
 
-      // Should end with loading false
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Network error');
+      });
+
+      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle unknown errors', async () => {
+      mockEngineCall.mockRejectedValueOnce('String error');
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Unknown error occurred');
+      });
+
       expect(result.current.isLoading).toBe(false);
     });
   });
 
   describe('loadMore functionality', () => {
-    it('should load more data when loadMore is called', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+    it('should load more data when conditions are met', async () => {
+      // Set up initial state with data
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
 
       // Wait for initial load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-      // Reset mock to track the next call
-      mockCall.mockClear();
+      // Verify initial state after load
+      expect(result.current.hasMore).toBe(true);
+      expect(result.current.isLoadingMore).toBe(false);
 
-      // Call loadMore
+      const additionalEvent: PointsEventDto = {
+        ...mockPointsEvent,
+        id: 'additional-event',
+      };
+
+      const moreDataResponse: PaginatedPointsEventsDto = {
+        results: [additionalEvent],
+        has_more: false,
+        cursor: null,
+        total_results: 2,
+      };
+
+      mockEngineCall.mockResolvedValueOnce(moreDataResponse);
+
       act(() => {
         result.current.loadMore();
       });
 
-      // Verify loading state
+      // Check that loadMore was triggered
       expect(result.current.isLoadingMore).toBe(true);
 
-      // Wait for loadMore to complete
-      await waitFor(
-        () => expect(result.current.isLoadingMore).toBe(false),
-        waitForOptions,
-      );
+      await waitFor(() => {
+        expect(result.current.isLoadingMore).toBe(false);
+      });
 
-      // Verify API call with cursor
-      expect(mockCall).toHaveBeenCalledWith(
+      expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getPointsEvents',
         {
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-456',
           cursor: 'next-cursor',
-          forceFresh: false,
         },
       );
 
-      // Verify data was appended
-      expect(result.current.pointsEvents).toEqual([
-        mockPointsEvent,
-        mockPointsEvent,
-      ]);
+      expect(result.current.pointsEvents).toHaveLength(2);
+      expect(result.current.pointsEvents[1]).toEqual(additionalEvent);
+      expect(result.current.hasMore).toBe(false);
     });
 
-    it('should not load more if already loading', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+    it('should not load more when already loading more', async () => {
+      // Set up initial state with data
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
 
       // Wait for initial load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Mock a slow response for loadMore
+      let resolveLoadMore: (value: PaginatedPointsEventsDto) => void;
+      const slowLoadMorePromise = new Promise<PaginatedPointsEventsDto>(
+        (resolve) => {
+          resolveLoadMore = resolve;
+        },
       );
+      mockEngineCall.mockReturnValueOnce(slowLoadMorePromise);
 
-      // Reset mock to track the next calls
-      mockCall.mockClear();
-
-      // Call loadMore
+      // Start first loadMore
       act(() => {
         result.current.loadMore();
       });
 
-      // Call loadMore again while still loading
+      // Try to call loadMore again while first is still loading
       act(() => {
         result.current.loadMore();
       });
 
-      // Wait for loadMore to complete
-      await waitFor(
-        () => expect(result.current.isLoadingMore).toBe(false),
-        waitForOptions,
-      );
+      // Should still be called only twice (initial + first loadMore)
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
 
-      // Verify API was only called once
-      expect(mockCall).toHaveBeenCalledTimes(1);
+      // Resolve the promise
+      act(() => {
+        resolveLoadMore({
+          results: [],
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMore).toBe(false);
+      });
     });
 
-    it('should not load more if there are no more results', async () => {
-      // Mock response with no more results
-      mockCall.mockResolvedValueOnce({
+    it('should not load more when hasMore is false', async () => {
+      const initialResponse = {
         ...mockPaginatedResponse,
         has_more: false,
+        cursor: null,
+      };
+      mockEngineCall.mockResolvedValueOnce(initialResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+      const initialCallCount = mockEngineCall.mock.calls.length;
 
-      // Wait for initial load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
-
-      // Reset mock to track the next calls
-      mockCall.mockClear();
-
-      // Call loadMore
       act(() => {
         result.current.loadMore();
       });
 
-      // Wait for loadMore to complete
-      await waitFor(
-        () => expect(result.current.isLoadingMore).toBe(false),
-        waitForOptions,
-      );
+      expect(mockEngineCall).toHaveBeenCalledTimes(initialCallCount);
+    });
 
-      // Verify hasMore is false
-      expect(result.current.hasMore).toBe(false);
+    it('should not load more when cursor is null', async () => {
+      const initialResponse = {
+        ...mockPaginatedResponse,
+        cursor: null,
+      };
+      mockEngineCall.mockResolvedValueOnce(initialResponse);
 
-      // Reset mock again
-      mockCall.mockClear();
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
 
-      // Call loadMore again
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      const initialCallCount = mockEngineCall.mock.calls.length;
+
       act(() => {
         result.current.loadMore();
       });
 
-      // Verify API was not called
-      expect(mockCall).not.toHaveBeenCalled();
+      expect(mockEngineCall).toHaveBeenCalledTimes(initialCallCount);
+    });
+
+    it('should handle loadMore errors without clearing existing data', async () => {
+      // Set up initial successful load
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      // Wait for initial successful load
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      const originalPointsEvents = result.current.pointsEvents;
+
+      // Mock error for loadMore
+      mockEngineCall.mockRejectedValueOnce(new Error('Load more error'));
+
+      act(() => {
+        result.current.loadMore();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Load more error');
+      });
+
+      expect(result.current.isLoadingMore).toBe(false);
+      // Should preserve existing data on pagination error
+      expect(result.current.pointsEvents).toEqual(originalPointsEvents);
     });
   });
 
   describe('refresh functionality', () => {
-    it('should refresh data when refresh is called and manage refreshing state', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+    it('should refresh data successfully', async () => {
+      // Initial load
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
 
-      // Wait for initial load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
 
-      // Reset mock to track the next call
-      mockCall.mockClear();
-
-      // Call refresh
-      act(() => {
-        result.current.refresh();
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
-      // Verify refreshing state
-      expect(result.current.isRefreshing).toBe(true);
-      expect(result.current.error).toBeNull();
+      // Prepare refresh response
+      const refreshedEvent: PointsEventDto = {
+        ...mockPointsEvent,
+        id: 'refreshed-event',
+      };
 
-      // Wait for refresh to complete
-      await waitFor(
-        () => expect(result.current.isRefreshing).toBe(false),
-        waitForOptions,
-      );
+      const refreshResponse: PaginatedPointsEventsDto = {
+        results: [refreshedEvent],
+        has_more: false,
+        cursor: null,
+        total_results: 1,
+      };
 
-      // Verify API call
-      expect(mockCall).toHaveBeenCalledWith(
+      mockEngineCall.mockResolvedValueOnce(refreshResponse);
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(result.current.isRefreshing).toBe(false);
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getPointsEvents',
         {
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-456',
           cursor: null,
-          forceFresh: true,
         },
       );
 
-      // Verify refreshing state is false after completion
-      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.pointsEvents).toEqual([refreshedEvent]);
+      expect(result.current.hasMore).toBe(false);
     });
 
-    it('should handle refresh errors and manage refreshing state', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+    it('should reset cursor and hasMore state on refresh', async () => {
+      // Initial load with pagination
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
 
-      // Wait for initial load
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Verify initial state has pagination
+      expect(result.current.hasMore).toBe(true);
+
+      // Mock refresh response
+      const refreshResponse: PaginatedPointsEventsDto = {
+        results: [mockPointsEvent],
+        has_more: false,
+        cursor: null,
+        total_results: 1,
+      };
+
+      mockEngineCall.mockResolvedValueOnce(refreshResponse);
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.hasMore).toBe(false);
+    });
+
+    it('should handle refresh errors by clearing existing data', async () => {
+      // Initial successful load
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
       // Mock error for refresh
-      mockCall.mockRejectedValueOnce(new Error('Failed to refresh'));
+      mockEngineCall.mockRejectedValueOnce(new Error('Refresh error'));
 
-      // Call refresh
-      act(() => {
-        result.current.refresh();
+      await act(async () => {
+        await result.current.refresh();
       });
 
-      // Verify refreshing state starts as true
-      expect(result.current.isRefreshing).toBe(true);
-
-      // Wait for refresh to complete
-      await waitFor(
-        () => expect(result.current.isRefreshing).toBe(false),
-        waitForOptions,
-      );
-
-      // Verify error was set and refreshing state is false
-      expect(result.current.error).toBe('Failed to refresh');
       expect(result.current.isRefreshing).toBe(false);
-    });
-
-    it('should set isRefreshing to true at start and false after completion', async () => {
-      const { result } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
-
-      await waitFor(
-        () => expect(result.current.isLoading).toBe(false),
-        waitForOptions,
-      );
-
-      // Call refresh
-      act(() => {
-        result.current.refresh();
-      });
-
-      // Should start with isRefreshing true
-      expect(result.current.isRefreshing).toBe(true);
-
-      // Wait for refresh to complete
-      await waitFor(
-        () => expect(result.current.isRefreshing).toBe(false),
-        waitForOptions,
-      );
-
-      // Should end with isRefreshing false
-      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.error).toBe('Refresh error');
+      expect(result.current.pointsEvents).toEqual([]);
     });
   });
 
-  describe('activeTab functionality', () => {
-    it('should fetch data when activeTab changes to activity', async () => {
-      // Arrange - Start with a different tab
-      mockUseSelector.mockReturnValue('overview');
+  describe('effect dependencies', () => {
+    it('should refetch data when seasonId changes', async () => {
+      mockEngineCall.mockResolvedValue(mockPaginatedResponse);
 
-      const { rerender } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
+      const { result, rerender } = renderHook(
+        ({ seasonId, subscriptionId }) =>
+          usePointsEvents({ seasonId, subscriptionId }),
+        {
+          initialProps: {
+            seasonId: 'season-123',
+            subscriptionId: 'subscription-456',
+          },
+        },
       );
 
-      // Initial load should not happen since we're on 'overview' tab
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Reset mock to track the next call
-      mockCall.mockClear();
-
-      // Act - Change activeTab to 'activity'
-      act(() => {
-        mockUseSelector.mockReturnValue('activity');
-        rerender();
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert - Should trigger fetchPointsEvents
-      await waitFor(
-        () =>
-          expect(mockCall).toHaveBeenCalledWith(
-            'RewardsController:getPointsEvents',
-            {
-              seasonId: 'season-1',
-              subscriptionId: 'sub-1',
-              cursor: null,
-              forceFresh: false,
-            },
-          ),
-        waitForOptions,
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+      // Change seasonId
+      act(() => {
+        rerender({
+          seasonId: 'season-456',
+          subscriptionId: 'subscription-456',
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      });
+
+      expect(mockEngineCall).toHaveBeenLastCalledWith(
+        'RewardsController:getPointsEvents',
+        {
+          seasonId: 'season-456',
+          subscriptionId: 'subscription-456',
+          cursor: null,
+        },
       );
     });
 
-    it('should not fetch data when activeTab changes to non-activity tab', async () => {
-      // Arrange - Start with overview tab (important: set BEFORE rendering)
-      mockUseSelector.mockReturnValue('overview');
+    it('should refetch data when subscriptionId changes', async () => {
+      mockEngineCall.mockResolvedValue(mockPaginatedResponse);
 
-      const { rerender } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
+      const { result, rerender } = renderHook(
+        ({ seasonId, subscriptionId }) =>
+          usePointsEvents({ seasonId, subscriptionId }),
+        {
+          initialProps: {
+            seasonId: 'season-123',
+            subscriptionId: 'subscription-456',
+          },
+        },
       );
 
-      // Wait for initial state to settle (no fetch should happen on overview tab)
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Reset mock to track the next call
-      mockCall.mockClear();
-
-      // Act - Change activeTab to 'levels' (non-activity)
-      act(() => {
-        mockUseSelector.mockReturnValue('levels');
-        rerender();
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
-      // Wait a bit to ensure no API call is made
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
 
-      // Assert - Should not trigger fetchPointsEvents
-      expect(mockCall).not.toHaveBeenCalled();
-    });
+      // Change subscriptionId
+      act(() => {
+        rerender({
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-789',
+        });
+      });
 
-    it('should not fetch data when activeTab changes to activity but seasonId is missing', async () => {
-      // Arrange - Start with overview tab
-      mockUseSelector.mockReturnValue('overview');
+      await waitFor(() => {
+        expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      });
 
-      const { rerender } = renderHook(() =>
-        usePointsEvents({
-          seasonId: undefined,
-          subscriptionId: 'sub-1',
-        }),
+      expect(mockEngineCall).toHaveBeenLastCalledWith(
+        'RewardsController:getPointsEvents',
+        {
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-789',
+          cursor: null,
+        },
       );
-
-      // Wait for initial state to settle
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Reset mock to track the next call
-      mockCall.mockClear();
-
-      // Act - Change activeTab to 'activity'
-      act(() => {
-        mockUseSelector.mockReturnValue('activity');
-        rerender();
-      });
-
-      // Wait a bit to ensure no API call is made
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Assert - Should not trigger fetchPointsEvents due to missing seasonId
-      expect(mockCall).not.toHaveBeenCalled();
-    });
-
-    it('should not fetch data when activeTab changes to activity but subscriptionId is empty', async () => {
-      // Arrange - Start with overview tab
-      mockUseSelector.mockReturnValue('overview');
-
-      const { rerender } = renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: '',
-        }),
-      );
-
-      // Wait for initial state to settle
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Reset mock to track the next call
-      mockCall.mockClear();
-
-      // Act - Change activeTab to 'activity'
-      act(() => {
-        mockUseSelector.mockReturnValue('activity');
-        rerender();
-      });
-
-      // Wait a bit to ensure no API call is made
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Assert - Should not trigger fetchPointsEvents due to empty subscriptionId
-      expect(mockCall).not.toHaveBeenCalled();
     });
   });
 
-  describe('event subscriptions', () => {
-    it('should subscribe to reward events', () => {
-      renderHook(() =>
-        usePointsEvents({
-          seasonId: 'season-1',
-          subscriptionId: 'sub-1',
-        }),
-      );
+  describe('edge cases', () => {
+    it('should handle empty results gracefully', async () => {
+      const emptyResponse: PaginatedPointsEventsDto = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        total_results: 0,
+      };
 
-      // Verify subscription to events
-      expect(mockUseInvalidateByRewardEvents).toHaveBeenCalledWith(
-        [
-          'RewardsController:accountLinked',
-          'RewardsController:rewardClaimed',
-          'RewardsController:pointsEventsUpdated',
-        ],
-        expect.any(Function),
-      );
+      mockEngineCall.mockResolvedValueOnce(emptyResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.hasMore).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('should handle different event types correctly', async () => {
+      const referralEvent: PointsEventDto = {
+        id: 'referral-event',
+        timestamp: new Date('2024-01-02T00:00:00.000Z'),
+        type: 'REFERRAL',
+        payload: null,
+        value: 50,
+        bonus: null,
+        accountAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+      };
+
+      const mixedResponse: PaginatedPointsEventsDto = {
+        results: [mockPointsEvent, referralEvent],
+        has_more: false,
+        cursor: null,
+        total_results: 2,
+      };
+
+      mockEngineCall.mockResolvedValueOnce(mixedResponse);
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.pointsEvents).toHaveLength(2);
+      expect(result.current.pointsEvents[0].type).toBe('SWAP');
+      expect(result.current.pointsEvents[1].type).toBe('REFERRAL');
     });
   });
 });

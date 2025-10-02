@@ -56,9 +56,9 @@ const ApprovalTagUrl = ({
     return title;
   }, [currentEnsName, origin, url, isOriginDeepLink]);
 
-  const { faviconURI: faviconSource } = useFavicon(origin as string) as {
-    faviconURI: { uri?: string };
-  };
+  const faviconSource = useFavicon(origin as string) as
+    | { uri: string }
+    | undefined;
 
   const imageSource = faviconSource?.uri
     ? faviconSource

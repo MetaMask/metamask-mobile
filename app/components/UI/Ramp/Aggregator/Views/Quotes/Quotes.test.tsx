@@ -78,6 +78,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: '/payment-methods/test-payment-method',
+  selectedChainId: '1',
   appConfig: {
     POLLING_CYCLES: 2,
     POLLING_INTERVAL: 10000,
@@ -90,10 +91,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   isSell: false,
   selectedAddress: '0x1234567890',
   selectedRegion: { id: 'mock-region-id' } as Region,
-  selectedAsset: {
-    id: 'mock-asset-id',
-    network: { chainId: '1' },
-  } as CryptoCurrency,
+  selectedAsset: { id: 'mock-asset-id' } as CryptoCurrency,
   selectedFiatCurrencyId: 'mock-fiat-currency-id',
 };
 
@@ -118,7 +116,6 @@ const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
   asset: {
     symbol: 'ETH',
-    network: { chainId: '1' },
   },
   fiatCurrency: {
     symbol: 'USD',
@@ -516,18 +513,18 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
       expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-        [
-          "ONRAMP_DIRECT_PROVIDER_CLICKED",
-          {
-            "chain_id_destination": "1",
-            "currency_destination": undefined,
-            "currency_source": "USD",
-            "payment_method_id": "/payment-methods/test-payment-method",
-            "provider_onramp": "Paypal (Staging)",
-            "region": "mock-region-id",
-          },
-        ]
-      `);
+      [
+        "ONRAMP_DIRECT_PROVIDER_CLICKED",
+        {
+          "chain_id_destination": "1",
+          "currency_destination": undefined,
+          "currency_source": "USD",
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "provider_onramp": "Paypal (Staging)",
+          "region": "mock-region-id",
+        },
+      ]
+    `);
     });
 
     it('calls the correct analytics event for sell custom action', async () => {
@@ -539,18 +536,18 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
       expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-        [
-          "OFFRAMP_DIRECT_PROVIDER_CLICKED",
-          {
-            "chain_id_source": "1",
-            "currency_destination": "USD",
-            "currency_source": undefined,
-            "payment_method_id": "/payment-methods/test-payment-method",
-            "provider_offramp": "Paypal (Staging)",
-            "region": "mock-region-id",
-          },
-        ]
-      `);
+      [
+        "OFFRAMP_DIRECT_PROVIDER_CLICKED",
+        {
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": undefined,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "provider_offramp": "Paypal (Staging)",
+          "region": "mock-region-id",
+        },
+      ]
+    `);
     });
 
     it('calls the correct sdk method for buy custom action', async () => {

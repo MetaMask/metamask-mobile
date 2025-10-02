@@ -137,8 +137,8 @@ describe('TokenSearchDiscoveryController utils', () => {
       process.env = originalEnv;
     });
 
-    it('returns dev URL when environment is unknown', () => {
-      process.env.METAMASK_ENVIRONMENT = 'unknown';
+    it('returns dev URL when environment is local', () => {
+      process.env.METAMASK_ENVIRONMENT = 'local';
       jest.isolateModules(() => {
         const { createTokenSearchDiscoveryController: freshCreate } =
           jest.requireActual('./utils');

@@ -1,4 +1,4 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
 import { ConfirmationRowComponentIDs,ConfirmationFooterSelectorIDs } from '../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
@@ -24,7 +24,7 @@ class ConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
+    return AppwrightSelectors.getElementByID(this._device, ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
   }
 
   async isAccountSendToVisible() {
@@ -51,11 +51,6 @@ class ConfirmationScreen {
     const confirmButton = await this.confirmButton;
     console.log('confirmButton', confirmButton);
     //await confirmButton.tap();
-  }
-
-  async isVisible(network, timeout = 10000) {
-    const titleElement = await AppwrightSelectors.getElementByCatchAll(this._device, network === 'Solana' ? 'Transaction request' : 'Review');
-    await appwrightExpect(titleElement).toBeVisible({ timeout });
   }
 }
 

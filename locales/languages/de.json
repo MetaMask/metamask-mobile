@@ -404,7 +404,7 @@
     "show": "Anzeigen",
     "hide": "Verbergen",
     "seed_phrase": "Geheime Wiederherstellungsphrase",
-    "must_be_at_least": "Muss eine Länge von mindestens {{number}} Zeichen haben",
+    "must_be_at_least": "Das Passwort muss mindestens {{number}} Zeichen lang sein",
     "remember_me": "Angemeldet bleiben",
     "security_alert_title": "Sicherheitsbenachrichtigung",
     "security_alert_message": "Um fortzufahren, müssen Sie den Passcode oder eine andere von Ihrem Gerät unterstützte biometrische Authentifizierungsmethode (FaceID, TouchID oder Fingerabdruck) aktivieren.",
@@ -507,7 +507,6 @@
     "home": "Startseite",
     "browser": "Browser",
     "activity": "Aktivität",
-    "trade": "Trade",
     "settings": "Einstellungen",
     "rewards": "Belohnungen"
   },
@@ -1037,7 +1036,6 @@
         "insufficient_funds": "Unzureichende Gelder",
         "insufficient_balance": "Unzureichender Kontostand. Erforderlich: {{required}} $. Verfügbar: {{available}} $",
         "invalid_leverage": "Hebel muss zwischen {{min}}x und {{max}}x liegen",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Eine hoher Hebel erhöht das Liquidationsrisiko",
         "invalid_take_profit": "Take-Profit muss {{direction}} aktueller Preis für {{positionType}} Positionen sein",
         "invalid_stop_loss": "Stop-Loss muss {{direction}} aktueller Preis für {{positionType}} Positionen sein",
@@ -1092,7 +1090,7 @@
         "limit_price_below": "Limit-Preis liegt unter dem aktuellen Preis"
       },
       "leverage_modal": {
-        "title": "Hebel",
+        "title": "Leverage",
         "confirm": "Bestätigen",
         "entry_price": "Einstiegspreis",
         "current_price": "Aktueller Preis",
@@ -1184,6 +1182,8 @@
     "tpsl": {
       "title": "Take-Profit und Stop-Loss",
       "description": "Wählen Sie einen prozentualen Gewinn bzw. Verlust oder geben Sie einen benutzerdefinierten Auslösungspreis ein, um Ihre Position automatisch zu schließen.",
+      "set": "Festlegen",
+      "updating": "Aktualisierung ...",
       "off": "Aus",
       "current_price": "Aktueller Preis",
       "entry_price": "Einstiegspreis",
@@ -1206,7 +1206,7 @@
       "stop_loss_order_view_warning": "Stop-Loss ist {{direction}} Liquidationspreis",
       "above": "Über",
       "below": "Unter",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Verwerfen"
     },
     "token_selector": {
       "no_tokens": "Keine Token verfügbar"
@@ -1460,8 +1460,6 @@
     "failed_to_load_market_data": "Laden der Marktdaten fehlgeschlagen",
     "tap_to_retry": "Antippen zum erneuten Versuch",
     "search_by_token_symbol": "Suche nach Token-Symbol",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1708,6 +1706,7 @@
     "buy_asset": "{{asset}} kaufen",
     "no_tokens": "Sie haben keine Token!",
     "show_tokens_without_balance": "Tokens ohne Guthaben anzeigen",
+    "no_nfts_yet": "Noch keine NFTs",
     "nfts_autodetection_title": "NFT-Erkennung",
     "nfts_autodetection_desc": "Lassen Sie zu, dass MetaMask NFTs automatisch in Ihrer Wallet erkennt und anzeigt.",
     "network_details_check": "Überprüfung der Netzwerkangaben",
@@ -6002,6 +6001,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Einem Freund empfehlen",
         "share_referral_subject": "MetaMask-Belohnungen beitreten"
@@ -6014,7 +6014,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6026,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

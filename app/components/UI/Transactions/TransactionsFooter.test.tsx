@@ -110,7 +110,6 @@ describe('TransactionsFooter', () => {
         <TransactionsFooter
           chainId="0x1"
           providerType="mainnet"
-          rpcBlockExplorer="https://etherscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
       );
@@ -125,7 +124,6 @@ describe('TransactionsFooter', () => {
         <TransactionsFooter
           chainId="0x89"
           providerType="polygon"
-          rpcBlockExplorer="https://etherscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
       );
@@ -185,7 +183,6 @@ describe('TransactionsFooter', () => {
         <TransactionsFooter
           chainId="0x1"
           providerType="mainnet"
-          rpcBlockExplorer="https://etherscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
       );
@@ -319,7 +316,6 @@ describe('TransactionsFooter', () => {
         <TransactionsFooter
           chainId="0x1"
           providerType="mainnet"
-          rpcBlockExplorer="https://etherscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
           showDisclaimer
         />,
@@ -409,7 +405,6 @@ describe('TransactionsFooter', () => {
         <TransactionsFooter
           chainId="0x1"
           providerType="mainnet"
-          rpcBlockExplorer="https://etherscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
           showDisclaimer
         />,

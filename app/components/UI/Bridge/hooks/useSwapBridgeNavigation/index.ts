@@ -33,7 +33,6 @@ export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
   TokenDetails = 'TokenDetails',
   Swaps = 'Swaps',
-  Rewards = 'Rewards',
 }
 
 /**
@@ -111,18 +110,12 @@ export const useSwapBridgeNavigation = ({
 
       const candidateSourceToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
-      let sourceToken = isBridgeEnabledSource
+      const sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
 
       if (!sourceToken) {
-        // fallback to ETH on mainnet
-        sourceToken = {
-          address: ethers.constants.AddressZero,
-          chainId: EthScope.Mainnet,
-          symbol: 'ETH',
-          decimals: 18,
-        };
+        return;
       }
 
       const params: BridgeRouteParams = {

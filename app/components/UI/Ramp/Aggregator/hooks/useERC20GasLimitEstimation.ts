@@ -13,7 +13,7 @@ const POLLING_INTERVAL = 15000; // 15s
 
 interface Options {
   tokenAddress?: string;
-  fromAddress: string | null;
+  fromAddress: string;
   chainId: string;
   amount: string;
   decimals: number;
@@ -48,10 +48,6 @@ function useERC20GasLimitEstimation({
 
     const estimateGas = async () => {
       try {
-        if (!fromAddress) {
-          return;
-        }
-
         const amountInMinimalUnit = toTokenMinimalUnit(amount, decimals);
         const amountHex = addHexPrefix(
           new BN(amountInMinimalUnit.toString()).toString('hex'),
@@ -60,7 +56,7 @@ function useERC20GasLimitEstimation({
         const dummyToAddress = '0x1234567890123456789012345678901234567890';
 
         const transaction: TransactionParams = {
-          from: safeToChecksumAddress(fromAddress as string) as string,
+          from: safeToChecksumAddress(fromAddress) as string,
           to: safeToChecksumAddress(tokenAddress),
           value: '0x0',
           data: generateTransferData('transfer', {

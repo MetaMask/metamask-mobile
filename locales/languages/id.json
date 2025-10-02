@@ -404,7 +404,7 @@
     "show": "Tampilkan",
     "hide": "Sembunyikan",
     "seed_phrase": "Frasa Pemulihan Rahasia",
-    "must_be_at_least": "Minimal berisi {{number}} karakter",
+    "must_be_at_least": "Kata sandi minimal berisi {{number}} karakter",
     "remember_me": "Ingat saya",
     "security_alert_title": "Peringatan Keamanan",
     "security_alert_message": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung di perangkat Anda (ID Wajah, ID Sentuh, atau Sidik Jari)",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "Dana tidak cukup",
         "insufficient_balance": "Saldo tidak mencukupi. Diperlukan: ${{required}}, Tersedia: ${{available}}",
         "invalid_leverage": "Leverage harus berada di antara {{min}}x dan {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Leverage yang tinggi meningkatkan risiko likuidasi",
         "invalid_take_profit": "Ambil profit harus {{direction}} harga saat ini untuk posisi {{positionType}}",
         "invalid_stop_loss": "Stop loss harus {{direction}} harga saat ini untuk posisi {{positionType}}",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "Take profit dan stop loss",
       "description": "Pilih persentase profit atau loss, atau masukkan harga pemicu khusus untuk menutup posisi secara otomatis.",
+      "set": "Atur",
+      "updating": "Memperbarui...",
       "off": "Mati",
       "current_price": "Harga saat ini",
       "entry_price": "Harga masuk",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "Stop loss merupakan harga likuidasi {{direction}}",
       "above": "di atas",
       "below": "di bawah",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Lewatkan"
     },
     "token_selector": {
       "no_tokens": "Token tidak tersedia"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "Gagal memuat data pasar",
     "tap_to_retry": "Ketuk untuk mencoba lagi",
     "search_by_token_symbol": "Cari berdasarkan simbol token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
     "show_tokens_without_balance": "Tampilkan token tanpa saldo",
+    "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
     "nfts_autodetection_desc": "Izinkan MetaMask mendeteksi dan menampilkan NFT di dompet Anda secara otomatis.",
     "network_details_check": "Pemeriksaan detail jaringan",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Rekomendasikan ke teman",
         "share_referral_subject": "Gabung dengan MetaMask Rewards"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

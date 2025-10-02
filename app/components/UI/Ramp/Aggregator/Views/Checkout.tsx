@@ -28,7 +28,6 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
-import Logger from '../../../../../util/Logger';
 
 interface CheckoutParams {
   url: string;
@@ -41,8 +40,14 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 );
 
 const CheckoutWebView = () => {
-  const { selectedAsset, selectedAddress, sdkError, callbackBaseUrl, isBuy } =
-    useRampSDK();
+  const {
+    selectedAddress,
+    selectedChainId,
+    selectedAsset,
+    sdkError,
+    callbackBaseUrl,
+    isBuy,
+  } = useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -57,29 +62,26 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
-    const chainId = selectedAsset?.network?.chainId;
-    if (!chainId) return;
-
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_destination: chainId,
+        chain_id_destination: selectedChainId,
         provider_onramp: provider.name,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_source: chainId,
+        chain_id_source: selectedChainId,
         provider_offramp: provider.name,
       });
     }
-  }, [isBuy, provider.name, selectedAsset?.network?.chainId, trackEvent]);
+  }, [isBuy, provider.name, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: provider.name, showNetwork: false },
+        { title: provider.name },
         colors,
         handleCancelPress,
       ),
@@ -87,22 +89,25 @@ const CheckoutWebView = () => {
   }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
-    if (
-      !customOrderId ||
-      !selectedAsset?.network?.chainId ||
-      !selectedAddress
-    ) {
+    if (!customOrderId) {
       return;
     }
     const customOrderIdData = createCustomOrderIdData(
       customOrderId,
-      selectedAsset.network.chainId,
+      selectedAsset?.network?.chainId || selectedChainId,
       selectedAddress,
       isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, isBuy, selectedAsset, selectedAddress]);
+  }, [
+    customOrderId,
+    dispatch,
+    isBuy,
+    selectedAddress,
+    selectedChainId,
+    selectedAsset,
+  ]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -118,10 +123,6 @@ const CheckoutWebView = () => {
           // Most likely the user clicked the X in Wyre widget
           // @ts-expect-error navigation prop mismatch
           navigation.dangerouslyGetParent()?.pop();
-          return;
-        }
-        if (!selectedAddress) {
-          Logger.error(new Error('No address available for selected asset'));
           return;
         }
         const orders = await SDK.orders();
@@ -208,11 +209,9 @@ const CheckoutWebView = () => {
           }}
           allowsInlineMediaPlayback
           enableApplePay
-          paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
-          testID="checkout-webview"
         />
       </View>
     );

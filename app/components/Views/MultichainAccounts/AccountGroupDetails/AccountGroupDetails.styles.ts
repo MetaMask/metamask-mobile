@@ -8,9 +8,9 @@ const styleSheet = (params: { theme: Theme }) => {
 
   const baseRowStyle = {
     display: 'flex',
-    marginBottom: 1,
-    paddingTop: 16,
-    paddingBottom: 16,
+    marginBottom: 2,
+    paddingTop: 14,
+    paddingBottom: 14,
     paddingLeft: 16,
     paddingRight: 16,
     flexDirection: 'row',
@@ -18,14 +18,13 @@ const styleSheet = (params: { theme: Theme }) => {
     alignItems: 'center',
     gap: 8,
     alignSelf: 'stretch',
-    backgroundColor: colors.background.muted,
+    backgroundColor: colors.background.alternative,
   } as ViewStyle;
 
   return StyleSheet.create({
     safeArea: {
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
       flex: 1, // Ensure SafeAreaView takes full available space
-      backgroundColor: colors.background.default,
     },
 
     container: {
@@ -88,11 +87,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     text: {
       color: colors.text.alternative,
-    },
-
-    groupNameText: {
-      color: colors.text.alternative,
-      maxWidth: 150,
     },
   });
 };

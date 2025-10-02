@@ -1,11 +1,11 @@
 import { DepositOrder, OrderStatusEnum } from '@consensys/native-ramps-sdk';
 import { ProcessorOptions } from '../..';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
-
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
+import transakNetworkToChainId from '../utils/transakNetworkToChainId';
 import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
@@ -33,21 +33,18 @@ const depositOrderStateToFiatOrderState = (
   }
 };
 
-export const depositOrderToFiatOrder = (
-  depositOrder: DepositOrder,
-): FiatOrder => ({
+export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
   id: depositOrder.id,
   provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
   createdAt: depositOrder.createdAt,
   amount: depositOrder.fiatAmount,
   fee: depositOrder.totalFeesFiat,
-  forceUpdate: false,
   cryptoAmount: depositOrder.cryptoAmount || 0,
   cryptoFee: depositOrder.totalFeesFiat || 0,
   currency: depositOrder.fiatCurrency,
   currencySymbol: '',
-  cryptocurrency: depositOrder.cryptoCurrency?.symbol || '',
-  network: depositOrder.network?.chainId || '',
+  cryptocurrency: depositOrder.cryptoCurrency,
+  network: transakNetworkToChainId(depositOrder.network),
   state: depositOrderStateToFiatOrderState(depositOrder.status),
   account: depositOrder.walletAddress,
   txHash: depositOrder.txHash,
@@ -76,7 +73,6 @@ export async function processDepositOrder(
       account: order.account,
       lastTimeFetched: Date.now(),
       errorCount: 0,
-      forceUpdate: false,
     };
   } catch (error) {
     Logger.error(error as Error, {

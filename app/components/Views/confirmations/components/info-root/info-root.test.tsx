@@ -20,35 +20,16 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: jest.fn(),
   }),
 }));
-
-jest.mock('../../hooks/gas/useGasFeeToken');
-
-jest.mock('../../hooks/alerts/useInsufficientBalanceAlert', () => ({
-  useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
-}));
-
-jest.mock(
-  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
-  () => ({
-    useNetworkEnablement: jest.fn().mockReturnValue({
-      namespace: 'eip155',
-      enabledNetworksByNamespace: {
-        eip155: {
-          '0x1': true,
-          '0x89': false,
-          '0x13881': true,
-        },
-      },
-      tryEnableEvmNetwork: jest.fn(),
-    }),
-  }),
-);
 
 const MockText = Text;
 jest.mock('../qr-info', () => () => {
@@ -70,6 +51,7 @@ jest.mock('../../../../../core/Engine', () => ({
       state: {
         keyrings: [],
       },
+      getOrAddQRKeyring: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
@@ -109,17 +91,6 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 describe('Info', () => {
-  const mockUseNetworkEnablement = jest.fn();
-  mockUseNetworkEnablement.mockReturnValue({
-    namespace: 'eip155',
-    enabledNetworksByNamespace: {
-      eip155: {
-        '0x1': true,
-        '0x89': false,
-        '0x13881': true,
-      },
-    },
-  });
   it('renders correctly for personal sign', () => {
     const { getByTestId } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,

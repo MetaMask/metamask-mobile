@@ -1,12 +1,19 @@
-import React, { useCallback, useLayoutEffect } from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName } from '@metamask/design-system-react-native';
+import HeaderBase from '../../../../component-library/components/HeaderBase';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor as MMDSIconColor,
+} from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -21,7 +28,6 @@ import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { strings } from '../../../../../locales/i18n';
-import { getAddressListNavbarOptions } from '../../../UI/Navbar';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -50,6 +56,7 @@ export const AddressList = () => {
       const copyAddressToClipboard = async () => {
         await ClipboardManager.setString(item.account.address);
       };
+
       return (
         <MultichainAddressRow
           chainId={item.scope}
@@ -72,7 +79,7 @@ export const AddressList = () => {
                       address: item.account.address,
                       networkName: item.networkName,
                       chainId: item.scope,
-                      groupId,
+                      accountName: item.account.metadata.name,
                     },
                   },
                 );
@@ -83,30 +90,33 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId],
+    [navigation],
   );
 
-  useLayoutEffect(() => {
-    if (title) {
-      navigation.setOptions({
-        ...getAddressListNavbarOptions(
-          navigation,
-          title,
-          AddressListIds.GO_BACK,
-        ),
-        headerShown: true,
-      });
-    }
-  }, [navigation, title]);
-
   return (
-    <View style={styles.safeArea}>
-      <FlashList
-        data={internalAccountsSpreadByScopes}
-        keyExtractor={(item) => item.scope}
-        renderItem={renderAddressItem}
-        onLoad={onLoad}
-      />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <HeaderBase
+        style={styles.header}
+        startAccessory={
+          <ButtonIcon
+            testID={AddressListIds.GO_BACK}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            iconProps={{ color: MMDSIconColor.IconDefault }}
+            onPress={() => navigation.goBack()}
+          />
+        }
+      >
+        {title}
+      </HeaderBase>
+      <View style={styles.container}>
+        <FlashList
+          data={internalAccountsSpreadByScopes}
+          keyExtractor={(item) => item.scope}
+          renderItem={renderAddressItem}
+          onLoad={onLoad}
+        />
+      </View>
+    </SafeAreaView>
   );
 };

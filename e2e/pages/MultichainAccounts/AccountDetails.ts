@@ -32,20 +32,10 @@ class AccountDetails {
     return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
-  get accountSrpLink(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
-    );
-  }
-
   get exportPrivateKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
-  }
-
-  get privateKeysLink(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK);
   }
 
   get exportSrpButton(): DetoxElement {
@@ -88,12 +78,6 @@ class AccountDetails {
     });
   }
 
-  async tapPrivateKeyLink(): Promise<void> {
-    await Gestures.waitAndTap(this.privateKeysLink, {
-      elemDescription: 'Unlock to reveal Private Keys in Account Details',
-    });
-  }
-
   async tapExportPrivateKeyButton(): Promise<void> {
     await Gestures.waitAndTap(this.exportPrivateKeyButton, {
       elemDescription: 'Export Private Key Button in Account Details',
@@ -103,12 +87,6 @@ class AccountDetails {
   async tapExportSrpButton(): Promise<void> {
     await Gestures.waitAndTap(this.exportSrpButton, {
       elemDescription: 'Export SRP Button in Account Details',
-    });
-  }
-
-  async tapAccountSrpLink(): Promise<void> {
-    await Gestures.waitAndTap(this.accountSrpLink, {
-      elemDescription: 'View Account SRP in Account Details',
     });
   }
 }

@@ -1,18 +1,20 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
-import { getCurrencySymbol } from '../../../../../util/number';
+import { getCurrencySymbol, isDecimal } from '../../../../../util/number';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import {
+  selectConversionRateByChainId,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
-import {
-  convertCurrency,
-  isValidPositiveNumericString,
-} from '../../utils/send';
+import { convertCurrency } from '../../utils/send';
 
 interface ConversionArgs {
   amount?: string;
@@ -29,7 +31,7 @@ export const getFiatValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
-  if (!amount || !isValidPositiveNumericString(amount)) {
+  if (!amount || !isDecimal(amount)) {
     return '0.00';
   }
 
@@ -65,7 +67,7 @@ export const getNativeValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
-  if (!amount || !isValidPositiveNumericString(amount)) {
+  if (!amount || !isDecimal(amount)) {
     return '0';
   }
 
@@ -81,6 +83,10 @@ export const getNativeValueFn = ({
 export const useCurrencyConversions = () => {
   const { asset, chainId } = useSendContext();
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRateEvm = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId),
+  );
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId as Hex),
   );
@@ -97,8 +103,19 @@ export const useCurrencyConversions = () => {
     if (!assetAddress) {
       return 0;
     }
-    return (asset as AssetType)?.fiat?.conversionRate ?? 0;
-  }, [asset]);
+    if ((asset as AssetType)?.fiat?.conversionRate) {
+      return (asset as AssetType)?.fiat?.conversionRate ?? 0;
+    }
+    if (isEvmAddress(assetAddress)) {
+      if ((asset as AssetType)?.isNative) {
+        return conversionRateEvm ?? 0;
+      }
+      return 0;
+    }
+    return parseFloat(
+      multichainAssetsRates[assetAddress as CaipAssetType]?.rate ?? 0,
+    );
+  }, [asset, conversionRateEvm, multichainAssetsRates]);
 
   const getFiatDisplayValue = useCallback(
     (amount: string) =>
@@ -136,7 +153,7 @@ export const useCurrencyConversions = () => {
 
   return {
     conversionSupportedForAsset:
-      conversionRate !== 0 &&
+      conversionRate * (exchangeRate ?? 0) !== 0 &&
       asset?.standard !== ERC1155 &&
       asset?.standard !== ERC721,
     fiatCurrencySymbol: currentCurrency?.toUpperCase(),

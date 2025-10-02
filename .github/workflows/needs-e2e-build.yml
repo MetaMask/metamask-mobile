@@ -19,19 +19,15 @@ on:
       builds:
         description: 'Whether any builds will happen'
         value: ${{ jobs.needs-e2e-build.outputs.builds }}
-      changed_files:
-        description: 'Changed files'
-        value: ${{ jobs.needs-e2e-build.outputs.changed_files }}
 
 jobs:
   needs-e2e-build:
     name: Check if builds will happen
-    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-small
+    runs-on: ubuntu-latest
     outputs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
       builds: ${{ steps.set-outputs.outputs.builds }}
-      changed_files: ${{ steps.set-outputs.outputs.changed_files }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -64,8 +60,8 @@ jobs:
             echo "-> SKIP=true due to 'skip-e2e' label on PR"
           fi
         env:
-          GH_TOKEN: ${{ github.token }}
-
+          GH_TOKEN: ${{ github.token }}    
+      
       - name: Paths filter (Android/iOS impact)
         id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -89,7 +85,7 @@ jobs:
               - 'wdio/**'                          # WebDriver test files
               - 'wdio.conf.js'                     # WebDriver config
               - 'appwright/**'                     # Appwright test files
-              - 'scripts/build.sh'                 # Build.sh
+
 
             ignore:
               - '**/*.md'                          # Documentation files
@@ -107,25 +103,88 @@ jobs:
               - 'crowdin.yml'                      # Translation config
               - 'bitrise.yml'                      # CI config (non-GitHub)
               - 'sonar-project.properties'         # SonarQube config
-              - 'scripts/*'                        # Build/utility scripts
-              - 'scripts/*/**'                     # Subdirectories in scripts/   
-              - '!scripts/build.sh'                # But NOT build.sh
+              - 'scripts/**'                       # Build/utility scripts
               - 'patches/**'                       # Dependency patches
               - 'ppom/**'                          # PPOM sub-project
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback
-          list-files: 'shell' # Output lists for comparison
+          list-files: 'shell'  # Output lists for comparison
 
       - name: Set final outputs
         id: set-outputs
         run: |
-          # Compute outputs using Node script
-          GITHUB_EVENT_NAME="${{ github.event_name }}" \
-          SHOULD_SKIP_E2E="${{ steps.skip-tag.outputs.SKIP == 'true' || steps.skip-label.outputs.SKIP == 'true' }}" \
-          ANDROID="${{ steps.filter.outputs.android }}" \
-          IOS="${{ steps.filter.outputs.ios }}" \
-          SHARED="${{ steps.filter.outputs.shared }}" \
-          IGNORE_FILES="${{ steps.filter.outputs.ignore_files }}" \
-          CATCH_ALL_FILES="${{ steps.filter.outputs.catch_all_files }}" \
-          node .github/scripts/needs-e2e-builds.mjs
+
+          # Skip if [skip-e2e] tag found or label exists on PR
+          if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
+            {
+              echo "android_final=false"
+              echo "ios_final=false"
+              echo "builds=false"
+            } >> "${GITHUB_OUTPUT}"
+            echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
+            exit 0
+          fi                   
+          
+          # Get filter results
+          android="${{ steps.filter.outputs.android }}"
+          ios="${{ steps.filter.outputs.ios }}"
+          shared="${{ steps.filter.outputs.shared }}"
+          ignore="${{ steps.filter.outputs.ignore }}"
+
+          # Get lists of files
+          ignore_files="${{ steps.filter.outputs.ignore_files }}"
+          catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
+
+          # Use Cases for State Machine:
+          # 1. Purely ignored changes -> Skip both
+          # 2. Shared changes -> Build both 
+          # 3. Mixed ignore + new/unmatched files -> Build both (conservative)
+          # 4. New/unmatched files only -> Build both (conservative)
+          # 5. Android-only changes -> Android only
+          # 6. iOS-only changes -> iOS only
+
+          # State Machine
+          if [[ "$android" == 'true' && "$ios" != 'true' ]]; then
+            state="ANDROID_ONLY"
+          elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
+            state="IOS_ONLY"
+          elif [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$ignore_files" == "$catch_all_files" ]]; then
+            state="PURE_IGNORE"
+          else
+            state="SHARED"
+          fi
+
+          case "$state" in
+            "PURE_IGNORE")
+              echo "Ignoring - no mobile code changes"
+              android_final="false"
+              ios_final="false"
+              ;;
+            "SHARED")
+              echo "Building both platforms"
+              android_final="true"
+              ios_final="true"
+              ;;
+            "ANDROID_ONLY")
+              echo "Building Android only"
+              android_final="true"
+              ios_final="false"
+              ;;
+            "IOS_ONLY")
+              echo "Building iOS only"
+              android_final="false"
+              ios_final="true"
+              ;;
+          esac
+
+          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+
+          # Check if any builds will happen
+          if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
+            builds="true"
+          else
+            builds="false"
+          fi
+          echo "builds=$builds" >> "${GITHUB_OUTPUT}"

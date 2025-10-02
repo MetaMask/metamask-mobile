@@ -160,6 +160,11 @@ describe('NetworkDetails', () => {
       fireEvent.press(switchButton);
     });
 
+    expect(
+      Engine.context.PreferencesController.setTokenNetworkFilter,
+    ).toHaveBeenCalledWith({
+      [props.networkConfiguration.chainId]: true,
+    });
     expect(mockDispatch).toHaveBeenCalled();
   });
 
@@ -252,6 +257,12 @@ describe('NetworkDetails', () => {
 
     await act(async () => {
       fireEvent.press(switchButton);
+    });
+
+    expect(
+      Engine.context.PreferencesController.setTokenNetworkFilter,
+    ).toHaveBeenCalledWith({
+      [props.networkConfiguration.chainId]: true,
     });
 
     expect(

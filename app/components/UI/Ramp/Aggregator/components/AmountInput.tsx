@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Box from './Box';
-import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -24,13 +23,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export interface Props {
+interface Props {
   label?: string;
   currencySymbol?: string;
   amount: string;
   currencyCode?: string;
   highlighted?: boolean;
-  loading?: boolean;
   highlightedError?: boolean;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,7 +44,6 @@ const AmountInput: React.FC<Props> = ({
   amount,
   currencyCode,
   highlighted,
-  loading,
   highlightedError,
   onPress,
   onCurrencyPress,
@@ -61,39 +58,31 @@ const AmountInput: React.FC<Props> = ({
           hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
           testID={BuildQuoteSelectors.AMOUNT_INPUT}
         >
-          {loading ? (
-            <SkeletonText medium />
-          ) : (
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              style={styles.amount}
-              variant={TextVariant.BodyMDMedium}
-              color={highlightedError ? TextColor.Error : TextColor.Default}
-            >
-              {currencySymbol || ''}
-              {amount}
-            </Text>
-          )}
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={styles.amount}
+            variant={TextVariant.BodyMDMedium}
+            color={highlightedError ? TextColor.Error : TextColor.Default}
+          >
+            {currencySymbol || ''}
+            {amount}
+          </Text>
         </TouchableOpacity>
       </ListItemColumn>
 
       {onCurrencyPress ? (
         <ListItemColumn style={styles.chevron}>
-          {loading ? (
-            <SkeletonText small />
-          ) : (
-            <TouchableOpacity
-              accessible
-              accessibilityRole="button"
-              disabled={!onCurrencyPress}
-              onPress={onCurrencyPress}
-              hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-              testID={BuildQuoteSelectors.SELECT_CURRENCY}
-            >
-              <DownChevronText text={currencyCode} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            accessible
+            accessibilityRole="button"
+            disabled={!onCurrencyPress}
+            onPress={onCurrencyPress}
+            hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+            testID={BuildQuoteSelectors.SELECT_CURRENCY}
+          >
+            <DownChevronText text={currencyCode} />
+          </TouchableOpacity>
         </ListItemColumn>
       ) : null}
     </ListItem>

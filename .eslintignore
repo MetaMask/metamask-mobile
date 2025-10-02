@@ -14,4 +14,3 @@ wdio
 /app/lib/ppom/blockaid-version.js
 /ppom
 junitProperties.js
-scripts/aggregate-performance-reports.mjs

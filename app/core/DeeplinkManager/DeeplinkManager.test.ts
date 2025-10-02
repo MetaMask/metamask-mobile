@@ -10,7 +10,6 @@ import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
 import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
-import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
 import handleRampUrl from './Handlers/handleRampUrl';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import switchNetwork from './Handlers/switchNetwork';
@@ -26,7 +25,6 @@ jest.mock('./Handlers/switchNetwork');
 jest.mock('./Handlers/handleSwapUrl');
 jest.mock('./Handlers/handleCreateAccountUrl');
 jest.mock('./Handlers/handlePerpsUrl');
-jest.mock('./Handlers/handleRewardsUrl');
 jest.mock('./Handlers/handleDeeplink');
 jest.mock('../../util/notifications/services/FCMService');
 
@@ -189,14 +187,6 @@ describe('DeeplinkManager', () => {
     deeplinkManager._handlePerps('perps?screen=asset&symbol=ETH');
     expect(handlePerpsUrl).toHaveBeenCalledWith({
       perpsPath: 'perps?screen=asset&symbol=ETH',
-    });
-  });
-
-  it('should handle rewards correctly', () => {
-    // Rewards URLs now handled through _handleRewards with optional referral code parameter
-    deeplinkManager._handleRewards('?referral=code123');
-    expect(handleRewardsUrl).toHaveBeenCalledWith({
-      rewardsPath: '?referral=code123',
     });
   });
 });

@@ -116,7 +116,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
-  const { faviconURI: faviconSource } = useFavicon(origin);
+  const faviconSource = useFavicon(origin);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
   const secureIcon = useMemo(

@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import withMetricsAwareness from '../../../components/hooks/useMetrics/withMetricsAwareness';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Text, {
   TextVariant,
   TextColor,

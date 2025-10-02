@@ -23,15 +23,6 @@ import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedl
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            metadata: { id: 'mock-keyring-id' },
-          },
-        ],
-      },
-    },
     NetworkController: {
       addNetwork: jest.fn().mockResolvedValue(undefined),
       findNetworkClientIdByChainId: jest
@@ -57,13 +48,6 @@ jest.mock('../../../core/Engine/Engine', () => ({
       updateExchangeRate: jest.fn().mockResolvedValue(undefined),
     },
   },
-}));
-
-const mockDiscoverAccounts = jest.fn().mockResolvedValue(0);
-
-jest.mock('../../../multichain-accounts/discovery', () => ({
-  discoverAccounts: (...args: Parameters<typeof mockDiscoverAccounts>) =>
-    mockDiscoverAccounts(...args),
 }));
 
 const mockNavigate = jest.fn();
@@ -167,7 +151,7 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
+  it('(state 2) - does not import additional accounts when onDone is called', () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
@@ -180,7 +164,6 @@ describe('OnboardingSuccessComponent', () => {
     button.props.onPress();
 
     expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
-    expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {

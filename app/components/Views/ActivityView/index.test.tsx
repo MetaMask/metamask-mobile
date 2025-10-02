@@ -11,9 +11,8 @@ import * as networkManagerUtils from '../../UI/NetworkManager';
 // eslint-disable-next-line import/no-namespace
 import * as tokenBottomSheetUtils from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+jest.mock('react-native-scrollable-tab-view', () => {
   const MockScrollableTabView = (props: {
     children?: unknown;
     [key: string]: unknown;
@@ -48,6 +47,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      getOrAddQRKeyring: jest.fn(),
+    },
+  },
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
@@ -154,9 +158,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      const filterControlsButton = getByTestId(
-        WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-      );
+      const filterControlsButton = getByTestId('tokens-network-filter');
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
@@ -186,9 +188,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      const filterControlsButton = getByTestId(
-        WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-      );
+      const filterControlsButton = getByTestId('tokens-network-filter');
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
@@ -221,7 +221,7 @@ describe('ActivityView', () => {
       it('shows "All Networks" text when multiple networks are enabled', () => {
         const { getByText } = renderComponent(mockInitialState);
 
-        expect(getByText('Popular networks')).toBeTruthy();
+        expect(getByText('All Networks')).toBeTruthy();
       });
 
       it('shows current network name when only one network is enabled', () => {
@@ -265,9 +265,7 @@ describe('ActivityView', () => {
 
         const { getByTestId } = renderComponent(mockInitialState);
 
-        const filterButton = getByTestId(
-          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-        );
+        const filterButton = getByTestId('tokens-network-filter');
         fireEvent.press(filterButton);
 
         expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
@@ -360,9 +358,7 @@ describe('ActivityView', () => {
 
         const { getByTestId } = renderComponent(mockInitialState);
 
-        const filterButton = getByTestId(
-          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-        );
+        const filterButton = getByTestId('tokens-network-filter');
         fireEvent.press(filterButton);
 
         expect(
@@ -385,9 +381,7 @@ describe('ActivityView', () => {
         mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
 
         const { getByTestId } = renderComponent(mockInitialState);
-        const filterButton = getByTestId(
-          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-        );
+        const filterButton = getByTestId('tokens-network-filter');
 
         expect(filterButton.props.disabled).toBe(true);
       });

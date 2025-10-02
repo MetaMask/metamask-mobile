@@ -9,11 +9,14 @@ import AccountDisplayItem from './AccountDisplayItem';
 // Mock external dependencies
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
   __esModule: true,
-  default: jest.fn(({ variant, name, size }) => {
+  default: jest.fn(() => {
     const MockedAvatar = () => null;
-    MockedAvatar.displayName = `Avatar-${variant}-${name}-${size}`;
     return <MockedAvatar />;
   }),
+  AvatarAccountType: {
+    Blockies: 'blockies',
+    JazzIcon: 'jazzicon',
+  },
   AvatarSize: {
     Sm: '24',
     Md: '32',
@@ -21,7 +24,6 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
   },
   AvatarVariant: {
     Account: 'account',
-    Network: 'network',
   },
 }));
 
@@ -51,75 +53,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock utility functions
-jest.mock('../../../../../util/address', () => ({
-  formatAddress: jest.fn((address, format) => {
-    if (format === 'short') {
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
-    return address;
-  }),
-}));
-
-jest.mock('../../../../../util/networks', () => ({
-  getNetworkImageSource: jest.fn(({ chainId }) => {
-    if (chainId === 'eip155:1') {
-      return { uri: 'ethereum-icon' };
-    }
-    if (chainId === 'error-chain') {
-      throw new Error('Network image not found');
-    }
-    return { uri: 'default-network-icon' };
-  }),
-}));
-
-// Mock selectors
-jest.mock('../../../../../selectors/networkController', () => ({
-  selectNetworkConfigurationsByCaipChainId: jest.fn(),
-}));
-
-const mockNetworkConfigurations = {
-  'eip155:1': {
-    chainId: '0x1',
-    name: 'Ethereum Mainnet',
-    nativeCurrency: 'ETH',
-    rpcEndpoints: [],
-    defaultRpcEndpointIndex: 0,
-    blockExplorerUrls: [],
-    defaultBlockExplorerUrlIndex: 0,
-  },
-  'eip155:137': {
-    chainId: '0x89',
-    name: 'Polygon Mainnet',
-    nativeCurrency: 'MATIC',
-    rpcEndpoints: [],
-    defaultRpcEndpointIndex: 0,
-    blockExplorerUrls: [],
-    defaultBlockExplorerUrlIndex: 0,
-  },
-};
-
-const createMockStore = (
-  networkConfigurations: Record<string, unknown> = mockNetworkConfigurations,
-) =>
+const createMockStore = (useBlockieIcon = false) =>
   configureStore({
     reducer: {
-      engine: () => ({
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: networkConfigurations,
-          },
-        },
+      settings: () => ({
+        useBlockieIcon,
       }),
-    },
-    preloadedState: {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: networkConfigurations,
-          },
-        },
-      },
     },
   });
 
@@ -142,17 +81,9 @@ const mockAccount = {
 describe('AccountDisplayItem - Edge Cases', () => {
   const renderWithProvider = (
     component: React.ReactElement,
-    networkConfigurations: Record<string, unknown> = mockNetworkConfigurations,
+    useBlockieIcon = false,
   ) => {
-    // Setup selector mock before creating store
-    const networkController = jest.requireMock(
-      '../../../../../selectors/networkController',
-    );
-    networkController.selectNetworkConfigurationsByCaipChainId.mockReturnValue(
-      networkConfigurations,
-    );
-
-    const store = createMockStore(networkConfigurations);
+    const store = createMockStore(useBlockieIcon);
     return render(<Provider store={store}>{component}</Provider>);
   };
 
@@ -194,96 +125,6 @@ describe('AccountDisplayItem - Edge Cases', () => {
       };
 
       const component = <AccountDisplayItem account={accountWithoutAddress} />;
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-  });
-
-  describe('Network functionality', () => {
-    it('should render with network avatar when valid chainId is available', () => {
-      const component = <AccountDisplayItem account={mockAccount} />;
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-
-    it('should use provided caipChainId over account scopes', () => {
-      const component = (
-        <AccountDisplayItem account={mockAccount} caipChainId="eip155:137" />
-      );
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-
-    it('should render simplified version when no valid chainId is available', () => {
-      const accountWithoutScopes = {
-        ...mockAccount,
-        scopes: [],
-      };
-
-      const component = <AccountDisplayItem account={accountWithoutScopes} />;
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-
-    it('should handle unknown network configuration', () => {
-      const component = (
-        <AccountDisplayItem account={mockAccount} caipChainId="eip155:999" />
-      );
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-
-    it('should handle error in getNetworkImageSource', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      const component = (
-        <AccountDisplayItem account={mockAccount} caipChainId="error-chain" />
-      );
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-
-      consoleWarnSpy.mockRestore();
-    });
-
-    it('should render with empty network configurations', () => {
-      const component = <AccountDisplayItem account={mockAccount} />;
-
-      expect(() =>
-        renderWithProvider(component, {
-          'eip155:1': undefined,
-          'eip155:137': undefined,
-        }),
-      ).not.toThrow();
-    });
-  });
-
-  describe('Conditional rendering', () => {
-    it('should render only address when no chainId is available', () => {
-      const accountWithoutScopes = {
-        ...mockAccount,
-        scopes: [],
-      };
-
-      const component = <AccountDisplayItem account={accountWithoutScopes} />;
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-
-    it('should render full layout with network when chainId is available', () => {
-      const component = <AccountDisplayItem account={mockAccount} />;
-
-      expect(() => renderWithProvider(component)).not.toThrow();
-    });
-
-    it('should handle account with undefined scopes', () => {
-      const accountWithUndefinedScopes = {
-        ...mockAccount,
-        scopes: [] as `${string}:${string}`[], // Empty array instead of undefined
-      };
-
-      const component = (
-        <AccountDisplayItem account={accountWithUndefinedScopes} />
-      );
 
       expect(() => renderWithProvider(component)).not.toThrow();
     });

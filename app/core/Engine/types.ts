@@ -286,12 +286,6 @@ import type {
   RewardsControllerActions,
 } from './controllers/rewards-controller/types';
 import {
-  PredictController,
-  PredictControllerState,
-  PredictControllerActions,
-  PredictControllerEvents,
-} from '../../components/UI/Predict/controllers/PredictController';
-import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
@@ -320,10 +314,6 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
-import {
-  GatorPermissionsController,
-  GatorPermissionsControllerState,
-} from '@metamask/gator-permissions-controller';
 
 /**
  * Controllers that area always instantiated
@@ -418,7 +408,6 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
-  | PredictControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -479,7 +468,6 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | PerpsControllerEvents
-  | PredictControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -564,11 +552,9 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   PerpsController: PerpsController;
-  PredictController: PredictController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
-  GatorPermissionsController: GatorPermissionsController;
 };
 
 /**
@@ -636,10 +622,8 @@ export type EngineState = {
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
-  PredictController: PredictControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  GatorPermissionsController: GatorPermissionsControllerState;
 };
 
 /** Controller names */
@@ -699,13 +683,10 @@ export type ControllersToInitialize =
   | 'SeedlessOnboardingController'
   | 'TransactionController'
   | 'PerpsController'
-  | 'PredictController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
-  | 'RewardsController'
-  | 'GatorPermissionsController'
-  | 'SelectedNetworkController';
+  | 'RewardsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

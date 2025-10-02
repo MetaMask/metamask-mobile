@@ -1,8 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createServer } from 'net';
-import fs from 'fs';
-import path from 'path';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions } from '../framework/types';
@@ -76,7 +74,6 @@ export const defaultOptions = {
 class AnvilManager {
   private server: AnvilType | undefined;
   private serverPort: number | undefined;
-  private anvilBinary: string | undefined;
 
   /**
    * Check if the Anvil server is running
@@ -153,15 +150,6 @@ class AnvilManager {
    * @throws {Error} If server fails to start
    */
   async start(opts: AnvilNodeOptions = {}): Promise<void> {
-    // Resolve local anvil binary if available; fallback to system PATH
-    const localAnvil = path.resolve(
-      process.cwd(),
-      'node_modules',
-      '.bin',
-      'anvil',
-    );
-    this.anvilBinary = fs.existsSync(localAnvil) ? localAnvil : 'anvil';
-
     // First try the configured port, then find an available one if it fails
     const initialPort = opts.port || AnvilPort();
     let port = initialPort;
@@ -184,8 +172,6 @@ class AnvilManager {
       // Create and start the server instance
       this.server = createAnvil({
         ...options,
-        anvilBinary: this.anvilBinary,
-        startTimeout: 20_000,
       });
 
       await this.server.start();
@@ -208,11 +194,7 @@ class AnvilManager {
           const retryOptions = { ...options, port: alternativePort };
           this.serverPort = alternativePort;
 
-          this.server = createAnvil({
-            ...retryOptions,
-            anvilBinary: this.anvilBinary,
-            startTimeout: 20_000,
-          });
+          this.server = createAnvil(retryOptions);
           await this.server.start();
           logger.debug(
             `Server started successfully on alternative port ${alternativePort}`,

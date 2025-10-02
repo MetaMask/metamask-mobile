@@ -30,8 +30,6 @@ describe(RegressionAssets('NFT Detection Modal'), () => {
         await Assertions.expectElementToBeVisible(NftDetectionModal.container);
 
         await NftDetectionModal.tapCancelButton();
-        // This is needed due to the animations on the modal causing issues with Detox synchronization
-        await device.disableSynchronization();
         // Check that we are on the wallet screen
         await Assertions.expectElementToBeVisible(WalletView.container);
 
@@ -45,6 +43,8 @@ describe(RegressionAssets('NFT Detection Modal'), () => {
   });
 
   it('show nft detection modal after user switches to mainnet and taps allow when nftDetection toggle is off', async () => {
+    const testNftOnMainnet = 'Rarible';
+
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -61,8 +61,6 @@ describe(RegressionAssets('NFT Detection Modal'), () => {
         await NftDetectionModal.tapAllowButton();
         // Check that we are on the wallet screen
         await Assertions.expectElementToBeVisible(WalletView.container);
-        // This is needed due to the animations on the modal causing issues with Detox synchronization
-        await device.disableSynchronization();
 
         // Go to NFTs tab and check that the banner is NOT visible
         await WalletView.tapNftTab();
@@ -70,7 +68,7 @@ describe(RegressionAssets('NFT Detection Modal'), () => {
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
 
-        await Assertions.expectTextDisplayed('All Networks');
+        await Assertions.expectTextDisplayed(testNftOnMainnet);
       },
     );
   });

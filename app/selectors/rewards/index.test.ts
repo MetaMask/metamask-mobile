@@ -2,8 +2,7 @@ import { RootState } from '../../reducers';
 import {
   selectRewardsControllerState,
   selectRewardsSubscriptionId,
-  selectRewardsActiveAccountAddress,
-  selectRewardsActiveAccountSubscriptionId,
+  selectRewardsActiveAccountHasOptedIn,
   selectHideUnlinkedAccountsBanner,
 } from './index';
 
@@ -180,63 +179,37 @@ describe('Rewards Selectors', () => {
     });
   });
 
-  describe('selectRewardsActiveAccountAddress', () => {
-    it('returns the address from CAIP account ID when active account exists', () => {
+  describe('selectRewardsActiveAccountHasOptedIn', () => {
+    it('returns true when active account has opted in', () => {
       // Arrange
-      const caipAccountId =
-        'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
-      const expectedAddress = '0x1234567890abcdef1234567890abcdef12345678';
       const state = createMockRootState({
         activeAccount: {
-          account: caipAccountId,
           subscriptionId: 'test-id',
           hasOptedIn: true,
         },
       });
 
       // Act
-      const result = selectRewardsActiveAccountAddress(state);
+      const result = selectRewardsActiveAccountHasOptedIn(state);
 
       // Assert
-      expect(result).toBe(expectedAddress);
+      expect(result).toBe(true);
     });
 
-    it('returns the address from simple account format', () => {
+    it('returns false when active account has not opted in', () => {
       // Arrange
-      const simpleAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
       const state = createMockRootState({
         activeAccount: {
-          account: simpleAddress,
           subscriptionId: 'test-id',
-          hasOptedIn: true,
+          hasOptedIn: false,
         },
       });
 
       // Act
-      const result = selectRewardsActiveAccountAddress(state);
+      const result = selectRewardsActiveAccountHasOptedIn(state);
 
       // Assert
-      expect(result).toBe(simpleAddress);
-    });
-
-    it('handles complex CAIP account ID with multiple colons', () => {
-      // Arrange
-      const complexCaipId =
-        'eip155:137:0x9876543210fedcba9876543210fedcba98765432';
-      const expectedAddress = '0x9876543210fedcba9876543210fedcba98765432';
-      const state = createMockRootState({
-        activeAccount: {
-          account: complexCaipId,
-          subscriptionId: 'test-id',
-          hasOptedIn: true,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountAddress(state);
-
-      // Assert
-      expect(result).toBe(expectedAddress);
+      expect(result).toBe(false);
     });
 
     it('returns null when no active account exists', () => {
@@ -244,153 +217,23 @@ describe('Rewards Selectors', () => {
       const state = createMockRootState({ activeAccount: null });
 
       // Act
-      const result = selectRewardsActiveAccountAddress(state);
+      const result = selectRewardsActiveAccountHasOptedIn(state);
 
       // Assert
       expect(result).toBeNull();
     });
 
-    it('returns null when active account has no account property', () => {
+    it('returns null when active account hasOptedIn property is undefined', () => {
       // Arrange
       const state = createMockRootState({
         activeAccount: {
           subscriptionId: 'test-id',
-          hasOptedIn: true,
-          // account property is missing
+          // hasOptedIn property is missing
         },
       });
 
       // Act
-      const result = selectRewardsActiveAccountAddress(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    it('returns null when account property is null', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          account: null,
-          subscriptionId: 'test-id',
-          hasOptedIn: true,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountAddress(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    it('returns null when account property is undefined', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          account: undefined,
-          subscriptionId: 'test-id',
-          hasOptedIn: true,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountAddress(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    it('returns null for empty string account', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          account: '',
-          subscriptionId: 'test-id',
-          hasOptedIn: true,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountAddress(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    it('handles account with single colon', () => {
-      // Arrange
-      const accountWithColon =
-        'prefix:0x1234567890abcdef1234567890abcdef12345678';
-      const expectedAddress = '0x1234567890abcdef1234567890abcdef12345678';
-      const state = createMockRootState({
-        activeAccount: {
-          account: accountWithColon,
-          subscriptionId: 'test-id',
-          hasOptedIn: true,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountAddress(state);
-
-      // Assert
-      expect(result).toBe(expectedAddress);
-    });
-  });
-
-  describe('selectRewardsActiveAccountSubscriptionId', () => {
-    it('returns subscription ID when active account has subscription', () => {
-      // Arrange
-      const subscriptionId = 'test-subscription-123';
-      const state = createMockRootState({
-        activeAccount: {
-          account: 'eip155:1:0x123',
-          hasOptedIn: true,
-          subscriptionId,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountSubscriptionId(state);
-
-      // Assert
-      expect(result).toBe(subscriptionId);
-    });
-
-    it('returns null when active account has no subscription', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: {
-          account: 'eip155:1:0x123',
-          hasOptedIn: false,
-          subscriptionId: null,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
-        },
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountSubscriptionId(state);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    it('returns null when no active account exists', () => {
-      // Arrange
-      const state = createMockRootState({
-        activeAccount: null,
-      });
-
-      // Act
-      const result = selectRewardsActiveAccountSubscriptionId(state);
+      const result = selectRewardsActiveAccountHasOptedIn(state);
 
       // Assert
       expect(result).toBeNull();

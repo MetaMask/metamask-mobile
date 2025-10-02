@@ -11,7 +11,6 @@ import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
-import { navigateToHomeUrl } from './Handlers/handleHomeUrl';
 import Routes from '../../constants/navigation/Routes';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
@@ -23,7 +22,6 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
-import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -105,15 +103,9 @@ class DeeplinkManager {
     });
   }
 
-  _handleRewards(rewardsPath: string) {
-    handleRewardsUrl({
-      rewardsPath,
-    });
-  }
-
   // NOTE: open the home screen for new subdomain
-  _handleOpenHome(homePath?: string) {
-    navigateToHomeUrl({ homePath });
+  _handleOpenHome() {
+    this.navigation.navigate(Routes.WALLET.HOME);
   }
 
   // NOTE: this will be used for new deeplink subdomain

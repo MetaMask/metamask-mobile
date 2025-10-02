@@ -1,17 +1,15 @@
 import { isHex, toHex } from 'viem';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
-import { useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
 
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
+import { useAccountTokens } from './useAccountTokens';
 import { useEVMNfts } from './useNfts';
 
 export const useRouteParams = () => {
-  const assets = useSelector(selectAssetsBySelectedAccountGroup);
-  const flatAssets = useMemo(() => Object.values(assets).flat(), [assets]);
+  const tokens = useAccountTokens();
   const nfts = useEVMNfts();
 
   const { asset: paramsAsset } = useParams<{
@@ -31,12 +29,11 @@ export const useRouteParams = () => {
           ? toHex(paramsAsset?.chainId)
           : paramsAsset?.chainId?.toString().toLowerCase();
 
-      let filteredAsset = flatAssets?.find(
-        ({ assetId, chainId: tokenChainId }) =>
-          paramChainId === tokenChainId.toLowerCase() &&
-          assetId?.toLowerCase() === paramsAsset.address?.toLowerCase(),
-      ) as AssetType | Nft | undefined;
-
+      let filteredAsset: AssetType | Nft | undefined = tokens.find(
+        ({ address, chainId }) =>
+          address === paramsAsset.address &&
+          chainId?.toLowerCase() === paramChainId,
+      );
       if (!filteredAsset && nfts.length) {
         filteredAsset = nfts.find(
           ({ address, chainId }) =>
@@ -44,10 +41,7 @@ export const useRouteParams = () => {
             chainId?.toLowerCase() === paramChainId,
         );
       }
-
-      if (filteredAsset) {
-        updateAsset(filteredAsset);
-      }
+      updateAsset(filteredAsset ?? paramsAsset);
     }
-  }, [asset, paramsAsset, nfts, flatAssets, updateAsset]);
+  }, [asset, paramsAsset, nfts, tokens, updateAsset]);
 };

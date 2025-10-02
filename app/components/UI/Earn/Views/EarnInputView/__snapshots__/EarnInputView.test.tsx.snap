@@ -312,15 +312,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -1585,7 +1577,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1910,15 +1902,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -3183,7 +3167,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                           </TouchableOpacity>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

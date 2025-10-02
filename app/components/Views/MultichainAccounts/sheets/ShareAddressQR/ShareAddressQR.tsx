@@ -1,6 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -30,15 +28,13 @@ import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddressQR.selectors';
-import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { RootState } from '../../../../../reducers';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddressQR: {
     address: string;
     networkName: string;
     chainId: string;
-    groupId: AccountGroupId;
+    accountName: string;
   };
 }
 
@@ -51,14 +47,9 @@ export const ShareAddressQR = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
-  const { address, networkName, chainId, groupId } = route.params;
-  const accountGroup = useSelector((state: RootState) =>
-    selectAccountGroupById(state, groupId),
-  );
-  const accountGroupName = accountGroup?.metadata.name;
-
+  const { address, networkName, accountName, chainId } = route.params;
   const navigation = useNavigation();
-  const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
+  const { toBlockExplorer } = useBlockExplorer();
   const networkImageSource = getNetworkImageSource({ chainId });
 
   const handleOnBack = useCallback(() => {
@@ -72,7 +63,7 @@ export const ShareAddressQR = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onBack={handleOnBack}>
-        {`${accountGroupName} / ${networkName}`}
+        {`${accountName} / ${networkName}`}
       </BottomSheetHeader>
       <Box
         flexDirection={BoxFlexDirection.Column}
@@ -135,7 +126,7 @@ export const ShareAddressQR = () => {
           {strings(
             'multichain_accounts.share_address.view_on_explorer_button',
             {
-              explorer: getBlockExplorerName(),
+              explorer: 'Etherscan (Multichain)',
             },
           )}
         </Button>

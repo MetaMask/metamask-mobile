@@ -22,6 +22,7 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => ({
     quote: { id: 'test-quote' } as unknown as BuyQuote,
     workFlowRunId: 'test-workflow-run-id',
+    cryptoCurrencyChainId: 'eip155:1',
     paymentMethodId: 'credit_debit_card',
   })),
 }));
@@ -108,6 +109,7 @@ describe('KycWebviewModal', () => {
     mockUseParams.mockReturnValue({
       quote: null,
       workFlowRunId: 'test-workflow-run-id',
+      cryptoCurrencyChainId: 'eip155:1',
       paymentMethodId: 'credit_debit_card',
     });
 

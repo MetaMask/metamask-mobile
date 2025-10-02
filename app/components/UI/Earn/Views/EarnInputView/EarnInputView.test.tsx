@@ -60,7 +60,6 @@ import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { trace, TraceName } from '../../../../../util/trace';
-import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 
 jest.mock('./utils');
 
@@ -1137,7 +1136,7 @@ describe('EarnInputView', () => {
           properties: expect.objectContaining({
             action_type: 'deposit',
             token: 'USDC',
-            network: MAINNET_DISPLAY_NAME,
+            network: 'Ethereum Mainnet',
             user_token_balance: '100 USDC',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
           }),
@@ -1219,7 +1218,7 @@ describe('EarnInputView', () => {
             properties: expect.objectContaining({
               action_type: 'deposit',
               token: 'USDC',
-              network: MAINNET_DISPLAY_NAME,
+              network: 'Ethereum Mainnet',
               transaction_value: expect.stringContaining('USDC'),
               location: 'EarnInputView',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -1280,7 +1279,7 @@ describe('EarnInputView', () => {
             action_type: 'deposit',
             input_value: '25%',
             token: 'USDC',
-            network: MAINNET_DISPLAY_NAME,
+            network: 'Ethereum Mainnet',
             user_token_balance: '100 USDC',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
           }),
@@ -1337,7 +1336,7 @@ describe('EarnInputView', () => {
             action_type: 'deposit',
             input_value: 'Max',
             token: 'USDC',
-            network: MAINNET_DISPLAY_NAME,
+            network: 'Ethereum Mainnet',
             user_token_balance: '100 USDC',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
           }),
@@ -1454,7 +1453,7 @@ describe('EarnInputView', () => {
               location: 'EarnInputView',
               token_name: 'USDC',
               token: 'USDC',
-              network: MAINNET_DISPLAY_NAME,
+              network: 'Ethereum Mainnet',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             }),
           }),

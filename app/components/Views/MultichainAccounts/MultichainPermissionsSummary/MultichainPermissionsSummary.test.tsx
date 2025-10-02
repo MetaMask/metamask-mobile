@@ -136,7 +136,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockOnChangeTab = jest.fn();
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
+jest.mock('react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({
     children,
@@ -448,15 +448,9 @@ describe('MultichainPermissionsSummary', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'RevokeAllAccountPermissions',
       params: expect.objectContaining({
-        hostInfo: expect.objectContaining({
-          metadata: expect.objectContaining({
-            origin: 'mock-dapp.example.com',
-          }),
-        }),
         onRevokeAll: expect.any(Function),
       }),
     });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to default revoke behavior when no custom onRevokeAll is provided', () => {
@@ -474,15 +468,9 @@ describe('MultichainPermissionsSummary', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'RevokeAllAccountPermissions',
       params: expect.objectContaining({
-        hostInfo: expect.objectContaining({
-          metadata: expect.objectContaining({
-            origin: 'mock-dapp.example.com',
-          }),
-        }),
         onRevokeAll: expect.any(Function),
       }),
     });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('renders with empty network avatars array', () => {

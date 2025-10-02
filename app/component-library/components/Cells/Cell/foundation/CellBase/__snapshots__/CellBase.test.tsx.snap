@@ -209,12 +209,14 @@ exports[`CellBase should render default settings correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#f3f5f9",
-          "borderRadius": 4,
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 10,
+          "borderWidth": 1,
           "height": 24,
           "justifyContent": "center",
           "marginTop": 4,
-          "paddingHorizontal": 8,
+          "paddingHorizontal": 4,
         }
       }
     >
@@ -222,7 +224,7 @@ exports[`CellBase should render default settings correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "letterSpacing": 0,

@@ -26,7 +26,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodSetApprovalForAll,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
-  TransactionType.tokenMethodSafeTransferFrom,
 ];
 
 export const REDESIGNED_APPROVE_TYPES = [
@@ -39,7 +38,6 @@ export const REDESIGNED_TRANSFER_TYPES = [
   TransactionType.simpleSend,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
-  TransactionType.tokenMethodSafeTransferFrom,
 ];
 
 export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
@@ -57,7 +55,6 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.stakingUnstake,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
-  TransactionType.tokenMethodSafeTransferFrom,
 ];
 
 export const EARN_CONTRACT_INTERACTION_TYPES = [

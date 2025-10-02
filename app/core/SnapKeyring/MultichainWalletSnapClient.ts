@@ -8,16 +8,8 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   SolScope,
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
-import {
-  TRON_WALLET_SNAP_ID,
-  TRON_WALLET_NAME,
-  TronWalletSnapSender,
-} from './TronWalletSnap';
 import {
   BITCOIN_WALLET_SNAP_ID,
   BITCOIN_WALLET_NAME,
@@ -44,10 +36,6 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   SOLANA_DISCOVERY_PENDING,
   ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TRON_DISCOVERY_PENDING,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../constants/storage';
 
 export enum WalletClientType {
@@ -57,10 +45,6 @@ export enum WalletClientType {
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   Bitcoin = 'bitcoin',
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  Tron = 'tron',
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -80,15 +64,6 @@ export const WALLET_SNAP_MAP = {
     name: SOLANA_WALLET_NAME,
     discoveryScope: SolScope.Mainnet,
     discoveryStorageId: SOLANA_DISCOVERY_PENDING,
-  },
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  [WalletClientType.Tron]: {
-    id: TRON_WALLET_SNAP_ID,
-    name: TRON_WALLET_NAME,
-    discoveryScope: TrxScope.Mainnet,
-    discoveryStorageId: TRON_DISCOVERY_PENDING,
   },
   ///: END:ONLY_INCLUDE_IF
 };
@@ -333,19 +308,6 @@ export abstract class MultichainWalletSnapClient {
   }
 }
 
-export class TronWalletSnapClient extends MultichainWalletSnapClient {
-  constructor(snapKeyringOptions: SnapKeyringOptions) {
-    super(TRON_WALLET_SNAP_ID, TRON_WALLET_NAME, snapKeyringOptions);
-  }
-
-  getClientType(): WalletClientType {
-    return WalletClientType.Tron;
-  }
-
-  protected getSnapSender(): Sender {
-    return new TronWalletSnapSender();
-  }
-}
 export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
   constructor(snapKeyringOptions: SnapKeyringOptions) {
     super(BITCOIN_WALLET_SNAP_ID, BITCOIN_WALLET_NAME, snapKeyringOptions);
@@ -402,8 +364,6 @@ export class MultichainWalletSnapFactory {
         return new BitcoinWalletSnapClient(snapKeyringOptions);
       case WalletClientType.Solana:
         return new SolanaWalletSnapClient(snapKeyringOptions);
-      case WalletClientType.Tron:
-        return new TronWalletSnapClient(snapKeyringOptions);
       default:
         throw new Error(`Unsupported client type: ${clientType}`);
     }

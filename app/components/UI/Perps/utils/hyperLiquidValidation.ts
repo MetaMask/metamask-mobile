@@ -7,7 +7,6 @@ import {
 import type { GetSupportedPathsParams } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../locales/i18n';
-import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
 
 /**
  * Validation utilities for HyperLiquid operations
@@ -431,32 +430,6 @@ export function getSupportedPaths(
   });
 
   return filteredAssets;
-}
-
-/**
- * Get maximum order value based on leverage and order type
- * Based on HyperLiquid contract specifications
- */
-export function getMaxOrderValue(
-  maxLeverage: number,
-  orderType: 'market' | 'limit',
-): number {
-  let marketLimit: number;
-
-  if (maxLeverage >= 25) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.HIGH_LEVERAGE;
-  } else if (maxLeverage >= 20) {
-    marketLimit =
-      HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_HIGH_LEVERAGE;
-  } else if (maxLeverage >= 10) {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.MEDIUM_LEVERAGE;
-  } else {
-    marketLimit = HYPERLIQUID_ORDER_LIMITS.MARKET_ORDER_LIMITS.LOW_LEVERAGE;
-  }
-
-  return orderType === 'limit'
-    ? marketLimit * HYPERLIQUID_ORDER_LIMITS.LIMIT_ORDER_MULTIPLIER
-    : marketLimit;
 }
 
 /**

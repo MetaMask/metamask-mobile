@@ -1,8 +1,3 @@
-// Mock theme utility FIRST to ensure proper hoisting
-jest.mock('../../../../../util/theme', () => ({
-  useAssetFromTheme: jest.fn(() => 123), // Return a simple number like import() would
-}));
-
 import { useNavigation } from '@react-navigation/native';
 import {
   act,
@@ -84,7 +79,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
-  usePerpsAccount: jest.fn(),
+  usePerpsLiveAccount: jest.fn(),
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
@@ -181,27 +176,6 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   },
 }));
 
-// Mock PerpsEmptyState component to avoid Redux context issues while preserving testID
-jest.mock('../PerpsEmptyState', () => ({
-  PerpsEmptyState: ({
-    onAction,
-    testID,
-  }: {
-    onAction?: () => void;
-    testID?: string;
-  }) => {
-    const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
-    return (
-      <View testID={testID}>
-        <Text>Bet on price movements with up to 40x leverage.</Text>
-        <TouchableOpacity onPress={onAction}>
-          <Text>Start trading</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  },
-}));
-
 describe('PerpsTabView', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -216,7 +190,8 @@ describe('PerpsTabView', () => {
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
-  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
+  const mockUsePerpsAccount =
+    jest.requireMock('../../hooks').usePerpsLiveAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -348,9 +323,6 @@ describe('PerpsTabView', () => {
       });
 
       render(<PerpsTabView />);
-
-      // First confirm the empty state is rendered
-      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
 
       const startTradingButton = screen.getByText(
         strings('perps.position.list.start_trading'),
@@ -673,9 +645,14 @@ describe('PerpsTabView', () => {
       // Act - Render component
       render(<PerpsTabView />);
 
-      // Assert - Component should render empty state with correct testID
+      // Assert - Component should render first-time content when no positions or orders exist
       expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(screen.getByTestId('perps-empty-state')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.first_time_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.start_trading')),
+      ).toBeOnTheScreen();
     });
 
     it('should pass correct hasPositions prop to PerpsTabControlBar when positions exist', () => {

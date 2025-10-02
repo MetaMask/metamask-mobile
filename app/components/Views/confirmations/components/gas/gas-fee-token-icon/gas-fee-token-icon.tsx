@@ -14,8 +14,10 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
-import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { RootState } from '../../../../../../reducers';
+import { useSelector } from 'react-redux';
+import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
+import { TokenI } from '../../../../../UI/Tokens/types';
 
 export enum GasFeeTokenIconSize {
   Sm = 'sm',
@@ -31,16 +33,17 @@ export function GasFeeTokenIcon({
 }) {
   const transactionMeta = useTransactionMetadataRequest();
   const { chainId } = transactionMeta || {};
-  const token = useTokenWithBalance(tokenAddress, chainId as Hex);
   const {
     networkImage,
     networkNativeCurrency: nativeCurrency,
     networkName,
   } = useNetworkInfo(chainId);
-
-  const { styles } = useStyles(styleSheet, {
-    isLogoSizeMd: size === GasFeeTokenIconSize.Md,
-  });
+  const tokensResult = useSelector((state: RootState) =>
+    selectTokensByChainIdAndAddress(state, chainId as Hex),
+  );
+  const token = Object.values(tokensResult || {}).find(
+    (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
+  ) as TokenI | undefined;
 
   if (tokenAddress !== NATIVE_TOKEN_ADDRESS) {
     return (
@@ -58,13 +61,10 @@ export function GasFeeTokenIcon({
 
   return (
     <View testID="native-icon">
-      <NetworkAssetLogo
-        chainId={token?.chainId ?? (chainId as Hex)}
-        style={styles.logoNative}
-        ticker={token?.symbol ?? (nativeCurrency as string)}
-        big={false}
-        biggest={false}
-        testID={token?.name}
+      <AvatarToken
+        imageSource={networkImage}
+        name={nativeCurrency}
+        size={size === GasFeeTokenIconSize.Md ? AvatarSize.Md : AvatarSize.Xs}
       />
     </View>
   );
@@ -78,7 +78,7 @@ function TokenIconWithNetworkBadge({
   nativeCurrency,
 }: {
   size: GasFeeTokenIconSize;
-  token?: ReturnType<typeof useTokenWithBalance>;
+  token?: TokenI;
   networkName?: string;
   networkImage?: object;
   nativeCurrency?: string;

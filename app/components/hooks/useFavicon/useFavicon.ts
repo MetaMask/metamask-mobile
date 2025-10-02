@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ImageURISource } from 'react-native';
+import { ImageSourcePropType } from 'react-native';
 import {
   getFaviconURLFromHtml,
   getFaviconFromCache,
@@ -8,7 +8,7 @@ import {
 import Logger from '../../../util/Logger';
 
 //Empty value uset to trigger fallback favicon in the UI and prevent use of undefined
-const EMPTY_FAVICON_URI: ImageURISource = {};
+const EMPTY_FAVICON_URI: ImageSourcePropType = {};
 
 /**
  * Custom hook that returns the favicon URI for the given origin
@@ -16,20 +16,14 @@ const EMPTY_FAVICON_URI: ImageURISource = {};
  */
 const useFavicon = (origin: string) => {
   const [faviconURI, setFaviconURI] =
-    useState<ImageURISource>(EMPTY_FAVICON_URI);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+    useState<ImageSourcePropType>(EMPTY_FAVICON_URI);
 
   useEffect(() => {
     (async () => {
-      setIsLoading(true);
-      setIsLoaded(false);
       try {
         // If the origin is null, we don't want to fetch a favicon
         // This can happen when the site is unreachable (DNS error)
         if (!origin || origin === 'null') {
-          setIsLoading(false);
-          setIsLoaded(true);
           return;
         }
         const cachedFaviconUrl = await getFaviconFromCache(origin);
@@ -45,12 +39,10 @@ const useFavicon = (origin: string) => {
       } catch (error) {
         await Logger.log('Error fetching or caching favicon: ', error);
       }
-      setIsLoading(false);
-      setIsLoaded(true);
     })();
   }, [origin]);
 
-  return { faviconURI, isLoading, isLoaded };
+  return faviconURI;
 };
 
 export default useFavicon;

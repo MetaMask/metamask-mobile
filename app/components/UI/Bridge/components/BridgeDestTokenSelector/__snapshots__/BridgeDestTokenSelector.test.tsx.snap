@@ -525,11 +525,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             </View>
                           </View>
                           <View
-                            gap={20}
+                            gap={16}
                             style={
                               [
                                 {
-                                  "gap": 20,
+                                  "gap": 16,
                                 },
                                 {
                                   "paddingHorizontal": 16,
@@ -702,10 +702,10 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#f3f5f9",
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#b7bbc8",
-                                  "borderRadius": 12,
-                                  "borderWidth": 0,
+                                  "borderRadius": 8,
+                                  "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
@@ -750,7 +750,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Enter token name or paste address"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -839,11 +838,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               showsHorizontalScrollIndicator={false}
                               showsVerticalScrollIndicator={true}
                               stickyHeaderIndices={[]}
-                              style={
-                                {
-                                  "marginTop": 10,
-                                }
-                              }
                               viewabilityConfigCallbackPairs={[]}
                               windowSize={10}
                             >
@@ -1033,34 +1027,20 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             ]
                                           }
                                         >
-                                          <View
-                                            alignItems="center"
-                                            flexDirection="row"
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              HELLO
-                                            </Text>
-                                          </View>
+                                            HELLO
+                                          </Text>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -1077,12 +1057,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           </Text>
                                         </View>
                                         <View
-                                          gap={4}
                                           style={
                                             [
-                                              {
-                                                "gap": 4,
-                                              },
+                                              {},
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1095,8 +1072,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1108,7 +1085,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#686e7d",
+                                                "color": "#121314",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1342,34 +1319,20 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             ]
                                           }
                                         >
-                                          <View
-                                            alignItems="center"
-                                            flexDirection="row"
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              TOKEN1
-                                            </Text>
-                                          </View>
+                                            TOKEN1
+                                          </Text>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -1386,12 +1349,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           </Text>
                                         </View>
                                         <View
-                                          gap={4}
                                           style={
                                             [
-                                              {
-                                                "gap": 4,
-                                              },
+                                              {},
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1404,8 +1364,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1417,7 +1377,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#686e7d",
+                                                "color": "#121314",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1529,8 +1489,10 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <View
+                                              <Image
                                                 fadeIn={true}
+                                                onError={[Function]}
+                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -1681,34 +1643,20 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             ]
                                           }
                                         >
-                                          <View
-                                            alignItems="center"
-                                            flexDirection="row"
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                },
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              ETH
-                                            </Text>
-                                          </View>
+                                            ETH
+                                          </Text>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -1725,12 +1673,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           </Text>
                                         </View>
                                         <View
-                                          gap={4}
                                           style={
                                             [
-                                              {
-                                                "gap": 4,
-                                              },
+                                              {},
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1743,8 +1688,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1756,7 +1701,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#686e7d",
+                                                "color": "#121314",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,

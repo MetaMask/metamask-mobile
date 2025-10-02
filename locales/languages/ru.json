@@ -404,7 +404,7 @@
     "show": "Показать",
     "hide": "Скрыть",
     "seed_phrase": "Секретная фраза для восстановления",
-    "must_be_at_least": "должна содержать не менее {{number}} символов",
+    "must_be_at_least": "Пароль должен содержать не менее {{number}} символов",
     "remember_me": "Запомнить меня",
     "security_alert_title": "Оповещение безопасности",
     "security_alert_message": "Чтобы продолжить, необходимо включить защиту паролем или любой метод биометрической аутентификации, поддерживаемый вашим устройством (FaceID, TouchID или отпечаток пальца).",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "Недостаточно средств",
         "insufficient_balance": "Недостаточно средств. Требуется: {{required}} $, доступно: {{available}} $",
         "invalid_leverage": "Кредитное плечо должно быть между {{min}}x и {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Высокое кредитное плечо увеличивает риск ликвидации",
         "invalid_take_profit": "Тейк-профит должен быть равен текущей цене {{direction}} для позиций {{positionType}}",
         "invalid_stop_loss": "Стоп-лосс должен быть равен текущей цене {{direction}} для позиций {{positionType}}",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "Предельная цена ниже текущей цены"
       },
       "leverage_modal": {
-        "title": "Кредитное плечо",
+        "title": "Leverage",
         "confirm": "Подтвердить",
         "entry_price": "Начальная цена",
         "current_price": "Текущая цена",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "Тейк-профит и стоп-лосс",
       "description": "Выберите процентный прирост или убыток или введите пользовательскую цену срабатывания для автоматического закрытия позиции.",
+      "set": "Установить",
+      "updating": "Обновление...",
       "off": "Выкл.",
       "current_price": "Текущая цена",
       "entry_price": "Начальная цена",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "Стоп-лосс — это цена ликвидации {{direction}}",
       "above": "выше",
       "below": "ниже",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Отклонить"
     },
     "token_selector": {
       "no_tokens": "Нет доступных токенов"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "Не удалось загрузить рыночные данные",
     "tap_to_retry": "Нажмите для повторения попытки",
     "search_by_token_symbol": "Поиск по символу токена",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Тестнет",
     "mainnet": "Мейн-нет",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
     "show_tokens_without_balance": "Показать токены без баланса",
+    "no_nfts_yet": "Пока нет NFT",
     "nfts_autodetection_title": "Определение NFT",
     "nfts_autodetection_desc": "Разрешите MetaMask автоматически определять и отображать NFT в вашем кошельке.",
     "network_details_check": "Проверка сведений о сети",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Приведите друга",
         "share_referral_subject": "Присоединяйтесь к MetaMask Rewards"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

@@ -157,16 +157,8 @@ describe('Pay Publish Hook', () => {
   it('submits matching quotes to bridge status controller', async () => {
     await runHook();
 
-    expect(submitTransactionMock).toHaveBeenCalledWith(
-      '0xabc',
-      QUOTE_MOCK,
-      false,
-    );
-    expect(submitTransactionMock).toHaveBeenCalledWith(
-      '0xabc',
-      QUOTE_2_MOCK,
-      false,
-    );
+    expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_MOCK, false);
+    expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_2_MOCK, false);
   });
 
   it('indicates if smart transactions is enabled', async () => {
@@ -174,16 +166,8 @@ describe('Pay Publish Hook', () => {
 
     await runHook();
 
-    expect(submitTransactionMock).toHaveBeenCalledWith(
-      '0xabc',
-      QUOTE_MOCK,
-      true,
-    );
-    expect(submitTransactionMock).toHaveBeenCalledWith(
-      '0xabc',
-      QUOTE_2_MOCK,
-      true,
-    );
+    expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_MOCK, true);
+    expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_2_MOCK, true);
   });
 
   it('does nothing if no matching quotes', async () => {

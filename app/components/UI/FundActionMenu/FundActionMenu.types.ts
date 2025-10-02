@@ -6,7 +6,6 @@ import { IMetaMetricsEvent } from '../../../core/Analytics';
 export interface FundActionMenuParams {
   onBuy?: () => void;
   asset?: {
-    assetId?: string;
     address?: string;
     chainId?: string;
   };

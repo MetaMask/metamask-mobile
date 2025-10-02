@@ -237,9 +237,9 @@ describe('DeFiPositionsList', () => {
                 ...mockInitialState.engine.backgroundState
                   .PreferencesController,
                 tokenNetworkFilter: {
-                  [MOCK_CHAIN_ID_1]: true,
-                  [MOCK_CHAIN_ID_2]: true,
-                  [MOCK_CHAIN_ID_3]: true,
+                  [MOCK_CHAIN_ID_1]: 'true',
+                  [MOCK_CHAIN_ID_2]: 'true',
+                  [MOCK_CHAIN_ID_3]: 'true',
                 },
               },
             },
@@ -332,9 +332,11 @@ describe('DeFiPositionsList', () => {
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).toBeOnTheScreen();
     expect(
-      await findByText(`Lend, borrow, and trade, right in your wallet.`),
+      await findByText(`Can't find what you're looking for?`),
     ).toBeOnTheScreen();
-    expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
+    expect(
+      await findByText(`We may not support your protocol yet.`),
+    ).toBeOnTheScreen();
   });
 
   describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
@@ -452,9 +454,8 @@ describe('DeFiPositionsList', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        await findByText(`Lend, borrow, and trade, right in your wallet.`),
+        await findByText(`Can't find what you're looking for?`),
       ).toBeOnTheScreen();
-      expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
     });
 
     it('shows control bar with enabled networks text when feature flag is enabled', async () => {

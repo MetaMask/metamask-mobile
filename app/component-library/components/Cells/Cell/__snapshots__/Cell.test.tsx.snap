@@ -232,12 +232,14 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#f3f5f9",
-            "borderRadius": 4,
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc8",
+            "borderRadius": 10,
+            "borderWidth": 1,
             "height": 24,
             "justifyContent": "center",
             "marginTop": 4,
-            "paddingHorizontal": 8,
+            "paddingHorizontal": 4,
           }
         }
       >
@@ -245,7 +247,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -543,12 +545,14 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#f3f5f9",
-                "borderRadius": 4,
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 10,
+                "borderWidth": 1,
                 "height": 24,
                 "justifyContent": "center",
                 "marginTop": 4,
-                "paddingHorizontal": 8,
+                "paddingHorizontal": 4,
               }
             }
           >
@@ -556,7 +560,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#121314",
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -834,12 +838,14 @@ exports[`Cell should render CellMultiSelectWithMenu given the type MultiSelectWi
             <View
               style={
                 {
-                  "backgroundColor": "#f3f5f9",
-                  "borderRadius": 4,
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 10,
+                  "borderWidth": 1,
                   "height": 24,
                   "justifyContent": "center",
                   "marginTop": 4,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                 }
               }
               testID="celltag-label"
@@ -848,7 +854,7 @@ exports[`Cell should render CellMultiSelectWithMenu given the type MultiSelectWi
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#121314",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1147,12 +1153,14 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#f3f5f9",
-                "borderRadius": 4,
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 10,
+                "borderWidth": 1,
                 "height": 24,
                 "justifyContent": "center",
                 "marginTop": 4,
-                "paddingHorizontal": 8,
+                "paddingHorizontal": 4,
               }
             }
           >
@@ -1160,7 +1168,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#121314",
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1444,12 +1452,14 @@ exports[`Cell should render CellSelectWithMenu given the type SelectWithMenu 1`]
             <View
               style={
                 {
-                  "backgroundColor": "#f3f5f9",
-                  "borderRadius": 4,
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 10,
+                  "borderWidth": 1,
                   "height": 24,
                   "justifyContent": "center",
                   "marginTop": 4,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                 }
               }
               testID="celltag-label"
@@ -1458,7 +1468,7 @@ exports[`Cell should render CellSelectWithMenu given the type SelectWithMenu 1`]
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#121314",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,

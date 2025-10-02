@@ -113,7 +113,7 @@ export function getRequestedCaip25CaveatValue(
  * @param second - The second Caip25CaveatValue to merge
  * @returns A new Caip25CaveatValue with merged data
  */
-export function mergeCaip25Values(
+function mergeCaip25Values(
   first: Caip25CaveatValue,
   second: Caip25CaveatValue,
 ): Caip25CaveatValue {

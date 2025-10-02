@@ -1,126 +1,106 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
+import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import { protectWalletModalVisible } from '../../../../../actions/user';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
 
-const mockNavigate = jest.fn();
-const mockPop = jest.fn();
 const mockDispatch = jest.fn();
-const mockDispatchThunk = jest.fn();
-const mockTrackEvent = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    dangerouslyGetParent: () => ({
-      pop: mockPop,
-    }),
+const mockNavigation = {
+  dangerouslyGetParent: jest.fn().mockReturnValue({
+    pop: jest.fn(),
   }),
-}));
+  navigate: jest.fn(),
+};
 
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
-  useSelector: () => ({}),
+  useSelector: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../hooks/useThunkDispatch',
-  () => () =>
-    mockDispatchThunk.mockImplementation((thunk) =>
-      thunk(mockDispatch, () => ({})),
-    ),
-);
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
-jest.mock('../../../../../actions/user', () => ({
-  protectWalletModalVisible: jest.fn(),
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
 }));
+
 jest.mock('../../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
-jest.mock('../../utils/stateHasOrder', () => jest.fn(() => false));
-jest.mock('../utils', () => ({ getNotificationDetails: jest.fn(() => null) }));
+
+jest.mock('../../../../../actions/user', () => ({
+  protectWalletModalVisible: jest.fn(),
+}));
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  addFiatOrder: jest.fn(),
+}));
+
+jest.mock('../sdk', () => ({
+  useRampSDK: jest.fn(() => ({
+    selectedChainId: '1',
+    selectedAddress: '0x456',
+  })),
+}));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => mockNavigation,
+  };
+});
 
 describe('useHandleSuccessfulOrder', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should track chain_id_source for sell orders', async () => {
-    const { result } = renderHook(() => useHandleSuccessfulOrder());
-
-    const sellOrder = {
-      id: 'test-order-id',
+  it('should handle a successful order correctly for Sell', async () => {
+    const order = {
+      id: '1',
       orderType: OrderOrderTypeEnum.Sell,
-      account: '0x123',
       data: {
         cryptoCurrency: {
-          network: {
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          },
-          symbol: 'USDC',
+          symbol: 'BTC',
         },
         fiatCurrency: {
           symbol: 'USD',
         },
         provider: {
-          name: 'TestProvider',
-        },
-        paymentMethod: {
-          id: 'test-payment-method',
+          name: 'Provider A',
         },
       },
-    } as FiatOrder;
+    };
 
-    await result.current(sellOrder);
-
-    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_PURCHASE_SUBMITTED', {
-      payment_method_id: 'test-payment-method',
-      order_type: OrderOrderTypeEnum.Sell,
-      is_apple_pay: false,
-      provider_offramp: 'TestProvider',
-      chain_id_source: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      currency_source: 'USDC',
-      currency_destination: 'USD',
-    });
-  });
-
-  it('should track event for buy orders', async () => {
     const { result } = renderHook(() => useHandleSuccessfulOrder());
 
-    const buyOrder = {
-      id: 'test-order-id',
+    await act(async () => {
+      await result.current(order as FiatOrder);
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(protectWalletModalVisible());
+    expect(mockNavigation.dangerouslyGetParent().pop).toHaveBeenCalled();
+  });
+
+  it('should handle a successful order correctly for Onramp', async () => {
+    const order = {
+      id: '2',
       orderType: OrderOrderTypeEnum.Buy,
-      account: '0x123',
       data: {
         cryptoCurrency: {
-          network: {
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          },
-          symbol: 'USDC',
+          symbol: 'ETH',
         },
         fiatCurrency: {
           symbol: 'USD',
         },
         provider: {
-          name: 'TestProvider',
-        },
-        paymentMethod: {
-          id: 'test-payment-method',
+          name: 'Provider B',
         },
       },
-    } as FiatOrder;
+    };
 
-    await result.current(buyOrder);
+    const { result } = renderHook(() => useHandleSuccessfulOrder());
 
-    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_PURCHASE_SUBMITTED', {
-      payment_method_id: 'test-payment-method',
-      order_type: OrderOrderTypeEnum.Buy,
-      is_apple_pay: false,
-      provider_onramp: 'TestProvider',
-      chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      currency_destination: 'USDC',
-      currency_source: 'USD',
-      has_zero_currency_destination_balance: false,
+    await act(async () => {
+      await result.current(order as FiatOrder);
     });
+
+    expect(mockDispatch).toHaveBeenCalledWith(protectWalletModalVisible());
+    expect(mockNavigation.dangerouslyGetParent().pop).toHaveBeenCalled();
   });
 });

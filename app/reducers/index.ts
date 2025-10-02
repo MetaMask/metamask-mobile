@@ -25,14 +25,10 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import qrKeyringScannerReducer from '../core/redux/slices/qrKeyringScanner';
 import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
 import cronjobControllerReducer from '../core/redux/slices/cronjobController';
-import networkConnectionBannerReducer, {
-  NetworkConnectionBannerState,
-} from './networkConnectionBanner';
 
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
@@ -128,13 +124,11 @@ export interface RootState {
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
-  qrKeyringScanner: StateFromReducer<typeof qrKeyringScannerReducer>;
   banners: BannersState;
   card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
-  networkConnectionBanner: NetworkConnectionBannerState;
 }
 
 const baseReducers = {
@@ -171,10 +165,8 @@ const baseReducers = {
   banners: bannersReducer,
   card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
-  networkConnectionBanner: networkConnectionBannerReducer,
 };
 
 if (isTest) {

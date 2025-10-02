@@ -1,19 +1,16 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import { expect as appwrightExpect } from 'appwright';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect, ScrollDirection } from 'appwright';
 
 class ImportFromSeedScreen {
-
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
-
   }
 
   get screenTitle() {
@@ -88,7 +85,7 @@ class ImportFromSeedScreen {
         const lastWord = phraseArray[phraseArray.length - 1];
         const form = await this.seedPhraseInput
 
-        await AppwrightGestures.typeText(form, `${firstWord} `);
+        await form.fill(`${firstWord} `);
         for (let i = 1; i < phraseArray.length - 1; i++) {
           let index = i;  
           if (AppwrightSelectors.isIOS(this._device)) { // SRP fields on iOS starts from 1
@@ -101,18 +98,18 @@ class ImportFromSeedScreen {
             input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           else
             input = await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-          await AppwrightGestures.typeText(input, `${phraseArray[i]} `);
-          await AppwrightGestures.tap(input);
+          await input.fill(`${phraseArray[i]} `);
+          await input.tap();
         }
         const wordElement = await this.inputOfIndex(AppwrightSelectors.isAndroid(this._device) ? phraseArray.length - 1 : phraseArray.length);
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-        await AppwrightGestures.typeText(lastInput, lastWord);
+        await lastInput.fill(lastWord);
       } else {
         for (let i = 1; i <= phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
           const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
-          await AppwrightGestures.typeText(input, `${phraseArray[i-1]} `);
-          await AppwrightGestures.tap(input);
+          await input.fill(`${phraseArray[i-1]} `);
+          await input.tap();
         }
       }
     }
@@ -124,8 +121,8 @@ class ImportFromSeedScreen {
         await Gestures.waitAndTap(this.continueButton);
       } else {
         const element = await this.continueButton;
-        await AppwrightGestures.hideKeyboard(this.device);
-        await AppwrightGestures.tap(element); // Use static tap method with retry logic
+        await AppwrightSelectors.hideKeyboard(this.device);
+        await element.tap();
       }
     } else {
       if (!this._device) {
@@ -134,10 +131,10 @@ class ImportFromSeedScreen {
         const isIOS = await AppwrightSelectors.isIOS(this.device);
         if (isIOS) {
           const element = await AppwrightSelectors.getElementByID(this.device, 'import-button');
-          await AppwrightGestures.tap(element); // Use static tap method with retry logic
+          await element.tap();
         } else {
           const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');
-          await AppwrightGestures.tap(element); // Use static tap method with retry logic
+          await element.tap();
         }
       }
     }
@@ -149,14 +146,14 @@ class ImportFromSeedScreen {
           await Gestures.waitAndTap(this.screenTitle);
       } else {
         const element = await this.screenTitle;
-        await AppwrightGestures.tap(element); // Use static tap method with retry logic
+        await element.tap();
       }
     } else {
       if (!this._device) {
         await Gestures.waitAndTap(this.screenTitle);
     } else {
       const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await element.tap();
     }
     }
   }

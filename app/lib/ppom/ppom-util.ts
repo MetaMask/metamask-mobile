@@ -344,8 +344,7 @@ function normalizeTransactionRequest(
 
   request.origin = request.origin
     ?.replace(WALLET_CONNECT_ORIGIN, '')
-    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
-    ?.replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
+    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
   const txParams = (
     Array.isArray(request.params) ? request.params[0] : {}

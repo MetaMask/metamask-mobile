@@ -43,6 +43,7 @@ jest.mock('../../../../../../core/Engine', () => {
           keyrings: [],
         },
         getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
+        getOrAddQRKeyring: jest.fn(),
       },
       SignatureController: {
         hub: {

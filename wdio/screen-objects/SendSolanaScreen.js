@@ -1,18 +1,15 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from '../../appwright/utils/TimersHelper.js';
 import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';
 
 class SendSolanaScreen {
-
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
-
   }
 
   get addressField() {
@@ -45,15 +42,16 @@ class SendSolanaScreen {
   async fillAddressField(address) {
     const element = await this.addressField;
     if (AppwrightSelectors.isIOS(this._device)) {
-      await AppwrightGestures.typeText(element, `${address}\n`);
+      await element.fill(`${address}\n`);
     } else{
-      await AppwrightGestures.typeText(element, `${address}`);
+      await element.fill(`${address}`);
+
     }
   }
 
   async fillAmountField(amount) {
     const element = await this.amountField;
-    await AppwrightGestures.typeText(element, amount);
+    await element.fill(amount);
     const continueButton = await this.continueButton;
     await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
   }

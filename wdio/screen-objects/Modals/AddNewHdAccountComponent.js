@@ -1,6 +1,6 @@
 import Gestures from '../../helpers/Gestures.js';
 import { AddNewAccountIds } from '../../../e2e/selectors/MultiSRP/AddHdAccount.selectors.js';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors.js';
 import { expect as appwrightExpect } from 'appwright';
 
 class AddNewHdAccountComponent {

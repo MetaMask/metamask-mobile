@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
@@ -34,17 +34,12 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
-import { useAssetsUpdateAllAccountBalances } from '../../../../components/UI/Assets/hooks';
-
-const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE = 2000; // About 30 items to pre-render - cell size is about 65px
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
-  showCheckbox = false,
-  setKeyboardAvoidingViewEnabled,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -59,8 +54,7 @@ const MultichainAccountSelectorList = ({
   const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
     string | null
   >(null);
-  const internalListRef =
-    useRef<FlashListRef<FlattenedMultichainAccountListItem>>(null);
+  const internalListRef = useRef(null);
   const listRefToUse = listRef || internalListRef;
 
   const selectedIdSet = useMemo(
@@ -69,10 +63,6 @@ const MultichainAccountSelectorList = ({
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
-
-  // Update balances for all accounts when component mounts
-  // This ensures all account balances are visible without requiring user interaction
-  useAssetsUpdateAllAccountBalances();
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -165,16 +155,6 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [filteredWalletSections]);
 
-  // Compute first selected account index for initial positioning only
-  const initialSelectedIndex = useMemo(() => {
-    const targetId = selectedAccountGroups?.[0]?.id;
-    if (!targetId) return undefined;
-    const idx = flattenedData.findIndex(
-      (item) => item.type === 'cell' && item.data.id === targetId,
-    );
-    return idx >= 0 ? idx : undefined;
-  }, [flattenedData, selectedAccountGroups]);
-
   // Reset scroll to top when search text changes
   useEffect(() => {
     if (listRefToUse.current) {
@@ -209,16 +189,6 @@ const MultichainAccountSelectorList = ({
     }
   }, [lastCreatedAccountId, flattenedData, listRefToUse]);
 
-  // Enable keyboard avoiding view when list has 2 or fewer items
-  useEffect(() => {
-    if (setKeyboardAvoidingViewEnabled) {
-      const accountCellsCount = flattenedData.filter(
-        (item) => item.type === 'cell',
-      ).length;
-
-      setKeyboardAvoidingViewEnabled(accountCellsCount <= 2);
-    }
-  }, [flattenedData, setKeyboardAvoidingViewEnabled]);
   // Handle account creation callback
   const handleAccountCreated = useCallback((newAccountId: string) => {
     setLastCreatedAccountId(newAccountId);
@@ -234,7 +204,7 @@ const MultichainAccountSelectorList = ({
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
     useCallback(
-      ({ item }: { item: FlattenedMultichainAccountListItem }) => {
+      ({ item }) => {
         switch (item.type) {
           case 'header': {
             return <AccountListHeader title={item.data.title} />;
@@ -248,7 +218,6 @@ const MultichainAccountSelectorList = ({
                 avatarAccountType={avatarAccountType}
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
-                showCheckbox={showCheckbox}
               />
             );
           }
@@ -271,7 +240,6 @@ const MultichainAccountSelectorList = ({
         handleSelectAccount,
         handleAccountCreated,
         avatarAccountType,
-        showCheckbox,
       ],
     );
 
@@ -311,7 +279,6 @@ const MultichainAccountSelectorList = ({
           value={searchText}
           onChangeText={setSearchText}
           placeholder={strings('accounts.search_your_accounts')}
-          placeholderTextColor={styles.searchPlaceholderText.color}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
           style={styles.searchTextField}
@@ -339,13 +306,9 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
-            initialScrollIndex={initialSelectedIndex}
             renderScrollComponent={
               ScrollView as React.ComponentType<ScrollViewProps>
             }
-            // Performance optimizations
-            removeClippedSubviews
-            drawDistance={MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE}
             {...props}
           />
         )}

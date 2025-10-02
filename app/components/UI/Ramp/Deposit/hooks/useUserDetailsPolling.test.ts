@@ -9,11 +9,7 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import {
-  MOCK_USDC_TOKEN,
-  MOCK_CREDIT_DEBIT_CARD,
-  MOCK_US_REGION,
-} from '../testUtils/constants';
+import { DepositRegion } from '../constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -60,13 +56,10 @@ describe('useUserDetailsPolling', () => {
       logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
-      selectedRegion: MOCK_US_REGION,
+      selectedRegion: {
+        isoCode: 'US',
+      } as DepositRegion,
       setSelectedRegion: jest.fn(),
-      selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
-      setSelectedPaymentMethod: jest.fn(),
-      selectedCryptoCurrency: MOCK_USDC_TOKEN,
-      setSelectedCryptoCurrency: jest.fn(),
-      selectedWalletAddress: '0x1234567890123456789012345678901234567890',
     });
   });
 

@@ -1,27 +1,26 @@
-import { loginToApp } from '../../../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  loginToApp,
+} from '../../../viewHelper';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
+import { RegressionIdentity } from '../../../tags';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
-import { arrangeTestUtils } from '../utils/helpers';
+import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController';
-import { createUserStorageController } from '../utils/mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import {
-  USER_STORAGE_GROUPS_FEATURE_KEY,
-  USER_STORAGE_WALLETS_FEATURE_KEY,
-} from '@metamask/account-tree-controller';
-import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
-import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
-import TestHelpers from '../../../helpers';
+} from '../utils/user-storage/userStorageMockttpController.ts';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { defaultGanacheOptions } from '../../../framework/Constants';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(
-  SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
+  RegressionIdentity('Account syncing - Adding and Renaming Accounts'),
   () => {
     let sharedUserStorageController: UserStorageMockttpController;
 
@@ -41,25 +40,14 @@ describe(
      * Phase 3: Complete onboarding flow from scratch to verify all account changes (additions and renames) are properly synced and persisted across app reinstallation.
      */
 
-    it('adds a new account and syncs it', async () => {
+    it('should add a new account and sync it', async () => {
       await withIdentityFixtures(
         {
-          userStorageFeatures: [
-            USER_STORAGE_GROUPS_FEATURE_KEY,
-            USER_STORAGE_WALLETS_FEATURE_KEY,
-          ],
+          userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
           sharedUserStorageController,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
         },
         async ({ userStorageMockttpController }) => {
           await loginToApp();
-          // KDF Delay
-          await TestHelpers.delay(3000);
 
           await WalletView.tapIdenticon();
 
@@ -71,7 +59,7 @@ describe(
           );
 
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               DEFAULT_ACCOUNT_NAME,
             ),
             {
@@ -87,11 +75,12 @@ describe(
               UserStorageMockttpControllerEvents.PUT_SINGLE,
             );
 
-          await AccountListBottomSheet.tapAddAccountButtonV2();
+          await AccountListBottomSheet.tapAddAccountButton();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
           await waitUntilEventsEmittedNumberEquals(1);
 
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               ADDED_ACCOUNT_NAME,
             ),
             {
@@ -103,17 +92,8 @@ describe(
 
       await withIdentityFixtures(
         {
-          userStorageFeatures: [
-            USER_STORAGE_GROUPS_FEATURE_KEY,
-            USER_STORAGE_WALLETS_FEATURE_KEY,
-          ],
+          userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
           sharedUserStorageController,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
         },
         async ({ mockServer: _mockServer, userStorageMockttpController }) => {
           const { prepareEventsEmittedCounter } = arrangeTestUtils(
@@ -125,8 +105,6 @@ describe(
             );
 
           await loginToApp();
-          // KDF Delay
-          await TestHelpers.delay(3000);
 
           await WalletView.tapIdenticon();
           await Assertions.expectElementToBeVisible(
@@ -138,7 +116,7 @@ describe(
 
           // Should see default account
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               DEFAULT_ACCOUNT_NAME,
             ),
             {
@@ -148,7 +126,7 @@ describe(
 
           // Should ALSO see the account added in the previous test
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               ADDED_ACCOUNT_NAME,
             ),
             {
@@ -157,38 +135,33 @@ describe(
           );
 
           // Rename the second account
-          await AccountListBottomSheet.tapAccountEllipsisButtonV2(1);
-          await AccountDetails.tapEditAccountName();
-          await EditAccountName.updateAccountName(NEW_ACCOUNT_NAME);
-          await EditAccountName.tapSave();
+          await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
+          await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
 
           // Bottom sheet remains open after renaming account
-          await AccountDetails.tapBackButton();
-
-          await AccountListBottomSheet.tapAddAccountButtonV2();
+          // await WalletView.tapIdenticon();
+          await AccountListBottomSheet.tapAddAccountButton();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           await waitUntilEventsEmittedNumberEquals(2);
         },
       );
 
+      const onboardingFixture = new FixtureBuilder()
+        .withOnboardingFixture()
+        .build();
+
       await withIdentityFixtures(
         {
-          userStorageFeatures: [
-            USER_STORAGE_GROUPS_FEATURE_KEY,
-            USER_STORAGE_WALLETS_FEATURE_KEY,
-          ],
+          userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
           sharedUserStorageController,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
-          },
+          fixture: onboardingFixture,
         },
         async () => {
-          await loginToApp();
-          // KDF Delay
-          await TestHelpers.delay(3000);
+          // Go through onboarding again to ensure accounts and names are synced (sanity check)
+          await importWalletWithRecoveryPhrase({
+            seedPhrase: defaultGanacheOptions.mnemonic,
+          });
 
           await device.disableSynchronization();
 
@@ -202,7 +175,7 @@ describe(
 
           // Should see default account
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               DEFAULT_ACCOUNT_NAME,
             ),
             {
@@ -212,7 +185,7 @@ describe(
 
           // Should still see the account added in the previous test, with new name
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               NEW_ACCOUNT_NAME,
             ),
             {
@@ -222,7 +195,7 @@ describe(
 
           // Should also see the 3rd account added in the previous test
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
+            AccountListBottomSheet.getAccountElementByAccountName(
               LAST_ACCOUNT_NAME,
             ),
             {

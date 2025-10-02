@@ -18,9 +18,7 @@ import { setMeasurement } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import {
   trace,
   endTrace,
@@ -517,9 +515,11 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
 
     this.initializeProviders().catch((error) => {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error initializing providers',
-        context: 'PerpsController.constructor',
+      DevLogger.log('PerpsController: Error initializing providers', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
         timestamp: new Date().toISOString(),
       });
     });
@@ -559,87 +559,6 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
-    }
-  }
-
-  /**
-   * Calculate user fee discount from RewardsController
-   * Used to apply MetaMask reward discounts to trading fees
-   * @returns Fee discount in basis points (e.g., 550 for 5.5% off) or undefined if no discount
-   * @private
-   */
-  private async calculateUserFeeDiscount(): Promise<number | undefined> {
-    try {
-      const { RewardsController, NetworkController } = Engine.context;
-      const evmAccount = getEvmAccountFromSelectedAccountGroup();
-
-      if (!evmAccount) {
-        DevLogger.log('PerpsController: No EVM account found for fee discount');
-        return undefined;
-      }
-
-      // Get the chain ID using proper NetworkController method
-      const networkState = this.messagingSystem.call(
-        'NetworkController:getState',
-      );
-      const selectedNetworkClientId = networkState.selectedNetworkClientId;
-      const networkClient = NetworkController.getNetworkClientById(
-        selectedNetworkClientId,
-      );
-      const chainId = networkClient?.configuration?.chainId;
-
-      if (!chainId) {
-        Logger.error(
-          new Error('Chain ID not found for fee discount calculation'),
-          {
-            message:
-              'PerpsController: Missing chain ID prevents reward discount calculation',
-            context: 'PerpsController.calculateUserFeeDiscount',
-            selectedNetworkClientId,
-            networkClientExists: !!networkClient,
-          },
-        );
-        return undefined;
-      }
-
-      const caipAccountId = formatAccountToCaipAccountId(
-        evmAccount.address,
-        chainId,
-      );
-
-      if (!caipAccountId) {
-        Logger.error(
-          new Error('Failed to format CAIP account ID for fee discount'),
-          {
-            message:
-              'PerpsController: CAIP account ID formatting failed, preventing reward discount calculation',
-            context: 'PerpsController.calculateUserFeeDiscount',
-            address: evmAccount.address,
-            chainId,
-            selectedNetworkClientId,
-          },
-        );
-        return undefined;
-      }
-
-      const discountBips = await RewardsController.getPerpsDiscountForAccount(
-        caipAccountId,
-      );
-
-      DevLogger.log('PerpsController: Fee discount calculated', {
-        address: evmAccount.address,
-        caipAccountId,
-        discountBips,
-        discountPercentage: discountBips / 100,
-      });
-
-      return discountBips;
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Fee discount calculation failed',
-        context: 'PerpsController.calculateUserFeeDiscount',
-      });
-      return undefined;
     }
   }
 
@@ -766,75 +685,51 @@ export class PerpsController extends BaseController<
     try {
       const provider = this.getActiveProvider();
 
-      // Calculate fee discount at execution time (fresh, secure)
-      const feeDiscountBips = await this.calculateUserFeeDiscount();
-
-      // Set discount context in provider for this order
-      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(feeDiscountBips);
-      }
-
-      // Optimistic update - exclude trackingData to avoid persisting analytics data
-      const { trackingData, ...orderWithoutTracking } = params;
+      // Optimistic update
       this.update((state) => {
-        state.pendingOrders.push(orderWithoutTracking);
+        state.pendingOrders.push(params);
       });
 
       const result = await provider.placeOrder(params);
 
-      // Clear discount context after order (success or failure)
-      if (provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(undefined);
-      }
-
       // Update state only on success
       if (result.success) {
         this.update((state) => {
-          state.pendingOrders = state.pendingOrders.filter(
-            (o) => o !== orderWithoutTracking,
-          );
+          state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
           state.lastUpdateTimestamp = Date.now();
         });
 
         // Track trade transaction executed
         const completionDuration = performance.now() - startTime;
-
-        const eventBuilder = MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        ).addProperties({
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.ASSET]: params.coin,
-          [PerpsEventProperties.DIRECTION]: params.isBuy
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-          [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-          [PerpsEventProperties.ORDER_SIZE]: result.filledSize || params.size,
-          [PerpsEventProperties.ASSET_PRICE]:
-            result.averagePrice || params.trackingData?.marketPrice,
-          [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-          [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
-          [PerpsEventProperties.METAMASK_FEE_RATE]:
-            params.trackingData?.metamaskFeeRate,
-          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-            params.trackingData?.feeDiscountPercentage,
-          [PerpsEventProperties.ESTIMATED_REWARDS]:
-            params.trackingData?.estimatedPoints,
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          // Add TP/SL if set (for new orders)
-          ...(params.takeProfitPrice && {
-            [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-              params.takeProfitPrice,
-            ),
-          }),
-          ...(params.stopLossPrice && {
-            [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-              params.stopLossPrice,
-            ),
-          }),
-        });
-
-        MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED,
+          )
+            .addProperties({
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.DIRECTION]: params.isBuy
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.ORDER_TYPE]: params.orderType,
+              [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]:
+                result.filledSize || params.size,
+              [PerpsEventProperties.ASSET_PRICE]:
+                result.averagePrice || params.trackingData?.marketPrice,
+              [PerpsEventProperties.MARGIN_USED]:
+                params.trackingData?.marginUsed,
+              [PerpsEventProperties.METAMASK_FEE]:
+                params.trackingData?.metamaskFee,
+              [PerpsEventProperties.METAMASK_FEE_RATE]:
+                params.trackingData?.metamaskFeeRate,
+              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                params.trackingData?.feeDiscountPercentage,
+              [PerpsEventProperties.ESTIMATED_REWARDS]:
+                params.trackingData?.estimatedPoints,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            })
+            .build(),
+        );
 
         // Report to data lake (fire-and-forget with retry)
         this.reportOrderToDataLake({
@@ -861,10 +756,9 @@ export class PerpsController extends BaseController<
         const completionDuration = performance.now() - startTime;
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED,
           )
             .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: params.coin,
               [PerpsEventProperties.DIRECTION]: params.isBuy
                 ? PerpsEventValues.DIRECTION.LONG
@@ -888,9 +782,7 @@ export class PerpsController extends BaseController<
 
         // Remove from pending orders even on failure since the attempt is complete
         this.update((state) => {
-          state.pendingOrders = state.pendingOrders.filter(
-            (o) => o !== orderWithoutTracking,
-          );
+          state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
         });
 
         // End trace with error data
@@ -905,48 +797,6 @@ export class PerpsController extends BaseController<
 
       return result;
     } catch (error) {
-      // Track trade transaction failed (catch block)
-      const completionDuration = performance.now() - startTime;
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.DIRECTION]: params.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.size,
-            [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-            [PerpsEventProperties.LIMIT_PRICE]:
-              params.orderType === 'limit' ? params.price : null,
-            [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-            [PerpsEventProperties.ASSET_PRICE]:
-              params.trackingData?.marketPrice,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              error instanceof Error ? error.message : 'Unknown error',
-          })
-          .build(),
-      );
-
-      // Clear discount context in case of error
-      try {
-        const provider = this.getActiveProvider();
-        if (provider.setUserFeeDiscount) {
-          provider.setUserFeeDiscount(undefined);
-        }
-      } catch (cleanupError) {
-        Logger.error(cleanupError as Error, {
-          message:
-            'PerpsController: Failed to clear fee discount during error cleanup',
-          context: 'PerpsController.placeOrder',
-        });
-      }
-
       // End trace with error data
       endTrace({
         name: TraceName.PerpsOrderExecution,
@@ -963,61 +813,13 @@ export class PerpsController extends BaseController<
    * Edit an existing order
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
-    const startTime = performance.now();
     const provider = this.getActiveProvider();
-
     const result = await provider.editOrder(params);
-    const completionDuration = performance.now() - startTime;
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
-
-      // Track order edit executed
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.newOrder.coin,
-            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            ...(params.newOrder.price && {
-              [PerpsEventProperties.LIMIT_PRICE]: parseFloat(
-                params.newOrder.price,
-              ),
-            }),
-          })
-          .build(),
-      );
-    } else {
-      // Track order edit failed
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.newOrder.coin,
-            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              result.error || 'Unknown error',
-          })
-          .build(),
-      );
     }
 
     return result;
@@ -1027,45 +829,13 @@ export class PerpsController extends BaseController<
    * Cancel an existing order
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
-    const startTime = performance.now();
     const provider = this.getActiveProvider();
-
     const result = await provider.cancelOrder(params);
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
-
-      // Track order cancel executed
-      const completionDuration = performance.now() - startTime;
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          })
-          .build(),
-      );
-    } else {
-      // Track order cancel failed
-      const completionDuration = performance.now() - startTime;
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              result.error || 'Unknown error',
-          })
-          .build(),
-      );
     }
 
     return result;
@@ -1132,11 +902,9 @@ export class PerpsController extends BaseController<
           // Track partially filled event
           MetaMetrics.getInstance().trackEvent(
             MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+              MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
             )
               .addProperties({
-                [PerpsEventProperties.STATUS]:
-                  PerpsEventValues.STATUS.PARTIALLY_FILLED,
                 [PerpsEventProperties.ASSET]: position.coin,
                 [PerpsEventProperties.DIRECTION]: direction,
                 [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
@@ -1176,10 +944,9 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED,
           )
             .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_TYPE]: orderType,
@@ -1234,10 +1001,9 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
           )
             .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_SIZE]:
@@ -1303,10 +1069,9 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
           )
             .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_SIZE]:
@@ -1360,65 +1125,13 @@ export class PerpsController extends BaseController<
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
-    const startTime = performance.now();
     const provider = this.getActiveProvider();
-
     const result = await provider.updatePositionTPSL(params);
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
-
-      // Track TP/SL update executed - ONE event with both properties
-      const completionDuration = performance.now() - startTime;
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            ...(params.takeProfitPrice && {
-              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                params.takeProfitPrice,
-              ),
-            }),
-            ...(params.stopLossPrice && {
-              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                params.stopLossPrice,
-              ),
-            }),
-          })
-          .build(),
-      );
-    } else {
-      // Track TP/SL update failed - ONE event with both properties
-      const completionDuration = performance.now() - startTime;
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              result.error || 'Unknown error',
-            ...(params.takeProfitPrice && {
-              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                params.takeProfitPrice,
-              ),
-            }),
-            ...(params.stopLossPrice && {
-              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                params.stopLossPrice,
-              ),
-            }),
-          })
-          .build(),
-      );
     }
 
     return result;
@@ -1429,7 +1142,8 @@ export class PerpsController extends BaseController<
    * No complex state tracking - just sets a loading flag
    */
   async depositWithConfirmation() {
-    const { NetworkController, TransactionController } = Engine.context;
+    const { AccountTreeController, NetworkController, TransactionController } =
+      Engine.context;
 
     try {
       // Clear any stale results when starting a new deposit flow
@@ -1448,7 +1162,11 @@ export class PerpsController extends BaseController<
         amount: '0x0',
       });
 
-      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+      const accounts =
+        AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
       if (!evmAccount) {
         throw new Error(
           'No EVM-compatible account found in selected account group',
@@ -1669,10 +1387,12 @@ export class PerpsController extends BaseController<
 
         // Trigger account state refresh after withdrawal
         this.getAccountState().catch((error) => {
-          Logger.error(error as Error, {
-            message: '⚠️ PerpsController: Failed to refresh after withdrawal',
-            context: 'PerpsController.withdraw',
-          });
+          DevLogger.log(
+            '⚠️ PerpsController: Failed to refresh after withdrawal',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+          );
         });
 
         endTrace({
@@ -1859,11 +1579,10 @@ export class PerpsController extends BaseController<
       const [accountState, historicalPortfolio] = await Promise.all([
         provider.getAccountState(params),
         provider.getHistoricalPortfolio(params).catch((error) => {
-          Logger.error(error as Error, {
-            message:
-              'Failed to get historical portfolio, continuing without it',
-            context: 'PerpsController.getAccountState',
-          });
+          DevLogger.log(
+            'Failed to get historical portfolio, continuing without it:',
+            error,
+          );
           return;
         }),
       ]);
@@ -2167,9 +1886,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.getWithdrawalRoutes();
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error getting withdrawal routes',
-        context: 'PerpsController.getWithdrawalRoutes',
+      DevLogger.log('PerpsController: Error getting withdrawal routes', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
       // Return empty array if provider is not available
@@ -2277,9 +1995,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to prices',
-        context: 'PerpsController.subscribeToPrices',
+      DevLogger.log('PerpsController: Error subscribing to prices', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -2297,9 +2014,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to positions',
-        context: 'PerpsController.subscribeToPositions',
+      DevLogger.log('PerpsController: Error subscribing to positions', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -2317,9 +2033,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to order fills',
-        context: 'PerpsController.subscribeToOrderFills',
+      DevLogger.log('PerpsController: Error subscribing to order fills', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -2337,9 +2052,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to orders',
-        context: 'PerpsController.subscribeToOrders',
+      DevLogger.log('PerpsController: Error subscribing to orders', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -2357,9 +2071,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToAccount(params);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error subscribing to account',
-        context: 'PerpsController.subscribeToAccount',
+      DevLogger.log('PerpsController: Error subscribing to account', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -2377,9 +2090,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       provider.setLiveDataConfig(config);
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Error setting live data config',
-        context: 'PerpsController.setLiveDataConfig',
+      DevLogger.log('PerpsController: Error setting live data config', {
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
     }
@@ -2416,11 +2128,13 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        Logger.error(error as Error, {
-          message: 'PerpsController: Error getting provider during disconnect',
-          context: 'PerpsController.disconnect',
-          timestamp: new Date().toISOString(),
-        });
+        DevLogger.log(
+          'PerpsController: Error getting provider during disconnect',
+          {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          },
+        );
       }
     }
 
@@ -2548,9 +2262,8 @@ export class PerpsController extends BaseController<
 
       return location;
     } catch (e) {
-      Logger.error(e as Error, {
-        message: 'PerpsController: Failed to fetch geo location',
-        context: 'PerpsController.performGeoLocationFetch',
+      DevLogger.log('PerpsController: Failed to fetch geo location', {
+        error: e,
       });
       // Don't cache failures
       return location;
@@ -2577,9 +2290,11 @@ export class PerpsController extends BaseController<
         );
       }
     } catch (error) {
-      Logger.error(error as Error, {
-        message: 'PerpsController: Eligibility refresh failed',
-        context: 'PerpsController.refreshEligibility',
+      DevLogger.log('PerpsController: Eligibility refresh failed', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -2707,7 +2422,12 @@ export class PerpsController extends BaseController<
       const token = await this.messagingSystem.call(
         'AuthenticationController:getBearerToken',
       );
-      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+      const { AccountTreeController } = Engine.context;
+      const accounts =
+        AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
 
       if (!evmAccount || !token) {
         DevLogger.log('DataLake API: Missing requirements', {

@@ -52,17 +52,6 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
     RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
   );
   await Assertions.expectTextDisplayed(expectedSrp);
-  await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
-
-  await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-
-  if (device.getPlatform() === 'ios') {
-    // For some reason, the QR code is visible on Android but detox cannot find it
-    await Assertions.expectElementToBeVisible(
-      RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
-    );
-  }
-
   await RevealSecretRecoveryPhrase.scrollToDone();
   await RevealSecretRecoveryPhrase.tapDoneButton();
 };

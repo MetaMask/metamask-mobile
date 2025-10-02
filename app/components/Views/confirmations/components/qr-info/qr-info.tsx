@@ -15,11 +15,10 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
-import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const QRInfo = () => {
   const {
-    pendingScanRequest,
+    QRState,
     cameraError,
     scannerVisible,
     setRequestCompleted,
@@ -29,6 +28,8 @@ const QRInfo = () => {
   const { styles } = useStyles(styleSheet, {});
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [shouldPause, setShouldPause] = useState(false);
+
+  const KeyringController = Engine.context.KeyringController;
 
   useEffect(() => {
     if (scannerVisible) {
@@ -43,11 +44,11 @@ const QRInfo = () => {
       const buffer = signature.getRequestId();
       if (buffer) {
         const requestId = uuidStringify(buffer);
-        if (pendingScanRequest?.request?.requestId === requestId) {
-          Engine.getQrKeyringScanner().resolvePendingScan({
-            type: ur.type,
-            cbor: ur.cbor.toString('hex'),
-          });
+        if (QRState?.sign?.request?.requestId === requestId) {
+          KeyringController.submitQRSignature(
+            QRState.sign.request?.requestId as string,
+            ur.cbor.toString('hex'),
+          );
           setRequestCompleted();
           return;
         }
@@ -63,10 +64,11 @@ const QRInfo = () => {
       setErrorMessage(strings('transaction.mismatched_qr_request_id'));
     },
     [
-      pendingScanRequest?.request?.requestId,
+      QRState?.sign?.request?.requestId,
       createEventBuilder,
       setRequestCompleted,
       setScannerVisible,
+      KeyringController,
       trackEvent,
     ],
   );
@@ -81,46 +83,45 @@ const QRInfo = () => {
 
   return (
     <View testID={ConfirmationInfoComponentIDs.QR_INFO}>
-      {pendingScanRequest?.type === QrScanRequestType.SIGN &&
-        pendingScanRequest?.request && (
-          <View style={styles.container}>
-            <TouchableOpacity>
-              {/* todo: to be replaced by alert system */}
-              {errorMessage && (
-                <Alert
-                  type={AlertType.Error}
-                  onPress={() => setErrorMessage(undefined)}
-                  style={styles.alert}
-                >
-                  <Text style={styles.errorText}>{errorMessage}</Text>
-                </Alert>
-              )}
-              {cameraError && (
-                <Alert
-                  type={AlertType.Error}
-                  style={styles.alert}
-                  onPress={Linking.openSettings}
-                >
-                  <Text style={styles.errorText}>{cameraError}</Text>
-                </Alert>
-              )}
-              <View style={styles.title}>
-                <Text style={styles.titleText}>
-                  {strings('confirm.qr_scan_text')}
-                </Text>
-              </View>
-              <AnimatedQRCode
-                cbor={pendingScanRequest.request.payload.cbor}
-                type={pendingScanRequest.request.payload.type}
-                shouldPause={scannerVisible || shouldPause}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
+      {QRState?.sign?.request && (
+        <View style={styles.container}>
+          <TouchableOpacity>
+            {/* todo: to be replaced by alert system */}
+            {errorMessage && (
+              <Alert
+                type={AlertType.Error}
+                onPress={() => setErrorMessage(undefined)}
+                style={styles.alert}
+              >
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </Alert>
+            )}
+            {cameraError && (
+              <Alert
+                type={AlertType.Error}
+                style={styles.alert}
+                onPress={Linking.openSettings}
+              >
+                <Text style={styles.errorText}>{cameraError}</Text>
+              </Alert>
+            )}
+            <View style={styles.title}>
+              <Text style={styles.titleText}>
+                {strings('confirm.qr_scan_text')}
+              </Text>
+            </View>
+            <AnimatedQRCode
+              cbor={QRState.sign.request.payload.cbor}
+              type={QRState.sign.request.payload.type}
+              shouldPause={scannerVisible || shouldPause}
+            />
+          </TouchableOpacity>
+        </View>
+      )}
       <AnimatedQRScannerModal
         pauseQRCode={setShouldPause}
         visible={scannerVisible}
-        purpose={QrScanRequestType.SIGN}
+        purpose={'sign'}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
         hideModal={() => setScannerVisible(false)}

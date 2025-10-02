@@ -45,6 +45,7 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import {
@@ -79,6 +80,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
+import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
@@ -254,14 +256,14 @@ class Asset extends PureComponent {
         navigation,
         colors,
         // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
-        shouldShowMoreOptionsInNavBar
+        shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: 'AssetOptions',
                 params: {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
-                  chainId: route.params?.chainId || '0x1',
+                  chainId: route.params?.chainId,
                   asset,
                 },
               })
@@ -576,6 +578,9 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
+    const isSwapsNetworkAllowed = isPortfolioViewEnabled()
+      ? isSwapsAllowed(asset.chainId)
+      : isSwapsAllowed(chainId);
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
@@ -586,7 +591,8 @@ class Asset extends PureComponent {
     // Check if unified swaps is enabled
     const isUnifiedSwapsEnabled = this.props.isUnifiedSwapsEnabled;
 
-    const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
+    const displaySwapsButton =
+      isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
     const displayBridgeButton =
       !isUnifiedSwapsEnabled &&

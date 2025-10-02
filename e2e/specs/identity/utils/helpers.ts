@@ -5,7 +5,6 @@ import {
   UserStorageMockttpControllerEvents,
   AsEnum,
 } from './user-storage/userStorageMockttpController';
-import { USER_STORAGE_GROUPS_FEATURE_KEY } from '@metamask/account-tree-controller';
 
 export interface UserStorageAccount {
   /**
@@ -108,7 +107,7 @@ export const arrangeTestUtils = (
     new Promise((resolve, reject) => {
       const checkAccounts = () => {
         const accounts = userStorageMockttpController.paths.get(
-          USER_STORAGE_GROUPS_FEATURE_KEY,
+          USER_STORAGE_FEATURE_NAMES.accounts,
         )?.response;
         return accounts?.length === expectedNumber;
       };

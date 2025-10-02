@@ -1,6 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
-import '@shopify/flash-list/jestSetup';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   AccountGroupObject,
   AccountWalletObject,
@@ -15,19 +14,10 @@ import {
 import {
   createMockAccountGroup,
   createMockWallet,
-  createMockEntropyWallet,
   createMockState,
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
-import { ReactTestInstance } from 'react-test-renderer';
-
-// Mock the new hook to avoid dependencies
-jest.mock('../../../../components/UI/Assets/hooks', () => ({
-  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
-    updateBalances: jest.fn(),
-  })),
-}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -125,7 +115,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [wallet1, wallet2],
       internalAccounts,
-      [],
+      [account1],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -153,7 +143,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [srpWallet, snapWallet],
       internalAccounts,
-      [],
+      [srpAccount],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -181,7 +171,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [srpWallet, ledgerWallet],
       internalAccounts,
-      [],
+      [srpAccount],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -209,15 +199,11 @@ describe('MultichainAccountSelectorList', () => {
     const { getAllByTestId } = renderComponentWithMockState(
       [wallet1],
       internalAccounts,
-      [],
+      [account2],
     );
 
     const accountCells = getAllByTestId('multichain-account-cell-container');
-    const account1Cell = accountCells.find((cell) =>
-      within(cell).queryByText('Account 1'),
-    );
-    expect(account1Cell).toBeTruthy();
-    fireEvent.press(account1Cell as ReactTestInstance);
+    fireEvent.press(accountCells[0]);
 
     expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
   });
@@ -449,7 +435,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1, wallet2],
         internalAccounts,
-        [],
+        [account1],
       );
 
       // Initially all accounts should be visible
@@ -657,22 +643,19 @@ describe('MultichainAccountSelectorList', () => {
   describe('Account Creation and Scrolling', () => {
     it('renders AccountListFooter with correct props', () => {
       const account1 = createMockAccountGroup(
-        'entropy:wallet1/group1',
+        'keyring:wallet1/group1',
         'Account 1',
       );
-      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
-        account1,
-      ]);
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
-      const mockState = createMockState([wallet1], internalAccounts);
 
       const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
         />,
-        { state: mockState },
+        { state: createMockState([wallet1], internalAccounts) },
       );
 
       // Verify the component renders correctly with AccountListFooter
@@ -682,19 +665,15 @@ describe('MultichainAccountSelectorList', () => {
 
     it('handles multiple wallets with AccountListFooter', () => {
       const account1 = createMockAccountGroup(
-        'entropy:wallet1/group1',
+        'keyring:wallet1/group1',
         'Account 1',
       );
       const account2 = createMockAccountGroup(
-        'entropy:wallet2/group2',
+        'keyring:wallet2/group2',
         'Account 2',
       );
-      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
-        account1,
-      ]);
-      const wallet2 = createMockEntropyWallet('wallet2', 'Wallet 2', [
-        account2,
-      ]);
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([
         account1,
@@ -716,12 +695,10 @@ describe('MultichainAccountSelectorList', () => {
 
     it('passes walletId to AccountListFooter', () => {
       const account1 = createMockAccountGroup(
-        'entropy:wallet1/group1',
+        'keyring:wallet1/group1',
         'Account 1',
       );
-      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
-        account1,
-      ]);
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
 
@@ -736,437 +713,6 @@ describe('MultichainAccountSelectorList', () => {
       // Verify the component renders correctly
       expect(getByText('Account 1')).toBeTruthy();
       expect(getByText('Create account')).toBeTruthy();
-    });
-
-    it('positions the list so the first selected account is initially visible', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-      );
-      const account2 = createMockAccountGroup(
-        'keyring:wallet1/group2',
-        'Account 2',
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
-        account1,
-        account2,
-      ]);
-
-      const internalAccounts = createMockInternalAccountsFromGroups([
-        account1,
-        account2,
-      ]);
-      const { queryByText } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[account2]}
-        />,
-        { state: createMockState([wallet1], internalAccounts) },
-      );
-
-      expect(queryByText('Account 2')).toBeTruthy();
-    });
-    it('renders a far selected account in the initial viewport when provided as initial selection', () => {
-      // Create many accounts so the selected one is far enough to require initialScrollIndex
-      const total = 60;
-      const accounts = Array.from({ length: total }, (_, i) =>
-        createMockAccountGroup(
-          `keyring:wallet1/group${i + 1}`,
-          `Account ${i + 1}`,
-        ),
-      );
-      const selectedIdx = 36;
-      const selected = accounts[selectedIdx];
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', accounts);
-
-      const internalAccounts = createMockInternalAccountsFromGroups(accounts);
-
-      const { queryByText } = renderWithProvider(
-        <MultichainAccountSelectorList selectedAccountGroups={[selected]} />,
-        { state: createMockState([wallet1], internalAccounts) },
-      );
-
-      // Without initialScrollIndex, this would not be visible initially
-      expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
-      expect(queryByText('Account 1')).toBeFalsy();
-    });
-  });
-
-  describe('Keyboard Avoiding View', () => {
-    it('enables keyboard avoiding view when there is 1 account', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-
-      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
-      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
-
-      renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
-        />,
-        { state: createMockState([wallet1], internalAccounts) },
-      );
-
-      // Should be called with true since there is only 1 account
-      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(true);
-    });
-
-    it('disables keyboard avoiding view when there are more than 2 accounts', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-      );
-      const account2 = createMockAccountGroup(
-        'keyring:wallet1/group2',
-        'Account 2',
-      );
-      const account3 = createMockAccountGroup(
-        'keyring:wallet1/group3',
-        'Account 3',
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
-        account1,
-        account2,
-        account3,
-      ]);
-
-      const internalAccounts = createMockInternalAccountsFromGroups([
-        account1,
-        account2,
-        account3,
-      ]);
-      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
-
-      renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
-        />,
-        { state: createMockState([wallet1], internalAccounts) },
-      );
-
-      // Should be called with false since there are 3 accounts
-      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(false);
-    });
-
-    it('does not call setKeyboardAvoidingViewEnabled when prop is not provided', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
-
-      // Render without setKeyboardAvoidingViewEnabled prop
-      const result = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-        />,
-        { state: createMockState([wallet1], internalAccounts) },
-      );
-
-      // Should render without errors when prop is not provided
-      expect(result).toBeTruthy();
-    });
-
-    it('updates keyboard avoiding view when filtered data changes', async () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Test Account',
-      );
-      const account2 = createMockAccountGroup(
-        'keyring:wallet1/group2',
-        'My Account',
-      );
-      const account3 = createMockAccountGroup(
-        'keyring:wallet1/group3',
-        'Another Account',
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
-        account1,
-        account2,
-        account3,
-      ]);
-
-      const internalAccounts = createMockInternalAccountsFromGroups([
-        account1,
-        account2,
-        account3,
-      ]);
-      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
-
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
-        />,
-        { state: createMockState([wallet1], internalAccounts) },
-      );
-
-      // Initially called with false (3 accounts)
-      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(false);
-
-      // Search to filter down to 1 account
-      const searchInput = getByTestId(
-        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
-      );
-      fireEvent.changeText(searchInput, 'Test');
-
-      // Wait for debounce and re-render
-      await waitFor(
-        () => {
-          // Should be called with true since filtered results show only 1 account
-          expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenLastCalledWith(
-            true,
-          );
-        },
-        { timeout: 500 },
-      );
-    });
-  });
-
-  describe('Checkbox functionality', () => {
-    it('shows checkboxes when showCheckbox prop is true', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-        ['account1'],
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
-      const mockState = createMockState([wallet1], internalAccounts);
-
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          showCheckbox
-        />,
-        { state: mockState },
-      );
-
-      expect(
-        getByTestId(`account-list-cell-checkbox-${account1.id}`),
-      ).toBeTruthy();
-    });
-
-    it('hides checkboxes when showCheckbox prop is false', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-        ['account1'],
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
-      const mockState = createMockState([wallet1], internalAccounts);
-
-      const { queryByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          showCheckbox={false}
-        />,
-        { state: mockState },
-      );
-
-      expect(
-        queryByTestId(`account-list-cell-checkbox-${account1.id}`),
-      ).toBeFalsy();
-    });
-
-    it('displays checked checkbox for selected accounts', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-        ['account1'],
-      );
-      const account2 = createMockAccountGroup(
-        'keyring:wallet1/group2',
-        'Account 2',
-        ['account2'],
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
-        account1,
-        account2,
-      ]);
-      const internalAccounts = createMockInternalAccountsFromGroups([
-        account1,
-        account2,
-      ]);
-      const mockState = createMockState([wallet1], internalAccounts);
-
-      const { getAllByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[account1]}
-          showCheckbox
-        />,
-        { state: mockState },
-      );
-
-      // Check that checkboxes exist for both accounts
-      const account1Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      const account2Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
-      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
-
-      // Check that there is at least 1 checked checkbox icon (for the selected account)
-      // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
-      // So we need to look for the actual checkbox elements with the custom testID
-      const selectedAccount = account1; // account1 is selected
-      const checkboxElements = getAllByTestId(
-        `account-list-cell-checkbox-${selectedAccount.id}`,
-      );
-      expect(checkboxElements.length).toEqual(1); // Only container should have the testID (selected account)
-    });
-
-    it('displays unchecked checkbox for unselected accounts', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-        ['account1'],
-      );
-      const account2 = createMockAccountGroup(
-        'keyring:wallet1/group2',
-        'Account 2',
-        ['account2'],
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
-        account1,
-        account2,
-      ]);
-      const internalAccounts = createMockInternalAccountsFromGroups([
-        account1,
-        account2,
-      ]);
-      const mockState = createMockState([wallet1], internalAccounts);
-
-      const { getAllByTestId, queryByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          showCheckbox
-        />,
-        { state: mockState },
-      );
-
-      // Check that checkboxes exist for both accounts
-      const account1Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      const account2Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      expect(account1Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
-      expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
-
-      // Check that there are no checked checkbox icons (since none are selected)
-      expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
-    });
-
-    it('calls onSelectAccount when checkbox is pressed', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-        ['account1'],
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
-      const mockState = createMockState([wallet1], internalAccounts);
-
-      const { getAllByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[]}
-          showCheckbox
-        />,
-        { state: mockState },
-      );
-
-      const checkboxElements = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      fireEvent.press(checkboxElements[0]);
-
-      expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
-    });
-
-    it('shows checkboxes correctly with multiple selected accounts', () => {
-      const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
-        'Account 1',
-        ['account1'],
-      );
-      const account2 = createMockAccountGroup(
-        'keyring:wallet1/group2',
-        'Account 2',
-        ['account2'],
-      );
-      const account3 = createMockAccountGroup(
-        'keyring:wallet1/group3',
-        'Account 3',
-        ['account3'],
-      );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
-        account1,
-        account2,
-        account3,
-      ]);
-      const internalAccounts = createMockInternalAccountsFromGroups([
-        account1,
-        account2,
-        account3,
-      ]);
-      const mockState = createMockState([wallet1], internalAccounts);
-
-      const { getAllByTestId } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[account1, account3]}
-          showCheckbox
-        />,
-        { state: mockState },
-      );
-
-      // Check that all 3 checkboxes exist
-      const account1Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      const account2Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      const account3Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account3.id}`,
-      );
-      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
-      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
-      expect(account3Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
-
-      // Check that there are checked checkbox icons (for the 2 selected accounts)
-      // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
-      // So we need to look for the actual checkbox elements with their custom testIDs
-      const selectedAccount1 = account1; // account1 is selected
-      const selectedAccount3 = account3; // account3 is selected
-      const checkboxElements1 = getAllByTestId(
-        `account-list-cell-checkbox-${selectedAccount1.id}`,
-      );
-      const checkboxElements3 = getAllByTestId(
-        `account-list-cell-checkbox-${selectedAccount3.id}`,
-      );
-      expect(checkboxElements1.length).toEqual(1); // Only container should have the testID (selected account)
-      expect(checkboxElements3.length).toEqual(1); // Only container should have the testID (selected account)
     });
   });
 });

@@ -43,7 +43,8 @@ import {
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
 import EarnBalance from '../../Earn/components/EarnBalance';
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -98,7 +99,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const isEvmNetworkSelected = !isNonEvmChainId(asset.chainId as string);
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const privacyMode = useSelector(selectPrivacyMode);
   const evmPricePercentChange1d = useSelector((state: RootState) =>
     selectPricePercentChange1d(

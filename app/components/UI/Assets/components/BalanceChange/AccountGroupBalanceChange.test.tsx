@@ -86,7 +86,7 @@ describe('AccountGroupBalanceChange', () => {
       const value = getByTestId(FORMATTED_VALUE_PRICE_TEST_ID);
       const percent = getByTestId(FORMATTED_PERCENTAGE_TEST_ID);
       expect(String(percent.props.children)).toMatch(/^\(-/);
-      expect(String(value.props.children)).toContain('-$1.23');
+      expect(String(value.props.children)).toContain('-');
     });
 
     it('renders large negative values correctly', () => {
@@ -101,7 +101,7 @@ describe('AccountGroupBalanceChange', () => {
 
       const value = getByTestId(FORMATTED_VALUE_PRICE_TEST_ID);
       const percent = getByTestId(FORMATTED_PERCENTAGE_TEST_ID);
-      expect(String(value.props.children)).toContain('-$5678.9');
+      expect(String(value.props.children)).toContain('-');
       expect(String(percent.props.children)).toMatch(/^\(-/);
     });
 
@@ -117,7 +117,7 @@ describe('AccountGroupBalanceChange', () => {
 
       const value = getByTestId(FORMATTED_VALUE_PRICE_TEST_ID);
       const percent = getByTestId(FORMATTED_PERCENTAGE_TEST_ID);
-      expect(String(value.props.children)).toContain('-$0.05');
+      expect(String(value.props.children)).toContain('-');
       expect(String(percent.props.children)).toMatch(/^\(-/);
     });
   });

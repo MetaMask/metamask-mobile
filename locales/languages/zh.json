@@ -404,7 +404,7 @@
     "show": "显示",
     "hide": "隐藏",
     "seed_phrase": "私钥助记词",
-    "must_be_at_least": "必须至少包含 {{number}} 个字符",
+    "must_be_at_least": "密码必须包含至少 {{number}} 个字符",
     "remember_me": "记住我",
     "security_alert_title": "安全警报",
     "security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "资金不足",
         "insufficient_balance": "余额不足。需要：${{required}}，可用：${{available}}",
         "invalid_leverage": "杠杆必须介于 {{min}} 倍和 {{max}} 倍之间",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "高杠杆会增加清算风险",
         "invalid_take_profit": "对于 {{positionType}} 头寸，止盈必须设置为 {{direction}} 的当前价格",
         "invalid_stop_loss": "对于 {{positionType}} 头寸，止损必须设置为 {{direction}} 的当前价格",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "限价低于当前价格"
       },
       "leverage_modal": {
-        "title": "杠杆",
+        "title": "Leverage",
         "confirm": "确认",
         "entry_price": "建仓价",
         "current_price": "当前价格",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "止盈与止损",
       "description": "选择盈利或亏损百分比，或输入自定义触发价，以自动平仓。",
+      "set": "设置",
+      "updating": "正在更新......",
       "off": "关闭",
       "current_price": "当前价格",
       "entry_price": "入场价格",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "以 {{direction}} 清算价格止损",
       "above": "高于",
       "below": "低于",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "关闭"
     },
     "token_selector": {
       "no_tokens": "无可用代币"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "市场数据加载失败",
     "tap_to_retry": "点击重试",
     "search_by_token_symbol": "按代币符号搜索",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "测试网",
     "mainnet": "主网",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "买入 {{asset}}",
     "no_tokens": "您没有任何代币！",
     "show_tokens_without_balance": "显示没有余额的代币",
+    "no_nfts_yet": "尚无 NFT",
     "nfts_autodetection_title": "NFT 检测",
     "nfts_autodetection_desc": "让 MetaMask 自动检测并显示您钱包中的 NFT。",
     "network_details_check": "网络详情检查",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "推荐好友",
         "share_referral_subject": "加入 MetaMask Rewards"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

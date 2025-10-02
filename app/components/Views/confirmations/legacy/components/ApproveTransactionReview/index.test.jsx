@@ -28,6 +28,9 @@ jest.mock('../../../../../../core/Engine', () => {
   );
   return {
     context: {
+      KeyringController: {
+        getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
+      },
       AssetsContractController: {
         getERC20BalanceOf: jest.fn().mockResolvedValue(0x0186a0),
       },

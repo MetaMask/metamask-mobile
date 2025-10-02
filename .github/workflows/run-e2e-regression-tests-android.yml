@@ -37,23 +37,6 @@ jobs:
       total_splits: 4
     secrets: inherit
 
-
-  regression-confirmations-redesigned-android:
-    name: 'Confirmations Redesigned Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks]
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: regression-confirmations-redesigned-android-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'RegressionConfirmationsRedesigned'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-    secrets: inherit
-
   regression-trade-android:
     name: 'Trade Regression (Android) - ${{ matrix.split }}'
     needs: [build-android-apks]
@@ -188,7 +171,6 @@ jobs:
     if: always()
     needs:
       - regression-confirmations-android
-      - regression-confirmations-redesigned-android
       - regression-trade-android
       - regression-wallet-platform-android
       - regression-identity-android

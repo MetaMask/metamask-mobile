@@ -104,7 +104,8 @@ exports[`CollectibleModal should render correctly 1`] = `
         }
       >
         <View>
-          <View
+          <Image
+            onError={[Function]}
             source={
               {
                 "uri": "",

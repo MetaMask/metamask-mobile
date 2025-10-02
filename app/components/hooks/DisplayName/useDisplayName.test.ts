@@ -7,7 +7,6 @@ import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useNftNames } from './useNftName';
 import { useAccountNames } from './useAccountNames';
-import { useAccountWalletNames } from './useAccountWalletNames';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
@@ -17,7 +16,6 @@ const KNOWN_NFT_NAME_MOCK = 'Known NFT';
 const KNOWN_FIRST_PARTY_CONTRACT_NAME = 'Pool Staking';
 const KNOWN_TOKEN_LIST_NAME = 'Known Token List';
 const KNOWN_ACCOUNT_NAME = 'Account 1';
-const KNOWN_ACCOUNT_WALLET_NAME = 'Account Wallet 1';
 
 jest.mock('./useWatchedNFTNames', () => ({
   useWatchedNFTNames: jest.fn(),
@@ -39,10 +37,6 @@ jest.mock('./useAccountNames', () => ({
   useAccountNames: jest.fn(),
 }));
 
-jest.mock('./useAccountWalletNames', () => ({
-  useAccountWalletNames: jest.fn(),
-}));
-
 describe('useDisplayName', () => {
   const mockUseWatchedNFTNames = jest.mocked(useWatchedNFTNames);
   const mockUseFirstPartyContractNames = jest.mocked(
@@ -51,7 +45,6 @@ describe('useDisplayName', () => {
   const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
   const mockUseNFTNames = jest.mocked(useNftNames);
   const mockUseAccountNames = jest.mocked(useAccountNames);
-  const mockUseAccountWalletNames = jest.mocked(useAccountWalletNames);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -60,7 +53,6 @@ describe('useDisplayName', () => {
     mockUseERC20Tokens.mockReturnValue([]);
     mockUseNFTNames.mockReturnValue([]);
     mockUseAccountNames.mockReturnValue([]);
-    mockUseAccountWalletNames.mockReturnValue([]);
   });
 
   describe('unknown address', () => {
@@ -170,22 +162,6 @@ describe('useDisplayName', () => {
         expect.objectContaining({
           variant: DisplayNameVariant.Saved,
           name: KNOWN_ACCOUNT_NAME,
-        }),
-      );
-    });
-
-    it('returns account wallet name', () => {
-      mockUseAccountWalletNames.mockReturnValue([KNOWN_ACCOUNT_WALLET_NAME]);
-
-      const displayName = useDisplayName({
-        type: NameType.EthereumAddress,
-        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
-        variation: CHAIN_IDS.MAINNET,
-      });
-
-      expect(displayName).toEqual(
-        expect.objectContaining({
-          subtitle: KNOWN_ACCOUNT_WALLET_NAME,
         }),
       );
     });

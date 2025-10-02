@@ -1,26 +1,22 @@
 import { loginToApp } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
+import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures';
-import { arrangeTestUtils } from '../utils/helpers';
+import Assertions from '../../../framework/Assertions.ts';
+import { SmokeIdentity } from '../../../tags.js';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
+import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController';
+} from '../utils/user-storage/userStorageMockttpController.ts';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
-import { createUserStorageController } from '../utils/mocks';
-import {
-  USER_STORAGE_GROUPS_FEATURE_KEY,
-  USER_STORAGE_WALLETS_FEATURE_KEY,
-} from '@metamask/account-tree-controller';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -41,26 +37,15 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
    * Phase 3: Login to a fresh app instance and verify only synced accounts persist
    */
 
-  it('syncs new accounts when account sync is enabled and excludes accounts created when sync is disabled', async () => {
+  it('should sync new accounts when account sync is enabled and exclude accounts created when sync is disabled', async () => {
     await withIdentityFixtures(
       {
-        userStorageFeatures: [
-          USER_STORAGE_GROUPS_FEATURE_KEY,
-          USER_STORAGE_WALLETS_FEATURE_KEY,
-        ],
+        userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async ({ userStorageMockttpController }) => {
         // Phase 1: Initial setup and verification of default account
         await loginToApp();
-        // KDF Delay
-        await TestHelpers.delay(3000);
 
         // Open account list to verify initial state
         await WalletView.tapIdenticon();
@@ -74,7 +59,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
 
         // Verify the default account exists
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountNameV2(
+          AccountListBottomSheet.getAccountElementByAccountName(
             DEFAULT_ACCOUNT_NAME,
           ),
           {
@@ -92,14 +77,15 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
           );
 
         // Create second account with sync enabled - this should sync to user storage
-        await AccountListBottomSheet.tapAddAccountButtonV2();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
 
         // Wait for sync operation to complete
         await waitUntilEventsEmittedNumberEquals(1);
 
         // Verify second account was created successfully
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountNameV2(
+          AccountListBottomSheet.getAccountElementByAccountName(
             SECOND_ACCOUNT_NAME,
           ),
           {
@@ -136,11 +122,12 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
 
         // Create third account with sync disabled - this should NOT sync to user storage
         await WalletView.tapIdenticon();
-        await AccountListBottomSheet.tapAddAccountButtonV2();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
 
         // Verify third account was created locally
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountNameV2(
+          AccountListBottomSheet.getAccountElementByAccountName(
             THIRD_ACCOUNT_NAME,
           ),
           {
@@ -153,24 +140,12 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
     // Phase 3: Fresh app instance to verify sync persistence
     await withIdentityFixtures(
       {
-        userStorageFeatures: [
-          USER_STORAGE_GROUPS_FEATURE_KEY,
-          USER_STORAGE_WALLETS_FEATURE_KEY,
-        ],
+        userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          );
-        },
       },
       async () => {
         // Login to fresh app instance to test sync restoration
         await loginToApp();
-        // KDF Delay
-        await TestHelpers.delay(3000);
-
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(
@@ -185,9 +160,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
 
         for (const accountName of visibleAccounts) {
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
-              accountName,
-            ),
+            AccountListBottomSheet.getAccountElementByAccountName(accountName),
             {
               description: `Account with name "${accountName}" should be visible`,
             },
@@ -196,7 +169,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
 
         // Verify third account (created with sync disabled) is NOT restored
         await Assertions.expectElementToNotBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountNameV2(
+          AccountListBottomSheet.getAccountElementByAccountName(
             THIRD_ACCOUNT_NAME,
           ),
         );

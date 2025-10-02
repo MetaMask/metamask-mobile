@@ -64,7 +64,7 @@ exports[`AccountPermissions renders correctly 1`] = `
     <View
       collapsable={false}
       enabled={true}
-      handlerTag={2}
+      handlerTag={-1}
       handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
@@ -219,7 +219,7 @@ exports[`AccountPermissions renders correctly 1`] = `
         }
         getItem={[Function]}
         getItemCount={[Function]}
-        handlerTag={1}
+        handlerTag={-1}
         handlerType="NativeViewGestureHandler"
         initialNumToRender={999}
         keyExtractor={[Function]}

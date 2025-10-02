@@ -29,8 +29,7 @@ ignores:
   # Appium drivers are used by Appwright for mobile automation
   - 'appium-uiautomator2-driver'
   - 'appium-xcuitest-driver'
-  # Used in scripts/repack for CI optimization
-  - '@expo/repack-app'
+
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 
@@ -59,6 +58,8 @@ ignores:
   - 'eslint-plugin-prettier'
   - 'eslint-plugin-react-native'
   - 'execa'
+  - 'fbjs-scripts'
+  - 'improved-yarn-audit'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
   - 'prettier-plugin-gherkin'
@@ -89,6 +90,7 @@ ignores:
   - 'react-native-os'
   - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
+  - 'react-native-tcp'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'

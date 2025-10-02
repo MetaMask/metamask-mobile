@@ -110,7 +110,7 @@ export const TokenListItemBip44 = React.memo(
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
-      () => (chainId ? NetworkBadgeSource(chainId) : null),
+      () => NetworkBadgeSource(chainId),
       [chainId],
     );
 
@@ -174,12 +174,10 @@ export const TokenListItemBip44 = React.memo(
           style={styles.badge}
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            networkBadgeSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-              />
-            ) : null
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkBadgeSource}
+            />
           }
         >
           <AssetLogo asset={asset} />
@@ -211,7 +209,7 @@ export const TokenListItemBip44 = React.memo(
           </View>
         </View>
         <ScamWarningIcon
-          asset={asset as TokenI & { chainId: string }}
+          asset={asset}
           setShowScamWarningModal={setShowScamWarningModal}
         />
       </AssetElement>

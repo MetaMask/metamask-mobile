@@ -5,7 +5,6 @@ import {
   calculateCloseValue,
   calculatePercentageFromTokenAmount,
   calculatePercentageFromUSDAmount,
-  getPositionDirection,
 } from './positionCalculations';
 
 describe('Position Calculations Utils', () => {
@@ -192,52 +191,6 @@ describe('Position Calculations Utils', () => {
     it('returns 0 for invalid inputs', () => {
       const result = calculatePercentageFromUSDAmount(NaN, 500);
       expect(result).toBe(0);
-    });
-  });
-
-  describe('getPositionDirection', () => {
-    it('returns "long" for positive position sizes', () => {
-      expect(getPositionDirection('10.5')).toBe('long');
-      expect(getPositionDirection('0.01')).toBe('long');
-      expect(getPositionDirection('1000')).toBe('long');
-    });
-
-    it('returns "short" for negative position sizes', () => {
-      expect(getPositionDirection('-10.5')).toBe('short');
-      expect(getPositionDirection('-0.01')).toBe('short');
-      expect(getPositionDirection('-1000')).toBe('short');
-    });
-
-    it('returns "unknown" for zero position size', () => {
-      expect(getPositionDirection('0')).toBe('unknown');
-      expect(getPositionDirection('0.0')).toBe('unknown');
-      expect(getPositionDirection('-0')).toBe('unknown');
-    });
-
-    it('returns "unknown" for invalid strings', () => {
-      expect(getPositionDirection('abc')).toBe('unknown');
-      expect(getPositionDirection('not a number')).toBe('unknown');
-      expect(getPositionDirection('')).toBe('unknown');
-      expect(getPositionDirection(' ')).toBe('unknown');
-    });
-
-    it('returns "unknown" for non-finite values', () => {
-      expect(getPositionDirection('Infinity')).toBe('unknown');
-      expect(getPositionDirection('-Infinity')).toBe('unknown');
-      expect(getPositionDirection('NaN')).toBe('unknown');
-    });
-
-    it('handles edge cases correctly', () => {
-      expect(getPositionDirection('1e-10')).toBe('long'); // Very small positive
-      expect(getPositionDirection('-1e-10')).toBe('short'); // Very small negative
-      expect(getPositionDirection('1.23e15')).toBe('long'); // Large positive
-      expect(getPositionDirection('-1.23e15')).toBe('short'); // Large negative
-    });
-
-    it('handles strings with whitespace', () => {
-      expect(getPositionDirection(' 10.5 ')).toBe('long');
-      expect(getPositionDirection(' -10.5 ')).toBe('short');
-      expect(getPositionDirection('  0  ')).toBe('unknown');
     });
   });
 });

@@ -19,7 +19,6 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
   selectPendingSmartTransactionsBySender: () => [],
-  selectPendingSmartTransactionsForSelectedAccountGroup: () => [],
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -55,6 +54,9 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     AssetsContractController: {
       getERC20BalanceOf: jest.fn().mockResolvedValue(null),
+    },
+    KeyringController: {
+      getOrAddQRKeyring: jest.fn(),
     },
     TransactionController: {
       getNonceLock: jest

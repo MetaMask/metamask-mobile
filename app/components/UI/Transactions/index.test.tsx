@@ -57,6 +57,9 @@ jest.mock('../../../util/transaction-controller', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   context: {
+    KeyringController: {
+      resetQRKeyringState: jest.fn(),
+    },
     ApprovalController: {
       accept: jest.fn(),
       reject: jest.fn(),
@@ -638,6 +641,9 @@ describe('Transactions', () => {
     });
 
     it('should test Engine context methods', () => {
+      expect(
+        Engine.context.KeyringController.resetQRKeyringState,
+      ).toBeDefined();
       expect(Engine.context.ApprovalController.accept).toBeDefined();
       expect(
         Engine.context.TransactionController.stopTransaction,

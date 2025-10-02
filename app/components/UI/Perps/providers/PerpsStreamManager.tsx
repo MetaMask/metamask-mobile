@@ -13,7 +13,6 @@ import type {
 } from '../controllers/types';
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -370,18 +369,6 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('OrderStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
-          return;
-        }
-        this.accountAddress = currentAccount;
-
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
       },
@@ -461,21 +448,6 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(
-            new Error('PositionStreamChannel: Wrong account context'),
-            {
-              expected: currentAccount,
-              received: this.accountAddress,
-            },
-          );
-          return;
-        }
-        this.accountAddress = currentAccount;
-
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
       },
@@ -579,21 +551,6 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(
-            new Error('AccountStreamChannel: Wrong account context'),
-            {
-              expected: currentAccount,
-              received: this.accountAddress,
-            },
-          );
-          return;
-        }
-        this.accountAddress = currentAccount;
-
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);

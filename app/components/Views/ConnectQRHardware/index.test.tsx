@@ -6,12 +6,12 @@ import { fireEvent } from '@testing-library/react-native';
 import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { act } from '@testing-library/react-hooks';
+import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import {
   ACCOUNT_SELECTOR_FORGET_BUTTON,
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
-import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 
 jest.mock('../../../core/Permissions', () => ({
@@ -29,8 +29,8 @@ const mockedNavigate = {
 
 const mockPage0Accounts = [
   {
-    address: '0x4678901234567890123456789012345678901210',
-    shortenedAddress: '0x46789...01210',
+    address: '0x4x678901234567890123456789012345678901210',
+    shortenedAddress: '0x4x678...01210',
     balance: '0x0',
     index: 0,
   },
@@ -93,23 +93,6 @@ const mockPage1Accounts = [
   },
 ];
 
-const mockQrKeyring = {
-  getFirstPage: jest.fn(),
-  getNextPage: jest.fn(),
-  getPreviousPage: jest.fn(),
-  forgetDevice: jest.fn(),
-  getAccounts: jest
-    .fn()
-    .mockReturnValue([
-      '0x4678901234567890123456789012345678901210',
-      '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
-    ]),
-};
-
-const mockQrKeyringBridge: QrKeyringBridge = {
-  requestScan: jest.fn(),
-};
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -128,11 +111,30 @@ jest.mock('../../../core/Engine', () => ({
         keyrings: [],
       },
       getAccounts: jest.fn(),
-      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
-        operation({
-          keyring: mockQrKeyring,
-          metadata: { id: '1234' },
-        }),
+      getOrAddQRKeyring: jest.fn(),
+      withKeyring: jest
+        .fn()
+        .mockImplementation(
+          (_selector: unknown, operation: (args: unknown) => void) =>
+            operation({
+              keyring: {
+                cancelSync: jest.fn(),
+                submitCryptoAccount: jest.fn(),
+                submitCryptoHDKey: jest.fn(),
+                getAccounts: jest
+                  .fn()
+                  .mockReturnValue([
+                    '0x4x678901234567890123456789012345678901210',
+                    '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
+                  ]),
+              },
+              metadata: { id: '1234' },
+            }),
+        ),
+      connectQRHardware: jest.fn(),
+      forgetQRDevice: jest
+        .fn()
+        .mockReturnValue({ remainingAccounts: ['0xdeadbeef'] }),
     },
     AccountTrackerController: {
       syncBalanceWithAddresses: jest.fn(),
@@ -142,7 +144,6 @@ jest.mock('../../../core/Engine', () => ({
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
-  qrKeyringScanner: mockQrKeyringBridge,
   setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
@@ -157,9 +158,19 @@ const mockInitialState = {
 
 describe('ConnectQRHardware', () => {
   const mockKeyringController = MockEngine.context.KeyringController;
-  mockQrKeyring.getFirstPage.mockResolvedValue(mockPage0Accounts);
-  mockQrKeyring.getNextPage.mockResolvedValue(mockPage1Accounts);
-  mockQrKeyring.getPreviousPage.mockResolvedValue(mockPage0Accounts);
+  mockKeyringController.connectQRHardware.mockImplementation((page) => {
+    switch (page) {
+      case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
+        return Promise.resolve(mockPage1Accounts);
+
+      case PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE:
+        return Promise.resolve(mockPage0Accounts);
+
+      default:
+        // return account lists in first page.
+        return Promise.resolve(mockPage0Accounts);
+    }
+  });
 
   const mockAccountTrackerController =
     MockEngine.context.AccountTrackerController;
@@ -208,7 +219,10 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(button);
     });
 
-    expect(mockQrKeyring.getFirstPage).toHaveBeenCalledTimes(1);
+    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledTimes(1);
+    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledWith(
+      PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+    );
 
     mockPage0Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();
@@ -236,7 +250,10 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(nextButton);
     });
 
-    expect(mockQrKeyring.getNextPage).toHaveBeenCalledTimes(1);
+    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledTimes(2);
+    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledWith(
+      PAGINATION_OPERATIONS.GET_NEXT_PAGE,
+    );
 
     mockPage1Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();
@@ -270,7 +287,10 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(prevButton);
     });
 
-    expect(mockQrKeyring.getPreviousPage).toHaveBeenCalledTimes(1);
+    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledTimes(3);
+    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledWith(
+      PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+    );
 
     mockPage0Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();
@@ -279,7 +299,6 @@ describe('ConnectQRHardware', () => {
 
   it('removes any hardware wallet accounts from existing permissions', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
-    const withKeyringSpy = jest.spyOn(mockKeyringController, 'withKeyring');
 
     const { getByTestId } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,
@@ -299,11 +318,11 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(forgetButton);
     });
 
-    expect(withKeyringSpy).toHaveBeenCalled();
+    expect(mockKeyringController.withKeyring).toHaveBeenCalled();
     expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
-      '0x4678901234567890123456789012345678901210',
-      '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
+      '0x4x678901234567890123456789012345678901210',
+      '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
     ]);
-    expect(mockQrKeyring.forgetDevice).toHaveBeenCalled();
+    expect(mockKeyringController.forgetQRDevice).toHaveBeenCalled();
   });
 });

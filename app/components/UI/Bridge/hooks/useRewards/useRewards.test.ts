@@ -1,7 +1,7 @@
 import '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
-import { getUsdPricePerToken, useRewards } from './useRewards';
+import { useRewards } from './useRewards';
 import Engine from '../../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
@@ -713,25 +713,5 @@ describe('useRewards', () => {
 
       expect(result.current.isLoading).toBe(true);
     });
-  });
-});
-
-describe('getUsdPricePerToken', () => {
-  it('should calculate the USD price per token', () => {
-    expect(getUsdPricePerToken('39.39425', '8750000000000000', 18)).toBe(
-      '4502.2',
-    );
-  });
-
-  it('should return 0 when the total fee amount is 0', () => {
-    expect(getUsdPricePerToken('0', '8750000000000000', 18)).toBe(undefined);
-  });
-
-  it('should return undefined when the fee amount is 0', () => {
-    expect(getUsdPricePerToken('39.39425', '0', 18)).toBe(undefined);
-  });
-
-  it('should return undefined when the total fee amount is 0 and the fee amount is 0', () => {
-    expect(getUsdPricePerToken('0', '0', 18)).toBe(undefined);
   });
 });

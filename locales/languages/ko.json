@@ -404,7 +404,7 @@
     "show": "보이기",
     "hide": "숨기기",
     "seed_phrase": "비밀 복구 구문",
-    "must_be_at_least": "최소 {{number}}자여야 합니다",
+    "must_be_at_least": "비밀번호는 {{number}}자 이상이어야 합니다",
     "remember_me": "로그인 정보 저장",
     "security_alert_title": "보안 경고",
     "security_alert_message": "계속하려면, 비밀번호를 켜거나 또는 귀하의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "자금 부족",
         "insufficient_balance": "잔액이 부족합니다. 필요: ${{required}}, 사용 가능: ${{available}}",
         "invalid_leverage": "레버리지는 {{min}}x~{{max}}x 사이여야 합니다",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "레버리지가 높을수록 청산 위험이 증가합니다",
         "invalid_take_profit": "{{positionType}} 포지션의 경우 익절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
         "invalid_stop_loss": "{{positionType}} 포지션의 경우 손절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
@@ -1092,7 +1091,7 @@
         "limit_price_below": "지정가가 현재 가격보다 낮습니다"
       },
       "leverage_modal": {
-        "title": "레버리지",
+        "title": "Leverage",
         "confirm": "컨펌",
         "entry_price": "진입 가격",
         "current_price": "현재가",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "익절 및 손절",
       "description": "자동으로 포지션을 종료하려면 이익 또는 손실 퍼센트를 선택하거나 사용자 지정 가격을 입력하세요.",
+      "set": "설정",
+      "updating": "업데이트 중...",
       "off": "비활성화",
       "current_price": "현재가",
       "entry_price": "진입 가격",
@@ -1206,7 +1207,7 @@
       "stop_loss_order_view_warning": "손절이 {{direction}} 청산 가격입니다",
       "above": " 이상",
       "below": " 미만",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "닫기"
     },
     "token_selector": {
       "no_tokens": "사용 가능한 토큰이 없습니다"
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "마켓 데이터 불러오기에 실패했습니다",
     "tap_to_retry": "탭하여 다시 시도",
     "search_by_token_symbol": "토큰 심볼별 검색",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "테스트넷",
     "mainnet": "메인넷",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "{{asset}} 구매",
     "no_tokens": "토큰이 없습니다!",
     "show_tokens_without_balance": "잔액 없는 토큰 표시",
+    "no_nfts_yet": "아직 NFT가 없습니다",
     "nfts_autodetection_title": "NFT 감지",
     "nfts_autodetection_desc": "MetaMask를 통해 자동으로 NFT를 감지하여 지갑에 표시할 수 있습니다.",
     "network_details_check": "네트워크 세부 정보 확인",
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "친구 추천",
         "share_referral_subject": "MetaMask 보상 프로그램 가입"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

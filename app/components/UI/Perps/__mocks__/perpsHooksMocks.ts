@@ -123,16 +123,6 @@ export const defaultPerpsMarketStatsMock: UsePerpsMarketStatsReturn = {
   refresh: jest.fn(),
 };
 
-export const defaultPerpsRewardsMock = {
-  shouldShowRewardsRow: false,
-  isLoading: false,
-  estimatedPoints: undefined,
-  bonusBips: undefined,
-  feeDiscountPercentage: undefined,
-  hasError: false,
-  isRefresh: false,
-};
-
 /**
  * Helper to create a complete mock setup for Perps hooks
  */
@@ -146,10 +136,9 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   usePerpsEventTracking: jest.fn(() => defaultPerpsEventTrackingMock),
   usePerpsScreenTracking: jest.fn(() => defaultPerpsScreenTrackingMock),
   useMinimumOrderAmount: jest.fn(() => defaultMinimumOrderAmountMock),
-  usePerpsAccount: jest.fn(() => defaultPerpsAccountMock),
+  usePerpsLiveAccount: jest.fn(() => defaultPerpsAccountMock),
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),
-  usePerpsRewards: jest.fn(() => defaultPerpsRewardsMock),
   ...overrides,
 });

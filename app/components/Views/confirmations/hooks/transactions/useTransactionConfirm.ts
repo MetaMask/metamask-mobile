@@ -20,10 +20,8 @@ import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TransactionBridgeQuote } from '../../utils/bridge';
-import { Hex, createProjectLogger } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-
-const log = createProjectLogger('transaction-confirm');
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
@@ -79,19 +77,14 @@ export function useTransactionConfirm() {
       updatedMetadata.batchTransactionsOptions = {};
     }
 
-    try {
-      await onRequestConfirm(
-        {
-          deleteAfterResult: true,
-          // Intentionally not hiding errors so we can log
-          handleErrors: false,
-          waitForResult,
-        },
-        { txMeta: updatedMetadata },
-      );
-    } catch (error) {
-      log('Error confirming transaction', error);
-    }
+    await onRequestConfirm(
+      {
+        deleteAfterResult: true,
+        handleErrors: false,
+        waitForResult,
+      },
+      { txMeta: updatedMetadata },
+    );
 
     if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {

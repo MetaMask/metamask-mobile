@@ -7,9 +7,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   TextColor,
-  ButtonVariant,
-  ButtonSize,
   Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
@@ -55,7 +55,6 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
     } catch (error) {
       // Error is handled by connection manager
       // The loading skeleton will either disappear (on success) or timeout will restart
-      console.warn('PerpsLoadingSkeleton: Reconnection failed:', error);
     }
   };
 
@@ -92,8 +91,8 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
           </Text>
           {/* Retry Button */}
           <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Md}
             onPress={handleRetry}
             testID={`${testID}-retry-button`}
           >

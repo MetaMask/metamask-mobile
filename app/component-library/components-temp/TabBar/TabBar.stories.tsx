@@ -1,9 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import ScrollableTabView, {
-  TabBarProps,
-} from '@tommasini/react-native-scrollable-tab-view';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
 
 // External dependencies.
 import TextComponent from '../../components/Texts/Text';
@@ -37,9 +35,7 @@ interface TabViewProps {
 export const Default = () => (
   <View style={containerStyle}>
     <ScrollableTabView
-      renderTabBar={(props: typeof TabBarProps) => (
-        <TabBarComponent {...props} />
-      )}
+      renderTabBar={(props) => <TabBarComponent {...props} />}
       initialPage={0}
     >
       <View

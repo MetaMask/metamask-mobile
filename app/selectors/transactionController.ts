@@ -1,10 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import {
-  selectPendingSmartTransactionsBySender,
-  selectPendingSmartTransactionsForSelectedAccountGroup,
-} from './smartTransactionsController';
+import { selectPendingSmartTransactionsBySender } from './smartTransactionsController';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 const selectTransactionControllerState = (state: RootState) =>
@@ -46,18 +43,6 @@ export const selectSortedTransactions = createDeepEqualSelector(
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     ),
 );
-
-export const selectSortedEVMTransactionsForSelectedAccountGroup =
-  createDeepEqualSelector(
-    [
-      selectNonReplacedTransactions,
-      selectPendingSmartTransactionsForSelectedAccountGroup,
-    ],
-    (sortedTransactions, pendingSmartTransactions) =>
-      [...sortedTransactions, ...pendingSmartTransactions].sort(
-        (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
-      ),
-  );
 
 export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,

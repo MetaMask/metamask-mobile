@@ -32,14 +32,6 @@ export interface MultichainAccountSelectorListProps
    * Reference to the FlashList component
    */
   listRef?: RefObject<FlashListRef<FlattenedMultichainAccountListItem>>;
-  /**
-   * Optional boolean to show checkbox
-   */
-  showCheckbox?: boolean;
-  /**
-   * Optional boolean to set keyboard avoiding view enabled
-   */
-  setKeyboardAvoidingViewEnabled?: (enabled: boolean) => void;
 }
 
 /**

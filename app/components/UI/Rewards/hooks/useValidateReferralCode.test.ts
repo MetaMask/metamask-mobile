@@ -33,7 +33,6 @@ describe('useValidateReferralCode', () => {
     expect(result.current.referralCode).toBe('');
     expect(result.current.isValidating).toBe(false);
     expect(result.current.isValid).toBe(false);
-    expect(result.current.isUnknownError).toBe(false);
     expect(typeof result.current.setReferralCode).toBe('function');
     expect(typeof result.current.validateCode).toBe('function');
   });
@@ -85,73 +84,22 @@ describe('useValidateReferralCode', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
-      result.current.setReferralCode('TEST123');
+      result.current.setReferralCode('TEST');
     });
 
-    expect(result.current.referralCode).toBe('TEST123');
+    expect(result.current.referralCode).toBe('TEST');
   });
 
-  it('should not validate when code length is less than 6 but set relevant error', () => {
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    act(() => {
-      result.current.setReferralCode('12345');
-    });
-
-    expect(result.current.referralCode).toBe('12345');
-    expect(result.current.isValid).toBe(false);
-  });
-
-  it('should set isUnknownError when validation fails with network error', async () => {
-    // Arrange
+  it('should handle engine call errors gracefully', async () => {
     const mockError = new Error('Network error');
     mockEngineCall.mockRejectedValueOnce(mockError);
 
     const { result } = renderHook(() => useValidateReferralCode());
 
-    // Act
-    await act(async () => {
-      try {
-        await result.current.validateCode('TEST123');
-      } catch {
-        // Expected to throw
-      }
-    });
-
-    // Assert
-    expect(result.current.isUnknownError).toBe(true);
-  });
-
-  it('should clear isUnknownError on successful validation', async () => {
-    // Arrange - First fail, then succeed
-    const mockError = new Error('Network error');
-    mockEngineCall.mockRejectedValueOnce(mockError).mockResolvedValueOnce(true);
-
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    // Act - First validation fails
-    await act(async () => {
-      try {
-        await result.current.validateCode('TEST123');
-      } catch {
-        // Expected to throw
-      }
-    });
-
-    // Verify unknown error is set
-    expect(result.current.isUnknownError).toBe(true);
-
-    // Act - Set referral code to trigger validation which should succeed
-    await act(async () => {
-      result.current.setReferralCode('VALID1');
-    });
-
-    // Wait for debounced validation to complete
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1100)); // Wait longer than debounce
-    });
-
-    // Assert - Unknown error should be cleared
-    expect(result.current.isUnknownError).toBe(false);
+    // Should not throw, but we can't easily test the internal error handling
+    // in this basic test setup due to debouncing and async behavior
+    await expect(result.current.validateCode('TEST123')).rejects.toThrow(
+      'Network error',
+    );
   });
 });

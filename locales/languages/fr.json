@@ -404,7 +404,7 @@
     "show": "Afficher",
     "hide": "Masquer",
     "seed_phrase": "phrase secrète de récupération",
-    "must_be_at_least": "Doit comporter au moins {{number}} caractères",
+    "must_be_at_least": "Le mot de passe doit comporter au moins {{number}} caractères",
     "remember_me": "Se souvenir de moi",
     "security_alert_title": "Alerte de sécurité",
     "security_alert_message": "Pour continuer, vous devez activer le code secret ou toute méthode d’authentification biométrique prise en charge par votre appareil (FaceID, TouchID ou empreinte digitale).",
@@ -1037,7 +1037,6 @@
         "insufficient_funds": "Fonds insuffisants",
         "insufficient_balance": "Solde insuffisant. Montant requis : {{required}} $, montant disponible : {{available}} $",
         "invalid_leverage": "L’effet de levier doit être compris entre {{min}}x et {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Un effet de levier élevé augmente le risque de liquidation des positions",
         "invalid_take_profit": "Le take profit doit être {{direction}} au prix actuel pour les positions {{positionType}}",
         "invalid_stop_loss": "Le stop loss doit être {{direction}} au prix actuel pour les positions {{positionType}}",
@@ -1184,6 +1183,8 @@
     "tpsl": {
       "title": "Take profit et stop loss",
       "description": "Choisissez un pourcentage de gain ou de perte, ou entrez un prix déclencheur personnalisé pour fermer automatiquement votre position.",
+      "set": "Définir",
+      "updating": "Mise à jour…",
       "off": "Off",
       "current_price": "Prix actuel ",
       "entry_price": "Prix d’ouverture",
@@ -1460,8 +1461,6 @@
     "failed_to_load_market_data": "Le chargement des données de marché a échoué",
     "tap_to_retry": "Appuyez pour réessayer",
     "search_by_token_symbol": "Recherche par symbole du jeton",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1708,6 +1707,7 @@
     "buy_asset": "Achetez {{asset}}",
     "no_tokens": "Vous n’avez aucun jeton !",
     "show_tokens_without_balance": "Afficher les jetons sans solde",
+    "no_nfts_yet": "Aucun NFT pour le moment",
     "nfts_autodetection_title": "Détection de NFT",
     "nfts_autodetection_desc": "Laissez MetaMask détecter et afficher automatiquement les NFT dans votre portefeuille.",
     "network_details_check": "Vérification des détails du réseau",
@@ -5169,7 +5169,7 @@
       "buttons": {
         "cancel": "Annuler",
         "turn_on": "Activer",
-        "turn_off": "Désactiver",
+        "turn_off": "Turn off",
         "reset": "Réinitialiser"
       }
     },
@@ -6002,6 +6002,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Parrainer un ami",
         "share_referral_subject": "Rejoignez MetaMask Rewards"
@@ -6014,7 +6015,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Upcoming rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,7 +6027,6 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
       "expired": "Expired"
     }
   },

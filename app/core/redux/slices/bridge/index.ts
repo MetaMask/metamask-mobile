@@ -1,11 +1,6 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import {
-  Hex,
-  CaipChainId,
-  parseCaipChainId,
-  CaipAssetType,
-} from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import {
   selectChainId,
@@ -32,14 +27,9 @@ import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import {
-  selectHasCreatedSolanaMainnetAccount,
-  selectCanSignTransactions,
-} from '../../../../selectors/accountsController';
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
-import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -265,16 +255,6 @@ export const selectIsSwapsLive = createSelector(
   (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
 );
 
-/**
- * Selector that determines if swap functionality is enabled
- * Combines all the conditions needed for swap functionality to be available
- */
-export const selectIsSwapsEnabled = createSelector(
-  [selectCanSignTransactions, selectBasicFunctionalityEnabled],
-  (canSignTransactions, basicFunctionalityEnabled) =>
-    canSignTransactions && basicFunctionalityEnabled,
-);
-
 export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
@@ -471,58 +451,6 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
       return true;
     }
     return false;
-  },
-);
-
-export const selectIsGaslessSwapEnabled = createSelector(
-  selectIsSwap,
-  selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (isSwap, bridgeFeatureFlags, chainId) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-    const chainConfig = bridgeFeatureFlags.chains[caipChainId];
-    return isSwap && chainConfig?.isGaslessSwapEnabled === true;
-  },
-);
-
-export const selectNoFeeAssets = createSelector(
-  selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
-  (bridgeFeatureFlags, chainId) => {
-    if (!chainId) {
-      return [];
-    }
-    const caipChainId = formatChainIdToCaip(chainId);
-    return bridgeFeatureFlags.chains[caipChainId]?.noFeeAssets;
-  },
-);
-
-export const selectBip44DefaultPair = createSelector(
-  selectBridgeFeatureFlags,
-  selectChainId,
-  (bridgeFeatureFlags, chainId) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-    const { namespace } = parseCaipChainId(caipChainId);
-    const bip44DefaultPair =
-      bridgeFeatureFlags.bip44DefaultPairs?.[namespace]?.standard;
-
-    if (!bip44DefaultPair) {
-      return undefined;
-    }
-
-    // If 0th entry doesn't exist, error thrown and we return undefined
-    const pairs = Object.entries(bip44DefaultPair);
-    const sourceAssetId = pairs[0]?.[0];
-    const destAssetId = pairs[0]?.[1];
-    const sourceAsset =
-      Bip44TokensForDefaultPairs[sourceAssetId as CaipAssetType];
-    const destAsset = Bip44TokensForDefaultPairs[destAssetId as CaipAssetType];
-
-    if (!sourceAsset || !destAsset) {
-      return undefined;
-    }
-
-    return { sourceAsset, destAsset };
   },
 );
 

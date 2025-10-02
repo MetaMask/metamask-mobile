@@ -98,7 +98,6 @@ function WebviewModal() {
               }}
               allowsInlineMediaPlayback
               enableApplePay
-              paymentRequestEnabled
               mediaPlaybackRequiresUserAction={false}
             />
           )}

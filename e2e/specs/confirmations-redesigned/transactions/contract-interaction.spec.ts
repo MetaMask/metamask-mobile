@@ -77,9 +77,7 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
         );
-        await Assertions.expectElementToBeVisible(
-          RowComponents.NetworkAndOrigin,
-        );
+        await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
         await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,

@@ -23,7 +23,6 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
-import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import {
   usePerpsConnection,
@@ -67,22 +66,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     dependencies: [flatListData.length > 0],
   });
 
-  const { isConnected, isConnecting } = usePerpsConnection();
+  const { isConnected } = usePerpsConnection();
 
   // Use new hooks for data fetching
-  const {
-    orderFills: fillsData,
-    isLoading: fillsLoading,
-    refresh: refreshFills,
-  } = usePerpsOrderFills({
+  const { orderFills: fillsData, refresh: refreshFills } = usePerpsOrderFills({
     skipInitialFetch: !isConnected,
   });
 
-  const {
-    orders: ordersData,
-    isLoading: ordersLoading,
-    refresh: refreshOrders,
-  } = usePerpsOrders({
+  const { orders: ordersData, refresh: refreshOrders } = usePerpsOrders({
     skipInitialFetch: !isConnected,
   });
 
@@ -94,11 +85,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [], // Empty dependency array since we want this to be stable
   );
 
-  const {
-    funding: fundingData,
-    isLoading: fundingLoading,
-    refresh: refreshFunding,
-  } = usePerpsFunding({
+  const { funding: fundingData, refresh: refreshFunding } = usePerpsFunding({
     params: fundingParams,
     skipInitialFetch: !isConnected,
   });
@@ -382,48 +369,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return null;
   }, [activeFilter]);
 
-  // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(() =>
-    // Show loading if we're connecting or if any data sources are loading
-     isConnecting || fillsLoading || ordersLoading || fundingLoading
-  , [isConnecting, fillsLoading, ordersLoading, fundingLoading]);
-
-  // Determine if we should show empty state (only after loading is complete and no data)
-  const shouldShowEmptyState = useMemo(() => {
-    if (isInitialLoading) return false;
-    if (!isConnected) return false;
-
-    // Show empty state only if loading is complete and we have no data
-    return flatListData.length === 0;
-  }, [isInitialLoading, isConnected, flatListData.length]);
-
-  // Show loading skeleton during initial load
-  if (isInitialLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.filterContainer} pointerEvents="box-none">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filterScrollView}
-            pointerEvents="auto"
-            scrollEnabled={false}
-          >
-            {filterTabs.map(renderFilterTab)}
-          </ScrollView>
-        </View>
-
-        {filterTabDescription && (
-          <View style={styles.tabDescription}>
-            <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
-          </View>
-        )}
-
-        <PerpsTransactionsSkeleton testID="perps-transactions-loading-skeleton" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer} pointerEvents="box-none">
@@ -452,7 +397,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         getItemType={(item) =>
           item.type === 'header' ? 'header' : 'transaction'
         }
-        ListEmptyComponent={shouldShowEmptyState ? renderEmptyState : null}
+        ListEmptyComponent={renderEmptyState}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

@@ -1,38 +1,43 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../reducers/rewards/types';
-import { selectOnboardingActiveStep } from '../../../reducers/rewards/selectors';
+import {
+  selectOnboardingActiveStep,
+  selectOptinAllowedForGeo,
+} from '../../../reducers/rewards/selectors';
 import OnboardingIntroStep from './components/Onboarding/OnboardingIntroStep';
 import OnboardingStep1 from './components/Onboarding/OnboardingStep1';
 import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
 import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
-import { setOnboardingActiveStep } from '../../../reducers/rewards';
-import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useNavigation } from '@react-navigation/native';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
-import { useParams } from '../../../util/navigation/navUtils';
+import { setOnboardingActiveStep } from '../../../reducers/rewards';
+import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
+  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const navigation = useNavigation();
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
-  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
+  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
 
-  // Reset onboarding step when component mounts/account changes to prevent stale state
+  useGeoRewardsMetadata();
+
   useEffect(() => {
-    if (!subscriptionId) {
+    if (hasAccountedOptedIn === true) {
+      navigation.navigate(Routes.REWARDS_DASHBOARD);
       dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-      navigation.navigate(Routes.REWARDS_ONBOARDING_INTRO);
+    } else if (!optinAllowedForGeo) {
+      dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
     }
-  }, [subscriptionId, dispatch, navigation]);
+  }, [hasAccountedOptedIn, navigation, dispatch, optinAllowedForGeo]);
 
-  const getInitialRoute = useCallback(() => {
+  const getInitialRoute = () => {
     switch (activeStep) {
       case OnboardingStep.INTRO:
         return Routes.REWARDS_ONBOARDING_INTRO;
@@ -47,39 +52,36 @@ const OnboardingNavigator: React.FC = () => {
       default:
         return Routes.REWARDS_ONBOARDING_INTRO;
     }
-  }, [activeStep]);
+  };
 
   return (
-    <UnmountOnBlur>
-      <Stack.Navigator initialRouteName={getInitialRoute()}>
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_INTRO}
-          component={OnboardingIntroStep}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_1}
-          component={OnboardingStep1}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_2}
-          component={OnboardingStep2}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_3}
-          component={OnboardingStep3}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_4}
-          component={OnboardingStep4}
-          options={{ headerShown: false }}
-          initialParams={{ ...urlParams }}
-        />
-      </Stack.Navigator>
-    </UnmountOnBlur>
+    <Stack.Navigator initialRouteName={getInitialRoute()}>
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_INTRO}
+        component={OnboardingIntroStep}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_1}
+        component={OnboardingStep1}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_2}
+        component={OnboardingStep2}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_3}
+        component={OnboardingStep3}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_4}
+        component={OnboardingStep4}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 };
 

@@ -31,7 +31,7 @@ export const prefixUrlWithProtocol = (
 export function processUrlForBrowser(input: string, searchEngine = 'Google') {
   const defaultProtocol = 'https://';
   //Check if it's a url or a keyword
-  if (!input.match(regex.url)) {
+  if (!isUrl(input) && !input.match(regex.url)) {
     // Add exception for localhost
     if (
       !input.startsWith('http://localhost') &&

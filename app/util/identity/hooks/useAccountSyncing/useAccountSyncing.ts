@@ -5,8 +5,9 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
-import Engine from '../../../../core/Engine';
+import { syncInternalAccountsWithUserStorage } from '../../../../actions/identity';
 import {
+  selectIsAccountSyncingReadyToBeDispatched,
   selectIsBackupAndSyncEnabled,
   selectIsAccountSyncingEnabled,
   selectIsSignedIn,
@@ -19,6 +20,9 @@ import {
  * @returns a boolean if internally we can perform account syncing or not.
  */
 export const useShouldDispatchAccountSyncing = () => {
+  const isAccountSyncingReadyToBeDispatched = useSelector(
+    selectIsAccountSyncingReadyToBeDispatched,
+  );
   const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isAccountSyncingEnabled = useSelector(selectIsAccountSyncingEnabled);
   const basicFunctionality: boolean | undefined = useSelector(
@@ -34,7 +38,8 @@ export const useShouldDispatchAccountSyncing = () => {
       isAccountSyncingEnabled &&
       isUnlocked &&
       isSignedIn &&
-      completedOnboarding,
+      completedOnboarding &&
+      isAccountSyncingReadyToBeDispatched,
   );
 
   return shouldDispatchAccountSyncing;
@@ -50,17 +55,10 @@ export const useAccountSyncing = () => {
   const shouldDispatchAccountSyncing = useShouldDispatchAccountSyncing();
 
   const dispatchAccountSyncing = useCallback(() => {
-    const action = async () => {
-      if (!shouldDispatchAccountSyncing) {
-        return;
-      }
-      // HACK: Force Snap keyring instantiation.
-      await Engine.getSnapKeyring();
-      await Engine.context.AccountTreeController.syncWithUserStorage();
-    };
-    action().catch((error) => {
-      console.error('Error dispatching account syncing:', error);
-    });
+    if (!shouldDispatchAccountSyncing) {
+      return;
+    }
+    syncInternalAccountsWithUserStorage();
   }, [shouldDispatchAccountSyncing]);
 
   return {

@@ -291,8 +291,10 @@ exports[`PaymentRequest renders correctly 1`] = `
                   <View
                     useNativeDriver={true}
                   >
-                    <View
+                    <Image
                       fadeIn={true}
+                      onError={[Function]}
+                      onLoadEnd={[Function]}
                       source={
                         {
                           "uri": "",
@@ -825,8 +827,10 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                   <View
                     useNativeDriver={true}
                   >
-                    <View
+                    <Image
                       fadeIn={true}
+                      onError={[Function]}
+                      onLoadEnd={[Function]}
                       source={
                         {
                           "uri": "",

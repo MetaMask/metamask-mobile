@@ -129,7 +129,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
             "id": "0x1",
             "imageSource": 1,
             "isSelected": false,
-            "name": "Ethereum",
+            "name": "Ethereum Mainnet",
           },
         ]
       }
@@ -167,7 +167,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
           style={null}
         >
           <View
-            testID="Ethereum-not-selected"
+            testID="Ethereum Mainnet-not-selected"
           >
             <TouchableOpacity
               onPress={[Function]}
@@ -255,7 +255,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
                         }
                         testID="cellbase-avatar-title"
                       >
-                        Ethereum
+                        Ethereum Mainnet
                       </Text>
                     </View>
                   </View>

@@ -70,7 +70,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             // Re-enable sync and check if network list is visible
             await Assertions.expectElementToBeVisible(
-              NetworkManager.popularNetworksContainer,
+              NetworkManager.popularNetworksTab,
             );
             console.log('Network list became visible');
 
@@ -166,7 +166,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             const endTime = Date.now();
             await Assertions.expectElementToBeVisible(
-              NetworkManager.popularNetworksContainer,
+              NetworkManager.popularNetworksTab,
             );
 
             const totalTime = endTime - startTime;
@@ -245,7 +245,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             const startTime = Date.now();
             await Assertions.expectElementToBeVisible(
-              NetworkManager.popularNetworksContainer,
+              NetworkManager.popularNetworksTab,
             );
             const endTime = Date.now();
 

@@ -101,7 +101,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable --immutable-cache
+          command: yarn --immutable --immutable-cache
       - name: Generate Attributions
         run: yarn build:attribution
       - name: Cache attributions file

@@ -30,12 +30,8 @@ const NftImageAndNetworkBadge = ({
   const { styles } = useStyles(styleSheet, {});
   const { networkName, networkImage } = useNetworkInfo(chainId);
 
-  const {
-    image,
-    tokenId,
-    collection: { imageUrl } = { imageUrl: undefined },
-  } = nft ?? { collection: { imageUrl: undefined } };
-  const showPlaceholder = !nft || !chainId?.length || (!image && !imageUrl);
+  const { image, tokenId } = nft ?? {};
+  const showPlaceholder = !nft || !chainId?.length || !image;
 
   const onPress = useCallback(() => {
     navigation.navigate('NftDetailsFullImage', {
@@ -71,10 +67,7 @@ const NftImageAndNetworkBadge = ({
           />
         }
       >
-        <CollectibleMedia
-          collectible={{ ...nft, image: image ?? imageUrl ?? '' }}
-          style={styles.noImagePlaceholder}
-        />
+        <CollectibleMedia collectible={nft} style={styles.noImagePlaceholder} />
       </BadgeWrapper>
     </TouchableOpacity>
   );

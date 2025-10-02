@@ -67,7 +67,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
           }
         >
           <View
-            accessibilityLabel="Ethereum"
+            accessibilityLabel="Ethereum Mainnet"
             style={
               {
                 "alignItems": "center",
@@ -109,7 +109,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
       <SvgMock

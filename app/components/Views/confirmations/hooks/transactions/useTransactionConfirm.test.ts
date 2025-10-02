@@ -299,16 +299,6 @@ describe('useTransactionConfirm', () => {
     });
   });
 
-  it('handles error during approval', async () => {
-    onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
-
-    const { result } = renderHook();
-
-    await result.current.onConfirm();
-
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
   describe('navigates to', () => {
     it('perps market if perps deposit', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({

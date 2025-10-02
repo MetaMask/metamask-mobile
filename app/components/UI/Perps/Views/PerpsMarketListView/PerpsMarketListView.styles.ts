@@ -164,25 +164,6 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 4,
       marginLeft: 8,
     },
-    emptyStateContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 24,
-      paddingVertical: 48,
-      marginBottom: 120, // Account for tab bar height
-    },
-    emptyStateIcon: {
-      marginBottom: 16,
-    },
-    emptyStateTitle: {
-      textAlign: 'center',
-      marginBottom: 8,
-    },
-    emptyStateDescription: {
-      textAlign: 'center',
-      maxWidth: 280,
-    },
   });
 };
 

@@ -57,7 +57,7 @@ jest.mock('./tags', () => ({
 }));
 
 describe('deriveSentryEnvironment', () => {
-  it('returns flask-production for non-dev production environment and flask build type', async () => {
+  it('returns production-flask for non-dev production environment and flask build type', async () => {
     const METAMASK_ENVIRONMENT = 'production';
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
@@ -67,20 +67,20 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('flask-production');
+    expect(env).toBe('production-flask');
   });
 
-  it('returns flask-dev for non-dev undefined environment and flask build type', async () => {
+  it('returns local-flask for non-dev undefined environment and flask build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev, undefined, METAMASK_BUILD_TYPE);
-    expect(env).toBe(`flask-dev`);
+    expect(env).toBe('local-flask');
   });
 
-  it('returns flask-main for non-dev flask environment main build type', async () => {
+  it('returns debug-flask for non-dev flask environment debug build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
-    const METAMASK_ENVIRONMENT = 'main';
+    const METAMASK_ENVIRONMENT = 'debug';
     const isDev = false;
 
     const env = deriveSentryEnvironment(
@@ -88,22 +88,22 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe(`flask-main`);
+    expect(env).toBe('debug-flask');
   });
 
-  it('returns dev for non-dev dev environment and undefined build type', async () => {
+  it('returns local for non-dev local environment and undefined build type', async () => {
     const isDev = false;
-    const METAMASK_ENVIRONMENT = 'dev';
+    const METAMASK_ENVIRONMENT = 'local';
 
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT);
-    expect(env).toBe('development');
+    expect(env).toBe('local');
   });
 
-  it('returns development for non-dev with both undefined environment and build type', async () => {
+  it('returns local for non-dev with both undefined environment and build type', async () => {
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev);
-    expect(env).toBe('development');
+    expect(env).toBe('local');
   });
 
   it('returns production for non-dev production environment and undefined  build type', async () => {

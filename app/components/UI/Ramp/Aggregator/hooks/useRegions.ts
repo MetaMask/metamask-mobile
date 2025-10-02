@@ -1,4 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { isEqual } from 'lodash';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useRampSDK } from '../sdk';
 import { Region } from '../types';
 import useSDKMethod from './useSDKMethod';
@@ -17,25 +20,25 @@ const findDetectedRegion = (regions: Region[]): Region | null => {
 };
 
 export default function useRegions() {
-  const { selectedRegion, setSelectedRegion } = useRampSDK();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const {
+    selectedRegion,
+    setSelectedRegion,
+    unsupportedRegion,
+    setUnsupportedRegion,
+    isBuy,
+    isSell,
+  } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
 
-  // When region data arrives, we need to match the selected ID in redux with the region in the data
   const updatedRegion = useMemo(() => {
     if (!data) return null;
-
-    // user has no region selected, so we need to find the detected region or the first region in the data
     if (!selectedRegion) {
-      const detectedRegion = findDetectedRegion(data);
-      if (detectedRegion) {
-        return detectedRegion;
-      }
-      return data[0];
+      return findDetectedRegion(data);
     }
-
-    // user has a region selected, so we need to find the region in the data
     const allRegions: Region[] = data.reduce(
       (acc: Region[], region: Region) => [
         ...acc,
@@ -44,22 +47,61 @@ export default function useRegions() {
       ],
       [],
     );
-
-    const foundRegion =
-      allRegions.find((region) => region.id === selectedRegion.id) ?? null;
-
-    if (foundRegion) {
-      return foundRegion;
-    }
-
-    // if the region is not found, we need to return the first region in the data
-    return data[0];
+    return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
   }, [data, selectedRegion]);
+
+  const redirectToRegion = useCallback(() => {
+    if (
+      route.name !== Routes.RAMP.REGION &&
+      route.name !== Routes.RAMP.REGION_HAS_STARTED
+    ) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.REGION_HAS_STARTED,
+          },
+        ],
+      });
+    }
+  }, [navigation, route.name]);
 
   useEffect(() => {
     if (!updatedRegion) return;
-    setSelectedRegion(updatedRegion);
-  }, [updatedRegion, setSelectedRegion]);
+
+    if (updatedRegion.unsupported) {
+      setSelectedRegion(null);
+      setUnsupportedRegion(updatedRegion);
+      redirectToRegion();
+    } else {
+      if (!isEqual(updatedRegion, selectedRegion)) {
+        setSelectedRegion(updatedRegion);
+      }
+
+      if (
+        (isBuy && !updatedRegion.support.buy) ||
+        (isSell && !updatedRegion.support.sell)
+      ) {
+        setUnsupportedRegion(updatedRegion);
+        redirectToRegion();
+      }
+    }
+  }, [
+    updatedRegion,
+    setSelectedRegion,
+    navigation,
+    route.name,
+    setUnsupportedRegion,
+    redirectToRegion,
+    isBuy,
+    isSell,
+    selectedRegion,
+  ]);
+
+  const clearUnsupportedRegion = useCallback(
+    () => setUnsupportedRegion(undefined),
+    [setUnsupportedRegion],
+  );
 
   return {
     data,
@@ -67,5 +109,7 @@ export default function useRegions() {
     error,
     query: queryGetCountries,
     selectedRegion,
+    unsupportedRegion,
+    clearUnsupportedRegion,
   };
 }

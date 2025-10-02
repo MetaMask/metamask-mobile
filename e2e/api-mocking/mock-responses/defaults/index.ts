@@ -20,7 +20,6 @@ import { DEFAULT_GAS_API_MOCKS } from './gas-api';
 import { DEFAULT_BRIDGE_API_MOCKS } from './bridge-api';
 import { DEFAULT_IPFS_GATEWAY_MOCKS } from './ipfs-api';
 import { DEFAULT_RPC_ENDPOINT_MOCKS } from './rpc-endpoints';
-import { POLYMARKET_API_MOCKS } from './polymarket-apis';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -41,7 +40,6 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_GAS_API_MOCKS.GET || []),
     ...(DEFAULT_BRIDGE_API_MOCKS.GET || []),
     ...(DEFAULT_IPFS_GATEWAY_MOCKS.GET || []),
-    ...(POLYMARKET_API_MOCKS.GET || []),
     // Security Alerts Mock - Always responds with benign unless overridden by testSpecificMock
     {
       urlEndpoint:

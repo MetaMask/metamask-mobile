@@ -8,7 +8,6 @@ import useRampNetwork from '../../hooks/useRampNetwork';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import useRegions from '../../hooks/useRegions';
-import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -40,16 +39,13 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   getStarted: false,
   setGetStarted: jest.fn(),
   sdkError: undefined,
+  selectedChainId: '1',
   selectedRegion: null,
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
   intent: undefined,
   setIntent: jest.fn(),
-  selectedAsset: {
-    id: 'mock-asset-id',
-    network: { chainId: '1' },
-  } as CryptoCurrency,
 };
 
 const mockUseRegionInitialValues: Partial<ReturnType<typeof useRegions>> = {
@@ -175,6 +171,35 @@ describe('GetStarted', () => {
     expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Get Started Screen',
+    });
+  });
+
+  it('navigates to network switcher on unsupported network when getStarted is true', async () => {
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
+      getStarted: true,
+    };
+    mockUseRampNetworkValue = [false];
+    render(GetStarted);
+    expect(mockReset).toBeCalledWith({
+      index: 0,
+      routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
+    });
+  });
+
+  it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
+    (useRegions as jest.Mock).mockReturnValue({
+      selectedRegion: null,
+    });
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
+      getStarted: true,
+    };
+    render(GetStarted);
+    expect(mockReset).toBeCalledTimes(1);
+    expect(mockReset).toBeCalledWith({
+      index: 0,
+      routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
     });
   });
 

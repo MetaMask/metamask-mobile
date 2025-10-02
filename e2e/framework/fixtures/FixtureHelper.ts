@@ -515,9 +515,8 @@ export async function withFixtures(
       // Force reload React Native to stop any lingering timers
       await device.reloadReactNative();
     } catch (cleanupError) {
-      logger.warn('React Native reload failed (non-critical):', cleanupError);
-      // Don't add to cleanupErrors as this is a non-critical cleanup operation
-      // The test should not fail if only React Native reload fails
+      logger.error('Error during React Native reload:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
     }
 
     try {

@@ -84,12 +84,12 @@ export const usePercentageAmount = () => {
     if (!isEvmNativeSendType || asset?.chainId === CHAIN_IDS.MAINNET || !from) {
       return '0x0';
     }
-    return (await getLayer1GasFeeForSend({
+    return await getLayer1GasFeeForSend({
       asset: asset as AssetType,
       chainId: chainId as Hex,
       from: from as Hex,
       value: (value ?? '0') as string,
-    })) as Hex;
+    });
   }, [asset, chainId, from, value]);
 
   const getPercentageAmount = useCallback(

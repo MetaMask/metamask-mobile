@@ -62,7 +62,7 @@ const TabThumbnail = ({
     areAddressesEqual(account.address, activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
-  const { faviconURI: faviconSource } = useFavicon(tab.url);
+  const faviconSource = useFavicon(tab.url);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>

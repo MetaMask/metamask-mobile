@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, ImageBackground, Text as RNText } from 'react-native';
 
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -9,36 +9,26 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Button as DSRNButton,
+  Button,
+  ButtonSize,
   ButtonVariant,
-  ButtonSize as DSRNButtonSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-
-import {
-  setOnboardingActiveStep,
-  setCandidateSubscriptionId,
-} from '../../../../../actions/rewards';
+import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import introBg from '../../../../../images/rewards/rewards-onboarding-intro-bg.png';
 import intro from '../../../../../images/rewards/rewards-onboarding-intro.png';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import {
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
-  selectCandidateSubscriptionId,
-  selectOptinAllowedForGeoError,
 } from '../../../../../reducers/rewards/selectors';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../util/address';
-import Engine from '../../../../../core/Engine';
 
 /**
  * OnboardingIntroStep Component
@@ -57,22 +47,18 @@ const OnboardingIntroStep: React.FC = () => {
   const optinAllowedForGeoLoading = useSelector(
     selectOptinAllowedForGeoLoading,
   );
-  const internalAccount = useSelector(selectSelectedInternalAccount);
-  const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
-  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   // Computed state
-  const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
-  const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
+  const subscriptionIdLoading = subscriptionId === 'pending';
+  const subscriptionIdValid =
+    Boolean(subscriptionId) &&
+    subscriptionId !== 'error' &&
+    subscriptionId !== 'pending';
 
-  // If we don't know of a subscription id, we need to fetch the geo rewards metadata
-  const { fetchGeoRewardsMetadata } = useGeoRewardsMetadata({
-    enabled:
-      !subscriptionId &&
-      (!candidateSubscriptionId || candidateSubscriptionIdError),
-  });
+  const isLoading =
+    optinAllowedForGeoLoading || subscriptionIdLoading || subscriptionIdValid;
 
   /**
    * Shows error modal for unsupported scenarios
@@ -82,43 +68,12 @@ const OnboardingIntroStep: React.FC = () => {
       navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
         title: strings(titleKey),
         description: strings(descriptionKey),
-
         confirmAction: {
-          label: strings('rewards.onboarding.not_supported_confirm_go_back'),
+          label: strings('rewards.onboarding.not_supported_confirm'),
           // eslint-disable-next-line no-empty-function
-          onPress: () => {
-            navigation.goBack();
-          },
+          onPress: () => {},
           variant: ButtonVariant.Primary,
         },
-      });
-    },
-    [navigation],
-  );
-
-  /**
-   * Shows error modal with retry functionality
-   */
-  const showRetryErrorModal = useCallback(
-    (titleKey: string, descriptionKey: string, onRetry: () => void) => {
-      navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
-        title: strings(titleKey),
-        description: strings(descriptionKey),
-        confirmAction: {
-          label: strings('rewards.onboarding.not_supported_confirm_retry'),
-          onPress: () => {
-            onRetry();
-            navigation.goBack();
-          },
-          variant: ButtonVariant.Primary,
-        },
-        onCancel: () => {
-          navigation.goBack();
-          navigation.navigate(Routes.WALLET_VIEW);
-        },
-        cancelLabel: strings(
-          'rewards.onboarding.not_supported_confirm_go_back',
-        ),
       });
     },
     [navigation],
@@ -128,17 +83,16 @@ const OnboardingIntroStep: React.FC = () => {
    * Handles the confirm/continue button press
    */
   const handleNext = useCallback(async () => {
-    // Show geo error modal if geo check failed
-    if (
-      optinAllowedForGeoError &&
-      !optinAllowedForGeo &&
-      !optinAllowedForGeoLoading &&
-      !subscriptionId
-    ) {
-      showRetryErrorModal(
-        'rewards.onboarding.geo_check_fail_title',
-        'rewards.onboarding.geo_check_fail_description',
-        fetchGeoRewardsMetadata,
+    // Prevent action if still loading
+    if (isLoading) {
+      return;
+    }
+
+    // Check for Solana account (not supported)
+    if (selectedAccount && isSolanaAccount(selectedAccount)) {
+      showErrorModal(
+        'rewards.onboarding.not_supported_account_needed_title',
+        'rewards.onboarding.not_supported_account_needed_description',
       );
       return;
     }
@@ -152,44 +106,16 @@ const OnboardingIntroStep: React.FC = () => {
       return;
     }
 
-    // Check for hardware account restrictions
-    if (internalAccount && isHardwareAccount(internalAccount?.address)) {
-      showErrorModal(
-        'rewards.onboarding.not_supported_hardware_account_title',
-        'rewards.onboarding.not_supported_hardware_account_description',
-      );
-      return;
-    }
-
-    // Check if account type is supported for opt-in
-    if (
-      internalAccount &&
-      !Engine.controllerMessenger.call(
-        'RewardsController:isOptInSupported',
-        internalAccount,
-      )
-    ) {
-      showErrorModal(
-        'rewards.onboarding.not_supported_account_type_title',
-        'rewards.onboarding.not_supported_account_type_description',
-      );
-      return;
-    }
-
     // Proceed to next onboarding step
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_2));
     navigation.navigate(Routes.REWARDS_ONBOARDING_1);
   }, [
     dispatch,
+    isLoading,
     navigation,
     optinAllowedForGeo,
-    optinAllowedForGeoError,
-    optinAllowedForGeoLoading,
-    subscriptionId,
+    selectedAccount,
     showErrorModal,
-    showRetryErrorModal,
-    fetchGeoRewardsMetadata,
-    internalAccount,
   ]);
 
   /**
@@ -202,37 +128,24 @@ const OnboardingIntroStep: React.FC = () => {
   /**
    * Auto-redirect to dashboard if user is already opted in
    */
-  useFocusEffect(
-    useCallback(() => {
-      if (subscriptionId) {
-        navigation.navigate(Routes.REWARDS_DASHBOARD);
-      }
-    }, [subscriptionId, navigation]),
-  );
+  useEffect(() => {
+    if (subscriptionIdValid) {
+      navigation.navigate(Routes.REWARDS_DASHBOARD);
+    }
+  }, [subscriptionIdValid, navigation]);
 
   /**
-   * Show error modals for geo and auth failures
+   * Gets the appropriate loading text based on current state
    */
-  useFocusEffect(
-    useCallback(() => {
-      // Show auth error modal if auth failed
-      if (candidateSubscriptionIdError && !subscriptionId) {
-        showRetryErrorModal(
-          'rewards.onboarding.auth_fail_title',
-          'rewards.onboarding.auth_fail_description',
-          () => {
-            dispatch(setCandidateSubscriptionId('retry'));
-          },
-        );
-        return;
-      }
-    }, [
-      candidateSubscriptionIdError,
-      subscriptionId,
-      showRetryErrorModal,
-      dispatch,
-    ]),
-  );
+  const getLoadingText = useCallback(() => {
+    if (subscriptionIdLoading) {
+      return strings('rewards.onboarding.checking_opt_in');
+    }
+    if (subscriptionIdValid) {
+      return strings('rewards.onboarding.redirecting_to_dashboard');
+    }
+    return strings('rewards.onboarding.intro_confirm_geo_loading');
+  }, [subscriptionIdLoading, subscriptionIdValid]);
 
   /**
    * Renders the main title section
@@ -243,10 +156,10 @@ const OnboardingIntroStep: React.FC = () => {
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
     >
-      <Box twClassName="justify-center items-center">
+      <Box twClassName="justify-center items-center gap-1">
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-[44px]'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -255,7 +168,7 @@ const OnboardingIntroStep: React.FC = () => {
         </RNText>
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-[44px]'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -276,7 +189,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center py-2">
+    <Box twClassName="flex-1 justify-center items-center">
       <Image
         source={intro}
         resizeMode="contain"
@@ -291,49 +204,39 @@ const OnboardingIntroStep: React.FC = () => {
    */
   const renderActions = () => (
     <Box twClassName="gap-2 flex-col">
-      <ButtonHero
-        size={DSRNButtonSize.Lg}
-        isLoading={optinAllowedForGeoLoading}
-        isDisabled={
-          optinAllowedForGeoLoading ||
-          candidateSubscriptionIdError ||
-          !!subscriptionId
-        }
-        loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isLoading={isLoading}
+        loadingText={getLoadingText()}
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
-        </Text>
-      </ButtonHero>
-      <DSRNButton
+        {strings('rewards.onboarding.intro_confirm')}
+      </Button>
+      <Button
         variant={ButtonVariant.Tertiary}
-        size={DSRNButtonSize.Lg}
-        isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
+        size={ButtonSize.Lg}
+        isDisabled={subscriptionIdLoading || subscriptionIdValid}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
       >
         <Text twClassName="text-white">
           {strings('rewards.onboarding.intro_skip')}
         </Text>
-      </DSRNButton>
+      </Button>
     </Box>
   );
 
-  if (candidateSubscriptionIdLoading || !!subscriptionId) {
-    return <Skeleton width="100%" height="100%" />;
-  }
-
   return (
-    <Box twClassName="min-h-full" testID="onboarding-intro-container">
+    <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={tw.style('flex-1 px-4 py-8')}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[5%]" />
+        <Box twClassName="flex-basis-[75px]" />
 
         {/* Title Section */}
         {renderTitle()}

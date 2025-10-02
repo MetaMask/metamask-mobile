@@ -2,7 +2,6 @@ import {
   setDestToken,
   selectBridgeViewMode,
   selectDestToken,
-  selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDefaultDestToken } from '../../utils/tokenUtils';
@@ -23,7 +22,6 @@ export const useInitialDestToken = (
   const selectedChainId = useSelector(selectChainId);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const destToken = useSelector(selectDestToken);
-  const bip44DefaultPair = useSelector(selectBip44DefaultPair);
 
   const isSwap =
     bridgeViewMode === BridgeViewMode.Swap ||
@@ -35,13 +33,6 @@ export const useInitialDestToken = (
     if (initialDestToken && prevInitialDestToken !== initialDestToken) {
       dispatch(setDestToken(initialDestToken));
       return;
-    }
-
-    if (!initialDestToken && !initialSourceToken) {
-      if (isSwap && bip44DefaultPair && !destToken) {
-        dispatch(setDestToken(bip44DefaultPair.destAsset));
-        return;
-      }
     }
 
     const destTokenTargetChainId =
@@ -81,6 +72,5 @@ export const useInitialDestToken = (
     destToken,
     isSwap,
     initialSourceToken?.address,
-    bip44DefaultPair,
   ]);
 };

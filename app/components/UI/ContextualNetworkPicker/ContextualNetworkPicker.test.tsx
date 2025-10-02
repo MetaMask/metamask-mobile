@@ -5,7 +5,6 @@ import { NETWORK_SELECTOR_TEST_IDS } from '../../../constants/networkSelector';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import createStyles from './ContextualNetworkPicker.styles';
 import ContextualNetworkPicker from './ContextualNetworkPicker';
-import { BASE_DISPLAY_NAME } from '../../../core/Engine/constants';
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -262,7 +261,7 @@ describe('ContextualNetworkPicker', () => {
     });
 
     it('should maintain accessibility when disabled', () => {
-      const networkName = BASE_DISPLAY_NAME;
+      const networkName = 'Base Mainnet';
       const { getByTestId } = renderWithProvider(
         <ContextualNetworkPicker
           onPress={defaultProps.onPress}

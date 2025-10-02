@@ -312,15 +312,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "flex": 1,
@@ -1472,7 +1464,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

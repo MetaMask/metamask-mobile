@@ -45,7 +45,7 @@ const InstallSnapConnectionRequest = ({
     [approvalRequest.origin],
   );
 
-  const { faviconURI: favicon } = useFavicon(origin);
+  const favicon = useFavicon(origin);
 
   const urlWithProtocol = prefixUrlWithProtocol(origin);
 

@@ -14,6 +14,8 @@ import { endTrace, TraceName } from '../../../../../../../util/trace';
 interface KycWebviewModalParams extends WebviewModalParams {
   quote: BuyQuote;
   workFlowRunId: string;
+  cryptoCurrencyChainId: string;
+  paymentMethodId: string;
 }
 
 export const createKycWebviewModalNavigationDetails =
@@ -23,9 +25,13 @@ export const createKycWebviewModalNavigationDetails =
   );
 
 function KycWebviewModal() {
-  const { quote, workFlowRunId } = useParams<KycWebviewModalParams>();
+  const { quote, cryptoCurrencyChainId, paymentMethodId, workFlowRunId } =
+    useParams<KycWebviewModalParams>();
 
-  const { routeAfterAuthentication } = useDepositRouting();
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
 
   const { idProofStatus } = useIdProofPolling(workFlowRunId, 1000, true, 0);
 

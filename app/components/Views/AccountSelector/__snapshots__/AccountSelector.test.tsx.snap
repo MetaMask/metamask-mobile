@@ -954,7 +954,6 @@ exports[`AccountSelector should render correctly 1`] = `
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
-                              disabled={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -976,38 +975,20 @@ exports[`AccountSelector should render correctly 1`] = `
                               }
                               testID="account-list-add-account-button"
                             >
-                              <View
-                                alignItems="center"
-                                flexDirection="row"
-                                gap={8}
-                                justifyContent="center"
+                              <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 8,
-                                      "justifyContent": "center",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Add account or hardware wallet
-                                </Text>
-                              </View>
+                                Add account or hardware wallet
+                              </Text>
                             </TouchableOpacity>
                           </View>
                         </View>

@@ -7,12 +7,10 @@ import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 import { expect as appwrightExpect } from 'appwright';
 
 class WalletMainScreen {
-
   get device() {
     return this._device;
   }
@@ -72,7 +70,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, 'tokens-network-filter');
+      return AppwrightSelectors.getElementByID(this._device, 'token-network-filter');
     }
   }
 
@@ -155,7 +153,17 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      let tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token); // for some reason by Id does not work sometimes
+      const isAndroid = AppwrightSelectors.isAndroid(this._device);
+      
+      let tokenName;
+      if (isAndroid) {
+        // For Android: use asset-{token} approach
+        tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
+      } else {
+        // For iOS: use catch-all selector
+        tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
+      }
+      
       await tokenName.tap();
     }
   }
@@ -166,7 +174,7 @@ class WalletMainScreen {
       const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
       await tokenName.isVisible();
     } else {
-      const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
+      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token);
       await tokenName.isVisible();
     }
   }
@@ -175,14 +183,16 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); // Use static tapElement method with retry logic
+      const element = await this.accountIcon;
+      await element.tap();
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      const element = await this.swapButton;
+      await element.tap();
     }
   }
 
@@ -191,7 +201,8 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); // Use static tapElement method with retry logic
+      const element = await this.networkInNavBar;
+      await element.tap();
     }
   }
 
@@ -232,7 +243,8 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      await element.waitFor('visible',{ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible();
     }
   }
 
@@ -259,7 +271,8 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); // Use static tapElement method with retry logic
+      const element = await this.accountActionsButton;
+      await element.tap();
     }
   }
 

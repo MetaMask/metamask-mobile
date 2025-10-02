@@ -10,17 +10,21 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { isNegative, isApproval } = vars;
 
+  let backgroundColor: string | undefined;
   let textColor: string | undefined;
 
   if (isApproval) {
+    backgroundColor = colors.background.muted;
     textColor = colors.text.default;
   } else {
+    backgroundColor = isNegative ? colors.error.muted : colors.success.muted;
     textColor = isNegative ? colors.error.alternative : colors.success.default;
   }
 
   return StyleSheet.create({
     base: {
       ...sharedStyles.pill,
+      backgroundColor,
     },
     label: {
       color: textColor,

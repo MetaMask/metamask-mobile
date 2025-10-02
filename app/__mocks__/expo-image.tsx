@@ -112,8 +112,6 @@ export const Image = forwardRef<View, ImageProps>((props, ref) => {
       testID={testID}
       style={style as StyleProp<ViewStyle>}
       {...restProps}
-      // @ts-expect-error - Adding source prop for testing compatibility with ExpoImage
-      source={source}
     />
   );
 });

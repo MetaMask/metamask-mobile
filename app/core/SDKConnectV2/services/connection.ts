@@ -7,66 +7,52 @@ import {
   SessionStore,
   WebSocketTransport,
 } from '@metamask/mobile-wallet-protocol-core';
+import { ConnectionRequest } from '../types/connection-request';
 import { KVStore } from '../store/kv-store';
-import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
-import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
-import { ConnectionInfo } from '../types/connection-info';
+import { Metadata } from '../types/metadata';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
  */
 export class Connection {
   public readonly id: string;
-  public readonly info: ConnectionInfo;
+  public readonly metadata: Metadata;
   public readonly client: WalletClient;
-  public readonly bridge: IRPCBridgeAdapter;
 
-  private constructor(connInfo: ConnectionInfo, client: WalletClient) {
-    this.id = connInfo.id;
-    this.info = connInfo;
+  private constructor(id: string, metadata: Metadata, client: WalletClient) {
+    this.id = id;
+    this.metadata = metadata;
     this.client = client;
-    this.bridge = new RPCBridgeAdapter(this.info);
 
     this.client.on('message', (payload) => {
-      console.warn(
-        `[SDKConnectV2] [Connection:${this.id}] Received message:`,
-        JSON.stringify(payload),
-      );
-      this.bridge.send(payload);
-    });
-
-    this.bridge.on('response', (payload) => {
-      console.warn(
-        `[SDKConnectV2] [Connection:${this.id}] Sending message:`,
-        JSON.stringify(payload),
-      );
-      this.client.sendResponse(payload);
+      console.warn(`[Connection:${this.id}] Received message:`, payload); // To be implemented in a future PR.
     });
   }
 
   /**
-   * Creates a new connection from either a new request or persisted data.
-   *
-   * @param connInfo - The connection information.
-   * @param keymanager - The key manager instance.
-   * @param relayURL - The URL of the relay server.
+   * Creates a new connection.
+   * @param connreq - The connection request.
+   * @param keymanager - The key manager.
+   * @param relayURL - The relay URL.
    * @returns The created connection.
    */
   public static async create(
-    connInfo: ConnectionInfo,
+    connreq: ConnectionRequest,
     keymanager: IKeyManager,
     relayURL: string,
   ): Promise<Connection> {
+    const id = connreq.sessionRequest.id;
+    const metadata = connreq.metadata;
     const transport = await WebSocketTransport.create({
       url: relayURL,
-      kvstore: new KVStore(`mwp/transport/${connInfo.id}`),
+      kvstore: new KVStore(`mwp/transport/${id}`),
     });
     const sessionstore = new SessionStore(
-      new KVStore(`mwp/session-store/${connInfo.id}`),
+      new KVStore(`mwp/session-store/${id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
 
-    return new Connection(connInfo, client);
+    return new Connection(id, metadata, client);
   }
 
   /**
@@ -75,23 +61,14 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Connected to dApp.`);
-  }
-
-  /**
-   * Resumes a previously established session.
-   */
-  public async resume(): Promise<void> {
-    await this.client.resume(this.id);
-    console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
+    console.warn(`[Connection:${this.id}] Connected to dApp.`);
   }
 
   /**
    * Disconnects the connection from the dApp.
    */
   public async disconnect(): Promise<void> {
-    this.bridge.dispose();
     await this.client.disconnect();
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Disconnected.`);
+    console.warn(`[Connection:${this.id}] Disconnected.`);
   }
 }

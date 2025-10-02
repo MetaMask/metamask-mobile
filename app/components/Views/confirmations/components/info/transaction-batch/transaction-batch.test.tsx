@@ -46,18 +46,6 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
-jest.mock('../../../hooks/gas/useGasFeeToken');
-
-jest.mock('../../../hooks/gas/useIsGaslessSupported', () => ({
-  useIsGaslessSupported: jest.fn().mockReturnValue({
-    isSupported: false,
-    isSmartTransaction: false,
-  }),
-}));
-jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
-  useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
-}));
-
 const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');

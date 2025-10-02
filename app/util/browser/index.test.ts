@@ -104,19 +104,6 @@ describe('Browser utils :: onUrlSubmit', () => {
     const url = processUrlForBrowser(input, 'DuckDuckGo');
     expect(url).toBe(input);
   });
-
-  it('should treat domains containing RTL chars as search queries', () => {
-    // Given text with RTL characters that looks like a domain
-    const rtlDomain = 'سwallet.metamask.io';
-
-    // When processing without protocol
-    const url = processUrlForBrowser(rtlDomain);
-
-    // Then it should prefix with https (treat as URL, not search)
-    expect(url).toBe(
-      `https://www.google.com/search?q=${encodeURIComponent(rtlDomain)}`,
-    );
-  });
 });
 
 describe('Browser utils :: isTLD', () => {

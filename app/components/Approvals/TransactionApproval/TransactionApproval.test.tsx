@@ -85,10 +85,7 @@ describe('TransactionApproval', () => {
     } as any);
 
     const wrapper = shallow(
-      <TransactionApproval
-        isSigningQRObject
-        pendingScanRequest={{ test: 'value' }}
-      />,
+      <TransactionApproval isSigningQRObject QRState={{ test: 'value' }} />,
     );
 
     expect(wrapper).toMatchSnapshot();

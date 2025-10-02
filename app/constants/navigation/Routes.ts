@@ -13,19 +13,13 @@ const Routes = {
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
+    REGION: 'Region',
+    REGION_HAS_STARTED: 'RegionHasStarted',
+    NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
-    MODALS: {
-      ID: 'RampModals',
-      TOKEN_SELECTOR: 'RampTokenSelectorModal',
-      FIAT_SELECTOR: 'RampFiatSelectorModal',
-      INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
-      REGION_SELECTOR: 'RampRegionSelectorModal',
-      UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
-      PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
-    },
   },
   DEPOSIT: {
     ID: 'Deposit',
@@ -54,7 +48,6 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
       SSN_INFO: 'SsnInfoModal',
       CONFIGURATION: 'DepositConfigurationModal',
-      ERROR_DETAILS: 'DepositErrorDetailsModal',
     },
   },
   HW: {
@@ -92,7 +85,6 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
-    TRADE_WALLET_ACTIONS: 'TradeWalletActions',
     FUND_ACTION_MENU: 'FundActionMenu',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
@@ -102,7 +94,6 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
-    REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -116,6 +107,7 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    SOCIAL_LOGIN_SUCCESS: 'SocialLoginSuccess',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -124,6 +116,7 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
+    SECURE_EXISTING_WALLET: 'SecureExistingWallet',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -165,6 +158,7 @@ const Routes = {
     CONNECTION_DETAILS: 'ConnectionDetails',
     PERMITTED_NETWORKS_INFO_SHEET: 'PermittedNetworksInfoSheet',
     NETWORK_SELECTOR: 'NetworkSelector',
+    RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -255,15 +249,6 @@ const Routes = {
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
-  PREDICT: {
-    ROOT: 'Predict',
-    MARKET_LIST: 'PredictMarketList',
-    MARKET_DETAILS: 'PredictMarketDetails',
-    MODALS: {
-      ROOT: 'PredictModals',
-      CASH_OUT: 'PredictCashOut',
-    },
-  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
@@ -342,9 +327,6 @@ const Routes = {
     ASSET: 'Asset',
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
-  },
-  SDK: {
-    RETURN_TO_DAPP_TOAST: 'ReturnToDappToast',
   },
 };
 

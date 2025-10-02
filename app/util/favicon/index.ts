@@ -6,16 +6,15 @@ import isUrl from 'is-url';
 import { isNumber } from 'lodash';
 import { ImageSourcePropType } from 'react-native';
 import AppConstants from '../../../app/core/AppConstants';
-import { timeoutFetch } from '../general';
 
 /**
  * Fetches the HTML source of the origin
  * @param url - the origin URL
- * @returns - the HTML source or undefined if fetch failed
+ * @returns - the HTML source
  */
 const fetchHtmlSource = async (url: URL) => {
   try {
-    const response = await timeoutFetch(url, { credentials: 'omit' });
+    const response = await fetch(url, { credentials: 'omit' });
     if (response?.ok) {
       return await response.text();
     }
@@ -76,10 +75,11 @@ const getFaviconUrlFromLinks = (
 const originToUrl = (origin: string) => {
   if (origin) {
     try {
-      // remove sdk origin prefixes before conversion
-      const originWithoutPrefix = origin
-        .replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
-        .replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
+      // remove sdk origin prefix before conversion
+      const originWithoutPrefix = origin.replace(
+        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+        '',
+      );
       const originWithProtocol = isUrl(originWithoutPrefix)
         ? originWithoutPrefix
         : `https://${originWithoutPrefix}`;

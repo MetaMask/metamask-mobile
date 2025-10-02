@@ -71,10 +71,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
@@ -159,10 +155,7 @@ const PerpsWithdrawView: React.FC = () => {
   useEffect(() => {
     if (!hasTrackedWithdrawView.current) {
       endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
-      trackEvent(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
-      });
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED);
       hasTrackedWithdrawView.current = true;
     }
   }, [trackEvent, endMeasure]);
@@ -246,8 +239,7 @@ const PerpsWithdrawView: React.FC = () => {
     if (!hasValidInputs || isSubmittingTx) return;
 
     setIsSubmittingTx(true);
-    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
-      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
+    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
       amount: withdrawAmountDetailed,
     });
 
@@ -304,8 +296,7 @@ const PerpsWithdrawView: React.FC = () => {
         );
 
         // Track withdrawal completed with duration
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.COMPLETED,
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
           amount: withdrawAmountDetailed,
           completionDuration: confirmationDuration,
         });
@@ -318,8 +309,7 @@ const PerpsWithdrawView: React.FC = () => {
         );
 
         // Track withdrawal failed
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
           errorMessage: result.error || 'Unknown error',
         });
 
@@ -355,8 +345,7 @@ const PerpsWithdrawView: React.FC = () => {
       );
 
       // Track withdrawal failed
-      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION, {
-        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
       });
 

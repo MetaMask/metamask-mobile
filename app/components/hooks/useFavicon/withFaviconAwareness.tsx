@@ -12,7 +12,7 @@ const withFaviconAwareness =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (props: any) => {
     const { url } = props;
-    const { faviconURI: favicon } = useFavicon(url);
+    const favicon = useFavicon(url);
 
     let faviconSource;
     if (

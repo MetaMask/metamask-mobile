@@ -115,11 +115,8 @@ describe('TokenListFooter', () => {
         totalFiatBalance: 100,
       },
     });
-    const { queryByText } = renderComponent();
-    expect(queryByText(strings('wallet.add_funds'))).toBeNull();
-    expect(
-      queryByText(strings('wallet.fund_your_wallet_to_get_started')),
-    ).toBeNull();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks the CARD_ADD_FUNDS_DEPOSIT_CLICKED and RAMPS_BUTTON_CLICKED events when the deposit button is pressed', async () => {

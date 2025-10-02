@@ -1,7 +1,6 @@
 import type { ThemeColors } from '@metamask/design-tokens';
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../../util/theme';
 
 const createStyles = (colors: ThemeColors) =>
@@ -21,7 +20,7 @@ const ScreenView: React.FC<ScreenViewProps> = (props) => {
   const styles = createStyles(colors);
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.wrapper}>
       <ScrollView {...props} />
     </SafeAreaView>
   );

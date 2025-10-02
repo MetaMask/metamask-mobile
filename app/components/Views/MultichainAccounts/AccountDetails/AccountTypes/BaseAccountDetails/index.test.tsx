@@ -207,7 +207,7 @@ describe('BaseAccountDetails', () => {
             ...mockInitialState.engine.backgroundState
               .RemoteFeatureFlagController,
             remoteFeatureFlags: {
-              enableMultichainAccountsState2: {
+              enableMultichainAccounts: {
                 enabled: true,
                 featureVersion: '2',
                 minimumVersion: '1.0.0',
