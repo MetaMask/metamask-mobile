@@ -1,6 +1,7 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
+import { Utilities } from '../../framework';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -123,8 +124,9 @@ class SendView {
   }
 
   async pressReviewButton() {
+    await Utilities.waitForElementToBeEnabled(this.reviewButton);
     await Gestures.waitAndTap(this.reviewButton, {
-      elemDescription: 'Continue button',
+      elemDescription: 'Review button',
     });
   }
 }

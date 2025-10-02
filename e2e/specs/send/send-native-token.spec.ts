@@ -5,13 +5,14 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import { Assertions } from '../../framework';
 import { DappVariants } from '../../framework/Constants';
+import { SmokeConfirmationsRedesigned } from '../../tags';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
-describe('Send native asset', () => {
+describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
   it('should send ETH to an address', async () => {
     await withFixtures(
       {
