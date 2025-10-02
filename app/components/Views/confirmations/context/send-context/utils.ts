@@ -3,7 +3,7 @@ import { BNToHex, toHex } from '@metamask/controller-utils';
 import { TransactionParams } from '@metamask/transaction-controller';
 
 import { generateTransferData } from '../../../../../util/transactions';
-import { toTokenMinimalUnit, toWei } from '../../../../../util/number';
+import { toTokenMinimalUnit, toWei } from '../../../../../util/number/legacy';
 import { AssetType } from '../../types/token';
 import { isNativeToken } from '../../utils/generic';
 

@@ -1,6 +1,11 @@
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { sumHexWEIs } from '../../../util/conversions';
-import { hexToBN, isBN, BNToHex, renderToGwei } from '../../../util/number';
+import {
+  hexToBN,
+  isBN,
+  BNToHex,
+  renderToGwei,
+} from '../../../util/number/legacy';
 import { calculateEIP1559GasFeeHexes } from '../../../util/transactions';
 
 export function calculateTotalGas(transaction) {

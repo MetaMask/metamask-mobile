@@ -4,7 +4,7 @@ import { TextInput, View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import formatNumber from '../../../../util/formatNumber';
-import { dotAndCommaDecimalFormatter } from '../../../../util/number';
+import { dotAndCommaDecimalFormatter } from '../../../../util/number/legacy';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';

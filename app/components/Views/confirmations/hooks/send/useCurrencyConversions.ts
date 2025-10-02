@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
-import { getCurrencySymbol } from '../../../../../util/number';
+import { getCurrencySymbol } from '../../../../../util/number/legacy';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { AssetType } from '../../types/token';

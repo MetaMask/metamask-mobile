@@ -17,7 +17,7 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useTheme } from '../../../../../../../util/theme';
-import { isNumber } from '../../../../../../../util/number';
+import { isNumber } from '../../../../../../../util/number/legacy';
 
 const createStyles = (colors) =>
   StyleSheet.create({

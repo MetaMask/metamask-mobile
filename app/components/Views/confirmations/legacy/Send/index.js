@@ -16,7 +16,7 @@ import {
   hexToBN,
   fromWei,
   fromTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { strings } from '../../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';

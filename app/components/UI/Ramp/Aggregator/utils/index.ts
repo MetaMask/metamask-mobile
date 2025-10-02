@@ -15,7 +15,7 @@ import {
   renderFromTokenMinimalUnit,
   renderNumber,
   toTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { RampType } from '../types';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';

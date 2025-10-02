@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/EvilIcons';
-import { renderFromWei } from '../../../../util/number';
+import { renderFromWei } from '../../../../util/number/legacy';
 import { useTheme } from '../../../../util/theme';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import { createStyle } from './styles';

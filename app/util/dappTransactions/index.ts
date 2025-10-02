@@ -1,5 +1,5 @@
 import { remove0x } from '@metamask/utils';
-import { isBN, hexToBN } from '../number';
+import { isBN, hexToBN } from '../number/legacy';
 import { areAddressesEqual, toFormattedAddress } from '../address';
 import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';

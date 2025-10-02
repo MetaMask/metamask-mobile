@@ -3,7 +3,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TokenValueStack from './TokenValueStack';
 import { Image } from 'react-native';
 import { TokenValueStackProps } from './TokenValueStack.types';
-import { renderFromWei } from '../../../../../../util/number';
+import { renderFromWei } from '../../../../../../util/number/legacy';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../hooks/useIpfsGateway', () => jest.fn());

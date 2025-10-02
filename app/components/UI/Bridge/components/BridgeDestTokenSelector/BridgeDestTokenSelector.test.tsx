@@ -302,18 +302,26 @@ describe('BridgeDestTokenSelector', () => {
       { state: initialState },
     );
 
-    // Act - wait for token to appear and press it
+    // Wait for tokens to be rendered
     await waitFor(() => {
-      const token1Element = getByText('HELLO');
-      fireEvent.press(token1Element);
+      expect(getByText('HELLO')).toBeTruthy();
     });
 
-    // Advance timers to trigger debounced function (wrapped in act to handle state updates)
-    await act(async () => {
+    // Act - press the token
+    const token1Element = getByText('HELLO');
+    fireEvent.press(token1Element);
+
+    // Advance timers to trigger debounced function
+    act(() => {
       jest.advanceTimersByTime(500);
     });
 
-    // Assert - check that actions were called
+    // Wait for the debounced action to complete
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalled();
+    });
+
+    // Assert - check that actions were called with correct parameters
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: ethToken2Address,

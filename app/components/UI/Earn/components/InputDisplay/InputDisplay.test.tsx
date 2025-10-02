@@ -4,7 +4,7 @@ import InputDisplay, { INPUT_DISPLAY_TEST_IDS, InputDisplayProps } from '.';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number/legacy';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();

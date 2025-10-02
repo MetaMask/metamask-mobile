@@ -15,7 +15,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
