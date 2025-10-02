@@ -12,7 +12,6 @@ import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
@@ -64,8 +63,7 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         await TabBarComponent.tapActivity();
 
         await WalletView.tapTokenNetworkFilter();
-        await NetworkListModal.tapOnCustomTab();
-        await NetworkListModal.changeNetworkTo('Localhost');
+        await WalletView.tapTokenNetworkFilterCurrent();
 
         // Assert collectible is sent
         await Assertions.expectTextDisplayed(
