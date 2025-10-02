@@ -2,14 +2,12 @@ import { useSelector } from 'react-redux';
 import { useEffect, useMemo, useState } from 'react';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { add0x } from '@metamask/utils';
 import { isEqual } from 'lodash';
 import { selectAllTokens } from '../../selectors/tokensController';
 import { selectAllTokenBalances } from '../../selectors/tokenBalancesController';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
-  toHexadecimal,
 } from '../../util/number';
 import {
   selectEvmChainId,
@@ -23,6 +21,7 @@ import {
 import { isTestNet } from '../../util/networks';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { selectSelectedNonEvmNetworkChainId } from '../../selectors/multichainNetworkController';
+import { Hex } from '@metamask/utils';
 interface AllTokens {
   [chainId: string]: {
     [tokenAddress: string]: Token[];
@@ -194,8 +193,7 @@ export const useGetFormattedTokensPerChain = (
         const matchedChainSymbol = allNetworks[singleChain].nativeCurrency;
         const conversionRate =
           currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
-        const tokenExchangeRates =
-          marketData?.[add0x(toHexadecimal(singleChain))];
+        const tokenExchangeRates = marketData?.[singleChain as Hex];
         const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
         const tokensWithBalances = getTokenFiatBalances({
           tokens,
