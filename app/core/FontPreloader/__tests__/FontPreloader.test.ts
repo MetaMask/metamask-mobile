@@ -45,13 +45,30 @@ describe('FontPreloader', () => {
     FontPreloader.reset();
     expect(FontPreloader.areFontsLoaded()).toBe(false);
 
+    // Mock setTimeout for immediate execution
+    const originalSetTimeout = global.setTimeout;
+    global.setTimeout = jest.fn().mockImplementation((callback: () => void) => {
+      callback(); // Execute immediately
+      return 123;
+    }) as unknown as typeof setTimeout;
+
     await FontPreloader.preloadFonts();
 
     expect(FontPreloader.areFontsLoaded()).toBe(true);
+
+    // Restore setTimeout
+    global.setTimeout = originalSetTimeout;
   });
 
   it('should not reload fonts if already loaded', async () => {
     FontPreloader.reset();
+
+    // Mock setTimeout for immediate execution
+    const originalSetTimeout = global.setTimeout;
+    global.setTimeout = jest.fn().mockImplementation((callback: () => void) => {
+      callback(); // Execute immediately
+      return 123;
+    }) as unknown as typeof setTimeout;
 
     // First load
     await FontPreloader.preloadFonts();
@@ -64,6 +81,9 @@ describe('FontPreloader', () => {
     expect(firstLoadResult).toBe(true);
     expect(secondLoadResult).toBe(true);
     expect(firstLoadResult).toBe(secondLoadResult);
+
+    // Restore setTimeout
+    global.setTimeout = originalSetTimeout;
   });
 
   it('should return the same promise for concurrent loading attempts', async () => {
@@ -95,11 +115,22 @@ describe('FontPreloader', () => {
 
   it('should reset font loading state', async () => {
     FontPreloader.reset();
+
+    // Mock setTimeout for this test too
+    const originalSetTimeout = global.setTimeout;
+    global.setTimeout = jest.fn().mockImplementation((callback: () => void) => {
+      callback(); // Execute immediately
+      return 123;
+    }) as unknown as typeof setTimeout;
+
     await FontPreloader.preloadFonts();
     expect(FontPreloader.areFontsLoaded()).toBe(true);
 
     FontPreloader.reset();
     expect(FontPreloader.areFontsLoaded()).toBe(false);
+
+    // Restore setTimeout
+    global.setTimeout = originalSetTimeout;
   });
 
   it('should handle errors gracefully', async () => {

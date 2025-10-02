@@ -23,7 +23,7 @@ class FontPreloader {
    * Preload all Geist font variants by creating invisible text elements
    * This forces React Native to load and cache the fonts
    */
-  async preloadFonts(): Promise<void> {
+  preloadFonts(): Promise<void> {
     // If we have a loading promise (even if fonts are loaded), return it for consistency
     if (this.loadingPromise) {
       return this.loadingPromise;
