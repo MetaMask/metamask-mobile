@@ -138,6 +138,7 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2: 'true'
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)

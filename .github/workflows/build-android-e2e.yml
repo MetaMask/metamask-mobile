@@ -124,6 +124,7 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2: 'true'
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
