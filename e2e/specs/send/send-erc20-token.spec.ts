@@ -64,6 +64,7 @@ describe('Send ERC20 asset', () => {
         await Assertions.expectTextDisplayed('Confirmed');
 
         // send 50% USDC
+        await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
         await SendView.selectERC20Token();
         await SendView.pressFiftyPercentButton();
@@ -75,6 +76,7 @@ describe('Send ERC20 asset', () => {
         await Assertions.expectTextDisplayed('Confirmed');
 
         // send Max USDC
+        await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
         await SendView.selectERC20Token();
         await SendView.pressAmountMaxButton();

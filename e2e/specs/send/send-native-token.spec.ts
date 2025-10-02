@@ -55,6 +55,7 @@ describe('Send native asset', () => {
         await Assertions.expectTextDisplayed('Confirmed');
 
         // send Max ETH
+        await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
         await SendView.selectEthereumToken();
         await SendView.pressAmountMaxButton();

@@ -28,7 +28,7 @@ class SendView {
   }
 
   get fiftyPercentButton(): DetoxElement {
-    return Matchers.getElementByText('Max');
+    return Matchers.getElementByText('50%');
   }
 
   get maxButton(): DetoxElement {
