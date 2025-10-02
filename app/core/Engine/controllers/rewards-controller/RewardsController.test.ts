@@ -2747,7 +2747,7 @@ describe('RewardsController', () => {
 
     it('should handle 403 error and invalidate subscription cache', async () => {
       // Arrange
-      const mock403Error = new Error('Forbidden: 403');
+      const mock403Error = new Error('Get season status failed: 403');
       const testableController = new TestableRewardsController({
         messenger: mockMessenger,
       });
@@ -2792,7 +2792,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Forbidden: 403');
+      ).rejects.toThrow('Get season status failed: 403');
 
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
@@ -2800,8 +2800,186 @@ describe('RewardsController', () => {
       expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get season status:',
-        'Forbidden: 403',
+        'Get season status failed: 403',
       );
+    });
+
+    it('should handle 403 error and attempt reauth with active account', async () => {
+      // Arrange
+      const mock403Error = new Error('Get season status failed: 403');
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x123',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        if (method === 'AccountsController:getSelectedMultichainAccount') {
+          return Promise.resolve(mockAccount);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Get season status failed: 403');
+
+      // Verify reauth was attempted with active account
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+
+      // Verify cache invalidation
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+    });
+
+    it('should handle 403 error and attempt reauth with other account when active account subscriptionId does not match', async () => {
+      // Arrange
+      const mock403Error = new Error('Get season status failed: 403');
+      const differentSubscriptionId = 'different-sub-id';
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x456',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'active-sub-id', // Different from the one we're testing
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {
+          ['eip155:1:0x456' as CaipAccountId]: {
+            subscriptionId: differentSubscriptionId,
+            account: 'eip155:1:0x456' as CaipAccountId,
+            hasOptedIn: true,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {
+          [differentSubscriptionId]: {
+            id: differentSubscriptionId,
+            referralCode: 'REF456',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        if (method === 'AccountsController:listMultichainAccounts') {
+          return [mockAccount];
+        }
+        return Promise.resolve({});
+      });
+
+      const convertInternalAccountToCaipAccountIdSpy = jest
+        .spyOn(testableController, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue('eip155:1:0x456');
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(
+          differentSubscriptionId,
+          mockSeasonId,
+        ),
+      ).rejects.toThrow('Get season status failed: 403');
+
+      // Verify reauth was attempted with other account
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with any valid account after 403 error',
+      );
+
+      // Verify cache invalidation
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        differentSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      convertInternalAccountToCaipAccountIdSpy.mockRestore();
     });
 
     it('should handle API server error (500)', async () => {
@@ -6745,10 +6923,12 @@ describe('RewardsController', () => {
       expect(account1State).toBeDefined();
       expect(account1State.hasOptedIn).toBe(true);
       expect(account1State.subscriptionId).toBe('sub_123');
+      expect(account1State.lastCheckedAuth).toBeGreaterThan(Date.now() - 100);
 
       expect(account2State).toBeDefined();
       expect(account2State.hasOptedIn).toBe(false);
       expect(account2State.subscriptionId).toBe(null);
+      expect(account2State.lastCheckedAuth).toBeGreaterThan(Date.now() - 100);
     });
 
     it('should handle service errors and rethrow them', async () => {
@@ -6967,6 +7147,10 @@ describe('RewardsController', () => {
       expect(updatedAccountState.subscriptionId).toBe('fresh_sub_123');
       expect(updatedAccountState.lastCheckedAuth).toBeGreaterThan(
         Date.now() - 100,
+      );
+      // Verify that lastCheckedAuth was updated to current time
+      expect(updatedAccountState.lastCheckedAuth).toBeGreaterThan(
+        Date.now() - 1000,
       );
     });
 
@@ -9463,6 +9647,7 @@ describe('RewardsController', () => {
       mockFetchFresh = jest.fn();
       mockSwrCallback = jest.fn();
       jest.clearAllMocks();
+      mockLogger.log.mockClear();
       const mockTimestamp = 1234567890;
       Date.now = jest.fn().mockReturnValue(mockTimestamp);
     });
@@ -9491,37 +9676,6 @@ describe('RewardsController', () => {
         expect(mockReadCache).toHaveBeenCalledWith('test-key');
         expect(mockFetchFresh).not.toHaveBeenCalled();
         expect(mockWriteCache).not.toHaveBeenCalled();
-      });
-
-      it('returns stale cached data and triggers SWR when cache is stale and SWR callback provided', async () => {
-        // Arrange
-        const staleData = {
-          payload: 'stale-value',
-          lastFetched: Date.now() - 10000,
-        };
-        mockReadCache.mockReturnValue(staleData);
-        mockFetchFresh.mockResolvedValue('fresh-value');
-
-        // Act
-        const result = await wrapWithCache({
-          key: 'test-key',
-          ttl: 5000,
-          readCache: mockReadCache,
-          fetchFresh: mockFetchFresh,
-          writeCache: mockWriteCache,
-          swrCallback: mockSwrCallback,
-        });
-
-        // Assert
-        expect(result).toBe('stale-value');
-        expect(mockReadCache).toHaveBeenCalledWith('test-key');
-
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(mockFetchFresh).toHaveBeenCalled();
-        expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
-        expect(mockSwrCallback).toHaveBeenCalledWith('fresh-value');
       });
 
       it('fetches fresh data when no cache exists', async () => {

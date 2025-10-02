@@ -5,7 +5,11 @@ import {
   setSeasonStatus,
   setSeasonStatusError,
 } from '../../../../actions/rewards';
-import { setSeasonStatusLoading } from '../../../../reducers/rewards';
+import {
+  resetRewardsState,
+  setCandidateSubscriptionId,
+  setSeasonStatusLoading,
+} from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
@@ -44,6 +48,8 @@ jest.mock('../../../../actions/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
+  resetRewardsState: jest.fn(),
+  setCandidateSubscriptionId: jest.fn(),
   setSeasonStatusLoading: jest.fn(),
 }));
 
@@ -246,6 +252,31 @@ describe('useSeasonStatus', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
     expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setSeasonStatusError('Mocked error message'),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+  });
+
+  it('should handle 403 errors by resetting rewards state and setting candidate subscription to retry', async () => {
+    const mock403Error = new Error('403 Forbidden');
+    mockEngineCall.mockRejectedValueOnce(mock403Error);
+
+    renderHook(() => useSeasonStatus());
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    await focusCallback();
+
+    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(resetRewardsState());
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCandidateSubscriptionId('retry'),
+    );
+    expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mock403Error);
     expect(mockDispatch).toHaveBeenCalledWith(
       setSeasonStatusError('Mocked error message'),
     );

@@ -6,7 +6,11 @@ import {
   setSeasonStatusError,
 } from '../../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSeasonStatusLoading } from '../../../../reducers/rewards';
+import {
+  resetRewardsState,
+  setCandidateSubscriptionId,
+  setSeasonStatusLoading,
+} from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
@@ -48,6 +52,10 @@ export const useSeasonStatus = (): UseSeasonStatusReturn => {
       dispatch(setSeasonStatus(statusData));
       dispatch(setSeasonStatusError(null));
     } catch (error) {
+      if (error instanceof Error && error.message.includes('403')) {
+        dispatch(resetRewardsState());
+        dispatch(setCandidateSubscriptionId('retry'));
+      }
       const errorMessage = handleRewardsErrorMessage(error);
       dispatch(setSeasonStatusError(errorMessage));
     } finally {
