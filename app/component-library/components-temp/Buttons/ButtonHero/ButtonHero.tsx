@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import {
   ButtonBase,
   ButtonBaseProps,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   useTailwind,
@@ -43,6 +44,9 @@ const ButtonHeroInner = ({
       isLoading={isLoading}
       loadingText={loadingText}
       textClassName={textClassName || getTextClassName}
+      textProps={{
+        variant: TextVariant.BodyLg,
+      }}
       {...props}
       style={getStyle}
     >
