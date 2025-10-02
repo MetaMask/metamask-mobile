@@ -1,6 +1,10 @@
 import { calculateScryptKey } from './calculate-scrypt-key';
 import { scrypt } from 'react-native-fast-crypto';
-import { getGenericPassword, setGenericPassword } from 'react-native-keychain';
+import {
+  getGenericPassword,
+  setGenericPassword,
+  STORAGE_TYPE,
+} from 'react-native-keychain';
 import Logger from '../../../../util/Logger';
 
 // we are using this node import for testing purposes
@@ -94,7 +98,7 @@ describe('calculateScryptKey', () => {
       mocks.mockGetGenericPassword.mockResolvedValue({
         password: cachedResultStr,
         service: 'mockService',
-        storage: 'MOCK_keychain',
+        storage: 'MOCK_keychain' as STORAGE_TYPE,
         username: 'mockUser',
       });
     });
