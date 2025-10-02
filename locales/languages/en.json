@@ -1287,6 +1287,7 @@
         "liquidation_price": "Liq. Price",
         "take_profit": "Take profit",
         "stop_loss": "Stop loss",
+        "liquidation_trigger": "Liquidation",
         "margin": "Margin",
         "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",

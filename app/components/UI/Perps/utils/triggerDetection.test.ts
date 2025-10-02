@@ -4,6 +4,7 @@ import {
   isTakeProfitOrder,
   isStopLossOrder,
   isTPSLOrder,
+  isLiquidationOrder,
   createOrderLookupMap,
 } from './triggerDetection';
 import { Order, OrderFill } from '../controllers/types';
@@ -41,6 +42,37 @@ describe('Trigger Detection Utilities', () => {
       expect(isStopLossOrder('Take Profit Market')).toBe(false);
       expect(isStopLossOrder('Limit')).toBe(false);
       expect(isStopLossOrder(undefined)).toBe(false);
+    });
+  });
+
+  describe('isLiquidationOrder', () => {
+    it('should identify liquidation orders by detailed order type', () => {
+      expect(isLiquidationOrder('Liquidation Market')).toBe(true);
+      expect(isLiquidationOrder('liquidation')).toBe(true);
+      expect(isLiquidationOrder('LIQUIDATION')).toBe(true);
+      expect(isLiquidationOrder('Limit')).toBe(false);
+      expect(isLiquidationOrder('Market')).toBe(false);
+      expect(isLiquidationOrder(undefined)).toBe(false);
+    });
+
+    it('should identify liquidation orders by orderType field', () => {
+      expect(isLiquidationOrder(undefined, 'liquidation')).toBe(true);
+      expect(isLiquidationOrder(undefined, 'take_profit')).toBe(false);
+      expect(isLiquidationOrder(undefined, 'stop_loss')).toBe(false);
+      expect(isLiquidationOrder(undefined, 'regular')).toBe(false);
+    });
+
+    it('should identify liquidation orders by liquidation data presence', () => {
+      const liquidationData = {
+        liquidatedUser: '0x123',
+        markPx: '1900',
+        method: 'market',
+      };
+
+      expect(isLiquidationOrder(undefined, undefined, liquidationData)).toBe(
+        true,
+      );
+      expect(isLiquidationOrder(undefined, undefined, undefined)).toBe(false);
     });
   });
 
@@ -104,6 +136,39 @@ describe('Trigger Detection Utilities', () => {
       expect(result.isStopLoss).toBe(true);
     });
 
+    it('should detect liquidation trigger orders', () => {
+      const liquidationOrder: Order = {
+        orderId: '123',
+        symbol: 'ETH',
+        side: 'sell',
+        orderType: 'market',
+        size: '0',
+        originalSize: '1',
+        price: '1900',
+        filledSize: '1',
+        remainingSize: '0',
+        status: 'filled',
+        timestamp: 1640995200000,
+        detailedOrderType: 'Liquidation Market',
+      };
+
+      const liquidationFill: OrderFill = {
+        ...mockFill,
+        liquidation: {
+          liquidatedUser: '0x123',
+          markPx: '1900',
+          method: 'market',
+        },
+      };
+
+      const result = detectTriggerFromOrder(liquidationFill, liquidationOrder);
+
+      expect(result.isTrigger).toBe(true);
+      expect(result.isTakeProfit).toBe(false);
+      expect(result.isStopLoss).toBe(false);
+      expect(result.isLiquidationTrigger).toBe(true);
+    });
+
     it('should detect non-trigger orders', () => {
       const regularOrder: Order = {
         orderId: '123',
@@ -125,6 +190,7 @@ describe('Trigger Detection Utilities', () => {
       expect(result.isTrigger).toBe(false);
       expect(result.isTakeProfit).toBe(false);
       expect(result.isStopLoss).toBe(false);
+      expect(result.isLiquidationTrigger).toBe(false);
     });
 
     it('should handle missing order data', () => {
@@ -133,6 +199,7 @@ describe('Trigger Detection Utilities', () => {
       expect(result.isTrigger).toBe(false);
       expect(result.isTakeProfit).toBe(false);
       expect(result.isStopLoss).toBe(false);
+      expect(result.isLiquidationTrigger).toBe(false);
     });
 
     it('should handle order with isTrigger flag but no detailed type', () => {
@@ -156,6 +223,7 @@ describe('Trigger Detection Utilities', () => {
       expect(result.isTrigger).toBe(true);
       expect(result.isTakeProfit).toBe(false);
       expect(result.isStopLoss).toBe(false);
+      expect(result.isLiquidationTrigger).toBe(false);
     });
   });
 
@@ -316,18 +384,21 @@ describe('Trigger Detection Utilities', () => {
       expect(enrichedFills[0].orderId).toBe('123');
       expect(enrichedFills[0].isTakeProfit).toBe(true);
       expect(enrichedFills[0].isStopLoss).toBe(false);
+      expect(enrichedFills[0].isLiquidationTrigger).toBe(false);
       expect(enrichedFills[0].detailedOrderType).toBe('Take Profit Limit');
 
       // Second fill should be Stop Loss
       expect(enrichedFills[1].orderId).toBe('456');
       expect(enrichedFills[1].isTakeProfit).toBe(false);
       expect(enrichedFills[1].isStopLoss).toBe(true);
+      expect(enrichedFills[1].isLiquidationTrigger).toBe(false);
       expect(enrichedFills[1].detailedOrderType).toBe('Stop Market');
 
       // Third fill should have no matching order
       expect(enrichedFills[2].orderId).toBe('789');
       expect(enrichedFills[2].isTakeProfit).toBe(false);
       expect(enrichedFills[2].isStopLoss).toBe(false);
+      expect(enrichedFills[2].isLiquidationTrigger).toBe(false);
       expect(enrichedFills[2].detailedOrderType).toBeUndefined();
     });
 

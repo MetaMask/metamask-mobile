@@ -45,6 +45,7 @@ export interface PerpsTransaction {
     isLiquidation: boolean;
     isTakeProfit: boolean;
     isStopLoss: boolean;
+    isLiquidationTrigger: boolean;
   };
   // For orders: order info
   order?: {

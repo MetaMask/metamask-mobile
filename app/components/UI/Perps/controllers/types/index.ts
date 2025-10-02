@@ -348,6 +348,10 @@ export interface OrderFill {
   };
   orderType?: 'take_profit' | 'stop_loss' | 'liquidation' | 'regular';
   detailedOrderType?: string; // Original order type from exchange
+  // Trigger detection flags (added by enrichFillsWithTriggerInfo)
+  isTakeProfit?: boolean;
+  isStopLoss?: boolean;
+  isLiquidationTrigger?: boolean;
 }
 
 // Parameter interfaces - all fully optional for better UX

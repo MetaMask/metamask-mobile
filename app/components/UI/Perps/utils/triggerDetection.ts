@@ -6,6 +6,7 @@ import { Order, OrderFill } from '../controllers/types';
 export interface TriggerDetectionResult {
   isTakeProfit: boolean;
   isStopLoss: boolean;
+  isLiquidationTrigger: boolean;
   isTrigger: boolean;
 }
 
@@ -57,6 +58,32 @@ export const isStopLossOrder = (detailedOrderType?: string): boolean => {
 };
 
 /**
+ * Check if an order type is Liquidation
+ */
+export const isLiquidationOrder = (
+  detailedOrderType?: string,
+  orderType?: string,
+  liquidation?: OrderFill['liquidation'],
+): boolean => {
+  // Check via detailed order type
+  if (detailedOrderType?.toLowerCase().includes('liquidation')) {
+    return true;
+  }
+
+  // Check via orderType field
+  if (orderType === 'liquidation') {
+    return true;
+  }
+
+  // Check via liquidation data presence (indicates this fill was part of a liquidation)
+  if (liquidation) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
  * Detect trigger type from a fill and its matching order
  * This implements the pattern described by ChatGPT:
  * 1. Join fill.oid with historicalOrders based on order.orderId
@@ -74,19 +101,34 @@ export const detectTriggerFromOrder = (
   const result: TriggerDetectionResult = {
     isTakeProfit: false,
     isStopLoss: false,
+    isLiquidationTrigger: false,
     isTrigger: false,
   };
+
+  // Always check fill data for liquidation (independent of matching order)
+  if (
+    isLiquidationOrder(fill.detailedOrderType, fill.orderType, fill.liquidation)
+  ) {
+    result.isTrigger = true;
+    result.isLiquidationTrigger = true;
+    return result;
+  }
 
   // If no matching order, can't determine trigger status
   if (!matchingOrder) {
     return result;
   }
 
-  // Check if this is a trigger order based on detailed order type
+  // Check if this is a trigger order about detailed order type
   if (isTPSLOrder(matchingOrder.detailedOrderType)) {
     result.isTrigger = true;
     result.isTakeProfit = isTakeProfitOrder(matchingOrder.detailedOrderType);
     result.isStopLoss = isStopLossOrder(matchingOrder.detailedOrderType);
+  }
+  // Check for liquidation triggers from order
+  else if (isLiquidationOrder(matchingOrder.detailedOrderType)) {
+    result.isTrigger = true;
+    result.isLiquidationTrigger = true;
   }
   // Also check the isTrigger flag if available (additional safety check)
   else if (matchingOrder.isTrigger) {
@@ -139,6 +181,7 @@ export const enrichFillsWithTriggerInfo = (
       ...fill,
       isTakeProfit: triggerInfo.isTakeProfit,
       isStopLoss: triggerInfo.isStopLoss,
+      isLiquidationTrigger: triggerInfo.isLiquidationTrigger,
       detailedOrderType: matchingOrder?.detailedOrderType,
     };
   });

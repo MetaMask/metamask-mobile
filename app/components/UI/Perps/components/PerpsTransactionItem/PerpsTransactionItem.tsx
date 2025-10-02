@@ -57,6 +57,8 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
       label = strings('perps.transactions.order.take_profit');
     } else if (item.fill?.isStopLoss) {
       label = strings('perps.transactions.order.stop_loss');
+    } else if (item.fill?.isLiquidationTrigger) {
+      label = strings('perps.transactions.order.liquidation_trigger');
     }
 
     if (!label) {
@@ -89,6 +91,7 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
     item.fill?.isLiquidation,
     item.fill?.isStopLoss,
     item.fill?.isTakeProfit,
+    item.fill?.isLiquidationTrigger,
     item.fill?.liquidation,
     selectedAccount?.address,
   ]);
