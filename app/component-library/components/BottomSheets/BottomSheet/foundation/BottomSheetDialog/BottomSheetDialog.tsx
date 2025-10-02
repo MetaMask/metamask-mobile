@@ -99,11 +99,15 @@ const BottomSheetDialog = forwardRef<
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
-        () => runOnJS(onCloseCB)(),
+        () => {
+          runOnJS(onCloseCB)();
+          // Reset guard after animation completes
+          runOnJS(setIsDismissing)(false);
+        },
       );
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
-    }, [isDismissing, onCloseCB]);
+    }, [onCloseCB]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
