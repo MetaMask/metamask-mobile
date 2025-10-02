@@ -135,7 +135,9 @@ class NetworkListModal {
 
   async tapNetworkMenuButton(networkName: string): Promise<void> {
     const networkCell = Matchers.getElementByText(networkName);
-    await Gestures.waitAndTap(networkCell);
+    await Gestures.waitAndTap(networkCell, {
+      elemDescription: `Network ${networkName}`,
+    });
   }
 
   async tapOnCustomTab(): Promise<void> {

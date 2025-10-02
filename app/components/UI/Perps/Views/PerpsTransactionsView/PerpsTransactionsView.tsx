@@ -7,14 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  RefreshControl,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -23,6 +19,7 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
+import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import {
   usePerpsConnection,
@@ -47,6 +44,10 @@ import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -66,14 +67,22 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     dependencies: [flatListData.length > 0],
   });
 
-  const { isConnected } = usePerpsConnection();
+  const { isConnected, isConnecting } = usePerpsConnection();
 
   // Use new hooks for data fetching
-  const { orderFills: fillsData, refresh: refreshFills } = usePerpsOrderFills({
+  const {
+    orderFills: fillsData,
+    isLoading: fillsLoading,
+    refresh: refreshFills,
+  } = usePerpsOrderFills({
     skipInitialFetch: !isConnected,
   });
 
-  const { orders: ordersData, refresh: refreshOrders } = usePerpsOrders({
+  const {
+    orders: ordersData,
+    isLoading: ordersLoading,
+    refresh: refreshOrders,
+  } = usePerpsOrders({
     skipInitialFetch: !isConnected,
   });
 
@@ -85,7 +94,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [], // Empty dependency array since we want this to be stable
   );
 
-  const { funding: fundingData, refresh: refreshFunding } = usePerpsFunding({
+  const {
+    funding: fundingData,
+    isLoading: fundingLoading,
+    refresh: refreshFunding,
+  } = usePerpsFunding({
     params: fundingParams,
     skipInitialFetch: !isConnected,
   });
@@ -223,29 +236,17 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <TouchableOpacity
+        <Button
           key={tab}
-          style={[styles.filterTab, isActive && styles.filterTabActive]}
-          onPressIn={handleTabPress}
-          activeOpacity={0.7}
-          delayPressIn={0}
-          delayPressOut={0}
-        >
-          <Text
-            variant={TextVariant.BodySMBold}
-            style={isActive ? null : styles.filterTabText}
-          >
-            {strings(`perps.transactions.tabs.${i18nKey}`)}
-          </Text>
-        </TouchableOpacity>
+          variant={isActive ? ButtonVariants.Primary : ButtonVariants.Secondary}
+          size={ButtonSize.Sm}
+          onPress={handleTabPress}
+          accessibilityRole="button"
+          label={strings(`perps.transactions.tabs.${i18nKey}`)}
+        />
       );
     },
-    [
-      activeFilter,
-      styles.filterTab,
-      styles.filterTabActive,
-      styles.filterTabText,
-    ],
+    [activeFilter],
   );
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
@@ -275,10 +276,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderRightContent = (item: PerpsTransaction) => {
     if (item.fill) {
       return (
-        <Text
-          variant={TextVariant.BodySM}
-          style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
-        >
+        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
           {item.fill.amount}
         </Text>
       );
@@ -369,13 +367,57 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return null;
   }, [activeFilter]);
 
+  // Determine if we should show loading skeleton
+  const isInitialLoading = useMemo(
+    () =>
+      // Show loading if we're connecting or if any data sources are loading
+      isConnecting || fillsLoading || ordersLoading || fundingLoading,
+    [isConnecting, fillsLoading, ordersLoading, fundingLoading],
+  );
+
+  // Determine if we should show empty state (only after loading is complete and no data)
+  const shouldShowEmptyState = useMemo(() => {
+    if (isInitialLoading) return false;
+    if (!isConnected) return false;
+
+    // Show empty state only if loading is complete and we have no data
+    return flatListData.length === 0;
+  }, [isInitialLoading, isConnected, flatListData.length]);
+
+  // Show loading skeleton during initial load
+  if (isInitialLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.filterContainer} pointerEvents="box-none">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterScrollView}
+            pointerEvents="auto"
+            scrollEnabled={false}
+          >
+            {filterTabs.map(renderFilterTab)}
+          </ScrollView>
+        </View>
+
+        {filterTabDescription && (
+          <View style={styles.tabDescription}>
+            <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
+          </View>
+        )}
+
+        <PerpsTransactionsSkeleton testID="perps-transactions-loading-skeleton" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
+          contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
-          style={styles.filterScrollView}
           pointerEvents="auto"
           scrollEnabled={false}
         >
@@ -397,7 +439,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         getItemType={(item) =>
           item.type === 'header' ? 'header' : 'transaction'
         }
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={shouldShowEmptyState ? renderEmptyState : null}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

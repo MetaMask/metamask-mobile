@@ -18,6 +18,7 @@ export interface PolymarketPosition {
   negativeRisk: boolean;
   endDate: string;
   asset: string;
+  realizedPnl: number;
 }
 
 export enum UtilsSide {
@@ -137,6 +138,7 @@ export interface PolymarketApiMarket {
   outcomePrices: string;
   closed: boolean;
   orderPriceMinTickSize: number;
+  events?: PolymarketApiEvent[];
 }
 
 export interface PolymarketApiSeries {
@@ -162,6 +164,7 @@ export interface PolymarketApiEvent {
   title: string;
   description: string;
   icon: string;
+  endDate?: string;
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];

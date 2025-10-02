@@ -93,7 +93,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         {children}
       </Text>
     ),
-    ButtonBase: ({
+    Button: ({
       children,
       onPress,
       testID,
@@ -107,7 +107,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         accessibilityState={{ disabled }}
         {...props}
       >
-        {children}
+        <Text>{children}</Text>
       </TouchableOpacity>
     ),
     BoxFlexDirection: {
@@ -115,6 +115,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxAlignItems: {
       Center: 'center',
+    },
+    ButtonSize: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      Link: 'link',
     },
     FontWeight: {
       Medium: 'medium',
@@ -212,6 +222,15 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
+jest.mock('../../../../../component-library/components/Skeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Skeleton: jest.fn(({ testID, width, height }) => (
+      <View testID={testID} style={{ width, height }} />
+    )),
+  };
+});
+
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
@@ -253,6 +272,7 @@ describe('PerpsMarketBalanceActions', () => {
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: defaultPerpsAccount,
+      isInitialLoading: false,
       isLoading: false,
       error: null,
     });
@@ -333,6 +353,7 @@ describe('PerpsMarketBalanceActions', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: null,
+        isInitialLoading: false,
         isLoading: false,
         error: null,
       });
@@ -342,6 +363,26 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Assert
       expect(UNSAFE_root.children).toHaveLength(0);
+    });
+
+    it('shows skeleton when initially loading account data', () => {
+      // Arrange
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+        isLoading: true,
+        error: null,
+      });
+
+      // Act
+      const { getByTestId } = render(<PerpsMarketBalanceActions />);
+
+      // Assert
+      expect(
+        getByTestId(
+          `${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -357,6 +398,7 @@ describe('PerpsMarketBalanceActions', () => {
           totalBalance: '15.50',
           availableBalance: '15.50',
         },
+        isInitialLoading: false,
         isLoading: false,
         error: null,
       });
@@ -477,6 +519,7 @@ describe('PerpsMarketBalanceActions', () => {
           totalBalance: '0',
           availableBalance: '0',
         },
+        isInitialLoading: false,
         isLoading: false,
         error: null,
       });
@@ -599,6 +642,7 @@ describe('PerpsMarketBalanceActions', () => {
           totalBalance: '0.00',
           availableBalance: '0.00',
         },
+        isInitialLoading: false,
         isLoading: false,
         error: null,
       });

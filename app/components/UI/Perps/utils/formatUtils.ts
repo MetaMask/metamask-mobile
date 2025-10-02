@@ -793,5 +793,5 @@ export const formatDateSection = (timestamp: number): string => {
     day: 'numeric',
   }).format(new Date(timestamp));
 
-  return `${month}, ${day}`; // 'Jul, 26'
+  return `${month} ${day}`; // 'Jul, 26'
 };
