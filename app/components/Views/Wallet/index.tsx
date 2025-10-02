@@ -14,7 +14,6 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
-  ScrollView,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -149,7 +148,6 @@ import AppConstants from '../../../core/AppConstants';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -184,6 +182,7 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -560,8 +559,7 @@ const Wallet = ({
   ///: END:ONLY_INCLUDE_IF
 
   const displayBuyButton = true;
-  const displaySwapsButton =
-    AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
+  const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
   const displayBridgeButton =
     !isUnifiedSwapsEnabled &&
     AppConstants.BRIDGE.ACTIVE &&
@@ -879,6 +877,11 @@ const Wallet = ({
    * Show multichain accounts intro modal if state 2 is enabled and never showed before
    */
   useMultichainAccountsIntroModal();
+
+  /**
+   * Show rewards intro modal if ff is enabled and never showed before
+   */
+  useRewardsIntroModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -1221,7 +1224,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <ScrollView
+      <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
@@ -1253,7 +1256,6 @@ const Wallet = ({
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
               displayBridgeButton={displayBridgeButton}
-              chainId={chainId}
               goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
@@ -1278,7 +1280,7 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
-      </ScrollView>
+      </View>
     ),
     [
       styles.banner,
@@ -1301,7 +1303,6 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
-      chainId,
     ],
   );
   const renderLoader = useCallback(

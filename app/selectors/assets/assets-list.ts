@@ -6,6 +6,7 @@ import {
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
+import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
@@ -187,7 +188,17 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) => chainAssets)
+      .filter((asset) => {
+        // We need to filter out Tron energy and bandwidth from this list
+        if (
+          asset.chainId?.includes('tron:') &&
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
+        ) {
+          return false;
+        }
+        return true;
+      });
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
@@ -238,7 +249,8 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   },
 );
 
-export const selectAsset = createDeepEqualSelector(
+// TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
+export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
@@ -247,9 +259,17 @@ export const selectAsset = createDeepEqualSelector(
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params,
+    ) => params.address,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params.chainId,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params.isStaked,
   ],
-  (assets, stakedAssets, tokensChainsCache, { address, chainId, isStaked }) => {
+  (assets, stakedAssets, tokensChainsCache, address, chainId, isStaked) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>

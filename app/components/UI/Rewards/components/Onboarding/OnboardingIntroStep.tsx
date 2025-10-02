@@ -1,9 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Image, ImageBackground, Text as RNText } from 'react-native';
-
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -40,6 +38,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { isHardwareAccount } from '../../../../../util/address';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 /**
  * OnboardingIntroStep Component
@@ -47,7 +46,11 @@ import Engine from '../../../../../core/Engine';
  * Main introduction screen for the rewards onboarding flow.
  * Handles geo validation, account type checking, and navigation to next steps.
  */
-const OnboardingIntroStep: React.FC = () => {
+const OnboardingIntroStep: React.FC<{
+  title: string;
+  description: string;
+  confirmLabel: string;
+}> = ({ title, description, confirmLabel }) => {
   // Navigation and Redux hooks
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -208,6 +211,9 @@ const OnboardingIntroStep: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedOnboardingStart = useRef(false);
+
   /**
    * Auto-redirect to dashboard if user is already opted in
    */
@@ -215,8 +221,15 @@ const OnboardingIntroStep: React.FC = () => {
     useCallback(() => {
       if (subscriptionId) {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
+      } else if (!hasTrackedOnboardingStart.current) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,
+          ).build(),
+        );
+        hasTrackedOnboardingStart.current = true;
       }
-    }, [subscriptionId, navigation]),
+    }, [subscriptionId, navigation, trackEvent, createEventBuilder]),
   );
 
   /**
@@ -255,28 +268,19 @@ const OnboardingIntroStep: React.FC = () => {
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-12 leading-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '400' },
+            { fontFamily: 'MM Poly Regular', fontWeight: '500' },
           ]}
         >
-          {strings('rewards.onboarding.intro_title_1')}
-        </RNText>
-        <RNText
-          style={[
-            tw.style('text-center text-white text-12'),
-            // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '400' },
-          ]}
-        >
-          {strings('rewards.onboarding.intro_title_2')}
+          {title}
         </RNText>
       </Box>
       <Text
         variant={TextVariant.BodyMd}
-        style={tw.style('text-center text-white')}
+        style={tw.style('text-center text-white font-medium')}
       >
-        {strings('rewards.onboarding.intro_description')}
+        {description}
       </Text>
     </Box>
   );
@@ -285,7 +289,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center py-2">
+    <Box twClassName="flex-1 justify-center items-center my-4">
       <Image
         source={intro}
         resizeMode="contain"
@@ -312,8 +316,8 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
+        <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
+          {confirmLabel}
         </Text>
       </ButtonHero>
       <DSRNButton
@@ -323,7 +327,7 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
       >
-        <Text twClassName="text-white">
+        <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}
         </Text>
       </DSRNButton>
@@ -342,7 +346,7 @@ const OnboardingIntroStep: React.FC = () => {
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[5%]" />
+        <Box twClassName="flex-basis-[10%]" />
 
         {/* Title Section */}
         {renderTitle()}

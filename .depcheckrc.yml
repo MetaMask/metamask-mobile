@@ -29,7 +29,12 @@ ignores:
   # Appium drivers are used by Appwright for mobile automation
   - 'appium-uiautomator2-driver'
   - 'appium-xcuitest-driver'
+  # ESBuild is used for AI E2E script compilation
+  - 'esbuild'
+  - 'esbuild-register'
 
+  # Used in scripts/repack for CI optimization
+  - '@expo/repack-app'
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
 

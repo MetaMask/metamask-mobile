@@ -238,6 +238,11 @@ const mockInitialState = {
   metamask: {
     isDataCollectionForMarketingEnabled: true,
   },
+  rewards: {
+    candidateSubscriptionId: null,
+    hideUnlinkedAccountsBanner: false,
+    seasonStatusError: null,
+  },
   multichain: {
     dismissedBanners: [], // Added missing property
   },
@@ -274,6 +279,9 @@ const mockInitialState = {
             ],
           },
         },
+      },
+      RewardsController: {
+        activeAccount: null,
       },
       PreferencesController: {
         selectedAddress: MOCK_ADDRESS,
@@ -570,7 +578,6 @@ describe('Wallet', () => {
           displayBuyButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
-          chainId: expect.any(String),
           goToBridge: expect.any(Function),
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
