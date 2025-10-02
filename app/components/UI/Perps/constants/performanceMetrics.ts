@@ -57,4 +57,14 @@ export enum PerpsMeasurementName {
   ORDER_EDIT_OPERATION = 'order_edit_operation',
   ORDER_CANCEL_OPERATION = 'order_cancel_operation',
   POSITION_TPSL_UPDATE_OPERATION = 'position_tpsl_update_operation',
+
+  // Data Fetch Operation Metrics (milliseconds)
+  GET_POSITIONS_OPERATION = 'get_positions_operation',
+  GET_ACCOUNT_STATE_OPERATION = 'get_account_state_operation',
+  GET_MARKETS_OPERATION = 'get_markets_operation',
+  GET_ORDER_FILLS_OPERATION = 'get_order_fills_operation',
+  GET_ORDERS_OPERATION = 'get_orders_operation',
+  GET_OPEN_ORDERS_OPERATION = 'get_open_orders_operation',
+  GET_FUNDING_OPERATION = 'get_funding_operation',
+  GET_HISTORICAL_PORTFOLIO_OPERATION = 'get_historical_portfolio_operation',
 }
