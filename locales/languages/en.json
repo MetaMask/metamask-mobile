@@ -575,7 +575,8 @@
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
     "could_not_resolve_name": "Couldn't resolve name",
-    "invalid_address": "Invalid address"
+    "invalid_address": "Invalid address",
+    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
   },
   "deposit": {
     "title": "Deposit",
@@ -5602,7 +5603,7 @@
       "section_1_title": "What are multichain accounts?",
       "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
+      "section_2_description": "We’ve grouped your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged",
         "view_accounts_button": "View accounts",
         "learn_more_button": "Learn more",
         "setting_up_accounts": "Setting up your accounts"
@@ -5752,6 +5753,11 @@
       "swap": "Fund with crypto",
       "swap_description": "Swap tokens into {{symbol}} on Linea",
       "select_method": "Select method"
+    },
+    "card_onboarding": {
+      "title": "Welcome to Card",
+      "description": "To use card features, you’ll need to verify your account with our partner.",
+      "verify_account_button": "Verify account"
     },
     "card_home": {
       "error_title": "Can’t fetch data",
@@ -6045,7 +6051,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
