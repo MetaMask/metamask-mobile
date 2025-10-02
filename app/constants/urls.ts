@@ -10,8 +10,6 @@ export const NON_CUSTODIAL_WALLET_URL =
   'https://support.metamask.io/getting-started/metamask-is-a-self-custodial-wallet/';
 export const KEEP_SRP_SAFE_URL =
   'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/scammers-and-phishers-rugpulls-and-airdrop-scams/';
-export const PRIVATE_KEY_GUIDE_URL =
-  'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#private-keys';
 export const LEARN_MORE_URL =
   'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/';
 export const WHY_TRANSACTION_TAKE_TIME_URL =
