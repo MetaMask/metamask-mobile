@@ -219,6 +219,9 @@ import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFl
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -686,16 +689,6 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    this.subjectMetadataController = new SubjectMetadataController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SubjectMetadataController',
-        allowedActions: [`PermissionController:hasPermissions`],
-        allowedEvents: [],
-      }),
-      state: initialState.SubjectMetadataController || {},
-      subjectCacheLimit: 100,
-    });
-
     const authenticationControllerMessenger =
       getAuthenticationControllerMessenger(this.controllerMessenger);
     const authenticationController = createAuthenticationController({
@@ -849,6 +842,9 @@ export class Engine {
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        SubjectMetadataController: subjectMetadataControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
@@ -942,6 +938,8 @@ export class Engine {
       controllersByName.NotificationServicesController;
     const notificationServicesPushController =
       controllersByName.NotificationServicesPushController;
+    this.subjectMetadataController =
+      controllersByName.SubjectMetadataController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
