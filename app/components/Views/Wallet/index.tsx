@@ -11,6 +11,7 @@ import React, {
 
 import {
   ActivityIndicator,
+  InteractionManager,
   Linking,
   StyleSheet as RNStyleSheet,
   View,
@@ -1201,39 +1202,41 @@ const Wallet = ({
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
-        // Call detect nfts
-        const { NftDetectionController, NftController } = Engine.context;
-        const previousNfts = cloneDeep(
-          NftController.state.allNfts[formattedSelectedAddress],
-        );
-
-        try {
-          trace({ name: TraceName.DetectNfts });
-          showNftFetchingLoadingIndicator();
-          await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
-          endTrace({ name: TraceName.DetectNfts });
-        } finally {
-          hideNftFetchingLoadingIndicator();
-        }
-
-        const newNfts = cloneDeep(
-          NftController.state.allNfts[formattedSelectedAddress],
-        );
-
-        const eventParams = prepareNftDetectionEvents(
-          previousNfts,
-          newNfts,
-          getNftDetectionAnalyticsParams,
-        );
-        eventParams.forEach((params) => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-              .addProperties({
-                chain_id: params.chain_id,
-                source: params.source,
-              })
-              .build(),
+        // Call detect nfts - run after tab transition completes for better UX
+        InteractionManager.runAfterInteractions(async () => {
+          const { NftDetectionController, NftController } = Engine.context;
+          const previousNfts = cloneDeep(
+            NftController.state.allNfts[formattedSelectedAddress],
           );
+
+          try {
+            trace({ name: TraceName.DetectNfts });
+            showNftFetchingLoadingIndicator();
+            await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+            endTrace({ name: TraceName.DetectNfts });
+          } finally {
+            hideNftFetchingLoadingIndicator();
+          }
+
+          const newNfts = cloneDeep(
+            NftController.state.allNfts[formattedSelectedAddress],
+          );
+
+          const eventParams = prepareNftDetectionEvents(
+            previousNfts,
+            newNfts,
+            getNftDetectionAnalyticsParams,
+          );
+          eventParams.forEach((params) => {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+                .addProperties({
+                  chain_id: params.chain_id,
+                  source: params.source,
+                })
+                .build(),
+            );
+          });
         });
       }
     },

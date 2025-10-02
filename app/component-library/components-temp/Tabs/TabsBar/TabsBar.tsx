@@ -150,13 +150,13 @@ const TabsBar: React.FC<TabsBarProps> = ({
         const animation = Animated.parallel([
           Animated.timing(underlineAnimated, {
             toValue: activeTabLayout.x,
-            duration: 200, // Fast and snappy
-            useNativeDriver: false,
+            duration: 150, // Optimized for snappier feel (was 200ms)
+            useNativeDriver: false, // TODO: Refactor to use transforms for native driver support
           }),
           Animated.timing(underlineWidthAnimated, {
             toValue: activeTabLayout.width,
-            duration: 200, // Fast and snappy
-            useNativeDriver: false,
+            duration: 150, // Optimized for snappier feel (was 200ms)
+            useNativeDriver: false, // TODO: Refactor to use transforms for native driver support
           }),
         ]);
 

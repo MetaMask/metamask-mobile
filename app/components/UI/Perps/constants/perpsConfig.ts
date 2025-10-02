@@ -84,7 +84,8 @@ export const PERFORMANCE_CONFIG = {
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
-  NAVIGATION_PARAMS_DELAY_MS: 200,
+  // Optimized from 200ms to 150ms (25% faster) while maintaining stability on low-end devices
+  NAVIGATION_PARAMS_DELAY_MS: 150,
 
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data

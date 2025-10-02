@@ -234,7 +234,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // Ensure the tab is loaded - small delay to let animation start first
+        // Ensure the tab is loaded
         if (!loadedTabs.has(tabIndex)) {
           // In tests, update synchronously to avoid act() warnings
           if (process.env.JEST_WORKER_ID) {
@@ -243,10 +243,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             if (loadTabTimeout.current) {
               clearTimeout(loadTabTimeout.current);
             }
+            // Minimal delay ensures animation starts smoothly (reduced from 10ms)
             loadTabTimeout.current = setTimeout(() => {
               setLoadedTabs((prev) => new Set(prev).add(tabIndex));
               loadTabTimeout.current = null;
-            }, 10); // Small delay to let underline animation start
+            }, 5);
           }
         }
 
