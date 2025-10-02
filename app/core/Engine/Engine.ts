@@ -98,7 +98,7 @@ import { getUserStorageControllerMessenger } from './messengers/identity/user-st
 import { createUserStorageController } from './controllers/identity/create-user-storage-controller';
 ///: END:ONLY_INCLUDE_IF
 import { backupVault } from '../BackupVault';
-import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
+import { add0x, Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -1576,9 +1576,9 @@ export class Engine {
           accountData.stakedBalance || '0x00',
         );
 
-        const totalAccountBalance = (
-          balanceBigInt + stakedBalanceBigInt
-        ).toString(16);
+        const totalAccountBalance = add0x(
+          (balanceBigInt + stakedBalanceBigInt).toString(16),
+        );
 
         const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
