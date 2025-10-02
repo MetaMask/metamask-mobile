@@ -52,7 +52,7 @@ export const validateHexAddress = async (
       });
       if (token?.standard) {
         return {
-          warning: strings('send.token_contract_warning'),
+          error: strings('send.token_contract_warning'),
         };
       }
     } catch {

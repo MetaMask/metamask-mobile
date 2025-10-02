@@ -72,7 +72,7 @@ describe('validateHexAddress', () => {
         '0x1',
       ),
     ).toStrictEqual({
-      warning:
+      error:
         'This address is a token contract address. If you send tokens to this address, you will lose them.',
     });
   });
