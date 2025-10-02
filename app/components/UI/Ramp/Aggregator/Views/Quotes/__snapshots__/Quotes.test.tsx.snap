@@ -1329,8 +1329,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                 }
                                               }
                                             >
-                                              <Image
-                                                onError={[Function]}
+                                              <View
                                                 source={
                                                   {
                                                     "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png",
@@ -3566,8 +3565,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         }
                                                       }
                                                     >
-                                                      <Image
-                                                        onError={[Function]}
+                                                      <View
                                                         source={
                                                           {
                                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
@@ -3912,8 +3910,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         }
                                                       }
                                                     >
-                                                      <Image
-                                                        onError={[Function]}
+                                                      <View
                                                         source={
                                                           {
                                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
@@ -4183,8 +4180,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         }
                                                       }
                                                     >
-                                                      <Image
-                                                        onError={[Function]}
+                                                      <View
                                                         source={
                                                           {
                                                             "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_light.png",
@@ -5293,8 +5289,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   }
                                                 }
                                               >
-                                                <Image
-                                                  onError={[Function]}
+                                                <View
                                                   source={
                                                     {
                                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",

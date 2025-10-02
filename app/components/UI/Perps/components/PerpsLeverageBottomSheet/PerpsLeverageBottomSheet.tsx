@@ -412,7 +412,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   // Track leverage screen viewed event - separate concern
   useEffect(() => {
     if (isVisible && !hasTrackedLeverageView.current) {
-      track(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.LEVERAGE,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           direction === 'long'
