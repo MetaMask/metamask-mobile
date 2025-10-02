@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, TouchableOpacity, Animated, TextInput } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Animated,
+  TextInput,
+  Pressable,
+  Keyboard,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -119,6 +126,7 @@ const PerpsMarketListView = ({
   };
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [shouldShowNavbar, setShouldShowNavbar] = useState(true);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const {
@@ -188,24 +196,34 @@ const PerpsMarketListView = ({
       return true;
     });
 
-    // Then apply search filter if needed
-    if (!searchQuery.trim()) {
+    // If search is not visible, show all markets
+    if (!isSearchVisible) {
       return marketsWithVolume;
     }
+
+    // If search is visible but query is empty, show no markets
+    if (!searchQuery.trim()) {
+      return [];
+    }
+
+    // Filter based on search query
     const query = searchQuery.toLowerCase().trim();
     return marketsWithVolume.filter(
       (market: PerpsMarketData) =>
         market.symbol.toLowerCase().includes(query) ||
         market.name.toLowerCase().includes(query),
     );
-  }, [markets, searchQuery]);
+  }, [markets, searchQuery, isSearchVisible]);
 
   const handleSearchToggle = () => {
     setIsSearchVisible(!isSearchVisible);
+
     if (isSearchVisible) {
       // Clear search when hiding search bar
       setSearchQuery('');
+      setShouldShowNavbar(true);
     } else {
+      setShouldShowNavbar(false);
       // Track search bar clicked event
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
@@ -213,6 +231,19 @@ const PerpsMarketListView = ({
       });
     }
   };
+
+  // Render navbar when keyboard is dismissed. We hide the navbar to give extra room when the OS keyboard is visible.
+  useEffect(() => {
+    if (!isSearchVisible) return;
+
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setShouldShowNavbar(true);
+    });
+
+    return () => {
+      hideSubscription?.remove();
+    };
+  }, [isSearchVisible]);
 
   // Track screen load performance
   const hasTrackedMarketsView = useRef(false);
@@ -246,6 +277,7 @@ const PerpsMarketListView = ({
       hasTrackedMarketsView.current = true;
     }
   }, [markets, track]);
+
   const renderMarketList = () => {
     // Skeleton List - show immediately while loading
     if (isLoadingMarkets) {
@@ -283,8 +315,8 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty search results
-    if (searchQuery.trim() && filteredMarkets.length === 0) {
+    // Empty search results - show when search is visible and no markets match
+    if (isSearchVisible && filteredMarkets.length === 0) {
       return (
         <View style={styles.emptyStateContainer}>
           <Icon
@@ -305,7 +337,9 @@ const PerpsMarketListView = ({
             color={TextColor.Alternative}
             style={styles.emptyStateDescription}
           >
-            {strings('perps.no_tokens_found_description', { searchQuery })}
+            {searchQuery.trim()
+              ? strings('perps.no_tokens_found_description', { searchQuery })
+              : strings('perps.search_by_token_symbol')}
           </Text>
         </View>
       );
@@ -326,14 +360,17 @@ const PerpsMarketListView = ({
             contentContainerStyle={styles.flashListContent}
             refreshing={isRefreshingMarkets}
             onRefresh={handleRefresh}
+            /**
+             * Fixes "double-tap" UX issue where the first tap dismissed the keyboard
+             * and the second tap selects a list item.
+             *
+             * This allows users to directly select a list item with a single tap.
+             */
+            keyboardShouldPersistTaps="handled"
           />
         </Animated.View>
       </>
     );
-  };
-
-  const handleTutorialClick = () => {
-    navigation.navigate(Routes.PERPS.TUTORIAL);
   };
 
   const tw = useTailwind();
@@ -455,7 +492,7 @@ const PerpsMarketListView = ({
         style={hiddenButtonStyle}
       />
       {/* Header */}
-      <View style={styles.header}>
+      <Pressable style={styles.header} onPress={() => Keyboard.dismiss()}>
         <View style={styles.headerTitleContainer}>
           <Text
             variant={TextVariant.HeadingLG}
@@ -476,15 +513,8 @@ const PerpsMarketListView = ({
               size={IconSize.Lg}
             />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleTutorialClick()}
-            testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
-            style={styles.tutorialButton}
-          >
-            <Icon name={IconName.Question} size={IconSize.Lg} />
-          </TouchableOpacity>
         </View>
-      </View>
+      </Pressable>
 
       {isSearchVisible && (
         <View style={styles.searchContainer}>
@@ -500,6 +530,7 @@ const PerpsMarketListView = ({
               placeholderTextColor={theme.colors.text.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onPressIn={() => setShouldShowNavbar(false)}
               autoCapitalize="none"
               autoCorrect={false}
               autoFocus
@@ -518,11 +549,14 @@ const PerpsMarketListView = ({
       )}
 
       {/* Balance Actions Component */}
-      <PerpsMarketBalanceActions />
+      {!isSearchVisible && <PerpsMarketBalanceActions />}
 
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
-      <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
+      {/* Bottom navbar - hidden when search is visible */}
+      {shouldShowNavbar && (
+        <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>
+      )}
     </SafeAreaView>
   );
 };
