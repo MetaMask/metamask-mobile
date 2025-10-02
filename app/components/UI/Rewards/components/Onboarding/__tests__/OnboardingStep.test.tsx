@@ -1087,7 +1087,10 @@ describe('OnboardingStep4', () => {
       );
       fireEvent.press(nextButton);
 
-      expect(mockOptin).toHaveBeenCalledWith({ referralCode: 'TEST123' });
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: 'TEST123',
+        isPrefilled: false,
+      });
     });
 
     it('should show loading state during opt-in', () => {
