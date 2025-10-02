@@ -1494,7 +1494,10 @@
         "filled": "Filled",
         "metamask_fee": "MetaMask fee",
         "hyperliquid_fee": "Hyperliquid fee",
-        "total_fee": "Total fee"
+        "total_fee": "Total fee",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Date",
@@ -5847,6 +5850,17 @@
       "retry_button": "Retry"
     },
 
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
+
 
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -5964,7 +5978,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
 
     "optout": {
@@ -6069,6 +6085,9 @@
       "reward_claimed": "Reward claimed",
       "time_left": "left",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
