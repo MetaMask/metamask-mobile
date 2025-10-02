@@ -7,13 +7,17 @@ import {
 } from '../types';
 import { usePredictPriceHistory } from './usePredictPriceHistory';
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
+jest.mock('../../../../core/Engine', () => {
+  const mockContext = {
     PredictController: {
       getPriceHistory: jest.fn(),
     },
-  },
-}));
+  };
+
+  return {
+    context: mockContext,
+  };
+});
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -29,18 +33,7 @@ describe('usePredictPriceHistory', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Ensure Engine.context and PredictController exist before accessing
-    if (!Engine.context) {
-      (Engine as typeof Engine).context = {
-        PredictController: {
-          getPriceHistory: jest.fn(),
-        },
-      };
-    } else if (!Engine.context.PredictController) {
-      (Engine.context as typeof Engine.context).PredictController = {
-        getPriceHistory: jest.fn(),
-      };
-    }
+    // Reset the mock implementation for getPriceHistory
     (
       Engine.context.PredictController.getPriceHistory as jest.Mock
     ).mockResolvedValue(mockPriceHistory);
@@ -411,11 +404,11 @@ describe('usePredictPriceHistory', () => {
 
   describe('error handling', () => {
     it('handles Engine not initialized error', async () => {
-      // Save the original
-      const originalEngine = Engine.context;
+      // Save the original Engine.context
+      const originalContext = Engine.context;
 
-      // Temporarily mock Engine as null
-      (Engine as typeof Engine).context = null;
+      // Set Engine.context to null
+      (Engine as unknown as { context: null }).context = null;
 
       const { result, waitFor } = renderHook(() =>
         usePredictPriceHistory({
@@ -432,20 +425,13 @@ describe('usePredictPriceHistory', () => {
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalled();
 
-      // Restore Engine for other tests
-      (Engine as typeof Engine).context = originalEngine;
+      // Restore the original Engine.context
+      (Engine as unknown as { context: typeof originalContext }).context =
+        originalContext;
     });
 
     it('handles non-Error exceptions in individual market fetches', async () => {
-      // Make sure Engine context is set up properly
-      if (!Engine.context) {
-        (Engine as typeof Engine).context = {
-          PredictController: {
-            getPriceHistory: jest.fn(),
-          },
-        };
-      }
-
+      // The Engine context is already mocked at the module level
       (
         Engine.context.PredictController.getPriceHistory as jest.Mock
       ).mockRejectedValueOnce('String error');
