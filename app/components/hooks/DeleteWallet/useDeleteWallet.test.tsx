@@ -11,9 +11,9 @@ jest.mock('../../../core/Engine', () => ({
     SeedlessOnboardingController: {
       clearState: jest.fn(),
     },
-    RewardsController: {
-      reset: jest.fn(),
-    },
+  },
+  controllerMessenger: {
+    call: jest.fn(),
   },
 }));
 
@@ -74,10 +74,7 @@ describe('useDeleteWallet', () => {
       'clearState',
     );
 
-    const resetRewardsSpy = jest.spyOn(
-      Engine.context.RewardsController,
-      'reset',
-    );
+    const resetRewardsSpy = jest.spyOn(Engine.controllerMessenger, 'call');
 
     const loggerSpy = jest.spyOn(Logger, 'log');
     const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
@@ -89,6 +86,7 @@ describe('useDeleteWallet', () => {
     });
     expect(clearStateSpy).toHaveBeenCalledTimes(1);
     expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
+    expect(resetRewardsSpy).toHaveBeenCalledWith('RewardsController:resetAll');
     expect(loggerSpy).not.toHaveBeenCalled();
     expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);
   });

@@ -23,7 +23,7 @@ const useDeleteWallet = () => {
 
       await depositResetProviderToken();
 
-      await Engine.context.RewardsController.reset();
+      await Engine.controllerMessenger.call('RewardsController:resetAll');
 
       await clearAllVaultBackups();
       // lock the app but do not navigate to login screen as it should

@@ -24,6 +24,7 @@ jest.mock('./utils/multi-subscription-token-vault', () => ({
   ...jest.requireActual('./utils/multi-subscription-token-vault'),
   storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
   removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
+  resetAllSubscriptionTokens: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -92,6 +93,7 @@ import Logger from '../../../../util/Logger';
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
@@ -121,6 +123,10 @@ const mockStoreSubscriptionToken =
 const mockRemoveSubscriptionToken =
   removeSubscriptionToken as jest.MockedFunction<
     typeof removeSubscriptionToken
+  >;
+const mockResetAllSubscriptionTokens =
+  resetAllSubscriptionTokens as jest.MockedFunction<
+    typeof resetAllSubscriptionTokens
   >;
 const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
@@ -3429,179 +3435,7 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('reset', () => {
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-    });
-
-    it('should skip reset when feature flag is disabled', async () => {
-      // Arrange
-      mockSelectRewardsEnabledFlag.mockReturnValue(false);
-
-      // Act
-      await controller.reset();
-
-      // Assert
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Rewards feature is disabled, skipping reset',
-      );
-    });
-
-    it('should skip reset when no authenticated account exists', async () => {
-      // Arrange
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          pointsEvents: {},
-        },
-      });
-
-      // Act
-      await controller.reset();
-
-      // Assert
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: No authenticated account found',
-      );
-    });
-
-    it('should clear last authenticated account only if subscription matches', async () => {
-      // Arrange
-      const mockSubscriptionId = 'sub-123';
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: {
-            account: CAIP_ACCOUNT_1,
-            lastCheckedAuthError: false,
-            hasOptedIn: true,
-            subscriptionId: mockSubscriptionId,
-            lastCheckedAuth: Date.now(),
-            perpsFeeDiscount: 5.0,
-            lastPerpsDiscountRateFetched: Date.now(),
-          },
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          pointsEvents: {},
-        },
-      });
-
-      // Act
-      await controller.reset();
-
-      // Assert
-      expect(controller.state.activeAccount).toBeNull();
-    });
-
-    it('should successfully complete full reset flow - happy path', async () => {
-      // Arrange
-      const mockSubscriptionId = 'sub-456';
-      const mockActiveAccount = {
-        account: CAIP_ACCOUNT_1,
-        lastCheckedAuthError: false,
-        hasOptedIn: true,
-        subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 10.0,
-        lastPerpsDiscountRateFetched: Date.now(),
-      };
-
-      const mockInternalAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      // Mock getSelectedMultichainAccount to return valid account during initialization
-      mockMessenger.call.mockReturnValue(mockInternalAccount);
-
-      // Mock token storage to succeed during initialization
-      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: mockActiveAccount,
-          accounts: {
-            [CAIP_ACCOUNT_1]: mockActiveAccount,
-          },
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF456',
-              accounts: [],
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          pointsEvents: {},
-        },
-      });
-
-      // Clear only the messenger calls made during initialization, preserve other mocks
-      mockMessenger.call.mockClear();
-      mockStoreSubscriptionToken.mockClear();
-      mockRemoveSubscriptionToken.mockClear();
-
-      // Mock token removal for the actual test
-      mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
-
-      // Verify state is correctly set before calling reset
-      expect(controller.state.activeAccount).not.toBeNull();
-      expect(controller.state.activeAccount?.subscriptionId).toBe(
-        mockSubscriptionId,
-      );
-
-      // Act
-      await controller.reset();
-
-      // Assert - Verify session token removal was called
-      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(
-        mockSubscriptionId,
-      );
-
-      // Assert - Verify state was cleared correctly
-      expect(controller.state.activeAccount).toEqual({
-        account: 'eip155:1:0x123',
-        hasOptedIn: false,
-        lastCheckedAuth: 1000000,
-        lastCheckedAuthError: false,
-        lastPerpsDiscountRateFetched: null,
-        perpsFeeDiscount: null,
-        subscriptionId: null,
-      });
-      expect(controller.state.accounts[CAIP_ACCOUNT_1]).toBeUndefined();
-
-      // Assert - Verify success was logged
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Reset completed successfully',
-      );
-
-      // Assert - Verify subscription data cleared
-      expect(
-        controller.state.subscriptions[mockSubscriptionId],
-      ).toBeUndefined();
-    });
-  });
+  // Removed outdated 'reset' tests; behavior covered by 'resetAll' and 'logout' tests
 
   describe('logout', () => {
     beforeEach(() => {
@@ -3842,6 +3676,161 @@ describe('RewardsController', () => {
 
       // Reset mock for other tests
       mockIsHardwareAccount.mockReturnValue(false);
+    });
+  });
+
+  describe('resetAll', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    it('should skip reset when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      const mockSubscriptionId = 'sub-abc';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: 5.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF999',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.resetAll();
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      expect(controller.state.activeAccount).toEqual(activeAccountState);
+      expect(mockResetAllSubscriptionTokens).not.toHaveBeenCalled();
+    });
+
+    it('should clear tokens and reset state, preserving active account opted-out', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: 10.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.resetAll();
+
+      // Assert tokens cleared
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+
+      // Assert state updated: tokens cleared and state reset; active account is opted-out if preserved
+      const active = controller.state.activeAccount;
+      const activeIsOptedOut =
+        !!active &&
+        active.account === CAIP_ACCOUNT_1 &&
+        active.hasOptedIn === false &&
+        active.subscriptionId === null;
+      expect(active === null || activeIsOptedOut).toBe(true);
+
+      // Accounts and subscriptions should be cleared by resetState
+      expect(Object.keys(controller.state.accounts)).toHaveLength(0);
+      expect(Object.keys(controller.state.subscriptions)).toHaveLength(0);
+
+      // Success log
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset completed successfully',
+      );
+    });
+
+    it('should log error and re-throw when token reset fails', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-err';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: 7.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REFERR',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      const error = new Error('secure storage failure');
+      mockResetAllSubscriptionTokens.mockRejectedValueOnce(error);
+
+      // Act & Assert
+      await expect(controller.resetAll()).rejects.toThrow(
+        'secure storage failure',
+      );
+
+      // Error log
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset failed to complete',
+        'secure storage failure',
+      );
     });
   });
 
