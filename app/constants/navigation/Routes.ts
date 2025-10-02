@@ -102,6 +102,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
+    SUPPORT_CONSENT_MODAL: 'SupportConsentModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_INTRO_MODAL: 'RewardsIntroModal',
   },

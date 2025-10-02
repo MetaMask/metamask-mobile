@@ -7,6 +7,8 @@ describe('securityReducer', () => {
     allowLoginWithRememberMe: false,
     dataCollectionForMarketing: null,
     isNFTAutoDetectionModalViewed: false,
+    shouldShowConsentSheet: true,
+    dataSharingPreference: null,
   };
 
   it('should set allowLoginWithRememberMe to true', () => {

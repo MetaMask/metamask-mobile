@@ -45,6 +45,7 @@ import {
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  SupportConsentPreferenceSection,
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
@@ -612,6 +613,9 @@ const Settings: React.FC = () => {
         </Text>
         <MetaMetricsAndDataCollectionSection />
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+        <View style={styles.setting}>
+          <SupportConsentPreferenceSection />
+        </View>
         <DeleteWalletData />
         {renderHint()}
       </View>

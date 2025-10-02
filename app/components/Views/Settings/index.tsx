@@ -16,6 +16,7 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useSupportConsent } from '../../../components/hooks/useSupportConsent';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
@@ -167,17 +168,16 @@ const Settings = () => {
     );
   };
 
+  const { openSupportWebPage } = useSupportConsent(
+    goToBrowserUrl,
+    strings('app_settings.contact_support'),
+  );
+
   const showHelp = () => {
-    let supportUrl = 'https://support.metamask.io';
-
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
-
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
+    openSupportWebPage();
   };
 
   const onPressLock = async () => {
