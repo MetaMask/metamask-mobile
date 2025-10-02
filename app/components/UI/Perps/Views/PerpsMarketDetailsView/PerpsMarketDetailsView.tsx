@@ -11,7 +11,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import { ScrollView, View, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -404,12 +404,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   };
 
-  const handleTradingViewPress = useCallback(() => {
-    Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      console.error('Failed to open Trading View URL:', error);
-    });
-  }, []);
-
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
     () => !isLoadingPosition && !hasZeroBalance,
@@ -541,13 +535,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               color={TextColor.Alternative}
             >
               {strings('perps.risk_disclaimer')}{' '}
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
-                onPress={handleTradingViewPress}
-              >
-                Trading View.
-              </Text>
             </Text>
           </View>
         </ScrollView>

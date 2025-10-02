@@ -11,6 +11,7 @@ import type { PerpsMarketData } from '../../controllers/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -468,6 +469,89 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('shows no markets when search is visible with empty query', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially all markets should be visible
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // No markets should be visible when search is open with empty query
+      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+    });
+
+    it('shows empty state with search prompt when search is visible with empty query', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Empty state should be visible with search prompt
+      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+      expect(screen.getByText('Search by token symbol')).toBeOnTheScreen();
+
+      // Search icon should be visible in empty state
+      const icons = screen.root.findAllByProps({ name: IconName.Search });
+      expect(icons.length).toBeGreaterThan(0);
+
+      // No markets should be visible
+      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+
+      // Should not show list header when empty state is shown
+      expect(screen.queryByText('Volume')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Price / 24h change')).not.toBeOnTheScreen();
+    });
+
+    it('hides PerpsMarketBalanceActions when search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially balance actions should be visible
+      expect(
+        screen.getByTestId('perps-market-balance-actions'),
+      ).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Balance actions should now be hidden
+      expect(
+        screen.queryByTestId('perps-market-balance-actions'),
+      ).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+    });
+
     it('filters markets based on symbol search', () => {
       renderWithProvider(<PerpsMarketListView />);
 
@@ -571,10 +655,10 @@ describe('PerpsMarketListView', () => {
       // After pressing clear button, the search input should be empty
       expect(searchInput.props.value).toBe('');
 
-      // All markets should be visible again
-      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
-      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
-      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
+      // No markets should be visible when search is open with empty query
+      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
     });
 
     it('handles case-insensitive search', () => {
@@ -595,6 +679,223 @@ describe('PerpsMarketListView', () => {
 
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+    });
+
+    it('hides tab bar when search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should now be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('tab-bar-item-browser'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('tab-bar-item-actions'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('tab-bar-item-activity'),
+      ).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows navbar when close icon is pressed while search is visible', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Click the close icon (same button, but now shows close icon)
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Search should be hidden
+      expect(
+        screen.queryByPlaceholderText('Search by token symbol'),
+      ).not.toBeOnTheScreen();
+
+      // Tab bar should be visible again
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+    });
+
+    it('dismisses keyboard when header is pressed while search is visible', () => {
+      // Mock Keyboard.dismiss to verify it's called
+      const { Keyboard } = jest.requireActual('react-native');
+      const mockDismiss = jest.fn();
+      jest.spyOn(Keyboard, 'dismiss').mockImplementation(mockDismiss);
+
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Press the header (which is a Pressable)
+      const perpsText = screen.getByText('Perps');
+      const header = perpsText.parent?.parent;
+      expect(header).toBeTruthy();
+      if (header) {
+        act(() => {
+          fireEvent.press(header);
+        });
+      }
+
+      // Keyboard.dismiss should have been called
+      expect(mockDismiss).toHaveBeenCalled();
+
+      // Search should still be visible (header press only dismisses keyboard)
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows navbar when keyboard is dismissed while search is visible', () => {
+      // Mock Keyboard.addListener to capture the callback
+      let keyboardHideCallback: (() => void) | null = null;
+      const mockAddListener = jest.fn((event, callback) => {
+        if (event === 'keyboardDidHide') {
+          keyboardHideCallback = callback;
+        }
+        return { remove: jest.fn() };
+      });
+      const { Keyboard } = jest.requireActual('react-native');
+      jest.spyOn(Keyboard, 'addListener').mockImplementation(mockAddListener);
+
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Initially tab bar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+
+      // Click search toggle button to show search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Tab bar should be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+
+      // Search input should be visible
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Verify that the keyboard listener was registered
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'keyboardDidHide',
+        expect.any(Function),
+      );
+
+      // Simulate keyboard dismissal by calling the registered callback
+      act(() => {
+        if (keyboardHideCallback) {
+          keyboardHideCallback();
+        }
+      });
+
+      // Search should still be visible (keyboard dismiss doesn't hide search)
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
+
+      // Tab bar should be visible again (navbar shows after keyboard dismiss)
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-browser')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-actions')).toBeOnTheScreen();
+      expect(screen.getByTestId('tab-bar-item-activity')).toBeOnTheScreen();
+    });
+
+    it('hides navbar when search input is pressed again after keyboard dismissal', () => {
+      // Mock keyboard listener
+      let keyboardHideCallback: (() => void) | null = null;
+      const mockAddListener = jest.fn((event, callback) => {
+        if (event === 'keyboardDidHide') {
+          keyboardHideCallback = callback;
+        }
+        return { remove: jest.fn() };
+      });
+      const { Keyboard } = jest.requireActual('react-native');
+      jest.spyOn(Keyboard, 'addListener').mockImplementation(mockAddListener);
+
+      renderWithProvider(<PerpsMarketListView />);
+
+      // Open search
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Navbar should be hidden
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
+
+      // Simulate keyboard dismissal
+      act(() => {
+        if (keyboardHideCallback) {
+          keyboardHideCallback();
+        }
+      });
+
+      // Navbar should be visible
+      expect(screen.getByTestId('tab-bar-item-wallet')).toBeOnTheScreen();
+
+      // Press the search input again
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+      act(() => {
+        fireEvent(searchInput, 'pressIn');
+      });
+
+      // Navbar should be hidden again
+      expect(screen.queryByTestId('tab-bar-item-wallet')).not.toBeOnTheScreen();
     });
   });
 
@@ -725,23 +1026,6 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to tutorial when tutorial button is pressed', () => {
-      renderWithProvider(<PerpsMarketListView />);
-
-      // Find the tutorial button
-      const tutorialButton = screen.getByTestId(
-        PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON,
-      );
-      act(() => {
-        fireEvent.press(tutorialButton);
-      });
-
-      // Should navigate to tutorial screen
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.TUTORIAL,
-      );
-    });
-
     it('navigates back when close button is pressed', () => {
       renderWithProvider(<PerpsMarketListView />);
 
@@ -979,10 +1263,14 @@ describe('PerpsMarketListView', () => {
         fireEvent.changeText(searchInput, '   ');
       });
 
-      // Should show all markets when search is only whitespace
-      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
-      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
-      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
+      // Should show no markets when search is visible but query is empty/whitespace
+      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+
+      // Should show empty state with search prompt (not query-specific message)
+      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+      expect(screen.getByText('Search by token symbol')).toBeOnTheScreen();
     });
   });
 });
