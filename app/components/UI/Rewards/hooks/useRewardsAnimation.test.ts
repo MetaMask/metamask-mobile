@@ -5,6 +5,8 @@ import {
   RewardAnimationState,
 } from './useRewardsAnimation';
 
+const STATE_MACHINE_NAME = 'Rewards_Icon';
+
 // Mock rive-react-native
 const mockFireState = jest.fn();
 jest.mock('rive-react-native', () => ({
@@ -114,7 +116,7 @@ describe('useRewardsAnimation', () => {
       });
 
       expect(mockFireState).toHaveBeenCalledWith(
-        'State Machine 1',
+        STATE_MACHINE_NAME,
         'Refresh_left',
       );
     });
@@ -136,7 +138,10 @@ describe('useRewardsAnimation', () => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        STATE_MACHINE_NAME,
+        'Disable_right',
+      );
     });
 
     it('should clear display text in idle state', () => {
@@ -180,7 +185,10 @@ describe('useRewardsAnimation', () => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        STATE_MACHINE_NAME,
+        'Disable_right',
+      );
     });
 
     it('should clear display text in loading state', () => {
@@ -213,7 +221,10 @@ describe('useRewardsAnimation', () => {
         jest.advanceTimersByTime(150);
       });
 
-      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+      expect(mockFireState).toHaveBeenCalledWith(
+        STATE_MACHINE_NAME,
+        'Disable_right',
+      );
     });
 
     it('should not hide value in error state', () => {
@@ -247,7 +258,7 @@ describe('useRewardsAnimation', () => {
       });
 
       expect(mockFireState).toHaveBeenCalledWith(
-        'State Machine 1',
+        STATE_MACHINE_NAME,
         'Refresh_right',
       );
     });
@@ -270,7 +281,7 @@ describe('useRewardsAnimation', () => {
       });
 
       expect(mockFireState).toHaveBeenCalledWith(
-        'State Machine 1',
+        STATE_MACHINE_NAME,
         'Refresh_left',
       );
     });
