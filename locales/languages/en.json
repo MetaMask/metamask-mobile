@@ -1539,7 +1539,10 @@
         "description": "Fund your perps account with any token and make your first trade in seconds.",
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
-      "got_it": "Got it"
+      "got_it": "Got it",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Points",
     "estimated_points": "Est. Points",
