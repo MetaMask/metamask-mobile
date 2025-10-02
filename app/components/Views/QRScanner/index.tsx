@@ -153,8 +153,8 @@ const QRScanner = ({
         }
       }
 
-      if (SDKConnectV2.isConnectDeeplink(content)) {
-        SDKConnectV2.handleConnectDeeplink(content);
+      if (SDKConnectV2.isConnectDeeplink(response.data)) {
+        SDKConnectV2.handleConnectDeeplink(response.data);
         end();
         return;
       }
