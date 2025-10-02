@@ -1817,11 +1817,6 @@ export class RewardsController extends BaseController<
       return this.state.activeAccount.subscriptionId;
     }
 
-    Logger.log(
-      'RewardsController: Subscriptions map',
-      this.state.subscriptions?.length,
-    );
-
     // Fallback to the first subscription ID from the subscriptions map
     const subscriptionIds = Object.keys(this.state.subscriptions);
     if (subscriptionIds.length > 0) {

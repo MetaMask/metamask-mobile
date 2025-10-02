@@ -228,6 +228,39 @@ const rewardsSlice = createSlice({
       state,
       action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
     ) => {
+      const previousCandidateId = state.candidateSubscriptionId;
+      const newCandidateId = action.payload;
+
+      // Check if candidate ID changed and old value had a value (not null, 'pending', 'error', or 'retry')
+      const hasValidPreviousId =
+        previousCandidateId &&
+        previousCandidateId !== 'pending' &&
+        previousCandidateId !== 'error' &&
+        previousCandidateId !== 'retry';
+
+      const candidateIdChanged =
+        hasValidPreviousId && previousCandidateId !== newCandidateId;
+
+      if (candidateIdChanged) {
+        // Reset UI state to initial values
+        state.seasonId = initialState.seasonId;
+        state.seasonName = initialState.seasonName;
+        state.seasonStartDate = initialState.seasonStartDate;
+        state.seasonEndDate = initialState.seasonEndDate;
+        state.seasonTiers = initialState.seasonTiers;
+        state.referralCode = initialState.referralCode;
+        state.refereeCount = initialState.refereeCount;
+        state.currentTier = initialState.currentTier;
+        state.nextTier = initialState.nextTier;
+        state.nextTierPointsNeeded = initialState.nextTierPointsNeeded;
+        state.balanceTotal = initialState.balanceTotal;
+        state.balanceRefereePortion = initialState.balanceRefereePortion;
+        state.balanceUpdatedAt = initialState.balanceUpdatedAt;
+        state.activeBoosts = initialState.activeBoosts;
+        state.pointsEvents = initialState.pointsEvents;
+        state.unlockedRewards = initialState.unlockedRewards;
+      }
+
       state.candidateSubscriptionId = action.payload;
     },
 

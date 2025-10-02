@@ -1047,6 +1047,17 @@ describe('rewardsReducer', () => {
         expect(state.candidateSubscriptionId).toBe('error');
       });
 
+      it('should set candidate subscription ID to retry', () => {
+        // Arrange
+        const action = setCandidateSubscriptionId('retry');
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.candidateSubscriptionId).toBe('retry');
+      });
+
       it('should set candidate subscription ID to null', () => {
         // Arrange
         const stateWithId = {
@@ -1062,11 +1073,11 @@ describe('rewardsReducer', () => {
         expect(state.candidateSubscriptionId).toBe(null);
       });
 
-      it('should not affect other state properties', () => {
+      it('should not affect other state properties when changing from non-valid state', () => {
         // Arrange
         const stateWithData = {
           ...initialState,
-          candidateSubscriptionId: 'old-id',
+          candidateSubscriptionId: 'pending' as const,
           referralCode: 'KEEP123',
           balanceTotal: 1500,
         };
@@ -1079,6 +1090,434 @@ describe('rewardsReducer', () => {
         expect(state.candidateSubscriptionId).toBe('new-id');
         expect(state.referralCode).toBe('KEEP123');
         expect(state.balanceTotal).toBe(1500);
+      });
+
+      describe('state reset logic when candidate ID changes', () => {
+        it('should reset UI state when changing from valid ID to different valid ID', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'old-subscription-id',
+            seasonId: 'season-123',
+            seasonName: 'Test Season',
+            seasonStartDate: new Date('2024-01-01'),
+            seasonEndDate: new Date('2024-12-31'),
+            seasonTiers: [
+              {
+                id: 'tier-1',
+                name: 'Tier 1',
+                pointsNeeded: 100,
+                image: {
+                  lightModeUrl: 'tier1.png',
+                  darkModeUrl: 'tier1-dark.png',
+                },
+                levelNumber: '1',
+                rewards: [],
+              },
+            ],
+            referralCode: 'REF123',
+            refereeCount: 5,
+            currentTier: {
+              id: 'current-tier',
+              name: 'Current Tier',
+              pointsNeeded: 1000,
+              image: {
+                lightModeUrl: 'current.png',
+                darkModeUrl: 'current-dark.png',
+              },
+              levelNumber: '2',
+              rewards: [],
+            },
+            nextTier: {
+              id: 'next-tier',
+              name: 'Next Tier',
+              pointsNeeded: 2000,
+              image: {
+                lightModeUrl: 'next.png',
+                darkModeUrl: 'next-dark.png',
+              },
+              levelNumber: '3',
+              rewards: [],
+            },
+            nextTierPointsNeeded: 1000,
+            balanceTotal: 1500,
+            balanceRefereePortion: 300,
+            balanceUpdatedAt: new Date('2024-06-01'),
+            activeBoosts: [
+              {
+                id: 'boost-1',
+                name: 'Test Boost',
+                icon: {
+                  lightModeUrl: 'boost.png',
+                  darkModeUrl: 'boost-dark.png',
+                },
+                boostBips: 1000,
+                seasonLong: true,
+                backgroundColor: '#FF0000',
+              },
+            ],
+            pointsEvents: [
+              {
+                id: 'event-1',
+                type: 'SWAP' as const,
+                timestamp: new Date('2024-01-01'),
+                value: 100,
+                bonus: null,
+                accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+                updatedAt: new Date('2024-01-01'),
+                payload: null,
+              },
+            ],
+            unlockedRewards: [
+              {
+                id: 'reward-1',
+                seasonRewardId: 'season-reward-1',
+                claimStatus: RewardClaimStatus.CLAIMED,
+              },
+            ],
+          };
+          const action = setCandidateSubscriptionId('new-subscription-id');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('new-subscription-id');
+          // All UI state should be reset to initial values
+          expect(state.seasonId).toBe(initialState.seasonId);
+          expect(state.seasonName).toBe(initialState.seasonName);
+          expect(state.seasonStartDate).toBe(initialState.seasonStartDate);
+          expect(state.seasonEndDate).toBe(initialState.seasonEndDate);
+          expect(state.seasonTiers).toEqual(initialState.seasonTiers);
+          expect(state.referralCode).toBe(initialState.referralCode);
+          expect(state.refereeCount).toBe(initialState.refereeCount);
+          expect(state.currentTier).toBe(initialState.currentTier);
+          expect(state.nextTier).toBe(initialState.nextTier);
+          expect(state.nextTierPointsNeeded).toBe(
+            initialState.nextTierPointsNeeded,
+          );
+          expect(state.balanceTotal).toBe(initialState.balanceTotal);
+          expect(state.balanceRefereePortion).toBe(
+            initialState.balanceRefereePortion,
+          );
+          expect(state.balanceUpdatedAt).toBe(initialState.balanceUpdatedAt);
+          expect(state.activeBoosts).toBe(initialState.activeBoosts);
+          expect(state.pointsEvents).toBe(initialState.pointsEvents);
+          expect(state.unlockedRewards).toBe(initialState.unlockedRewards);
+        });
+
+        it('should NOT reset UI state when changing from pending to valid ID', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'pending' as const,
+            seasonId: 'season-123',
+            seasonName: 'Test Season',
+            referralCode: 'REF123',
+            balanceTotal: 1500,
+          };
+          const action = setCandidateSubscriptionId('new-subscription-id');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('new-subscription-id');
+          // UI state should NOT be reset when coming from pending
+          expect(state.seasonId).toBe('season-123');
+          expect(state.seasonName).toBe('Test Season');
+          expect(state.referralCode).toBe('REF123');
+          expect(state.balanceTotal).toBe(1500);
+        });
+
+        it('should NOT reset UI state when changing from error to valid ID', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'error' as const,
+            seasonId: 'season-456',
+            seasonName: 'Error Season',
+            referralCode: 'ERROR123',
+            balanceTotal: 2000,
+          };
+          const action = setCandidateSubscriptionId('new-subscription-id');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('new-subscription-id');
+          // UI state should NOT be reset when coming from error
+          expect(state.seasonId).toBe('season-456');
+          expect(state.seasonName).toBe('Error Season');
+          expect(state.referralCode).toBe('ERROR123');
+          expect(state.balanceTotal).toBe(2000);
+        });
+
+        it('should NOT reset UI state when changing from retry to valid ID', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'retry' as const,
+            seasonId: 'season-789',
+            seasonName: 'Retry Season',
+            referralCode: 'RETRY123',
+            balanceTotal: 3000,
+          };
+          const action = setCandidateSubscriptionId('new-subscription-id');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('new-subscription-id');
+          // UI state should NOT be reset when coming from retry
+          expect(state.seasonId).toBe('season-789');
+          expect(state.seasonName).toBe('Retry Season');
+          expect(state.referralCode).toBe('RETRY123');
+          expect(state.balanceTotal).toBe(3000);
+        });
+
+        it('should NOT reset UI state when changing from null to valid ID', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: null,
+            seasonId: 'season-null',
+            seasonName: 'Null Season',
+            referralCode: 'NULL123',
+            balanceTotal: 4000,
+          };
+          const action = setCandidateSubscriptionId('new-subscription-id');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('new-subscription-id');
+          // UI state should NOT be reset when coming from null
+          expect(state.seasonId).toBe('season-null');
+          expect(state.seasonName).toBe('Null Season');
+          expect(state.referralCode).toBe('NULL123');
+          expect(state.balanceTotal).toBe(4000);
+        });
+
+        it('should NOT reset UI state when changing to same valid ID', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'same-subscription-id',
+            seasonId: 'season-same',
+            seasonName: 'Same Season',
+            referralCode: 'SAME123',
+            balanceTotal: 5000,
+          };
+          const action = setCandidateSubscriptionId('same-subscription-id');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('same-subscription-id');
+          // UI state should NOT be reset when ID doesn't change
+          expect(state.seasonId).toBe('season-same');
+          expect(state.seasonName).toBe('Same Season');
+          expect(state.referralCode).toBe('SAME123');
+          expect(state.balanceTotal).toBe(5000);
+        });
+
+        it('should reset UI state when changing from valid ID to pending', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'valid-subscription-id',
+            seasonId: 'season-valid',
+            seasonName: 'Valid Season',
+            referralCode: 'VALID123',
+            balanceTotal: 6000,
+          };
+          const action = setCandidateSubscriptionId('pending');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('pending');
+          // UI state should be reset when changing from valid ID to pending
+          expect(state.seasonId).toBe(initialState.seasonId);
+          expect(state.seasonName).toBe(initialState.seasonName);
+          expect(state.referralCode).toBe(initialState.referralCode);
+          expect(state.balanceTotal).toBe(initialState.balanceTotal);
+        });
+
+        it('should reset UI state when changing from valid ID to error', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'valid-subscription-id',
+            seasonId: 'season-valid',
+            seasonName: 'Valid Season',
+            referralCode: 'VALID123',
+            balanceTotal: 6000,
+          };
+          const action = setCandidateSubscriptionId('error');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('error');
+          // UI state should be reset when changing from valid ID to error
+          expect(state.seasonId).toBe(initialState.seasonId);
+          expect(state.seasonName).toBe(initialState.seasonName);
+          expect(state.referralCode).toBe(initialState.referralCode);
+          expect(state.balanceTotal).toBe(initialState.balanceTotal);
+        });
+
+        it('should reset UI state when changing from valid ID to retry', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'valid-subscription-id',
+            seasonId: 'season-valid',
+            seasonName: 'Valid Season',
+            referralCode: 'VALID123',
+            balanceTotal: 6000,
+          };
+          const action = setCandidateSubscriptionId('retry');
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('retry');
+          // UI state should be reset when changing from valid ID to retry
+          expect(state.seasonId).toBe(initialState.seasonId);
+          expect(state.seasonName).toBe(initialState.seasonName);
+          expect(state.referralCode).toBe(initialState.referralCode);
+          expect(state.balanceTotal).toBe(initialState.balanceTotal);
+        });
+
+        it('should reset UI state when changing from valid ID to null', () => {
+          // Arrange
+          const stateWithData = {
+            ...initialState,
+            candidateSubscriptionId: 'valid-subscription-id',
+            seasonId: 'season-valid',
+            seasonName: 'Valid Season',
+            referralCode: 'VALID123',
+            balanceTotal: 6000,
+          };
+          const action = setCandidateSubscriptionId(null);
+
+          // Act
+          const state = rewardsReducer(stateWithData, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe(null);
+          // UI state should be reset when changing from valid ID to null
+          expect(state.seasonId).toBe(initialState.seasonId);
+          expect(state.seasonName).toBe(initialState.seasonName);
+          expect(state.referralCode).toBe(initialState.referralCode);
+          expect(state.balanceTotal).toBe(initialState.balanceTotal);
+        });
+      });
+
+      describe('state transitions between special states', () => {
+        it('should handle transition from pending to error', () => {
+          // Arrange
+          const stateWithPending = {
+            ...initialState,
+            candidateSubscriptionId: 'pending' as const,
+            seasonId: 'season-pending',
+            referralCode: 'PENDING123',
+          };
+          const action = setCandidateSubscriptionId('error');
+
+          // Act
+          const state = rewardsReducer(stateWithPending, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('error');
+          expect(state.seasonId).toBe('season-pending'); // Should not reset
+          expect(state.referralCode).toBe('PENDING123'); // Should not reset
+        });
+
+        it('should handle transition from error to retry', () => {
+          // Arrange
+          const stateWithError = {
+            ...initialState,
+            candidateSubscriptionId: 'error' as const,
+            seasonId: 'season-error',
+            referralCode: 'ERROR123',
+          };
+          const action = setCandidateSubscriptionId('retry');
+
+          // Act
+          const state = rewardsReducer(stateWithError, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('retry');
+          expect(state.seasonId).toBe('season-error'); // Should not reset
+          expect(state.referralCode).toBe('ERROR123'); // Should not reset
+        });
+
+        it('should handle transition from retry to pending', () => {
+          // Arrange
+          const stateWithRetry = {
+            ...initialState,
+            candidateSubscriptionId: 'retry' as const,
+            seasonId: 'season-retry',
+            referralCode: 'RETRY123',
+          };
+          const action = setCandidateSubscriptionId('pending');
+
+          // Act
+          const state = rewardsReducer(stateWithRetry, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('pending');
+          expect(state.seasonId).toBe('season-retry'); // Should not reset
+          expect(state.referralCode).toBe('RETRY123'); // Should not reset
+        });
+
+        it('should handle transition from null to pending', () => {
+          // Arrange
+          const stateWithNull = {
+            ...initialState,
+            candidateSubscriptionId: null,
+            seasonId: 'season-null',
+            referralCode: 'NULL123',
+          };
+          const action = setCandidateSubscriptionId('pending');
+
+          // Act
+          const state = rewardsReducer(stateWithNull, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe('pending');
+          expect(state.seasonId).toBe('season-null'); // Should not reset
+          expect(state.referralCode).toBe('NULL123'); // Should not reset
+        });
+
+        it('should handle transition from pending to null', () => {
+          // Arrange
+          const stateWithPending = {
+            ...initialState,
+            candidateSubscriptionId: 'pending' as const,
+            seasonId: 'season-pending',
+            referralCode: 'PENDING123',
+          };
+          const action = setCandidateSubscriptionId(null);
+
+          // Act
+          const state = rewardsReducer(stateWithPending, action);
+
+          // Assert
+          expect(state.candidateSubscriptionId).toBe(null);
+          expect(state.seasonId).toBe('season-pending'); // Should not reset
+          expect(state.referralCode).toBe('PENDING123'); // Should not reset
+        });
       });
     });
 
