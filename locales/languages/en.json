@@ -575,7 +575,8 @@
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
     "could_not_resolve_name": "Couldn't resolve name",
-    "invalid_address": "Invalid address"
+    "invalid_address": "Invalid address",
+    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
   },
   "deposit": {
     "title": "Deposit",

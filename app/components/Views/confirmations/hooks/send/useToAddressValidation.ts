@@ -20,7 +20,7 @@ interface ValidationResult {
 }
 
 export const useToAddressValidation = () => {
-  const { chainId, to } = useSendContext();
+  const { asset, chainId, to } = useSendContext();
   const { isEvmSendType, isSolanaSendType } = useSendType();
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
@@ -45,7 +45,11 @@ export const useToAddressValidation = () => {
         isEvmSendType &&
         isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
       ) {
-        return await validateHexAddress(toAddress, chainId as Hex);
+        return await validateHexAddress(
+          toAddress,
+          chainId as Hex,
+          asset?.address,
+        );
       }
 
       if (isSolanaSendType && isSolanaAddress(toAddress)) {
@@ -60,7 +64,7 @@ export const useToAddressValidation = () => {
         error: strings('send.invalid_address'),
       };
     },
-    [chainId, isEvmSendType, isSolanaSendType, validateName],
+    [asset, chainId, isEvmSendType, isSolanaSendType, validateName],
   );
 
   useEffect(() => {

@@ -1,4 +1,3 @@
-import Engine from '../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as ConfusablesUtils from '../../../../util/confusables';
 import {
@@ -6,17 +5,23 @@ import {
   validateHexAddress,
   validateSolanaAddress,
 } from './send-address-validations';
+import { memoizedGetTokenStandardAndDetails, TokenDetailsERC20 } from './token';
+
+jest.mock('./token', () => ({
+  memoizedGetTokenStandardAndDetails: jest.fn().mockResolvedValue(undefined),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    AssetsContractController: {
-      getERC721AssetSymbol: Promise.resolve(undefined),
-    },
     NetworkController: {
       findNetworkClientIdByChainId: () => 'mainnet',
     },
   },
 }));
+
+const mockMemoizedGetTokenStandardAndDetails = jest.mocked(
+  memoizedGetTokenStandardAndDetails,
+);
 
 describe('validateHexAddress', () => {
   it('returns error if address is burn address', async () => {
@@ -45,9 +50,19 @@ describe('validateHexAddress', () => {
       ),
     ).toStrictEqual({});
   });
+  it('return error if address is contract address of asset', async () => {
+    expect(
+      await validateHexAddress(
+        '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+        '0x1',
+        '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
+      ),
+    ).toStrictEqual({ error: 'send.contractAddressError' });
+  });
   it('returns warning if address is contract address', async () => {
-    Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
-      Promise.resolve('ABC');
+    mockMemoizedGetTokenStandardAndDetails.mockResolvedValue({
+      standard: 'ERC20',
+    } as unknown as TokenDetailsERC20);
     expect(
       await validateHexAddress(
         '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',

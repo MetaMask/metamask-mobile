@@ -9,6 +9,7 @@ import {
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
+import { memoizedGetTokenStandardAndDetails } from './token';
 
 const LOWER_CASED_BURN_ADDRESSES = [
   '0x0000000000000000000000000000000000000000',
@@ -18,6 +19,7 @@ const LOWER_CASED_BURN_ADDRESSES = [
 export const validateHexAddress = async (
   toAddress: string,
   chainId?: Hex,
+  assetAddress?: string,
 ): Promise<{
   error?: string;
   warning?: string;
@@ -28,19 +30,27 @@ export const validateHexAddress = async (
     };
   }
 
+  if (toAddress?.toLowerCase() === assetAddress?.toLowerCase()) {
+    return {
+      error: 'send.contractAddressError',
+    };
+  }
+
   const checksummedAddress = toChecksumAddress(toAddress);
   if (chainId) {
-    const { AssetsContractController, NetworkController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
     try {
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         chainId as Hex,
       );
-      const symbol = await AssetsContractController.getERC721AssetSymbol(
-        checksummedAddress,
+      const token = await memoizedGetTokenStandardAndDetails({
+        tokenAddress: checksummedAddress,
+        tokenId: undefined,
+        userAddress: undefined,
         networkClientId,
-      );
-      if (symbol) {
+      });
+      if (token?.standard) {
         return {
           warning: strings('send.token_contract_warning'),
         };
