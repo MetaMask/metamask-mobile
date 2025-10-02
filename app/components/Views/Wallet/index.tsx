@@ -141,7 +141,6 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
-import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -567,20 +566,55 @@ const Wallet = ({
 
   const onReceive = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
-      navigate(
-        ...createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-        }),
-      );
-    } else {
-      navigate(Routes.QR_TAB_SWITCHER, {
-        initialScreen: QRTabSwitcherScreens.Receive,
+      if (selectedAccountGroupId) {
+        navigate(
+          ...createAddressListNavigationDetails({
+            groupId: selectedAccountGroupId as AccountGroupId,
+            title: `${strings(
+              'multichain_accounts.address_list.receiving_address',
+            )}`,
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error(
+            'Wallet::onReceive - Missing selectedAccountGroupId for state2',
+          ),
+        );
+      }
+    } else if (
+      selectedInternalAccount?.address &&
+      selectedAccountGroupId &&
+      chainId
+    ) {
+      // Show address QR code for receiving funds
+      navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: {
+          address: selectedInternalAccount.address,
+          networkName: providerConfig?.nickname || 'Unknown Network',
+          chainId,
+          groupId: selectedAccountGroupId,
+        },
       });
+    } else {
+      Logger.error(
+        new Error('Wallet::onReceive - Missing required data for navigation'),
+        {
+          hasAddress: !!selectedInternalAccount?.address,
+          hasGroupId: !!selectedAccountGroupId,
+          hasChainId: !!chainId,
+        },
+      );
     }
-  }, [isMultichainAccountsState2Enabled, navigate, selectedAccountGroupId]);
+  }, [
+    isMultichainAccountsState2Enabled,
+    navigate,
+    selectedAccountGroupId,
+    selectedInternalAccount,
+    chainId,
+    providerConfig,
+  ]);
 
   const onSend = useCallback(async () => {
     try {

@@ -1614,8 +1614,7 @@
     "accept": "Tanggapin"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Mag-scan ng QR code",
-    "receive_tab": "Iyong QR code"
+    "scanner_tab": "Mag-scan ng QR code"
   },
   "banner": {
     "bridge": {

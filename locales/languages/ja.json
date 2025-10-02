@@ -1614,8 +1614,7 @@
     "accept": "同意する"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "QRコードをスキャン",
-    "receive_tab": "QRコード"
+    "scanner_tab": "QRコードをスキャン"
   },
   "banner": {
     "bridge": {

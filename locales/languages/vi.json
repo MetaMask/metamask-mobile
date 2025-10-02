@@ -1614,8 +1614,7 @@
     "accept": "Chấp nhận"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Quét mã QR",
-    "receive_tab": "Mã QR của bạn"
+    "scanner_tab": "Quét mã QR"
   },
   "banner": {
     "bridge": {

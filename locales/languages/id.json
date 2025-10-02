@@ -1614,8 +1614,7 @@
     "accept": "Terima"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Pindai kode QR",
-    "receive_tab": "Kode QR Anda"
+    "scanner_tab": "Pindai kode QR"
   },
   "banner": {
     "bridge": {

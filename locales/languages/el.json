@@ -1614,8 +1614,7 @@
     "accept": "Αποδοχή"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Σάρωση κωδικού QR",
-    "receive_tab": "Ο κωδικός σας QR"
+    "scanner_tab": "Σάρωση κωδικού QR"
   },
   "banner": {
     "bridge": {
