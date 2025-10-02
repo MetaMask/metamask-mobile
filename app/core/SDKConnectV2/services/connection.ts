@@ -23,7 +23,6 @@ export class Connection {
   public readonly info: ConnectionInfo;
   public readonly client: WalletClient;
   public readonly bridge: IRPCBridgeAdapter;
-  public readonly requests: unknown[] = [];
   public readonly toastHandler: ToastHandler;
 
   private constructor(connInfo: ConnectionInfo, client: WalletClient) {
