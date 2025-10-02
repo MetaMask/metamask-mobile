@@ -45,6 +45,18 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     );
   }
 
+  showReturnToApp(conninfo: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo.id,
+        autodismiss: 8000,
+        title: strings('sdk_return_to_app_toast.returnToAppLabel'),
+        description: null,
+        status: 'success',
+      }),
+    );
+  }
+
   syncConnectionList(conns: Connection[]): void {
     const v2Sessions: SDKSessions = conns.reduce((acc, conn) => {
       const props: ConnectionProps & { isV2: boolean } = {

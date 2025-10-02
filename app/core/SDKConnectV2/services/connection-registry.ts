@@ -54,6 +54,7 @@ export class ConnectionRegistry {
           connInfo,
           this.keymanager,
           this.RELAY_URL,
+          this.hostapp,
         );
         await conn.resume();
         this.connections.set(conn.id, conn);

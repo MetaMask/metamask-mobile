@@ -12,8 +12,7 @@ import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
-import { ToastHandler } from '../utils/toast-handler';
-import { JsonRpcRequest } from '@metamask/utils';
+import { IHostApplicationAdapter } from '../types/host-application-adapter';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -22,20 +21,22 @@ export class Connection {
   public readonly id: string;
   public readonly info: ConnectionInfo;
   public readonly client: WalletClient;
+  public readonly hostApp: IHostApplicationAdapter;
   public readonly bridge: IRPCBridgeAdapter;
-  public readonly toastHandler: ToastHandler;
 
-  private constructor(connInfo: ConnectionInfo, client: WalletClient) {
+  private constructor(
+    connInfo: ConnectionInfo,
+    client: WalletClient,
+    hostApp: IHostApplicationAdapter,
+  ) {
     this.id = connInfo.id;
     this.info = connInfo;
     this.client = client;
+    this.hostApp = hostApp;
     this.bridge = new RPCBridgeAdapter(this.info);
-    this.toastHandler = new ToastHandler();
 
     this.client.on('message', (payload) => {
       logger.debug('Received message:', this.id, payload);
-
-      this.toastHandler.addRequest(payload as JsonRpcRequest);
 
       this.bridge.send(payload);
     });
@@ -43,9 +44,12 @@ export class Connection {
     this.bridge.on('response', (payload) => {
       logger.debug('Sending message:', this.id, payload);
 
-      //TODO (wenfix): fix before merge
-      // @ts-expect-error type mismatch
-      this.toastHandler.handleRequest(payload.data);
+      /**
+       * TODO (wenfix):
+       * 1) How should errors be handled?
+       * 2) What responses do not warrant a toast?
+       **/
+      this.hostApp.showReturnToApp(this.info);
 
       this.client.sendResponse(payload);
     });
@@ -63,6 +67,7 @@ export class Connection {
     connInfo: ConnectionInfo,
     keymanager: IKeyManager,
     relayURL: string,
+    hostApp: IHostApplicationAdapter,
   ): Promise<Connection> {
     const transport = await WebSocketTransport.create({
       url: relayURL,
@@ -73,7 +78,7 @@ export class Connection {
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
 
-    return new Connection(connInfo, client);
+    return new Connection(connInfo, client, hostApp);
   }
 
   /**
