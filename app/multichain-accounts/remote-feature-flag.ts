@@ -63,26 +63,24 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     return override === 'true';
   }
 
-  const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
-  if (
-    !enableMultichainAccounts ||
-    !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)
-  ) {
-    return true;
-  }
+  for (const { version, featureKey } of featureVersionsToCheck) {
+    const featureFlag = remoteFeatureFlags[featureKey];
 
     if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
-      return false;
+      return true;
     }
 
-  // Check if the feature is enabled for any of the specified versions
-  return featureVersionsToCheck.some(
-    (featureVersionToCheck) =>
+    const { enabled, featureVersion, minimumVersion } = featureFlag;
+
+    return (
       enabled &&
       minimumVersion !== null &&
-      featureVersion === featureVersionToCheck &&
-      compareVersions.compare(minimumVersion, APP_VERSION, '<='),
-  );
+      featureVersion === version &&
+      compareVersions.compare(minimumVersion, APP_VERSION, '<=')
+    );
+  }
+
+  return true;
 };
 
 /**
@@ -96,17 +94,17 @@ function getRemoteFeatureFlags(): FeatureFlags {
  * Checks if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
-export const isMultichainAccountsState1Enabled = () => {
-  const remoteFeatureFlags = getRemoteFeatureFlags();
-  return (
-    isMultichainAccountsRemoteFeatureEnabled(remoteFeatureFlags, [
-      MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
-    ]) ||
-    isMultichainAccountsRemoteFeatureEnabled(remoteFeatureFlags, [
-      MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-    ])
-  );
-};
+export const isMultichainAccountsState1Enabled = () =>
+  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+      featureKey: STATE_1_FLAG,
+    },
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      featureKey: STATE_2_FLAG,
+    },
+  ]);
 
 /**
  * Checks if multichain accounts state 2 is enabled.

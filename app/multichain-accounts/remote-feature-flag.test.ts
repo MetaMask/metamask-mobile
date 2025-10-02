@@ -74,7 +74,12 @@ describe('Multichain Accounts Feature Flag', () => {
 
   describe('isMultichainAccountsRemoteFeatureEnabled', () => {
     it('returns true as default value', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled({}, ['1']);
+      const result = isMultichainAccountsRemoteFeatureEnabled({}, [
+        {
+          version: '1',
+          featureKey: STATE_1_FLAG,
+        },
+      ]);
       expect(result).toBe(true);
     });
 
