@@ -331,7 +331,7 @@
     "forgot_password": "Forgot password?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
     "invalid_password": "Password is incorrect, try again.",
-    "invalid_pin": "Password/PIN is incorrect. try again.",
+    "invalid_pin": "Password/PIN is incorrect. Try again.",
     "type_delete": "Type ‘%{erase}’ to confirm",
     "erase_my": "Yes, reset wallet",
     "cancel": "Cancel",
