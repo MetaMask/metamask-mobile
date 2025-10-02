@@ -507,11 +507,20 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('Rehydrate', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+          Platform.OS === 'android'
+            ? this.props.navigation.navigate('Rehydrate', {
+                [PREVIOUS_SCREEN]: ONBOARDING,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              })
+            : this.props.navigation.navigate(
+                Routes.ONBOARDING.SECURE_EXISTING_WALLET,
+                {
+                  [PREVIOUS_SCREEN]: ONBOARDING,
+                  oauthLoginSuccess: true,
+                  onboardingTraceCtx: this.onboardingTraceCtx,
+                },
+              );
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,

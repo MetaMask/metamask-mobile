@@ -5,6 +5,7 @@ import {
   ScrollView,
   Dimensions,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
@@ -141,6 +142,20 @@ const AccountStatus = ({
     );
   };
 
+  const descriptionForFoundTypeAccountStatus = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      return 'account_status.account_already_exists_ios_new_userd_escription';
+    }
+    return 'account_status.account_already_exists_description';
+  }, []);
+
+  const buttonLabelForFoundTypeAccountStatus = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      return 'account_status.unlock_wallet';
+    }
+    return 'account_status.log_in';
+  }, []);
+
   return (
     <SafeAreaView>
       <View style={styles.root}>
@@ -160,7 +175,7 @@ const AccountStatus = ({
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings(
                   type === 'found'
-                    ? 'account_status.account_already_exists_description'
+                    ? descriptionForFoundTypeAccountStatus()
                     : 'account_status.account_not_found_description',
                   {
                     accountName,
@@ -185,7 +200,7 @@ const AccountStatus = ({
             }}
             label={
               type === 'found'
-                ? strings('account_status.log_in')
+                ? strings(buttonLabelForFoundTypeAccountStatus())
                 : strings('account_status.create_new_wallet')
             }
           />
