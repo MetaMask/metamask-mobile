@@ -245,6 +245,7 @@ const PerpsMarketBalanceActions: React.FC<
               <ActivityIndicator
                 size="small"
                 color={styles.activityIndicator.color}
+                // color="white"
               />
             </Box>
           </Box>

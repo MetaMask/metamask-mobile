@@ -23,7 +23,7 @@ const styleSheet = ({ theme }: { theme: Theme }) => {
       marginBottom: 4,
     },
     activityIndicator: {
-      color: colors.primary.default,
+      color: colors.icon.default,
     },
   });
 };

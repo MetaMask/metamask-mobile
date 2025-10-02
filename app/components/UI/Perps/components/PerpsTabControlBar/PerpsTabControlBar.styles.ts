@@ -86,7 +86,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
     },
     activityIndicator: {
-      color: colors.primary.default,
+      color: colors.icon.default,
     },
   });
 };
