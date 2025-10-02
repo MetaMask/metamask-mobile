@@ -44,6 +44,7 @@ import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -78,17 +79,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const insets = useSafeAreaInsets();
 
   const { marketId } = route.params || {};
-
-  const position: PredictPosition[] = [];
-  const currentPosition = position[0];
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
+
+  const { positions } = usePredictPositions({ marketId: resolvedMarketId });
 
   const { market, isFetching: isMarketFetching } = usePredictMarket({
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
+
+  const position: PredictPosition[] = positions;
+  const currentPosition = position[0];
 
   const outcomeSlices = useMemo(
     () => (market?.outcomes ?? []).slice(0, 3),
@@ -164,9 +167,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const onCashOut = () => {
+    const outcome = market?.outcomes.find(
+      (o) => o.id === currentPosition?.outcomeId,
+    );
     navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.CASH_OUT,
-      params: { position: currentPosition },
+      params: { position: currentPosition, outcome },
     });
   };
 
@@ -252,8 +258,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     </Box>
   );
 
-  const renderPositionsSection = () =>
-    position.length > 0 ? (
+  const renderPositionsSection = () => {
+    const outcome = market?.outcomes.find(
+      (o) => o.id === currentPosition?.outcomeId,
+    );
+
+    const outcomeTitle = outcome?.groupItemTitle
+      ? outcome?.groupItemTitle
+      : currentPosition?.outcome;
+
+    return position.length > 0 ? (
       <Box twClassName="space-y-4">
         {/* Cash Out Section */}
         <Box
@@ -279,15 +293,28 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             <Box twClassName="flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                justifyContent={BoxJustifyContent.Between}
+                justifyContent={BoxJustifyContent.Start}
                 alignItems={BoxAlignItems.Center}
-                twClassName="mb-1"
+                twClassName="mb-1 gap-2"
               >
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  ${currentPosition?.amount} on {currentPosition?.outcome}
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={tw.style('flex-1')}
+                >
+                  {formatPrice(currentPosition?.initialValue ?? 0, {
+                    maximumDecimals: 2,
+                  })}{' '}
+                  on {outcomeTitle}
                 </Text>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {formatPrice(currentPosition?.currentValue || 0, {
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  style={tw.style('shrink-0')}
+                >
+                  {formatPrice(currentPosition?.currentValue ?? 0, {
                     maximumDecimals: 2,
                   })}
                 </Text>
@@ -302,7 +329,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={TextColor.Alternative}
                 >
                   {currentPosition?.outcome} at{' '}
-                  {formatPrice(currentPosition?.price || 0, {
+                  {formatPrice(currentPosition?.avgPrice ?? 0, {
                     maximumDecimals: 2,
                   })}{' '}
                   • 30 seconds ago
@@ -338,6 +365,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Text>
       </Box>
     );
+  };
 
   const renderAboutSection = () => (
     <Box twClassName="space-y-6">
@@ -486,6 +514,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         }
         onPress={() => {
           // Navigate to buy flow
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+            screen: Routes.PREDICT.MODALS.PLACE_BET,
+            params: {
+              market,
+              outcome: market?.outcomes?.[0],
+              outcomeToken: market?.outcomes?.[0]?.tokens?.[0],
+            },
+          });
         }}
       />
       <Button
@@ -500,6 +536,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         }
         onPress={() => {
           // Navigate to buy flow
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+            screen: Routes.PREDICT.MODALS.PLACE_BET,
+            params: {
+              market,
+              outcome: market?.outcomes?.[0],
+              outcomeToken: market?.outcomes?.[0]?.tokens?.[1],
+            },
+          });
         }}
       />
     </Box>
@@ -561,6 +605,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                       outcome?.title ??
                       `outcome-${index}`
                     }
+                    market={market}
                     outcome={outcome}
                   />
                 ))}

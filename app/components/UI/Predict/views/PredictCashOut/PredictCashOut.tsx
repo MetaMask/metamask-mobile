@@ -33,9 +33,11 @@ const PredictCashOut = () => {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictCashOut'>>();
-  const { position } = route.params;
+  const { position, outcome } = route.params;
 
-  const { icon, title, outcome, initialValue } = position;
+  const { icon, title, outcome: outcomeSideText, initialValue } = position;
+
+  const outcomeTitle = outcome.groupItemTitle ? outcome.groupItemTitle : title;
 
   const { placeOrder, isLoading } = usePredictPlaceOrder({
     onComplete: () => {
@@ -102,14 +104,15 @@ const PredictCashOut = () => {
                 ellipsizeMode="tail"
                 style={styles.detailsLeft}
               >
-                {title}
+                {outcomeTitle}
               </Text>
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
                 style={styles.detailsResolves}
               >
-                {formatPrice(initialValue, { minimumDecimals: 2 })} on {outcome}
+                {formatPrice(initialValue, { minimumDecimals: 2 })} on{' '}
+                {outcomeSideText}
               </Text>
             </View>
           </View>

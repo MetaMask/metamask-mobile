@@ -144,6 +144,7 @@ const mockMarket: PredictMarket = {
     {
       id: 'outcome-456',
       marketId: 'market-123',
+      providerId: 'polymarket',
       title: 'Bitcoin Price Outcome',
       description: 'Outcome description',
       image: 'https://example.com/outcome.png',
@@ -173,7 +174,7 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictPlaceBet'> = {
   name: 'PredictPlaceBet',
   params: {
     market: mockMarket,
-    outcomeId: 'outcome-456',
+    outcome: mockMarket.outcomes[0],
     outcomeToken: {
       id: 'outcome-token-789',
       title: 'Yes',

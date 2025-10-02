@@ -1,27 +1,20 @@
 import Engine from '../../../../../core/Engine';
-import { PredictPositionStatus, Side } from '../../types';
-import { PolymarketProvider } from './PolymarketProvider';
 import {
-  OffchainTradeParams,
-  Side,
-  Recurrence,
   PredictPositionStatus,
   PredictPriceHistoryInterval,
+  Side,
 } from '../../types';
+import { PolymarketProvider } from './PolymarketProvider';
 import {
-  buildMarketOrderCreationArgs,
-  calculateMarketPrice,
   createApiKey,
   encodeClaim,
   getContractConfig,
   getL2Headers,
   getMarketDetailsFromGammaApi,
-  getMarketsFromPolymarketApi,
   getOrderBook,
   getOrderTypedData,
   getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
-  getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
   priceValid,
@@ -93,14 +86,8 @@ const mockSignPersonalMessage = Engine.context.KeyringController
   .signPersonalMessage as jest.Mock;
 const mockGetMarketsFromPolymarketApi =
   getParsedMarketsFromPolymarketApi as jest.Mock;
-const mockGetMarketFromPolymarketApi = getMarketsFromPolymarketApi as jest.Mock;
 const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
-const mockGetTickSize = getTickSize as jest.Mock;
-const mockCalculateMarketPrice = calculateMarketPrice as jest.Mock;
-const mockBuildMarketOrderCreationArgs =
-  buildMarketOrderCreationArgs as jest.Mock;
-const mockEncodeApprove = encodeApprove as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
 const mockGetL2Headers = getL2Headers as jest.Mock;
 const mockGetOrderBook = getOrderBook as jest.Mock;
