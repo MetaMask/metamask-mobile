@@ -1,6 +1,7 @@
 import {
   BridgeClientId,
   fetchBridgeTokens,
+  formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
@@ -18,7 +19,6 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
-import { normalizeToCaipAssetType } from '../../utils';
 import { memoize } from 'lodash';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { TokenListToken } from '@metamask/assets-controllers';
@@ -41,8 +41,14 @@ const formatCachedTokenListControllerTokens = (
 
     // Convert non-EVM addresses to CAIP format for consistent deduplication
     const tokenAddress = isNonEvmChainId(caipChainId)
-      ? normalizeToCaipAssetType(token.address, caipChainId)
+      ? formatAddressToAssetId(token.address, caipChainId)
       : token.address;
+
+    if (!tokenAddress) {
+      throw new Error(
+        `Invalid token address: ${token.address} for chain ID: ${chainId}`,
+      );
+    }
 
     bridgeTokenObj[address] = {
       address: tokenAddress,
