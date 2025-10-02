@@ -8209,6 +8209,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/sample-controllers@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sample-controllers/-/sample-controllers-0.1.0.tgz#ed13273fce4b333a235db57e87f5354cb58fb059"
+  integrity sha512-jycJh140ryEvD+R9tPVJYX0g/bwvrbtNuiR0HWw0mcm0OjttcrReWMphANSJTamPSy4vpTuf3kwffNtrroTV/Q==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/utils" "^11.2.0"
+
 "@metamask/scure-bip39@npm:^2.1.0, @metamask/scure-bip39@npm:^2.1.1":
   version: 2.1.1
   resolution: "@metamask/scure-bip39@npm:2.1.1"

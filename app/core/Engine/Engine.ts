@@ -229,6 +229,9 @@ import {
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
+///: END:ONLY_INCLUDE_IF
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
@@ -1174,6 +1177,9 @@ export class Engine {
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        SamplePetnamesController: samplePetnamesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
@@ -1589,6 +1595,9 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController: controllersByName.SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -2358,6 +2367,9 @@ export default {
       PredictController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController,
       RewardsController,
     } = instance.datamodel.state;
@@ -2416,6 +2428,9 @@ export default {
       PredictController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController,
       RewardsController,
     };
