@@ -73,7 +73,10 @@ export const SecretRecoveryPhrase = ({
         gap={8}
       >
         {showSeedphraseBackReminder && (
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Error}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
             {strings('multichain_accounts.export_credentials.backup')}
           </Text>
         )}
