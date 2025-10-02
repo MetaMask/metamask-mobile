@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import BN4 from 'bnjs4';
 import {
   AvatarToken,
@@ -30,8 +30,6 @@ import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 
-import useModalHandler from '../../../../../Base/hooks/useModalHandler';
-
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
 
@@ -46,7 +44,6 @@ import AccountSelector from '../../components/AccountSelector';
 
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
-import RegionModal from '../../components/RegionModal';
 import SkeletonText from '../../components/SkeletonText';
 import ErrorView from '../../components/ErrorView';
 import BadgeWrapper, {
@@ -71,8 +68,9 @@ import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
+import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
-import { QuickAmount, Region, ScreenLocation } from '../../types';
+import { QuickAmount, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import {
@@ -100,6 +98,7 @@ import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,10 +126,6 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
-
-  const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
-    useModalHandler(false);
-
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -142,7 +137,6 @@ const BuildQuote = () => {
   const {
     selectedPaymentMethodId,
     selectedRegion,
-    setSelectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
@@ -214,6 +208,61 @@ const BuildQuote = () => {
     setAmountBNMinimalUnit,
     currentFiatCurrency,
   );
+
+  useEffect(() => {
+    setAmount('0');
+    setAmountNumber(0);
+  }, [selectedRegion]);
+
+  const shouldShowUnsupportedModal = useMemo(() => (
+      regions &&
+      selectedRegion &&
+      (selectedRegion.unsupported ||
+        (isBuy && !selectedRegion.support?.buy) ||
+        (isSell && !selectedRegion.support?.sell))
+    ), [regions, selectedRegion, isBuy, isSell]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (shouldShowUnsupportedModal && selectedRegion) {
+        // Use requestAnimationFrame to ensure navigation happens after render
+        requestAnimationFrame(() => {
+          navigation.navigate(
+            ...createUnsupportedRegionModalNavigationDetails({
+              regions: regions ?? [],
+              region: selectedRegion,
+            }),
+          );
+        });
+      }
+    }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
+  );
+
+  useEffect(() => {
+    const handleRegionChange = async () => {
+      if (
+        selectedRegion &&
+        selectedFiatCurrencyId === defaultFiatCurrency?.id
+      ) {
+        const newRegionCurrency = await queryDefaultFiatCurrency(
+          selectedRegion.id,
+          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
+        );
+        if (newRegionCurrency?.id) {
+          setSelectedFiatCurrencyId(newRegionCurrency.id);
+        }
+      }
+    };
+
+    handleRegionChange();
+  }, [
+    selectedRegion,
+    selectedFiatCurrencyId,
+    defaultFiatCurrency?.id,
+    queryDefaultFiatCurrency,
+    selectedPaymentMethodId,
+    setSelectedFiatCurrencyId,
+  ]);
 
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
@@ -495,37 +544,14 @@ const BuildQuote = () => {
 
   const handleChangeRegion = useCallback(() => {
     setAmountFocused(false);
-    toggleRegionModal();
-  }, [toggleRegionModal]);
-
-  const handleRegionPress = useCallback(
-    async (region: Region) => {
-      hideRegionModal();
-      setAmount('0');
-      setAmountNumber(0);
-      if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
-        /*
-         * Selected fiat currency is default, we will fetch
-         * and select new region default fiat currency
-         */
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          region.id,
-          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
-        );
-        setSelectedFiatCurrencyId(newRegionCurrency?.id);
-      }
-      setSelectedRegion(region);
-    },
-    [
-      defaultFiatCurrency?.id,
-      hideRegionModal,
-      queryDefaultFiatCurrency,
-      selectedFiatCurrencyId,
-      selectedPaymentMethodId,
-      setSelectedFiatCurrencyId,
-      setSelectedRegion,
-    ],
-  );
+    if (regions && regions.length > 0) {
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails({
+          regions,
+        }),
+      );
+    }
+  }, [navigation, regions, setAmountFocused]);
 
   /**
    * * CryptoCurrency handlers
@@ -1053,23 +1079,6 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-      {regions && (
-        <RegionModal
-          isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.title')}
-          description={strings(
-            isBuy
-              ? 'fiat_on_ramp_aggregator.region.description'
-              : 'fiat_on_ramp_aggregator.region.sell_description',
-          )}
-          data={regions}
-          dismiss={hideRegionModal as () => void}
-          onRegionPress={handleRegionPress}
-          location={screenLocation}
-          selectedRegion={selectedRegion}
-          rampType={rampType}
-        />
-      )}
     </ScreenLayout>
   );
 };
