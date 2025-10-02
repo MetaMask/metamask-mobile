@@ -103,7 +103,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
               }
             >
-              MetaMask PIN
+              MetaMask password
             </Text>
             <Text
               accessibilityRole="text"
@@ -143,7 +143,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
               testID="label"
             >
-              Create pin
+              Create new password
             </Text>
             <View
               accessibilityState={
@@ -278,7 +278,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
               testID="label"
             >
-              Confirm pin
+              Confirm password
             </Text>
             <View
               accessibilityState={
@@ -553,7 +553,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   }
                 }
               >
-                Create PIN
+                Create password
               </Text>
             </TouchableOpacity>
           </View>

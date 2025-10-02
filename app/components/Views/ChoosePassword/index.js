@@ -425,7 +425,10 @@ class ChoosePassword extends PureComponent {
       ) {
         this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
-          error_type: strings('choose_password.password_dont_match'),
+          error_type:
+            Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+              ? strings('choose_password.password_dont_match_ios')
+              : strings('choose_password.password_dont_match'),
         });
       }
       return;
@@ -805,7 +808,7 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.DisplayMD}
                     color={TextColor.Default}
                   >
-                    {Platform.OS === 'ios'
+                    {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
                       ? strings('choose_password.title_ios')
                       : strings('choose_password.title')}
                   </Text>
@@ -818,7 +821,7 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {Platform.OS === 'ios'
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
                           ? strings(
                               'choose_password.description_social_login_update_ios',
                             )
@@ -849,7 +852,7 @@ class ChoosePassword extends PureComponent {
                     color={TextColor.Default}
                     style={styles.label}
                   >
-                    {Platform.OS === 'ios'
+                    {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
                       ? strings('choose_password.password_ios')
                       : strings('choose_password.password')}
                   </Label>
@@ -885,9 +888,13 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodySM}
                         color={TextColor.Alternative}
                       >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? strings('choose_password.must_be_at_least_ios', {
+                              number: MIN_PASSWORD_LENGTH,
+                            })
+                          : strings('choose_password.must_be_at_least', {
+                              number: MIN_PASSWORD_LENGTH,
+                            })}
                       </Text>
                     )}
                   {Boolean(password) &&
@@ -897,7 +904,9 @@ class ChoosePassword extends PureComponent {
                         color={TextColor.Alternative}
                         testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
                       >
-                        {strings('choose_password.password_strength')}
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? strings('choose_password.password_strength_ios')
+                          : strings('choose_password.password_strength')}
                         <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Alternative}
@@ -918,7 +927,7 @@ class ChoosePassword extends PureComponent {
                     color={TextColor.Default}
                     style={styles.label}
                   >
-                    {Platform.OS === 'ios'
+                    {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
                       ? strings('choose_password.confirm_password_ios')
                       : strings('choose_password.confirm_password')}
                   </Label>
@@ -957,7 +966,9 @@ class ChoosePassword extends PureComponent {
                   />
                   {this.checkError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                      {strings('choose_password.password_error')}
+                      {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                        ? strings('choose_password.password_error_ios')
+                        : strings('choose_password.password_error')}
                     </Text>
                   )}
                 </View>
@@ -1017,7 +1028,7 @@ class ChoosePassword extends PureComponent {
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}
                     label={
-                      Platform.OS === 'ios'
+                      Platform.OS === 'ios' && this.getOauth2LoginSuccess()
                         ? strings('choose_password.create_password_cta_ios')
                         : strings('choose_password.create_password_cta')
                     }

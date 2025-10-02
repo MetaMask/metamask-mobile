@@ -223,7 +223,7 @@
   },
   "social_login_success": {
     "title": "You've signed up!",
-    "set_metamask_pin": "Set MetaMask pin"
+    "set_metamask_pin": "Secure your wallet"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
@@ -398,14 +398,16 @@
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create new password",
-    "password_ios": "Create pin",
+    "password_ios": "Create PIN",
     "confirm_password": "Confirm password",
-    "confirm_password_ios": "Confirm pin",
+    "confirm_password_ios": "Confirm PIN",
     "create_button": "Create password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
     "password_length_error": "The password needs to be at least 8 characters long",
     "password_dont_match": "Passwords don't match",
+    "password_dont_match_ios": "PINs do not match",
     "password_strength": "Password strength:",
+    "password_strength_ios": "Strength:",
     "strength_weak": "Weak",
     "strength_good": "Good",
     "strength_strong": "Strong",
@@ -413,6 +415,7 @@
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
     "must_be_at_least": "Password must have at least {{number}} characters",
+    "must_be_at_least_ios": "Must be at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -425,6 +428,7 @@
     "create_password_cta_ios": "Create PIN",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
+    "password_error_ios": "PINs do not match",
     "marketing_opt_in_description" : "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
     "loose_password_description" : "If I lose this password, MetaMask can’t reset it."
   },
