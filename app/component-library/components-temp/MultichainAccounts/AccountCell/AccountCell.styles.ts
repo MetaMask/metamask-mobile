@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
+import { colors as staticColors } from '../../../../styles/common';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -12,31 +13,48 @@ const styleSheet = (params: {
   return StyleSheet.create({
     container: {
       gap: 16,
-      paddingLeft: 16,
-      paddingRight: 8,
       paddingTop: 16,
       paddingBottom: 16,
     },
-    avatar: {
+    avatarWrapper: {
       borderRadius: 8,
-      width: 32,
-      height: 32,
+      width: isSelected ? 40 : 36, // 36 (avatar size) + 2*2 (border width) when selected, 32 + 2*2 when not
+      height: isSelected ? 40 : 36, // 36 (avatar size) + 2*2 (border width) when selected, 32 + 2*2 when not
+      borderWidth: 2,
+      borderColor: isSelected ? colors.info.default : staticColors.transparent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatar: {
+      borderRadius: 6, // Slightly smaller to account for wrapper border
+      width: isSelected ? 36 : 32, // Increase size to maintain 32x32 content area with 2px border
+      height: isSelected ? 36 : 32, // Increase size to maintain 32x32 content area with 2px border
       backgroundColor: colors.background.muted,
       borderWidth: isSelected ? 2 : 0,
-      borderColor: isSelected ? colors.info.default : colors.background.default,
+      borderColor: isSelected ? staticColors.white : staticColors.transparent,
     },
     accountName: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'center',
+      flex: 1,
+      minWidth: 0,
+    },
+    accountNameText: {
+      minWidth: 0,
+      flex: 1,
+    },
+    checkIcon: {
+      marginLeft: 8,
     },
     endContainer: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'center',
       gap: 8,
+      flexShrink: 0,
     },
     balance: {
       verticalAlign: 'middle',

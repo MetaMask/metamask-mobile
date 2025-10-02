@@ -1,103 +1,66 @@
-import { hasProperty, isObject } from '@metamask/utils';
+import { EXISTING_USER } from '../../constants/storage';
+import { ensureValidState, ValidState } from './util';
 import { captureException } from '@sentry/react-native';
-import { ensureValidState } from './util';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
+import StorageWrapper from '../storage-wrapper';
+import { cloneDeep } from 'lodash';
+import { isObject } from '@metamask/utils';
+
+// Import the user initial state
+import { userInitialState } from '../../reducers/user';
+
+// Extend ValidState to include the user state
+interface ValidStateWithUser extends ValidState {
+  user?: {
+    existingUser?: boolean;
+    [key: string]: unknown;
+  };
+}
 
 /**
- * Migration 093: Update Sei Network Name
+ * Migration 093: Move EXISTING_USER flag from MMKV to Redux state
+ * This unifies user state management and fixes iCloud backup inconsistencies
  *
- * This migration updates:
- * - the SEI network name from `Sei Network` to `Sei Mainnet`.
- * - the SEI RPC name from `Sei Network` to `Sei Mainnet`.
+ * IMPORTANT: After iCloud restore, we should default to existingUser: false
+ * because keychain credentials are not backed up, even if MMKV data is restored
  */
-export default function migrate(state: unknown): unknown {
-  const migrationVersion = 93;
-  const fromName = 'Sei Network';
-  const toName = 'Sei Mainnet';
-  const seiChainId = NETWORK_CHAIN_ID.SEI_MAINNET;
-
-  if (!ensureValidState(state, migrationVersion)) {
+const migration = async (state: unknown): Promise<unknown> => {
+  if (!ensureValidState(state, 93)) {
     return state;
   }
+
+  const newState = cloneDeep(state) as ValidStateWithUser;
 
   try {
-    // We only update the network name if it exists in the state
-    // and matches the expected chain ID and name.
-    if (
-      hasProperty(state, 'engine') &&
-      hasProperty(state.engine, 'backgroundState') &&
-      hasProperty(state.engine.backgroundState, 'NetworkController') &&
-      isObject(state.engine.backgroundState.NetworkController) &&
-      isObject(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-      ) &&
-      hasProperty(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-        seiChainId,
-      ) &&
-      isObject(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId[seiChainId],
-      )
-    ) {
-      // Update the network name if it matches the expected name
-      if (
-        hasProperty(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
-          'name',
-        ) &&
-        (
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
-        ).name === fromName
-      ) {
-        (
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
-        ).name = toName;
-      }
+    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+    const existingUserValue = existingUser === 'true';
 
-      // Update the RPC Name if it matches the expected name
-      if (
-        hasProperty(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
-          'rpcEndpoints',
-        ) &&
-        Array.isArray(
-          (
-            state.engine.backgroundState.NetworkController
-              .networkConfigurationsByChainId[
-              seiChainId
-            ] as NetworkConfiguration
-          ).rpcEndpoints,
-        )
-      ) {
-        const rpcEndpoints = (
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
-        ).rpcEndpoints;
-        rpcEndpoints.forEach((endpoint) => {
-          if (endpoint.name === fromName) {
-            endpoint.name = toName;
-          }
-        });
-      }
+    if (!isObject(newState.user)) {
+      const error = new Error(
+        `Migration 93: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
+      );
+      captureException(error);
+
+      newState.user = {
+        ...userInitialState,
+        existingUser: existingUserValue,
+      };
+    } else {
+      newState.user.existingUser = existingUserValue;
     }
-    return state;
   } catch (error) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: Failed to update Sei network name: ${String(
-          error,
-        )}`,
-      ),
-    );
-    // Return the original state if migration fails to avoid breaking the app
-    return state;
+    captureException(error as Error);
+
+    if (!isObject(newState.user)) {
+      newState.user = {
+        ...userInitialState,
+        existingUser: false, // Default to false only if we can't read from MMKV
+      };
+    } else {
+      newState.user.existingUser = false;
+    }
   }
-}
+
+  return newState;
+};
+
+export default migration;

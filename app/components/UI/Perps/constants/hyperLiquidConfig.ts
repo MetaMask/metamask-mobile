@@ -1,4 +1,4 @@
-import type { CaipAssetId, CaipChainId } from '@metamask/utils';
+import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import type {
   HyperLiquidNetwork,
   HyperLiquidEndpoints,
@@ -35,10 +35,17 @@ export const ZERO_BALANCE = '0x0';
 export const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee'; // 421614 in decimal
 
 // USDC token addresses
+export const USDC_ETHEREUM_MAINNET_ADDRESS =
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 export const USDC_ARBITRUM_MAINNET_ADDRESS =
   '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
 export const USDC_ARBITRUM_TESTNET_ADDRESS =
   '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+
+// USDC token icon URL using MetaMask's official Token Icons API
+// Format: https://static.cx.metamask.io/api/v1/tokenIcons/{chainId}/{contractAddress}.png
+// This URL follows the same pattern used throughout MetaMask (bridges, swaps, etc.)
+export const USDC_TOKEN_ICON_URL = `https://static.cx.metamask.io/api/v1/tokenIcons/1/${USDC_ETHEREUM_MAINNET_ADDRESS}.png`;
 
 // WebSocket endpoints
 export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
@@ -89,8 +96,8 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   stopLossPercent: 0.1, // 10% stop loss
   slippage: 0.05, // 5% max slippage protection
   amount: {
-    mainnet: 6, // $6 minimum order size (normally 5 but adding 1 for fees)
-    testnet: 11, // $11 minimum order size (normally 10 but adding 1 for fees)
+    mainnet: 10, // $10 minimum order size
+    testnet: 10, // $10 minimum order size
   },
 };
 
@@ -100,6 +107,30 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
 export const FEE_RATES: FeeRatesConfig = {
   taker: 0.00045, // 0.045% - Market orders and aggressive limit orders
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
+};
+
+const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
+
+// Builder fee configuration
+export const BUILDER_FEE_CONFIG = {
+  // Test builder wallet
+  testnetBuilder: '0x724e57771ba749650875bd8adb2e29a85d0cacfa' as Hex,
+  // Production builder wallet
+  mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as Hex,
+  // Fee in decimal (10 bp = 0.1%)
+  maxFeeDecimal: BUILDER_FEE_MAX_FEE_DECIMAL,
+  maxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
+  maxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
+    .toFixed(4)
+    .replace(/\.?0+$/, '')}%` as `${string}%`,
+};
+
+// Referral code configuration
+export const REFERRAL_CONFIG = {
+  // Production referral code
+  mainnetCode: 'MMCSI',
+  // Development/testnet referral code
+  testnetCode: 'MMCSITEST',
 };
 
 // MetaMask fee for deposits (temporary placeholder)

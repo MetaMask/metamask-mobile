@@ -1,6 +1,7 @@
 import enContent from '../../../locales/languages/en.json';
 
 export const SettingsViewSelectorsText = {
+  TITLE: enContent.app_settings.title,
   ADVANCE_TITLE_TEXT: enContent.app_settings.advanced_title,
   CONTACT_SUPPORT_TITLE: enContent.app_settings.contact_support,
 };
@@ -22,4 +23,5 @@ export const SettingsViewSelectorsIDs = {
   AES_CRYPTO_TEST_FORM: 'aes-crypto-settings',
   PERMISSIONS: 'permissions',
   BACKUP_AND_SYNC: 'backup-and-sync-settings',
+  SNAPS: 'snaps',
 };

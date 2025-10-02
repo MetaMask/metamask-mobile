@@ -1,11 +1,21 @@
 import {
   isValidTakeProfitPrice,
   isValidStopLossPrice,
+  isStopLossSafeFromLiquidation,
   validateTPSLPrices,
   getTakeProfitErrorDirection,
   getStopLossErrorDirection,
+  getStopLossLiquidationErrorDirection,
   calculatePriceForPercentage,
   calculatePercentageForPrice,
+  hasTPSLValuesChanged,
+  calculatePriceForRoE,
+  calculateRoEForPrice,
+  safeParseRoEPercentage,
+  formatRoEPercentageDisplay,
+  getMaxStopLossPercentage,
+  isValidStopLossPercentage,
+  sanitizePercentageInput,
 } from './tpslValidation';
 
 describe('TPSL Validation Utilities', () => {
@@ -101,6 +111,170 @@ describe('TPSL Validation Utilities', () => {
     });
   });
 
+  describe('isStopLossBeyondLiquidationPrice', () => {
+    describe('Long positions', () => {
+      const direction = 'long' as const;
+      const liquidationPrice = '80';
+
+      it('should return true for SL above liquidation price', () => {
+        expect(
+          isStopLossSafeFromLiquidation('85', liquidationPrice, direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('$90.00', liquidationPrice, direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('100', liquidationPrice, direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('80.01', liquidationPrice, direction),
+        ).toBe(true);
+      });
+
+      it('should return false for SL below or equal to liquidation price', () => {
+        expect(
+          isStopLossSafeFromLiquidation('75', liquidationPrice, direction),
+        ).toBe(false);
+        expect(
+          isStopLossSafeFromLiquidation('$70.00', liquidationPrice, direction),
+        ).toBe(false);
+        expect(
+          isStopLossSafeFromLiquidation('79.99', liquidationPrice, direction),
+        ).toBe(false);
+        expect(
+          isStopLossSafeFromLiquidation('80.00', liquidationPrice, direction),
+        ).toBe(false);
+      });
+
+      it('should handle formatted liquidation prices', () => {
+        expect(isStopLossSafeFromLiquidation('85', '$80.00', direction)).toBe(
+          true,
+        );
+        expect(isStopLossSafeFromLiquidation('85', '1,080.00', direction)).toBe(
+          false,
+        );
+        expect(
+          isStopLossSafeFromLiquidation('1,085', '1,080.00', direction),
+        ).toBe(true);
+      });
+    });
+
+    describe('Short positions', () => {
+      const direction = 'short' as const;
+      const liquidationPrice = '120';
+
+      it('should return true for SL below liquidation price', () => {
+        expect(
+          isStopLossSafeFromLiquidation('115', liquidationPrice, direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('$110.00', liquidationPrice, direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('100', liquidationPrice, direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('119.99', liquidationPrice, direction),
+        ).toBe(true);
+      });
+
+      it('should return false for SL above or equal to liquidation price', () => {
+        expect(
+          isStopLossSafeFromLiquidation('125', liquidationPrice, direction),
+        ).toBe(false);
+        expect(
+          isStopLossSafeFromLiquidation('$130.00', liquidationPrice, direction),
+        ).toBe(false);
+        expect(
+          isStopLossSafeFromLiquidation('120.01', liquidationPrice, direction),
+        ).toBe(false);
+        expect(
+          isStopLossSafeFromLiquidation('120.00', liquidationPrice, direction),
+        ).toBe(false);
+      });
+
+      it('should handle formatted liquidation prices', () => {
+        expect(isStopLossSafeFromLiquidation('115', '$120.00', direction)).toBe(
+          true,
+        );
+        expect(
+          isStopLossSafeFromLiquidation('115', '1,120.00', direction),
+        ).toBe(true);
+        expect(
+          isStopLossSafeFromLiquidation('1,125', '1,120.00', direction),
+        ).toBe(false);
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should return true when inputs are invalid or missing', () => {
+        // Missing liquidation price
+        expect(isStopLossSafeFromLiquidation('100', undefined, 'long')).toBe(
+          true,
+        );
+        expect(isStopLossSafeFromLiquidation('100', '', 'long')).toBe(true);
+
+        // Missing direction
+        expect(isStopLossSafeFromLiquidation('100', '80', undefined)).toBe(
+          true,
+        );
+
+        // Missing stop loss price
+        expect(isStopLossSafeFromLiquidation(undefined, '80', 'long')).toBe(
+          true,
+        );
+        expect(isStopLossSafeFromLiquidation('', '80', 'long')).toBe(true);
+
+        // Invalid numeric values
+        expect(isStopLossSafeFromLiquidation('invalid', '80', 'long')).toBe(
+          true,
+        );
+        expect(isStopLossSafeFromLiquidation('100', 'invalid', 'long')).toBe(
+          true,
+        );
+      });
+
+      it('should handle decimal precision correctly', () => {
+        // Long position: SL must be above liquidation
+        expect(isStopLossSafeFromLiquidation('80.001', '80.000', 'long')).toBe(
+          true,
+        );
+        expect(isStopLossSafeFromLiquidation('79.999', '80.000', 'long')).toBe(
+          false,
+        );
+
+        // Short position: SL must be below liquidation
+        expect(isStopLossSafeFromLiquidation('79.999', '80.000', 'short')).toBe(
+          true,
+        );
+        expect(isStopLossSafeFromLiquidation('80.001', '80.000', 'short')).toBe(
+          false,
+        );
+      });
+
+      it('should handle very small price differences', () => {
+        const liquidationPrice = '100.00';
+
+        // Long: barely above liquidation should be valid
+        expect(
+          isStopLossSafeFromLiquidation('100.01', liquidationPrice, 'long'),
+        ).toBe(true);
+
+        // Short: barely below liquidation should be valid
+        expect(
+          isStopLossSafeFromLiquidation('99.99', liquidationPrice, 'short'),
+        ).toBe(true);
+      });
+
+      it('should handle zero and negative prices', () => {
+        expect(isStopLossSafeFromLiquidation('0', '10', 'long')).toBe(false);
+        expect(isStopLossSafeFromLiquidation('0', '10', 'short')).toBe(true);
+        expect(isStopLossSafeFromLiquidation('5', '0', 'long')).toBe(true);
+        expect(isStopLossSafeFromLiquidation('5', '0', 'short')).toBe(false);
+      });
+    });
+  });
+
   describe('validateTPSLPrices', () => {
     const longParams = { currentPrice: 100, direction: 'long' as const };
 
@@ -129,6 +303,180 @@ describe('TPSL Validation Utilities', () => {
       const params = { currentPrice: 100, direction: undefined };
       expect(validateTPSLPrices('150', '50', params)).toBe(true);
     });
+
+    describe('with liquidation price validation', () => {
+      describe('Long positions', () => {
+        const longParamsWithLiquidation = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          liquidationPrice: '80',
+        };
+
+        it('should return true when stop loss is above liquidation price (valid)', () => {
+          // Valid TP and SL above liquidation (passes liquidation check)
+          expect(
+            validateTPSLPrices('150', '85', longParamsWithLiquidation),
+          ).toBe(true);
+
+          // Valid TP, SL just above liquidation (passes liquidation check)
+          expect(
+            validateTPSLPrices('150', '80.01', longParamsWithLiquidation),
+          ).toBe(true);
+
+          // Only TP provided (no SL to validate against liquidation)
+          expect(
+            validateTPSLPrices('150', undefined, longParamsWithLiquidation),
+          ).toBe(true);
+        });
+
+        it('should return false when stop loss is at or below liquidation price (invalid)', () => {
+          // Valid TP but SL below liquidation (fails liquidation check)
+          expect(
+            validateTPSLPrices('150', '75', longParamsWithLiquidation),
+          ).toBe(false);
+
+          // Valid TP but SL equal to liquidation (fails liquidation check)
+          expect(
+            validateTPSLPrices('150', '80', longParamsWithLiquidation),
+          ).toBe(false);
+
+          // Valid TP but SL just below liquidation (fails liquidation check)
+          expect(
+            validateTPSLPrices('150', '79.99', longParamsWithLiquidation),
+          ).toBe(false);
+        });
+
+        it('should return false when both TP and SL are invalid', () => {
+          // Invalid TP (below current) and SL below liquidation
+          expect(
+            validateTPSLPrices('50', '75', longParamsWithLiquidation),
+          ).toBe(false);
+
+          // Invalid TP and SL equal to liquidation
+          expect(
+            validateTPSLPrices('50', '80', longParamsWithLiquidation),
+          ).toBe(false);
+        });
+      });
+
+      describe('Short positions', () => {
+        const shortParamsWithLiquidation = {
+          currentPrice: 100,
+          direction: 'short' as const,
+          liquidationPrice: '120',
+        };
+
+        it('should return true when stop loss is below liquidation price (valid)', () => {
+          // Valid TP and SL below liquidation (passes liquidation check)
+          expect(
+            validateTPSLPrices('90', '115', shortParamsWithLiquidation),
+          ).toBe(true);
+
+          // Valid TP, SL just below liquidation (passes liquidation check)
+          expect(
+            validateTPSLPrices('90', '119.99', shortParamsWithLiquidation),
+          ).toBe(true);
+
+          // Only TP provided (no SL to validate against liquidation)
+          expect(
+            validateTPSLPrices('90', undefined, shortParamsWithLiquidation),
+          ).toBe(true);
+        });
+
+        it('should return false when stop loss is at or above liquidation price (invalid)', () => {
+          // Valid TP but SL above liquidation (fails liquidation check)
+          expect(
+            validateTPSLPrices('90', '125', shortParamsWithLiquidation),
+          ).toBe(false);
+
+          // Valid TP but SL equal to liquidation (fails liquidation check)
+          expect(
+            validateTPSLPrices('90', '120', shortParamsWithLiquidation),
+          ).toBe(false);
+
+          // Valid TP but SL just above liquidation (fails liquidation check)
+          expect(
+            validateTPSLPrices('90', '120.01', shortParamsWithLiquidation),
+          ).toBe(false);
+        });
+
+        it('should return false when both TP and SL are invalid', () => {
+          // Invalid TP (above current) and SL above liquidation
+          expect(
+            validateTPSLPrices('150', '125', shortParamsWithLiquidation),
+          ).toBe(false);
+
+          // Invalid TP and SL equal to liquidation
+          expect(
+            validateTPSLPrices('150', '120', shortParamsWithLiquidation),
+          ).toBe(false);
+        });
+      });
+
+      describe('Edge cases with liquidation price', () => {
+        it('should handle formatted liquidation prices', () => {
+          const longLiquidationParams = {
+            currentPrice: 100,
+            direction: 'long' as const,
+            liquidationPrice: '$80.00',
+          };
+
+          expect(validateTPSLPrices('150', '85', longLiquidationParams)).toBe(
+            true,
+          );
+          expect(validateTPSLPrices('150', '75', longLiquidationParams)).toBe(
+            false,
+          );
+        });
+
+        it('should handle invalid liquidation price gracefully', () => {
+          const paramsWithInvalidLiquidation = {
+            currentPrice: 100,
+            direction: 'long' as const,
+            liquidationPrice: 'invalid',
+          };
+
+          // Should still validate TP/SL normally when liquidation price is invalid
+          expect(
+            validateTPSLPrices('150', '50', paramsWithInvalidLiquidation),
+          ).toBe(true);
+          expect(
+            validateTPSLPrices('50', '50', paramsWithInvalidLiquidation),
+          ).toBe(false);
+        });
+
+        it('should handle empty liquidation price', () => {
+          const paramsWithEmptyLiquidation = {
+            currentPrice: 100,
+            direction: 'long' as const,
+            liquidationPrice: '',
+          };
+
+          // Should still validate TP/SL normally when liquidation price is empty
+          expect(
+            validateTPSLPrices('150', '50', paramsWithEmptyLiquidation),
+          ).toBe(true);
+          expect(
+            validateTPSLPrices('50', '50', paramsWithEmptyLiquidation),
+          ).toBe(false);
+        });
+
+        it('should validate only TP/SL when no liquidation price provided', () => {
+          const paramsWithoutLiquidation = {
+            currentPrice: 100,
+            direction: 'long' as const,
+          };
+
+          // Should work exactly like before when no liquidation price
+          expect(
+            validateTPSLPrices('150', '50', paramsWithoutLiquidation),
+          ).toBe(true);
+          expect(validateTPSLPrices('50', '50', paramsWithoutLiquidation)).toBe(
+            false,
+          );
+        });
+      });
+    });
   });
 
   describe('Error message helpers', () => {
@@ -142,6 +490,12 @@ describe('TPSL Validation Utilities', () => {
       expect(getStopLossErrorDirection('long')).toBe('below');
       expect(getStopLossErrorDirection('short')).toBe('above');
       expect(getStopLossErrorDirection(undefined)).toBe('');
+    });
+
+    it('should return correct error direction for stop loss liquidation', () => {
+      expect(getStopLossLiquidationErrorDirection('long')).toBe('above');
+      expect(getStopLossLiquidationErrorDirection('short')).toBe('below');
+      expect(getStopLossLiquidationErrorDirection(undefined)).toBe('');
     });
   });
 
@@ -255,6 +609,886 @@ describe('TPSL Validation Utilities', () => {
           direction: 'long',
         }),
       ).toBe('');
+    });
+  });
+
+  describe('hasTPSLValuesChanged', () => {
+    describe('when values have not changed', () => {
+      it('returns false for identical unformatted values', () => {
+        expect(hasTPSLValuesChanged('100', '50', '100', '50')).toBe(false);
+        expect(hasTPSLValuesChanged('0', '0', '0', '0')).toBe(false);
+        expect(
+          hasTPSLValuesChanged('1234.56', '789.12', '1234.56', '789.12'),
+        ).toBe(false);
+      });
+
+      it('returns false for same values with different formatting', () => {
+        expect(hasTPSLValuesChanged('$100.00', '$50.00', '100', '50')).toBe(
+          false,
+        );
+        expect(hasTPSLValuesChanged('100', '50', '$100.00', '$50.00')).toBe(
+          false,
+        );
+        expect(
+          hasTPSLValuesChanged('$1,234.56', '$789.12', '1234.56', '789.12'),
+        ).toBe(false);
+        expect(
+          hasTPSLValuesChanged('1,234.56', '789.12', '$1,234.56', '$789.12'),
+        ).toBe(false);
+      });
+
+      it('returns false when both undefined', () => {
+        expect(
+          hasTPSLValuesChanged(undefined, undefined, undefined, undefined),
+        ).toBe(false);
+      });
+
+      it('returns false when both empty strings', () => {
+        expect(hasTPSLValuesChanged('', '', '', '')).toBe(false);
+      });
+
+      it('returns false for undefined vs empty string', () => {
+        expect(hasTPSLValuesChanged(undefined, '', undefined, '')).toBe(false);
+        expect(hasTPSLValuesChanged('', undefined, '', undefined)).toBe(false);
+      });
+
+      it('returns false when only one value is set and unchanged', () => {
+        expect(hasTPSLValuesChanged('100', undefined, '100', undefined)).toBe(
+          false,
+        );
+        expect(hasTPSLValuesChanged(undefined, '50', undefined, '50')).toBe(
+          false,
+        );
+        expect(hasTPSLValuesChanged('$100.00', '', '100', undefined)).toBe(
+          false,
+        );
+      });
+    });
+
+    describe('when values have changed', () => {
+      it('returns true when take profit changed', () => {
+        expect(hasTPSLValuesChanged('150', '50', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('$150.00', '$50.00', '100', '50')).toBe(
+          true,
+        );
+      });
+
+      it('returns true when stop loss changed', () => {
+        expect(hasTPSLValuesChanged('100', '75', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('$100.00', '$75.00', '100', '50')).toBe(
+          true,
+        );
+      });
+
+      it('returns true when both values changed', () => {
+        expect(hasTPSLValuesChanged('150', '75', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('$150.00', '$75.00', '100', '50')).toBe(
+          true,
+        );
+      });
+
+      it('returns true when value changes from undefined to defined', () => {
+        expect(
+          hasTPSLValuesChanged('100', undefined, undefined, undefined),
+        ).toBe(true);
+        expect(
+          hasTPSLValuesChanged(undefined, '50', undefined, undefined),
+        ).toBe(true);
+        expect(hasTPSLValuesChanged('100', '50', undefined, undefined)).toBe(
+          true,
+        );
+      });
+
+      it('returns true when value changes from defined to undefined', () => {
+        expect(hasTPSLValuesChanged(undefined, '50', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('100', undefined, '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged(undefined, undefined, '100', '50')).toBe(
+          true,
+        );
+      });
+
+      it('returns true when value changes from defined to empty string', () => {
+        expect(hasTPSLValuesChanged('', '50', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('100', '', '100', '50')).toBe(true);
+      });
+
+      it('returns true when value changes from empty string to defined', () => {
+        expect(hasTPSLValuesChanged('100', '50', '', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('100', '50', '100', '')).toBe(true);
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('handles invalid numeric values by treating them as undefined', () => {
+        expect(hasTPSLValuesChanged('invalid', '50', 'invalid', '50')).toBe(
+          false,
+        );
+        expect(hasTPSLValuesChanged('invalid', '50', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('100', 'invalid', '100', 'invalid')).toBe(
+          false,
+        );
+      });
+
+      it('handles whitespace-only strings as undefined', () => {
+        expect(hasTPSLValuesChanged('   ', '50', undefined, '50')).toBe(false);
+        expect(hasTPSLValuesChanged('100', '   ', '100', undefined)).toBe(
+          false,
+        );
+        expect(hasTPSLValuesChanged('   ', '   ', '', '')).toBe(false);
+      });
+
+      it('handles mixed formatting scenarios', () => {
+        expect(hasTPSLValuesChanged('$1,500.75', '50', '1500.75', '50')).toBe(
+          false,
+        );
+        expect(
+          hasTPSLValuesChanged('1,500.75', '$50.00', '1500.75', '50'),
+        ).toBe(false);
+        expect(hasTPSLValuesChanged('$1,500.76', '50', '1500.75', '50')).toBe(
+          true,
+        );
+      });
+
+      it('handles decimal precision correctly', () => {
+        expect(hasTPSLValuesChanged('100.00', '50.00', '100', '50')).toBe(
+          false,
+        );
+        expect(hasTPSLValuesChanged('100.01', '50.00', '100', '50')).toBe(true);
+        expect(hasTPSLValuesChanged('100.00', '50.01', '100', '50')).toBe(true);
+      });
+    });
+  });
+
+  describe('calculatePriceForRoE', () => {
+    describe('Long positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'long' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate take profit price correctly for positive RoE', () => {
+        expect(calculatePriceForRoE(10, true, params)).toBe('101');
+        expect(calculatePriceForRoE(50, true, params)).toBe('105');
+        expect(calculatePriceForRoE(100, true, params)).toBe('110');
+      });
+
+      it('should calculate stop loss price correctly for negative RoE', () => {
+        expect(calculatePriceForRoE(-10, false, params)).toBe('99');
+        expect(calculatePriceForRoE(-50, false, params)).toBe('95');
+        expect(calculatePriceForRoE(-100, false, params)).toBe('90');
+      });
+
+      it('should handle different leverage values', () => {
+        const lowLeverageParams = { ...params, leverage: 1 };
+        const highLeverageParams = { ...params, leverage: 50 };
+
+        // With 1x leverage, 10% RoE requires 10% price movement
+        expect(calculatePriceForRoE(10, true, lowLeverageParams)).toBe('110');
+
+        // With 50x leverage, 10% RoE requires 0.2% price movement
+        expect(calculatePriceForRoE(10, true, highLeverageParams)).toBe(
+          '100.2',
+        );
+      });
+    });
+
+    describe('Short positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'short' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate take profit price correctly for positive RoE', () => {
+        expect(calculatePriceForRoE(10, true, params)).toBe('99');
+        expect(calculatePriceForRoE(50, true, params)).toBe('95');
+        expect(calculatePriceForRoE(100, true, params)).toBe('90');
+      });
+
+      it('should calculate stop loss price correctly for negative RoE', () => {
+        expect(calculatePriceForRoE(-10, false, params)).toBe('101');
+        expect(calculatePriceForRoE(-50, false, params)).toBe('105');
+        expect(calculatePriceForRoE(-100, false, params)).toBe('110');
+      });
+    });
+
+    describe('Uses entry price when available', () => {
+      it('should use entryPrice over currentPrice when both provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+          entryPrice: 120,
+        };
+
+        // Should calculate based on entry price (120), not current price (100)
+        expect(calculatePriceForRoE(10, true, params)).toBe('121.2');
+      });
+
+      it('should fall back to currentPrice when entryPrice not provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculatePriceForRoE(10, true, params)).toBe('101');
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should return empty string when no base price available', () => {
+        const params = {
+          currentPrice: 0,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+        expect(calculatePriceForRoE(10, true, params)).toBe('');
+      });
+
+      it('should handle zero RoE', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculatePriceForRoE(0, true, params)).toBe('100');
+        expect(calculatePriceForRoE(0, false, params)).toBe('100');
+      });
+
+      it('should handle very high leverage', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 100,
+        };
+
+        // With 100x leverage, 10% RoE requires only 0.1% price movement
+        expect(calculatePriceForRoE(10, true, params)).toBe('100.1');
+      });
+    });
+
+    describe('Dynamic precision for different price ranges', () => {
+      it('should use 8 decimal places for very small prices (< $0.01)', () => {
+        // Arrange - PEPE-like asset
+        const pepeParams = {
+          currentPrice: 0.00001,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        // Act & Assert - should preserve precision for micro-price movements
+        expect(calculatePriceForRoE(10, true, pepeParams)).toBe('0.0000101');
+        expect(calculatePriceForRoE(-5, false, pepeParams)).toBe('0.00000995');
+      });
+
+      it('should use 6 decimal places for prices between $0.01 and $1', () => {
+        // Arrange
+        const smallPriceParams = {
+          currentPrice: 0.5,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        // Act & Assert
+        expect(calculatePriceForRoE(10, true, smallPriceParams)).toBe('0.505');
+        expect(calculatePriceForRoE(-5, false, smallPriceParams)).toBe(
+          '0.4975',
+        );
+      });
+
+      it('should use 4 decimal places for prices between $1 and $100', () => {
+        // Arrange
+        const mediumPriceParams = {
+          currentPrice: 50,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        // Act & Assert
+        expect(calculatePriceForRoE(10, true, mediumPriceParams)).toBe('50.5');
+        expect(calculatePriceForRoE(-5, false, mediumPriceParams)).toBe(
+          '49.75',
+        );
+      });
+
+      it('should use 2 decimal places for high prices (≥ $100)', () => {
+        // Arrange
+        const highPriceParams = {
+          currentPrice: 1000,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        // Act & Assert
+        expect(calculatePriceForRoE(10, true, highPriceParams)).toBe('1010');
+        expect(calculatePriceForRoE(-5, false, highPriceParams)).toBe('995');
+      });
+
+      it('should handle edge cases at precision boundaries', () => {
+        // Test exactly at $0.01
+        const edgeCase1 = {
+          currentPrice: 0.01,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+        expect(calculatePriceForRoE(10, true, edgeCase1)).toBe('0.0101');
+
+        // Test exactly at $1
+        const edgeCase2 = {
+          currentPrice: 1.0,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+        expect(calculatePriceForRoE(10, true, edgeCase2)).toBe('1.01');
+
+        // Test exactly at $100
+        const edgeCase3 = {
+          currentPrice: 100.0,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+        expect(calculatePriceForRoE(10, true, edgeCase3)).toBe('101');
+      });
+
+      it('should fix the PEPE price update bug mentioned in PR comments', () => {
+        // Given - PEPE token with very small price and 10x leverage
+        const pepeParams = {
+          currentPrice: 0.00001234,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        // When - clicking 10% take profit button
+        const result = calculatePriceForRoE(10, true, pepeParams);
+
+        // Then - should calculate correct micro-price movement, not return 0.00
+        expect(result).not.toBe('0.00');
+        expect(parseFloat(result)).toBeGreaterThan(pepeParams.currentPrice);
+        expect(result).toBe('0.00001246'); // ~1% price increase for 10% RoE with 10x leverage
+      });
+
+      it('should fix SHORT position price calculations for low-priced assets', () => {
+        // Given - PEPE short position with very small price
+        const pepeShortParams = {
+          currentPrice: 0.00001234,
+          direction: 'short' as const,
+          leverage: 10,
+        };
+
+        // When - clicking 10% take profit button for short (should decrease price)
+        const tpResult = calculatePriceForRoE(10, true, pepeShortParams);
+
+        // Then - should calculate correct micro-price decrease
+        expect(tpResult).not.toBe('0.00');
+        expect(parseFloat(tpResult)).toBeLessThan(pepeShortParams.currentPrice);
+        expect(tpResult).toBe('0.00001222'); // ~1% price decrease for 10% RoE with 10x leverage
+
+        // When - clicking 5% stop loss button for short (should increase price)
+        const slResult = calculatePriceForRoE(-5, false, pepeShortParams);
+
+        // Then - should calculate correct micro-price increase
+        expect(slResult).not.toBe('0.00');
+        expect(parseFloat(slResult)).toBeGreaterThan(
+          pepeShortParams.currentPrice,
+        );
+        expect(slResult).toBe('0.0000124'); // ~0.5% price increase for 5% loss with 10x leverage
+      });
+    });
+  });
+
+  describe('calculateRoEForPrice', () => {
+    describe('Long positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'long' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate RoE for take profit prices correctly', () => {
+        expect(calculateRoEForPrice('101', true, true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('105', true, true, params)).toBe('50.00');
+        expect(calculateRoEForPrice('110', true, true, params)).toBe('100.00');
+        expect(calculateRoEForPrice('$101.00', true, true, params)).toBe(
+          '10.00',
+        );
+        expect(calculateRoEForPrice('1,105.00', true, true, params)).toBe(
+          '10050.00',
+        ); // 1105 - 100 = 1005, (1005/100)*10 = 100.5% * 100 leverage effect
+      });
+
+      it('should calculate RoE for stop loss prices correctly', () => {
+        expect(calculateRoEForPrice('99', false, true, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('95', false, true, params)).toBe('-50.00');
+        expect(calculateRoEForPrice('90', false, true, params)).toBe('-100.00');
+        expect(calculateRoEForPrice('$99.00', false, true, params)).toBe(
+          '-10.00',
+        );
+      });
+
+      it('should return zero RoE for invalid directions', () => {
+        // TP price below entry for long (wrong direction)
+        expect(calculateRoEForPrice('99', true, false, params)).toBe('0.00');
+
+        // SL price above entry for long (wrong direction)
+        expect(calculateRoEForPrice('101', false, false, params)).toBe('0.00');
+      });
+
+      it('should handle different leverage values', () => {
+        const lowLeverageParams = { ...params, leverage: 1 };
+        const highLeverageParams = { ...params, leverage: 50 };
+
+        // With 1x leverage, 1% price move = 1% RoE
+        expect(calculateRoEForPrice('101', true, true, lowLeverageParams)).toBe(
+          '1.00',
+        );
+
+        // With 50x leverage, 1% price move = 50% RoE
+        expect(
+          calculateRoEForPrice('101', true, true, highLeverageParams),
+        ).toBe('50.00');
+      });
+    });
+
+    describe('Short positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'short' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate RoE for take profit prices correctly', () => {
+        expect(calculateRoEForPrice('99', true, true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('95', true, true, params)).toBe('50.00');
+        expect(calculateRoEForPrice('90', true, true, params)).toBe('100.00');
+      });
+
+      it('should calculate RoE for stop loss prices correctly', () => {
+        expect(calculateRoEForPrice('101', false, true, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('105', false, true, params)).toBe('-50.00');
+        expect(calculateRoEForPrice('110', false, true, params)).toBe(
+          '-100.00',
+        );
+      });
+
+      it('should return zero RoE for invalid directions', () => {
+        // TP price above entry for short (wrong direction)
+        expect(calculateRoEForPrice('101', true, false, params)).toBe('0.00');
+
+        // SL price below entry for short (wrong direction)
+        expect(calculateRoEForPrice('99', false, false, params)).toBe('0.00');
+      });
+    });
+
+    describe('Uses entry price when available', () => {
+      it('should use entryPrice over currentPrice when both provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+          entryPrice: 120,
+        };
+
+        // Should calculate RoE based on entry price (120), not current price (100)
+        expect(calculateRoEForPrice('121.20', true, true, params)).toBe(
+          '10.00',
+        );
+      });
+
+      it('should fall back to currentPrice when entryPrice not provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculateRoEForPrice('101', true, true, params)).toBe('10.00');
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should return empty string when no base price available', () => {
+        const params = {
+          currentPrice: 0,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+        expect(calculateRoEForPrice('110', true, true, params)).toBe('');
+      });
+
+      it('should return empty string when price is invalid', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculateRoEForPrice('', true, true, params)).toBe('');
+        expect(calculateRoEForPrice('invalid', true, true, params)).toBe('');
+      });
+
+      it('should handle zero leverage by using default value', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 1, // function defaults to 1 when leverage not provided
+        };
+
+        // With 1x leverage, 10% price move = 10% RoE
+        expect(calculateRoEForPrice('110', true, true, params)).toBe('10.00');
+      });
+
+      it('should handle price equal to base price', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculateRoEForPrice('100', true, true, params)).toBe('0.00');
+        expect(calculateRoEForPrice('100', false, true, params)).toBe('0.00');
+      });
+    });
+
+    describe('Price formatting handling', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'long' as const,
+        leverage: 10,
+      };
+
+      it('should handle various price formats', () => {
+        expect(calculateRoEForPrice('$101.00', true, true, params)).toBe(
+          '10.00',
+        );
+        expect(calculateRoEForPrice('1,101.00', true, true, params)).toBe(
+          '10010.00',
+        ); // 1101 - 100 = 1001, (1001/100)*10 = 10010%
+        expect(calculateRoEForPrice('$1,101.00', true, true, params)).toBe(
+          '10010.00',
+        );
+      });
+    });
+  });
+
+  describe('safeParseRoEPercentage', () => {
+    it('should format valid RoE percentages showing clean integers when possible', () => {
+      // Integers should show without decimals
+      expect(safeParseRoEPercentage('10')).toBe('10');
+      expect(safeParseRoEPercentage('100')).toBe('100');
+      expect(safeParseRoEPercentage('0')).toBe('0');
+
+      // Decimals should show with appropriate precision
+      expect(safeParseRoEPercentage('25.556')).toBe('25.56');
+      expect(safeParseRoEPercentage('10.50')).toBe('10.50');
+      expect(safeParseRoEPercentage('10.00')).toBe('10'); // Clean integer display
+    });
+
+    it('should preserve sign for display', () => {
+      expect(safeParseRoEPercentage('-10')).toBe('-10');
+      expect(safeParseRoEPercentage('-10.123')).toBe('-10.12');
+      expect(safeParseRoEPercentage('-25.50')).toBe('-25.50');
+    });
+
+    it('should return empty string for invalid input', () => {
+      expect(safeParseRoEPercentage('')).toBe('');
+      expect(safeParseRoEPercentage('   ')).toBe(''); // whitespace only
+      expect(safeParseRoEPercentage('invalid')).toBe('');
+      expect(safeParseRoEPercentage('NaN')).toBe('');
+      expect(safeParseRoEPercentage('undefined')).toBe('');
+    });
+
+    it('should prevent NaN display that was causing the UI bug', () => {
+      // These are the edge cases that were causing "NaN%" to appear in UI
+      const invalidInputs = ['', '   ', 'invalid', 'NaN', 'abc123'];
+
+      invalidInputs.forEach((input) => {
+        const result = safeParseRoEPercentage(input);
+        expect(result).toBe('');
+        expect(result).not.toContain('NaN');
+      });
+    });
+  });
+
+  describe('formatRoEPercentageDisplay', () => {
+    describe('when input is focused', () => {
+      it('should preserve valid numeric input patterns for editing', () => {
+        expect(formatRoEPercentageDisplay('10.123', true)).toBe('10.123');
+        expect(formatRoEPercentageDisplay('25.5678', true)).toBe('25.5678');
+        expect(formatRoEPercentageDisplay('100', true)).toBe('100');
+        expect(formatRoEPercentageDisplay('0', true)).toBe('0');
+        expect(formatRoEPercentageDisplay('10.', true)).toBe('10.');
+        expect(formatRoEPercentageDisplay('.5', true)).toBe('.5');
+      });
+
+      it('should preserve negative values when focused', () => {
+        expect(formatRoEPercentageDisplay('-10.123', true)).toBe('-10.123');
+        expect(formatRoEPercentageDisplay('-25', true)).toBe('-25');
+      });
+
+      it('should return empty string for invalid patterns when focused', () => {
+        expect(formatRoEPercentageDisplay('abc', true)).toBe('');
+      });
+
+      it('should handle edge cases in pattern matching', () => {
+        expect(formatRoEPercentageDisplay('5.', true)).toBe('5.');
+        expect(formatRoEPercentageDisplay('.', true)).toBe('.');
+      });
+    });
+
+    describe('when input is not focused', () => {
+      it('should show signed display format for integers', () => {
+        expect(formatRoEPercentageDisplay('10', false)).toBe('+ 10');
+        expect(formatRoEPercentageDisplay('100', false)).toBe('+ 100');
+        expect(formatRoEPercentageDisplay('0', false)).toBe('+ 0');
+        expect(formatRoEPercentageDisplay('10.00', false)).toBe('+ 10');
+        expect(formatRoEPercentageDisplay('100.000', false)).toBe('+ 100');
+      });
+
+      it('should show signed decimal format when necessary', () => {
+        expect(formatRoEPercentageDisplay('10.5', false)).toBe('+ 10.50');
+        expect(formatRoEPercentageDisplay('25.123', false)).toBe('+ 25.12');
+        expect(formatRoEPercentageDisplay('99.99', false)).toBe('+ 99.99');
+      });
+
+      it('should handle negative values with signed format', () => {
+        expect(formatRoEPercentageDisplay('-10', false)).toBe('- 10');
+        expect(formatRoEPercentageDisplay('-10.5', false)).toBe('- 10.50');
+        expect(formatRoEPercentageDisplay('-25.123', false)).toBe('- 25.12');
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should return empty string for invalid input', () => {
+        expect(formatRoEPercentageDisplay('', true)).toBe('');
+        expect(formatRoEPercentageDisplay('', false)).toBe('');
+        expect(formatRoEPercentageDisplay('   ', true)).toBe('');
+        expect(formatRoEPercentageDisplay('invalid', false)).toBe('');
+        expect(formatRoEPercentageDisplay('NaN', true)).toBe('');
+      });
+
+      it('should handle zero correctly', () => {
+        expect(formatRoEPercentageDisplay('0', true)).toBe('0');
+        expect(formatRoEPercentageDisplay('0.0', false)).toBe('+ 0');
+        expect(formatRoEPercentageDisplay('0.00', false)).toBe('+ 0');
+      });
+    });
+  });
+
+  describe('getMaxStopLossPercentage', () => {
+    it('should calculate maximum stop loss percentage based on leverage', () => {
+      expect(getMaxStopLossPercentage(1)).toBe(99);
+      expect(getMaxStopLossPercentage(5)).toBe(495);
+      expect(getMaxStopLossPercentage(10)).toBe(990);
+      expect(getMaxStopLossPercentage(20)).toBe(999); // Capped at 999
+    });
+
+    it('should cap maximum stop loss at 999%', () => {
+      expect(getMaxStopLossPercentage(50)).toBe(999); // 50 * 99 = 4950, but capped at 999
+      expect(getMaxStopLossPercentage(100)).toBe(999); // 100 * 99 = 9900, but capped at 999
+    });
+
+    it('should handle edge cases', () => {
+      expect(getMaxStopLossPercentage(0)).toBe(0);
+      expect(getMaxStopLossPercentage(0.5)).toBe(49.5);
+      expect(getMaxStopLossPercentage(1.5)).toBe(148.5);
+    });
+  });
+
+  describe('isValidStopLossPercentage', () => {
+    describe('with 10x leverage', () => {
+      const leverage = 10;
+
+      it('should return true for valid percentages', () => {
+        expect(isValidStopLossPercentage(1, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(50, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(99, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(990, leverage)).toBe(true); // Max for 10x leverage
+      });
+
+      it('should return false for invalid percentages', () => {
+        expect(isValidStopLossPercentage(0, leverage)).toBe(false);
+        expect(isValidStopLossPercentage(-5, leverage)).toBe(false);
+        expect(isValidStopLossPercentage(991, leverage)).toBe(false); // Above max
+        expect(isValidStopLossPercentage(1500, leverage)).toBe(false);
+      });
+    });
+
+    describe('with high leverage (50x)', () => {
+      const leverage = 50;
+
+      it('should cap at 999% regardless of leverage', () => {
+        expect(isValidStopLossPercentage(999, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(1000, leverage)).toBe(false);
+      });
+    });
+
+    describe('with low leverage (1x)', () => {
+      const leverage = 1;
+
+      it('should allow up to 99% for 1x leverage', () => {
+        expect(isValidStopLossPercentage(99, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(100, leverage)).toBe(false);
+      });
+    });
+
+    it('should handle edge cases', () => {
+      expect(isValidStopLossPercentage(0.1, 10)).toBe(true);
+      expect(isValidStopLossPercentage(-0.1, 10)).toBe(false);
+    });
+  });
+
+  describe('formatRoEPercentageDisplay with signed input', () => {
+    it('should handle focused input with signs correctly', () => {
+      // Given a focused input with sign patterns
+      expect(formatRoEPercentageDisplay('+', true)).toBe('+');
+      expect(formatRoEPercentageDisplay('-', true)).toBe('-');
+      expect(formatRoEPercentageDisplay('+10', true)).toBe('+10');
+      expect(formatRoEPercentageDisplay('-5', true)).toBe('-5');
+    });
+
+    it('should handle unfocused input with proper sign formatting', () => {
+      // Given unfocused input, should format with proper signs
+      expect(formatRoEPercentageDisplay('10', false)).toBe('+ 10');
+      expect(formatRoEPercentageDisplay('-5', false)).toBe('- 5');
+      expect(formatRoEPercentageDisplay('0', false)).toBe('+ 0');
+    });
+
+    it('should handle decimal values with signs', () => {
+      // Given decimal values with signs
+      expect(formatRoEPercentageDisplay('+10.5', true)).toBe('+10.5');
+      expect(formatRoEPercentageDisplay('-7.25', true)).toBe('-7.25');
+      expect(formatRoEPercentageDisplay('15.75', false)).toBe('+ 15.75');
+      expect(formatRoEPercentageDisplay('-8.33', false)).toBe('- 8.33');
+    });
+
+    it('should handle invalid input gracefully', () => {
+      // Given invalid input, should return empty string
+      expect(formatRoEPercentageDisplay('invalid', false)).toBe('');
+      expect(formatRoEPercentageDisplay('++5', true)).toBe(''); // Invalid pattern not preserved
+      expect(formatRoEPercentageDisplay('++5', false)).toBe(''); // Clean up when unfocused
+    });
+  });
+
+  describe('sanitizePercentageInput', () => {
+    it('should remove invalid characters', () => {
+      expect(sanitizePercentageInput('abc123def')).toBe('123');
+      expect(sanitizePercentageInput('12.34@#$')).toBe('12.34');
+      expect(sanitizePercentageInput('$%^&*()12.5')).toBe('12.5');
+    });
+
+    it('should handle signs correctly', () => {
+      expect(sanitizePercentageInput('+10.5')).toBe('+10.5');
+      expect(sanitizePercentageInput('-25.75')).toBe('-25.75');
+      expect(sanitizePercentageInput('++10')).toBe('+10');
+      expect(sanitizePercentageInput('--5')).toBe('-5');
+    });
+
+    it('should handle mixed signs by keeping the first one', () => {
+      expect(sanitizePercentageInput('+-10')).toBe('+10');
+      expect(sanitizePercentageInput('-+5')).toBe('-5');
+      expect(sanitizePercentageInput('+--10')).toBe('+10');
+    });
+
+    it('should handle en-dash and em-dash', () => {
+      expect(sanitizePercentageInput('–10')).toBe('-10');
+      expect(sanitizePercentageInput('—25')).toBe('-25');
+      expect(sanitizePercentageInput('––10')).toBe('-10');
+    });
+
+    it('should prevent multiple decimal points', () => {
+      expect(sanitizePercentageInput('10.5.25')).toBe(null);
+      expect(sanitizePercentageInput('1.2.3.4')).toBe(null);
+      expect(sanitizePercentageInput('10.5')).toBe('10.5');
+    });
+
+    it('should handle edge cases', () => {
+      expect(sanitizePercentageInput('.')).toBe('.');
+      expect(sanitizePercentageInput('+')).toBe('+');
+      expect(sanitizePercentageInput('-')).toBe('-');
+      expect(sanitizePercentageInput('')).toBe('');
+    });
+
+    it('should limit decimal places when currentValue is provided', () => {
+      // Should allow up to 5 decimal places by default
+      expect(sanitizePercentageInput('10.12345', '10.1234')).toBe('10.12345');
+
+      // Should prevent adding more than 5 decimal places
+      expect(sanitizePercentageInput('10.123456', '10.12345')).toBe(null);
+
+      // Should allow erasing (shorter length)
+      expect(sanitizePercentageInput('10.1234', '10.12345')).toBe('10.1234');
+
+      // Should work with custom max decimal places
+      expect(sanitizePercentageInput('10.123', '10.12', 2)).toBe(null);
+      expect(sanitizePercentageInput('10.12', '10.1', 2)).toBe('10.12');
+    });
+
+    it('should work without currentValue parameter', () => {
+      // Should not limit decimal places when currentValue is not provided
+      expect(sanitizePercentageInput('10.123456789')).toBe('10.123456789');
+    });
+  });
+
+  describe('calculateRoEForPrice with position context', () => {
+    it('should clamp negative profit percentages to 0 when no position exists', () => {
+      // Given a price that would result in negative profit without position
+      const result = calculateRoEForPrice(
+        '2900', // Lower than current price
+        true, // isProfit = true
+        false, // isForPositionBoundTpsl = false (no position)
+        {
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 2,
+          entryPrice: 3000,
+        },
+      );
+
+      // Then percentage should be clamped to 0
+      expect(result).toBe('0.00');
+    });
+
+    it('should clamp positive loss percentages to 0 when no position exists', () => {
+      // Given a price that would result in positive loss without position
+      const result = calculateRoEForPrice(
+        '3100', // Higher than current price for stop loss
+        false, // isProfit = false
+        false, // isForPositionBoundTpsl = false (no position)
+        {
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 2,
+          entryPrice: 3000,
+        },
+      );
+
+      // Then percentage should be clamped to 0
+      expect(result).toBe('0.00');
+    });
+
+    it('should allow negative profit percentages when position exists', () => {
+      // Given a price that would result in negative profit with position
+      const result = calculateRoEForPrice(
+        '2900', // Lower than entry price
+        true, // isProfit = true
+        true, // isForPositionBoundTpsl = true (position exists)
+        {
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 2,
+          entryPrice: 3000,
+        },
+      );
+
+      // Then percentage should be negative (not clamped)
+      expect(parseFloat(result)).toBeLessThan(0);
     });
   });
 });

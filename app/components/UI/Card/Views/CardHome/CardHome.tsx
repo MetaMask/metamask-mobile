@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
   IconName,
@@ -14,15 +15,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  NavigationProp,
-  ParamListBase,
-  useFocusEffect,
-  useNavigation,
-} from '@react-navigation/native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -30,7 +23,7 @@ import SensitiveText, {
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import createStyles, { headerStyle } from './CardHome.styles';
+import createStyles from './CardHome.styles';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -44,9 +37,6 @@ import { AllowanceState } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
-import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
-import Logger from '../../../../../util/Logger';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
@@ -54,13 +44,12 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
-import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 
 /**
  * CardHome Component
@@ -74,10 +63,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const { PreferencesController, NetworkController, AccountsController } =
-    Engine.context;
-  const [error, setError] = useState<boolean>(false);
-  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
+  const { PreferencesController } = Engine.context;
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -90,75 +76,15 @@ const CardHome = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectChainId);
-  const cardholderAddresses = useSelector(selectCardholderAccounts);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-
-  // Handle network change first
-  useFocusEffect(
-    useCallback(() => {
-      if (selectedChainId !== LINEA_CHAIN_ID) {
-        (async () => {
-          const networkClientId =
-            NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
-
-          try {
-            if (networkClientId) {
-              await NetworkController.setActiveNetwork(networkClientId);
-            }
-          } catch (err) {
-            const mappedError =
-              err instanceof Error ? err : new Error(String(err));
-            Logger.error(mappedError, 'CardHome::Error setting active network');
-            setError(true);
-          } finally {
-            setIsLoadingNetworkChange(false);
-          }
-        })();
-      } else {
-        setIsLoadingNetworkChange(false);
-      }
-    }, [NetworkController, selectedChainId]),
-  );
-
-  // Handle account change after network is correct
-  useFocusEffect(
-    useCallback(() => {
-      // Only run account change if we're on the correct network and not loading
-      if (selectedChainId === LINEA_CHAIN_ID && !isLoadingNetworkChange) {
-        if (
-          selectedAccount?.address.toLowerCase() !==
-          cardholderAddresses?.[0]?.toLowerCase()
-        ) {
-          const account = AccountsController.getAccountByAddress(
-            cardholderAddresses?.[0],
-          );
-
-          if (!account) {
-            setError(true);
-          } else {
-            AccountsController.setSelectedAccount(account.id);
-          }
-        }
-      }
-    }, [
-      AccountsController,
-      cardholderAddresses,
-      selectedAccount,
-      selectedChainId,
-      isLoadingNetworkChange,
-    ]),
-  );
 
   const {
     priorityToken,
     fetchPriorityToken,
     isLoading: isLoadingPriorityToken,
-    error: errorPriorityToken,
-  } = useGetPriorityCardToken(
-    cardholderAddresses?.[0],
-    selectedChainId === LINEA_CHAIN_ID,
-  );
-  const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
+    error,
+  } = useGetPriorityCardToken();
+  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
+    useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
@@ -176,11 +102,6 @@ const CardHome = () => {
     [priorityToken],
   );
 
-  const hasError = useMemo(
-    () => error || errorPriorityToken,
-    [error, errorPriorityToken],
-  );
-
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
       return mainBalance;
@@ -189,6 +110,14 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
 
+  const isPriorityTokenSupportedDeposit = useMemo(() => {
+    if (priorityToken?.symbol) {
+      return DEPOSIT_SUPPORTED_TOKENS.find(
+        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
+      );
+    }
+  }, [priorityToken]);
+
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet
@@ -196,7 +125,6 @@ const CardHome = () => {
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
         priorityToken={priorityToken ?? undefined}
         chainId={selectedChainId}
-        cardholderAddresses={cardholderAddresses}
         navigate={navigation.navigate}
       />
     ),
@@ -204,26 +132,61 @@ const CardHome = () => {
       sheetRef,
       setOpenAddFundsBottomSheet,
       priorityToken,
-      cardholderAddresses,
       selectedChainId,
       navigation,
     ],
   );
+
+  // Track event only once after priorityToken and balances are loaded
+  const hasTrackedCardHomeView = useRef(false);
+
+  useEffect(() => {
+    const hasValidMainBalance =
+      mainBalance !== undefined &&
+      mainBalance !== TOKEN_BALANCE_LOADING &&
+      mainBalance !== TOKEN_BALANCE_LOADING_UPPERCASE;
+
+    const hasValidFiatBalance =
+      balanceFiat !== undefined &&
+      balanceFiat !== TOKEN_BALANCE_LOADING &&
+      balanceFiat !== TOKEN_BALANCE_LOADING_UPPERCASE &&
+      balanceFiat !== TOKEN_RATE_UNDEFINED;
+
+    const isLoaded =
+      !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
+
+    if (isLoaded && !hasTrackedCardHomeView.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
+          .addProperties({
+            token_symbol_priority: priorityToken?.symbol,
+            token_raw_balance_priority: rawTokenBalance,
+            token_fiat_balance_priority: rawFiatNumber,
+          })
+          .build(),
+      );
+      hasTrackedCardHomeView.current = true;
+    }
+  }, [
+    trackEvent,
+    createEventBuilder,
+    priorityToken,
+    mainBalance,
+    balanceFiat,
+    rawFiatNumber,
+    rawTokenBalance,
+  ]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
-    if (
-      priorityToken?.symbol &&
-      SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS.includes(priorityToken.symbol)
-    ) {
+    if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
       openSwaps({
         chainId: selectedChainId,
-        cardholderAddress: cardholderAddresses?.[0],
       });
     }
   }, [
@@ -231,11 +194,11 @@ const CardHome = () => {
     createEventBuilder,
     priorityToken,
     openSwaps,
+    isPriorityTokenSupportedDeposit,
     selectedChainId,
-    cardholderAddresses,
   ]);
 
-  if (hasError) {
+  if (error) {
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -274,22 +237,6 @@ const CardHome = () => {
     );
   }
 
-  if (
-    isLoadingPriorityToken ||
-    isLoadingNetworkChange ||
-    (!priorityToken && !hasError)
-  ) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color={theme.colors.primary.default}
-          testID={CardHomeSelectors.LOADER}
-        />
-      </View>
-    );
-  }
-
   return (
     <ScrollView
       style={styles.wrapper}
@@ -297,103 +244,119 @@ const CardHome = () => {
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
     >
-      {priorityToken && (
-        <View style={styles.cardBalanceContainer}>
-          <View
-            style={[
-              styles.balanceTextContainer,
-              styles.defaultHorizontalPadding,
-            ]}
+      <View style={styles.cardBalanceContainer}>
+        <View
+          style={[styles.balanceTextContainer, styles.defaultHorizontalPadding]}
+        >
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Long}
+            variant={TextVariant.HeadingLG}
           >
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              variant={TextVariant.HeadingLG}
-            >
-              {balanceAmount === TOKEN_BALANCE_LOADING ||
-              balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
-              ) : (
-                balanceAmount ?? '0'
-              )}
-            </SensitiveText>
-            <TouchableOpacity
-              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-              testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
-            >
-              <Icon
-                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                size={IconSize.Md}
-                color={theme.colors.icon.alternative}
+            {isLoadingPriorityToken ||
+            balanceAmount === TOKEN_BALANCE_LOADING ||
+            balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+              <Skeleton
+                height={28}
+                width={'50%'}
+                style={styles.skeletonRounded}
+                testID={CardHomeSelectors.BALANCE_SKELETON}
               />
-            </TouchableOpacity>
-          </View>
-          {isAllowanceLimited && (
-            <View
-              style={[
-                styles.limitedAllowanceWarningContainer,
-                styles.defaultHorizontalPadding,
-              ]}
-            >
-              <Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={theme.colors.text.alternative}
-                >
-                  {strings('card.card_home.limited_spending_warning', {
-                    manageCard: '',
-                  })}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={theme.colors.text.alternative}
-                  style={styles.limitedAllowanceManageCardText}
-                >
-                  {strings('card.card_home.manage_card_options.manage_card')}
-                  {'.'}
-                </Text>
-              </Text>
-            </View>
-          )}
-          <View
-            style={[
-              styles.cardImageContainer,
-              styles.defaultHorizontalPadding,
-              isAllowanceLimited && styles.defaultMarginTop,
-            ]}
+            ) : (
+              balanceAmount ?? '0'
+            )}
+          </SensitiveText>
+          <TouchableOpacity
+            onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+            testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
           >
-            <CardImage />
-          </View>
-          <View
-            style={[
-              styles.cardAssetItemContainer,
-              styles.defaultHorizontalPadding,
-            ]}
-          >
-            <CardAssetItem
-              assetKey={priorityToken}
-              privacyMode={privacyMode}
-              disabled
+            <Icon
+              name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+              size={IconSize.Md}
+              color={theme.colors.icon.alternative}
             />
-          </View>
-
+          </TouchableOpacity>
+        </View>
+        {isAllowanceLimited && (
           <View
             style={[
-              styles.addFundsButtonContainer,
+              styles.limitedAllowanceWarningContainer,
               styles.defaultHorizontalPadding,
             ]}
           >
+            <Text>
+              <Text
+                variant={TextVariant.BodySM}
+                color={theme.colors.text.alternative}
+              >
+                {strings('card.card_home.limited_spending_warning', {
+                  manageCard: '',
+                })}
+              </Text>
+              <Text
+                variant={TextVariant.BodySM}
+                color={theme.colors.text.alternative}
+                style={styles.limitedAllowanceManageCardText}
+              >
+                {strings('card.card_home.manage_card_options.manage_card')}
+                {'.'}
+              </Text>
+            </Text>
+          </View>
+        )}
+        <View
+          style={[
+            styles.cardImageContainer,
+            styles.defaultHorizontalPadding,
+            isAllowanceLimited && styles.defaultMarginTop,
+          ]}
+        >
+          <CardImage />
+        </View>
+        <View
+          style={[
+            styles.cardAssetItemContainer,
+            styles.defaultHorizontalPadding,
+          ]}
+        >
+          {isLoadingPriorityToken || !priorityToken ? (
+            <Skeleton
+              height={50}
+              width={'100%'}
+              style={styles.skeletonRounded}
+              testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
+            />
+          ) : (
+            <CardAssetItem assetKey={priorityToken} privacyMode={privacyMode} />
+          )}
+        </View>
+
+        <View
+          style={[
+            styles.addFundsButtonContainer,
+            styles.defaultHorizontalPadding,
+          ]}
+        >
+          {isLoadingPriorityToken ? (
+            <Skeleton
+              height={28}
+              width={'100%'}
+              style={styles.skeletonRounded}
+              testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
+            />
+          ) : (
             <Button
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.add_funds')}
-              size={ButtonSize.Sm}
+              size={ButtonSize.Lg}
               onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
+              loading={isLoadingPriorityToken}
               testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
             />
-          </View>
+          )}
         </View>
-      )}
+      </View>
 
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.manage_card')}
@@ -409,36 +372,5 @@ const CardHome = () => {
     </ScrollView>
   );
 };
-
-CardHome.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
-    />
-  ),
-});
 
 export default CardHome;

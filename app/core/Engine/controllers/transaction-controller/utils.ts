@@ -25,6 +25,10 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import {
+  getAddressAccountType,
+  isValidHexAddress,
+} from '../../../../util/address';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -43,6 +47,8 @@ export function getTransactionTypeValue(
       return 'deploy_contract';
     case TransactionType.ethGetEncryptionPublicKey:
       return 'eth_get_encryption_public_key';
+    case TransactionType.perpsDeposit:
+      return 'perps_deposit';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.simpleSend:
@@ -86,7 +92,7 @@ export function getTransactionTypeValue(
   }
 }
 
-const getConfirmationMetricProperties = (
+export const getConfirmationMetricProperties = (
   getState: () => RootState,
   transactionId: string,
 ): TransactionMetrics => {
@@ -164,7 +170,21 @@ export async function generateDefaultTransactionMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, status, type, id } = transactionMeta;
+  const { chainId, error, status, type, id, origin, txParams } =
+    transactionMeta || {};
+
+  const { from } = txParams || {};
+
+  let accountType = 'unknown';
+
+  // Fails if wallet locked
+  try {
+    accountType = isValidHexAddress(from)
+      ? getAddressAccountType(from)
+      : accountType;
+  } catch {
+    // Intentionally empty
+  }
 
   const batchProperties = await getBatchProperties(transactionMeta);
   const gasFeeProperties = getGasMetricProperties(transactionMeta);
@@ -174,8 +194,11 @@ export async function generateDefaultTransactionMetrics(
       metametricsEvent,
       properties: {
         ...batchProperties,
-        chain_id: chainId,
         ...gasFeeProperties,
+        account_type: accountType,
+        chain_id: chainId,
+        dapp_host_name: origin ?? 'N/A',
+        error: error?.message,
         status,
         source: 'MetaMask Mobile',
         transaction_contract_method: await getTransactionContractMethod(

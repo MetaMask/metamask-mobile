@@ -12,6 +12,7 @@ import { TextStyle, ViewStyle } from 'react-native';
 export const colors = {
   blackTransparent: 'rgba(0, 0, 0, 0.5)',
   whiteTransparent: 'rgba(255, 255, 255, 0.7)',
+  white: '#FFFFFF',
   transparent: 'transparent',
   overlay: 'rgba(242, 244, 246, 0.33)',
   // Do not change the values of applePay tokens unless noted by
@@ -19,6 +20,8 @@ export const colors = {
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
   btnBlack: '#1C1E21',
+  btnBlackText: '#FFFFFF',
+  btnBlackInverse: 'rgba(60, 77, 157, 0.1)',
   modalScrollButton: '#ECEEFF',
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
@@ -59,19 +62,18 @@ export const baseStyles: Record<string, ViewStyle> = {
  */
 export const fontStyles: Record<string, TextStyle> = {
   normal: {
-    fontFamily: 'CentraNo1-Book',
-    fontWeight: '400',
+    fontFamily: 'Geist Regular',
   },
   light: {
-    fontFamily: 'CentraNo1-Book',
-    fontWeight: '300',
+    fontFamily: 'Geist Regular',
   },
   thin: {
-    fontFamily: 'CentraNo1-Book',
-    fontWeight: '100',
+    fontFamily: 'Geist Regular',
   },
   bold: {
-    fontFamily: 'CentraNo1-Bold',
-    fontWeight: '600',
+    fontFamily: 'Geist Bold',
+  },
+  medium: {
+    fontFamily: 'Geist Medium',
   },
 };

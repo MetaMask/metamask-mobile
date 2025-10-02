@@ -12,9 +12,6 @@ const initialState = {
     passwordSet: false,
     backUpSeedphraseVisible: true,
   },
-  wizard: {
-    step: 0,
-  },
 };
 const mockNavigation = {
   navigate: jest.fn(),

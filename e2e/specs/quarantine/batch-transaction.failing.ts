@@ -15,11 +15,14 @@ import WalletView from '../../pages/wallet/WalletView';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../api-mocking/mock-responses/simulations';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../viewHelper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
 import { AnvilNodeOptions, LocalNodeType } from '../../framework';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const LOCAL_CHAIN_NAME = 'Localhost';
 
@@ -65,14 +68,18 @@ async function connectTestDappToLocalhost() {
 }
 
 describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
-  const testSpecificMock = {
-    POST: [],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    );
   };
-
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });

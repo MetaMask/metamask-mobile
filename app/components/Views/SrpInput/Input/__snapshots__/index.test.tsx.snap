@@ -2,14 +2,14 @@
 
 exports[`SRP -> Input should render correctly 1`] = `
 <TextInput
-  autoFocus={true}
+  autoFocus={false}
   editable={true}
   onBlur={[Function]}
   onFocus={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#4459ff",
+      "borderColor": "transparent",
       "borderWidth": 1,
       "color": "#121314",
       "fontFamily": "Geist Regular",

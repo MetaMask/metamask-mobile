@@ -20,6 +20,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { getTraceTags } from './tags';
+import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -56,7 +57,7 @@ jest.mock('./tags', () => ({
 }));
 
 describe('deriveSentryEnvironment', () => {
-  it('returns production-flask for non-dev production environment and flask build type', async () => {
+  it('returns flask-production for non-dev production environment and flask build type', async () => {
     const METAMASK_ENVIRONMENT = 'production';
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
@@ -66,20 +67,20 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('production-flask');
+    expect(env).toBe('flask-production');
   });
 
-  it('returns local-flask for non-dev undefined environment and flask build type', async () => {
+  it('returns flask-dev for non-dev undefined environment and flask build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev, undefined, METAMASK_BUILD_TYPE);
-    expect(env).toBe('local-flask');
+    expect(env).toBe(`flask-dev`);
   });
 
-  it('returns debug-flask for non-dev flask environment debug build type', async () => {
+  it('returns flask-main for non-dev flask environment main build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
-    const METAMASK_ENVIRONMENT = 'debug';
+    const METAMASK_ENVIRONMENT = 'main';
     const isDev = false;
 
     const env = deriveSentryEnvironment(
@@ -87,22 +88,22 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('debug-flask');
+    expect(env).toBe(`flask-main`);
   });
 
-  it('returns local for non-dev local environment and undefined build type', async () => {
+  it('returns dev for non-dev dev environment and undefined build type', async () => {
     const isDev = false;
-    const METAMASK_ENVIRONMENT = 'local';
+    const METAMASK_ENVIRONMENT = 'dev';
 
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT);
-    expect(env).toBe('local');
+    expect(env).toBe('development');
   });
 
-  it('returns local for non-dev with both undefined environment and build type', async () => {
+  it('returns development for non-dev with both undefined environment and build type', async () => {
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev);
-    expect(env).toBe('local');
+    expect(env).toBe('development');
   });
 
   it('returns production for non-dev production environment and undefined  build type', async () => {
@@ -432,7 +433,7 @@ describe('captureSentryFeedback', () => {
         lockTime: 30000,
         primaryCurrency: 'ETH',
         searchEngine: 'Google',
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       alert: {
         autodismiss: null,
@@ -479,9 +480,6 @@ describe('captureSentryFeedback', () => {
         protectWalletModalVisible: false,
         seedphraseBackedUp: true,
         userLoggedIn: true,
-      },
-      wizard: {
-        step: 1,
       },
       onboarding: {
         events: [],
@@ -601,7 +599,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -642,7 +639,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -679,7 +675,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 

@@ -48,10 +48,22 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await Assertions.expectElementToBeVisible(
     RevealSecretRecoveryPhrase.container,
   );
-  await Assertions.checkIfTextIsDisplayed(
+  await Assertions.expectTextDisplayed(
     RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
   );
-  await Assertions.checkIfTextIsDisplayed(expectedSrp);
+  await Assertions.expectTextDisplayed(expectedSrp);
+  await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
+
+  await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
+
+  if (device.getPlatform() === 'ios') {
+    // For some reason, the QR code is visible on Android but detox cannot find it
+    await Assertions.expectElementToBeVisible(
+      RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
+    );
+  }
+
+  await RevealSecretRecoveryPhrase.scrollToDone();
   await RevealSecretRecoveryPhrase.tapDoneButton();
 };
 

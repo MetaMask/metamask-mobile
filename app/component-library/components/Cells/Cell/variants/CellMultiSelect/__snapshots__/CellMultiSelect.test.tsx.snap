@@ -3,6 +3,7 @@
 exports[`CellMultiSelect should render default settings correctly 1`] = `
 <TouchableOpacity
   disabled={false}
+  onPress={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -30,34 +31,39 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
         }
       }
     >
-      <TouchableOpacity
-        disabled={false}
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "height": 24,
-            "marginRight": -8,
-            "opacity": 1,
-          }
-        }
+      <View
+        pointerEvents="auto"
       >
-        <View
-          accessibilityRole="checkbox"
+        <TouchableOpacity
+          disabled={false}
+          onPressIn={[Function]}
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
-              "borderColor": "#121314",
-              "borderRadius": 4,
-              "borderWidth": 2,
-              "height": 20,
-              "justifyContent": "center",
-              "width": 20,
+              "flexDirection": "row",
+              "height": 24,
+              "marginRight": -8,
+              "opacity": 1,
             }
           }
-        />
-      </TouchableOpacity>
+        >
+          <View
+            accessibilityRole="checkbox"
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#121314",
+                "borderRadius": 4,
+                "borderWidth": 2,
+                "height": 20,
+                "justifyContent": "center",
+                "width": 20,
+              }
+            }
+          />
+        </TouchableOpacity>
+      </View>
       <View
         accessible={false}
         style={
@@ -276,14 +282,12 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc8",
-                "borderRadius": 10,
-                "borderWidth": 1,
+                "backgroundColor": "#f3f5f9",
+                "borderRadius": 4,
                 "height": 24,
                 "justifyContent": "center",
                 "marginTop": 4,
-                "paddingHorizontal": 4,
+                "paddingHorizontal": 8,
               }
             }
           >
@@ -291,7 +295,7 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#686e7d",
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,

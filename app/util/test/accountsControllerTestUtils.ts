@@ -12,6 +12,8 @@ import {
   SolMethod,
   CaipChainId,
   AnyAccountType,
+  TrxAccountType,
+  TrxScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -63,6 +65,9 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
+
+    // Tron account types
+    [TrxAccountType.Eoa]: [TrxScope.Mainnet],
 
     // Generic account type
     //
@@ -139,7 +144,7 @@ export function createMockSnapInternalAccount(
       ];
       break;
     case BtcAccountType.P2wpkh:
-      methods = [BtcMethod.SendBitcoin];
+      methods = Object.values(BtcMethod);
       break;
     case SolAccountType.DataAccount:
       methods = [SolMethod.SendAndConfirmTransaction];
@@ -194,7 +199,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
     scope: BtcScope.Mainnet,
     index: 0,
   },
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   scopes: [BtcScope.Mainnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
@@ -212,7 +217,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
     scope: BtcScope.Testnet,
     index: 0,
   },
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   scopes: [BtcScope.Testnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
@@ -284,6 +289,7 @@ export const internalSolanaAccount1: InternalAccount = {
     mockSolanaAddress,
     'Solana Account',
     KeyringTypes.snap,
+    SolAccountType.DataAccount,
   ),
   options: {
     imported: true,

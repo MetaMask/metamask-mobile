@@ -1,27 +1,49 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../Icons/Icon';
-import { mockTheme } from '../../../../util/theme';
-import { AvatarSize } from '../../Avatars/Avatar';
 
 // Internal dependencies
 import TabBarItem from './TabBarItem';
 
 describe('TabBarItem', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <TabBarItem
-        label={'Tab'}
-        icon={IconName.Bank}
-        onPress={jest.fn}
-        iconSize={AvatarSize.Md}
-        iconColor={mockTheme.colors.primary.default}
-        iconBackgroundColor={mockTheme.colors.background.default}
-      />,
+  const defaultProps = {
+    label: 'Home',
+    iconName: IconName.Bank,
+    onPress: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders tab bar item with icon', () => {
+    const { getByTestId } = render(
+      <TabBarItem {...defaultProps} testID="tab-item" />,
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(getByTestId('tab-item')).toBeOnTheScreen();
+  });
+
+  it('calls onPress when pressed', () => {
+    // Arrange
+    const mockOnPress = jest.fn();
+
+    // Act
+    const { getByTestId } = render(
+      <TabBarItem {...defaultProps} onPress={mockOnPress} testID="tab-item" />,
+    );
+    fireEvent.press(getByTestId('tab-item'));
+
+    // Assert
+    expect(mockOnPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays label text when provided for non-trade button', () => {
+    const { getByText } = render(<TabBarItem {...defaultProps} label="Home" />);
+
+    expect(getByText('Home')).toBeOnTheScreen();
   });
 });

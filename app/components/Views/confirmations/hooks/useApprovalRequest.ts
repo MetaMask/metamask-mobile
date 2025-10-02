@@ -29,7 +29,6 @@ const useApprovalRequest = () => {
       value?: Parameters<typeof Engine.acceptPendingApproval>[1],
     ) => {
       if (!approvalRequest) return;
-
       await Engine.acceptPendingApproval(
         approvalRequest.id,
         { ...approvalRequest.requestData, ...(value || {}) },

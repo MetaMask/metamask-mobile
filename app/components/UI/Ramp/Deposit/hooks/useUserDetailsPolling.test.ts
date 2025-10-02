@@ -9,7 +9,11 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion, KycStatus } from '../constants';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_US_REGION,
+} from '../testUtils/constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -45,18 +49,24 @@ describe('useUserDetailsPolling', () => {
       sdk: {} as NativeRampsSdk,
       sdkError: undefined,
       providerApiKey: 'test-key',
-      providerFrontendAuth: 'test-auth',
       isAuthenticated: true,
-      authToken: { id: 'test-token' } as NativeTransakAccessToken,
+      authToken: {
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+      } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
       logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
-      selectedRegion: {
-        isoCode: 'US',
-      } as DepositRegion,
+      selectedRegion: MOCK_US_REGION,
       setSelectedRegion: jest.fn(),
+      selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
+      setSelectedPaymentMethod: jest.fn(),
+      selectedCryptoCurrency: MOCK_USDC_TOKEN,
+      setSelectedCryptoCurrency: jest.fn(),
+      selectedWalletAddress: '0x1234567890123456789012345678901234567890',
     });
   });
 
@@ -120,12 +130,15 @@ describe('useUserDetailsPolling', () => {
       },
       createdAt: '2023-01-01T00:00:00Z',
       kyc: {
-        l1: {
-          status: KycStatus.APPROVED,
-          type: 'dummy',
-          updatedAt: '2023-01-01T00:00:00Z',
-          kycSubmittedAt: '2023-01-01T00:00:00Z',
-        },
+        status: 'APPROVED',
+        type: 'L1',
+        workFlowRunId: 'test-workflow-id',
+        attempts: [],
+        highestApprovedKYCType: 'L1',
+        kycMarkedBy: null,
+        kycResult: null,
+        rejectionDetails: null,
+        userId: 'test-user',
       },
     };
 
@@ -150,12 +163,15 @@ describe('useUserDetailsPolling', () => {
       },
       createdAt: '2023-01-01T00:00:00Z',
       kyc: {
-        l1: {
-          status: KycStatus.APPROVED,
-          type: 'dummy',
-          updatedAt: '2023-01-01T00:00:00Z',
-          kycSubmittedAt: '2023-01-01T00:00:00Z',
-        },
+        status: 'APPROVED',
+        type: 'L1',
+        workFlowRunId: 'test-workflow-id',
+        attempts: [],
+        highestApprovedKYCType: 'L1',
+        kycMarkedBy: null,
+        kycResult: null,
+        rejectionDetails: null,
+        userId: 'test-user',
       },
     });
   });
@@ -186,12 +202,15 @@ describe('useUserDetailsPolling', () => {
       },
       createdAt: '2023-01-01T00:00:00Z',
       kyc: {
-        l1: {
-          status: KycStatus.APPROVED,
-          type: 'dummy',
-          updatedAt: '2023-01-01T00:00:00Z',
-          kycSubmittedAt: '2023-01-01T00:00:00Z',
-        },
+        status: 'APPROVED',
+        type: 'L1',
+        workFlowRunId: 'test-workflow-id',
+        attempts: [],
+        highestApprovedKYCType: 'L1',
+        kycMarkedBy: null,
+        kycResult: null,
+        rejectionDetails: null,
+        userId: 'test-user',
       },
     };
     rerender();

@@ -6,7 +6,6 @@ import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen.js';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
@@ -60,9 +59,6 @@ When(/^I tap "([^"]*)"/, async (text) => {
       break;
     case 'Create Password':
       await CreatePasswordScreen.tapCreatePasswordButton();
-      break;
-    case 'No, Thanks':
-      await OnboardingWizardModal.tapNoThanksButton();
       break;
     case 'https://uniswap.exchange':
       await AddressBarScreen.tapUniswapSuggestionButton();

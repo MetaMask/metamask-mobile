@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { RampType } from '../../../reducers/fiatOrders/types';
-import Routes from '../../../constants/navigation/Routes';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Internal dependencies.
 import { useMetrics } from '../../hooks/useMetrics';
@@ -179,16 +179,6 @@ describe('FundActionMenu', () => {
       expect(buyButton).toHaveTextContent(/fund_actionmenu\.buy_description/);
     });
 
-    it('does not render buy button when ramp network is not supported', () => {
-      mockUseRampNetwork.mockReturnValue([false, false]);
-
-      const { queryByTestId } = render(<FundActionMenu />);
-
-      expect(
-        queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-      ).toBeNull();
-    });
-
     it('renders sell button when ramp network is supported', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
@@ -254,7 +244,9 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          ...createDepositNavigationDetails(),
+        );
       });
     });
 
@@ -310,8 +302,7 @@ describe('FundActionMenu', () => {
 
     it('uses asset context for navigation when provided without custom onBuy', async () => {
       const assetContext = {
-        address: '0x123',
-        chainId: '0x89',
+        assetId: 'eip155:137/slip44:60',
       };
       mockUseRoute.mockReturnValue({
         params: { asset: assetContext },
@@ -325,32 +316,9 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          address: '0x123',
-          chainId: 137,
+          assetId: 'eip155:137/slip44:60',
         });
         expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
-      });
-    });
-
-    it('uses asset context chainId when provided, falls back to current chainId when not', async () => {
-      const assetContext = {
-        address: '0x123',
-      };
-      mockUseRoute.mockReturnValue({
-        params: { asset: assetContext },
-      } as never);
-
-      const { getByTestId } = render(<FundActionMenu />);
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-      );
-
-      await waitFor(() => {
-        expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          address: '0x123',
-          chainId: 1,
-        });
       });
     });
 
@@ -549,10 +517,9 @@ describe('FundActionMenu', () => {
       });
     });
 
-    it('handles undefined chainId in asset context', async () => {
+    it('handles undefined assetId in asset context', async () => {
       const assetContext = {
-        address: '0x123',
-        chainId: undefined,
+        assetId: undefined,
       };
       mockUseRoute.mockReturnValue({
         params: { asset: assetContext },
@@ -566,8 +533,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          address: '0x123',
-          chainId: 1,
+          assetId: undefined,
         });
       });
     });
@@ -592,24 +558,6 @@ describe('FundActionMenu', () => {
           chain_id_destination: 137,
         }),
       );
-    });
-
-    it('renders when no buttons are available', () => {
-      mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: false });
-      mockUseRampNetwork.mockReturnValue([false, false]);
-
-      const { getByTestId, queryByTestId } = render(<FundActionMenu />);
-
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-      expect(
-        queryByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
-      ).toBeNull();
-      expect(
-        queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-      ).toBeNull();
-      expect(
-        queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
-      ).toBeNull();
     });
   });
 

@@ -36,13 +36,13 @@ export function transformFillsToTransactions(
     let isPositive = false;
     if (isOpened) {
       action = 'Opened';
-      isPositive = false;
+      // Will be set based on fee calculation below
     } else if (isClosed) {
       action = 'Closed';
-      isPositive = true;
+      // Will be set based on PnL calculation below
     } else if (isFlipped) {
       action = 'Flipped';
-      isPositive = true;
+      // Will be set based on calculation below
     } else if (!direction) {
       console.error('Unknown fill direction', fill);
       return acc;
@@ -51,20 +51,44 @@ export function transformFillsToTransactions(
       return acc;
     }
 
-    let amount = 0;
     let amountBN = BigNumber(0);
-
+    let displayAmount = '';
+    let fillSize = size;
     if (isFlipped) {
-      amountBN = BigNumber(fill.startPosition || '0')
+      fillSize = BigNumber(fill.startPosition || '0')
         .minus(fill.size)
-        .times(fill.price);
-    } else {
-      amountBN = BigNumber(fill.size).times(fill.price).plus(fill.fee);
+        .absoluteValue()
+        .toString();
     }
-    amount = amountBN.toNumber();
-
-    const absAmount = Math.abs(amount).toFixed(2);
-    const amountUSD = `${isPositive ? '+' : '-'}$${absAmount}`;
+    // Calculate display amount based on action type
+    if (isOpened) {
+      // For opening positions: show fee paid (negative)
+      amountBN = BigNumber(fill.fee || 0);
+      displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
+      isPositive = false; // Fee is always a cost
+    } else if (isClosed || isFlipped) {
+      // For closing positions: show PnL minus fee
+      const pnlValue = BigNumber(fill.pnl || 0);
+      const feeValue = BigNumber(fill.fee || 0);
+      amountBN = pnlValue.minus(feeValue);
+      const netPnL = amountBN.toNumber();
+      // For display, show + for positive, - for negative, nothing for 0
+      if (netPnL > 0) {
+        displayAmount = `+$${Math.abs(netPnL).toFixed(2)}`;
+        isPositive = true;
+      } else if (netPnL < 0) {
+        displayAmount = `-$${Math.abs(netPnL).toFixed(2)}`;
+        isPositive = false;
+      } else {
+        displayAmount = `$${Math.abs(netPnL).toFixed(2)}`;
+        isPositive = true; // Treat break-even as positive (green)
+      }
+    } else {
+      // Fallback: show order size value
+      amountBN = BigNumber(fill.size).times(fill.price);
+      displayAmount = `$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
+      isPositive = false; // Default to false for unknown cases
+    }
 
     acc.push({
       id: orderId || `fill-${timestamp}`,
@@ -82,14 +106,16 @@ export function transformFillsToTransactions(
             ? direction?.toLowerCase() || ''
             : part2?.toLowerCase() || ''
         }`,
-        amount: amountUSD,
+        // this is the amount that is displayed in the transaction view for what has been spent/gained
+        // it may be the fee spent or the pnl depending on the case
+        amount: displayAmount,
         amountNumber: parseFloat(amountBN.toFixed(2)),
         isPositive,
-        size,
+        size: fillSize,
         entryPrice: price,
         pnl,
         fee,
-        points: '0',
+        points: '0', // Points feature not activated yet
         feeToken,
         action,
       },
@@ -186,12 +212,15 @@ export function transformOrdersToTransactions(
 /**
  * Transform abstract Funding objects to PerpsTransaction format
  * @param funding - Array of abstract Funding objects
- * @returns Array of PerpsTransaction objects
+ * @returns Array of PerpsTransaction objects sorted by timestamp (newest first)
  */
 export function transformFundingToTransactions(
   funding: Funding[],
 ): PerpsTransaction[] {
-  return funding.map((fundingItem) => {
+  // Sort funding by timestamp in descending order (newest first) to match Orders and Trades
+  const sortedFunding = [...funding].sort((a, b) => b.timestamp - a.timestamp);
+
+  return sortedFunding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
 
     // Create safe amount strings
@@ -205,7 +234,7 @@ export function transformFundingToTransactions(
       type: 'funding',
       category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      subtitle: ``,
+      subtitle: symbol,
       timestamp,
       asset: symbol,
       fundingAmount: {

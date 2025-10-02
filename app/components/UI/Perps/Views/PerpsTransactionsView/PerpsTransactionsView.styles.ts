@@ -13,7 +13,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     filterContainer: {
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingVertical: 12,
       backgroundColor: colors.background.default,
       zIndex: 1000, // iOS
       elevation: 1000, // Android
@@ -38,6 +38,10 @@ export const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       minHeight: 1, // Prevents FlashList layout issues
     },
+    tabDescription: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
     sectionHeader: {
       paddingTop: 12,
       paddingHorizontal: 16,
@@ -54,11 +58,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       paddingHorizontal: 16,
       minHeight: 72, // Consistent height for FlashList
-    },
-    transactionIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
     },
     tokenIconContainer: {
       width: 36,

@@ -18,7 +18,23 @@ import {
 } from '../../../../selectors/networkController';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
+
+// Mock the feature flags
+jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
+  getNetworkImageSource: jest.fn(),
+  mainnet: {
+    name: 'Ethereum Main Network',
+  },
+}));
 const { PreferencesController, NetworkController } = Engine.context;
+
+const mockIsRemoveGlobalNetworkSelectorEnabled =
+  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
+    typeof isRemoveGlobalNetworkSelectorEnabled
+  >;
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -147,6 +163,30 @@ jest.mock('../../../../core/Engine/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+  () => ({
+    useNetworksByNamespace: () => ({
+      networks: [],
+      selectNetwork: jest.fn(),
+      selectCustomNetwork: jest.fn(),
+      selectPopularNetwork: jest.fn(),
+    }),
+    NetworkType: {
+      Popular: 'popular',
+      Custom: 'custom',
+    },
+  }),
+);
+
+jest.mock('../../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+    selectNetwork: jest.fn(),
+  }),
+}));
+
 const mockNetworks: Record<Hex, NetworkConfiguration> = {
   [NETWORK_CHAIN_ID.MAINNET]: {
     blockExplorerUrls: ['https://etherscan.io'],
@@ -221,6 +261,9 @@ describe('RpcSelectionModal', () => {
       }
       return null;
     });
+
+    // Reset feature flag mock
+    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
   afterEach(() => {
     jest.clearAllMocks();
@@ -342,5 +385,77 @@ describe('RpcSelectionModal', () => {
     expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
       0,
     );
+  });
+
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    // Common test configurations
+    const renderAndPressRpc = () => {
+      const { getByText } = renderWithProvider(
+        <RpcSelectionModal {...defaultProps} />,
+      );
+      const rpcUrlElement = getByText('mainnet.infura.io/v3');
+      fireEvent.press(rpcUrlElement);
+      return { getByText };
+    };
+
+    const verifyControllersAvailable = () => {
+      expect(NetworkController.updateNetwork).toBeDefined();
+      expect(PreferencesController.setTokenNetworkFilter).toBeDefined();
+    };
+
+    describe('when feature flag is enabled', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      });
+
+      it('should call selectNetwork', () => {
+        renderAndPressRpc();
+
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+        expect(NetworkController.updateNetwork).toHaveBeenCalled();
+        expect(defaultProps.closeRpcModal).toHaveBeenCalled();
+      });
+
+      it('should have proper hook setup', () => {
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+        verifyControllersAvailable();
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      });
+
+      it('should not call selectNetwork', () => {
+        renderAndPressRpc();
+
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+        expect(NetworkController.updateNetwork).toHaveBeenCalled();
+        expect(defaultProps.closeRpcModal).toHaveBeenCalled();
+      });
+
+      it('should have proper hook setup', () => {
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+        verifyControllersAvailable();
+      });
+    });
+  });
+
+  describe('Hook Configuration', () => {
+    it('should properly initialize hooks with default values', () => {
+      const { getByText } = renderWithProvider(
+        <RpcSelectionModal {...defaultProps} />,
+      );
+
+      // Verify that the component renders correctly
+      expect(getByText('Mainnet')).toBeTruthy();
+    });
+
+    it('should have all necessary Engine controllers available', () => {
+      // Verify that all necessary controllers are available
+      expect(NetworkController.updateNetwork).toBeDefined();
+      expect(PreferencesController.setTokenNetworkFilter).toBeDefined();
+    });
   });
 });

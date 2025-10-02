@@ -18,6 +18,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
+import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
@@ -59,6 +60,13 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+
+    if (reduxState?.user?.existingUser) {
+      Logger.log(
+        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
+      );
+    }
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
@@ -71,12 +79,17 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
     } catch (error) {
+      trackVaultCorruption((error as Error).message, {
+        error_type: 'engine_initialization_failure',
+        context: 'engine_service_startup',
+        has_existing_state: Object.keys(state).length > 0,
+      });
+
       Logger.error(
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',

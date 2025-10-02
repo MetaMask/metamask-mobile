@@ -46,6 +46,7 @@ interface TokenAmount {
   amountPrecise: string | undefined;
   amountUnformatted: string | undefined;
   fiat: string | undefined;
+  fiatUnformatted: string | undefined;
   isNative: boolean | undefined;
   updateTokenAmount: (amount: string) => void;
   usdValue: string | null;
@@ -124,7 +125,10 @@ export const useTokenAmount = ({
 
   const updateTokenAmount = useCallback(
     (amount: string) => {
-      const amountRaw = calcTokenValue(amount, decimals);
+      const amountRaw = calcTokenValue(amount, decimals).decimalPlaces(
+        0,
+        BigNumber.ROUND_UP,
+      );
 
       const newData = generateTransferData('transfer', {
         toAddress: recipient,
@@ -133,6 +137,7 @@ export const useTokenAmount = ({
 
       updateEditableParams(transactionId as string, {
         data: newData,
+        updateType: false,
       });
     },
     [decimals, recipient, transactionId],
@@ -145,6 +150,7 @@ export const useTokenAmount = ({
       amountPrecise: undefined,
       amountUnformatted: undefined,
       fiat: undefined,
+      fiatUnformatted: undefined,
       isNative: undefined,
       usdValue: null,
       updateTokenAmount,
@@ -180,6 +186,7 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.contractInteraction:
+    case TransactionType.perpsDeposit:
     case TransactionType.tokenMethodTransfer: {
       // ERC20
       const contractExchangeRate =
@@ -206,6 +213,7 @@ export const useTokenAmount = ({
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amountUnformatted: amount.toString(),
     fiat: fiat !== undefined ? fiatFormatter(fiat) : undefined,
+    fiatUnformatted: fiat !== undefined ? fiat.toString(10) : undefined,
     isNative,
     updateTokenAmount,
     usdValue,

@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import type { Hex } from '@metamask/utils';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
-import { usePerpsAccount, usePerpsNetwork } from './index';
+import { usePerpsNetwork } from './index';
+import { usePerpsLiveAccount } from './stream';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
@@ -15,7 +17,7 @@ import {
   TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
 } from '../constants/hyperLiquidConfig';
-import type { PerpsToken } from '../components/PerpsTokenSelector';
+import type { PerpsToken } from '../types';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -34,11 +36,14 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
+  // Use ref to store previous token array
+  const previousTokensRef = useRef<PerpsToken[]>([]);
+
   // Get Hyperliquid account balance
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
   const hyperliquidBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Get all chain IDs to search for tokens
@@ -152,5 +157,14 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     isIpfsGatewayEnabled,
   ]);
 
-  return paymentTokens;
+  // Check if tokens have actually changed using lodash deep equality
+  const tokensChanged = !isEqual(previousTokensRef.current, paymentTokens);
+
+  // Only update the reference if tokens have actually changed
+  if (tokensChanged) {
+    previousTokensRef.current = paymentTokens;
+  }
+
+  // Return the stable reference if tokens haven't changed
+  return tokensChanged ? paymentTokens : previousTokensRef.current;
 }

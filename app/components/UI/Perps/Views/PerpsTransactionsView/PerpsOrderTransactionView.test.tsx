@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsOrderTransactionView from './PerpsOrderTransactionView';
 import {
@@ -30,7 +31,6 @@ const mockTransaction = {
 // Mock dependencies
 const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
-const mockUseSelector = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockUseNavigation(),
@@ -38,7 +38,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: () => mockUseSelector(),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  })),
 }));
 
 jest.mock('../../hooks', () => ({
@@ -64,31 +70,13 @@ describe('PerpsOrderTransactionView', () => {
       typeof usePerpsBlockExplorerUrl
     >;
 
-  // Mock selectedInternalAccount
-  const mockSelectedInternalAccount = {
-    id: 'test-account-id',
-    address: '0x1234567890abcdef1234567890abcdef12345678',
-    type: 'eip155:eoa' as const,
-    metadata: {
-      name: 'Test Account',
-      importTime: 1684232000456,
-      keyring: {
-        type: 'HD Key Tree',
-      },
-    },
-    options: {},
-    methods: [
-      'personal_sign',
-      'eth_signTransaction',
-      'eth_signTypedData_v1',
-      'eth_signTypedData_v3',
-      'eth_signTypedData_v4',
-    ],
-    scopes: ['eip155:1'],
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock useSelector to return a function that returns the account
+    (useSelector as jest.Mock).mockImplementation(() => () => ({
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+    }));
 
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockUsePerpsBlockExplorerUrl.mockReturnValue({
@@ -124,9 +112,6 @@ describe('PerpsOrderTransactionView', () => {
       navigate: jest.fn(),
       setOptions: jest.fn(),
     });
-
-    // Mock selectedInternalAccount by default
-    mockUseSelector.mockReturnValue(mockSelectedInternalAccount);
   });
 
   it('should render order transaction details correctly', () => {
@@ -249,7 +234,8 @@ describe('PerpsOrderTransactionView', () => {
       setOptions: jest.fn(),
     });
 
-    mockUseSelector.mockReturnValue(null);
+    // Mock useSelector to return null for no account
+    (useSelector as jest.Mock).mockImplementationOnce(() => () => null);
 
     const { getByTestId } = render(<PerpsOrderTransactionView />);
 

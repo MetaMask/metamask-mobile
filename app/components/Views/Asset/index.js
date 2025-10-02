@@ -45,7 +45,6 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import {
@@ -80,11 +79,13 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
-import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
+import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsUnifiedSwapsEnabled,
+  selectIsSwapsLive,
+} from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -253,14 +254,14 @@ class Asset extends PureComponent {
         navigation,
         colors,
         // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
-        shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
+        shouldShowMoreOptionsInNavBar
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: 'AssetOptions',
                 params: {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
-                  chainId: route.params?.chainId,
+                  chainId: route.params?.chainId || '0x1',
                   asset,
                 },
               })
@@ -575,9 +576,6 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isSwapsNetworkAllowed = isPortfolioViewEnabled()
-      ? isSwapsAllowed(asset.chainId)
-      : isSwapsAllowed(chainId);
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
@@ -588,8 +586,7 @@ class Asset extends PureComponent {
     // Check if unified swaps is enabled
     const isUnifiedSwapsEnabled = this.props.isUnifiedSwapsEnabled;
 
-    const displaySwapsButton =
-      isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
+    const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
     const displayBridgeButton =
       !isUnifiedSwapsEnabled &&
@@ -602,7 +599,7 @@ class Asset extends PureComponent {
     const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
-    const displayFundButton = isDepositAvailable || isRampAvailable;
+    const displayBuyButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -617,7 +614,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -643,7 +640,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -682,15 +679,12 @@ let cacheKey = null;
 const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
+  const asset = route.params;
 
   let allTransactions = evmTransactions;
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (
-    selectedInternalAccount &&
-    !isEvmAccountType(selectedInternalAccount.type) &&
-    route.params?.chainId &&
-    isNonEvmChainId(route.params.chainId)
-  ) {
+  if (asset?.chainId && isNonEvmChainId(asset.chainId)) {
     const nonEvmTransactions = selectNonEvmTransactions(state);
     const txs = nonEvmTransactions?.transactions || [];
 
@@ -781,7 +775,7 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: getSwapsIsLive(state, route.params.chainId),
+    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
     swapsTokens: isPortfolioViewEnabled()
       ? swapsTokensMultiChainObjectSelector(state)
       : swapsTokensObjectSelector(state),

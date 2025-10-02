@@ -1,10 +1,9 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
 import { acceptTermOfUse } from '../../viewHelper';
@@ -13,7 +12,7 @@ import Assertions from '../../framework/Assertions';
 const PASSWORD = '12345678';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeWalletPlatform('Start Exploring'), () => {
+describe(RegressionWalletPlatform('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();
@@ -37,13 +36,6 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     await OnboardingCarouselView.tapOnGetStartedButton();
     await acceptTermOfUse();
     await Assertions.expectElementToBeVisible(OnboardingView.container);
-  });
-
-  it('should be able to opt-out of the onboarding-wizard', async () => {
-    await OnboardingView.tapCreateWallet();
-    await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container);
-    await MetaMetricsOptIn.tapNoThanksButton();
-    await Assertions.expectElementToBeVisible(CreatePasswordView.container);
   });
 
   it('should be able to create a new wallet', async () => {

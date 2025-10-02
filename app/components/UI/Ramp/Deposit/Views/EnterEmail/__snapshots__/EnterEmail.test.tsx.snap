@@ -517,7 +517,15 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -564,7 +572,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -687,6 +695,35 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -732,7 +769,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -810,7 +847,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1340,7 +1377,15 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1387,7 +1432,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -1510,6 +1555,35 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1555,7 +1629,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -1647,7 +1721,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2177,7 +2251,15 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2224,7 +2306,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2347,6 +2429,35 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -2392,7 +2503,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -2470,7 +2581,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3000,7 +3111,15 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3047,7 +3166,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -3170,6 +3289,35 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -3215,7 +3363,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -3307,7 +3455,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

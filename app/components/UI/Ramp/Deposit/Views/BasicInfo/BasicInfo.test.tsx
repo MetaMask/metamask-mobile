@@ -1,27 +1,32 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
-import { timestampToTransakFormat } from '../../utils';
 import { endTrace } from '../../../../../../util/trace';
+import Logger from '../../../../../../util/Logger';
+import {
+  MOCK_REGIONS,
+  MOCK_US_REGION,
+  MOCK_CA_REGION,
+  FIXED_DATE,
+  FIXED_TIMESTAMP,
+  TEST_QUOTE_ID,
+  createMockSDKMethods,
+} from '../../testUtils';
 
-const mockTrackEvent = jest.fn();
-
-const FIXED_DATE = new Date(2024, 0, 1);
-const FIXED_TIMESTAMP = FIXED_DATE.getTime();
+const { mockTrackEvent, mockPostKycForm, mockSubmitSsnDetails } =
+  createMockSDKMethods();
 
 const mockQuote = {
-  quoteId: 'test-quote-id',
+  quoteId: TEST_QUOTE_ID,
 } as BuyQuote;
 
-const mockSelectedRegion = DEPOSIT_REGIONS.find(
-  (region) => region.isoCode === 'US',
-) as DepositRegion;
+const mockSelectedRegion = MOCK_US_REGION;
 
 let mockUseParamsReturnValue: {
   quote: BuyQuote;
@@ -66,6 +71,23 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: (config: { method: string }) => {
+    if (config.method === 'patchUser') {
+      return [{}, mockPostKycForm];
+    }
+    if (config.method === 'submitSsnDetails') {
+      return [{}, mockSubmitSsnDetails];
+    }
+    return [{}, jest.fn()];
+  },
+}));
+
+const mockUseRegions = jest.fn();
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: () => mockUseRegions(),
+}));
+
 jest.mock('../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../util/trace'),
   endTrace: jest.fn(),
@@ -96,12 +118,23 @@ describe('BasicInfo Component', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
     });
+
+    mockUseRegions.mockReturnValue({
+      regions: MOCK_REGIONS,
+      isFetching: false,
+      error: null,
+    });
+
+    mockPostKycForm.mockResolvedValue(undefined);
+    mockSubmitSsnDetails.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
     mockTrackEvent.mockClear();
+    mockPostKycForm.mockClear();
+    mockSubmitSsnDetails.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -116,7 +149,49 @@ describe('BasicInfo Component', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to address page when form is valid and continue is pressed', () => {
+  it('snapshot matches validation errors when continue is pressed with invalid format fields', () => {
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), '   ');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'A'.repeat(36));
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '123456789',
+    );
+    fireEvent.changeText(
+      screen.getByTestId('date-of-birth-input'),
+      'invalid-date',
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('snapshot matches validation errors when continue is pressed with invalid format fields for non-US region', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: MOCK_CA_REGION,
+    });
+
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), '   ');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'A'.repeat(36));
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '123456789',
+    );
+    fireEvent.changeText(
+      screen.getByTestId('date-of-birth-input'),
+      'invalid-date',
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to address page when form is valid and continue is pressed', async () => {
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);
 
@@ -127,25 +202,27 @@ describe('BasicInfo Component', () => {
       '234567890',
     );
     fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
-    fireEvent.changeText(
-      screen.getByPlaceholderText('XXX-XX-XXXX'),
-      '123456789',
-    );
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
     expect(screen.toJSON()).toMatchSnapshot();
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createEnterAddressNavDetails({
-        formData: {
-          dob: timestampToTransakFormat(dob),
-          firstName: 'John',
-          lastName: 'Smith',
-          mobileNumber: '+1234567890',
-          ssn: '123456789',
-        },
         quote: mockQuote,
       }),
+    );
+  });
+
+  it('navigates to SSN info modal when SSN info button is pressed', () => {
+    render(BasicInfo);
+
+    fireEvent.press(screen.getByTestId('ssn-info-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createSsnInfoModalNavigationDetails(),
     );
   });
 
@@ -158,7 +235,7 @@ describe('BasicInfo Component', () => {
     );
   });
 
-  it('tracks analytics event when continue button is pressed with valid form data', () => {
+  it('tracks analytics event when continue button is pressed with valid form data', async () => {
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);
 
@@ -170,7 +247,10 @@ describe('BasicInfo Component', () => {
     );
     fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
 
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BASIC_INFO_ENTERED', {
       region: 'US',
@@ -204,7 +284,7 @@ describe('BasicInfo Component', () => {
 
     render(BasicInfo);
 
-    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledTimes(4);
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: 'Deposit Continue Flow',
       data: {
@@ -217,5 +297,80 @@ describe('BasicInfo Component', () => {
         destination: 'BasicInfo',
       },
     });
+  });
+
+  it('calls postKycForm and submitSsnDetails when continue is pressed with valid form data', async () => {
+    const dob = new Date('1990-01-01').getTime().toString();
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+
+    expect(mockPostKycForm).toHaveBeenCalledWith({
+      personalDetails: {
+        firstName: 'John',
+        lastName: 'Smith',
+        mobileNumber: '+1234567890',
+        dob: '01-01-2024',
+      },
+    });
+    expect(mockSubmitSsnDetails).toHaveBeenCalledWith({
+      ssn: '123456789',
+      quoteId: 'test-quote-id',
+    });
+  });
+
+  it('handles form submission errors and displays error message', async () => {
+    const errorMessage = 'API Error occurred';
+    const mockError = new Error(errorMessage);
+    mockPostKycForm.mockImplementationOnce(() => {
+      throw mockError;
+    });
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    const dob = new Date('1990-01-01').getTime().toString();
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(screen.getByText(errorMessage)).toBeOnTheScreen();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      mockError,
+      'Unexpected error during basic info form submission',
+    );
+  });
+
+  it('passes regions to DepositPhoneField component', () => {
+    const customRegions = [...MOCK_REGIONS, MOCK_CA_REGION];
+
+    mockUseRegions.mockReturnValue({
+      regions: customRegions,
+      isFetching: false,
+      error: null,
+    });
+    render(BasicInfo);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

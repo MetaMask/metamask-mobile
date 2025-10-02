@@ -23,6 +23,8 @@ import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -32,11 +34,22 @@ export const useAssetBalance = (
   balanceFiat: string | undefined;
   mainBalance: string | undefined;
   secondaryBalance: string | undefined;
+  /** Raw (unformatted) fiat value as a number when available */
+  rawFiatNumber: number | undefined;
+  /** Raw (unformatted) token balance as a number when available */
+  rawTokenBalance: number | undefined;
 } => {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
+  const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
+  const chainIds = Object.entries(popularNetworks || {})
+    .map((network) => network[1]?.chainId)
+    .filter(Boolean);
+  const tokensWithBalance = useTokensWithBalance({
+    chainIds,
+  });
 
   const selectEvmAsset = useMemo(
     () => makeSelectAssetByAddressAndChainId(),
@@ -53,11 +66,16 @@ export const useAssetBalance = (
       : undefined,
   );
 
-  let asset = token && isEvmNetworkSelected ? evmAsset : undefined;
+  let asset = evmAsset;
   let isMappedAsset = false;
 
   if (!asset && token) {
     const iconUrl = buildTokenIconUrl(token.chainId, token.address);
+    const filteredToken = tokensWithBalance.find(
+      (t) =>
+        t.address.toLowerCase() === token.address.toLowerCase() &&
+        t.chainId === token.chainId,
+    );
 
     asset = {
       ...token,
@@ -65,8 +83,8 @@ export const useAssetBalance = (
       logo: iconUrl,
       isETH: false,
       aggregators: [],
-      balance: '0',
-      balanceFiat: '0',
+      balance: filteredToken?.balance ?? '0',
+      balanceFiat: filteredToken?.balanceFiat ?? '0',
     } as TokenI;
     isMappedAsset = true;
   }
@@ -109,62 +127,98 @@ export const useAssetBalance = (
   const oneHundredths = 0.01;
   const oneHundredThousandths = 0.00001;
 
-  const { balanceFiat, balanceValueFormatted } = useMemo(() => {
-    if (!asset || !token) {
+  const { balanceFiat, balanceValueFormatted, rawFiatNumber, rawTokenBalance } =
+    useMemo(() => {
+      if (!asset || !token) {
+        return {
+          balanceFiat: '',
+          balanceValueFormatted: '',
+          rawFiatNumber: undefined,
+          rawTokenBalance: undefined,
+        };
+      }
+
+      if (isMappedAsset) {
+        const zeroBalanceFiat = formatWithThreshold(
+          0,
+          oneHundredths,
+          I18n.locale,
+          { style: 'currency', currency: currentCurrency },
+        );
+        const zeroBalanceFormatted = `0 ${asset.symbol}`;
+        const parsedBalance = asset.balance ? parseFloat(asset.balance) : 0;
+        const parsedFiat = asset.balanceFiat
+          ? parseFloat(String(asset.balanceFiat).replace(/[^0-9.]/g, ''))
+          : 0;
+
+        return {
+          balanceFiat:
+            asset.balanceFiat && asset.balanceFiat !== '0'
+              ? asset.balanceFiat
+              : zeroBalanceFiat,
+          balanceValueFormatted:
+            asset.balance && asset.balance !== '0'
+              ? formatWithThreshold(
+                  parseFloat(asset.balance),
+                  oneHundredThousandths,
+                  I18n.locale,
+                  { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+                )
+              : zeroBalanceFormatted,
+          rawTokenBalance: isNaN(parsedBalance) ? undefined : parsedBalance,
+          rawFiatNumber: isNaN(parsedFiat) ? undefined : parsedFiat,
+        };
+      }
+
+      if (isEvmNetworkSelected && asset) {
+        const derived = deriveBalanceFromAssetMarketDetails(
+          asset,
+          exchangeRates || {},
+          tokenBalances || {},
+          conversionRate || 0,
+          currentCurrency || '',
+        );
+        return {
+          ...derived,
+          rawTokenBalance: derived.balance
+            ? parseFloat(derived.balance)
+            : undefined,
+          rawFiatNumber: derived.balanceFiatCalculation,
+        };
+      }
+
       return {
-        balanceFiat: '',
-        balanceValueFormatted: '',
+        balanceFiat: asset?.balanceFiat
+          ? formatWithThreshold(
+              parseFloat(asset.balanceFiat),
+              oneHundredths,
+              I18n.locale,
+              { style: 'currency', currency: currentCurrency },
+            )
+          : TOKEN_BALANCE_LOADING,
+        balanceValueFormatted: asset?.balance
+          ? formatWithThreshold(
+              parseFloat(asset.balance),
+              oneHundredThousandths,
+              I18n.locale,
+              { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+            )
+          : TOKEN_BALANCE_LOADING,
+        rawTokenBalance: asset?.balance ? parseFloat(asset.balance) : undefined,
+        rawFiatNumber: asset?.balanceFiat
+          ? parseFloat(String(asset.balanceFiat).replace(/[^0-9.]/g, ''))
+          : undefined,
       };
-    }
-
-    if (isMappedAsset) {
-      return {
-        balanceFiat: formatWithThreshold(0, oneHundredths, I18n.locale, {
-          style: 'currency',
-          currency: currentCurrency,
-        }),
-        balanceValueFormatted: `0 ${asset.symbol}`,
-      };
-    }
-
-    if (isEvmNetworkSelected && asset) {
-      return deriveBalanceFromAssetMarketDetails(
-        asset,
-        exchangeRates || {},
-        tokenBalances || {},
-        conversionRate || 0,
-        currentCurrency || '',
-      );
-    }
-
-    return {
-      balanceFiat: asset?.balanceFiat
-        ? formatWithThreshold(
-            parseFloat(asset.balanceFiat),
-            oneHundredths,
-            I18n.locale,
-            { style: 'currency', currency: currentCurrency },
-          )
-        : TOKEN_BALANCE_LOADING,
-      balanceValueFormatted: asset?.balance
-        ? formatWithThreshold(
-            parseFloat(asset.balance),
-            oneHundredThousandths,
-            I18n.locale,
-            { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-          )
-        : TOKEN_BALANCE_LOADING,
-    };
-  }, [
-    token,
-    isEvmNetworkSelected,
-    asset,
-    exchangeRates,
-    tokenBalances,
-    conversionRate,
-    currentCurrency,
-    isMappedAsset,
-  ]);
+    }, [
+      token,
+      isEvmNetworkSelected,
+      asset,
+      exchangeRates,
+      tokenBalances,
+      conversionRate,
+      currentCurrency,
+      isMappedAsset,
+    ]);
 
   let mainBalance;
   let secondaryBalance;
@@ -208,5 +262,7 @@ export const useAssetBalance = (
     mainBalance,
     balanceFiat,
     secondaryBalance,
+    rawFiatNumber,
+    rawTokenBalance,
   };
 };

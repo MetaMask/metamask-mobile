@@ -6,6 +6,7 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -75,23 +76,24 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 
 interface AssetOverviewProps {
   asset: TokenI;
-  displayFundButton?: boolean;
+  displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   displayBridgeButton?: boolean;
-  swapsIsLive?: boolean;
   networkName?: string;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
-  displayFundButton,
+  displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
-  swapsIsLive,
   networkName,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
@@ -117,6 +119,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const chainId = asset.chainId as Hex;
   const ticker = nativeCurrency;
@@ -195,7 +200,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }
@@ -231,14 +238,27 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigateToSendPage(asset);
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {
+    let assetId: string | undefined;
+    try {
+      if (isCaipAssetType(asset.address)) {
+        assetId = asset.address;
+      } else {
+        assetId = parseRampIntent({
+          chainId: getDecimalChainId(chainId),
+          address: asset.address,
+        })?.assetId;
+      }
+    } catch {
+      assetId = undefined;
+    }
+
     navigation.navigate(
       ...createBuyNavigationDetails({
-        address: asset.address,
-        chainId: getDecimalChainId(chainId),
+        assetId,
       }),
     );
     trackEvent(
@@ -319,7 +339,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
-  if (isMultichainAsset) {
+  if (isMultichainAccountsState2Enabled) {
+    balance = asset.balance;
+  } else if (isMultichainAsset) {
     balance = asset.balance
       ? formatWithThreshold(
           parseFloat(asset.balance),
@@ -415,10 +437,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayFundButton={displayFundButton}
+            displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
-            swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}

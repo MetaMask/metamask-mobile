@@ -1,26 +1,52 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
-import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
+
+export const getFontSizeForInputLength = (contentLength: number) => {
+  if (contentLength <= 10) {
+    return 60;
+  }
+  if (contentLength <= 12) {
+    return 48;
+  }
+  if (contentLength <= 18) {
+    return 32;
+  }
+  if (contentLength <= 24) {
+    return 24;
+  }
+  if (contentLength <= 32) {
+    return 18;
+  }
+  return 12;
+};
 
 export const styleSheet = (params: {
   theme: Theme;
-  vars: { inputError: boolean };
+  vars: {
+    contentLength: number;
+    isNFT: boolean;
+  };
 }) => {
   const {
     theme,
-    vars: { inputError },
+    vars: { contentLength, isNFT },
   } = params;
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: 140,
+      marginBottom: 40,
     },
     container: {
       backgroundColor: theme.colors.background.default,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-      height: '100%',
+      minHeight: '100%',
     },
     currencyTag: {
       alignSelf: 'center',
@@ -28,29 +54,34 @@ export const styleSheet = (params: {
       color: theme.colors.text.alternative,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
-      marginTop: 32,
+      marginTop: 8,
       minWidth: 100,
-    },
-    input: {
-      borderWidth: 0,
-      color: inputError
-        ? theme.colors.error.default
-        : theme.colors.text.default,
-      height: 50,
-      width: '100%',
     },
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
+      marginTop: isNFT ? 0 : 80,
+      width: '100%',
+    },
+    inputText: {
+      fontSize: getFontSizeForInputLength(contentLength),
+      lineHeight: 75,
+      fontFamily: 'Geist Medium',
     },
     inputWrapper: {
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.flexEnd,
-      width: '45%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
     },
-    tokenSymbol: {
-      paddingLeft: 2,
-      width: '40%',
+    nftImage: { alignSelf: 'center', height: 100, width: 100 },
+    nftImageWrapper: {
+      alignItems: AlignItems.center,
+      marginTop: 32,
+      width: '100%',
+    },
+    tokenSymbolWrapper: {
+      justifyContent: JustifyContent.flexStart,
+      width: '50%',
     },
     topSection: {
       paddingHorizontal: 8,

@@ -18,27 +18,23 @@ const navigation = {
 };
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          rewards: true,
+        },
+      },
+    },
   },
 };
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
-}));
-
 // Define the test cases.
 describe('TabBar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   const state = {
     index: 0,
     routes: [
@@ -58,8 +54,8 @@ describe('TabBar', () => {
     },
     '2': {
       options: {
-        tabBarIconKey: TabBarIconKey.Activity,
-        rootScreenName: Routes.TRANSACTIONS_VIEW,
+        tabBarIconKey: TabBarIconKey.Browser,
+        rootScreenName: Routes.BROWSER.VIEW,
       },
     },
     '3': {
@@ -70,8 +66,8 @@ describe('TabBar', () => {
     },
     '4': {
       options: {
-        tabBarIconKey: TabBarIconKey.Browser,
-        rootScreenName: Routes.BROWSER_VIEW,
+        tabBarIconKey: TabBarIconKey.Activity,
+        rootScreenName: Routes.TRANSACTIONS_VIEW,
       },
     },
     '5': {
@@ -140,5 +136,36 @@ describe('TabBar', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: 'Settings',
     });
+  });
+
+  it('navigates to rewards when rewards tab is pressed', () => {
+    const rewardsState = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const rewardsDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Rewards,
+          rootScreenName: Routes.REWARDS_VIEW,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={rewardsState as TabNavigationState<ParamListBase>}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        descriptors={rewardsDescriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigation={navigation as any}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Rewards}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 });

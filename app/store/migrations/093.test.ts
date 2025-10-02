@@ -1,8 +1,9 @@
 import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
-
 import { ensureValidState } from './util';
 import migrate from './093';
+import { EXISTING_USER } from '../../constants/storage';
+import StorageWrapper from '../storage-wrapper';
+import { userInitialState } from '../../reducers/user';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -12,277 +13,315 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
+jest.mock('../storage-wrapper', () => ({
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
-describe('Migration 93: Update Sei Network name', () => {
+describe('Migration 093', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
-  it('returns state unchanged if ensureValidState fails', () => {
+  it('returns state unchanged if ensureValidState fails', async () => {
     const state = { some: 'state' };
+
     mockedEnsureValidState.mockReturnValue(false);
 
-    const migratedState = migrate(state);
+    const migratedState = await migrate(state);
 
-    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(migratedState).toBe(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(mockedStorageWrapper.getItem).not.toHaveBeenCalled();
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+  });
+
+  it('moves EXISTING_USER from MMKV to Redux state when value is "true"', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('true');
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: true,
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it.each([
-    {
-      state: {
-        engine: {},
+  it('moves EXISTING_USER from MMKV to Redux state when value is "false"', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
       },
-      test: 'empty engine state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {},
-        },
-      },
-      test: 'empty backgroundState',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: 'invalid',
-          },
-        },
-      },
-      test: 'invalid NetworkController state',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
-            },
-          },
-        },
-      },
-      test: 'invalid networkConfigurationsByChainId state',
-    },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
-    const orgState = cloneDeep(state);
+    };
+
     mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('false');
 
-    const migratedState = migrate(state);
+    const migratedState = await migrate(state);
 
-    // State should be unchanged
-    expect(migratedState).toStrictEqual(orgState);
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: false,
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does not update the SEI network name if it is not `Sei Network`', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x531': {
-                chainId: '0x531',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'sei-network',
-                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://seitrace.com'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Custom Sei Network',
-                nativeCurrency: 'SEI',
-              },
-            },
-          },
-        },
+  it('sets existingUser to false when MMKV value is null', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
       },
     };
 
     mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue(null);
 
-    const expectedState = cloneDeep(oldState);
+    const migratedState = await migrate(state);
 
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: false,
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does not update the PRC network name if it is not `Sei Network`', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x531': {
-                chainId: '0x531',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'sei-network',
-                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                    name: 'My Custom Sei Network',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://seitrace.com'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Sei Network',
-                nativeCurrency: 'SEI',
-              },
-            },
-          },
-        },
-      },
-    };
+  it('captures exception when user state is missing, but continues migration', async () => {
+    const state = {};
 
     mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('true');
 
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              '0x531': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x531'],
-                name: 'Sei Mainnet',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'sei-network',
-                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                    name: 'My Custom Sei Network',
-                  },
-                ],
-              },
-            },
-          },
-        },
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        ...userInitialState,
+        existingUser: true, // Should use the MMKV value, not default to false
       },
-    };
+    });
 
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          'Migration 93: User state is missing or invalid. Expected object, got: undefined',
+      }),
+    );
   });
 
-  it('updates the SEI network name and RRC name from `Sei Network` to `Sei Mainnet`', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x531': {
-                chainId: '0x531',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'sei-network',
-                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                    name: 'Sei Network',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://seitrace.com'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Sei Network',
-                nativeCurrency: 'SEI',
-              },
-            },
-          },
-        },
+  it('captures exception when user state is not an object, but continues migration', async () => {
+    const state = {
+      user: 'not an object',
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('true');
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        ...userInitialState,
+        existingUser: true, // Should use the MMKV value, not default to false
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          'Migration 93: User state is missing or invalid. Expected object, got: string',
+      }),
+    );
+  });
+
+  it('uses MMKV value of false when user state is corrupted', async () => {
+    const state = {
+      user: 'not an object',
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('false');
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        ...userInitialState,
+        existingUser: false, // Should use the MMKV value of false
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          'Migration 93: User state is missing or invalid. Expected object, got: string',
+      }),
+    );
+  });
+
+  it('handles StorageWrapper.getItem throwing an error', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
+      },
+    };
+
+    const error = new Error('Storage error');
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockRejectedValue(error);
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: false,
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+    expect(mockedCaptureException).toHaveBeenCalledWith(error);
+  });
+
+  it('migrates data successfully without attempting to remove from MMKV', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
       },
     };
 
     mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('true');
 
-    const expectedData = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              '0x531': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x531'],
-                name: 'Sei Mainnet',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'sei-network',
-                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                    name: 'Sei Mainnet',
-                  },
-                ],
-              },
-            },
-          },
-        },
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: true,
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+  });
+
+  it('initializes with full userInitialState when user state is missing and error occurs', async () => {
+    const state = {};
+
+    const error = new Error('Storage error');
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockRejectedValue(error);
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        ...userInitialState,
+        existingUser: false, // Default to false for safety
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+    expect(mockedCaptureException).toHaveBeenCalledWith(error);
+  });
+
+  it('preserves existing existingUser value in Redux if already set', async () => {
+    const state = {
+      user: {
+        existingUser: true,
+        someOtherField: 'value',
       },
     };
 
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedData);
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('false');
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        existingUser: false, // Should be overwritten by MMKV value
+        someOtherField: 'value',
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('does not remove from MMKV if value was null', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue(null);
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: false,
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles edge case with empty string value', async () => {
+    const state = {
+      user: {
+        someOtherField: 'value',
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('');
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        someOtherField: 'value',
+        existingUser: false, // Empty string !== 'true'
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });

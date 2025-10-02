@@ -144,7 +144,6 @@ class WalletConnect2Session {
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
           toggleUrlModal: () => null,
-          wizardScrollAdjusted: { current: false },
           tabId: '',
           isWalletConnect: true,
         }),
@@ -238,7 +237,7 @@ class WalletConnect2Session {
 
     const showReturnModal = () => {
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
       });
     };
 

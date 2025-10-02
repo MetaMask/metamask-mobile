@@ -1,78 +1,193 @@
 import { useSelector } from 'react-redux';
-import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
-import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
-import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
+import {
+  TransactionRequiredFiat,
+  useTransactionRequiredFiat,
+} from './useTransactionRequiredFiat';
 import { BigNumber } from 'bignumber.js';
-import { createProjectLogger } from '@metamask/utils';
+import { TransactionBridgeQuote } from '../../utils/bridge';
+import { useFeeCalculations } from '../gas/useFeeCalculations';
+import { useDeepMemo } from '../useDeepMemo';
 import { useEffect } from 'react';
-import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { createProjectLogger } from '@metamask/utils';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { noop } from 'lodash';
+import { useTransactionPayFiat } from './useTransactionPayFiat';
 
-const log = createProjectLogger('transaction-pay');
+const logger = createProjectLogger('transaction-pay');
 
-export function useTransactionTotalFiat() {
-  const gasCost = useGasCost();
-  const quotesGasCost = useQuotesGasCost();
-  const fiatFormatter = useFiatFormatter();
-  const { totalFiat: quotesCost } = useTransactionRequiredFiat();
+type TransactionBridgeQuoteExtended = TransactionBridgeQuote & {
+  requiredFiat: number;
+};
 
-  const value = gasCost + quotesGasCost + quotesCost;
-  const formatted = fiatFormatter(new BigNumber(value));
+export function useTransactionTotalFiat({
+  log: isLoggingEnabled,
+}: { log?: boolean } = {}) {
+  const log = isLoggingEnabled ? logger : noop;
 
-  useEffect(() => {
-    log('Total fiat', {
-      gasCost,
-      quotesGasCost,
-      quotesCost,
-      value,
-      formatted,
-    });
-  }, [gasCost, quotesGasCost, quotesCost, value, formatted]);
+  const transactionMeta =
+    useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
 
-  return {
-    value,
-    formatted,
-  };
-}
+  const { id: transactionId } = transactionMeta;
+  const { values } = useTransactionRequiredFiat();
+  const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
-function useQuotesGasCost() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
-
-  const quotes = useSelector((state: RootState) =>
+  const quotesRaw = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  return (quotes ?? []).reduce((acc, quote) => {
-    const value = new BigNumber(quote.totalMaxNetworkFee.valueInCurrency ?? 0);
-    return acc + (value.isNaN() ? 0 : value.toNumber());
-  }, 0);
+  const { formatFiat: fiatFormatter } = useTransactionPayFiat();
+
+  const quotes: TransactionBridgeQuoteExtended[] = (quotesRaw ?? []).map(
+    (quote) => {
+      const requiredFiat = values.find(
+        (token) =>
+          token.address.toLowerCase() ===
+          quote.quote.destAsset.address.toLowerCase(),
+      )?.amountFiat;
+
+      return {
+        ...quote,
+        requiredFiat: requiredFiat ?? 0,
+      };
+    },
+  );
+
+  const result = {
+    ...getBridgeFeeTotal(quotes, fiatFormatter),
+    ...getEstimatedNetworkFeeTotal(quotes, fiatFormatter),
+    ...getMaxNetworkFeeTotal(quotes, fiatFormatter),
+    ...getEstimatedNativeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
+    ...getTransactionFeeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
+    ...getTotal(quotes, values, estimatedFeeFiatPrecise, fiatFormatter),
+  };
+
+  const stableResult = useDeepMemo(() => result, [result]);
+
+  useEffect(() => {
+    log('Transaction total fiat', stableResult);
+  }, [log, stableResult]);
+
+  return stableResult;
 }
 
-function useGasCost() {
-  const tokens = useTransactionRequiredTokens();
-  const { chainId } = useTransactionMetadataOrThrow();
+function getTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  requiredFiat: TransactionRequiredFiat[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const balanceTotal = requiredFiat
+    .filter((token) => !token.skipIfBalance)
+    .reduce(
+      (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
+      new BigNumber(0),
+    );
 
-  const conversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, chainId),
+  const total = balanceTotal
+    .plus(
+      getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
+        .totalNativeEstimated,
+    )
+    .plus(getBridgeFeeTotal(quotes, format).totalBridgeFee);
+
+  return {
+    total: total.toString(10),
+    totalFormatted: format(total),
+  };
+}
+
+function getTransactionFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const total = new BigNumber(
+    getBridgeFeeTotal(quotes, format).totalBridgeFee,
+  ).plus(
+    getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
+      .totalNativeEstimated,
   );
 
-  const nativeToken = tokens.find(
-    (token) =>
-      token.address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase(),
+  return {
+    totalTransactionFee: total.toString(10),
+    totalTransactionFeeFormatted: format(total),
+  };
+}
+
+function getBridgeFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  format: (value: BigNumber) => string,
+) {
+  const total = quotes.reduce(
+    (acc, quote) =>
+      acc.plus(
+        new BigNumber(quote.sentAmount?.valueInCurrency ?? '0')
+          .minus(quote.requiredFiat)
+          .minus(getQuoteDust(quote)),
+      ),
+    new BigNumber(0),
   );
 
-  const gasCost = useTransactionMaxGasCost() ?? '0x0';
+  return {
+    totalBridgeFee: total.toString(10),
+    totalBridgeFeeFormatted: format(total),
+  };
+}
 
-  if (nativeToken) {
-    return 0;
+function getEstimatedNativeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const total = new BigNumber(
+    getEstimatedNetworkFeeTotal(quotes, format).totalNetworkFeeEstimated,
+  ).plus(estimatedGasFeeFiat ?? '0');
+
+  return {
+    totalNativeEstimated: total.toString(10),
+    totalNativeEstimatedFormatted: format(total),
+  };
+}
+
+function getEstimatedNetworkFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  format: (value: BigNumber) => string,
+) {
+  const total = quotes.reduce(
+    (acc, quote) => acc.plus(quote.totalNetworkFee?.valueInCurrency ?? 0),
+    new BigNumber(0),
+  );
+
+  return {
+    totalNetworkFeeEstimated: total.toString(10),
+    totalNetworkFeeEstimatedFormatted: format(total),
+  };
+}
+
+function getMaxNetworkFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  format: (value: BigNumber) => string,
+) {
+  const total = quotes.reduce(
+    (acc, quote) => acc.plus(quote.totalMaxNetworkFee?.valueInCurrency ?? 0),
+    new BigNumber(0),
+  );
+
+  return {
+    totalNetworkFeeMax: total.toString(10),
+    totalNetworkFeeMaxFormatted: format(total),
+  };
+}
+
+function getQuoteDust(quote: TransactionBridgeQuoteExtended): BigNumber {
+  const targetAmount = quote.minToTokenAmount?.valueInCurrency ?? '0';
+
+  if (new BigNumber(targetAmount).isLessThanOrEqualTo(quote.requiredFiat)) {
+    return new BigNumber(0);
   }
 
-  return new BigNumber(gasCost, 16)
-    .shiftedBy(-18)
-    .multipliedBy(new BigNumber(conversionRate ?? 1))
-    .toNumber();
+  return new BigNumber(targetAmount).minus(quote.requiredFiat);
 }

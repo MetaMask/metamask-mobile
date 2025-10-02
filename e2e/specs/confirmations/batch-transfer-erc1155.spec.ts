@@ -9,19 +9,23 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../framework/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../framework/Constants';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 describe(SmokeConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
   it('batch transfer ERC1155 tokens', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
@@ -64,6 +68,10 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
+
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Localhost');
 
         // Assert that the ERC1155 activity is an smart contract interaction and it is confirmed
         await Assertions.expectTextDisplayed(

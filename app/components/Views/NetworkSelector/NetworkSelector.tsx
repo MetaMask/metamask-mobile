@@ -96,14 +96,17 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
   ///: END:ONLY_INCLUDE_IF
+  selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
-import { selectSendFlowContextualChainId } from '../../../selectors/sendFlow';
-import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
+import {
+  NETWORK_SELECTOR_SOURCES,
+  NetworkSelectorSource,
+} from '../../../constants/networkSelector';
 
 interface infuraNetwork {
   name: string;
@@ -124,7 +127,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
-  source?: string;
+  source?: NetworkSelectorSource;
 }
 
 const NetworkSelector = () => {
@@ -158,7 +161,7 @@ const NetworkSelector = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const contextualChainId = useSelector(selectSendFlowContextualChainId);
+  const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -171,20 +174,15 @@ const NetworkSelector = () => {
     tags: getTraceTags(store.getState()),
     op: TraceOperation.NetworkSwitch,
   });
-
   const {
-    chainId: perDappChainId,
+    chainId: selectedChainId,
     rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
 
-  const isContextualChainId =
-    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW &&
-    contextualChainId;
-  const selectedChainId = isContextualChainId
-    ? contextualChainId
-    : perDappChainId;
+  const isSendFlow =
+    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -231,8 +229,6 @@ const NetworkSelector = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
-
-  const source = route.params?.source;
 
   /**
    * This is used to check if the network has multiple RPC endpoints
@@ -365,7 +361,11 @@ const NetworkSelector = () => {
       return chainId === browserChainId;
     }
 
-    return !isEvmSelected ? false : chainId === selectedChainId;
+    if (!isEvmSelected) {
+      return chainId === selectedNonEvmChainId;
+    }
+
+    return chainId === selectedChainId;
   };
 
   const {
@@ -382,7 +382,6 @@ const NetworkSelector = () => {
     dismissModal: () => sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
-    source,
   });
 
   useEffect(() => {
@@ -403,7 +402,7 @@ const NetworkSelector = () => {
       return (
         <Cell
           key={chainId}
-          variant={CellVariant.SelectWithMenu}
+          variant={isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu}
           title={name}
           secondaryText={
             showRpcSelector
@@ -470,7 +469,7 @@ const NetworkSelector = () => {
       return (
         <Cell
           key={chainId}
-          variant={CellVariant.SelectWithMenu}
+          variant={isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu}
           title={name}
           avatarProps={{
             variant: AvatarVariant.Network,
@@ -553,7 +552,9 @@ const NetworkSelector = () => {
         return (
           <Cell
             key={chainId}
-            variant={CellVariant.SelectWithMenu}
+            variant={
+              isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu
+            }
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -618,7 +619,7 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getAllNetworksTyped =
       getAllNetworks() as unknown as InfuraNetworkType[];
-    const getOtherNetworks = () => getAllNetworksTyped.slice(2);
+    const getOtherNetworks = () => getAllNetworksTyped.slice(3);
     return getOtherNetworks().map((networkType: InfuraNetworkType) => {
       const TypedNetworks = Networks as unknown as Record<
         string,
@@ -712,9 +713,7 @@ const NetworkSelector = () => {
     }
 
     return networks.map((network) => {
-      const isSelected =
-        network.chainId === browserChainId ||
-        (!isEvmSelected && !browserChainId);
+      const isSelected = isNetworkSelected(network.chainId);
       return (
         <Cell
           key={network.chainId}
@@ -900,16 +899,17 @@ const NetworkSelector = () => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        !isContextualChainId && renderNonEvmNetworks(false)
+        !isSendFlow && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
-      {isNetworkUiRedesignEnabled() &&
+      {!isSendFlow &&
+        isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
         renderPopularNetworksTitle()}
-      {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
-      {searchString.length === 0 && renderTestNetworksSwitch()}
-      {showTestNetworks && renderOtherNetworks()}
-      {showTestNetworks && renderNonEvmNetworks(true)}
+      {!isSendFlow && isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
+      {!isSendFlow && searchString.length === 0 && renderTestNetworksSwitch()}
+      {!isSendFlow && showTestNetworks && renderOtherNetworks()}
+      {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
     </>
   );
 
@@ -943,15 +943,17 @@ const NetworkSelector = () => {
           >
             {renderBottomSheetContent()}
           </ScrollView>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings(buttonLabelAddNetwork)}
-            onPress={goToNetworkSettings}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.addNetworkButton}
-            testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-          />
+          {!isSendFlow ? (
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings(buttonLabelAddNetwork)}
+              onPress={goToNetworkSettings}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
+              style={styles.addNetworkButton}
+              testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+            />
+          ) : null}
         </KeyboardAvoidingView>
 
         {showWarningModal ? (

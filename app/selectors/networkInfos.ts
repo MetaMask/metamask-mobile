@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../reducers';
-import { getNonEvmNetworkImageSourceByChainId } from '../util/networks/customNetworks';
 import {
   getNetworkNameFromProviderConfig,
   getNetworkImageSource,
@@ -16,6 +15,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkName,
 } from './multichainNetworkController';
+import { getNonEvmNetworkImageSourceByChainId } from '../util/networks/customNetworks';
 
 export const selectEvmNetworkName = createSelector(
   selectProviderConfig,

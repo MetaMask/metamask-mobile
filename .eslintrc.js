@@ -21,7 +21,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ['e2e/**/*.{js,ts}'],
+      files: ['e2e/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
       extends: ['./e2e/framework/.eslintrc.js'],
     },
     {
@@ -47,6 +47,13 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
+        '@typescript-eslint/no-shadow': [
+          'warn',
+          {
+            builtinGlobals: true,
+            allow: ['Text'],
+          },
+        ],
       },
     },
     {

@@ -28,6 +28,7 @@ exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] 
 >
   <Text
     accessibilityRole="text"
+    numberOfLines={1}
     style={
       {
         "color": "#121314",
@@ -79,6 +80,7 @@ exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
 >
   <Text
     accessibilityRole="text"
+    numberOfLines={1}
     style={
       {
         "color": "#121314",
@@ -129,6 +131,7 @@ exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
 >
   <Text
     accessibilityRole="text"
+    numberOfLines={1}
     style={
       {
         "color": "#121314",

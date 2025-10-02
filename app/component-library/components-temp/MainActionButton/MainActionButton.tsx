@@ -77,6 +77,8 @@ const MainActionButton = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Default}
             style={styles.label}
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {label}
           </Text>

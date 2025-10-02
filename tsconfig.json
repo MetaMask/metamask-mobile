@@ -63,7 +63,8 @@
     "app/**/*",
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
-    "e2e/**/*"
+    "e2e/**/*",
+    "appwright/**/*"
   ],
   "exclude": [
     "node_modules",

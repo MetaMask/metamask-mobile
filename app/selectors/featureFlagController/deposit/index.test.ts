@@ -7,6 +7,7 @@ import {
   selectDepositProviderFrontendAuth,
   selectDepositMinimumVersionFlag,
   selectDepositActiveFlag,
+  selectDepositFeatures,
 } from './index';
 import { selectRemoteFeatureFlags } from '..';
 
@@ -122,6 +123,27 @@ describe('Deposit selectors', () => {
     it('should return false when walletActions entrypoint does not exist', () => {
       const result = selectDepositEntrypointWalletActions.resultFunc({});
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectDepositFeatures', () => {
+    it('should return the features when they exist', () => {
+      const mockFeatures = {
+        featureA: true,
+        featureB: false,
+        featureC: null,
+      };
+      const mockDepositConfig = {
+        ...mockRemoteFeatureFlags.depositConfig,
+        features: mockFeatures,
+      };
+      const result = selectDepositFeatures.resultFunc(mockDepositConfig);
+      expect(result).toEqual(mockFeatures);
+    });
+
+    it('should return an empty object when features do not exist', () => {
+      const result = selectDepositFeatures.resultFunc({});
+      expect(result).toEqual({});
     });
   });
 });

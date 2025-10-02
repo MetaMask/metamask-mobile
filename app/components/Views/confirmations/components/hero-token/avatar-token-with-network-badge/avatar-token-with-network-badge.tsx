@@ -13,6 +13,7 @@ import BadgeWrapper, {
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../component-library/hooks';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
+import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
 import { TokenI } from '../../../../../UI/Tokens/types';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useTokenAsset } from '../../../hooks/useTokenAsset';
@@ -32,7 +33,6 @@ const AvatarTokenOrNetworkAssetLogo = ({
   const { styles } = useStyles(styleSheet, {});
   const { image, isNative } = asset;
   const isUnknownToken = displayName === strings('token.unknown');
-
   return isNative ? (
     <NetworkAssetLogo
       big
@@ -40,10 +40,11 @@ const AvatarTokenOrNetworkAssetLogo = ({
       chainId={chainId}
       style={styles.avatarToken}
       ticker={displayName}
+      testID={`avatar-with-badge-avatar-token-${displayName}`}
     />
   ) : (
     <AvatarToken
-      imageSource={image ? { uri: image } : undefined}
+      imageSource={image ? { uri: image } : NetworkBadgeSource(chainId as Hex)}
       name={isUnknownToken ? undefined : displayName}
       size={AvatarSize.Xl}
       style={styles.avatarToken}
@@ -72,7 +73,7 @@ export const AvatarTokenWithNetworkBadge = () => {
         }
       >
         <AvatarTokenOrNetworkAssetLogo
-          asset={asset}
+          asset={asset as TokenI}
           chainId={chainId}
           displayName={displayName}
         />

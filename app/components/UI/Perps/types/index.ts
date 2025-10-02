@@ -1,9 +1,4 @@
 /**
- * Perps view component props
- */
-export interface PerpsViewProps {}
-
-/**
  * Test result states for SDK validation
  */
 export type TestResultStatus =
@@ -61,14 +56,7 @@ export interface CandleData {
 
 // Export all configuration types directly
 export * from './config';
-
-/**
- * Standard Structure for Perps LaunchDarkly Feature Flags
- */
-export interface PerpsLaunchDarklyFlag {
-  enabled: boolean;
-  minimumVersion: string;
-}
+export * from './token';
 
 /**
  * Order form state for the Perps order view
@@ -84,3 +72,5 @@ export interface OrderFormState {
   limitPrice?: string;
   type: OrderType;
 }
+
+export type OrderDirection = 'long' | 'short';

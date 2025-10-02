@@ -16,6 +16,12 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { merge } from 'lodash';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
+import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -25,6 +31,16 @@ jest.mock('../../hooks/useConfirmActions', () => ({
     onReject: mockRejectSpy,
   }),
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
@@ -118,7 +134,7 @@ describe('Footer', () => {
 
   it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isQRSigningInProgress: true,
+      isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -182,6 +198,29 @@ describe('Footer', () => {
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('disables confirm button if quotes are loading', () => {
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        confirmationMetrics: {
+          isTransactionBridgeQuotesLoadingById: {
+            [transactionIdMock]: true,
+          },
+        },
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
@@ -317,6 +356,30 @@ describe('Footer', () => {
         state: personalSignatureConfirmationState,
       });
       expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders standard button label even if alerts if quotes loading', async () => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        ...baseMockUseAlerts,
+        hasUnconfirmedDangerAlerts: true,
+      });
+
+      const { getByText } = renderWithProvider(<Footer />, {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          {
+            confirmationMetrics: {
+              isTransactionBridgeQuotesLoadingById: {
+                [transactionIdMock]: true,
+              },
+            },
+          },
+        ),
+      });
+
+      expect(getByText('Confirm')).toBeDefined();
     });
   });
 });

@@ -24,8 +24,7 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
-import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -46,6 +45,8 @@ import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
+import { EVM_SCOPE } from '../../constants/networks';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -88,10 +89,10 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const earnToken = earnTokenPair?.earnToken;
   const outputToken = earnTokenPair?.outputToken;
 
-  const activeAccount = useSelector(selectSelectedInternalAccount);
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
   );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
@@ -368,7 +369,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
     !amountFiat ||
     !lendingContractAddress ||
     !lendingProtocol ||
-    !activeAccount?.address
+    !selectedAccount?.address
   )
     return null;
 
@@ -412,7 +413,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
       trace({
         name: TraceName.EarnWithdrawConfirmationScreen,
         data: {
-          chainId: outputToken?.chainId || '',
+          chainId: outputToken.chainId,
           experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         },
       });
@@ -428,6 +429,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnitToSend,
+        chainId: outputToken.chainId,
         protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
           outputToken.experience?.market?.underlying?.address,
@@ -495,9 +497,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 value={{
                   label: (
                     <AccountTag
-                      accountAddress={activeAccount?.address}
-                      accountName={activeAccount.metadata.name}
-                      useBlockieIcon={useBlockieIcon}
+                      accountAddress={selectedAccount?.address}
+                      accountName={selectedAccount.metadata.name}
+                      avatarAccountType={avatarAccountType}
                     />
                   ),
                 }}
@@ -519,7 +521,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     <ContractTag
                       contractAddress={lendingContractAddress}
                       contractName={capitalize(lendingProtocol)}
-                      useBlockieIcon={useBlockieIcon}
+                      avatarAccountType={avatarAccountType}
                     />
                   ),
                 }}

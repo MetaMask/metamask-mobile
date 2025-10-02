@@ -1,4 +1,3 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Result,
   TransactionStatus,
@@ -13,7 +12,6 @@ import EarnLendingDepositConfirmationView, {
 } from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -38,14 +36,17 @@ import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSect
 import Routes from '../../../../../constants/navigation/Routes';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import Logger from '../../../../../util/Logger';
+import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
 }) => void;
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: MOCK_ADDRESS_2,
+  })),
 }));
 
 const mockGoBack = jest.fn();
@@ -252,10 +253,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     Engine.context.NetworkController.findNetworkClientIdByChainId,
   );
 
-  const selectSelectedInternalAccountMock = jest.mocked(
-    selectSelectedInternalAccount,
-  );
-
   const mockEndTrace = jest.mocked(endTrace);
   const mockTrace = jest.mocked(trace);
 
@@ -296,10 +293,6 @@ describe('EarnLendingDepositConfirmationView', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
-
-    selectSelectedInternalAccountMock.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-    } as InternalAccount);
   });
 
   it('matches snapshot', () => {
@@ -404,7 +397,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
     });
 
-    it('renders allowance reset step for USDT on Ethereum mainnet', () => {
+    it('renders allowance reset step for USDT on Ethereum', () => {
       const { getByText, getAllByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
         {
@@ -439,6 +432,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         Engine.context.EarnController.executeLendingTokenApprove,
       ).toHaveBeenCalledWith({
         amount: '0',
+        chainId: '0x1',
         gasOptions: {
           gasLimit: 'none',
         },
@@ -453,7 +447,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
     });
 
-    it("does not render allowance reset step for USDT on Ethereum mainnet when reset isn't required", () => {
+    it("does not render allowance reset step for USDT on Ethereum when reset isn't required", () => {
       const routeParamsWithApproveAction = {
         ...defaultRouteParams,
         params: {
@@ -496,7 +490,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             experience: 'STABLECOIN_LENDING',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDT',
             transaction_value: '5 USDT',
             user_token_balance: undefined,
@@ -591,7 +585,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDT',
@@ -621,7 +615,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             transaction_value: '5 USDT',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -649,7 +643,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDT',
@@ -679,7 +673,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDT',
@@ -707,7 +701,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             experience: 'STABLECOIN_LENDING',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDC',
             transaction_value: '5 USDC',
             user_token_balance: undefined,
@@ -840,7 +834,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
@@ -870,7 +864,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             transaction_value: '5 USDC',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -905,7 +899,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
@@ -935,7 +929,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
@@ -1016,7 +1010,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             transaction_value: '5 USDC',
             transaction_id: '456',
@@ -1053,7 +1047,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             selected_provider: 'consensys',
             text: 'Cancel',
             location: 'EarnLendingDepositConfirmationView',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             step: 'Deposit',
           })
           .build(),
@@ -1103,6 +1097,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingTokenApprove,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1150,6 +1145,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1196,6 +1192,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingTokenApprove,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1216,6 +1213,244 @@ describe('EarnLendingDepositConfirmationView', () => {
 
     // The button should be re-enabled after the error
     expect(approveButton.props.disabled).toBe(false);
+  });
+
+  it('handles empty transaction response during approval flow', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    // Mock returning empty transaction
+    mockExecuteLendingTokenApprove.mockResolvedValue({} as Result);
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Button should be re-enabled when transaction is undefined
+    expect(approveButton.props.disabled).toBe(false);
+  });
+
+  it('handles missing protocol or chainId during approval flow', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    // Mock earnToken with missing protocol
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        earnToken: {
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            market: {
+              protocol: undefined, // Missing protocol
+              underlying: { address: MOCK_USDC_MAINNET_ASSET.address },
+            },
+          },
+        },
+        outputToken: undefined,
+      },
+      getTokenSnapshot: jest.fn(),
+      tokenSnapshot: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    // Should not attempt transaction when protocol is missing
+    expect(mockExecuteLendingTokenApprove).not.toHaveBeenCalled();
+
+    // Button should remain enabled since no loading state was set
+    expect(approveButton.props.disabled).toBe(false);
+  });
+
+  it('handles errors during approval flow and logs them', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    const testError = new Error('Allowance increase failed');
+    mockExecuteLendingTokenApprove.mockRejectedValue(testError);
+
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // intentionally empty
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Error should be logged with specific message
+    expect(loggerSpy).toHaveBeenCalledWith(
+      testError,
+      '[increaseTokenAllowance] Lending deposit failed',
+    );
+
+    loggerSpy.mockRestore();
+  });
+
+  it('handles errors during allowance reset and logs them', async () => {
+    const routeParamsWithResetAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+        token: MOCK_USDT_MAINNET_ASSET,
+        amountTokenMinimalUnit: '5000000',
+        // Existing non-zero allowance will trigger reset
+        allowanceMinimalTokenUnit: '1000000',
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithResetAction);
+
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDT_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDT_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: MOCK_AUSDT_MAINNET_ASSET.address,
+              },
+            },
+          },
+        },
+      },
+      getTokenSnapshot: jest.fn(),
+    });
+
+    const testError = new Error('Allowance reset failed');
+    mockExecuteLendingTokenApprove.mockRejectedValue(testError);
+
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // intentionally empty
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const resetButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(resetButton);
+    });
+
+    expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Error should be logged with specific message
+    expect(loggerSpy).toHaveBeenCalledWith(
+      testError,
+      '[resetTokenAllowance] Lending deposit failed',
+    );
+
+    expect(resetButton.props.disabled).toBe(false);
+
+    loggerSpy.mockRestore();
+  });
+
+  it('handles empty transaction response during deposit flow', async () => {
+    // Mock returning empty transaction
+    mockExecuteLendingDeposit.mockResolvedValue({} as Result);
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const depositButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(depositButton);
+    });
+
+    expect(mockExecuteLendingDeposit).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Button should be re-enabled when transaction is empty
+    expect(depositButton.props.disabled).toBe(false);
   });
 
   it('enables retries after transaction error during deposit flow', async () => {
@@ -1240,6 +1475,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1394,6 +1630,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1517,6 +1754,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1534,6 +1772,55 @@ describe('EarnLendingDepositConfirmationView', () => {
 
     // Clean up the spy
     consoleErrorSpy.mockRestore();
+  });
+
+  it('calls depositTokens and handles success', async () => {
+    mockExecuteLendingDeposit.mockResolvedValue({
+      transactionMeta: { id: '123', type: TransactionType.lendingDeposit },
+    } as Result);
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+    const confirmButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(confirmButton);
+    });
+
+    expect(mockExecuteLendingDeposit).toHaveBeenCalled();
+  });
+
+  it('calls depositTokens and handles error with catch', async () => {
+    const errorMocked = new Error('Deposit Failed');
+    mockExecuteLendingDeposit.mockRejectedValue(errorMocked);
+    const errorSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // intentionally empty
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+    const confirmButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(confirmButton);
+    });
+
+    expect(mockExecuteLendingDeposit).toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledWith(
+      errorMocked,
+      '[depositTokens] Lending deposit failed',
+    );
+    expect(confirmButton.props.disabled).toBe(false);
+
+    errorSpy.mockRestore();
   });
 
   describe('Tracing', () => {

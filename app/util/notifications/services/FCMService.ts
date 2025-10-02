@@ -7,7 +7,44 @@ import {
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
+
+async function getInitialNotification() {
+  // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
+  // Using a custom native module that stores the intent and returns "similiar-ish" data to the @react-native-firebase RemoteMessage
+  if (Platform.OS === 'android') {
+    const { NotificationModule } = NativeModules;
+    const remoteMessage: FirebaseMessagingTypes.RemoteMessage | null =
+      await NotificationModule.getInitialNotification();
+    return remoteMessage;
+  }
+
+  const remoteMessage: FirebaseMessagingTypes.RemoteMessage | null =
+    await messaging().getInitialNotification();
+  return remoteMessage;
+}
+
+function analyticsTrackPushClickEvent(
+  remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
+) {
+  try {
+    if (remoteMessage?.data) {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
+        )
+          .addProperties({ ...(remoteMessage.data as JsonMap) })
+          .build(),
+      );
+    }
+  } catch {
+    // Do Nothing
+  }
+}
 
 type UnsubscribeFunc = () => void;
 
@@ -176,6 +213,35 @@ class FCMService {
   clearRegistration = () => {
     this.#hasRegisteredForeground?.();
     this.#hasRegisteredForeground = null;
+  };
+
+  onClickPushNotificationWhenAppClosed = async () => {
+    try {
+      const remoteMessage = await getInitialNotification();
+      analyticsTrackPushClickEvent(remoteMessage);
+      const deeplink = remoteMessage?.data?.deeplink?.toString();
+      return deeplink;
+    } catch {
+      return null;
+    }
+  };
+
+  onClickPushNotificationWhenAppSuspended = (
+    deeplinkCallback: (deeplink?: string) => void,
+  ) => {
+    try {
+      messaging().onNotificationOpenedApp((remoteMessage) => {
+        try {
+          analyticsTrackPushClickEvent(remoteMessage);
+          const deeplink = remoteMessage?.data?.deeplink?.toString();
+          deeplinkCallback(deeplink);
+        } catch {
+          // Do nothing
+        }
+      });
+    } catch {
+      // Do nothing
+    }
   };
 }
 export default new FCMService();

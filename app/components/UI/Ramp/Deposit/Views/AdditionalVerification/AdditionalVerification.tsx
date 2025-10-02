@@ -26,9 +26,7 @@ import {
 interface AdditionalVerificationParams {
   quote: BuyQuote;
   kycUrl: string;
-  kycWorkflowRunId: string;
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
+  workFlowRunId: string;
 }
 
 export const createAdditionalVerificationNavDetails =
@@ -38,20 +36,12 @@ export const createAdditionalVerificationNavDetails =
 
 const AdditionalVerification = () => {
   const navigation = useNavigation();
-  const {
-    quote,
-    kycUrl,
-    kycWorkflowRunId,
-    cryptoCurrencyChainId,
-    paymentMethodId,
-  } = useParams<AdditionalVerificationParams>();
+  const { quote, kycUrl, workFlowRunId } =
+    useParams<AdditionalVerificationParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { navigateToKycWebview } = useDepositRouting({
-    cryptoCurrencyChainId,
-    paymentMethodId,
-  });
+  const { navigateToKycWebview } = useDepositRouting();
 
   React.useEffect(() => {
     navigation.setOptions(
@@ -64,8 +54,8 @@ const AdditionalVerification = () => {
   }, [navigation, theme]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ quote, kycUrl, kycWorkflowRunId });
-  }, [navigateToKycWebview, quote, kycUrl, kycWorkflowRunId]);
+    navigateToKycWebview({ quote, kycUrl, workFlowRunId });
+  }, [navigateToKycWebview, quote, kycUrl, workFlowRunId]);
 
   return (
     <ScreenLayout>

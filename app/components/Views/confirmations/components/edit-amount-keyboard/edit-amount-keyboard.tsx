@@ -1,7 +1,10 @@
 import React, { ReactNode, useCallback } from 'react';
 import { View } from 'react-native';
 
-import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
+import KeypadComponent, {
+  KeypadChangeData,
+  Keys,
+} from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './edit-amount-keyboard.styles';
 import Button, {
@@ -20,11 +23,13 @@ const ADDITIONAL_BUTTONS = [
 export interface EditAmountKeyboardProps {
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
-  onDonePress: () => void;
+  onDonePress?: () => void;
   value: string;
   additionalButtons?: { value: number; label: string }[];
+  hideDoneButton?: boolean;
   showAdditionalKeyboard?: boolean;
   additionalRow?: ReactNode;
+  enableEmptyValueString?: boolean;
 }
 
 export function EditAmountKeyboard({
@@ -33,16 +38,23 @@ export function EditAmountKeyboard({
   onPercentagePress,
   value,
   additionalButtons = ADDITIONAL_BUTTONS,
+  hideDoneButton = false,
   showAdditionalKeyboard = true,
   additionalRow,
-}: EditAmountKeyboardProps) {
+  enableEmptyValueString = false,
+}: Readonly<EditAmountKeyboardProps>) {
   const { styles } = useStyles(styleSheet, {});
 
   const handleChange = useCallback(
     (data: KeypadChangeData) => {
-      onChange(data.value);
+      const { pressedKey, value } = data;
+      if (pressedKey === Keys.Back && value === '0' && enableEmptyValueString) {
+        onChange('');
+        return;
+      }
+      onChange(value);
     },
-    [onChange],
+    [enableEmptyValueString, onChange],
   );
 
   return (
@@ -65,12 +77,14 @@ export function EditAmountKeyboard({
               variant={ButtonVariants.Secondary}
             />
           ))}
-          <Button
-            label={strings('confirm.edit_amount_done')}
-            style={styles.percentageButton}
-            onPress={onDonePress}
-            variant={ButtonVariants.Secondary}
-          />
+          {!hideDoneButton && onDonePress && (
+            <Button
+              label={strings('confirm.edit_amount_done')}
+              style={styles.percentageButton}
+              onPress={onDonePress}
+              variant={ButtonVariants.Secondary}
+            />
+          )}
         </Box>
       )}
       <KeypadComponent

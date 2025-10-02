@@ -5,15 +5,22 @@ import { Alert, Severity } from '../../types/alerts';
 import { BigNumber } from 'bignumber.js';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
 
-export const MINIMUM_DEPOSIT_USD = 10;
-
-export function usePerpsDepositMinimumAlert(): Alert[] {
-  const { usdValue } = useTokenAmount();
+export function usePerpsDepositMinimumAlert({
+  pendingTokenAmount,
+}: {
+  pendingTokenAmount?: string;
+} = {}): Alert[] {
+  const { type } = useTransactionMetadataRequest() ?? {};
+  const { amountUnformatted } = useTokenAmount();
 
   const underMinimum =
-    new BigNumber(usdValue ?? '0').isLessThan(MINIMUM_DEPOSIT_USD) &&
-    process.env.MM_CONFIRMATION_INTENTS === 'true';
+    new BigNumber(pendingTokenAmount ?? amountUnformatted ?? '0').isLessThan(
+      PERPS_MINIMUM_DEPOSIT,
+    ) && type === TransactionType.perpsDeposit;
 
   return useMemo(() => {
     if (!underMinimum) {

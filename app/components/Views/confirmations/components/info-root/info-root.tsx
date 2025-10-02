@@ -19,6 +19,7 @@ import TypedSignV3V4 from '../info/typed-sign-v3v4';
 import Approve from '../info/approve';
 import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
+import { PerpsDeposit } from '../../external/perps-temp/components/deposit';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -46,6 +47,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.simpleSend:
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
+      case TransactionType.tokenMethodSafeTransferFrom:
         return Transfer;
       case TransactionType.deployContract:
         return ContractDeployment;
@@ -53,6 +55,8 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
+      case TransactionType.perpsDeposit:
+        return PerpsDeposit;
       // Default to contract interaction as generic transaction confirmation
       default:
         return ContractInteraction;

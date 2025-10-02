@@ -135,6 +135,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
                 "padding": 16,
               },
               false,
@@ -158,7 +159,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -236,9 +236,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 20,
               }
@@ -394,7 +393,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "paddingHorizontal": 16,
                     }
                   }
-                  testID="slippage-option-3"
+                  testID="slippage-option-2"
                 >
                   <Text
                     accessibilityRole="text"
@@ -408,7 +407,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       }
                     }
                   >
-                    3%
+                    2%
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -442,7 +441,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "paddingHorizontal": 16,
                     }
                   }
-                  testID="slippage-option-10"
+                  testID="slippage-option-5"
                 >
                   <Text
                     accessibilityRole="text"
@@ -456,7 +455,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       }
                     }
                   >
-                    10%
+                    5%
                   </Text>
                 </TouchableOpacity>
               </View>

@@ -32,6 +32,16 @@ export const selectNetworkClientIdsByDomains = createSelector(
     selectedNetworkControllerState?.domains,
 );
 
+export const selectActiveDappNetwork = createSelector(
+  selectSelectedNetworkControllerState,
+  (selectedNetworkControllerState: SelectedNetworkControllerState) =>
+    (
+      selectedNetworkControllerState as SelectedNetworkControllerState & {
+        activeDappNetwork?: string | null;
+      }
+    )?.activeDappNetwork || null,
+);
+
 export const makeSelectDomainNetworkClientId = () =>
   createSelector(
     [
@@ -161,6 +171,7 @@ export const makeSelectNetworkImageSource = () =>
       selectProviderNetworkImageSource,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
+      selectActiveDappNetwork,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
@@ -170,14 +181,16 @@ export const makeSelectNetworkImageSource = () =>
       providerNetworkImageSource,
       domainNetworkClientId,
       globalNetworkClientId,
+      activeDappNetwork,
       chainId,
       hostname,
       chainIdToUse,
     ) => {
       if (!hostname || !isPerDappSelectedNetworkEnabled())
         return providerNetworkImageSource;
+
       const relevantNetworkClientId =
-        domainNetworkClientId || globalNetworkClientId;
+        activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
 
       const relevantChainId = chainIdToUse || chainId;
 
@@ -201,6 +214,7 @@ export const makeSelectChainId = () =>
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
       selectEvmChainId,
+      selectActiveDappNetwork,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
     ],
@@ -209,14 +223,16 @@ export const makeSelectChainId = () =>
       domainNetworkClientId,
       globalNetworkClientId,
       chainId,
+      activeDappNetwork,
       hostname,
       chainIdToUse,
     ) => {
       if (!hostname || !isPerDappSelectedNetworkEnabled()) {
         return providerChainId;
       }
+
       const relevantNetworkClientId =
-        domainNetworkClientId || globalNetworkClientId;
+        activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
 
       const relevantChainId = chainIdToUse || chainId;
 
@@ -236,6 +252,7 @@ export const makeSelectRpcUrl = () =>
       selectProviderRpcUrl,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
+      selectActiveDappNetwork,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
@@ -244,6 +261,7 @@ export const makeSelectRpcUrl = () =>
       providerRpcUrl,
       domainNetworkClientId,
       globalNetworkClientId,
+      activeDappNetwork,
       chainId,
       hostname,
     ) => {
@@ -252,8 +270,9 @@ export const makeSelectRpcUrl = () =>
       }
       if (!hostname || !isPerDappSelectedNetworkEnabled())
         return providerRpcUrl;
+
       const relevantNetworkClientId =
-        domainNetworkClientId || globalNetworkClientId;
+        activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[chainId]?.rpcEndpoints.find(
         ({ networkClientId }) => networkClientId === relevantNetworkClientId,
       )?.url;

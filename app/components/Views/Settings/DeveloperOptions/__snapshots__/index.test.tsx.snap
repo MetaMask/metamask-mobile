@@ -524,7 +524,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Perpetual Trading
+                            Perps Trading
                           </Text>
                           <View
                             style={
@@ -579,45 +579,6 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               Mainnet
                             </Text>
                           </View>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "flex-start",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "marginTop": 8,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                                "width": "100%",
-                              }
-                            }
-                            testID="perps-developer-options-section-perps-sandbox-button"
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Perps Sandbox
-                            </Text>
-                          </TouchableOpacity>
                         </View>
                       </View>
                     </RCTScrollView>

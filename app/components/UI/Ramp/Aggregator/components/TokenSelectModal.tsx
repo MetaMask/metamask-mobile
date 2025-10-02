@@ -2,12 +2,12 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
   View,
   TouchableWithoutFeedback,
   FlatList,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
@@ -97,7 +97,13 @@ function TokenSelectModal({
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 1,
-        keys: ['symbol', 'address', 'name'],
+        keys: [
+          'symbol',
+          'address',
+          'name',
+          'network.shortName',
+          'network.name',
+        ],
       }),
     [filteredTokens],
   );

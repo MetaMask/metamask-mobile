@@ -1,11 +1,12 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsPrices } from './usePerpsPrices';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsConnection } from './index';
 
 // Mock dependencies
 jest.mock('./usePerpsTrading');
-jest.mock('./index');
+jest.mock('../providers/PerpsConnectionProvider', () => ({
+  usePerpsConnection: jest.fn(),
+}));
 
 describe('usePerpsPrices', () => {
   const mockSubscribeToPrices = jest.fn();
@@ -13,35 +14,45 @@ describe('usePerpsPrices', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     (usePerpsTrading as jest.Mock).mockReturnValue({
       subscribeToPrices: mockSubscribeToPrices,
     });
 
-    (usePerpsConnection as jest.Mock).mockReturnValue({
+    const { usePerpsConnection } = jest.requireMock(
+      '../providers/PerpsConnectionProvider',
+    );
+    usePerpsConnection.mockReturnValue({
       isInitialized: true,
     });
 
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
   });
 
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   it('should return empty prices initially', () => {
-    const { result } = renderHook(() => usePerpsPrices(['ETH', 'BTC']));
+    const { result } = renderHook(() => usePerpsPrices(['ETH', 'BTC'], {}));
     expect(result.current).toEqual({});
   });
 
   it('should subscribe to prices when initialized', () => {
-    renderHook(() => usePerpsPrices(['ETH', 'BTC']));
+    renderHook(() => usePerpsPrices(['ETH', 'BTC'], {}));
 
     expect(mockSubscribeToPrices).toHaveBeenCalledWith({
       symbols: ['ETH', 'BTC'],
       callback: expect.any(Function),
       includeOrderBook: false,
+      includeMarketData: false,
     });
   });
 
   it('should update prices when callback is triggered', () => {
-    const { result } = renderHook(() => usePerpsPrices(['ETH']));
+    const { result } = renderHook(() => usePerpsPrices(['ETH'], {}));
 
     // Get the callback that was passed to subscribeToPrices
     const callback = mockSubscribeToPrices.mock.calls[0][0].callback;
@@ -56,6 +67,8 @@ describe('usePerpsPrices', () => {
           markPrice: '3001.00',
         },
       ]);
+      // Run the debounce timer (1000ms - from PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS)
+      jest.advanceTimersByTime(1000);
     });
 
     expect(result.current).toEqual({
@@ -69,7 +82,7 @@ describe('usePerpsPrices', () => {
   });
 
   it('should unsubscribe on unmount', () => {
-    const { unmount } = renderHook(() => usePerpsPrices(['ETH']));
+    const { unmount } = renderHook(() => usePerpsPrices(['ETH'], {}));
 
     unmount();
 
@@ -77,22 +90,26 @@ describe('usePerpsPrices', () => {
   });
 
   it('should not subscribe when not initialized', () => {
-    (usePerpsConnection as jest.Mock).mockReturnValue({
+    const { usePerpsConnection } = jest.requireMock(
+      '../providers/PerpsConnectionProvider',
+    );
+    usePerpsConnection.mockReturnValue({
       isInitialized: false,
     });
 
-    renderHook(() => usePerpsPrices(['ETH']));
+    renderHook(() => usePerpsPrices(['ETH'], {}));
 
     expect(mockSubscribeToPrices).not.toHaveBeenCalled();
   });
 
   it('should handle includeOrderBook parameter', () => {
-    renderHook(() => usePerpsPrices(['ETH'], true));
+    renderHook(() => usePerpsPrices(['ETH'], { includeOrderBook: true }));
 
     expect(mockSubscribeToPrices).toHaveBeenCalledWith({
       symbols: ['ETH'],
       callback: expect.any(Function),
       includeOrderBook: true,
+      includeMarketData: false,
     });
   });
 });

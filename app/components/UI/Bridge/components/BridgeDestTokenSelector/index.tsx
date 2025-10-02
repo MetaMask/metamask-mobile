@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -29,6 +30,17 @@ import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
+import Engine from '../../../../../core/Engine';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+
+export const getNetworkName = (
+  chainId: Hex,
+  networkConfigurations: Record<string, MultichainNetworkConfiguration>,
+) =>
+  networkConfigurations?.[chainId as Hex]?.name ??
+  PopularList.find((network) => network.chainId === chainId)?.nickname ??
+  'Unknown Network';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -46,7 +58,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const selectedDestToken = useSelector(selectDestToken);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
-  const { tokens: tokensList, pending } = useTokens({
+  const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
@@ -59,6 +71,19 @@ export const BridgeDestTokenSelector: React.FC = () => {
     [dispatch, navigation],
   );
 
+  const debouncedTokenPress = useMemo(
+    () => debounce(handleTokenPress, 500),
+    [handleTokenPress],
+  );
+
+  // Cleanup debounced function on unmount and dependency changes
+  useEffect(
+    () => () => {
+      debouncedTokenPress.cancel();
+    },
+    [debouncedTokenPress],
+  );
+
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
       // This is to support a partial loading state for top tokens
@@ -67,22 +92,41 @@ export const BridgeDestTokenSelector: React.FC = () => {
         return <SkeletonItem />;
       }
 
-      // Open the asset details screen as a bottom sheet
-      const handleInfoButtonPress = () =>
-        navigation.navigate('Asset', { ...item });
-
       // If the user hasn't added the network, it won't be in the networkConfigurations object
       // So we use the PopularList to get the network name
-      const networkName =
-        networkConfigurations?.[item.chainId as Hex]?.name ??
-        PopularList.find((network) => network.chainId === item.chainId)
-          ?.nickname ??
-        'Unknown Network';
+      const networkName = getNetworkName(
+        item.chainId as Hex,
+        networkConfigurations,
+      );
+
+      // Open the asset details screen as a bottom sheet
+      // Use dispatch with unique key to force new modal instance
+      const handleInfoButtonPress = () => {
+        navigation.dispatch({
+          type: 'NAVIGATE',
+          payload: {
+            name: 'Asset',
+            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
+            params: { ...item },
+          },
+        });
+
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+          {
+            token_name: item.name ?? 'Unknown',
+            token_symbol: item.symbol,
+            token_contract: item.address,
+            chain_name: networkName,
+            chain_id: item.chainId,
+          },
+        );
+      };
 
       return (
         <TokenSelectorItem
           token={item}
-          onPress={handleTokenPress}
+          onPress={debouncedTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({
             chainId: item.chainId as Hex,
@@ -104,7 +148,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       );
     },
     [
-      handleTokenPress,
+      debouncedTokenPress,
       networkConfigurations,
       selectedDestToken,
       navigation,
@@ -121,9 +165,11 @@ export const BridgeDestTokenSelector: React.FC = () => {
         ) : undefined
       }
       renderTokenItem={renderToken}
-      tokensList={tokensList}
+      allTokens={allTokens}
+      tokensToRender={tokensToRender}
       pending={pending}
       chainIdToFetchMetadata={selectedDestChainId}
+      scrollResetKey={selectedDestChainId}
     />
   );
 };

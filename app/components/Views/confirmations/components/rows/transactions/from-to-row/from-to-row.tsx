@@ -20,6 +20,9 @@ const FromToRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
 
+  // Do not set than 13 characters, it breaks the UI for small screens
+  const MAX_CHAR_LENGTH = 13;
+
   if (!transactionMetadata) {
     return null;
   }
@@ -38,6 +41,7 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={fromAddress}
             variation={chainId}
+            maxCharLength={MAX_CHAR_LENGTH}
           />
         </View>
 
@@ -54,6 +58,7 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={toAddress}
             variation={chainId}
+            maxCharLength={MAX_CHAR_LENGTH}
           />
         </View>
       </View>

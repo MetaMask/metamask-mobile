@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSendNonEvmAsset } from './useSendNonEvmAsset';
+import { InitSendLocation } from '../Views/confirmations/constants/send';
 import { sendMultichainTransaction } from '../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { isMultichainWalletSnap } from '../../core/SnapKeyring/utils/snaps';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
+import { handleSendPageNavigation } from '../Views/confirmations/utils/send';
+import { RootState } from '../../reducers';
 
 // Mock dependencies
 jest.mock('../../core/SnapKeyring/utils/sendMultichainTransaction');
@@ -16,6 +19,17 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
   }),
 }));
+jest.mock('../Views/confirmations/utils/send');
+
+const RemoteFeatureFlagControllerState = {
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      sendRedesign: {
+        enabled: false,
+      },
+    },
+  },
+};
 
 const mockedSendMultichainTransaction =
   sendMultichainTransaction as jest.MockedFunction<
@@ -26,6 +40,7 @@ const mockedIsMultichainWalletSnap =
 const mockedIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
   typeof isEvmAccountType
 >;
+const mockedHandleSendPageNavigation = jest.mocked(handleSendPageNavigation);
 
 describe('useSendNonEvmAsset', () => {
   const mockAsset = {
@@ -69,6 +84,7 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
@@ -79,21 +95,38 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(false);
       expect(mockCloseModal).not.toHaveBeenCalled();
       expect(mockedSendMultichainTransaction).not.toHaveBeenCalled();
     });
 
-    it('should return false when no account is selected', async () => {
+    it('should not return false for EVM account, if send redesign is enabled', async () => {
+      mockedIsEvmAccountType.mockReturnValue(true);
+
       const mockState = {
         engine: {
           backgroundState: {
             AccountsController: {
               internalAccounts: {
-                selectedAccount: undefined,
-                accounts: {},
+                selectedAccount: 'evm-account-id',
+                accounts: {
+                  'evm-account-id': {
+                    id: 'evm-account-id',
+                    type: 'eip155:eoa',
+                    metadata: {},
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                sendRedesign: {
+                  enabled: true,
+                },
               },
             },
           },
@@ -106,7 +139,37 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
+
+      expect(wasHandled).toBe(true);
+    });
+
+    it('should return false when no account is selected', async () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+                accounts: {},
+              },
+            },
+            ...RemoteFeatureFlagControllerState,
+          },
+        },
+      } as any;
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        { state: mockState },
+      );
+
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(false);
       expect(mockCloseModal).not.toHaveBeenCalled();
@@ -200,6 +263,13 @@ describe('useSendNonEvmAsset', () => {
               },
             },
           },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              sendRedesign: {
+                enabled: false,
+              },
+            },
+          },
         },
       },
     } as any;
@@ -218,7 +288,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -248,6 +320,7 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
@@ -258,7 +331,9 @@ describe('useSendNonEvmAsset', () => {
         { state: stateWithoutSnap },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -274,7 +349,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -292,7 +369,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -308,10 +387,60 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockedSendMultichainTransaction).toHaveBeenCalled();
+    });
+
+    it('calls handleSendPageNavigation when send redesign is enabled', async () => {
+      mockedIsMultichainWalletSnap.mockReturnValue(true);
+      mockedSendMultichainTransaction.mockResolvedValue(undefined);
+
+      const mockStateWithSendRedesignEnabled = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'non-evm-account-id',
+                accounts: {
+                  'non-evm-account-id': {
+                    id: 'non-evm-account-id',
+                    type: 'snap',
+                    metadata: {
+                      snap: {
+                        id: 'test-snap-id',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                sendRedesign: {
+                  enabled: true,
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        { state: mockStateWithSendRedesignEnabled },
+      );
+
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
+
+      expect(mockedHandleSendPageNavigation).toHaveBeenCalledTimes(1);
+      expect(wasHandled).toBe(true);
     });
   });
 });

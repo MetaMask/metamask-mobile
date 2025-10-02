@@ -43,6 +43,19 @@ describe('EditAmountKeyboard', () => {
     expect(onDonePressMock).toHaveBeenCalled();
   });
 
+  it('done button is visible only if hideDoneButton is false and onDonePress is defined', () => {
+    const { queryByText } = render(
+      <EditAmountKeyboard
+        onChange={noop}
+        onPercentagePress={noop}
+        value={'0'}
+        hideDoneButton
+      />,
+    );
+
+    expect(queryByText('Done')).toBeNull();
+  });
+
   it('calls onPercentagePress when percentage button pressed', () => {
     const onPercentagePressMock = jest.fn();
 
@@ -115,5 +128,43 @@ describe('EditAmountKeyboard', () => {
     );
 
     expect(getByText('Additional Row')).toBeDefined();
+  });
+
+  it('calls onchange with "0 if enableEmptyValueString is false and back button is pressed to make value empty', () => {
+    const onChangeMock = jest.fn();
+
+    const { getByTestId } = render(
+      <EditAmountKeyboard
+        enableEmptyValueString
+        onChange={onChangeMock}
+        onDonePress={noop}
+        onPercentagePress={noop}
+        value={'0'}
+      />,
+    );
+
+    const backButton = getByTestId('keypad-delete-button');
+    fireEvent.press(backButton);
+
+    expect(onChangeMock).toHaveBeenCalledWith('');
+  });
+
+  it('calls onchange with empty string if enableEmptyValueString is true and back button is pressed to make value empty', () => {
+    const onChangeMock = jest.fn();
+
+    const { getByTestId } = render(
+      <EditAmountKeyboard
+        enableEmptyValueString
+        onChange={onChangeMock}
+        onDonePress={noop}
+        onPercentagePress={noop}
+        value={'0'}
+      />,
+    );
+
+    const backButton = getByTestId('keypad-delete-button');
+    fireEvent.press(backButton);
+
+    expect(onChangeMock).toHaveBeenCalledWith('');
   });
 });

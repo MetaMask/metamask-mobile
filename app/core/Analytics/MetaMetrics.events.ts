@@ -22,16 +22,6 @@ export const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
-  1: 'Welcome',
-  2: 'Accounts',
-  3: 'Account Name',
-  4: 'Notifications',
-  5: 'Main Navigation',
-  6: 'Browser',
-  7: 'Search',
-};
-
 /**
  * Analytics Tracking Events
  */
@@ -93,6 +83,10 @@ enum EVENT_NAME {
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
 
+  // Asset Filter
+  ASSET_FILTER_SELECTED = 'Default Asset Filter Selected',
+  ASSET_FILTER_CUSTOM_SELECTED = 'Custom Asset Filter Selected',
+
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
@@ -142,6 +136,8 @@ enum EVENT_NAME {
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
+  ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
+  ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
   REHYDRATION_COMPLETED = 'Rehydration Completed',
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
@@ -292,6 +288,7 @@ enum EVENT_NAME {
   WALLET_VIEW = 'Wallet View',
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
+  SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
 
   // Swaps
@@ -406,6 +403,7 @@ enum EVENT_NAME {
   CHANGE_DAPP_PERMISSIONS = 'Changed dapp permissions',
 
   // Vault Corruption
+  VAULT_CORRUPTION_DETECTED = 'Vault Corruption Detected',
   VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED = 'Vault Corruption Restore Wallet Screen Viewed',
   VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED = 'Vault Corruption Restore Wallet Button Pressed',
   VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED = 'Vault Corruption Wallet Successfully Restored Screen Viewed',
@@ -449,7 +447,7 @@ enum EVENT_NAME {
   IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -460,6 +458,10 @@ enum EVENT_NAME {
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
   NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
+
+  // Push Notifications
+  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
+  PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -500,6 +502,10 @@ enum EVENT_NAME {
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 
+  // NETWORK CONNECTION BANNER
+  NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
+  NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
   DEEP_LINK_PUBLIC_MODAL_VIEWED = 'Deep Link Public Modal Viewed',
@@ -515,13 +521,47 @@ enum EVENT_NAME {
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
 
+  // Perps Trading
+  // Perps Events - Consolidated
+  PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
+  PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
+  PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
+  PERPS_ORDER_CANCEL_TRANSACTION = 'Perp Order Cancel Transaction',
+  PERPS_SCREEN_VIEWED = 'Perp Screen Viewed',
+  PERPS_UI_INTERACTION = 'Perp UI Interaction',
+  PERPS_RISK_MANAGEMENT = 'Perp Risk Management',
+  PERPS_ERROR = 'Perp Error',
+
   // Card
   CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
+  CARD_HOME_VIEWED = 'Card Home Viewed',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
+
+  // Rewards
+  REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
+  REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
+  REWARDS_ACCOUNT_LINKING_FAILED = 'Rewards Account Linking Failed',
+  REWARDS_ACTIVE_BOOST_CLICKED = 'Rewards Active Boost Clicked',
+  REWARDS_DASHBOARD_TAB_VIEWED = 'Rewards Dashboard Tab Viewed',
+  REWARDS_DASHBOARD_VIEWED = 'Rewards Dashboard Viewed',
+  REWARDS_ONBOARDING_STARTED = 'Rewards Onboarding Started',
+  REWARDS_ONBOARDING_COMPLETED = 'Rewards Onboarding Completed',
+  REWARDS_OPT_IN_STARTED = 'Rewards Opt In Started',
+  REWARDS_OPT_IN_COMPLETED = 'Rewards Opt In Completed',
+  REWARDS_OPT_IN_FAILED = 'Rewards Opt In Failed',
+  REWARDS_OPT_OUT_STARTED = 'Rewards Opt Out Started',
+  REWARDS_OPT_OUT_COMPLETED = 'Rewards Opt Out Completed',
+  REWARDS_OPT_OUT_FAILED = 'Rewards Opt Out Failed',
+  REWARDS_PAGE_BUTTON_CLICKED = 'Rewards Page Button Clicked',
+  REWARDS_REFERRALS_VIEWED = 'Rewards Referrals Viewed',
+  REWARDS_REWARD_CLAIMED = 'Rewards Reward Claimed',
+  REWARDS_REWARD_VIEWED = 'Rewards Reward Viewed',
+  REWARDS_SETTINGS_VIEWED = 'Rewards Settings Viewed',
+  REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
 }
 
 enum ACTIONS {
@@ -544,6 +584,8 @@ enum ACTIONS {
   RECEIVE_OPTIONS = 'Receive Options',
   // Send Flow
   SEND_FLOW = 'Send Flow',
+  // Re-designed send
+  SEND = 'Send',
   // Dapp Interactions
   APPROVE_REQUEST = 'Approve Request',
   // Swaps
@@ -689,6 +731,12 @@ const events = {
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
+  ),
+  ACCOUNT_NOT_FOUND_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ACCOUNT_NOT_FOUND_PAGE_VIEWED,
+  ),
   WHATS_NEW_LINK_CLICKED: generateOpt(EVENT_NAME.WHATS_NEW_LINK_CLICKED),
   REHYDRATION_PASSWORD_ATTEMPTED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_ATTEMPTED,
@@ -957,6 +1005,7 @@ const events = {
   BROWSER_SWITCH_TAB: generateOpt(EVENT_NAME.BROWSER_SWITCH_TAB),
 
   // Vault corruption
+  VAULT_CORRUPTION_DETECTED: generateOpt(EVENT_NAME.VAULT_CORRUPTION_DETECTED),
   VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
   ),
@@ -1062,6 +1111,13 @@ const events = {
   NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
     EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
+
+  // Push Notifications Flow
+  PUSH_NOTIFICATION_RECEIVED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
+  ),
+  PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
@@ -1243,6 +1299,14 @@ const events = {
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
   RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
 
+  // NETWORK CONNECTION BANNER
+  NETWORK_CONNECTION_BANNER_SHOWN: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_SHOWN,
+  ),
+  NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
+  ),
+
   // Multi SRP
   IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
     EVENT_NAME.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
@@ -1285,10 +1349,31 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
+  // Perps Events - Consolidated
+  PERPS_WITHDRAWAL_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_WITHDRAWAL_TRANSACTION,
+  ),
+  PERPS_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PERPS_TRADE_TRANSACTION),
+  PERPS_POSITION_CLOSE_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+  ),
+  PERPS_ORDER_CANCEL_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_ORDER_CANCEL_TRANSACTION,
+  ),
+  PERPS_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_SCREEN_VIEWED),
+  PERPS_UI_INTERACTION: generateOpt(EVENT_NAME.PERPS_UI_INTERACTION),
+  PERPS_RISK_MANAGEMENT: generateOpt(EVENT_NAME.PERPS_RISK_MANAGEMENT),
+  PERPS_ERROR: generateOpt(EVENT_NAME.PERPS_ERROR),
 
+  // Asset Filter
+  ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),
+  ASSET_FILTER_CUSTOM_SELECTED: generateOpt(
+    EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
+  ),
   // Card
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
+  CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
   CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,
@@ -1298,6 +1383,45 @@ const events = {
   ),
   CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
+  ),
+  // Rewards
+  REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
+    EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
+  ),
+  REWARDS_ACCOUNT_LINKING_COMPLETED: generateOpt(
+    EVENT_NAME.REWARDS_ACCOUNT_LINKING_COMPLETED,
+  ),
+  REWARDS_ACCOUNT_LINKING_FAILED: generateOpt(
+    EVENT_NAME.REWARDS_ACCOUNT_LINKING_FAILED,
+  ),
+  REWARDS_ACTIVE_BOOST_CLICKED: generateOpt(
+    EVENT_NAME.REWARDS_ACTIVE_BOOST_CLICKED,
+  ),
+  REWARDS_DASHBOARD_TAB_VIEWED: generateOpt(
+    EVENT_NAME.REWARDS_DASHBOARD_TAB_VIEWED,
+  ),
+  REWARDS_DASHBOARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_DASHBOARD_VIEWED),
+  REWARDS_ONBOARDING_STARTED: generateOpt(
+    EVENT_NAME.REWARDS_ONBOARDING_STARTED,
+  ),
+  REWARDS_ONBOARDING_COMPLETED: generateOpt(
+    EVENT_NAME.REWARDS_ONBOARDING_COMPLETED,
+  ),
+  REWARDS_OPT_IN_STARTED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_STARTED),
+  REWARDS_OPT_IN_COMPLETED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_COMPLETED),
+  REWARDS_OPT_IN_FAILED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_FAILED),
+  REWARDS_OPT_OUT_STARTED: generateOpt(EVENT_NAME.REWARDS_OPT_OUT_STARTED),
+  REWARDS_OPT_OUT_COMPLETED: generateOpt(EVENT_NAME.REWARDS_OPT_OUT_COMPLETED),
+  REWARDS_OPT_OUT_FAILED: generateOpt(EVENT_NAME.REWARDS_OPT_OUT_FAILED),
+  REWARDS_PAGE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.REWARDS_PAGE_BUTTON_CLICKED,
+  ),
+  REWARDS_REFERRALS_VIEWED: generateOpt(EVENT_NAME.REWARDS_REFERRALS_VIEWED),
+  REWARDS_REWARD_CLAIMED: generateOpt(EVENT_NAME.REWARDS_REWARD_CLAIMED),
+  REWARDS_REWARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_REWARD_VIEWED),
+  REWARDS_SETTINGS_VIEWED: generateOpt(EVENT_NAME.REWARDS_SETTINGS_VIEWED),
+  REWARDS_WAYS_TO_EARN_CTA_CLICKED: generateOpt(
+    EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
 };
 
@@ -1317,6 +1441,7 @@ enum DESCRIPTION {
   NAVIGATION_TAPS_GET_HELP = 'Get Help',
   NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
   NAVIGATION_TAPS_SETTINGS = 'Settings',
+  NAVIGATION_TAPS_REWARDS = 'Rewards',
   NAVIGATION_TAPS_LOGOUT = 'Logout',
   // Dapp
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
@@ -1352,6 +1477,12 @@ enum DESCRIPTION {
   RECEIVE_OPTIONS_SHARE_ADDRESS = 'Share address',
   RECEIVE_OPTIONS_QR_CODE = 'QR Code',
   RECEIVE_OPTIONS_PAYMENT_REQUEST = 'Payment Request',
+  // Re-designed send
+  SEND_STARTED = 'Send flow started',
+  SEND_ASSET_SELECTED = 'Send asset selected',
+  SEND_AMOUNT_SELECTED = 'Send amount selected',
+  SEND_RECIPIENT_SELECTED = 'Send recipient selected',
+  SEND_EXIT = 'Send flow exitted',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -1417,6 +1548,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.NAVIGATION_DRAWER,
     ACTIONS.NAVIGATION_DRAWER,
     DESCRIPTION.NAVIGATION_TAPS_SETTINGS,
+  ),
+  NAVIGATION_TAPS_REWARDS: generateOpt(
+    EVENT_NAME.NAVIGATION_DRAWER,
+    ACTIONS.NAVIGATION_DRAWER,
+    DESCRIPTION.NAVIGATION_TAPS_REWARDS,
   ),
   NAVIGATION_TAPS_LOGOUT: generateOpt(
     EVENT_NAME.NAVIGATION_DRAWER,
@@ -1565,7 +1701,28 @@ const legacyMetaMetricsEvents = {
     ACTIONS.RECEIVE_OPTIONS,
     DESCRIPTION.RECEIVE_OPTIONS_PAYMENT_REQUEST,
   ),
-  // Send flow
+  // Re-designed send
+  SEND_STARTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_STARTED,
+  ),
+  SEND_ASSET_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_ASSET_SELECTED,
+  ),
+  SEND_AMOUNT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_AMOUNT_SELECTED,
+  ),
+  SEND_RECIPIENT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_RECIPIENT_SELECTED,
+  ),
+  SEND_EXIT: generateOpt(EVENT_NAME.SEND, ACTIONS.SEND, DESCRIPTION.SEND_EXIT), // Send flow
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,
@@ -1682,4 +1839,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
+export { MetaMetricsEvents, EVENT_NAME };

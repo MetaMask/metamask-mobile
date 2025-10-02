@@ -6,7 +6,10 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import { isPrivateConnection } from '../../../util/networks';
+import {
+  isPrivateConnection,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -22,10 +25,7 @@ import {
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
-import {
-  selectTokenNetworkFilter,
-  selectUseSafeChainsListValidation,
-} from '../../../selectors/preferencesController';
+import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -37,10 +37,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
-import {
-  selectIsAllNetworks,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 import {
   NetworkConfiguration,
@@ -50,6 +47,11 @@ import {
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { Hex } from '@metamask/utils';
 import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 export interface SafeChain {
   chainId: string;
@@ -67,21 +69,16 @@ interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
   networkConfiguration: NetworkConfigurationOptions;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-  shouldNetworkSwitchPopToWallet: boolean;
-  onNetworkSwitch?: () => void;
   showPopularNetworkModal: boolean;
   safeChains?: SafeChain[];
   onReject?: () => void;
   onAccept?: () => void;
   autoSwitchNetwork?: boolean;
+  allowNetworkSwitch?: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
   const {
-    navigation,
     isVisible,
     onClose,
     networkConfiguration: {
@@ -94,19 +91,17 @@ const NetworkModals = (props: NetworkProps) => {
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
     showPopularNetworkModal,
-    shouldNetworkSwitchPopToWallet,
-    onNetworkSwitch,
     safeChains,
     onReject,
     onAccept,
     autoSwitchNetwork,
+    allowNetworkSwitch = true,
   } = props;
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const [alerts, setAlerts] = React.useState<
     {
       alertError: string;
@@ -117,12 +112,17 @@ const NetworkModals = (props: NetworkProps) => {
 
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const { colors } = useTheme();
   const styles = createNetworkModalStyles(colors);
 
   const dispatch = useDispatch();
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const validateRpcUrl = (url: string) => {
     if (!isWebUri(url)) return false;
@@ -140,24 +140,10 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const onUpdateNetworkFilter = useCallback(() => {
-    const { PreferencesController } = Engine.context;
-    if (!isAllNetworks) {
-      PreferencesController.setTokenNetworkFilter({
-        [customNetworkInformation.chainId]: true,
-      });
-    } else {
-      const normalizedTokenNetworkFilter = Object.fromEntries(
-        Object.entries(tokenNetworkFilter).map(([key, value]) => [
-          key,
-          Boolean(value),
-        ]),
-      );
-      PreferencesController.setTokenNetworkFilter({
-        ...normalizedTokenNetworkFilter,
-        [customNetworkInformation.chainId]: true,
-      });
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId as `0x${string}`);
     }
-  }, [customNetworkInformation.chainId, isAllNetworks, tokenNetworkFilter]);
+  }, [chainId, selectNetwork]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
@@ -313,19 +299,6 @@ const NetworkModals = (props: NetworkProps) => {
     return NetworkController.addNetwork(networkConfig);
   };
 
-  const handleNavigation = (
-    onSwitchNetwork: () => void,
-    networkSwitchPopToWallet: boolean,
-  ) => {
-    if (onSwitchNetwork) {
-      onSwitchNetwork();
-    } else {
-      networkSwitchPopToWallet
-        ? navigation.navigate('WalletView')
-        : navigation.goBack();
-    }
-  };
-
   const switchNetwork = async () => {
     const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
@@ -358,13 +331,6 @@ const NetworkModals = (props: NetworkProps) => {
     }
     onClose();
 
-    if (onNetworkSwitch) {
-      handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
-    } else {
-      shouldNetworkSwitchPopToWallet
-        ? navigation.navigate('WalletView')
-        : navigation.goBack();
-    }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
     onAccept?.();
   };
@@ -474,7 +440,7 @@ const NetworkModals = (props: NetworkProps) => {
                   onReject?.();
                   onClose();
                 }}
-                onConfirm={addNetwork}
+                onConfirm={allowNetworkSwitch ? addNetwork : closeModal}
                 isCustomNetwork={!showPopularNetworkModal}
               />
             </View>

@@ -9,13 +9,13 @@ import { loginToApp } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../../framework/Assertions';
-import { SmokeNetworkExpansion } from '../../../../tags';
+import { RegressionNetworkExpansion } from '../../../../tags';
 import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
 import { DappVariants } from '../../../../framework/Constants';
 
 const AccountTwoText = 'Account 2';
 
-describe(SmokeNetworkExpansion('Account Permission Management'), () => {
+describe(RegressionNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

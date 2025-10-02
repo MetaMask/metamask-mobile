@@ -442,6 +442,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   {
                                     "backgroundColor": "#ffffff",
                                     "flexDirection": "row",
+                                    "gap": 16,
                                     "padding": 16,
                                   },
                                   false,
@@ -465,7 +466,6 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "flex": 1,
-                                    "marginHorizontal": 16,
                                   }
                                 }
                               >

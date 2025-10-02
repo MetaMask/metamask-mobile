@@ -27,11 +27,11 @@ class ContactsView {
     });
   }
 
-  async isContactAliasVisible(alias: string): Promise<void> {
+  async expectContactIsVisible(alias: string): Promise<void> {
     await Assertions.expectTextDisplayed(alias);
   }
 
-  async isContactAliasNotVisible(alias: string): Promise<void> {
+  async expectContactIsNotVisible(alias: string): Promise<void> {
     await Assertions.expectTextNotDisplayed(alias);
   }
 }

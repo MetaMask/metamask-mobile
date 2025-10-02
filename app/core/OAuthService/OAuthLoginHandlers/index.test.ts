@@ -462,6 +462,79 @@ describe('OAuth login handlers', () => {
         }
       });
 
+      // no credentials
+      it('should throw GoogleLoginNoCredential when no credentials are found', async () => {
+        const message = 'e1 error Mo.m: No credential available';
+        mockSignInWithGoogle.mockRejectedValue(new Error(message));
+
+        const handler = createLoginHandler('android', AuthConnection.Google);
+        try {
+          await handler.login();
+        } catch (error) {
+          expect(error).toBeInstanceOf(OAuthError);
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.GoogleLoginNoCredential,
+          );
+          expect((error as OAuthError).message).toContain(
+            `Google login has no credential - handleGoogleLogin: Google login has no credential`,
+          );
+        }
+      });
+
+      // retry successfy when there is only once no credentials
+      it('verify successful login after a retry when no credentials are found on the first attempt', async () => {
+        const message = 'e1 error Mo.m: No credential available';
+        mockSignInWithGoogle.mockClear();
+        mockSignInWithGoogle.mockResolvedValue({
+          type: 'google-signin',
+          idToken: 'googleIdToken',
+        });
+        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
+
+        const handler = createLoginHandler('android', AuthConnection.Google);
+        await handler.login();
+
+        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
+        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+      });
+
+      it('should throw GoogleLoginNoMatchingCredential when no matching credential is found', async () => {
+        const message =
+          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
+        mockSignInWithGoogle.mockRejectedValue(new Error(message));
+
+        const handler = createLoginHandler('android', AuthConnection.Google);
+        try {
+          await handler.login();
+        } catch (error) {
+          expect(error).toBeInstanceOf(OAuthError);
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
+          expect((error as OAuthError).message).toContain(
+            `Google login has no matching credential - handleGoogleLogin: Google login has no matching credential`,
+          );
+        }
+      });
+
+      // retry successfy when there is only once no credentials
+      it('verify successful login after a retry when no matching credential is found on the first attempt', async () => {
+        const message =
+          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
+        mockSignInWithGoogle.mockClear();
+        mockSignInWithGoogle.mockResolvedValue({
+          type: 'google-signin',
+          idToken: 'googleIdToken',
+        });
+        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
+
+        const handler = createLoginHandler('android', AuthConnection.Google);
+        await handler.login();
+
+        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
+        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+      });
+
       it('should re-throw existing OAuthError instances', async () => {
         const existingError = new OAuthError(
           'Test error',

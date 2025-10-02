@@ -10,6 +10,8 @@ import {
 const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED]:
     'perps.errors.clientNotInitialized',
+  [PERPS_ERROR_CODES.CLIENT_REINITIALIZING]:
+    'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
@@ -20,6 +22,8 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
+    'perps.errors.orderLeverageReductionFailed',
 };
 
 /**

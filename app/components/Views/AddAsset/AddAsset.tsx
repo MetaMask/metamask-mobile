@@ -12,7 +12,7 @@ import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
 import ScrollableTabView, {
   TabBarProps,
-} from 'react-native-scrollable-tab-view';
+} from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import {
@@ -53,6 +53,12 @@ import { enableAllNetworksFilter } from '../../UI/Tokens/util/enableAllNetworksF
 import Engine from '../../../core/Engine';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet';
 import NetworkFilterBottomSheet from './components/NetworkFilterBottomSheet';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 export enum FilterOption {
   AllNetworks,
@@ -106,6 +112,12 @@ const AddAsset = () => {
     [allNetworks],
   );
   const isAllNetworksEnabled = useSelector(selectTokenNetworkFilter);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const [openNetworkFilter, setOpenNetworkFilter] = useState(false);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
@@ -148,6 +160,9 @@ const AddAsset = () => {
   };
 
   const onFilterControlsBottomSheetPress = (option: FilterOption) => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId);
+    }
     handleFilterControlsPress({
       option,
       allNetworksEnabled,
@@ -156,7 +171,7 @@ const AddAsset = () => {
     setOpenNetworkFilter(false);
   };
 
-  const renderTabBar = (props: TabBarProps) => <TabBar {...props} />;
+  const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
   const renderNetworkSelector = useCallback(
     () => (
@@ -270,6 +285,21 @@ const AddAsset = () => {
         <AddCustomCollectible
           navigation={navigation}
           collectibleContract={collectibleContract}
+          setOpenNetworkSelector={setOpenNetworkSelector}
+          networkId={networkConfigurations?.[selectedNetwork as Hex]?.chainId}
+          selectedNetwork={
+            selectedNetwork
+              ? networkConfigurations?.[selectedNetwork as Hex]?.name
+              : null
+          }
+          networkClientId={
+            selectedNetwork
+              ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
+                  networkConfigurations?.[selectedNetwork]
+                    ?.defaultRpcEndpointIndex
+                ]?.networkClientId
+              : null
+          }
         />
       )}
       {openNetworkFilter ? renderNetworkFilterSelector() : null}

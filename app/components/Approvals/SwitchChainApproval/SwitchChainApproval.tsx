@@ -4,11 +4,16 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
-import { selectIsAllNetworks } from '../../../selectors/networkController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { useDispatch } from 'react-redux';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 const SwitchChainApproval = () => {
   const {
@@ -19,19 +24,21 @@ const SwitchChainApproval = () => {
   } = useApprovalRequest();
 
   const dispatch = useDispatch();
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
 
     // If portfolio view is enabled should set network filter
     if (isPortfolioViewEnabled()) {
-      const { PreferencesController } = Engine.context;
-      PreferencesController.setTokenNetworkFilter({
-        ...(isAllNetworks ? tokenNetworkFilter : {}),
-        [approvalRequest?.requestData?.chainId]: true,
-      });
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        selectNetwork(approvalRequest?.requestData?.chainId);
+      }
     }
 
     dispatch(
@@ -40,13 +47,7 @@ const SwitchChainApproval = () => {
         networkStatus: true,
       }),
     );
-  }, [
-    approvalRequest,
-    defaultOnConfirm,
-    dispatch,
-    isAllNetworks,
-    tokenNetworkFilter,
-  ]);
+  }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork]);
 
   if (approvalRequest?.type !== ApprovalTypes.SWITCH_ETHEREUM_CHAIN)
     return null;

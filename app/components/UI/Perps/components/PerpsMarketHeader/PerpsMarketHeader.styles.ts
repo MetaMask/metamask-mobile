@@ -1,11 +1,11 @@
-import { StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 interface PerpsMarketHeaderStyles {
   container: ViewStyle;
   backButton: ViewStyle;
   perpIcon: ViewStyle;
-  tokenIcon: ImageStyle;
+  tokenIcon: ViewStyle;
   leftSection: ViewStyle;
   assetRow: ViewStyle;
   assetName: TextStyle;
@@ -31,15 +31,18 @@ export const styleSheet = ({
       borderBottomColor: theme.colors.border.muted,
     },
     backButton: {
-      marginRight: 12,
+      padding: 12,
+      marginLeft: -12,
+      marginTop: -12,
+      marginBottom: -12,
     },
     perpIcon: {
       marginRight: 12,
     },
     tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     leftSection: {
       flex: 1,

@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View, TextInput, Keyboard, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
@@ -35,14 +35,19 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils';
 import useAnalytics from '../../../hooks/useAnalytics';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import Logger from '../../../../../../util/Logger';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { useRegions } from '../../hooks/useRegions';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -66,6 +71,8 @@ const BasicInfo = (): JSX.Element => {
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -84,8 +91,10 @@ const BasicInfo = (): JSX.Element => {
     lastName: previousFormData?.lastName || '',
     mobileNumber: previousFormData?.mobileNumber || '',
     dob: localTimestampToUseInternally,
-    ssn: previousFormData?.ssn || '',
+    ssn: '',
   };
+
+  const { regions } = useRegions();
 
   const validateForm = (
     formData: BasicInfoFormData,
@@ -141,6 +150,18 @@ const BasicInfo = (): JSX.Element => {
     [handleChange],
   );
 
+  const [, postKycForm] = useDepositSdkMethod({
+    method: 'patchUser',
+    onMount: false,
+    throws: true,
+  });
+
+  const [, submitSsnDetails] = useDepositSdkMethod({
+    method: 'submitSsnDetails',
+    onMount: false,
+    throws: true,
+  });
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -165,32 +186,66 @@ const BasicInfo = (): JSX.Element => {
     });
   }, [navigation, theme]);
 
-  const handleOnPressContinue = useCallback(() => {
-    if (validateFormData()) {
-      trackEvent('RAMPS_BASIC_INFO_ENTERED', {
-        region: selectedRegion?.isoCode || '',
-        ramp_type: 'DEPOSIT',
-        kyc_type: 'SIMPLE',
+  // clear ssn field on mount
+  useEffect(() => {
+    handleFormDataChange('ssn')('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOnPressContinue = useCallback(async () => {
+    if (!validateFormData()) return;
+
+    // Clear any previous errors when retrying
+    setError(null);
+
+    trackEvent('RAMPS_BASIC_INFO_ENTERED', {
+      region: selectedRegion?.isoCode || '',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
+
+    try {
+      setLoading(true);
+      const { ssn, ...formDataWithoutSsn } = formData;
+      await postKycForm({
+        personalDetails: {
+          ...formDataWithoutSsn,
+          dob: formData.dob.trim()
+            ? timestampToTransakFormat(formData.dob)
+            : '',
+        },
       });
+
+      if (ssn) {
+        await submitSsnDetails({ ssn, quoteId: quote.quoteId });
+      }
 
       navigation.navigate(
         ...createEnterAddressNavDetails({
           previousFormData,
-          formData: {
-            ...formData,
-            dob: formData.dob.trim()
-              ? timestampToTransakFormat(formData.dob)
-              : '',
-          },
           quote,
         }),
       );
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error && submissionError.message
+          ? submissionError.message
+          : strings('deposit.basic_info.unexpected_error'),
+      );
+      Logger.error(
+        submissionError as Error,
+        'Unexpected error during basic info form submission',
+      );
+    } finally {
+      setLoading(false);
     }
   }, [
     previousFormData,
-    navigation,
     validateFormData,
     formData,
+    postKycForm,
+    submitSsnDetails,
+    navigation,
     quote,
     selectedRegion?.isoCode,
     trackEvent,
@@ -206,6 +261,7 @@ const BasicInfo = (): JSX.Element => {
   const handleFieldChange = useCallback(
     (field: keyof BasicInfoFormData, nextAction?: () => void) =>
       (value: string) => {
+        setError(null);
         const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -231,16 +287,24 @@ const BasicInfo = (): JSX.Element => {
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text variant={TextVariant.HeadingMD} style={styles.title}>
               {strings('deposit.basic_info.title')}
             </Text>
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
+            {error && (
+              <View style={styles.errorContainer}>
+                <BannerAlert
+                  description={error}
+                  severity={BannerAlertSeverity.Error}
+                />
+              </View>
+            )}
             <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}
-                placeholder="John"
+                placeholder={strings('deposit.basic_info.first_name')}
                 value={formData.firstName}
                 onChangeText={handleFieldChange(
                   'firstName',
@@ -259,7 +323,7 @@ const BasicInfo = (): JSX.Element => {
 
               <DepositTextField
                 label={strings('deposit.basic_info.last_name')}
-                placeholder="Smith"
+                placeholder={strings('deposit.basic_info.last_name')}
                 value={formData.lastName}
                 onChangeText={handleFieldChange(
                   'lastName',
@@ -279,6 +343,7 @@ const BasicInfo = (): JSX.Element => {
 
             <DepositPhoneField
               label={strings('deposit.basic_info.phone_number')}
+              regions={regions || []}
               value={formData.mobileNumber}
               onChangeText={handleFieldChange(
                 'mobileNumber',
@@ -358,7 +423,6 @@ const BasicInfo = (): JSX.Element => {
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
-
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <PrivacySection />
@@ -368,6 +432,8 @@ const BasicInfo = (): JSX.Element => {
             label={strings('deposit.basic_info.continue')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
+            isDisabled={loading || !!error}
+            loading={loading}
             testID="continue-button"
           />
           <PoweredByTransak name="powered-by-transak-logo" />

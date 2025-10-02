@@ -58,8 +58,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
         }
       >
         <View>
-          <Image
-            onError={[Function]}
+          <View
             source={
               {
                 "uri": "",
@@ -101,9 +100,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 30,
-                    "fontWeight": "400",
                     "marginVertical": 2,
                   },
                   undefined,
@@ -155,9 +153,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -185,9 +182,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
             undefined,
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 18,
-              "fontWeight": "400",
             },
           ]
         }
@@ -233,8 +229,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -276,9 +271,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 30,
-                          "fontWeight": "400",
                           "marginVertical": 2,
                         },
                         undefined,
@@ -393,8 +387,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -436,9 +429,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 30,
-                          "fontWeight": "400",
                           "marginVertical": 2,
                         },
                         undefined,
@@ -549,8 +541,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -592,9 +583,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 30,
-                          "fontWeight": "400",
                           "marginVertical": 2,
                         },
                         undefined,
@@ -715,8 +705,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -758,9 +747,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 30,
-                          "fontWeight": "400",
                           "marginVertical": 2,
                         },
                         undefined,

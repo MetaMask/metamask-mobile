@@ -1,17 +1,13 @@
 import { RpcEndpointType } from '@metamask/network-controller';
-import { SolScope } from '@metamask/keyring-api';
-import { AccountInformation } from '@metamask/assets-controllers';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
-import {
-  selectAccountBalanceByChainId,
-  selectAccountsByContextualChainId,
-} from './accountTrackerController';
+import { selectAccountBalanceByChainId } from './accountTrackerController';
 import { mockNetworkState } from '../util/test/network';
 import mockedEngine from '../core/__mocks__/MockedEngine';
+import { SolScope } from '@metamask/keyring-api';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -87,71 +83,5 @@ describe('selectAccountBalanceByChainId', () => {
       },
     } as unknown as RootState);
     expect(result).toBeUndefined();
-  });
-});
-
-describe('selectAccountsByContextualChainId', () => {
-  const mockAccountsByChainId = {
-    '0x1': {
-      [MOCK_ADDRESS_2]: { balance: '0x100' },
-      '0xAccount2': { balance: '0x200' },
-    },
-    '0x5': {
-      [MOCK_ADDRESS_2]: { balance: '0x300' },
-      '0xAccount3': { balance: '0x400' },
-    },
-  };
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns accounts for the contextual chain ID', () => {
-    const result = selectAccountsByContextualChainId.resultFunc(
-      mockAccountsByChainId,
-      '0x5',
-      '0x1',
-    );
-
-    expect(result).toEqual({
-      [MOCK_ADDRESS_2]: { balance: '0x300' },
-      '0xAccount3': { balance: '0x400' },
-    });
-  });
-
-  it('returns an empty object if no accounts exist for the contextual chain ID', () => {
-    const result = selectAccountsByContextualChainId.resultFunc(
-      mockAccountsByChainId,
-      '0xUnknownChain',
-      '0x1',
-    );
-
-    expect(result).toEqual({});
-  });
-
-  it('returns an empty object if accountsByChainId is undefined', () => {
-    const result = selectAccountsByContextualChainId.resultFunc(
-      undefined as unknown as Record<
-        string,
-        { [address: string]: AccountInformation }
-      >,
-      '0x1',
-      '0x1',
-    );
-
-    expect(result).toEqual({});
-  });
-
-  it('falls back to chainId when contextual chain ID is undefined', () => {
-    const result = selectAccountsByContextualChainId.resultFunc(
-      mockAccountsByChainId,
-      undefined,
-      '0x1',
-    );
-
-    expect(result).toEqual({
-      [MOCK_ADDRESS_2]: { balance: '0x100' },
-      '0xAccount2': { balance: '0x200' },
-    });
   });
 });

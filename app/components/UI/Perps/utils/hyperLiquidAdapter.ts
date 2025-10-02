@@ -5,10 +5,12 @@ import type {
   SpotClearinghouseState,
 } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
+import type { FrontendOrder } from '@deeeed/hyperliquid-node20/esm/src/types/info/orders';
 import { isHexString } from '@metamask/utils';
 import type {
   AccountState,
   MarketInfo,
+  Order,
   OrderParams as PerpsOrderParams,
   Position,
 } from '../controllers/types';
@@ -81,7 +83,105 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     maxLeverage: pos.maxLeverage,
     returnOnEquity: pos.returnOnEquity,
     cumulativeFunding: pos.cumFunding,
+    takeProfitCount: 0, // Default value, will be updated by provider logic
+    stopLossCount: 0, // Default value, will be updated by provider logic
   };
+}
+
+/**
+ * Transform HyperLiquid SDK order to MetaMask Perps API format
+ * Handles both REST API responses (FrontendOrder) and WebSocket data formats
+ * @param rawOrder - Raw order data from HyperLiquid SDK (frontendOpenOrders or webData2)
+ * @returns MetaMask Perps API order object
+ */
+export function adaptOrderFromSDK(
+  rawOrder: FrontendOrder,
+  position?: Position,
+): Order {
+  // Extract basic fields with appropriate conversions
+  const orderId = rawOrder.oid.toString();
+  const symbol = rawOrder.coin;
+
+  // Convert side: HyperLiquid uses 'B' for Buy and 'A' for Ask (Sell)
+  const side: 'buy' | 'sell' = rawOrder.side === 'B' ? 'buy' : 'sell';
+
+  // Get detailed order type from API
+  const detailedOrderType = rawOrder.orderType;
+
+  // Determine if this is a trigger order (TP/SL)
+  const isTrigger = rawOrder.isTrigger;
+  const reduceOnly = rawOrder.reduceOnly;
+
+  // Determine basic order type
+  let orderType: 'limit' | 'market' = 'market';
+  if (detailedOrderType.toLowerCase().includes('limit') || rawOrder.limitPx) {
+    orderType = 'limit';
+  }
+
+  // For trigger orders (TP/SL), use triggerPx as the price
+  const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
+
+  // Sizes
+  let size = rawOrder.sz;
+  let originalSize = rawOrder.origSz || size;
+
+  // Calculate filled and remaining size
+  let currentSize = parseFloat(size);
+  let origSize = parseFloat(originalSize);
+
+  if (rawOrder.isPositionTpsl && origSize === 0 && position) {
+    const absPositionSize = Math.abs(parseFloat(position.size));
+    currentSize = absPositionSize;
+    origSize = absPositionSize;
+    size = absPositionSize.toString();
+    originalSize = absPositionSize.toString();
+  }
+
+  const filledSize = origSize - currentSize;
+
+  // Check for TP/SL in child orders (REST API feature)
+  let takeProfitPrice: string | undefined;
+  let stopLossPrice: string | undefined;
+
+  if (rawOrder.children && rawOrder.children.length > 0) {
+    rawOrder.children.forEach((child) => {
+      if (child.isTrigger && child.orderType) {
+        if (child.orderType.includes('Take Profit')) {
+          takeProfitPrice = child.triggerPx || child.limitPx;
+        } else if (child.orderType.includes('Stop')) {
+          stopLossPrice = child.triggerPx || child.limitPx;
+        }
+      }
+    });
+  }
+
+  // Build the order object
+  const order: Order = {
+    orderId,
+    symbol,
+    side,
+    orderType,
+    size,
+    originalSize,
+    price,
+    filledSize: filledSize.toString(),
+    remainingSize: size,
+    status: 'open' as const, // All orders from frontendOpenOrders/webData2 are open
+    timestamp: rawOrder.timestamp,
+    detailedOrderType,
+    isTrigger,
+    reduceOnly,
+  };
+
+  // Add optional fields if they exist
+  if (takeProfitPrice) {
+    order.takeProfitPrice = takeProfitPrice;
+  }
+  if (stopLossPrice) {
+    order.stopLossPrice = stopLossPrice;
+  }
+
+  return order;
 }
 
 /**
@@ -111,13 +211,32 @@ export function adaptAccountStateFromSDK(
   spotState?: SpotClearinghouseState,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
-  const totalUnrealizedPnl = perpsState.assetPositions
-    .reduce(
-      (sum: number, assetPos: AssetPosition) =>
-        sum + parseFloat(assetPos.position.unrealizedPnl),
-      0,
-    )
-    .toString();
+  const { totalUnrealizedPnl, weightedReturnOnEquity } =
+    perpsState.assetPositions.reduce(
+      (acc, assetPos: AssetPosition) => {
+        const unrealizedPnl = parseFloat(
+          assetPos.position.unrealizedPnl || '0',
+        );
+        const marginUsed = parseFloat(assetPos.position.marginUsed || '0');
+        const returnOnEquity = parseFloat(
+          assetPos.position.returnOnEquity || '0',
+        );
+        acc.totalUnrealizedPnl += unrealizedPnl;
+        acc.weightedReturnOnEquity += returnOnEquity * marginUsed;
+        return acc;
+      },
+      {
+        totalUnrealizedPnl: 0,
+        weightedReturnOnEquity: 0,
+      },
+    );
+  const totalMarginUsed = parseFloat(
+    perpsState.marginSummary.totalMarginUsed || '0',
+  );
+  const totalReturnOnEquityPercentage = (
+    (weightedReturnOnEquity / totalMarginUsed) *
+    100
+  ).toFixed(1);
 
   // TODO: BALANCE DISPLAY DECISION NEEDED
   //
@@ -159,10 +278,12 @@ export function adaptAccountStateFromSDK(
   const totalBalance = (spotBalance + perpsBalance).toString();
 
   const accountState: AccountState = {
-    availableBalance: perpsState.withdrawable, // Always Perps withdrawable
-    totalBalance, // Combined or Perps-only? See TODO above
-    marginUsed: perpsState.crossMarginSummary.totalMarginUsed,
-    unrealizedPnl: totalUnrealizedPnl,
+    availableBalance: perpsState.withdrawable || '0', // Always Perps withdrawable
+    totalBalance: totalBalance || '0', // Combined or Perps-only? See TODO above
+    marginUsed: perpsState.marginSummary.totalMarginUsed || '0', // margin used including cross margin
+    unrealizedPnl: totalUnrealizedPnl.toString() || '0',
+    returnOnEquity: totalReturnOnEquityPercentage || '0',
+    totalValue: perpsState.marginSummary.accountValue || '0', // vaults + margin + pnl + perps balance
   };
 
   return accountState;

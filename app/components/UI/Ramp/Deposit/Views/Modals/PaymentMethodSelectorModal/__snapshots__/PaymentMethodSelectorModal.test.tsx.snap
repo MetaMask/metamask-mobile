@@ -435,6 +435,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -458,7 +459,6 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -536,8 +536,8 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                   "duration": "instant",
                                   "icon": "Apple",
                                   "iconColor": {
-                                    "dark": "#FFFFFF",
-                                    "light": "#000000",
+                                    "dark": "var(--color-icon-default)",
+                                    "light": "var(--color-icon-default)",
                                   },
                                   "id": "apple_pay",
                                   "name": "Apple Pay",
@@ -797,7 +797,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           }
                                         >
                                           <SvgMock
-                                            color="#000000"
+                                            color="var(--color-icon-default)"
                                             fill="currentColor"
                                             height={20}
                                             name="Apple"

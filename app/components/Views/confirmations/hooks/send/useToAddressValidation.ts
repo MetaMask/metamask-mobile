@@ -1,37 +1,104 @@
-import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
+import { Hex } from '@metamask/utils';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { strings } from '../../../../../../locales/i18n';
+import { isENS, isValidHexAddress } from '../../../../../util/address';
+import {
+  validateHexAddress,
+  validateSolanaAddress,
+} from '../../utils/send-address-validations';
+import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
-import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
+import { useNameValidation } from './useNameValidation';
 
-// todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
+interface ValidationResult {
+  toAddressValidated?: string;
+  error?: string;
+  warning?: string;
+  resolvedAddress?: string;
+}
+
 export const useToAddressValidation = () => {
+  const { asset, chainId, to } = useSendContext();
   const { isEvmSendType, isSolanaSendType } = useSendType();
-  const { validateEvmToAddress } = useEvmToAddressValidation();
-  const { validateSolanaToAddress } = useSolanaToAddressValidation();
+  const { validateName } = useNameValidation();
+  const [result, setResult] = useState<ValidationResult>({});
+  const [loading, setLoading] = useState(false);
+  const prevAddressValidated = useRef<string>();
+  const unmountedRef = useRef(false);
 
-  const { value } = useAsyncResult<{
-    error?: string;
-    warning?: string;
-  }>(async () => {
-    if (isEvmSendType) {
-      return await validateEvmToAddress();
-    }
-    if (isSolanaSendType) {
-      return validateSolanaToAddress();
-    }
-    return {};
-  }, [
-    isEvmSendType,
-    isSolanaSendType,
-    validateEvmToAddress,
-    validateSolanaToAddress,
-  ]);
+  useEffect(
+    () => () => {
+      unmountedRef.current = true;
+    },
+    [],
+  );
 
-  const { error: toAddressError, warning: toAddressWarning } = value ?? {};
+  const validateToAddress = useCallback(
+    async (toAddress?: string) => {
+      if (!toAddress || !chainId) {
+        return {};
+      }
+
+      if (
+        isEvmSendType &&
+        isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
+      ) {
+        return await validateHexAddress(
+          toAddress,
+          chainId as Hex,
+          asset?.address,
+        );
+      }
+
+      if (isSolanaSendType && isSolanaAddress(toAddress)) {
+        return validateSolanaAddress(toAddress);
+      }
+
+      if (isENS(toAddress)) {
+        return await validateName(chainId, toAddress);
+      }
+
+      return {
+        error: strings('send.invalid_address'),
+      };
+    },
+    [asset, chainId, isEvmSendType, isSolanaSendType, validateName],
+  );
+
+  useEffect(() => {
+    if (prevAddressValidated.current === to) {
+      return undefined;
+    }
+
+    (async () => {
+      setLoading(true);
+      prevAddressValidated.current = to;
+      const validationResult = await validateToAddress(to);
+
+      if (!unmountedRef.current && prevAddressValidated.current === to) {
+        setResult({
+          ...validationResult,
+          toAddressValidated: to,
+        });
+      }
+      setLoading(false);
+    })();
+  }, [setResult, to, validateToAddress]);
+
+  const {
+    toAddressValidated,
+    error: toAddressError,
+    warning: toAddressWarning,
+    resolvedAddress,
+  } = result ?? {};
 
   return {
+    loading,
+    resolvedAddress,
     toAddressError,
+    toAddressValidated,
     toAddressWarning,
   };
 };

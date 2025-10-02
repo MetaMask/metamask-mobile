@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
 
 export interface UsePerpsBlockExplorerUrlResult {
@@ -17,7 +17,9 @@ export const usePerpsBlockExplorerUrl = (
   defaultAddress?: string,
 ): UsePerpsBlockExplorerUrlResult => {
   const controller = Engine.context.PerpsController;
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
 
   const baseExplorerUrl = useMemo(() => {
     try {

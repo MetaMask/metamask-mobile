@@ -7,6 +7,14 @@ import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingClaim from './staking-claim';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
+jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
@@ -25,6 +33,13 @@ jest.mock('../../../../../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../hooks/gas/useIsGaslessSupported', () => ({
+  useIsGaslessSupported: jest.fn().mockReturnValue({
+    isSupported: false,
+    isSmartTransaction: false,
+  }),
 }));
 
 jest.mock('../../../../hooks/useConfirmActions', () => ({

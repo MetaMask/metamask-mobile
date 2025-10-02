@@ -18,7 +18,8 @@ export interface InfoRowProps {
   label: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
-  tooltip?: string;
+  tooltip?: ReactNode;
+  tooltipTitle?: string;
   style?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
   testID?: string;
@@ -39,6 +40,7 @@ const InfoRow = ({
   style = {},
   labelChildren = null,
   tooltip,
+  tooltipTitle,
   testID,
   variant = TextColor.Alternative,
   copyText,
@@ -70,7 +72,7 @@ const InfoRow = ({
               <Tooltip
                 content={tooltip}
                 onPress={onTooltipPress}
-                title={label}
+                title={tooltipTitle ?? label}
               />
             )}
           </View>

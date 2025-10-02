@@ -8,11 +8,10 @@ import { use7702TransactionType } from '../../../hooks/7702/use7702TransactionTy
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
-import OriginRow from '../../rows/origin-row';
+import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
-import { isDappOrigin } from '../../../utils/origin';
 
 const ContractInteraction = () => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -20,8 +19,6 @@ const ContractInteraction = () => {
   const { isBatchedUpgrade } = use7702TransactionType();
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
-
-  const isDappInteraction = isDappOrigin(transactionMetadata?.origin);
 
   return (
     <View testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
@@ -32,7 +29,7 @@ const ContractInteraction = () => {
         enableMetrics
         isTransactionsRedesign
       />
-      {isDappInteraction && <OriginRow isSignatureRequest={false} />}
+      <NetworkAndOriginRow />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>

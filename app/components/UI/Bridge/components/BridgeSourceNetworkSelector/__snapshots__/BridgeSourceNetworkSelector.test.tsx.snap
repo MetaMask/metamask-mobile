@@ -458,6 +458,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     {
                                       "backgroundColor": "#ffffff",
                                       "flexDirection": "row",
+                                      "gap": 16,
                                       "padding": 16,
                                     },
                                     false,
@@ -468,20 +469,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 <View
                                   style={
                                     {
-                                      "width": undefined,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    onLayout={[Function]}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
                                       "alignItems": "center",
                                       "flex": 1,
-                                      "marginHorizontal": 16,
                                     }
                                   }
                                 >
@@ -553,17 +542,6 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     </View>
                                   </View>
                                 </View>
-                                <View
-                                  style={
-                                    {
-                                      "width": undefined,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    onLayout={[Function]}
-                                  />
-                                </View>
                               </View>
                             </View>
                             <View
@@ -623,385 +601,396 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   </Text>
                                 </Text>
                               </View>
-                              <View
+                              <RCTScrollView
+                                showsVerticalScrollIndicator={false}
                                 style={
-                                  [
-                                    {},
-                                    {
-                                      "padding": 8,
-                                    },
-                                  ]
+                                  {
+                                    "flex": 1,
+                                  }
                                 }
                               >
-                                <TouchableOpacity
-                                  onPress={[Function]}
-                                  testID="chain-0x1"
-                                >
+                                <View>
                                   <View
-                                    accessibilityRole="none"
-                                    accessible={true}
                                     style={
-                                      {
-                                        "padding": 16,
-                                      }
+                                      [
+                                        {},
+                                        {
+                                          "padding": 8,
+                                        },
+                                      ]
                                     }
                                   >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      testID="chain-0x1"
                                     >
-                                      <TouchableOpacity
-                                        disabled={false}
-                                        onPress={[Function]}
+                                      <View
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "height": 24,
-                                            "opacity": 1,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="checkbox-0x1"
                                       >
                                         <View
-                                          accessibilityRole="checkbox"
                                           style={
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#4459ff",
-                                              "borderColor": "#4459ff",
-                                              "borderRadius": 4,
-                                              "borderWidth": 2,
-                                              "height": 20,
-                                              "justifyContent": "center",
-                                              "width": 20,
+                                              "flexDirection": "row",
                                             }
                                           }
                                         >
-                                          <SvgMock
-                                            color="#ffffff"
-                                            fill="currentColor"
-                                            height={20}
-                                            name="CheckBold"
+                                          <TouchableOpacity
+                                            disabled={false}
                                             onPress={[Function]}
                                             style={
                                               {
-                                                "height": 20,
-                                                "width": 20,
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "height": 24,
+                                                "opacity": 1,
                                               }
                                             }
                                             testID="checkbox-0x1"
-                                            width={20}
+                                          >
+                                            <View
+                                              accessibilityRole="checkbox"
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#4459ff",
+                                                  "borderColor": "#4459ff",
+                                                  "borderRadius": 4,
+                                                  "borderWidth": 2,
+                                                  "height": 20,
+                                                  "justifyContent": "center",
+                                                  "width": 20,
+                                                }
+                                              }
+                                            >
+                                              <SvgMock
+                                                color="#ffffff"
+                                                fill="currentColor"
+                                                height={20}
+                                                name="CheckBold"
+                                                onPress={[Function]}
+                                                style={
+                                                  {
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  }
+                                                }
+                                                testID="checkbox-0x1"
+                                                width={20}
+                                              />
+                                            </View>
+                                          </TouchableOpacity>
+                                          <View
+                                            accessible={false}
+                                            style={
+                                              {
+                                                "width": 16,
+                                              }
+                                            }
+                                            testID="listitem-gap"
                                           />
+                                          <View
+                                            alignItems="center"
+                                            flexDirection="row"
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                },
+                                                {
+                                                  "flex": 1,
+                                                },
+                                              ]
+                                            }
+                                          >
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
+                                              gap={8}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                    "gap": 8,
+                                                  },
+                                                  {
+                                                    "flex": 1,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "height": 32,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 32,
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  resizeMode="contain"
+                                                  source={1}
+                                                  style={
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                  testID="network-avatar-image"
+                                                />
+                                              </View>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                Ethereum Mainnet
+                                              </Text>
+                                            </View>
+                                            <View
+                                              alignItems="flex-end"
+                                              flexDirection="row"
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "flex-end",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  {
+                                                    "flex": 1,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "flex": 1,
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                    "textAlign": "right",
+                                                  }
+                                                }
+                                              >
+                                                $22600
+                                              </Text>
+                                            </View>
+                                          </View>
                                         </View>
-                                      </TouchableOpacity>
+                                      </View>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                      testID="chain-0xa"
+                                    >
                                       <View
-                                        accessible={false}
+                                        accessibilityRole="none"
+                                        accessible={true}
                                         style={
                                           {
-                                            "width": 16,
+                                            "padding": 16,
                                           }
                                         }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        alignItems="center"
-                                        flexDirection="row"
-                                        style={
-                                          [
+                                      >
+                                        <View
+                                          style={
                                             {
                                               "alignItems": "center",
                                               "flexDirection": "row",
-                                            },
-                                            {
-                                              "flex": 1,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={8}
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 8,
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "#ffffff",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "overflow": "hidden",
-                                                "width": 32,
-                                              }
-                                            }
-                                          >
-                                            <Image
-                                              onError={[Function]}
-                                              resizeMode="contain"
-                                              source={1}
-                                              style={
-                                                {
-                                                  "height": 32,
-                                                  "width": 32,
-                                                }
-                                              }
-                                              testID="network-avatar-image"
-                                            />
-                                          </View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Ethereum Mainnet
-                                          </Text>
-                                        </View>
-                                        <View
-                                          alignItems="flex-end"
-                                          flexDirection="row"
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "flex-end",
-                                                "flexDirection": "row",
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#121314",
-                                                "flex": 1,
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            $22600
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={[Function]}
-                                  testID="chain-0xa"
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        disabled={false}
-                                        onPress={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "height": 24,
-                                            "opacity": 1,
-                                          }
-                                        }
-                                        testID="checkbox-0xa"
-                                      >
-                                        <View
-                                          accessibilityRole="checkbox"
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#4459ff",
-                                              "borderColor": "#4459ff",
-                                              "borderRadius": 4,
-                                              "borderWidth": 2,
-                                              "height": 20,
-                                              "justifyContent": "center",
-                                              "width": 20,
                                             }
                                           }
                                         >
-                                          <SvgMock
-                                            color="#ffffff"
-                                            fill="currentColor"
-                                            height={20}
-                                            name="CheckBold"
+                                          <TouchableOpacity
+                                            disabled={false}
                                             onPress={[Function]}
                                             style={
                                               {
-                                                "height": 20,
-                                                "width": 20,
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "height": 24,
+                                                "opacity": 1,
                                               }
                                             }
                                             testID="checkbox-0xa"
-                                            width={20}
-                                          />
-                                        </View>
-                                      </TouchableOpacity>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        alignItems="center"
-                                        flexDirection="row"
-                                        style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            },
-                                            {
-                                              "flex": 1,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={8}
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 8,
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "#ffffff",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "overflow": "hidden",
-                                                "width": 32,
-                                              }
-                                            }
                                           >
-                                            <Image
-                                              onError={[Function]}
-                                              resizeMode="contain"
-                                              source={1}
+                                            <View
+                                              accessibilityRole="checkbox"
                                               style={
                                                 {
-                                                  "height": 32,
-                                                  "width": 32,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#4459ff",
+                                                  "borderColor": "#4459ff",
+                                                  "borderRadius": 4,
+                                                  "borderWidth": 2,
+                                                  "height": 20,
+                                                  "justifyContent": "center",
+                                                  "width": 20,
                                                 }
                                               }
-                                              testID="network-avatar-image"
-                                            />
+                                            >
+                                              <SvgMock
+                                                color="#ffffff"
+                                                fill="currentColor"
+                                                height={20}
+                                                name="CheckBold"
+                                                onPress={[Function]}
+                                                style={
+                                                  {
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  }
+                                                }
+                                                testID="checkbox-0xa"
+                                                width={20}
+                                              />
+                                            </View>
+                                          </TouchableOpacity>
+                                          <View
+                                            accessible={false}
+                                            style={
+                                              {
+                                                "width": 16,
+                                              }
+                                            }
+                                            testID="listitem-gap"
+                                          />
+                                          <View
+                                            alignItems="center"
+                                            flexDirection="row"
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                },
+                                                {
+                                                  "flex": 1,
+                                                },
+                                              ]
+                                            }
+                                          >
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
+                                              gap={8}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                    "gap": 8,
+                                                  },
+                                                  {
+                                                    "flex": 1,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "height": 32,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 32,
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  resizeMode="contain"
+                                                  source={1}
+                                                  style={
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                  testID="network-avatar-image"
+                                                />
+                                              </View>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                Optimism
+                                              </Text>
+                                            </View>
+                                            <View
+                                              alignItems="flex-end"
+                                              flexDirection="row"
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "flex-end",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  {
+                                                    "flex": 1,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "flex": 1,
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                    "textAlign": "right",
+                                                  }
+                                                }
+                                              >
+                                                $12000
+                                              </Text>
+                                            </View>
                                           </View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Optimism
-                                          </Text>
-                                        </View>
-                                        <View
-                                          alignItems="flex-end"
-                                          flexDirection="row"
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "flex-end",
-                                                "flexDirection": "row",
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#121314",
-                                                "flex": 1,
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            $12000
-                                          </Text>
                                         </View>
                                       </View>
-                                    </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
-                              </View>
+                                </View>
+                              </RCTScrollView>
                               <View
                                 style={
                                   [

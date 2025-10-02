@@ -52,8 +52,6 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       width: '100%',
       marginTop: 'auto',
-      borderTopWidth: 1,
-      borderTopColor: colors.background.default,
     },
     seedPhraseDefaultInput: {
       borderWidth: 0,
@@ -61,11 +59,9 @@ const createStyles = (colors: any) =>
       display: 'flex',
       flex: 1,
       backgroundColor: importedColors.transparent,
-      height: 66,
     },
     textAreaInput: {
       display: 'flex',
-      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,
@@ -109,8 +105,13 @@ const createStyles = (colors: any) =>
     pasteButton: {
       paddingHorizontal: 16,
       paddingVertical: 16,
-      flex: 1,
       textAlign: 'center',
+    },
+    pasteText: {
+      textAlign: 'right',
+      paddingTop: 12,
+      paddingBottom: 16,
+      alignSelf: 'flex-end',
     },
     seedPhraseInputFocused: {
       borderColor: colors.primary.default,
@@ -132,18 +133,6 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       ...fontStyles.normal,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
-    },
     input: {
       paddingVertical: Platform.select({
         ios: 4,
@@ -160,16 +149,24 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       ...fontStyles.normal,
       textAlignVertical: 'center',
-      paddingHorizontal: 8,
+      paddingLeft: 8,
+      overflow: 'hidden', // Ensure content doesn't overflow
     },
     seedPhraseInputItem: {
       width: '31.33%', // 100% / 3 = 33.33%, minus some space
       marginRight: '3%', // Space between columns
       marginBottom: 8,
       flex: 0, // Prevent flex growth
+      minWidth: 0, // Allow flex shrinking below content size
     },
     seedPhraseInputItemLast: {
       marginRight: 0, // Remove right margin for last item in row
+    },
+    inputItem: {
+      flex: 1,
+      minWidth: 0, // Allow flex shrinking below content size
+      maxWidth: '100%', // Ensure text doesn't overflow container
+      paddingRight: 8, // Add some padding to prevent text from touching edges
     },
     passwordContainer: {
       flexDirection: 'column',
@@ -187,6 +184,9 @@ const createStyles = (colors: any) =>
       gap: 8,
       marginTop: 8,
       marginBottom: 16,
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
@@ -195,6 +195,7 @@ const createStyles = (colors: any) =>
       gap: 1,
       flexWrap: 'wrap',
       width: '90%',
+      marginTop: -6,
     },
     headerLeft: {
       marginLeft: 16,

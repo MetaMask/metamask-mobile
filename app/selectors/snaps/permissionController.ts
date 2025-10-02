@@ -5,6 +5,7 @@ import {
   SubjectType,
 } from '@metamask/permission-controller';
 import { createDeepEqualSelector } from '../util';
+import { createSelector } from 'reselect';
 
 export const selectPermissionControllerState = (state: RootState) =>
   state.engine.backgroundState
@@ -40,3 +41,8 @@ export function selectTargetSubjectMetadata(state: RootState, origin: string) {
 
   return metadata;
 }
+
+export const getSubjects = createSelector(
+  selectPermissionControllerState,
+  (state) => state.subjects,
+);

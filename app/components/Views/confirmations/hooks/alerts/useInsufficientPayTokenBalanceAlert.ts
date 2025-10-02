@@ -6,18 +6,40 @@ import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
-export function useInsufficientPayTokenBalanceAlert(): Alert[] {
-  const { totalHuman } = useTransactionPayTokenAmounts();
-  const { balanceHuman } = useTransactionPayToken();
+export function useInsufficientPayTokenBalanceAlert({
+  amountOverrides,
+}: {
+  amountOverrides?: Record<Hex, string>;
+} = {}): Alert[] {
+  const { type } = useTransactionMetadataRequest() ?? {};
 
-  const isInsufficient =
-    new BigNumber(balanceHuman ?? '0').isLessThan(
-      new BigNumber(totalHuman ?? '0'),
-    ) && process.env.MM_CONFIRMATION_INTENTS === 'true';
+  const { payToken } = useTransactionPayToken();
+  const { balance, symbol } = payToken ?? {};
+
+  const { totalHuman, amounts } = useTransactionPayTokenAmounts({
+    amountOverrides,
+  });
+
+  const tokenAmount =
+    amounts?.find((a) => a.address !== NATIVE_TOKEN_ADDRESS)
+      ?.amountHumanOriginal ?? '0';
+
+  const balanceValue = new BigNumber(balance ?? '0');
+
+  const isInsufficientForFees =
+    type === TransactionType.perpsDeposit &&
+    balanceValue.isLessThan(totalHuman ?? '0');
+
+  const isInsufficientForAmount =
+    isInsufficientForFees && balanceValue.isLessThan(tokenAmount);
 
   return useMemo(() => {
-    if (!isInsufficient) {
+    if (!isInsufficientForFees && !isInsufficientForAmount) {
       return [];
     }
 
@@ -25,10 +47,18 @@ export function useInsufficientPayTokenBalanceAlert(): Alert[] {
       {
         key: AlertKeys.InsufficientPayTokenBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: isInsufficientForAmount
+          ? strings('alert_system.insufficient_pay_token_balance.message')
+          : strings(
+              'alert_system.insufficient_pay_token_balance_fees.message',
+              { symbol },
+            ),
+        title: isInsufficientForAmount
+          ? undefined
+          : strings('alert_system.insufficient_pay_token_balance_fees.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isInsufficient]);
+  }, [isInsufficientForFees, isInsufficientForAmount, symbol]);
 }

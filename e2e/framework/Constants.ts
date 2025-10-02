@@ -18,6 +18,12 @@ export const defaultGanacheOptions = {
 
 export const DEFAULT_TAB_ID = 1749234797566;
 
+// App Package IDs for different platforms
+export const APP_PACKAGE_IDS = {
+  IOS: 'io.metamask.MetaMask',
+  ANDROID: 'io.metamask',
+} as const;
+
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
   '..',
@@ -76,6 +82,7 @@ export enum RampsRegionsEnum {
   SAINT_LUCIA = 'saint-lucia',
   FRANCE = 'france',
   UNITED_STATES = 'united-states',
+  SPAIN = 'spain',
 }
 
 export const RampsRegions = {
@@ -104,6 +111,16 @@ export const RampsRegions = {
     emoji: '🇺🇸',
     id: '/regions/us-ca',
     name: 'California',
+    support: { buy: true, sell: true, recurringBuy: true },
+    unsupported: false,
+    recommended: false,
+    detected: false,
+  },
+  [RampsRegionsEnum.SPAIN]: {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇪🇸',
+    id: '/regions/es',
+    name: 'Spain',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,

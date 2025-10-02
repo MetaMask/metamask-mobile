@@ -9,6 +9,8 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { BigNumber } from 'bignumber.js';
+import I18n from '../../../../../../../locales/i18n';
 
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
@@ -17,6 +19,7 @@ import Badge from '../../../../../../component-library/components/Badges/Badge/B
 import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
 import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { AssetType } from '../../../types/token';
+import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
 
 interface TokenProps {
   asset: AssetType;
@@ -34,13 +37,13 @@ export function Token({ asset, onPress }: TokenProps) {
     <Pressable
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center justify-between py-2',
+          'w-full flex-row items-center justify-between py-2 max-w-full',
           pressed || asset.isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
       onPress={handlePress}
     >
-      <Box twClassName="flex-1 flex-row items-center">
+      <Box twClassName="flex-row items-center px-4">
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
@@ -61,7 +64,7 @@ export function Token({ asset, onPress }: TokenProps) {
                 biggest={false}
                 chainId={asset.chainId as string}
                 style={tw.style('w-10 h-10 rounded-full bg-default')}
-                ticker={asset.ticker as string}
+                ticker={asset.symbol as string}
               />
             ) : (
               <AvatarToken
@@ -73,7 +76,7 @@ export function Token({ asset, onPress }: TokenProps) {
           </BadgeWrapper>
         </Box>
 
-        <Box twClassName="ml-4 flex-1 h-12 justify-center">
+        <Box twClassName="ml-4 h-12 justify-center">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -86,9 +89,26 @@ export function Token({ asset, onPress }: TokenProps) {
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {asset.balance} {asset.symbol}
+            {asset.symbol}
           </Text>
         </Box>
+      </Box>
+      <Box twClassName="px-4 h-12 justify-center items-end flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
+          {asset?.balanceInSelectedCurrency}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+        >
+          {formatAmount(I18n.locale, new BigNumber(asset.balance || '0'))}{' '}
+          {asset.symbol}
+        </Text>
       </Box>
     </Pressable>
   );

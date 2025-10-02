@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -10,11 +11,8 @@ import { AllowanceState } from '../../types';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_BALANCE_LOADING_UPPERCASE,
-  TOKEN_RATE_UNDEFINED,
-} from '../../../Tokens/constants';
+import { useIsCardholder } from '../../hooks/useIsCardholder';
+import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   selectDepositActiveFlag,
@@ -54,6 +52,10 @@ const mockPriorityToken = {
 
 const mockCurrentAddress = '0x789';
 
+const mockSelectedInternalAccount = {
+  address: mockCurrentAddress,
+};
+
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockNavigateToCardPage = jest.fn();
@@ -68,7 +70,16 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
-const mockUseAssetBalance = jest.fn(() => ({
+interface MockAssetBalanceReturn {
+  balanceFiat: string | undefined;
+  asset: { symbol: string; image: string };
+  mainBalance: string | undefined;
+  secondaryBalance: string | undefined;
+  rawTokenBalance?: number;
+  rawFiatNumber?: number;
+}
+
+const mockUseAssetBalance = jest.fn<MockAssetBalanceReturn, []>(() => ({
   balanceFiat: '$1,000.00',
   asset: {
     symbol: 'USDC',
@@ -76,6 +87,8 @@ const mockUseAssetBalance = jest.fn(() => ({
   },
   mainBalance: '$1,000.00',
   secondaryBalance: '1000 USDC',
+  rawTokenBalance: 1000,
+  rawFiatNumber: 1000,
 }));
 
 const mockUseNavigateToCardPage = jest.fn(() => ({
@@ -98,6 +111,10 @@ jest.mock('../../hooks/useNavigateToCardPage', () => ({
   useNavigateToCardPage: () => mockUseNavigateToCardPage(),
 }));
 
+jest.mock('../../hooks/useIsCardholder', () => ({
+  useIsCardholder: jest.fn(),
+}));
+
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => mockUseSwapBridgeNavigation(),
   SwapBridgeNavigationLocation: {
@@ -113,6 +130,7 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
     CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
+    CARD_HOME_VIEWED: 'card_home_viewed',
   },
 }));
 
@@ -314,6 +332,8 @@ describe('CardHome Component', () => {
       },
       mainBalance: '$1,000.00',
       secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 1000,
     });
 
     mockUseNavigateToCardPage.mockReturnValue({
@@ -328,6 +348,8 @@ describe('CardHome Component', () => {
       openSwaps: mockOpenSwaps,
     });
 
+    (useIsCardholder as jest.Mock).mockReturnValue(true);
+
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -336,40 +358,32 @@ describe('CardHome Component', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrivacyMode) {
-        return false;
+      // Guard against unexpected undefined/null selector
+      if (!selector) {
+        return [];
       }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectChainId) {
-        return '0xe708'; // Linea chain ID
-      }
-      if (selector === selectCardholderAccounts) {
+
+      // Direct identity checks first (more robust than string matching)
+      if (selector === selectPrivacyMode) return false;
+      if (selector === selectDepositActiveFlag) return true;
+      if (selector === selectDepositMinimumVersionFlag) return '0.9.0';
+      if (selector === selectChainId) return '0xe708'; // Linea chain ID
+      if (selector === selectCardholderAccounts) return [mockCurrentAddress];
+
+      // Fallback to string inspection (Jest wraps anonymous selector fns sometimes)
+      const selectorString =
+        typeof selector === 'function' ? selector.toString() : '';
+      if (selectorString.includes('selectSelectedInternalAccount'))
+        return mockSelectedInternalAccount;
+      if (selectorString.includes('selectChainId')) return '0xe708';
+      if (selectorString.includes('selectCardholderAccounts'))
         return [mockCurrentAddress];
-      }
-      if (
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
-        return mockCurrentAddress;
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID - fallback for string matching
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress]; // fallback for string matching
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
+      if (selectorString.includes('selectEvmTokens'))
         return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
+      if (selectorString.includes('selectEvmTokenFiatBalances'))
         return ['1000.00'];
-      }
+
+      // Default safe fallback
       return [];
     });
   });
@@ -388,40 +402,25 @@ describe('CardHome Component', () => {
   it('renders correctly with privacy mode enabled', async () => {
     // Temporarily override privacy mode for this test
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrivacyMode) {
-        return true; // Enable privacy mode for this test
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectChainId) {
-        return '0xe708'; // Linea chain ID
-      }
-      if (selector === selectCardholderAccounts) {
+      if (!selector) return [];
+
+      if (selector === selectPrivacyMode) return true; // Enable privacy mode for this test
+      if (selector === selectDepositActiveFlag) return true;
+      if (selector === selectDepositMinimumVersionFlag) return '0.9.0';
+      if (selector === selectChainId) return '0xe708';
+      if (selector === selectCardholderAccounts) return [mockCurrentAddress];
+
+      const selectorString =
+        typeof selector === 'function' ? selector.toString() : '';
+      if (selectorString.includes('selectSelectedInternalAccount'))
+        return mockSelectedInternalAccount;
+      if (selectorString.includes('selectChainId')) return '0xe708';
+      if (selectorString.includes('selectCardholderAccounts'))
         return [mockCurrentAddress];
-      }
-      if (
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
-        return mockCurrentAddress;
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID - fallback
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
+      if (selectorString.includes('selectEvmTokens'))
         return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['$1,000.00']; // Return as array, not object
-      }
+      if (selectorString.includes('selectEvmTokenFiatBalances'))
+        return ['$1,000.00'];
       return [];
     });
 
@@ -434,18 +433,6 @@ describe('CardHome Component', () => {
     expect(screen.getByText('••••••••••••')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays loading state when priority token is loading', () => {
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: mockPriorityToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: true,
-      error: null,
-    });
-
-    render();
-    expect(screen.getByTestId(CardHomeSelectors.LOADER)).toBeTruthy();
   });
 
   it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
@@ -525,7 +512,6 @@ describe('CardHome Component', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockOpenSwaps).toHaveBeenCalledWith({
         chainId: '0xe708',
-        cardholderAddress: mockCurrentAddress,
       });
     });
   });
@@ -658,7 +644,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -675,7 +661,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -690,131 +676,11 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
     expect(navigationOptions.headerTitle).toBeDefined();
-  });
-
-  it('switches to Linea network on focus if not already on Linea', async () => {
-    // Override the mock to allow network switching for this test
-    mockFindNetworkClientIdByChainId.mockReturnValue('linea-network-id');
-
-    // Mock being on a different chain initially
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectChainId) {
-        return '0x1'; // Ethereum mainnet
-      }
-      if (selector === selectPrivacyMode) {
-        return false;
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0x1'; // Ethereum mainnet - fallback
-      }
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
-        return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['1000.00'];
-      }
-      return [];
-    });
-
-    // Mock useFocusEffect to call the callbacks when they're registered
-    const focusCallbacks: (() => void)[] = [];
-    jest.mocked(useFocusEffect).mockImplementation((callback: () => void) => {
-      focusCallbacks.push(callback);
-    });
-
-    render();
-
-    // Execute all focus effect callbacks (network change first, then account change)
-    await waitFor(async () => {
-      for (const callback of focusCallbacks) {
-        callback();
-      }
-    });
-
-    await waitFor(() => {
-      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0xe708');
-      expect(mockSetActiveNetwork).toHaveBeenCalledWith('linea-network-id');
-    });
-  });
-
-  it('handles network switching errors gracefully', async () => {
-    // Override the mock to allow network switching for this test
-    mockFindNetworkClientIdByChainId.mockReturnValue('linea-network-id');
-    mockSetActiveNetwork.mockRejectedValueOnce(new Error('Network error'));
-
-    // Mock being on a different chain initially
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectChainId) {
-        return '0x1'; // Ethereum mainnet
-      }
-      if (selector === selectPrivacyMode) {
-        return false;
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0x1'; // Ethereum mainnet - fallback
-      }
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
-        return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['1000.00'];
-      }
-      return [];
-    });
-
-    // Mock useFocusEffect to call the callbacks when they're registered
-    const focusCallbacks: (() => void)[] = [];
-    jest.mocked(useFocusEffect).mockImplementation((callback: () => void) => {
-      focusCallbacks.push(callback);
-    });
-
-    render();
-
-    // Execute all focus effect callbacks (network change first, then account change)
-    await waitFor(async () => {
-      for (const callback of focusCallbacks) {
-        callback();
-      }
-    });
-
-    await waitFor(() => {
-      expect(mockSetActiveNetwork).toHaveBeenCalled();
-    });
   });
 
   it('dispatches bridge tokens when opening swaps with non-USDC token', async () => {
@@ -850,46 +716,8 @@ describe('CardHome Component', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockOpenSwaps).toHaveBeenCalledWith({
         chainId: '0xe708',
-        cardholderAddress: mockCurrentAddress,
       });
     });
-  });
-
-  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING', () => {
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_BALANCE_LOADING,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: TOKEN_BALANCE_LOADING,
-      secondaryBalance: '1000 USDC',
-    });
-
-    const { getByText } = render();
-
-    // When balance is TOKEN_BALANCE_LOADING, it should render a SkeletonText component
-    // instead of actual balance text. Since we can't access testID easily, we check
-    // that the loading constants are not rendered as text
-    expect(() => getByText(TOKEN_BALANCE_LOADING)).toThrow();
-  });
-
-  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING_UPPERCASE', () => {
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_BALANCE_LOADING_UPPERCASE,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: TOKEN_BALANCE_LOADING_UPPERCASE,
-      secondaryBalance: '1000 USDC',
-    });
-
-    const { getByText } = render();
-
-    // When balance is TOKEN_BALANCE_LOADING_UPPERCASE, it should render a SkeletonText component
-    // instead of actual balance text
-    expect(() => getByText(TOKEN_BALANCE_LOADING_UPPERCASE)).toThrow();
   });
 
   it('falls back to mainBalance when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
@@ -901,6 +729,8 @@ describe('CardHome Component', () => {
       },
       mainBalance: '1000 USDC',
       secondaryBalance: 'Unable to find conversion rate',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 0,
     });
 
     render();
@@ -921,6 +751,8 @@ describe('CardHome Component', () => {
       },
       mainBalance: '1000 USDC',
       secondaryBalance: 'Unable to find conversion rate',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 0,
     });
 
     render();
@@ -930,5 +762,159 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
       '1000 USDC',
     );
+  });
+
+  it('fires CARD_HOME_VIEWED once after both balances valid (fiat + main)', async () => {
+    // Arrange: fiat and main are valid and token exists by default from beforeEach
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('includes raw numeric properties in CARD_HOME_VIEWED event when both balances valid', async () => {
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 1000,
+        token_fiat_balance_priority: 1000,
+      }),
+    );
+  });
+
+  it('fires metric with raw balance 0 for zero balances', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$0.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '0 USDC',
+      secondaryBalance: '$0.00',
+      rawTokenBalance: 0,
+      rawFiatNumber: 0,
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 0,
+        token_fiat_balance_priority: 0,
+      }),
+    );
+  });
+
+  it('fires metric when only main balance is valid (fiat undefined) and includes rawTokenBalance only', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: undefined as unknown as string,
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      // rawFiatNumber intentionally omitted (undefined)
+    });
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    // event fired
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 1000,
+        token_fiat_balance_priority: undefined,
+      }),
+    );
+  });
+
+  it('fires metric when only fiat balance is valid (main undefined) and includes rawFiatNumber only', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: '$1,000.00',
+      // rawTokenBalance omitted
+      rawFiatNumber: 1000,
+    });
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: undefined,
+        token_fiat_balance_priority: 1000,
+      }),
+    );
+  });
+
+  it('fires CARD_HOME_VIEWED once when only mainBalance is valid (fiat undefined)', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: undefined as unknown as string,
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      // rawFiatNumber omitted
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // No additional calls after stabilization
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires CARD_HOME_VIEWED once when only fiat balance is valid (main undefined)', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: '$1,000.00',
+      // rawTokenBalance omitted
+      rawFiatNumber: 1000,
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // Ensure no re-fire
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire when only loading sentinels present', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: 'tokenBalanceLoading',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: 'TOKENBALANCELOADING',
+      secondaryBalance: 'loading',
+      // raw values omitted
+    });
+
+    render();
+
+    // Give time for any effects
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not fire when fiat is TOKEN_RATE_UNDEFINED and main is undefined', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: 'tokenRateUndefined',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: 'n/a',
+      // raw values omitted
+    });
+
+    render();
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

@@ -34,6 +34,14 @@ import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
 import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
+import { useSelector } from 'react-redux';
+import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
+import { strings } from '../../../../../locales/i18n';
+import TagBase, {
+  TagShape,
+  TagSeverity,
+} from '../../../../component-library/base-components/TagBase';
+import { RootState } from '../../../../reducers';
 
 const createStyles = ({
   theme,
@@ -83,6 +91,10 @@ const createStyles = ({
       // override the BadgeWrapper alignSelf: 'flex-start', let parent control the alignment
       alignSelf: undefined,
     },
+    noFeeBadge: {
+      marginLeft: 8,
+      paddingHorizontal: 6,
+    },
   });
 
 interface TokenSelectorItemProps {
@@ -105,13 +117,27 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   children,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
+  const noFeeAssets = useSelector((state: RootState) =>
+    selectNoFeeAssets(state, token.chainId),
+  );
+
+  const isNoFeeAsset = noFeeAssets?.includes(token.address);
+
   const fiatValue = token.balanceFiat;
+
+  const formatTokenBalance = (balance: string): string => {
+    const numericBalance = Number(balance);
+    if (numericBalance === 0) {
+      return '0';
+    }
+    if (numericBalance < 0.00001) {
+      return '< 0.00001';
+    }
+    return parseAmount(balance, 5) || balance;
+  };
+
   const balanceWithSymbol = token.balance
-    ? `${
-        Number(token.balance) < 0.00001
-          ? '< 0.00001'
-          : parseAmount(token.balance, 5)
-      } ${token.symbol}`
+    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
@@ -175,27 +201,47 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             flexDirection={FlexDirection.Column}
             gap={4}
           >
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+            >
+              <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              {isNoFeeAsset && (
+                <TagBase
+                  shape={TagShape.Rectangle}
+                  severity={TagSeverity.Info}
+                  textProps={{ variant: TextVariant.BodyXS }}
+                  style={styles.noFeeBadge}
+                >
+                  {strings('bridge.no_mm_fee')}
+                </TagBase>
+              )}
+            </Box>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
           </Box>
 
           {/* Token balance and fiat value */}
-          <Box style={styles.balance}>
+          <Box style={styles.balance} gap={4}>
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{balance}</Text>
+                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{secondaryBalance}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {secondaryBalance}
+                </Text>
               )
             ) : null}
           </Box>

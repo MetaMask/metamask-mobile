@@ -132,6 +132,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
                 "padding": 16,
               },
               false,
@@ -142,20 +143,8 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
           <View
             style={
               {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -173,17 +162,6 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
             >
               Disconnect all
             </Text>
-          </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
           </View>
         </View>
         <View

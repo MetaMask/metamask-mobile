@@ -10,7 +10,7 @@ import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../components/Form/TextField/TextField.types';
 import { strings } from '../../../../../locales/i18n';
-import MultichainAddressRow from '../MultichainAddressRow';
+import MultichainAddressRow, { SAMPLE_ICONS } from '../MultichainAddressRow';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
 import {
@@ -109,6 +109,7 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
         chainId={item.chainId}
         networkName={item.networkName}
         address={item.address}
+        icons={SAMPLE_ICONS}
       />
     ),
     [],
@@ -142,6 +143,8 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
           value={searchPattern}
           onChangeText={handleSearchChange}
           size={TextFieldSize.Lg}
+          // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native (v0.70.13) with RN v0.76.9
+          // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
           style={styles.searchTextField}
           testID={MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID}
         />

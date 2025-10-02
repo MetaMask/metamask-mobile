@@ -87,6 +87,8 @@ describe('CardAssetItem Component', () => {
     mainBalance: '1.5 ETH',
     secondaryBalance: '$3,000.00',
     balanceFiat: '$3,000.00',
+    rawFiatNumber: 3000,
+    rawTokenBalance: 1.5,
   };
 
   beforeEach(() => {
@@ -109,7 +111,6 @@ describe('CardAssetItem Component', () => {
       <CardAssetItem
         assetKey={mockAssetKey}
         privacyMode={false}
-        disabled
         onPress={mockOnPress}
       />
     ));
@@ -195,14 +196,6 @@ describe('CardAssetItem Component', () => {
     );
 
     expect(toJSON()).toBeNull();
-  });
-
-  it('renders with disabled state', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} disabled />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles test network correctly', () => {
