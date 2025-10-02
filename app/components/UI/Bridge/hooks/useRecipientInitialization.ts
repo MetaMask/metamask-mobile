@@ -41,10 +41,9 @@ export const useRecipientInitialization = (
 
     // Check if current destAddress matches the network type
     const doesDestAddrMatchNetworkType =
-      !destAddress ||
-      (!isSolanaToEvm && !isEvmToSolana) ||
-      (isSolanaToEvm && !isNonEvmAddress(destAddress)) || // Solana→EVM: address should be EVM
-      (isEvmToSolana && isNonEvmAddress(destAddress)); // EVM→Solana: address should be Solana
+      destAddress &&
+      ((isSolanaToEvm && !isNonEvmAddress(destAddress)) || // Solana→EVM: dest address should be EVM
+        (isEvmToSolana && isNonEvmAddress(destAddress))); // EVM→Solana: dest address should be Solana
 
     // Only initialize in these specific cases:
     // 1. Never initialized AND no destAddress set
