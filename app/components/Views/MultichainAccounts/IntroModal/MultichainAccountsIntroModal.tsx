@@ -26,6 +26,7 @@ import Engine from '../../../../core/Engine';
 import { captureException } from '@sentry/react-native';
 import LottieView from 'lottie-react-native';
 import multichainAccountsIntro from '../../../../animations/Multichain_Accounts.json';
+import AppConstants from '../../../../core/AppConstants';
 
 // Minimum timeout duration for wallet alignment process (2 seconds)
 export const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
@@ -112,8 +113,11 @@ const MultichainAccountsIntroModal = () => {
   }, [navigation, dispatch, isAligning, alignWalletsPromise]);
 
   const handleLearnMore = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE,
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
+      },
     });
   }, [navigation]);
 
@@ -206,7 +210,7 @@ const MultichainAccountsIntroModal = () => {
             }
           />
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariants.Link}
             label={strings('multichain_accounts.intro.learn_more_button')}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

@@ -8,6 +8,8 @@ import { strings } from '../../../../../locales/i18n';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './testIds';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
+import AppConstants from '../../../../core/AppConstants';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -209,8 +211,11 @@ describe('MultichainAccountsIntroModal', () => {
     );
     fireEvent.press(learnMoreButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      screen: 'MultichainAccountsLearnMoreBottomSheet',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
+      },
     });
   });
 
