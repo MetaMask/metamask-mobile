@@ -45,6 +45,7 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 
 interface PerpsTabViewProps {}
 
@@ -98,16 +99,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     },
   });
 
+  const { isDepositInProgress } = usePerpsDepositProgress();
+
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
     }
 
+    if (isDepositInProgress) {
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
-  }, [navigation, isEligible]);
+  }, [navigation, isEligible, isDepositInProgress]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {

@@ -82,6 +82,12 @@ const styleSheet = (params: { theme: Theme }) => {
     pnlSection: {
       flex: 1,
     },
+    arrowContainer: {
+      marginLeft: 12,
+    },
+    activityIndicator: {
+      color: colors.icon.default,
+    },
   });
 };
 
