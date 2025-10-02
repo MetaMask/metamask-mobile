@@ -117,6 +117,7 @@ const MultichainAccountsIntroModal = () => {
       screen: Routes.BROWSER.VIEW,
       params: {
         newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
+        timestamp: Date.now(),
       },
     });
   }, [navigation]);
