@@ -97,6 +97,7 @@ import {
 import {
   calculateMarginRequired,
   calculatePositionSize,
+  findOptimalAmount,
 } from '../../utils/orderCalculations';
 import {
   calculateRoEForPrice,
@@ -171,6 +172,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
+    maxPossibleAmount,
   } = usePerpsOrderContext();
 
   // Get live positions to sync leverage from existing position
@@ -597,12 +599,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   useEffect(() => {
     if (!isInputFocused) {
       const currentAmount = parseFloat(orderForm.amount || '0');
-      const maxAllowed = Math.floor(availableBalance * orderForm.leverage);
 
       // If user-entered amount exceeds the max purchasable with current balance/leverage,
       // snap it down to the maximum once input is closed.
-      if (currentAmount > maxAllowed) {
-        setAmount(String(maxAllowed));
+      if (currentAmount > maxPossibleAmount) {
+        setAmount(String(maxPossibleAmount));
       }
 
       // Optimize the amount after keypad input is complete
@@ -804,54 +805,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
 
-  // Calculate the maximum amount that won't exceed available margin after position size rounding
-  const maxAllowedAmount = useMemo(() => {
-    if (
-      availableBalance === 0 ||
-      !assetData.price ||
-      !assetData.markPrice ||
-      !marketData?.szDecimals
-    ) {
-      return 0;
-    }
-
-    // Start with the theoretical maximum
-    let testAmount = amountTimesLeverage;
-
-    // Work backwards to find the highest amount that results in sufficient margin
-    while (testAmount > 0) {
-      const testPositionSize = calculatePositionSize({
-        amount: testAmount.toString(),
-        price: assetData.price,
-        szDecimals: marketData.szDecimals,
-      });
-
-      const actualNotionalValue =
-        parseFloat(testPositionSize) * assetData.price;
-      const requiredMargin = actualNotionalValue / orderForm.leverage;
-
-      // If this amount requires margin within our available balance, use it
-      if (requiredMargin <= availableBalance) {
-        return testAmount;
-      }
-
-      // Reduce the test amount by one position size increment
-      // Calculate the USD value of the smallest position size increment
-      const minPositionSizeIncrement = 1 / Math.pow(10, marketData.szDecimals);
-      const positionSizeIncrementUsd =
-        minPositionSizeIncrement * assetData.price;
-      testAmount -= Math.ceil(positionSizeIncrementUsd);
-    }
-
-    return 0;
-  }, [
-    amountTimesLeverage,
-    availableBalance,
-    assetData.price,
-    assetData.markPrice,
-    orderForm.leverage,
-    marketData?.szDecimals,
-  ]);
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
@@ -909,14 +862,19 @@ const PerpsOrderViewContentBase: React.FC = () => {
               onValueChange={(value) => {
                 inputMethodRef.current = 'slider';
                 const amount = Math.floor(value).toString();
-                setAmount(amount);
-                // Optimize after setting the amount
-                setTimeout(() => {
-                  optimizeOrderAmount(assetData.price, marketData?.szDecimals);
-                }, 0);
+                setAmount(
+                  amount !== '0'
+                    ? findOptimalAmount({
+                        targetAmount: amount,
+                        price: assetData.price,
+                        szDecimals: marketData?.szDecimals,
+                        maxAllowedAmount: maxPossibleAmount,
+                      })
+                    : amount,
+                );
               }}
               minimumValue={0}
-              maximumValue={maxAllowedAmount}
+              maximumValue={maxPossibleAmount}
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}

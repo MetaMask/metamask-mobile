@@ -9,6 +9,13 @@ interface MarginRequiredParams {
   leverage: number;
 }
 
+interface MaxAllowedAmountParams {
+  availableBalance: number;
+  assetPrice: number;
+  assetSzDecimals: number;
+  leverage: number;
+}
+
 /**
  * Calculate position size based on USD amount and asset price
  * Uses Math.ceil to ensure orders meet minimum USD requirements
@@ -57,6 +64,14 @@ export function calculateMarginRequired(params: MarginRequiredParams): string {
 
 interface OptimalAmountParams {
   targetAmount: string;
+  maxAllowedAmount: number;
+  price: number;
+  szDecimals?: number;
+  sizeDown?: boolean;
+}
+
+interface HighestAmountForPositionSizeParams {
+  positionSize: number;
   price: number;
   szDecimals?: number;
 }
@@ -69,11 +84,16 @@ interface OptimalAmountParams {
  * For example, if $10, $11, and $12 all result in the same position size of 0.0500,
  * this function will return $12 as the optimal amount.
  *
- * @param params - Target amount, asset price, and optional decimal precision
+ * When sizeDown=true, it finds the optimal amount for the next position size down.
+ * For example, if target amount results in position size 0.0500, with sizeDown=true
+ * it will find the optimal amount for position size 0.0499 (one increment smaller).
+ *
+ * @param params - Target amount, asset price, optional decimal precision, and sizeDown flag
  * @returns Optimal USD amount as string
  */
 export function findOptimalAmount(params: OptimalAmountParams): string {
-  const { targetAmount, price, szDecimals = 6 } = params;
+  const { targetAmount, price, szDecimals = 6, maxAllowedAmount } = params;
+
   const targetAmountNum = parseFloat(targetAmount || '0');
 
   if (
@@ -97,36 +117,137 @@ export function findOptimalAmount(params: OptimalAmountParams): string {
     return targetAmount;
   }
 
-  // Calculate the exact USD value that would result in this position size
-  const positionSizeNum = parseFloat(targetPositionSize);
-  const exactUsdValue = positionSizeNum * price;
-
-  // Find the range of USD values that result in the same position size
-  // We'll check backwards from the exact value to find the lower bound
+  let positionSizeNum = parseFloat(targetPositionSize);
   const multiplier = Math.pow(10, szDecimals);
-  const lowerBoundPositionSize =
-    (Math.ceil(positionSizeNum * multiplier) - 1) / multiplier;
-  const lowerBoundUsd = lowerBoundPositionSize * price;
 
-  // The optimal amount is just below the point where it would round up to the next position size
-  // We use a small epsilon to ensure we stay within the same rounding bucket
-  const epsilon = 0.01; // 1 cent precision
-  const optimalAmount = exactUsdValue - epsilon;
-
-  // Ensure we don't go below the lower bound
-  const finalAmount = Math.max(optimalAmount, lowerBoundUsd);
-
-  // Verify that this amount actually produces the same position size
-  const verificationPositionSize = calculatePositionSize({
-    amount: finalAmount.toFixed(2),
+  let highestAmount = findHighestAmountForPositionSize({
+    positionSize: positionSizeNum,
     price,
     szDecimals,
   });
 
-  // If verification fails, return the original amount
-  if (verificationPositionSize !== targetPositionSize) {
+  if (highestAmount === -1) {
     return targetAmount;
   }
 
-  return finalAmount.toFixed(0);
+  if (highestAmount > maxAllowedAmount) {
+    const decrementedPositionSize =
+      (Math.ceil(positionSizeNum * multiplier) - 1) / multiplier;
+
+    // If the decremented position size would be 0 or negative, return original amount
+    if (decrementedPositionSize <= 0) {
+      return '0';
+    }
+
+    positionSizeNum = decrementedPositionSize;
+    highestAmount = findHighestAmountForPositionSize({
+      positionSize: positionSizeNum,
+      price,
+      szDecimals,
+    });
+
+    if (highestAmount === -1) {
+      return targetAmount;
+    }
+  }
+
+  return highestAmount.toString();
+}
+
+export function findHighestAmountForPositionSize(
+  params: HighestAmountForPositionSizeParams,
+): number {
+  const { positionSize, price, szDecimals = 6 } = params;
+  // Calculate the exact USD value that would result in this position size
+  const exactUsdValue = Math.ceil(positionSize * price);
+
+  // Find the optimal USD amount for this position size
+  // We want to find the highest amount that still rounds to this position size
+  let finalAmount = exactUsdValue;
+  const multiplier = Math.pow(10, szDecimals);
+
+  // Search for the highest amount that produces the target position size
+  // Start from the exact value and increment until we find the boundary
+  for (
+    let testAmount = exactUsdValue;
+    testAmount <= exactUsdValue + price / multiplier;
+    testAmount += 1
+  ) {
+    const testPositionSize = calculatePositionSize({
+      amount: testAmount.toString(),
+      price,
+      szDecimals,
+    });
+
+    // If we've crossed over the boundary somehow, return the last valid amount
+    // ensure we can break out of the loop
+    if (testAmount > exactUsdValue + price / multiplier) {
+      return testAmount;
+    }
+
+    if (parseFloat(testPositionSize) === positionSize) {
+      finalAmount = testAmount;
+    } else {
+      // We've crossed the boundary, use the last valid amount
+      break;
+    }
+  }
+
+  // Verify that this amount actually produces the expected position size
+  // Use Math.floor for verification to match the final result format
+  const verificationPositionSize = calculatePositionSize({
+    amount: Math.ceil(finalAmount).toString(),
+    price,
+    szDecimals,
+  });
+
+  // The expected position size depends on whether we're sizing down or not
+  const expectedPositionSize = positionSize.toFixed(szDecimals);
+
+  // If verification fails, return -1
+  if (verificationPositionSize !== expectedPositionSize) {
+    return -1;
+  }
+
+  return Math.ceil(finalAmount);
+}
+
+export function getMaxAllowedAmount(params: MaxAllowedAmountParams): number {
+  const { availableBalance, assetPrice, assetSzDecimals, leverage } = params;
+  if (availableBalance === 0 || !assetPrice || assetSzDecimals === undefined) {
+    return 0;
+  }
+
+  // Start with the theoretical maximum
+  let testAmount = Math.floor(availableBalance * leverage);
+
+  // Work backwards to find the highest amount that results in sufficient margin
+  while (testAmount > 0) {
+    const testPositionSize = calculatePositionSize({
+      amount: testAmount.toString(),
+      price: assetPrice,
+      szDecimals: assetSzDecimals,
+    });
+
+    const actualNotionalValue = parseFloat(testPositionSize) * assetPrice;
+    const requiredMargin = actualNotionalValue / leverage;
+
+    // If this amount requires margin within our available balance, use it
+    if (requiredMargin <= availableBalance) {
+      return testAmount;
+    }
+
+    // Reduce the test amount by one position size increment
+    // Calculate the USD value of the smallest position size increment
+    const minPositionSizeIncrement = 1 / Math.pow(10, assetSzDecimals);
+    const positionSizeIncrementUsd = minPositionSizeIncrement * assetPrice;
+
+    const positionSizeIncrementUsdCeil = Math.ceil(positionSizeIncrementUsd);
+    if (positionSizeIncrementUsdCeil <= 0) {
+      return 0;
+    }
+    testAmount -= positionSizeIncrementUsdCeil;
+  }
+
+  return 0;
 }
