@@ -44,6 +44,7 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
+  showFooter = true,
   setKeyboardAvoidingViewEnabled,
   ...props
 }: MultichainAccountSelectorListProps) => {
@@ -254,6 +255,7 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'footer': {
+            if (!showFooter) return null;
             return (
               <AccountListFooter
                 walletId={item.data.walletId}
@@ -272,6 +274,7 @@ const MultichainAccountSelectorList = ({
         handleAccountCreated,
         avatarAccountType,
         showCheckbox,
+        showFooter,
       ],
     );
 

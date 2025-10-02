@@ -37,6 +37,10 @@ export interface MultichainAccountSelectorListProps
    */
   showCheckbox?: boolean;
   /**
+   * Optional boolean to show footer
+   */
+  showFooter?: boolean;
+  /**
    * Optional boolean to set keyboard avoiding view enabled
    */
   setKeyboardAvoidingViewEnabled?: (enabled: boolean) => void;
