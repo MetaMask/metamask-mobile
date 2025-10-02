@@ -21,8 +21,15 @@ export const usePerpsDepositProgress = () => {
   // Track if we're expecting a deposit
   const [isDepositInProgress, setIsDepositInProgress] = useState(false);
   const prevAvailableBalanceRef = useRef<string>('0');
+  const liveAccountRef = useRef(liveAccount);
+
+  // Update the ref whenever liveAccount changes
+  useEffect(() => {
+    liveAccountRef.current = liveAccount;
+  }, [liveAccount]);
 
   // Listen for PerpsDeposit transaction status updates
+  // Empty dependency array prevents unnecessary re-subscriptions
   useEffect(() => {
     const handlePerpsDepositTransactionStatusUpdate = ({
       transactionMeta,
@@ -36,7 +43,8 @@ export const usePerpsDepositProgress = () => {
       // Handle PerpsDeposit approved - set deposit in progress
       if (transactionMeta.status === TransactionStatus.approved) {
         setIsDepositInProgress(true);
-        prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
+        prevAvailableBalanceRef.current =
+          liveAccountRef.current?.availableBalance || '0';
       }
 
       // Handle PerpsDeposit failed - clear deposit in progress
@@ -56,7 +64,7 @@ export const usePerpsDepositProgress = () => {
         handlePerpsDepositTransactionStatusUpdate,
       );
     };
-  }, [liveAccount?.availableBalance]);
+  }, []);
 
   // Watch for balance increases when expecting a deposit
   useEffect(() => {
