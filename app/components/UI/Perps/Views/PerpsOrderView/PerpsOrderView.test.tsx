@@ -160,6 +160,7 @@ jest.mock('../../hooks', () => ({
       takeProfitPrice: undefined,
       stopLossPrice: undefined,
     },
+    maxPossibleAmount: 100,
     setAmount: jest.fn(),
     setLeverage: jest.fn(),
     setTakeProfitPrice: jest.fn(),
@@ -1314,6 +1315,7 @@ describe('PerpsOrderView', () => {
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
+        maxPossibleAmount: 100,
       });
 
       // Mock liquidation price lower than stop loss
@@ -2371,6 +2373,7 @@ describe('PerpsOrderView', () => {
           stopLossPrice: undefined,
           balancePercent: 10,
         },
+        optimizeOrderAmount: jest.fn(),
         setAmount: jest.fn(),
         setLeverage: mockSetLeverage,
         setTakeProfitPrice: jest.fn(),
@@ -2470,6 +2473,7 @@ describe('PerpsOrderView', () => {
           stopLossPrice: undefined,
           balancePercent: 10,
         },
+        optimizeOrderAmount: jest.fn(),
         setAmount: jest.fn(),
         setLeverage: mockSetLeverage,
         setTakeProfitPrice: jest.fn(),

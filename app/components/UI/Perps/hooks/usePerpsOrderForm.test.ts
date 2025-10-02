@@ -109,16 +109,19 @@ describe('usePerpsOrderForm', () => {
       isInitialLoading: false,
     });
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '50000', timestamp: Date.now() },
+      BTC: { price: '50000', timestamp: Date.now(), coin: 'BTC' },
     });
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
         szDecimals: 6,
         maxLeverage: 100,
-        onlyIsolated: false,
+        onlyIsolated: true,
+        name: 'BTC',
+        marginTableId: 1,
       },
       isLoading: false,
       error: null,
+      refetch: jest.fn(),
     });
     // Mock findOptimalAmount to return the input amount by default
     mockFindOptimalAmount.mockImplementation(
@@ -823,16 +826,19 @@ describe('usePerpsOrderForm', () => {
     it('should call getMaxAllowedAmount with correct parameters for different assets', () => {
       // Arrange
       mockUsePerpsLivePrices.mockReturnValue({
-        ETH: { price: '3000', timestamp: Date.now() },
+        ETH: { price: '3000', timestamp: Date.now(), coin: 'ETH' },
       });
       mockUsePerpsMarketData.mockReturnValue({
         marketData: {
           szDecimals: 4,
           maxLeverage: 50,
-          onlyIsolated: false,
+          onlyIsolated: true,
+          name: 'ETH',
+          marginTableId: 1,
         },
         isLoading: false,
         error: null,
+        refetch: jest.fn(),
       });
 
       // Act
