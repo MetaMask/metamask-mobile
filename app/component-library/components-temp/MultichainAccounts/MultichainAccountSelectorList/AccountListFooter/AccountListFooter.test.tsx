@@ -36,6 +36,13 @@ jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../util/accounts/useAccountWalletOperationsLoadingStates',
+  () => ({
+    useAccountWalletOperationsLoadingStates: jest.fn(),
+  }),
+);
+
 // Mock InteractionManager
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn();
