@@ -24,12 +24,14 @@ class FontPreloader {
    * This forces React Native to load and cache the fonts
    */
   async preloadFonts(): Promise<void> {
-    if (this.fontsLoaded) {
-      return Promise.resolve();
-    }
-
+    // If we have a loading promise (even if fonts are loaded), return it for consistency
     if (this.loadingPromise) {
       return this.loadingPromise;
+    }
+
+    // If fonts are already loaded and no promise exists, return resolved promise
+    if (this.fontsLoaded) {
+      return Promise.resolve();
     }
 
     Logger.log('FontPreloader: Starting font preloading...');

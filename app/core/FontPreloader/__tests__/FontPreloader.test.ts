@@ -66,15 +66,31 @@ describe('FontPreloader', () => {
     expect(firstLoadResult).toBe(secondLoadResult);
   });
 
-  it('should return the same promise for concurrent loading attempts', () => {
+  it('should return the same promise for concurrent loading attempts', async () => {
     // Reset to ensure clean state
     FontPreloader.reset();
+
+    // Mock setTimeout to not resolve immediately
+    const originalSetTimeout = global.setTimeout;
+    let resolveCallback: (() => void) | null = null;
+    global.setTimeout = jest.fn().mockImplementation((callback) => {
+      resolveCallback = callback;
+      return 123; // mock timer id
+    }) as any;
 
     // Make concurrent calls - should return same promise
     const promise1 = FontPreloader.preloadFonts();
     const promise2 = FontPreloader.preloadFonts();
 
     expect(promise1).toBe(promise2);
+
+    // Clean up - resolve the promise and restore setTimeout
+    if (resolveCallback) {
+      resolveCallback();
+    }
+    global.setTimeout = originalSetTimeout;
+
+    await promise1;
   });
 
   it('should reset font loading state', async () => {
@@ -108,10 +124,25 @@ describe('FontPreloader', () => {
     // Reset first to ensure clean state for this specific test
     FontPreloader.reset();
 
+    // Mock setTimeout to control timing
+    const originalSetTimeout = global.setTimeout;
+    let resolveCallback: (() => void) | null = null;
+    global.setTimeout = jest.fn().mockImplementation((callback) => {
+      resolveCallback = callback;
+      return 123; // mock timer id
+    }) as any;
+
     const loadingPromise = FontPreloader.preloadFonts();
     const retrievedPromise = FontPreloader.getLoadingPromise();
 
     expect(retrievedPromise).toBe(loadingPromise);
+
+    // Resolve and clean up
+    if (resolveCallback) {
+      resolveCallback();
+    }
+    global.setTimeout = originalSetTimeout;
+
     await loadingPromise;
   });
 });
