@@ -472,13 +472,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full mt-4"
+      twClassName="w-full mt-4 gap-3"
     >
       <Button
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
-        style={tw.style('w-48 bg-success-muted')}
+        style={tw.style('flex-1 bg-success-muted')}
         label={
           <Text style={tw.style('font-bold')} color={TextColor.Success}>
             Yes • {getYesPercentage()}¢
@@ -492,7 +492,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
-        style={tw.style('w-48 bg-error-muted')}
+        style={tw.style('flex-1 bg-error-muted')}
         label={
           <Text style={tw.style('font-bold')} color={TextColor.Error}>
             No • {100 - getYesPercentage()}¢
@@ -569,10 +569,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           )}
         </ScrollableTabView>
       </ScrollView>
-      <Box
-        twClassName="px-6 bg-default border-t border-muted"
-        style={{ paddingBottom: insets.bottom }}
-      >
+      <Box twClassName="px-3 bg-default border-t border-muted">
         {singleOutcomeMarket && renderActionButtons()}
       </Box>
     </SafeAreaView>
