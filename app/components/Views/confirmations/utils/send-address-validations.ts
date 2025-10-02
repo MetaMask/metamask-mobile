@@ -1,57 +1,15 @@
-import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { Hex } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import {
-  areAddressesEqual,
-  isValidHexAddress,
-  toChecksumAddress,
-} from '../../../../util/address';
+import { toChecksumAddress } from '../../../../util/address';
 import {
   collectConfusables,
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
-
-export const shouldSkipValidation = ({
-  toAddress,
-  chainId,
-  addressBook,
-  internalAccounts,
-}: {
-  toAddress?: string;
-  chainId?: string;
-  addressBook: AddressBookControllerState['addressBook'];
-  internalAccounts: InternalAccount[];
-}): boolean => {
-  if (!toAddress || !chainId) {
-    return true;
-  }
-  const address = isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
-    ? toChecksumAddress(toAddress)
-    : toAddress;
-
-  // address is present in address book
-  // address book is supported for Evm accounts only
-  const existingContact =
-    address && chainId && addressBook[chainId as Hex]?.[address];
-  if (existingContact) {
-    return true;
-  }
-
-  // sending to an internal account
-  const internalAccount = internalAccounts.find((account) =>
-    areAddressesEqual(account.address, address),
-  );
-  if (internalAccount) {
-    return true;
-  }
-
-  return false;
-};
+import { memoizedGetTokenStandardAndDetails } from './token';
 
 const LOWER_CASED_BURN_ADDRESSES = [
   '0x0000000000000000000000000000000000000000',
@@ -61,6 +19,7 @@ const LOWER_CASED_BURN_ADDRESSES = [
 export const validateHexAddress = async (
   toAddress: string,
   chainId?: Hex,
+  assetAddress?: string,
 ): Promise<{
   error?: string;
   warning?: string;
@@ -71,21 +30,29 @@ export const validateHexAddress = async (
     };
   }
 
+  if (toAddress?.toLowerCase() === assetAddress?.toLowerCase()) {
+    return {
+      error: strings('send.contractAddressError'),
+    };
+  }
+
   const checksummedAddress = toChecksumAddress(toAddress);
   if (chainId) {
-    const { AssetsContractController, NetworkController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
     try {
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         chainId as Hex,
       );
-      const symbol = await AssetsContractController.getERC721AssetSymbol(
-        checksummedAddress,
+      const token = await memoizedGetTokenStandardAndDetails({
+        tokenAddress: checksummedAddress,
+        tokenId: undefined,
+        userAddress: undefined,
         networkClientId,
-      );
-      if (symbol) {
+      });
+      if (token?.standard) {
         return {
-          warning: strings('send.token_contract_warning'),
+          error: strings('send.token_contract_warning'),
         };
       }
     } catch {

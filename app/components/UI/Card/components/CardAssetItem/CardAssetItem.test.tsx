@@ -87,6 +87,8 @@ describe('CardAssetItem Component', () => {
     mainBalance: '1.5 ETH',
     secondaryBalance: '$3,000.00',
     balanceFiat: '$3,000.00',
+    rawFiatNumber: 3000,
+    rawTokenBalance: 1.5,
   };
 
   beforeEach(() => {
