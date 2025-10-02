@@ -88,7 +88,11 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
-import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePrices,
+  usePerpsLivePositions,
+} from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import {
@@ -172,6 +176,41 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handleMaxAmount,
     calculations,
   } = usePerpsOrderContext();
+
+  // Get live positions to sync leverage from existing position
+  const { positions, isInitialLoading: isLoadingPositions } =
+    usePerpsLivePositions();
+
+  // Track if we've already synced leverage from existing position
+  const hasSyncedLeverageRef = useRef(false);
+
+  // Effect to update leverage from existing position after positions load
+  useEffect(() => {
+    // Only update if:
+    // 1. Positions have loaded
+    // 2. We haven't already synced (to avoid overwriting user changes)
+    // 3. Current leverage is the default (3) - meaning no explicit leverage was provided
+    if (
+      !isLoadingPositions &&
+      !hasSyncedLeverageRef.current &&
+      orderForm.leverage === PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE
+    ) {
+      const existingPosition = positions.find(
+        (position) => position.coin === orderForm.asset,
+      );
+
+      if (existingPosition?.leverage?.value) {
+        setLeverage(existingPosition.leverage.value);
+        hasSyncedLeverageRef.current = true;
+      }
+    }
+  }, [
+    isLoadingPositions,
+    positions,
+    orderForm.asset,
+    orderForm.leverage,
+    setLeverage,
+  ]);
 
   // Market data hook - now uses orderForm.asset from context
   const {
