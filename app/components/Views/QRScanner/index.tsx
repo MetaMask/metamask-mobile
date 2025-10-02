@@ -38,6 +38,7 @@ import {
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
+import SDKConnectV2 from '../../../core/SDKConnectV2';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -150,6 +151,12 @@ const QRScanner = ({
           end();
           return;
         }
+      }
+
+      if (SDKConnectV2.isConnectDeeplink(content)) {
+        SDKConnectV2.handleConnectDeeplink(content);
+        end();
+        return;
       }
 
       const contentProtocol = getURLProtocol(content);
