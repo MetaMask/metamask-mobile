@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      id-token: write
     uses: ./.github/workflows/create-release-pr.yml
     secrets:
       github-token: ${{ secrets.PR_TOKEN }}
