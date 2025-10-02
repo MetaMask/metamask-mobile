@@ -816,18 +816,24 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {strings(
-                          'choose_password.description_social_login_update',
+                        {Platform.OS === 'ios'
+                          ? strings(
+                              'choose_password.description_social_login_update_ios',
+                            )
+                          : strings(
+                              'choose_password.description_social_login_update',
+                            )}
+                        {Platform.OS === 'android' && (
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Warning}
+                          >
+                            {' '}
+                            {strings(
+                              'choose_password.description_social_login_update_bold',
+                            )}
+                          </Text>
                         )}
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Warning}
-                        >
-                          {' '}
-                          {strings(
-                            'choose_password.description_social_login_update_bold',
-                          )}
-                        </Text>
                       </Text>
                     ) : (
                       strings('choose_password.description')
