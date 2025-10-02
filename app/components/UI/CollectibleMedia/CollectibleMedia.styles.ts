@@ -60,7 +60,7 @@ const styleSheet = (params: {
       marginTop: 16,
     },
     textWrapperIcon: {
-      marginTop: 16,
+      fontSize: 18,
     },
     mediaPlayer: {
       minHeight: 10,
