@@ -277,7 +277,7 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { route, navigation } = this.props;
+    const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getTransparentOnboardingNavbarOptions(
@@ -674,8 +674,7 @@ class Onboarding extends PureComponent {
   };
 
   renderLoader = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     return (
       <View style={styles.loaderWrapper}>
@@ -699,8 +698,7 @@ class Onboarding extends PureComponent {
   };
 
   renderContent() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     return (
       <View style={styles.ctas}>
@@ -765,8 +763,7 @@ class Onboarding extends PureComponent {
   }
 
   handleSimpleNotification = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     if (!this.props.route.params?.delete) return;
     return (
@@ -793,8 +790,7 @@ class Onboarding extends PureComponent {
   render() {
     const { loading } = this.props;
     const { existingUser, errorToThrow } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
