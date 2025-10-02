@@ -91,10 +91,12 @@ jobs:
             echo "apk-target-path=android/app/build/outputs/apk/flask/release" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release" >> "$GITHUB_OUTPUT"
             echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=app-flask-release" >> "$GITHUB_OUTPUT"
           else
             echo "apk-target-path=android/app/build/outputs/apk/prod/release" >> "$GITHUB_OUTPUT"
             echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release" >> "$GITHUB_OUTPUT"
             echo "aab-target-path=android/app/build/outputs/bundle/prodRelease" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=app-prod-release" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check and restore cached APKs if Fingerprint is found
