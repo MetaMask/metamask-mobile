@@ -42,6 +42,7 @@ describe('usePerpsDepositProgress', () => {
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
+        totalValue: '10100.00',
       },
       isInitialLoading: false,
     });
@@ -214,11 +215,12 @@ describe('usePerpsDepositProgress', () => {
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
+          totalValue: '10600.00',
         },
         isInitialLoading: false,
       });
 
-      rerender();
+      rerender({});
 
       // Assert
       expect(result.current.isDepositInProgress).toBe(false);
@@ -255,11 +257,12 @@ describe('usePerpsDepositProgress', () => {
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
+          totalValue: '9600.00',
         },
         isInitialLoading: false,
       });
 
-      rerender();
+      rerender({});
 
       // Assert
       expect(result.current.isDepositInProgress).toBe(true);
@@ -296,11 +299,12 @@ describe('usePerpsDepositProgress', () => {
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
+          totalValue: '10100.00',
         },
         isInitialLoading: false,
       });
 
-      rerender();
+      rerender({});
 
       // Assert
       expect(result.current.isDepositInProgress).toBe(true);
@@ -324,11 +328,12 @@ describe('usePerpsDepositProgress', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: undefined,
+          availableBalance: '0',
           totalBalance: '10000.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
+          totalValue: '10100.00',
         },
         isInitialLoading: false,
       });
@@ -413,11 +418,12 @@ describe('usePerpsDepositProgress', () => {
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
+          totalValue: '10100.01',
         },
         isInitialLoading: false,
       });
 
-      rerender();
+      rerender({});
 
       // Assert
       expect(result.current.isDepositInProgress).toBe(false);
