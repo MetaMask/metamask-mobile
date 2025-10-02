@@ -5,6 +5,7 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { isTakeProfitOrder, isStopLossOrder } from './triggerDetection';
 
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format
@@ -92,8 +93,8 @@ export function transformFillsToTransactions(
     }
 
     const isLiquidation = Boolean(liquidation);
-    const isTakeProfit = Boolean(detailedOrderType?.includes('Take Profit'));
-    const isStopLoss = Boolean(detailedOrderType?.includes('Stop'));
+    const isTakeProfit = isTakeProfitOrder(detailedOrderType);
+    const isStopLoss = isStopLossOrder(detailedOrderType);
 
     acc.push({
       id: orderId || `fill-${timestamp}`,
