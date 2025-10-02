@@ -15,6 +15,7 @@ import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-c
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { handleRewardsErrorMessage } from '../utils';
+import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
 
 interface UseSeasonStatusReturn {
   fetchSeasonStatus: () => Promise<void>;
@@ -52,7 +53,7 @@ export const useSeasonStatus = (): UseSeasonStatusReturn => {
       dispatch(setSeasonStatus(statusData));
       dispatch(setSeasonStatusError(null));
     } catch (error) {
-      if (error instanceof Error && error.message.includes('403')) {
+      if (error instanceof AuthorizationFailedError) {
         dispatch(resetRewardsState());
         dispatch(setCandidateSubscriptionId('retry'));
       }

@@ -47,7 +47,10 @@ import {
 import { base58 } from 'ethers/lib/utils';
 import { isNonEvmAddress } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
-import { InvalidTimestampError } from './services/rewards-data-service';
+import {
+  AuthorizationFailedError,
+  InvalidTimestampError,
+} from './services/rewards-data-service';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -1456,7 +1459,7 @@ export class RewardsController extends BaseController<
             'RewardsController: Failed to get season status:',
             error instanceof Error ? error.message : String(error),
           );
-          if (error instanceof Error && error.message.includes('403')) {
+          if (error instanceof AuthorizationFailedError) {
             // Attempt to reauth with a valid account.
 
             try {
@@ -1498,12 +1501,22 @@ export class RewardsController extends BaseController<
                   }
                 }
               }
+              // Fetch season status again
+              const seasonStatus = await this.messagingSystem.call(
+                'RewardsDataService:getSeasonStatus',
+                seasonId,
+                subscriptionId,
+              );
+              Logger.log(
+                'RewardsController: Successfully fetched season status after reauth',
+                seasonStatus,
+              );
+              return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
             } catch {
               Logger.log(
                 'RewardsController: Failed to reauth with a valid account after 403 error',
                 error instanceof Error ? error.message : String(error),
               );
-            } finally {
               this.invalidateSubscriptionCache(subscriptionId);
               this.invalidateAccountsAndSubscriptions();
             }
