@@ -13,6 +13,7 @@ import { isTestNet } from '../../util/networks';
 import { useMemo } from 'react';
 import { selectEVMEnabledNetworks } from '../../selectors/networkEnablementController';
 import { hexToBigInt, toHexadecimal, weiToFiatNumber } from '../../util/number';
+import { add0x } from '@metamask/utils';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;
@@ -124,8 +125,8 @@ export const useGetTotalFiatBalanceCrossChains = (
             accountsByChainId[hexChainId][toChecksumHexAddress(account.address)]
               .stakedBalance || '0x00',
           );
-          const totalAccountBalance = (balanceBN + stakedBalanceBN).toString(
-            16,
+          const totalAccountBalance = add0x(
+            (balanceBN + stakedBalanceBN).toString(16),
           );
           ethFiat = weiToFiatNumber(
             totalAccountBalance,

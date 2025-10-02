@@ -129,7 +129,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
           onPress={debouncedTokenPress}
           networkName={networkName}
           networkImageSource={getNetworkImageSource({
-            chainId: item.chainId as Hex,
+            chainId: item.chainId,
           })}
           isSelected={
             selectedDestToken?.address === item.address &&
