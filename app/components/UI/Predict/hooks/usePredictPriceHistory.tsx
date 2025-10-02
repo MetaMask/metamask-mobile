@@ -2,43 +2,44 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
-  GetPriceHistoryParams,
   PredictPriceHistoryInterval,
   PredictPriceHistoryPoint,
 } from '../types';
 
-export interface UsePredictPriceHistoryOptions
-  extends Omit<GetPriceHistoryParams, 'marketId'> {
-  marketId?: string;
+export interface UsePredictPriceHistoryOptions {
+  marketIds: string[];
+  interval?: PredictPriceHistoryInterval;
+  fidelity?: number;
+  providerId?: string;
   enabled?: boolean;
 }
 
 export interface UsePredictPriceHistoryResult {
-  priceHistory: PredictPriceHistoryPoint[];
+  priceHistories: PredictPriceHistoryPoint[][];
   isFetching: boolean;
-  error: string | null;
+  errors: (string | null)[];
   refetch: () => Promise<void>;
 }
 
 /**
- * Hook to fetch and manage price history data for a market
+ * Hook to fetch and manage price history data for multiple markets
  */
 export const usePredictPriceHistory = (
-  options: UsePredictPriceHistoryOptions = {},
+  options: UsePredictPriceHistoryOptions,
 ): UsePredictPriceHistoryResult => {
   const {
-    marketId,
+    marketIds = [],
     fidelity,
     interval = PredictPriceHistoryInterval.ONE_DAY,
     providerId,
     enabled = true,
   } = options;
 
-  const [priceHistory, setPriceHistory] = useState<PredictPriceHistoryPoint[]>(
-    [],
-  );
+  const [priceHistories, setPriceHistories] = useState<
+    PredictPriceHistoryPoint[][]
+  >([]);
   const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<(string | null)[]>([]);
 
   const isMountedRef = useRef(true);
   useEffect(
@@ -50,21 +51,24 @@ export const usePredictPriceHistory = (
 
   useEffect(() => {
     if (!enabled && isMountedRef.current) {
-      setPriceHistory([]);
-      setError(null);
+      setPriceHistories([]);
+      setErrors([]);
       setIsFetching(false);
     }
   }, [enabled]);
 
-  const fetchPriceHistory = useCallback(async () => {
+  // Create a stable string representation for the dependency array
+  const marketIdsKey = marketIds?.join(',') ?? '';
+
+  const fetchPriceHistories = useCallback(async () => {
     if (!enabled) {
       return;
     }
 
-    if (!marketId) {
+    if (!marketIds?.length) {
       if (isMountedRef.current) {
-        setPriceHistory([]);
-        setError(null);
+        setPriceHistories([]);
+        setErrors([]);
         setIsFetching(false);
       }
       return;
@@ -72,7 +76,7 @@ export const usePredictPriceHistory = (
 
     if (isMountedRef.current) {
       setIsFetching(true);
-      setError(null);
+      setErrors(new Array(marketIds.length).fill(null));
     }
 
     try {
@@ -85,45 +89,70 @@ export const usePredictPriceHistory = (
         throw new Error('Predict controller not available');
       }
 
-      const history = await controller.getPriceHistory({
-        marketId,
-        fidelity,
-        interval,
-        providerId,
+      // Fetch all price histories in parallel
+      const promises = marketIds.map(async (marketId, index) => {
+        try {
+          const history = await controller.getPriceHistory({
+            marketId,
+            fidelity,
+            interval,
+            providerId,
+          });
+          return { index, data: history ?? [], error: null };
+        } catch (err) {
+          const errorMessage =
+            err instanceof Error
+              ? err.message
+              : 'Failed to fetch price history';
+          DevLogger.log(
+            `usePredictPriceHistory: Error fetching price history for market ${marketId}`,
+            err,
+          );
+          return { index, data: [], error: errorMessage };
+        }
       });
 
+      const results = await Promise.all(promises);
+
       if (isMountedRef.current) {
-        setPriceHistory(history ?? []);
+        const histories = new Array(marketIds.length).fill([]);
+        const errorList = new Array(marketIds.length).fill(null);
+
+        results.forEach(({ index, data, error }) => {
+          histories[index] = data;
+          errorList[index] = error;
+        });
+
+        setPriceHistories(histories);
+        setErrors(errorList);
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to fetch price history';
+        err instanceof Error ? err.message : 'Failed to fetch price histories';
 
-      DevLogger.log(
-        'usePredictPriceHistory: Error fetching price history',
-        err,
-      );
+      DevLogger.log('usePredictPriceHistory: Error in batch fetching', err);
 
       if (isMountedRef.current) {
-        setError(errorMessage);
-        setPriceHistory([]);
+        setErrors(new Array(marketIds.length).fill(errorMessage));
+        setPriceHistories(new Array(marketIds.length).fill([]));
       }
     } finally {
       if (isMountedRef.current) {
         setIsFetching(false);
       }
     }
-  }, [enabled, marketId, fidelity, interval, providerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, marketIdsKey, fidelity, interval, providerId]);
 
   useEffect(() => {
-    fetchPriceHistory();
-  }, [fetchPriceHistory]);
+    fetchPriceHistories();
+  }, [fetchPriceHistories]);
 
   return {
-    priceHistory,
+    priceHistories,
     isFetching,
-    error,
-    refetch: fetchPriceHistory,
+    errors,
+    refetch: fetchPriceHistories,
   };
 };
 

@@ -36,8 +36,9 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import PredictDetailsChart from '../../components/PredictDetailsChart/PredictDetailsChart';
-import PredictDetailsChartMultiple from '../../components/PredictDetailsChartMultiple/PredictDetailsChartMultiple';
+import PredictDetailsChart, {
+  ChartSeries,
+} from '../../components/PredictDetailsChart/PredictDetailsChart';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
@@ -114,74 +115,42 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
 
-  const [outcomeTokenIdA, outcomeTokenIdB, outcomeTokenIdC] = outcomeTokenIds;
-
-  // NOTE: Invoke once per outcome so hooks stay at the top level and comply with the rules of hooks.
-  // TODO: Consider refactoring usePredictPriceHistory() to return multiple outcomes, e.g. `maxOutcomes` (default 3)
-  const priceHistoryResultA = usePredictPriceHistory({
-    marketId: outcomeTokenIdA,
+  // Use the updated hook with multiple market IDs
+  const { priceHistories, isFetching, errors } = usePredictPriceHistory({
+    marketIds: loadedOutcomeTokenIds,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
-    enabled: Boolean(outcomeTokenIdA),
+    enabled: hasAnyOutcomeToken,
   });
 
-  const priceHistoryResultB = usePredictPriceHistory({
-    marketId: outcomeTokenIdB,
-    interval: selectedTimeframe,
-    providerId,
-    fidelity: selectedFidelity,
-    enabled: Boolean(outcomeTokenIdB),
-  });
-
-  const priceHistoryResultC = usePredictPriceHistory({
-    marketId: outcomeTokenIdC,
-    interval: selectedTimeframe,
-    providerId,
-    fidelity: selectedFidelity,
-    enabled: Boolean(outcomeTokenIdC),
-  });
-
-  const priceHistoryResults = [
-    priceHistoryResultA,
-    priceHistoryResultB,
-    priceHistoryResultC,
-  ];
-
-  const chartSeries = priceHistoryResults.map(({ priceHistory }) =>
-    priceHistory.map((point) => ({
-      timestamp: point.timestamp,
-      value: Number((point.price * 100).toFixed(2)),
-    })),
+  // Transform data for the unified chart component
+  const chartData: ChartSeries[] = useMemo(
+    () =>
+      loadedOutcomeTokenIds.map((_tokenId, index) => ({
+        label:
+          outcomeSlices[index]?.groupItemTitle ||
+          outcomeSlices[index]?.title ||
+          `Outcome ${index + 1}`,
+        color:
+          loadedOutcomeTokenIds.length === 1
+            ? colors.success.default
+            : MULTI_CHART_COLORS[index] ?? colors.success.default,
+        data: (priceHistories[index] ?? []).map((point) => ({
+          timestamp: point.timestamp,
+          value: Number((point.price * 100).toFixed(2)),
+        })),
+      })),
+    [
+      loadedOutcomeTokenIds,
+      outcomeSlices,
+      priceHistories,
+      colors.success.default,
+    ],
   );
-
-  const primaryOutcomeIndex = outcomeTokenIds.findIndex(Boolean);
-  const fallbackOutcomeIndex =
-    primaryOutcomeIndex >= 0 ? primaryOutcomeIndex : 0;
-  const primaryPriceHistoryResult = priceHistoryResults[fallbackOutcomeIndex];
-
-  const isPriceHistoryFetching = primaryPriceHistoryResult?.isFetching ?? false;
-  const priceHistoryError = primaryPriceHistoryResult?.error ?? null;
-
-  const chartData = chartSeries[fallbackOutcomeIndex] ?? [];
-  const multiOutcomeSeriesData = outcomeSlices
-    .map((outcome, index) => ({
-      label:
-        outcome?.groupItemTitle || outcome?.title || `Outcome ${index + 1}`,
-      color: MULTI_CHART_COLORS[index] ?? colors.success.default,
-      data: chartSeries[index] ?? [],
-    }))
-    .filter((_, index) => Boolean(outcomeTokenIds[index]));
-
-  const anyPriceHistoryFetching = priceHistoryResults.some(
-    ({ isFetching }, index) => Boolean(outcomeTokenIds[index]) && isFetching,
-  );
-  const firstPriceHistoryError = priceHistoryResults.find(
-    ({ error }, index) => Boolean(outcomeTokenIds[index]) && Boolean(error),
-  )?.error;
 
   const chartEmptyLabel = hasAnyOutcomeToken
-    ? priceHistoryError ?? undefined
+    ? errors.find(Boolean) ?? undefined
     : '';
 
   const handleTimeframeChange = (timeframe: string) => {
@@ -552,25 +521,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       >
         {renderHeader()}
         {singleOutcomeMarket && renderCurrentPrediction()}
-        {multipleOutcomes ? (
-          <PredictDetailsChartMultiple
-            data={multiOutcomeSeriesData}
-            timeframes={PRICE_HISTORY_TIMEFRAMES}
-            selectedTimeframe={selectedTimeframe}
-            onTimeframeChange={handleTimeframeChange}
-            isLoading={anyPriceHistoryFetching}
-            emptyLabel={firstPriceHistoryError ?? chartEmptyLabel}
-          />
-        ) : (
-          <PredictDetailsChart
-            data={chartData}
-            timeframes={PRICE_HISTORY_TIMEFRAMES}
-            selectedTimeframe={selectedTimeframe}
-            onTimeframeChange={handleTimeframeChange}
-            isLoading={isPriceHistoryFetching}
-            emptyLabel={chartEmptyLabel}
-          />
-        )}
+        <PredictDetailsChart
+          data={chartData}
+          timeframes={PRICE_HISTORY_TIMEFRAMES}
+          selectedTimeframe={selectedTimeframe}
+          onTimeframeChange={handleTimeframeChange}
+          isLoading={isFetching}
+          emptyLabel={chartEmptyLabel}
+        />
         <ScrollableTabView
           renderTabBar={() => (
             <TabBar textStyle={tw.style('text-base font-bold text-center')} />

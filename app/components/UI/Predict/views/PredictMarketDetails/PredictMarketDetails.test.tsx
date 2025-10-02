@@ -116,9 +116,9 @@ jest.mock('../../hooks/usePredictMarket', () => ({
 
 jest.mock('../../hooks/usePredictPriceHistory', () => ({
   usePredictPriceHistory: jest.fn(() => ({
-    priceHistory: [],
+    priceHistories: [],
     isFetching: false,
-    error: null,
+    errors: [],
   })),
 }));
 
@@ -132,20 +132,6 @@ jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
     );
   };
 });
-
-jest.mock(
-  '../../components/PredictDetailsChartMultiple/PredictDetailsChartMultiple',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return function MockPredictDetailsChartMultiple() {
-      return (
-        <View testID="predict-details-chart-multiple">
-          <Text>Multiple Chart Component</Text>
-        </View>
-      );
-    };
-  },
-);
 
 jest.mock('../../components/PredictMarketOutcome', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -375,9 +361,10 @@ function setupPredictMarketDetailsTest(
   });
 
   usePredictPriceHistory.mockReturnValue({
-    priceHistory: [],
+    priceHistories: [],
     isFetching: false,
-    error: null,
+    errors: [],
+    refetch: jest.fn(),
     ...hookOverrides.priceHistory,
   });
 
@@ -484,9 +471,7 @@ describe('PredictMarketDetails', () => {
     it('renders multiple outcome chart for binary markets with two outcomes', () => {
       setupPredictMarketDetailsTest();
 
-      expect(
-        screen.getByTestId('predict-details-chart-multiple'),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
 
     it('renders multiple outcome chart for multi-outcome markets', () => {
@@ -515,9 +500,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
-      expect(
-        screen.getByTestId('predict-details-chart-multiple'),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
   });
 

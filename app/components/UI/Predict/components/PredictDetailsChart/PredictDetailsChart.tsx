@@ -1,21 +1,10 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
-import { curveCatmullRom, area } from 'd3-shape';
-import {
-  Line,
-  Text as SvgText,
-  G,
-  Defs,
-  LinearGradient,
-  Stop,
-  Path,
-} from 'react-native-svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import Text, {
@@ -23,75 +12,33 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { PredictPriceHistoryInterval } from '../../types';
+import TimeframeSelector from './components/TimeframeSelector';
+import ChartGrid from './components/ChartGrid';
+import ChartArea from './components/ChartArea';
+import ChartLegend from './components/ChartLegend';
+import {
+  DEFAULT_EMPTY_LABEL,
+  LINE_CURVE,
+  CHART_HEIGHT,
+  CHART_CONTENT_INSET,
+  MAX_SERIES,
+  formatPriceHistoryLabel,
+} from './utils';
 
-export interface PredictDetailsChartPoint {
-  timestamp: number;
-  value: number;
+export interface ChartSeries {
+  label: string;
+  color: string;
+  data: { timestamp: number; value: number }[];
 }
 
-const formatPriceHistoryLabel = (
-  timestamp: number,
-  interval: PredictPriceHistoryInterval | string,
-) => {
-  const isMilliseconds = timestamp > 1_000_000_000_000;
-  const date = new Date(isMilliseconds ? timestamp : timestamp * 1000);
-
-  switch (interval) {
-    case PredictPriceHistoryInterval.ONE_HOUR:
-    case PredictPriceHistoryInterval.SIX_HOUR:
-    case PredictPriceHistoryInterval.ONE_DAY:
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(date);
-    case PredictPriceHistoryInterval.ONE_WEEK:
-      return new Intl.DateTimeFormat('en-US', {
-        weekday: 'short',
-        hour: 'numeric',
-      }).format(date);
-    case PredictPriceHistoryInterval.ONE_MONTH:
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }).format(date);
-    case PredictPriceHistoryInterval.MAX:
-    default:
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        year: 'numeric',
-      }).format(date);
-  }
-};
-
-const formatTickValue = (value: number, range: number) => {
-  if (!Number.isFinite(value)) {
-    return '0';
-  }
-
-  if (range < 1) {
-    return value.toFixed(2);
-  }
-
-  if (range < 10) {
-    return value.toFixed(1);
-  }
-
-  return value.toFixed(0);
-};
-
 interface PredictDetailsChartProps {
-  data: PredictDetailsChartPoint[];
+  data: ChartSeries[];
   timeframes: string[];
   selectedTimeframe: string;
   onTimeframeChange: (timeframe: string) => void;
   isLoading?: boolean;
   emptyLabel?: string;
 }
-
-const DEFAULT_EMPTY_LABEL = '';
-const LINE_CURVE = curveCatmullRom.alpha(0.3);
-const CHART_HEIGHT = 192;
 
 const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   data,
@@ -104,18 +51,35 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
 
-  const pointsWithLabels = React.useMemo(
+  // Limit to MAX_SERIES
+  const seriesToRender = React.useMemo(() => data.slice(0, MAX_SERIES), [data]);
+  const isSingleSeries = seriesToRender.length === 1;
+  const isMultipleSeries = seriesToRender.length > 1;
+
+  // Process data with labels
+  const seriesWithLabels = React.useMemo(
     () =>
-      data.map((point) => ({
-        ...point,
-        label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+      seriesToRender.map((series) => ({
+        ...series,
+        data: series.data.map((point) => ({
+          ...point,
+          label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+        })),
       })),
-    [data, selectedTimeframe],
+    [seriesToRender, selectedTimeframe],
   );
 
-  const hasData = pointsWithLabels.length > 0;
+  // Filter out empty series
+  const nonEmptySeries = seriesWithLabels.filter(
+    (series) => series.data.length > 0,
+  );
+  const hasData = nonEmptySeries.length > 0;
+
+  // Calculate chart bounds
   const chartValues = hasData
-    ? pointsWithLabels.map((point) => point.value)
+    ? nonEmptySeries.flatMap((series) =>
+        series.data.map((point) => point.value),
+      )
     : [0];
   const minValue = Math.min(...chartValues);
   const maxValue = Math.max(...chartValues);
@@ -124,138 +88,12 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const chartMin = minValue - padding;
   const chartMax = maxValue + padding;
 
-  const Gradient = () => (
-    <Defs>
-      <LinearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop
-          offset="0%"
-          stopColor={colors.success.default}
-          stopOpacity="0.6"
-        />
-        <Stop
-          offset="45%"
-          stopColor={colors.success.muted}
-          stopOpacity="0.25"
-        />
-        <Stop
-          offset="100%"
-          stopColor={colors.background.default}
-          stopOpacity="0"
-        />
-      </LinearGradient>
-    </Defs>
-  );
-
-  const CustomGrid = ({
-    x,
-    y,
-    data: chartData,
-    ticks,
-  }: {
-    x?: (value: number) => number;
-    y?: (value: number) => number;
-    data?: number[];
-    ticks?: number[];
-  }) => {
-    if (!x || !y || !chartData || !ticks) return null;
-
-    return (
-      <G>
-        {ticks.map((tick: number, index: number) => (
-          <Line
-            key={`grid-${tick}-${index}`}
-            x1={0}
-            x2={x(chartData.length - 1)}
-            y1={y(tick)}
-            y2={y(tick)}
-            stroke={colors.border.muted}
-            strokeWidth={1}
-            strokeDasharray="2,2"
-          />
-        ))}
-        {ticks.map((tick: number, index: number) => (
-          <SvgText
-            key={`label-${tick}-${index}`}
-            x={x(chartData.length - 1) + 4}
-            y={y(tick)}
-            fontSize="12"
-            fill={colors.text.default}
-            textAnchor="start"
-            alignmentBaseline="middle"
-          >
-            {formatTickValue(tick, range)}%
-          </SvgText>
-        ))}
-      </G>
-    );
-  };
-
-  const CustomArea = ({
-    x,
-    y,
-    data: chartData,
-  }: {
-    x?: (value: number) => number;
-    y?: (value: number) => number;
-    data?: number[];
-  }) => {
-    if (!x || !y || !chartData) return null;
-    const baseline = y(chartMin);
-    const areaGenerator = area<number>()
-      .x((_: number, index: number) => x(index))
-      .y0(() => baseline)
-      .y1((value: number) => y(value))
-      .curve(LINE_CURVE);
-
-    const areaPath = areaGenerator(chartData) ?? '';
-
-    return (
-      <G>
-        <Gradient />
-        <Path d={areaPath} fill="url(#gradient)" />
-      </G>
-    );
-  };
-
-  const renderTimeframeSelector = () => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
-      >
-        {timeframes.map((timeframe) => (
-          <Pressable
-            key={timeframe}
-            onPress={() => onTimeframeChange(timeframe)}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-1 py-2 rounded-lg',
-                selectedTimeframe === timeframe ? 'bg-muted' : 'bg-default',
-                pressed && 'bg-pressed',
-              )
-            }
-          >
-            <Text
-              variant={TextVariant.BodySM}
-              color={
-                selectedTimeframe === timeframe
-                  ? TextColor.Default
-                  : TextColor.Alternative
-              }
-              style={tw.style('text-center')}
-            >
-              {timeframe.toUpperCase()}
-            </Text>
-          </Pressable>
-        ))}
-      </Box>
-    </Box>
-  );
+  // Primary series for chart axis and labels
+  const primarySeries = nonEmptySeries[0] ?? seriesWithLabels[0];
+  const primaryData = primarySeries?.data ?? [];
+  const primaryChartData = primaryData.length
+    ? primaryData.map((point) => point.value)
+    : [0, 0];
 
   const renderGraph = () => {
     if (isLoading || !hasData) {
@@ -270,18 +108,21 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
 
       return (
         <Box twClassName="mb-6">
+          {isMultipleSeries && (
+            <ChartLegend series={seriesWithLabels} range={range} />
+          )}
           <Box twClassName="h-48 bg-default rounded-lg relative overflow-hidden">
             <LineChart
-              style={tw.style('h-[192px] w-full')}
+              style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
               data={[0, 0]}
               svg={{ stroke: colors.border.muted, strokeWidth: 1 }}
-              contentInset={{ top: 20, bottom: 20, left: 20, right: 32 }}
+              contentInset={CHART_CONTENT_INSET}
               yMin={chartMin}
               yMax={chartMax}
               numberOfTicks={4}
               curve={LINE_CURVE}
             >
-              <CustomGrid />
+              <ChartGrid colors={colors} range={range} />
             </LineChart>
             <Box twClassName="absolute inset-0 items-center justify-center px-4">
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -308,24 +149,60 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
       );
     }
 
-    const chartData = pointsWithLabels.map((point) => point.value);
+    // Determine if we should show area (only for single series)
+    const showArea = isSingleSeries && primaryData.length > 0;
+
+    // Get overlay series (all except the primary)
+    const overlaySeries = isMultipleSeries ? nonEmptySeries.slice(1) : [];
+
+    // Calculate axis labels
+    const axisLabelStep = Math.max(1, Math.floor(primaryData.length / 4) || 1);
+    const axisLabels = primaryData.filter(
+      (_, index) =>
+        index % axisLabelStep === 0 || index === primaryData.length - 1,
+    );
 
     return (
       <Box twClassName="mb-6">
+        {isMultipleSeries && (
+          <ChartLegend series={nonEmptySeries} range={range} />
+        )}
         <Box twClassName="h-48 bg-default rounded-lg mb-4 relative overflow-hidden">
           <LineChart
             style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
-            data={chartData}
-            svg={{ stroke: colors.success.default, strokeWidth: 2 }}
-            contentInset={{ top: 20, bottom: 20, left: 20, right: 32 }}
+            data={primaryChartData}
+            svg={{
+              stroke: primarySeries?.color || colors.success.default,
+              strokeWidth: isSingleSeries ? 2 : 1,
+            }}
+            contentInset={CHART_CONTENT_INSET}
             yMin={chartMin}
             yMax={chartMax}
             numberOfTicks={4}
             curve={LINE_CURVE}
           >
-            <CustomArea />
-            <CustomGrid />
+            {showArea && (
+              <ChartArea
+                chartMin={chartMin}
+                color={primarySeries?.color || colors.success.default}
+                opacity={0.6}
+              />
+            )}
+            <ChartGrid colors={colors} range={range} />
           </LineChart>
+          {overlaySeries.map((series, index) => (
+            <LineChart
+              key={`${series.label}-${index}`}
+              style={StyleSheet.absoluteFillObject}
+              data={series.data.map((point) => point.value)}
+              svg={{ stroke: series.color, strokeWidth: 2 }}
+              contentInset={CHART_CONTENT_INSET}
+              yMin={chartMin}
+              yMax={chartMax}
+              numberOfTicks={4}
+              curve={LINE_CURVE}
+            />
+          ))}
         </Box>
 
         <Box
@@ -333,21 +210,15 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4"
         >
-          {pointsWithLabels
-            .filter(
-              (_, index) =>
-                index % Math.max(1, Math.floor(pointsWithLabels.length / 4)) ===
-                0,
-            )
-            .map((point, index) => (
-              <Text
-                key={`${point.timestamp}-${index}`}
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
-              >
-                {point.label}
-              </Text>
-            ))}
+          {axisLabels.map((point, index) => (
+            <Text
+              key={`${point.timestamp}-${index}`}
+              variant={TextVariant.BodyXS}
+              color={TextColor.Alternative}
+            >
+              {point.label}
+            </Text>
+          ))}
         </Box>
       </Box>
     );
@@ -356,7 +227,11 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   return (
     <Box>
       {renderGraph()}
-      {renderTimeframeSelector()}
+      <TimeframeSelector
+        timeframes={timeframes}
+        selectedTimeframe={selectedTimeframe}
+        onTimeframeChange={onTimeframeChange}
+      />
     </Box>
   );
 };
