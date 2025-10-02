@@ -147,6 +147,7 @@ describe('ConnectionRegistry', () => {
         mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
+        mockHostApp,
       );
       expect(mockConnection.connect).toHaveBeenCalledWith(
         mockConnectionRequest.sessionRequest,
@@ -273,6 +274,9 @@ describe('ConnectionRegistry', () => {
 
       // Gracefully handles cleanup for non-existent connections
       expect(mockStore.delete).toHaveBeenCalledWith('non-existent-id');
+      expect(mockHostApp.revokePermissions).toHaveBeenCalledWith(
+        'non-existent-id',
+      );
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
     });
 
@@ -297,6 +301,11 @@ describe('ConnectionRegistry', () => {
 
       // Connection data is removed from storage
       expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
+
+      // Permissions are revoked
+      expect(mockHostApp.revokePermissions).toHaveBeenCalledWith(
+        mockConnection.id,
+      );
 
       // UI reflects the disconnection
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
