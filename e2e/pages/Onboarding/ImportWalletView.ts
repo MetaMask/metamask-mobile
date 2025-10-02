@@ -24,7 +24,12 @@ class ImportWalletView {
     );
   }
 
-  get seedPhraseInput(): DetoxElement {
+  seedPhraseInput(index: number): DetoxElement {
+    if (index !== 0) {
+      return Matchers.getElementByID(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      );
+    }
     return Matchers.getElementByID(
       ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
     );
@@ -49,10 +54,24 @@ class ImportWalletView {
   }
 
   async enterSecretRecoveryPhrase(secretRecoveryPhrase: string): Promise<void> {
-    await Gestures.replaceText(this.seedPhraseInput, secretRecoveryPhrase, {
-      elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-      checkVisibility: device.getPlatform() === 'ios',
-    });
+    if (device.getPlatform() === 'ios') {
+      const srpArray = secretRecoveryPhrase.split(' ');
+      for (const [i, word] of srpArray.entries()) {
+        await Gestures.typeText(this.seedPhraseInput(i), `${word} `, {
+          elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+          hideKeyboard: i === srpArray.length - 1,
+        });
+      }
+    } else {
+      await Gestures.replaceText(
+        this.seedPhraseInput(0),
+        secretRecoveryPhrase,
+        {
+          elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+          checkVisibility: false,
+        },
+      );
+    }
   }
 
   async tapContinueButton(): Promise<void> {

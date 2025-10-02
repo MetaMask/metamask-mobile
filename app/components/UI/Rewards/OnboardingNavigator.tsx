@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../reducers/rewards/types';
 import { selectOnboardingActiveStep } from '../../../reducers/rewards/selectors';
@@ -9,29 +9,21 @@ import OnboardingStep1 from './components/Onboarding/OnboardingStep1';
 import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
 import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
-import { setOnboardingActiveStep } from '../../../reducers/rewards';
-import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { useNavigation } from '@react-navigation/native';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { useParams } from '../../../util/navigation/navUtils';
+import { strings } from '../../../../locales/i18n';
+import RewardsIntroModal from './components/Onboarding/RewardsIntroModal';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
-  const navigation = useNavigation();
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const dispatch = useDispatch();
-
-  // Reset onboarding step when component mounts/account changes to prevent stale state
-  useEffect(() => {
-    if (!subscriptionId) {
-      dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-      navigation.navigate(Routes.REWARDS_ONBOARDING_INTRO);
-    }
-  }, [subscriptionId, dispatch, navigation]);
+  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
 
   const getInitialRoute = useCallback(() => {
     switch (activeStep) {
+      case OnboardingStep.INTRO_MODAL:
+        return Routes.MODAL.REWARDS_INTRO_MODAL;
       case OnboardingStep.INTRO:
         return Routes.REWARDS_ONBOARDING_INTRO;
       case OnboardingStep.STEP_1:
@@ -51,10 +43,23 @@ const OnboardingNavigator: React.FC = () => {
     <UnmountOnBlur>
       <Stack.Navigator initialRouteName={getInitialRoute()}>
         <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_INTRO}
-          component={OnboardingIntroStep}
+          name={Routes.MODAL.REWARDS_INTRO_MODAL}
+          component={RewardsIntroModal}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name={Routes.REWARDS_ONBOARDING_INTRO}
+          options={{ headerShown: false }}
+        >
+          {() => (
+            <OnboardingIntroStep
+              title={strings('rewards.onboarding.intro_title')}
+              description={strings('rewards.onboarding.intro_description')}
+              confirmLabel={strings('rewards.onboarding.intro_confirm')}
+            />
+          )}
+        </Stack.Screen>
+
         <Stack.Screen
           name={Routes.REWARDS_ONBOARDING_1}
           component={OnboardingStep1}
@@ -74,6 +79,7 @@ const OnboardingNavigator: React.FC = () => {
           name={Routes.REWARDS_ONBOARDING_4}
           component={OnboardingStep4}
           options={{ headerShown: false }}
+          initialParams={{ ...urlParams }}
         />
       </Stack.Navigator>
     </UnmountOnBlur>

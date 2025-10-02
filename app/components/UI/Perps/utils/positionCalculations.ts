@@ -175,3 +175,28 @@ export function calculatePercentageFromUSDAmount(
   const percentage = (usdAmount / totalPositionValue) * 100;
   return Math.max(0, Math.min(100, percentage));
 }
+
+/**
+ * Helper function to determine position direction based on size value
+ * @param sizeString - The position size as a string
+ * @returns 'long', 'short', or 'unknown'
+ */
+export function getPositionDirection(
+  sizeString: string,
+): 'long' | 'short' | 'unknown' {
+  const sizeValue = parseFloat(sizeString);
+
+  if (!Number.isFinite(sizeValue)) {
+    return 'unknown';
+  }
+
+  if (sizeValue > 0) {
+    return 'long';
+  }
+
+  if (sizeValue < 0) {
+    return 'short';
+  }
+
+  return 'unknown';
+}

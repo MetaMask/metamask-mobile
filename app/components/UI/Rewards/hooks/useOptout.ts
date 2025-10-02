@@ -10,9 +10,14 @@ import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useRewardDashboardModals } from './useRewardDashboardModals';
+import { deriveAccountMetricProps, RewardsMetricsButtons } from '../utils';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 interface UseOptoutResult {
-  optout: () => Promise<void>;
+  optout: () => Promise<boolean>;
   isLoading: boolean;
   showOptoutBottomSheet: (dismissRoute?: string) => void;
 }
@@ -22,12 +27,25 @@ export const useOptout = (): UseOptoutResult => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const { showToast, RewardsToastOptions } = useRewardsToast();
+  const {
+    resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,
+  } = useRewardDashboardModals();
+  const account = useSelector(selectSelectedInternalAccount);
+  const accountMetricsProps = deriveAccountMetricProps(account);
 
-  const optout = useCallback(async () => {
-    if (isLoading || !subscriptionId) return;
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+
+  const optout = useCallback(async (): Promise<boolean> => {
+    if (isLoading || !subscriptionId) return false;
 
     setIsLoading(true);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_STARTED)
+        .addProperties(accountMetricsProps)
+        .build(),
+    );
 
     try {
       Logger.log('useOptout: Starting opt-out process');
@@ -38,27 +56,28 @@ export const useOptout = (): UseOptoutResult => {
       );
 
       if (success) {
-        Logger.log(
-          'useOptout: Opt-out successful, resetting state and navigating',
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_COMPLETED)
+            .addProperties(accountMetricsProps)
+            .build(),
         );
+        const traits = {
+          [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
+        };
+        addTraitsToUser(traits);
+        Logger.log('useOptout: Opt-out successful, resetting state');
 
         // Clear rewards Redux state back to initial state
         dispatch(resetRewardsState());
-
-        // Navigate back to rewards view
-        navigation.navigate('RewardsView');
-      } else {
-        Logger.log('useOptout: Opt-out failed - controller returned false');
-
-        // Show error toast
-        showToast(
-          RewardsToastOptions.error(
-            strings('rewards.optout.modal.error_message'),
-          ),
-        );
+        resetAllSessionTrackingForRewardsDashboardModals();
+        return true;
       }
-    } catch (error) {
-      Logger.log('useOptout: Opt-out failed with exception:', error);
+      Logger.log('useOptout: Opt-out failed - controller returned false');
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED)
+          .addProperties(accountMetricsProps)
+          .build(),
+      );
 
       // Show error toast
       showToast(
@@ -66,41 +85,82 @@ export const useOptout = (): UseOptoutResult => {
           strings('rewards.optout.modal.error_message'),
         ),
       );
+      return false;
+    } catch (error) {
+      Logger.log('useOptout: Opt-out failed with exception:', error);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED)
+          .addProperties(accountMetricsProps)
+          .build(),
+      );
+
+      // Show error toast
+      showToast(
+        RewardsToastOptions.error(
+          strings('rewards.optout.modal.error_message'),
+        ),
+      );
+      return false;
     } finally {
       setIsLoading(false);
     }
   }, [
     isLoading,
     subscriptionId,
-    dispatch,
-    navigation,
+    trackEvent,
+    createEventBuilder,
+    addTraitsToUser,
+    accountMetricsProps,
     showToast,
     RewardsToastOptions,
+    dispatch,
+    resetAllSessionTrackingForRewardsDashboardModals,
   ]);
 
   const showOptoutBottomSheet = useCallback(
     (dismissRoute?: string) => {
-      const dismissModal = () => {
+      const handleOptoutSuccess = () => {
+        navigation.navigate(Routes.WALLET_VIEW);
+      };
+
+      const handleOptoutCancel = () => {
         // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
         navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+            .addProperties({
+              button_type: RewardsMetricsButtons.OPT_OUT_CANCEL,
+            })
+            .build(),
+        );
+      };
+
+      const handleOptoutConfirm = async () => {
+        const success = await optout();
+        // Only navigate on successful opt-out (when state is reset)
+        if (success) {
+          handleOptoutSuccess();
+        }
+        // If failed, keep modal open to show error toast
       };
 
       navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
         title: strings('rewards.optout.modal.confirmation_title'),
         description: strings('rewards.optout.modal.confirmation_description'),
         type: ModalType.Danger,
-        onCancel: dismissModal,
+        onCancel: handleOptoutCancel,
         confirmAction: {
           label: isLoading
             ? strings('rewards.optout.modal.processing')
             : strings('rewards.optout.modal.confirm'),
-          onPress: optout,
+          onPress: handleOptoutConfirm,
           variant: ButtonVariant.Primary,
           disabled: isLoading,
         },
       });
     },
-    [navigation, isLoading, optout],
+    [navigation, isLoading, optout, trackEvent, createEventBuilder],
   );
 
   return {

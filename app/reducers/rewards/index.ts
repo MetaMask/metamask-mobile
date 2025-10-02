@@ -5,8 +5,15 @@ import {
   GeoRewardsMetadata,
   PointsBoostDto,
   RewardDto,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
+import { CaipAccountId } from '@metamask/utils';
+
+export interface AccountOptInBannerInfoStatus {
+  caipAccountId: CaipAccountId;
+  hide: boolean;
+}
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels';
@@ -49,12 +56,16 @@ export interface RewardsState {
   optinAllowedForGeoError: boolean;
 
   // UI preferences
+  hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
 
   // Points Boost state
   activeBoosts: PointsBoostDto[] | null;
   activeBoostsLoading: boolean;
   activeBoostsError: boolean;
+
+  // Points Events state
+  pointsEvents: PointsEventDto[] | null;
 
   // Unlocked Rewards state
   unlockedRewards: RewardDto[] | null;
@@ -93,10 +104,13 @@ export const initialState: RewardsState = {
   optinAllowedForGeoLoading: false,
   optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
+  hideCurrentAccountNotOptedInBanner: [],
 
   activeBoosts: null,
   activeBoostsLoading: false,
   activeBoostsError: false,
+
+  pointsEvents: null,
 
   unlockedRewards: null,
   unlockedRewardLoading: false,
@@ -214,6 +228,39 @@ const rewardsSlice = createSlice({
       state,
       action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
     ) => {
+      const previousCandidateId = state.candidateSubscriptionId;
+      const newCandidateId = action.payload;
+
+      // Check if candidate ID changed and old value had a value (not null, 'pending', 'error', or 'retry')
+      const hasValidPreviousId =
+        previousCandidateId &&
+        previousCandidateId !== 'pending' &&
+        previousCandidateId !== 'error' &&
+        previousCandidateId !== 'retry';
+
+      const candidateIdChanged =
+        hasValidPreviousId && previousCandidateId !== newCandidateId;
+
+      if (candidateIdChanged) {
+        // Reset UI state to initial values
+        state.seasonId = initialState.seasonId;
+        state.seasonName = initialState.seasonName;
+        state.seasonStartDate = initialState.seasonStartDate;
+        state.seasonEndDate = initialState.seasonEndDate;
+        state.seasonTiers = initialState.seasonTiers;
+        state.referralCode = initialState.referralCode;
+        state.refereeCount = initialState.refereeCount;
+        state.currentTier = initialState.currentTier;
+        state.nextTier = initialState.nextTier;
+        state.nextTierPointsNeeded = initialState.nextTierPointsNeeded;
+        state.balanceTotal = initialState.balanceTotal;
+        state.balanceRefereePortion = initialState.balanceRefereePortion;
+        state.balanceUpdatedAt = initialState.balanceUpdatedAt;
+        state.activeBoosts = initialState.activeBoosts;
+        state.pointsEvents = initialState.pointsEvents;
+        state.unlockedRewards = initialState.unlockedRewards;
+      }
+
       state.candidateSubscriptionId = action.payload;
     },
 
@@ -242,6 +289,27 @@ const rewardsSlice = createSlice({
 
     setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
       state.hideUnlinkedAccountsBanner = action.payload;
+    },
+
+    setHideCurrentAccountNotOptedInBanner: (
+      state,
+      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+    ) => {
+      const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
+        (item) => item.caipAccountId === action.payload.accountId,
+      );
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        state.hideCurrentAccountNotOptedInBanner[existingIndex].hide =
+          action.payload.hide;
+      } else {
+        // Add new entry
+        state.hideCurrentAccountNotOptedInBanner.push({
+          caipAccountId: action.payload.accountId,
+          hide: action.payload.hide,
+        });
+      }
     },
 
     setActiveBoosts: (
@@ -273,6 +341,12 @@ const rewardsSlice = createSlice({
     setUnlockedRewardError: (state, action: PayloadAction<boolean>) => {
       state.unlockedRewardError = action.payload;
     },
+    setPointsEvents: (
+      state,
+      action: PayloadAction<PointsEventDto[] | null>,
+    ) => {
+      state.pointsEvents = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
@@ -280,9 +354,28 @@ const rewardsSlice = createSlice({
         return {
           // Reset non-persistent state (state is persisted via controller)
           ...initialState,
-          // Restore only a few persistent state
+
+          // UI state we want to restore from previous visit
+          seasonId: action.payload.rewards.seasonId,
+          seasonName: action.payload.rewards.seasonName,
+          seasonStartDate: action.payload.rewards.seasonStartDate,
+          seasonEndDate: action.payload.rewards.seasonEndDate,
+          seasonTiers: action.payload.rewards.seasonTiers,
+          referralCode: action.payload.rewards.referralCode,
+          refereeCount: action.payload.rewards.refereeCount,
+          currentTier: action.payload.rewards.currentTier,
+          nextTier: action.payload.rewards.nextTier,
+          nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
+          balanceTotal: action.payload.rewards.balanceTotal,
+          balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
+          balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
+          activeBoosts: action.payload.rewards.activeBoosts,
+          pointsEvents: action.payload.rewards.pointsEvents,
+          unlockedRewards: action.payload.rewards.unlockedRewards,
           hideUnlinkedAccountsBanner:
             action.payload.rewards.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
         };
       }
       return state;
@@ -306,12 +399,14 @@ export const {
   setGeoRewardsMetadataLoading,
   setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
+  setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
   setActiveBoostsLoading,
   setActiveBoostsError,
   setUnlockedRewards,
   setUnlockedRewardLoading,
   setUnlockedRewardError,
+  setPointsEvents,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

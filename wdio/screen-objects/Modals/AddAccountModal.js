@@ -1,16 +1,19 @@
 import Selectors from '../../helpers/Selectors';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Gestures from '../../helpers/Gestures';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class AddAccountModal {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get importSrpButton() {
@@ -59,8 +62,7 @@ class AddAccountModal {
       const newAccountButton = await this.newAccountButton;
       await newAccountButton.waitForExist({ reverse: true });
     } else {
-      const element = await this.newAccountButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.newAccountButton); // Use static tap method with retry logic
     }
   }
 
@@ -68,8 +70,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.importAccountButton);
     } else {
-      const element = await this.importAccountButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.importAccountButton); // Use static tap method with retry logic
     }
   }
 
@@ -77,8 +78,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.importSrpButton);
     } else {
-      const element = await this.importSrpButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.importSrpButton); // Use static tap method with retry logic
     }
   }
 
@@ -86,8 +86,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.createSolanaAccountButton);
     } else {
-      const element = await this.createSolanaAccountButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.createSolanaAccountButton); // Use static tap method with retry logic
     }
   }
 
@@ -95,8 +94,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.createEthereumAccountButton);
     } else {
-      const element = await this.createEthereumAccountButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.createEthereumAccountButton); // Use static tap method with retry logic
     }
   }
 

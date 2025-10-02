@@ -124,12 +124,20 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const isNoFeeAsset = noFeeAssets?.includes(token.address);
 
   const fiatValue = token.balanceFiat;
+
+  const formatTokenBalance = (balance: string): string => {
+    const numericBalance = Number(balance);
+    if (numericBalance === 0) {
+      return '0';
+    }
+    if (numericBalance < 0.00001) {
+      return '< 0.00001';
+    }
+    return parseAmount(balance, 5) || balance;
+  };
+
   const balanceWithSymbol = token.balance
-    ? `${
-        Number(token.balance) < 0.00001
-          ? '< 0.00001'
-          : parseAmount(token.balance, 5)
-      } ${token.symbol}`
+    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
@@ -215,20 +223,25 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           </Box>
 
           {/* Token balance and fiat value */}
-          <Box style={styles.balance}>
+          <Box style={styles.balance} gap={4}>
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{balance}</Text>
+                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{secondaryBalance}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {secondaryBalance}
+                </Text>
               )
             ) : null}
           </Box>

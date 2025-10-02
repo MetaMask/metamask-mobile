@@ -104,10 +104,10 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock Image component
+// Mock Image component and ActivityIndicator
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
-  const { Image: RNImage } = RN;
+  const { Image: RNImage, View } = RN;
   return {
     ...RN,
     Image: ({
@@ -119,6 +119,13 @@ jest.mock('react-native', () => {
       testID?: string;
       [key: string]: unknown;
     }) => <RNImage testID={testID} source={source} {...props} />,
+    ActivityIndicator: ({
+      testID,
+      ...props
+    }: {
+      testID?: string;
+      [key: string]: unknown;
+    }) => <View testID={testID || 'activity-indicator'} {...props} />,
   };
 });
 
@@ -126,20 +133,74 @@ jest.mock('react-native', () => {
 function createMockPositions(): PredictPositionType[] {
   return [
     {
+      id: 'position-1',
+      amount: 100,
       conditionId: 'condition-1',
       outcomeIndex: 0,
       icon: 'https://example.com/icon1.png',
+      currentValue: 60,
+      title: 'Position 1',
+      providerId: 'polymarket',
+      marketId: 'market-1',
+      outcomeId: 'condition-1',
+      outcomeTokenId: 'position-1',
+      outcome: 'Yes',
+      size: 100,
+      price: 0.6,
+      status: 'open',
+      cashPnl: 10,
+      percentPnl: 5,
+      initialValue: 50,
+      avgPrice: 0.5,
+      endDate: '2024-12-31',
+      claimable: false,
       // Add other required properties based on PredictPosition type
     } as PredictPositionType,
     {
+      id: 'position-2',
+      amount: 50,
       conditionId: 'condition-2',
       outcomeIndex: 1,
       icon: 'https://example.com/icon2.png',
+      currentValue: 20,
+      title: 'Position 2',
+      providerId: 'polymarket',
+      marketId: 'market-2',
+      outcomeId: 'condition-2',
+      outcomeTokenId: 'position-2',
+      outcome: 'No',
+      size: 50,
+      price: 0.4,
+      status: 'open',
+      cashPnl: -5,
+      percentPnl: -10,
+      initialValue: 25,
+      avgPrice: 0.5,
+      endDate: '2024-12-31',
+      claimable: true,
     } as PredictPositionType,
     {
+      id: 'position-3',
       conditionId: 'condition-3',
+      amount: 100,
       outcomeIndex: 0,
       icon: 'https://example.com/icon3.png',
+      currentValue: 30,
+      title: 'Position 3',
+      providerId: 'polymarket',
+      marketId: 'market-3',
+      outcomeId: 'condition-3',
+      outcomeTokenId: 'position-3',
+      outcome: 'Yes',
+      size: 100,
+      price: 0.7,
+      status: 'open',
+      cashPnl: 15,
+      percentPnl: 15,
+      initialValue: 30,
+      avgPrice: 0.7,
+      endDate: '2024-12-31',
+      claimable: false,
     } as PredictPositionType,
   ];
 }
@@ -229,6 +290,22 @@ describe('MarketsWonCard', () => {
       renderWithProvider(<MarketsWonCard {...propsWithoutCallback} />);
 
       expect(screen.queryByText('Claim $45.20')).not.toBeOnTheScreen();
+    });
+
+    it('renders claim button correctly with loading states', () => {
+      // Test loading state
+      renderWithProvider(
+        <MarketsWonCard {...createDefaultProps()} isLoading />,
+      );
+
+      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
+
+      // Test non-loading state
+      renderWithProvider(
+        <MarketsWonCard {...createDefaultProps()} isLoading={false} />,
+      );
+
+      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
   });
 

@@ -7,10 +7,7 @@ import type {
   EstimatedPointsDto,
   GetPerpsDiscountDto,
   PerpsDiscountData,
-  LoginDto,
   SeasonStatusDto,
-  GenerateChallengeDto,
-  ChallengeResponseDto,
   SubscriptionReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
@@ -22,11 +19,26 @@ import type {
   PointsBoostEnvelopeDto,
   RewardDto,
   ClaimRewardDto,
+  GetPointsEventsLastUpdatedDto,
+  MobileOptinDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
 import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
+
+/**
+ * Custom error for invalid timestamps
+ */
+export class InvalidTimestampError extends Error {
+  timestamp: number;
+
+  constructor(message: string, timestamp: number) {
+    super(message);
+    this.name = 'InvalidTimestampError';
+    this.timestamp = timestamp;
+  }
+}
 
 const SERVICE_NAME = 'RewardsDataService';
 
@@ -51,6 +63,11 @@ export interface RewardsDataServiceGetPointsEventsAction {
   handler: RewardsDataService['getPointsEvents'];
 }
 
+export interface RewardsDataServiceGetPointsEventsLastUpdatedAction {
+  type: `${typeof SERVICE_NAME}:getPointsEventsLastUpdated`;
+  handler: RewardsDataService['getPointsEventsLastUpdated'];
+}
+
 export interface RewardsDataServiceEstimatePointsAction {
   type: `${typeof SERVICE_NAME}:estimatePoints`;
   handler: RewardsDataService['estimatePoints'];
@@ -60,19 +77,14 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
-export interface RewardsDataServiceOptinAction {
-  type: `${typeof SERVICE_NAME}:optin`;
-  handler: RewardsDataService['optin'];
+export interface RewardsDataServiceMobileOptinAction {
+  type: `${typeof SERVICE_NAME}:mobileOptin`;
+  handler: RewardsDataService['mobileOptin'];
 }
 
 export interface RewardsDataServiceLogoutAction {
   type: `${typeof SERVICE_NAME}:logout`;
   handler: RewardsDataService['logout'];
-}
-
-export interface RewardsDataServiceGenerateChallengeAction {
-  type: `${typeof SERVICE_NAME}:generateChallenge`;
-  handler: RewardsDataService['generateChallenge'];
 }
 
 export interface RewardsDataServiceGetSeasonStatusAction {
@@ -128,13 +140,13 @@ export interface RewardsDataServiceClaimRewardAction {
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
+  | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
-  | RewardsDataServiceOptinAction
+  | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceGenerateChallengeAction
   | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
@@ -192,6 +204,10 @@ export class RewardsDataService {
       this.getPointsEvents.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPointsEventsLastUpdated`,
+      this.getPointsEventsLastUpdated.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
       this.estimatePoints.bind(this),
     );
@@ -200,16 +216,12 @@ export class RewardsDataService {
       this.getPerpsDiscount.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:optin`,
-      this.optin.bind(this),
+      `${SERVICE_NAME}:mobileOptin`,
+      this.mobileOptin.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:logout`,
       this.logout.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:generateChallenge`,
-      this.generateChallenge.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonStatus`,
@@ -358,6 +370,15 @@ export class RewardsDataService {
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
       throw new Error(`Login failed: ${response.status}`);
     }
 
@@ -390,6 +411,27 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PaginatedPointsEventsDto;
+  }
+
+  async getPointsEventsLastUpdated(
+    params: GetPointsEventsLastUpdatedDto,
+  ): Promise<Date | null> {
+    const { seasonId, subscriptionId } = params;
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/points-events/last-updated`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get points events last update failed: ${response.status}`,
+      );
+    }
+    const result = await response.json();
+    return result?.lastUpdated ? new Date(result.lastUpdated) : null;
   }
 
   /**
@@ -461,36 +503,27 @@ export class RewardsDataService {
   }
 
   /**
-   * Generate a challenge for authentication.
-   * @param body - The challenge request body containing the address.
-   * @returns The challenge response DTO.
-   */
-  async generateChallenge(
-    body: GenerateChallengeDto,
-  ): Promise<ChallengeResponseDto> {
-    const response = await this.makeRequest('/auth/challenge/generate', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      throw new Error(`Generate challenge failed: ${response.status}`);
-    }
-
-    return (await response.json()) as ChallengeResponseDto;
-  }
-
-  /**
-   * Perform optin (login) via challenge and signature.
-   * @param body - The login request body containing challengeId, signature, and optional referralCode.
+   * Perform optin via signature for the current account.
+   * @param body - The login request body containing account, timestamp, signature and referral code.
    * @returns The login response DTO.
    */
-  async optin(body: LoginDto): Promise<LoginResponseDto> {
-    const response = await this.makeRequest('/auth/login', {
+  async mobileOptin(body: MobileOptinDto): Promise<LoginResponseDto> {
+    const response = await this.makeRequest('/auth/mobile-optin', {
       method: 'POST',
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      Logger.log('RewardsDataService: mobileOptin errorData', errorData);
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
       throw new Error(`Optin failed: ${response.status}`);
     }
 
@@ -644,7 +677,19 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Mobile join failed: ${response.status}`);
+      const errorData = await response.json();
+      Logger.log('RewardsDataService: mobileJoin errorData', errorData);
+
+      if (errorData?.message?.includes('Invalid timestamp')) {
+        // Retry signing with a new timestamp
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Math.floor(Number(errorData.serverTimestamp) / 1000),
+        );
+      }
+      throw new Error(
+        `Mobile join failed: ${response.status} ${errorData?.message || ''}`,
+      );
     }
 
     return (await response.json()) as SubscriptionDto;

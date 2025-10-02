@@ -28,7 +28,6 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
       {
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-          .ensureMultichainIntroModalSuppressed()
           .build(),
         restartDevice: true,
         testSpecificMock,

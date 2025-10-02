@@ -9,7 +9,6 @@ import { selectConversionRateByChainId } from '../../../../../../../../../select
 import { useTheme } from '../../../../../../../../../util/theme';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import { ButtonIconSizes } from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
   IconName,
@@ -141,7 +140,6 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
                   iconColor={IconColor.Default}
-                  size={ButtonIconSizes.Sm}
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}

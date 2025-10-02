@@ -9,7 +9,7 @@ import {
 } from '../testIDs/BrowserScreen/AddressBar.testIds';
 
 import { BrowserURLBarSelectorsIDs } from '../../../e2e/selectors/Browser/BrowserURLBar.selectors';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 
 class AddressBarScreen {
   get device() {

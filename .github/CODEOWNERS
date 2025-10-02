@@ -82,6 +82,8 @@ app/core/Encryptor/                                         @MetaMask/accounts-e
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
+**/Identity/**                                              @MetaMask/accounts-engineers
+**/identity/**                                              @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
@@ -103,10 +105,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 **/Notification/** @MetaMask/notifications
 **/notifications/** @MetaMask/notifications
 **/notification/** @MetaMask/notifications
-
-# Identity Team
-**/Identity/** @MetaMask/identity
-**/identity/** @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain

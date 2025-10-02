@@ -20,7 +20,6 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { isSwapsAllowed } from '../Swaps/utils';
 import AppConstants from '../../../core/AppConstants';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol } from '../../../util/number';
@@ -51,7 +50,6 @@ export const Result: React.FC<ResultProps> = memo(
 
     const swapsEnabled =
       result.category === UrlAutocompleteCategory.Tokens &&
-      isSwapsAllowed(result.chainId) &&
       AppConstants.SWAPS.ACTIVE;
 
     const currentCurrency = useSelector(selectCurrentCurrency);

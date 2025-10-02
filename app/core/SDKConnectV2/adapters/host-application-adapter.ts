@@ -4,10 +4,8 @@ import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
-import {
-  getPermittedAccounts,
-  removePermittedAccounts,
-} from '../../../core/Permissions';
+import Engine from '../../Engine';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showLoading(): void {
@@ -35,33 +33,43 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     return Promise.resolve();
   }
 
-  syncConnectionList(connections: Connection[]): void {
-    const v2Sessions: SDKSessions = connections.reduce((acc, connection) => {
-      const connectionProps: ConnectionProps & { isV2: boolean } = {
-        id: connection.id,
+  syncConnectionList(conns: Connection[]): void {
+    const v2Sessions: SDKSessions = conns.reduce((acc, conn) => {
+      const props: ConnectionProps & { isV2: boolean } = {
+        id: conn.id,
         otherPublicKey: '',
-        origin: connection.metadata.dapp.url,
+        origin: conn.info.metadata.dapp.url,
         originatorInfo: {
-          title: connection.metadata.dapp.name,
-          url: connection.metadata.dapp.url,
-          icon: connection.metadata.dapp.icon,
-          dappId: connection.metadata.dapp.name,
-          apiVersion: connection.metadata.sdk.version,
-          platform: connection.metadata.sdk.platform,
+          title: conn.info.metadata.dapp.name,
+          url: conn.info.metadata.dapp.url,
+          icon: conn.info.metadata.dapp.icon,
+          dappId: conn.info.metadata.dapp.name,
+          apiVersion: conn.info.metadata.sdk.version,
+          platform: conn.info.metadata.sdk.platform,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };
-      acc[connection.id] = connectionProps;
+      acc[conn.id] = props;
       return acc;
     }, {} as SDKSessions);
 
     store.dispatch(setSdkV2Connections(v2Sessions));
   }
 
+  /**
+   * Revokes {@link Caip25EndowmentPermissionName} permission from a connection / origin.
+   * @param connectionId - The origin of the connection.
+   */
   revokePermissions(connectionId: string): void {
-    const allAccountsForOrigin = getPermittedAccounts(connectionId);
-    if (allAccountsForOrigin.length > 0) {
-      removePermittedAccounts(connectionId, allAccountsForOrigin);
+    try {
+      Engine.context.PermissionController.revokePermission(
+        connectionId,
+        Caip25EndowmentPermissionName,
+      );
+    } catch {
+      console.warn(
+        `[SDKConnectV2] HostApplicationAdapter.revokePermissions called but no ${Caip25EndowmentPermissionName} permission for ${connectionId}.`,
+      );
     }
   }
 }

@@ -36,12 +36,8 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -54,6 +50,7 @@ interface BoostCardProps {
 
 const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -72,6 +69,14 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   // TODO: coordinate backend changes to support other default assets, or go to perps
   const handleBoostTap = () => {
     goToSwaps();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_ACTIVE_BOOST_CLICKED)
+        .addProperties({
+          boost_id: boost.id,
+          boost_name: boost.name,
+        })
+        .build(),
+    );
   };
 
   const renderBoostBadge = () => {
@@ -156,7 +161,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   isLoading,
 }) => (
   <Box>
-    <Box twClassName="flex-row items-center gap-2 items-center">
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.active_boosts_title')}
       </Text>
@@ -255,19 +260,15 @@ const ActiveBoosts: React.FC<{
 
       {/* Show error banner if there's an error */}
       {hasError && !activeBoosts?.length && !isLoading && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
+        <RewardsErrorBanner
           title={strings('rewards.active_boosts_error.error_fetching_title')}
           description={strings(
             'rewards.active_boosts_error.error_fetching_description',
           )}
-          actionButtonProps={{
-            size: ButtonSize.Md,
-            style: tw.style('mt-2'),
-            onPress: fetchActivePointsBoosts,
-            label: strings('rewards.active_boosts_error.retry_button'),
-            variant: ButtonVariants.Primary,
-          }}
+          onConfirm={fetchActivePointsBoosts}
+          confirmButtonLabel={strings(
+            'rewards.active_boosts_error.retry_button',
+          )}
         />
       )}
 

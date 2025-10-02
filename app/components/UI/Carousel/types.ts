@@ -13,7 +13,7 @@ interface NavigationParams {
 
 interface NavigationScreen {
   screen: string;
-  params: NavigationParams;
+  params: NavigationParams | NavigationScreen;
 }
 
 export type NavigationRoute =

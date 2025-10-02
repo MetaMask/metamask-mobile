@@ -9,12 +9,12 @@ import React, {
 import { useDispatch, useSelector } from 'react-redux';
 import {
   OnRampSdk,
-  Environment,
   Context,
   RegionsService,
   CryptoCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
+import { getSdkEnvironment } from './getSdkEnvironment';
 import { getCaipChainIdFromCryptoCurrency } from '../utils';
 
 import Logger from '../../../../../util/Logger';
@@ -44,12 +44,7 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = Environment.Production;
-if (isInternalBuild) {
-  environment = Environment.Staging;
-} else if (isDevelopment) {
-  environment = Environment.Development;
-}
+const environment = getSdkEnvironment();
 
 let context = Context.Mobile;
 if (Device.isAndroid()) {
@@ -90,9 +85,6 @@ export interface RampSDK {
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
-
-  unsupportedRegion?: Region;
-  setUnsupportedRegion: (region?: Region) => void;
 
   selectedPaymentMethodId: string | null;
   setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
@@ -183,7 +175,6 @@ export const RampSDKProvider = ({
   const [rampType, setRampType] = useState(providerRampType ?? RampType.BUY);
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
-  const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
 
   const [intent, setIntent] = useState<RampIntent>();
 
@@ -267,9 +258,6 @@ export const RampSDKProvider = ({
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
 
-      unsupportedRegion,
-      setUnsupportedRegion,
-
       selectedPaymentMethodId,
       setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
@@ -312,7 +300,6 @@ export const RampSDKProvider = ({
       setSelectedFiatCurrencyIdCallback,
       setSelectedPaymentMethodIdCallback,
       setSelectedRegionCallback,
-      unsupportedRegion,
     ],
   );
 

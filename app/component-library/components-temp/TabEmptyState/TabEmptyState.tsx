@@ -23,6 +23,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
   onAction,
   children,
   style,
+  twClassName = '',
   ...props
 }) => (
   <Box
@@ -31,7 +32,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
     justifyContent={BoxJustifyContent.Center}
     backgroundColor={BoxBackgroundColor.BackgroundDefault}
     gap={3}
-    twClassName="max-w-64"
+    twClassName={`max-w-64 ${twClassName}`}
     style={style}
     {...props}
   >

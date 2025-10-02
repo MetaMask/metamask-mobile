@@ -1,3 +1,9 @@
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -8,68 +14,63 @@ import React, {
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  useNavigation,
-  useRoute,
-  type NavigationProp,
-  type RouteProp,
-} from '@react-navigation/native';
+  PerpsClosePositionViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { OrderType, Position } from '../../controllers/types';
+import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
-  usePerpsOrderFees,
-  usePerpsClosePositionValidation,
   usePerpsClosePosition,
-  usePerpsToasts,
+  usePerpsClosePositionValidation,
+  usePerpsOrderFees,
   usePerpsRewards,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
 } from '../../utils/positionCalculations';
-import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
-import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
-import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { createStyles } from './PerpsClosePositionView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import {
-  PerpsClosePositionViewSelectorsIDs,
-  PerpsOrderViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
+import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -79,15 +80,13 @@ const PerpsClosePositionView: React.FC = () => {
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const { position } = route.params as { position: Position };
 
-  const hasTrackedCloseView = useRef(false);
-  const { track } = usePerpsEventTracking();
+  const inputMethodRef = useRef<InputMethod>('default');
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
-    dependencies: [],
+  // Track screen load performance with unified hook (immediate measurement)
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
   });
 
   // State for order type and bottom sheets
@@ -151,7 +150,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = absSize * effectivePrice;
+  const positionValue = useMemo(
+    () => absSize * effectivePrice,
+    [absSize, effectivePrice], // Round to 2 decimal places
+  );
 
   // Calculate P&L based on effective price (limit price for limit orders)
   const entryPrice = parseFloat(position.entryPrice);
@@ -172,30 +174,43 @@ const PerpsClosePositionView: React.FC = () => {
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
-  const closingValue = positionValue * (closePercentage / 100);
+  const closingValue = useMemo(
+    () => positionValue * (closePercentage / 100), // Round to 2 decimal places
+    [positionValue, closePercentage],
+  );
+  const closingValueString = useMemo(
+    () => closingValue.toString(),
+    [closingValue],
+  );
   const feeResults = usePerpsOrderFees({
     orderType,
-    amount: closingValue.toString(),
+    amount: closingValueString,
     isMaker: false, // Closing positions are typically taker orders
     coin: position.coin,
     isClosing: true, // This is a position closing operation
   });
 
   // Simple boolean calculation for rewards state
-  const hasValidAmount = closePercentage > 0 && closingValue > 0;
+  const hasValidAmount = useMemo(
+    () => closePercentage > 0 && closingValue > 0,
+    [closePercentage, closingValue],
+  );
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
     feeResults,
     hasValidAmount,
     isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: closingValue.toString(),
+    orderAmount: closingValueString,
   });
 
-  // Calculate what user will receive (initial margin - fees)
+  // Calculate what user will receive (initial margin + P&L - fees)
   // P&L is already shown separately in the margin section as "includes P&L"
-  const receiveAmount =
-    (closePercentage / 100) * initialMargin - feeResults.totalFee;
+  const receiveAmount = useMemo(() => {
+    const marginPortion = (closePercentage / 100) * initialMargin;
+    const pnlPortion = effectivePnL * (closePercentage / 100);
+    return marginPortion + pnlPortion - feeResults.totalFee;
+  }, [closePercentage, initialMargin, effectivePnL, feeResults.totalFee]);
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -225,36 +240,27 @@ const PerpsClosePositionView: React.FC = () => {
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
 
-  // Track position close screen viewed event
-  useEffect(() => {
-    if (!hasTrackedCloseView.current) {
-      // Calculate unrealized PnL percentage
-      const unrealizedPnlPercent =
-        initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
+  const unrealizedPnlPercent = useMemo(
+    () => (initialMargin > 0 ? (pnl / initialMargin) * 100 : 0),
+    [initialMargin, pnl],
+  );
 
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.DIRECTION]: isLong
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.POSITION_SIZE]: absSize,
-        [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-        [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-        [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
-      });
-      hasTrackedCloseView.current = true;
-    }
-  }, [
-    position.coin,
-    isLong,
-    absSize,
-    pnl,
-    initialMargin,
-    receiveAmount,
-    track,
-  ]);
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]: isLong
+        ? PerpsEventValues.DIRECTION.LONG
+        : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.POSITION_SIZE]: absSize,
+      [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+      [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+    },
+  });
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
@@ -271,37 +277,6 @@ const PerpsClosePositionView: React.FC = () => {
   }, [orderType, limitPrice]);
 
   const handleConfirm = async () => {
-    // Track position close initiated
-    const pnlPercent =
-      initialMargin > 0
-        ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
-        : 0;
-
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
-      [PerpsEventProperties.ASSET]: position.coin,
-      [PerpsEventProperties.DIRECTION]: isLong
-        ? PerpsEventValues.DIRECTION.LONG
-        : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.ORDER_TYPE]: orderType,
-      [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-      [PerpsEventProperties.CLOSE_VALUE]: closingValue,
-      [PerpsEventProperties.PNL_DOLLAR]: effectivePnL * (closePercentage / 100),
-      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
-      [PerpsEventProperties.OPEN_POSITION_SIZE]: absSize,
-      [PerpsEventProperties.ORDER_SIZE]: parseFloat(closeAmount),
-      [PerpsEventProperties.PNL_PERCENT]: pnlPercent,
-      [PerpsEventProperties.FEE]: feeResults.totalFee,
-      [PerpsEventProperties.ASSET_PRICE]: currentPrice,
-      [PerpsEventProperties.LIMIT_PRICE]:
-        orderType === 'limit' ? parseFloat(limitPrice) || null : null,
-    });
-
-    // Track position close submitted
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
-      [PerpsEventProperties.ASSET]: position.coin,
-      [PerpsEventProperties.ORDER_TYPE]: orderType,
-    });
-
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
 
@@ -327,6 +302,7 @@ const PerpsClosePositionView: React.FC = () => {
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
         estimatedPoints: rewardsState.estimatedPoints,
+        inputMethod: inputMethodRef.current,
       },
     );
   };
@@ -337,6 +313,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
@@ -409,6 +386,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     const newPercentage = percentage * 100;
     setClosePercentage(newPercentage);
 
@@ -418,6 +396,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     setClosePercentage(100);
 
     // Update USD input to match calculated value for keypad display consistency
@@ -431,6 +410,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleSliderChange = (value: number) => {
+    inputMethodRef.current = 'slider';
     setClosePercentage(value);
   };
 
@@ -485,9 +465,13 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(initialMargin * (closePercentage / 100), {
-              maximumDecimals: 2,
-            })}
+            {formatPrice(
+              (closePercentage / 100) * initialMargin +
+                effectivePnL * (closePercentage / 100),
+              {
+                maximumDecimals: 2,
+              },
+            )}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
@@ -559,6 +543,38 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
       </View>
+
+      {/* Rewards Points Estimation */}
+      {rewardsState.shouldShowRewardsRow && (
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryLabel}>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('points')}
+              style={styles.labelWithTooltip}
+              testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('perps.estimated_points')}
+              </Text>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.summaryValue}>
+            <RewardPointsDisplay
+              estimatedPoints={rewardsState.estimatedPoints}
+              bonusBips={rewardsState.bonusBips}
+              isLoading={rewardsState.isLoading}
+              hasError={rewardsState.hasError}
+              shouldShow={rewardsState.shouldShowRewardsRow}
+              isRefresh={rewardsState.isRefresh}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 

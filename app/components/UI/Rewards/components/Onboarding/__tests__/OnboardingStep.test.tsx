@@ -21,6 +21,16 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useFocusEffect: jest.fn(),
+}));
+
+// Mock route params
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    referral: undefined,
+    isFromDeeplink: false,
+  }),
 }));
 
 // Mock dispatch
@@ -1077,7 +1087,10 @@ describe('OnboardingStep4', () => {
       );
       fireEvent.press(nextButton);
 
-      expect(mockOptin).toHaveBeenCalledWith({ referralCode: 'TEST123' });
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: 'TEST123',
+        isPrefilled: false,
+      });
     });
 
     it('should show loading state during opt-in', () => {
@@ -1101,16 +1114,6 @@ describe('OnboardingStep4', () => {
       );
       // Button should be disabled - in real implementation this would be tested via accessibility states
       expect(nextButton).toBeDefined();
-    });
-  });
-
-  describe('error handling', () => {
-    it('should display opt-in error when present', () => {
-      mockUseOptin.optinError = 'Something went wrong';
-
-      renderWithProviders(<OnboardingStep4 />);
-
-      expect(screen.getByText('Something went wrong')).toBeDefined();
     });
   });
 

@@ -188,6 +188,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
+      case ToastVariants.App: {
+        const { appIconSource } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariant.Favicon}
+            imageSource={appIconSource}
+            size={AvatarSize.Md}
+            style={styles.avatar}
+          />
+        );
+      }
       case ToastVariants.Icon: {
         const { iconName, iconColor, backgroundColor } = toastOptions;
         return (

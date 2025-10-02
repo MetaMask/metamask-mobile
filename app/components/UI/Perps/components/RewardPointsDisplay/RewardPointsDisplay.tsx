@@ -12,6 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { useRewardsIconAnimation } from '../../../Bridge/hooks/useRewardsIconAnimation';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
@@ -26,7 +27,6 @@ const RewardsIconAnimation = require('../../../../../animations/rewards_icon_ani
 
 const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
   estimatedPoints,
-  bonusBips,
   isLoading = false,
   hasError = false,
   shouldShow = true,
@@ -98,8 +98,12 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
       </View>
     );
   } else if (isLoading || displayState === RewardDisplayState.Loading) {
-    // Show nothing during loading, just icon
-    displayContent = null;
+    // Show loading skeleton
+    displayContent = (
+      <View style={styles.contentContainer}>
+        <Skeleton height={20} width={60} />
+      </View>
+    );
   } else if (
     formattedEstimatedPoints &&
     typeof formattedEstimatedPoints === 'string' &&
@@ -110,11 +114,6 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {formattedEstimatedPoints}
         </Text>
-        {bonusBips && bonusBips > 0 && typeof bonusBips === 'number' ? (
-          <Text variant={TextVariant.BodySM} color={TextColor.Success}>
-            {`+${(bonusBips / 100).toFixed(1)}%`}
-          </Text>
-        ) : null}
       </View>
     );
   }
@@ -136,7 +135,16 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
       />
 
       {/* Points Display Container */}
-      <View style={styles.pointsContainer}>{displayContent}</View>
+      <View
+        style={[
+          styles.pointsContainer,
+          displayState === RewardDisplayState.Loaded
+            ? styles.pointsContainerLoaded
+            : styles.pointsContainerLoading,
+        ]}
+      >
+        {displayContent}
+      </View>
     </View>
   );
 };

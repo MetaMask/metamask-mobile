@@ -10,11 +10,9 @@ import React, {
 import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDepositProviderApiKey } from '../../../../../selectors/featureFlagController/deposit';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
-  SdkEnvironment,
   Context,
   DepositPaymentMethod,
   DepositRegion,
@@ -25,6 +23,7 @@ import {
   resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
+import { getSdkEnvironment } from './getSdkEnvironment';
 import {
   fiatOrdersGetStartedDeposit,
   setFiatOrdersGetStartedDeposit,
@@ -37,6 +36,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -49,7 +49,7 @@ export interface DepositSDK {
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
-  selectedWalletAddress?: string;
+  selectedWalletAddress: string | null;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
   selectedPaymentMethod: DepositPaymentMethod | null;
@@ -58,16 +58,7 @@ export interface DepositSDK {
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
 }
 
-const isDevelopment =
-  process.env.NODE_ENV !== 'production' ||
-  process.env.RAMP_DEV_BUILD === 'true';
-const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
-const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
-
-let environment = SdkEnvironment.Production;
-if (isDevelopmentOrInternalBuild) {
-  environment = SdkEnvironment.Staging;
-}
+const environment = getSdkEnvironment();
 
 const context =
   Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid;
@@ -90,9 +81,6 @@ export const DepositSDKProvider = ({
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
 
-  const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -116,6 +104,10 @@ export const DepositSDKProvider = ({
     useState<DepositPaymentMethod | null>(INITIAL_SELECTED_PAYMENT_METHOD);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
     useState<DepositCryptoCurrency | null>(INITIAL_SELECTED_CRYPTO_CURRENCY);
+
+  const selectedWalletAddress = useRampAccountAddress(
+    selectedCryptoCurrency?.chainId,
+  );
 
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {

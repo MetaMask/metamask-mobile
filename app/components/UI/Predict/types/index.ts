@@ -1,8 +1,19 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
+import { Hex } from '@metamask/utils';
+
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
+}
+
+export enum PredictPriceHistoryInterval {
+  ONE_HOUR = '1h',
+  SIX_HOUR = '6h',
+  ONE_DAY = '1d',
+  ONE_WEEK = '1w',
+  ONE_MONTH = '1m',
+  MAX = 'max',
 }
 
 export interface GetPositionsParams {
@@ -55,6 +66,14 @@ export type PredictOrderStatus =
   | 'cancelled'
   | 'error';
 
+export enum PredictClaimStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictOrder = {
   id: string;
@@ -74,12 +93,24 @@ export type PredictOrder = {
   offchainTradeParams?: OffchainTradeParams;
 };
 
+export type PredictClaim = {
+  positionId: string;
+  chainId: number;
+  status: PredictClaimStatus;
+  txParams: {
+    to: Hex;
+    data: Hex;
+    value: Hex;
+  };
+};
+
 export type PredictMarket = {
   id: string;
   providerId: string;
   slug: string;
   title: string;
   description: string;
+  endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
@@ -155,6 +186,25 @@ export interface PredictActivityClaimWinnings {
   // tbd
 }
 
+export interface PredictPriceHistoryPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface GetPriceHistoryParams {
+  marketId: string;
+  providerId?: string;
+  fidelity?: number;
+  interval?: PredictPriceHistoryInterval;
+}
+
+export enum PredictPositionStatus {
+  OPEN = 'open',
+  REDEEMABLE = 'redeemable',
+  WON = 'won',
+  LOST = 'lost',
+}
+
 export type PredictPosition = {
   id: string;
   providerId: string;
@@ -162,23 +212,22 @@ export type PredictPosition = {
   outcomeId: string;
   outcome: string;
   outcomeTokenId: string;
+  currentValue: number;
   title: string;
   icon: string;
   amount: number;
   price: number;
-  status: 'open' | 'redeemable' | 'won' | 'lost';
+  status: PredictPositionStatus;
   size: number;
   outcomeIndex: number;
   realizedPnl?: number;
-  curPrice: number;
-  conditionId: string;
   percentPnl: number;
   cashPnl: number;
-  redeemable: boolean;
+  claimable: boolean;
   initialValue: number;
   avgPrice: number;
-  currentValue: number;
   endDate: string;
+  negRisk?: boolean;
 };
 
 export type PredictNotification = {
@@ -197,9 +246,14 @@ export interface SellParams {
   position: PredictPosition;
 }
 
+export interface ClaimParams {
+  positions: PredictPosition[];
+}
+
 export type Result<T = void> = {
   success: boolean;
   id?: string;
+  ids?: string[];
   error?: string;
   value?: T;
 };

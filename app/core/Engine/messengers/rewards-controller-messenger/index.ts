@@ -10,8 +10,7 @@ import {
   RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
-  RewardsDataServiceGenerateChallengeAction,
-  RewardsDataServiceOptinAction,
+  RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
@@ -33,6 +32,7 @@ import {
   RewardsDataServiceGetActivePointsBoostsAction,
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
+  RewardsDataServiceGetPointsEventsLastUpdatedAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
@@ -44,12 +44,12 @@ type AllowedActions =
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
+  | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
-  | RewardsDataServiceGenerateChallengeAction
-  | RewardsDataServiceOptinAction
+  | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
@@ -87,12 +87,12 @@ export function getRewardsControllerMessenger(
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
       'RewardsDataService:getPointsEvents',
+      'RewardsDataService:getPointsEventsLastUpdated',
       'RewardsDataService:estimatePoints',
       'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
-      'RewardsDataService:generateChallenge',
-      'RewardsDataService:optin',
+      'RewardsDataService:mobileOptin',
       'RewardsDataService:logout',
       'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',

@@ -72,7 +72,7 @@ describe('formatUtils', () => {
 
   describe('formatRewardsDate', () => {
     it('formats timestamp correctly with default locale', () => {
-      const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
+      const timestamp = new Date('2024-01-15T14:30:00Z');
 
       const result = formatRewardsDate(timestamp);
 
@@ -81,7 +81,7 @@ describe('formatUtils', () => {
 
     it('formats timestamp correctly with custom locale', () => {
       // Given a timestamp and custom locale
-      const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
+      const timestamp = new Date('2024-01-15T14:30:00Z');
       const locale = 'fr-FR';
 
       // When formatting the date
@@ -207,7 +207,7 @@ describe('formatUtils', () => {
         });
       });
 
-      it('returns correct details for perps CLOSE_POSITION event', () => {
+      it('returns correct details for perps CLOSE_POSITION event with zero pnl', () => {
         // Given a PERPS CLOSE_POSITION event
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.CLOSE_POSITION,
@@ -217,6 +217,7 @@ describe('formatUtils', () => {
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
+          pnl: '0',
         });
 
         // When getting event details
@@ -225,7 +226,7 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Closed position',
-          details: '$ETH 1',
+          details: 'ETH $0',
           icon: IconName.Candlestick,
         });
       });
@@ -240,6 +241,7 @@ describe('formatUtils', () => {
             decimals: 18,
             type: 'eip155:1/slip44:0',
           },
+          pnl: '100',
         });
 
         // When getting event details
@@ -248,7 +250,7 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Take profit',
-          details: '$BTC 0.25',
+          details: 'BTC +$100',
           icon: IconName.Candlestick,
         });
       });
@@ -263,6 +265,7 @@ describe('formatUtils', () => {
             decimals: 18,
             type: 'eip155:1/slip44:60',
           },
+          pnl: '1.234',
         });
 
         // When getting event details
@@ -271,7 +274,31 @@ describe('formatUtils', () => {
         // Then it should return perps details
         expect(result).toEqual({
           title: 'Stop loss',
-          details: '$ETH 0.5',
+          details: 'ETH +$1.23',
+          icon: IconName.Candlestick,
+        });
+      });
+
+      it('returns correct details for PERPS STOP_LOSS event with negative pnl', () => {
+        // Given a PERPS STOP_LOSS event
+        const event = createMockEvent('PERPS', {
+          type: PerpsEventType.STOP_LOSS,
+          asset: {
+            symbol: 'ETH',
+            amount: '500000000000000000', // 0.5 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
+          },
+          pnl: '-1.20',
+        });
+
+        // When getting event details
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        // Then it should return perps details
+        expect(result).toEqual({
+          title: 'Stop loss',
+          details: 'ETH -$1.2',
           icon: IconName.Candlestick,
         });
       });

@@ -48,14 +48,13 @@ describe('RewardPointsDisplay', () => {
     expect(getByText("Couldn't load")).toBeTruthy();
   });
 
-  it('renders loaded state with points and discount tag', () => {
+  it('renders loaded state with points', () => {
     const { getByText } = render(
       <RewardPointsDisplay shouldShow estimatedPoints={1344} bonusBips={150} />,
       { wrapper: NavigationWrapper },
     );
 
     expect(getByText('1,344')).toBeTruthy();
-    expect(getByText('+1.5%')).toBeTruthy();
   });
 
   it('renders loading state without points display', () => {

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Box } from '../../../Box/Box';
@@ -24,6 +24,9 @@ export interface BridgeDestNetworkSelectorRouteParams {
 
 const createStyles = () =>
   StyleSheet.create({
+    scrollContainer: {
+      flex: 1,
+    },
     listContent: {
       padding: 8,
     },
@@ -80,7 +83,12 @@ export const BridgeDestNetworkSelector: React.FC = () => {
 
   return (
     <BridgeNetworkSelectorBase>
-      <Box style={styles.listContent}>{renderDestChains()}</Box>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Box style={styles.listContent}>{renderDestChains()}</Box>
+      </ScrollView>
     </BridgeNetworkSelectorBase>
   );
 };

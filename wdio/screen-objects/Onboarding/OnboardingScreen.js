@@ -1,7 +1,8 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class OnBoardingScreen {
@@ -61,8 +62,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
     } else {
-      const button = await this.existingWalletButton;
-      await button.tap();
+      await AppwrightGestures.tap(this.existingWalletButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -70,8 +70,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
-      const button = await this.createNewWalletButton;
-      await button.tap();
+      await AppwrightGestures.tap(this.createNewWalletButton); // Use static tapElement method with retry logic
     }
   }
 }

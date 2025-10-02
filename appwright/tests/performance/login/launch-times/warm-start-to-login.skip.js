@@ -6,7 +6,7 @@ import {
   dismissMultichainAccountsIntroModal,
 } from '../../../../utils/Flows.js';
 
-import AppwrightSelectors from '../../../../../wdio/helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.js';
@@ -32,9 +32,9 @@ test('Measure Warm Start: Warm Start to Login Screen', async ({
   const timer1 = new TimerHelper(
     'Time since the user open the app again and the login screen appears',
   );
-  await AppwrightSelectors.backgroundApp(device, 30);
+  await AppwrightGestures.backgroundApp(device, 30);
   timer1.start();
-  await AppwrightSelectors.activateApp(device);
+  await AppwrightGestures.activateApp(device);
   await dismissMultichainAccountsIntroModal(device);
   await LoginScreen.waitForScreenToDisplay();
   timer1.stop();
