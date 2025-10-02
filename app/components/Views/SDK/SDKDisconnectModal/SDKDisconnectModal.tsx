@@ -113,7 +113,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       } else if (isAccountDisconnect) {
         // This is a pure permission management action.
         removePermittedAccounts(channelId as string, [
-          account,
+          toHex(account as string),
         ]);
         // If it's the last account, escalate to a full session termination.
         if (accountsLength && accountsLength <= 1) {
