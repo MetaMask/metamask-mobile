@@ -82,7 +82,7 @@ const BottomSheetDialog = forwardRef<
     const topOfDialogYValue = useSharedValue(0);
     const bottomOfDialogYValue = useSharedValue(screenHeight);
     const isMounted = useRef(false);
-    const [isDismissing, setIsDismissing] = useState(false);
+    const isDismissing = useRef(false);
 
     const onOpenCB = useCallback(() => {
       onOpen?.();
@@ -93,8 +93,8 @@ const BottomSheetDialog = forwardRef<
 
     const onCloseDialog = useCallback(() => {
       // Guard against multiple dismiss calls during rapid taps
-      if (isDismissing) return;
-      setIsDismissing(true);
+      if (isDismissing.current) return;
+      isDismissing.current = true;
 
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
@@ -102,12 +102,12 @@ const BottomSheetDialog = forwardRef<
         () => {
           runOnJS(onCloseCB)();
           // Reset guard after animation completes
-          runOnJS(setIsDismissing)(false);
+          runOnJS(() => {
+            isDismissing.current = false;
+          })();
         },
       );
-      // isDismissing is intentionally excluded from deps to prevent callback recreation
-      // which would defeat the debounce protection. It's a guard, not a dependency.
-      // Ref values (currentYOffset, bottomOfDialogYValue) do not affect deps.
+      // Ref values do not affect deps.
       /* eslint-disable-next-line react-hooks/exhaustive-deps */
     }, [onCloseCB]);
 
@@ -182,8 +182,8 @@ const BottomSheetDialog = forwardRef<
 
     // Animate in sheet on initial render.
     const onOpenDialog = () => {
-      // Reset dismissing state when opening
-      setIsDismissing(false);
+      // Reset dismissing guard when opening
+      isDismissing.current = false;
       // Starts setting the Y position of the dialog to the bottom of the dialog
       currentYOffset.value = bottomOfDialogYValue.value;
       // Animate the Y position to the top of the dialog, then call onOpenCB
