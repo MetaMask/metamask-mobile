@@ -45,6 +45,7 @@ import {
 } from '../../utils/hyperLiquidValidation';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 import { transformMarketData } from '../../utils/marketDataTransform';
+import { enrichFillsWithTriggerInfo } from '../../utils/triggerDetection';
 import type {
   AccountState,
   AssetRoute,
@@ -1143,7 +1144,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get historical user fills (trade executions)
+   * Get historical user fills (trade executions) with trigger information
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     try {
@@ -1192,7 +1193,99 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return acc;
       }, []);
 
-      return fills;
+      // Enrich fills with trigger information by fetching historical orders
+      // This follows the ChatGPT pattern to determine TP/SL from historicalOrders
+      try {
+        DevLogger.log(
+          'Enriching fills with historical order data for trigger detection',
+        );
+        const historicalOrders = await infoClient.historicalOrders({
+          user: userAddress,
+        });
+
+        DevLogger.log('Historical orders received:', historicalOrders);
+
+        // Transform HyperLiquid orders to abstract Order type for trigger detection
+        const orders: Order[] = (historicalOrders || []).map((rawOrder) => {
+          const { order, status, statusTimestamp } = rawOrder;
+
+          // Normalize side: HyperLiquid uses 'A' (Ask/Sell) and 'B' (Bid/Buy)
+          const normalizedSide = order.side === 'B' ? 'buy' : 'sell';
+
+          // Normalize status
+          let normalizedStatus: Order['status'];
+          switch (status) {
+            case 'open':
+              normalizedStatus = 'open';
+              break;
+            case 'filled':
+              normalizedStatus = 'filled';
+              break;
+            case 'canceled':
+            case 'marginCanceled':
+            case 'vaultWithdrawalCanceled':
+            case 'openInterestCapCanceled':
+            case 'selfTradeCanceled':
+            case 'reduceOnlyCanceled':
+            case 'siblingFilledCanceled':
+            case 'delistedCanceled':
+            case 'liquidatedCanceled':
+            case 'scheduledCancel':
+            case 'reduceOnlyRejected':
+              normalizedStatus = 'canceled';
+              break;
+            case 'rejected':
+              normalizedStatus = 'rejected';
+              break;
+            case 'triggered':
+              normalizedStatus = 'triggered';
+              break;
+            default:
+              normalizedStatus = 'queued';
+          }
+
+          // Calculate filled and remaining size
+          const originalSize = parseFloat(order.origSz || order.sz);
+          const currentSize = parseFloat(order.sz);
+          const filledSize = originalSize - currentSize;
+
+          return {
+            orderId: order.oid?.toString() || '',
+            symbol: order.coin,
+            side: normalizedSide,
+            orderType: order.orderType?.toLowerCase().includes('limit')
+              ? 'limit'
+              : 'market',
+            size: order.sz,
+            originalSize: order.origSz || order.sz,
+            price: order.limitPx || '0',
+            filledSize: filledSize.toString(),
+            remainingSize: currentSize.toString(),
+            status: normalizedStatus,
+            timestamp: statusTimestamp,
+            lastUpdated: statusTimestamp,
+            detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+          };
+        });
+
+        // Enrich fills with trigger information
+        const enrichedFills = enrichFillsWithTriggerInfo(fills, orders);
+
+        DevLogger.log('Fills enriched with trigger information:', {
+          totalFills: enrichedFills.length,
+          triggerFills: enrichedFills.filter(
+            (f) => f.isTakeProfit || f.isStopLoss,
+          ).length,
+        });
+
+        return enrichedFills;
+      } catch (orderError) {
+        DevLogger.log(
+          'Warning: Failed to enrich fills with trigger info, returning basic fills:',
+          orderError,
+        );
+        return fills;
+      }
     } catch (error) {
       DevLogger.log('Error getting user fills:', error);
       return [];

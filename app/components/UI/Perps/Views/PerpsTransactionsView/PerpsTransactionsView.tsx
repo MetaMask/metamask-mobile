@@ -48,7 +48,6 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { enrichFillsWithTriggerInfo } from '../../utils/triggerDetection';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -149,16 +148,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return flattened;
   };
 
-  // Enrich fills with order data to determine TP/SL using our utility function
-  const enrichedFills = useMemo(
-    () => enrichFillsWithTriggerInfo(fillsData || [], ordersData || []),
-    [fillsData, ordersData],
-  );
-
   // Transform raw data from hooks into transaction format
+  // Fills are now pre-enriched with trigger information at the provider level
   const fillTransactions = useMemo(
-    () => transformFillsToTransactions(enrichedFills),
-    [enrichedFills],
+    () => transformFillsToTransactions(fillsData || []),
+    [fillsData],
   );
 
   const orderTransactions = useMemo(
