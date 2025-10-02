@@ -1614,8 +1614,7 @@
     "accept": "Kabul Edin"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "QR kodunu tara",
-    "receive_tab": "QR kodunuz"
+    "scanner_tab": "QR kodunu tara"
   },
   "banner": {
     "bridge": {
