@@ -14,6 +14,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();

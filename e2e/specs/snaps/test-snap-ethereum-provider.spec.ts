@@ -19,6 +19,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,

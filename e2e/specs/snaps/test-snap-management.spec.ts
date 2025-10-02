@@ -16,6 +16,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
