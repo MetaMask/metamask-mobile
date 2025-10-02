@@ -234,14 +234,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       ...testNetworkCaipChainIds,
     ];
 
-    const walletRequest =
-      requestedCaipChainIds.filter(
-        (caipChainId) =>
-          parseCaipChainId(caipChainId).namespace === KnownCaipNamespace.Wallet,
-      ).length > 0;
-
     let additionalChains: CaipChainId[] = [];
-    if (walletRequest && isEip1193Request) {
+    if (isEip1193Request) {
       additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
         requestedNamespacesWithoutWallet.includes(
           parseCaipChainId(caipChainId).namespace,
