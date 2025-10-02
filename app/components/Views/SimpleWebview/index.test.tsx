@@ -57,14 +57,6 @@ describe('SimpleWebview', () => {
     expect(open).toHaveBeenCalled();
   });
 
-  it('should call share function when dispatch is called', () => {
-    mockNavigation.setParams = jest.fn(({ dispatch }) => dispatch());
-    render(<SimpleWebview />);
-
-    const open = jest.spyOn(Share, 'open');
-    expect(open).toHaveBeenCalled();
-  });
-
   it('should log error when share function fails', async () => {
     const log = jest.spyOn(Logger, 'log');
     jest
