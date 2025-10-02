@@ -18,6 +18,12 @@ import {
 } from '../../utils/formatUtils';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
@@ -159,7 +165,12 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
             </Text>
           </View>
           <View style={styles.rightSection}>
-            <Animated.View style={[getBalanceAnimatedStyle]}>
+            <Animated.View
+              style={[
+                getBalanceAnimatedStyle,
+                styles.availableBalanceContainer,
+              ]}
+            >
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
@@ -167,6 +178,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               >
                 {formatPerpsFiat(availableBalance)}
               </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
             </Animated.View>
           </View>
         </TouchableOpacity>
