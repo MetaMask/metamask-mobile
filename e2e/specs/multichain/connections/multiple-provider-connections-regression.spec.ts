@@ -69,7 +69,7 @@ describe(
 
     it('should retain EVM permissions when connecting through the Solana Wallet Standard', async () => {
       await withSolanaAccountEnabled(
-        { evmAccountPermitted: true, skipAccountsCreation: true },
+        { evmAccountPermitted: true },
         async () => {
           await navigateToSolanaTestDApp();
           await connectSolanaTestDapp({
@@ -103,7 +103,6 @@ describe(
         {
           solanaAccountPermitted: true,
           dappVariant: DappVariants.TEST_DAPP,
-          skipAccountsCreation: true,
         },
         async () => {
           await TabBarComponent.tapBrowser();

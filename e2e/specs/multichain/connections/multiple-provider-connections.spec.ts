@@ -92,7 +92,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
       {
         solanaAccountPermitted: true,
         dappVariant: DappVariants.TEST_DAPP,
-        skipAccountsCreation: true,
       },
       async () => {
         await TabBarComponent.tapBrowser();
@@ -133,7 +132,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
       {
         solanaAccountPermitted: true,
         dappVariant: DappVariants.TEST_DAPP,
-        skipAccountsCreation: true,
       },
       async () => {
         await TabBarComponent.tapBrowser();

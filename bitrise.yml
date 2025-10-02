@@ -3802,9 +3802,6 @@ app:
     - opts:
         is_expand: false
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
-    - opts:
-        is_expand: false
-      MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2: true
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
