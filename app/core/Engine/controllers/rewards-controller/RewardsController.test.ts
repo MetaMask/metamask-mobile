@@ -71,6 +71,7 @@ jest.mock('./services/rewards-data-service', () => {
       login: jest.fn(),
     })),
     InvalidTimestampError: actual.InvalidTimestampError,
+    AuthorizationFailedError: actual.AuthorizationFailedError,
   };
 });
 // Mock base58 decode from ethers
@@ -97,6 +98,7 @@ import {
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
+  AuthorizationFailedError,
   InvalidTimestampError,
   RewardsDataService,
 } from './services/rewards-data-service';
@@ -2748,6 +2750,86 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get season status:',
         'Request timed out',
+      );
+    });
+
+    it('should handle 403 error and attempt reauth with active account', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x123',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        if (method === 'AccountsController:getSelectedMultichainAccount') {
+          return Promise.resolve(mockAccount);
+        }
+        return Promise.resolve({});
+      });
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow(
+        'Rewards authorization failed. Please login and try again.',
+      );
+
+      // Verify reauth was attempted with active account
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
       );
     });
 
