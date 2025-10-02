@@ -4,12 +4,12 @@ export function getSdkEnvironment() {
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   switch (metamaskEnvironment) {
     case 'production':
-    case 'beta':
     case 'rc':
+    case 'beta':
+    case 'exp':
       return Environment.Production;
 
     case 'dev':
-    case 'exp':
     case 'test':
     case 'e2e':
     default:

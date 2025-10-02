@@ -14,13 +14,18 @@ describe('getSdkEnvironment', () => {
       expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
+    it('returns Production environment for rc', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
+    });
+
     it('returns Production environment for beta', () => {
       process.env.METAMASK_ENVIRONMENT = 'beta';
       expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('returns Production environment for rc', () => {
-      process.env.METAMASK_ENVIRONMENT = 'rc';
+    it('returns Production environment for exp', () => {
+      process.env.METAMASK_ENVIRONMENT = 'exp';
       expect(getSdkEnvironment()).toBe(Environment.Production);
     });
   });
@@ -28,11 +33,6 @@ describe('getSdkEnvironment', () => {
   describe('Staging environments', () => {
     it('returns Staging environment for dev', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
-    });
-
-    it('returns Staging environment for exp', () => {
-      process.env.METAMASK_ENVIRONMENT = 'exp';
       expect(getSdkEnvironment()).toBe(Environment.Staging);
     });
 
@@ -124,7 +124,7 @@ describe('getSdkEnvironment', () => {
       { env: 'beta', expected: Environment.Production },
       { env: 'rc', expected: Environment.Production },
       { env: 'dev', expected: Environment.Staging },
-      { env: 'exp', expected: Environment.Staging },
+      { env: 'exp', expected: Environment.Production },
       { env: 'test', expected: Environment.Staging },
       { env: 'e2e', expected: Environment.Staging },
     ];
