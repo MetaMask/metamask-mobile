@@ -77,7 +77,6 @@ import {
   CaipChainId,
   KnownCaipNamespace,
   parseCaipChainId,
-  toCaipChainId,
 } from '@metamask/utils';
 import {
   Caip25EndowmentPermissionName,
@@ -99,7 +98,7 @@ import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
-import { TEST_NETWORK_IDS } from '../../../../constants/network.js';
+import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
@@ -184,13 +183,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       Object.entries(networkConfigurations).reduce(
         ([nonTestNetworksList, testNetworksList], [chainId, network]) => {
           const caipChainId = chainId as CaipChainId;
-          const testnetCaipIds = TEST_NETWORK_IDS.map((id) =>
-            toCaipChainId(
-              KnownCaipNamespace.Eip155,
-              parseInt(id, 16).toString(),
-            ),
-          );
-          const isTestNetwork = testnetCaipIds.includes(caipChainId);
+          const isTestNetwork = TESTNET_CAIP_IDS.includes(caipChainId);
           (isTestNetwork ? testNetworksList : nonTestNetworksList).push({
             ...network,
             caipChainId,

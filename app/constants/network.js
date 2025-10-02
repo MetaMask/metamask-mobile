@@ -127,3 +127,7 @@ export const TEST_NETWORK_IDS = [
   NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
   NETWORKS_CHAIN_ID.MONAD_TESTNET,
 ];
+
+export const TESTNET_CAIP_IDS = TEST_NETWORK_IDS.map((id) =>
+  toCaipChainId(KnownCaipNamespace.Eip155, parseInt(id, 16).toString()),
+);
