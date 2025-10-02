@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
 
 // Mock dependencies
 jest.mock('../../hooks/stream', () => ({
@@ -43,7 +43,7 @@ describe('LivePriceHeader', () => {
 
   it('should show placeholders when price data is undefined', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      ETH: undefined,
+      ETH: undefined as unknown as PriceUpdate,
     });
     const { getByText } = render(<LivePriceHeader symbol="ETH" />);
     expect(getByText('$---')).toBeTruthy();
