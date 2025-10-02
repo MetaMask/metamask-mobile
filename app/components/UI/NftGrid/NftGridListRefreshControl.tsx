@@ -1,5 +1,5 @@
 import { RefreshControl } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { useTheme } from '../../../util/theme';
@@ -13,6 +13,7 @@ import { prepareNftDetectionEvents } from '../../../util/assets';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import Logger from '../../../util/Logger';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const NftGridListRefreshControl = () => {
   const { colors } = useTheme();
@@ -38,6 +39,24 @@ const NftGridListRefreshControl = () => {
     }
   }, []);
 
+  const allNetworkClientIds = useMemo(
+    () =>
+      chainIdsToDetectNftsFor.flatMap((chainId) => {
+        if (isNonEvmChainId(chainId)) return [];
+        const entry =
+          Engine.context.NetworkController.getNetworkConfigurationByChainId(
+            chainId,
+          );
+        if (!entry) {
+          return [];
+        }
+        const index = entry.defaultBlockExplorerUrlIndex || 0;
+        const endpoint = entry.rpcEndpoints[index];
+        return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
+      }),
+    [chainIdsToDetectNftsFor],
+  );
+
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
       // Return early if no address selected
@@ -55,12 +74,12 @@ const NftGridListRefreshControl = () => {
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
       ];
-      // TODO juan: might need to add this back
-      //   allNetworkClientIds.forEach((networkClientId) => {
-      //     actions.push(
-      //       NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
-      //     );
-      //   });
+
+      allNetworkClientIds.forEach((networkClientId) => {
+        actions.push(
+          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+        );
+      });
 
       await Promise.allSettled(actions);
       setRefreshing(false);
@@ -89,6 +108,7 @@ const NftGridListRefreshControl = () => {
     });
   }, [
     chainIdsToDetectNftsFor,
+    allNetworkClientIds,
     createEventBuilder,
     getNftDetectionAnalyticsParams,
     selectedAddress,
