@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from 'react';
 import { View, TextInput, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -277,6 +278,22 @@ export const PrivateKeyList = () => {
     [filteredAccounts, renderAddressItem, styles.container],
   );
 
+  const privateKeyBannerDescription = useMemo(
+    () => (
+      <Text variant={TextVariant.BodyMD}>
+        {strings('multichain_accounts.private_key_list.warning_description')}{' '}
+        <Text
+          color={TextColor.Primary}
+          variant={TextVariant.BodyMDBold}
+          onPress={() => Linking.openURL(PRIVATE_KEY_GUIDE_URL)}
+        >
+          {strings('reveal_credential.learn_more')}
+        </Text>
+      </Text>
+    ),
+    [],
+  );
+
   return (
     <BottomSheet style={styles.bottomSheetContent} ref={sheetRef}>
       <Fragment>
@@ -285,14 +302,7 @@ export const PrivateKeyList = () => {
           variant={BannerVariant.Alert}
           severity={BannerAlertSeverity.Error}
           title={strings('multichain_accounts.private_key_list.warning_title')}
-          description={`${strings(
-            'multichain_accounts.private_key_list.warning_description',
-          )}`}
-          actionButtonProps={{
-            variant: ButtonVariants.Link,
-            label: strings('reveal_credential.learn_more'),
-            onPress: () => Linking.openURL(PRIVATE_KEY_GUIDE_URL),
-          }}
+          description={privateKeyBannerDescription}
           style={styles.banner}
           testID={PrivateKeyListIds.BANNER}
         />
