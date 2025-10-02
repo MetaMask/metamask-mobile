@@ -21,12 +21,10 @@ const styleSheet = (params: { theme: Theme; vars: TagStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor: theme.colors.background.default,
-        borderColor: theme.colors.border.default,
-        borderWidth: 1,
-        borderRadius: 10,
+        backgroundColor: theme.colors.background.section,
+        borderRadius: 4,
         height: 24,
-        paddingHorizontal: 4,
+        paddingHorizontal: 8,
         justifyContent: 'center',
       } as ViewStyle,
       style,
