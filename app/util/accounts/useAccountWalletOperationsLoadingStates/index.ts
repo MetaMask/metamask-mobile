@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { useAccountsOperationsLoadingStates } from '../useAccountsOperationsLoadingStates';
 import { AccountWalletId } from '@metamask/account-api';
+import { strings } from '../../../../locales/i18n';
 import { selectWalletStatus } from '../../../selectors/multichainAccounts/accountTreeController';
 
 export const useAccountWalletOperationsLoadingStates = (
@@ -25,11 +26,17 @@ export const useAccountWalletOperationsLoadingStates = (
     if (walletStatus !== null) {
       switch (walletStatus) {
         case 'in-progress:alignment':
-          return 'Alignment in progress...';
+          // We use the same copy as discovery for this one, mainly cause alignment is
+          // an internal and technical operation.
+          return strings(
+            'multichain_accounts.wallet_details.discovering_accounts',
+          );
         case 'in-progress:discovery':
-          return 'Discovery in progress...';
+          return strings(
+            'multichain_accounts.wallet_details.discovering_accounts',
+          );
         case 'in-progress:create-accounts':
-          return 'Creating accounts...';
+          return strings('multichain_accounts.wallet_details.creating_account');
         default:
           return undefined;
       }
@@ -42,10 +49,13 @@ export const useAccountWalletOperationsLoadingStates = (
     walletStatus,
   ]);
 
+  // If we have any valid message, then the wallet is busy with an operation.
+  const isWalletOperationLoading = loadingMessage?.length > 0;
+
   // If there's any valid loading message, then an operation is on-going.
   const areAnyOperationsLoading = useMemo(
-    () => areAnyAccountsOperationsLoading || loadingMessage,
-    [areAnyAccountsOperationsLoading, loadingMessage],
+    () => areAnyAccountsOperationsLoading || isWalletOperationLoading,
+    [areAnyAccountsOperationsLoading, isWalletOperationLoading],
   );
 
   return {
