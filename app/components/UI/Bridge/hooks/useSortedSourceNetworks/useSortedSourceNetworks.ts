@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
-import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { selectLastSelectedEvmAccount } from '../../../../selectors/accountsController';
+import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
+import { useGetFormattedTokensPerChain } from '../../../../hooks/useGetFormattedTokensPerChain';
+import { useGetTotalFiatBalanceCrossChains } from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
+import { selectLastSelectedEvmAccount } from '../../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
-import { useTokensWithBalance } from './useTokensWithBalance';
+import { useTokensWithBalance } from '../useTokensWithBalance';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 export const useSortedSourceNetworks = () => {
