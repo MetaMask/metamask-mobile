@@ -1891,6 +1891,7 @@ describe('PerpsClosePositionView', () => {
           feeDiscountPercentage: undefined,
           metamaskFee: 0,
           estimatedPoints: undefined,
+          inputMethod: 'default',
         },
       );
     });

@@ -30,7 +30,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { OrderType, Position } from '../../controllers/types';
+import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
@@ -81,6 +81,7 @@ const PerpsClosePositionView: React.FC = () => {
   const { position } = route.params as { position: Position };
 
   const hasTrackedCloseView = useRef(false);
+  const inputMethodRef = useRef<InputMethod>('default');
   const { track } = usePerpsEventTracking();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -249,7 +250,9 @@ const PerpsClosePositionView: React.FC = () => {
       const unrealizedPnlPercent =
         initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
 
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.DIRECTION]: isLong
           ? PerpsEventValues.DIRECTION.LONG
@@ -294,7 +297,8 @@ const PerpsClosePositionView: React.FC = () => {
         ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
         : 0;
 
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.DIRECTION]: isLong
         ? PerpsEventValues.DIRECTION.LONG
@@ -314,7 +318,8 @@ const PerpsClosePositionView: React.FC = () => {
     });
 
     // Track position close submitted
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUBMITTED,
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.ORDER_TYPE]: orderType,
     });
@@ -344,6 +349,7 @@ const PerpsClosePositionView: React.FC = () => {
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
         estimatedPoints: rewardsState.estimatedPoints,
+        inputMethod: inputMethodRef.current,
       },
     );
   };
@@ -354,6 +360,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
@@ -426,6 +433,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     const newPercentage = percentage * 100;
     setClosePercentage(newPercentage);
 
@@ -435,6 +443,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     setClosePercentage(100);
 
     // Update USD input to match calculated value for keypad display consistency
@@ -448,6 +457,7 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleSliderChange = (value: number) => {
+    inputMethodRef.current = 'slider';
     setClosePercentage(value);
   };
 

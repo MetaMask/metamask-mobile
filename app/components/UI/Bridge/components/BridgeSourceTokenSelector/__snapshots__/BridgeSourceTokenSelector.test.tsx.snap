@@ -525,11 +525,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             </View>
                           </View>
                           <View
-                            gap={16}
+                            gap={20}
                             style={
                               [
                                 {
-                                  "gap": 16,
+                                  "gap": 20,
                                 },
                                 {
                                   "paddingHorizontal": 16,
@@ -739,10 +739,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
+                                  "backgroundColor": "#f3f5f9",
                                   "borderColor": "#b7bbc8",
-                                  "borderRadius": 8,
-                                  "borderWidth": 1,
+                                  "borderRadius": 12,
+                                  "borderWidth": 0,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
@@ -787,6 +787,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Enter token name or paste address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -897,6 +898,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               showsHorizontalScrollIndicator={false}
                               showsVerticalScrollIndicator={true}
                               stickyHeaderIndices={[]}
+                              style={
+                                {
+                                  "marginTop": 10,
+                                }
+                              }
                               viewabilityConfigCallbackPairs={[]}
                               windowSize={10}
                             >
@@ -1130,9 +1136,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           </Text>
                                         </View>
                                         <View
+                                          gap={4}
                                           style={
                                             [
-                                              {},
+                                              {
+                                                "gap": 4,
+                                              },
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1145,8 +1154,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1158,7 +1167,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#686e7d",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1402,9 +1411,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           </Text>
                                         </View>
                                         <View
+                                          gap={4}
                                           style={
                                             [
-                                              {},
+                                              {
+                                                "gap": 4,
+                                              },
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1417,8 +1429,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1430,7 +1442,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#686e7d",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1508,10 +1520,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -1706,9 +1716,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           </Text>
                                         </View>
                                         <View
+                                          gap={4}
                                           style={
                                             [
-                                              {},
+                                              {
+                                                "gap": 4,
+                                              },
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1721,8 +1734,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1734,7 +1747,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#686e7d",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1978,9 +1991,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           </Text>
                                         </View>
                                         <View
+                                          gap={4}
                                           style={
                                             [
-                                              {},
+                                              {
+                                                "gap": 4,
+                                              },
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -1993,8 +2009,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -2006,7 +2022,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#686e7d",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -2084,10 +2100,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -2282,9 +2296,12 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           </Text>
                                         </View>
                                         <View
+                                          gap={4}
                                           style={
                                             [
-                                              {},
+                                              {
+                                                "gap": 4,
+                                              },
                                               {
                                                 "alignItems": "flex-end",
                                                 "flex": 1,
@@ -2297,8 +2314,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -2310,7 +2327,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#686e7d",
                                                 "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
