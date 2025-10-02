@@ -3,11 +3,15 @@ import Engine from '../../Engine';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { ConnectionInfo } from '../types/connection-info';
 import { RPCBridgeAdapter } from './rpc-bridge-adapter';
-import { whenEngineReady } from '../utils/is-engine-ready';
+import { whenEngineReady } from '../utils/when-engine-ready';
+import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
 
 jest.mock('../../BackgroundBridge/BackgroundBridge');
-jest.mock('../utils/is-engine-ready', () => ({
+jest.mock('../utils/when-engine-ready', () => ({
   whenEngineReady: jest.fn(),
+}));
+jest.mock('../utils/when-onboarding-complete', () => ({
+  whenOnboardingComplete: jest.fn(),
 }));
 jest.mock('../../Engine', () => ({
   controllerMessenger: {
@@ -23,6 +27,7 @@ jest.mock('../../Engine', () => ({
 
 const MockedBackgroundBridge = BackgroundBridge as any;
 const mockedWhenEngineReady = whenEngineReady as jest.Mock;
+const mockedWhenOnboardingComplete = whenOnboardingComplete as jest.Mock;
 const mockedEngine = Engine as any;
 
 describe('RPCBridgeAdapter', () => {
@@ -55,6 +60,7 @@ describe('RPCBridgeAdapter', () => {
 
     mockedEngine.controllerMessenger = mockMessenger;
     mockedWhenEngineReady.mockResolvedValue(undefined);
+    mockedWhenOnboardingComplete.mockResolvedValue(undefined);
 
     // Capture the instance and sendMessage callback from the mock constructor
     MockedBackgroundBridge.mockImplementation((args: any) => {

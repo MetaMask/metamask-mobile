@@ -6030,8 +6030,8 @@
     }
   },
   "time": {
-    "minutes_format": "{{count}} minute",
-    "minutes_format_plural": "{{count}} minutes"
+    "minutes_format": "{{count}} minute",
+    "minutes_format_plural": "{{count}} minutes"
   },
   "transaction_details": {
     "title": {
