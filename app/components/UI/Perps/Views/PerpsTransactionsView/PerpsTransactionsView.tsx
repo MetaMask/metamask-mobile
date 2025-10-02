@@ -148,10 +148,37 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return flattened;
   };
 
+  // Create a map of orderId to order for fast lookup
+  const orderMap = useMemo(() => {
+    const map = new Map<string, (typeof ordersData)[0]>();
+    (ordersData || []).forEach((order) => {
+      map.set(order.orderId, order);
+    });
+    return map;
+  }, [ordersData]);
+
+  // Enrich fills with order data to determine TP/SL
+  const enrichedFills = useMemo(
+    () =>
+      (fillsData || []).map((fill) => {
+        const enrichedFill = { ...fill };
+
+        // Cross-reference with historical orders
+        const matchingOrder = orderMap.get(fill.orderId);
+        if (matchingOrder?.detailedOrderType) {
+          // Add the detailed order type to the fill
+          enrichedFill.detailedOrderType = matchingOrder.detailedOrderType;
+        }
+
+        return enrichedFill;
+      }),
+    [fillsData, orderMap],
+  );
+
   // Transform raw data from hooks into transaction format
   const fillTransactions = useMemo(
-    () => transformFillsToTransactions(fillsData || []),
-    [fillsData],
+    () => transformFillsToTransactions(enrichedFills),
+    [enrichedFills],
   );
 
   const orderTransactions = useMemo(

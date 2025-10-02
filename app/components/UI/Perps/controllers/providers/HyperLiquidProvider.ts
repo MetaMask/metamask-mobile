@@ -1179,6 +1179,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
             pnl: fill.closedPnl,
             direction: fill.dir,
             success: true,
+            liquidation: fill.liquidation
+              ? {
+                  liquidatedUser: fill.liquidation.liquidatedUser,
+                  markPx: fill.liquidation.markPx,
+                  method: fill.liquidation.method,
+                }
+              : undefined,
           });
         }
 
@@ -1270,6 +1277,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           status: normalizedStatus,
           timestamp: statusTimestamp,
           lastUpdated: statusTimestamp,
+          detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
         };
       });
 

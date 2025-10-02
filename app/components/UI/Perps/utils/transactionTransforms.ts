@@ -25,8 +25,9 @@ export function transformFillsToTransactions(
       timestamp,
       feeToken,
       pnl,
+      liquidation,
+      detailedOrderType,
     } = fill;
-
     const [part1, part2] = direction ? direction.split(' ') : [];
     const isOpened = part1 === 'Open';
     const isClosed = part1 === 'Close';
@@ -90,6 +91,10 @@ export function transformFillsToTransactions(
       isPositive = false; // Default to false for unknown cases
     }
 
+    const isLiquidation = Boolean(liquidation);
+    const isTakeProfit = Boolean(detailedOrderType?.includes('Take Profit'));
+    const isStopLoss = Boolean(detailedOrderType?.includes('Stop'));
+
     acc.push({
       id: orderId || `fill-${timestamp}`,
       type: 'trade',
@@ -118,6 +123,10 @@ export function transformFillsToTransactions(
         points: '0', // Points feature not activated yet
         feeToken,
         action,
+        liquidation,
+        isLiquidation,
+        isTakeProfit,
+        isStopLoss,
       },
     });
     return acc;

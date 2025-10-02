@@ -4443,5 +4443,60 @@ describe('HyperLiquidProvider', () => {
       const result = testableProvider.isFeeCacheValid('0xnonexistent');
       expect(result).toBe(false);
     });
+
+    it('should transform fill data with liquidation information', async () => {
+      // Mock fill with liquidation data
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 123,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0.1',
+            px: '45000',
+            fee: '5',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '-500',
+            dir: 'Close Long',
+            liquidation: {
+              liquidatedUser: '0x123',
+              markPx: '44900',
+              method: 'market',
+            },
+          },
+        ]),
+      });
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills[0].liquidation).toEqual({
+        liquidatedUser: '0x123',
+        markPx: '44900',
+        method: 'market',
+      });
+    });
+
+    it('should handle fills without liquidation data', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 124,
+            coin: 'ETH',
+            side: 'B',
+            sz: '1.0',
+            px: '3000',
+            fee: '3',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '100',
+            dir: 'Open Long',
+          },
+        ]),
+      });
+
+      const fills = await provider.getOrderFills();
+      expect(fills[0].liquidation).toBeUndefined();
+    });
   });
 });
