@@ -105,8 +105,10 @@ const BottomSheetDialog = forwardRef<
           runOnJS(setIsDismissing)(false);
         },
       );
-      // Ref values do not affect deps.
-      /* eslint-disable-next-line */
+      // isDismissing is intentionally excluded from deps to prevent callback recreation
+      // which would defeat the debounce protection. It's a guard, not a dependency.
+      // Ref values (currentYOffset, bottomOfDialogYValue) do not affect deps.
+      /* eslint-disable-next-line react-hooks/exhaustive-deps */
     }, [onCloseCB]);
 
     const gestureHandler = useAnimatedGestureHandler<
