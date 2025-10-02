@@ -14,8 +14,6 @@ import {
   ARBITRUM_USDC_ADDRESS,
   PERPS_MINIMUM_DEPOSIT,
 } from '../../../constants/perps';
-import { usePerpsMeasurement } from '../../../../../UI/Perps/hooks';
-import { PerpsMeasurementName } from '../../../../../UI/Perps/constants/performanceMetrics';
 
 export function usePerpsDepositView({
   isKeyboardVisible,
@@ -39,18 +37,6 @@ export function usePerpsDepositView({
   const isFullView =
     !isKeyboardVisible &&
     (isQuotesLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0);
-
-  // Track quote received performance
-  usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.QUOTE_RECEIVED,
-    conditions: [!!(quotes && quotes.length > 0), !isQuotesLoading],
-  });
-
-  // Track source token list loaded performance
-  usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED,
-    conditions: [!!(sourceAmounts && sourceAmounts.length > 0)],
-  });
 
   useAutomaticTransactionPayToken({
     balanceOverrides: [
