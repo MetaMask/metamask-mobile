@@ -165,12 +165,8 @@ export const useAssetBalance = (
                   { minimumFractionDigits: 0, maximumFractionDigits: 5 },
                 )
               : zeroBalanceFormatted,
-          rawTokenBalance: isNaN(parsedBalance)
-            ? undefined
-            : parseFloat(String(parsedBalance).replace(/[^0-9.]/g, '')),
-          rawFiatNumber: isNaN(parsedFiat)
-            ? undefined
-            : parseFloat(String(parsedFiat).replace(/[^0-9.]/g, '')),
+          rawTokenBalance: isNaN(parsedBalance) ? undefined : parsedBalance,
+          rawFiatNumber: isNaN(parsedFiat) ? undefined : parsedFiat,
         };
       }
 
@@ -187,11 +183,7 @@ export const useAssetBalance = (
           rawTokenBalance: derived.balance
             ? parseFloat(String(derived.balance).replace(/[^0-9.]/g, ''))
             : undefined,
-          rawFiatNumber: derived.balanceFiatCalculation
-            ? parseFloat(
-                String(derived.balanceFiatCalculation).replace(/[^0-9.]/g, ''),
-              )
-            : undefined,
+          rawFiatNumber: derived.balanceFiatCalculation,
         };
       }
 
