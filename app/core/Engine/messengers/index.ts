@@ -50,6 +50,7 @@ import {
   getPermissionControllerMessenger,
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
+import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -85,6 +86,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PreferencesController: {
+    getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
   SignatureController: {

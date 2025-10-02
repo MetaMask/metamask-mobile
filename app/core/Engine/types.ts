@@ -702,6 +702,7 @@ export type ControllersToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
