@@ -623,7 +623,8 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -1329,7 +1330,8 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -2231,7 +2233,8 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3377,7 +3380,8 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -4124,7 +4128,8 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -4959,7 +4964,8 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"

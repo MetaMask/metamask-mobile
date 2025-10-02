@@ -623,7 +623,8 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -1560,7 +1561,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -2497,7 +2499,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3434,7 +3437,8 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"

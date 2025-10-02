@@ -809,7 +809,8 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="token-select-modal-search-input"
