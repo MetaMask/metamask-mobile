@@ -35,27 +35,45 @@ const mockSignPersonalMessage = Engine.context.KeyringController
   .signPersonalMessage as jest.Mock;
 const mockQuery = query as jest.Mock;
 
+const TEST_ADDRESS = '0x1234567890123456789012345678901234567890' as const;
+const TEST_SAFE_ADDRESS = '0x9999999999999999999999999999999999999999' as const;
+const TEST_TO_ADDRESS = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382' as const;
+
+function buildSigner({
+  address = TEST_ADDRESS,
+  signPersonalMessage = mockSignPersonalMessage,
+}: Partial<Signer> = {}): Signer {
+  return {
+    address,
+    signPersonalMessage,
+    signTypedMessage: jest.fn(),
+  };
+}
+
+function mockNetworkController() {
+  const mockProvider = {};
+  mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+  mockGetNetworkClientById.mockReturnValue({
+    provider: mockProvider,
+  });
+  return mockProvider;
+}
+
+function setupMocksForFeeAuth() {
+  mockNetworkController();
+  mockQuery
+    .mockResolvedValueOnce(
+      '0x0000000000000000000000000000000000000000000000000000000000000001',
+    )
+    .mockResolvedValueOnce(
+      '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+    );
+  mockSignPersonalMessage.mockResolvedValue(
+    '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+  );
+}
+
 describe('safe utils', () => {
-  function buildSigner({
-    address = '0x1234567890123456789012345678901234567890',
-    signPersonalMessage = mockSignPersonalMessage,
-  }: Partial<Signer> = {}): Signer {
-    return {
-      address,
-      signPersonalMessage,
-      signTypedMessage: jest.fn(),
-    };
-  }
-
-  function mockNetworkController() {
-    const mockProvider = {};
-    mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
-    mockGetNetworkClientById.mockReturnValue({
-      provider: mockProvider,
-    });
-    return mockProvider;
-  }
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -70,7 +88,7 @@ describe('safe utils', () => {
 
       const safeAddress = await computeSafeAddress(signer);
 
-      expect(safeAddress).toBe('0x9999999999999999999999999999999999999999');
+      expect(safeAddress).toBe(TEST_SAFE_ADDRESS);
     });
 
     it('calls Safe Factory computeProxyAddress function', async () => {
@@ -124,29 +142,17 @@ describe('safe utils', () => {
   });
 
   describe('createSafeFeeAuthorization', () => {
-    it('creates fee authorization with correct structure', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(1000000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000001',
-        )
-        .mockResolvedValueOnce(
-          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+    const testParams = {
+      signer: buildSigner(),
+      safeAddress: TEST_SAFE_ADDRESS,
+      amount: BigInt(1000000),
+      to: TEST_TO_ADDRESS,
+    };
 
-      const feeAuth = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
-      });
+    it('creates fee authorization with correct structure', async () => {
+      setupMocksForFeeAuth();
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
 
       expect(feeAuth).toHaveProperty('type', 'safe-transaction');
       expect(feeAuth).toHaveProperty('authorization');
@@ -155,112 +161,42 @@ describe('safe utils', () => {
     });
 
     it('encodes ERC20 transfer correctly', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(500000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000001',
-        )
-        .mockResolvedValueOnce(
-          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
       const feeAuth = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
+        ...testParams,
+        amount: BigInt(500000),
       });
 
       const expectedTransferData = new Interface([
         'function transfer(address to, uint256 amount)',
-      ]).encodeFunctionData('transfer', [to, amount]);
+      ]).encodeFunctionData('transfer', [TEST_TO_ADDRESS, BigInt(500000)]);
       expect(feeAuth.authorization.tx.data).toBe(expectedTransferData);
     });
 
     it('sets operation type to Call', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(250000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000001',
-        )
-        .mockResolvedValueOnce(
-          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
       const feeAuth = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
+        ...testParams,
+        amount: BigInt(250000),
       });
 
       expect(feeAuth.authorization.tx.operation).toBe(OperationType.Call);
     });
 
     it('uses MATIC_CONTRACTS.collateral as token address', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(750000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000001',
-        )
-        .mockResolvedValueOnce(
-          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
-      const feeAuth = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
-      });
+      const feeAuth = await createSafeFeeAuthorization(testParams);
 
       expect(feeAuth.authorization.tx.to).toBe(MATIC_CONTRACTS.collateral);
     });
 
     it('signs the Safe transaction', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(1500000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000002',
-        )
-        .mockResolvedValueOnce(
-          '0x1234567812345678123456781234567812345678123456781234567812345678',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
-      const feeAuth = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
-      });
+      const feeAuth = await createSafeFeeAuthorization(testParams);
 
       expect(mockSignPersonalMessage).toHaveBeenCalled();
       expect(feeAuth.authorization.sig).toBeTruthy();
@@ -268,95 +204,38 @@ describe('safe utils', () => {
     });
 
     it('returns SafeFeeAuthorization type', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(2000000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000003',
-        )
-        .mockResolvedValueOnce(
-          '0xfedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcbafabc',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
-      const feeAuth = await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
-      });
+      const feeAuth = await createSafeFeeAuthorization(testParams);
 
       expect(feeAuth.authorization.tx.value).toBe('0');
       expect(typeof feeAuth.authorization.sig).toBe('string');
     });
 
     it('calls Safe contract for nonce', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(3000000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000005',
-        )
-        .mockResolvedValueOnce(
-          '0xaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
-      await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
-      });
+      await createSafeFeeAuthorization(testParams);
 
       expect(mockQuery).toHaveBeenCalledWith(
         expect.any(EthQuery),
         'call',
         expect.arrayContaining([
           expect.objectContaining({
-            to: safeAddress,
+            to: TEST_SAFE_ADDRESS,
           }),
         ]),
       );
     });
 
     it('calls Safe contract for transaction hash', async () => {
-      const signer = buildSigner();
-      const safeAddress = '0x9999999999999999999999999999999999999999';
-      const amount = BigInt(4000000);
-      const to = '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
-      mockNetworkController();
-      mockQuery
-        .mockResolvedValueOnce(
-          '0x0000000000000000000000000000000000000000000000000000000000000001',
-        )
-        .mockResolvedValueOnce(
-          '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
-        );
-      mockSignPersonalMessage.mockResolvedValue(
-        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
-      );
+      setupMocksForFeeAuth();
 
-      await createSafeFeeAuthorization({
-        safeAddress,
-        signer,
-        amount,
-        to,
-      });
+      await createSafeFeeAuthorization(testParams);
 
       expect(mockQuery).toHaveBeenCalledTimes(2);
       const secondCallArgs = mockQuery.mock.calls[1];
-      expect(secondCallArgs[2][0].to).toBe(safeAddress);
+      expect(secondCallArgs[2][0].to).toBe(TEST_SAFE_ADDRESS);
     });
   });
 });
