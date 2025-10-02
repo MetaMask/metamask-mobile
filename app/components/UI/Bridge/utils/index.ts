@@ -74,10 +74,6 @@ export function normalizeToCaipAssetType(
   address: string,
   chainId: Hex | CaipChainId,
 ): string {
-  if (!isNonEvmChainId(chainId)) {
-    throw new Error(`Chain ID is not a non-EVM chain ID: ${chainId}`);
-  }
-
   if (isCaipAssetType(address)) {
     return address;
   }
@@ -87,5 +83,17 @@ export function normalizeToCaipAssetType(
     return nativeSourceToken.address;
   }
 
-  return `${chainId}/token:${address}`;
+  // https://namespaces.chainagnostic.org/solana/caip19
+  if (isSolanaChainId(chainId)) {
+    return `${chainId}/token:${address}`;
+  }
+
+  // https://chainagnostic.org/CAIPs/caip-19
+  const isEvmChainId = !isNonEvmChainId(chainId);
+  if (isEvmChainId) {
+    return `${chainId}/erc20:${address}`;
+  }
+
+  // This should cover currently supported chains, Bitcoin only has the native asset
+  throw new Error(`Invalid chain ID: ${chainId}`);
 }

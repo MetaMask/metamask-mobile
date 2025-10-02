@@ -21,6 +21,8 @@ import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/AppConstants', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../core/AppConstants'),
   BRIDGE: {
     ACTIVE: true,
   },
