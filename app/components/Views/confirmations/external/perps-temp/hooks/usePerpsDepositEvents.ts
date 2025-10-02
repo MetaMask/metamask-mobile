@@ -48,15 +48,19 @@ export function usePerpsDepositEvents({
 
   // Track funding input viewed on mount
   useEffect(() => {
-    track(MetaMetricsEvents.PERPS_FUNDING_INPUT_VIEWED, {
+    track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.DEPOSIT_INPUT,
       [PerpsEventProperties.SOURCE]: source,
     });
   }, [track, source]);
 
-  // Track funding review viewed when transaction details are ready to review
+  // Track funding review viewed when transaction details are ready to review (main's consolidated event)
   useEffect(() => {
     if (isFullView && isPayTokenSelected) {
-      track(MetaMetricsEvents.PERPS_FUNDING_REVIEW_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.DEPOSIT_REVIEW,
         [PerpsEventProperties.SOURCE]: source,
       });
     }

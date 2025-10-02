@@ -398,12 +398,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     }
   }, [isVisible, initialLeverage]);
 
-  // Track leverage screen viewed event - declarative
+  // Track leverage screen viewed event - declarative (main's consolidated event)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [isVisible],
     resetConditions: [!isVisible], // Auto-reset when modal closes
     properties: {
+      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.LEVERAGE,
       [PerpsEventProperties.ASSET]: asset,
       [PerpsEventProperties.DIRECTION]:
         direction === 'long'

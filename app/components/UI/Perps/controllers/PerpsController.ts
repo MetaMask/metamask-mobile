@@ -1621,6 +1621,8 @@ export class PerpsController extends BaseController<
    * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
+    const startTime = performance.now();
+
     trace({
       name: TraceName.PerpsWithdraw,
       op: TraceOperation.PerpsOperation,
@@ -1684,6 +1686,20 @@ export class PerpsController extends BaseController<
           withdrawalId: result.withdrawalId,
         });
 
+        // Track withdrawal transaction executed
+        const completionDuration = performance.now() - startTime;
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            })
+            .build(),
+        );
+
         // Note: The withdrawal result will be cleared by usePerpsWithdrawStatus hook
         // after showing the appropriate toast messages
 
@@ -1722,6 +1738,22 @@ export class PerpsController extends BaseController<
         params,
       });
 
+      // Track withdrawal transaction failed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+          })
+          .build(),
+      );
+
       endTrace({
         name: TraceName.PerpsWithdraw,
         data: {
@@ -1755,6 +1787,21 @@ export class PerpsController extends BaseController<
           error: errorMessage,
         };
       });
+
+      // Track withdrawal transaction failed (catch block)
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          })
+          .build(),
+      );
 
       endTrace({
         name: TraceName.PerpsWithdraw,

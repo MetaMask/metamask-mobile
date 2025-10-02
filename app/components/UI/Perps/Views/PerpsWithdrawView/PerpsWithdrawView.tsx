@@ -39,6 +39,10 @@ import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   usePerpsMeasurement,
@@ -91,7 +95,6 @@ const PerpsWithdrawView: React.FC = () => {
     useState<string>('');
 
   // Hooks
-  const { track: trackEvent } = usePerpsEventTracking();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { account } = usePerpsLiveAccount();
 
@@ -154,9 +157,13 @@ const PerpsWithdrawView: React.FC = () => {
     ],
   });
 
-  // Track withdrawal input screen viewed - declarative
+  // Track withdrawal input screen viewed - declarative (main's consolidated event)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
+    },
   });
 
   useEffect(() => {
@@ -238,9 +245,6 @@ const PerpsWithdrawView: React.FC = () => {
     if (!hasValidInputs || isSubmittingTx) return;
 
     setIsSubmittingTx(true);
-    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
-      amount: withdrawAmountDetailed,
-    });
 
     // Show processing toast immediately
     showToast(
@@ -278,18 +282,8 @@ const PerpsWithdrawView: React.FC = () => {
       });
 
       if (result.success) {
-        // Track withdrawal completed
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
-          amount: withdrawAmountDetailed,
-        });
-
         DevLogger.log('Withdrawal successful');
       } else {
-        // Track withdrawal failed
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
-          errorMessage: result.error || 'Unknown error',
-        });
-
         DevLogger.log('Withdrawal failed:', result.error);
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
@@ -315,11 +309,6 @@ const PerpsWithdrawView: React.FC = () => {
         },
       );
 
-      // Track withdrawal failed
-      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-      });
-
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {
       setIsSubmittingTx(false);
@@ -327,7 +316,6 @@ const PerpsWithdrawView: React.FC = () => {
   }, [
     hasValidInputs,
     isSubmittingTx,
-    trackEvent,
     showToast,
     PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,

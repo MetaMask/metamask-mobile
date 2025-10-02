@@ -206,11 +206,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
     tpslForm.display;
 
-  // Track TP/SL screen viewed event using unified declarative API
+  // Track TP/SL screen viewed event using unified declarative API (main's consolidated event)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_TP_SL_SCREEN_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [isVisible],
     properties: {
+      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
       [PerpsEventProperties.ASSET]: asset,
       [PerpsEventProperties.DIRECTION]:
         actualDirection === 'long'
@@ -334,9 +335,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
-    // Track stop loss and take profit set events
+    // Track stop loss and take profit set events (main's consolidated event)
     if (parseStopLossPrice) {
-      track(MetaMetricsEvents.PERPS_STOP_LOSS_SET, {
+      track(MetaMetricsEvents.PERPS_RISK_MANAGEMENT, {
+        [PerpsEventProperties.ACTION_TYPE]:
+          PerpsEventValues.ACTION_TYPE.STOP_LOSS_SET,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           actualDirection === 'long'
@@ -350,7 +353,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
 
     if (parseTakeProfitPrice) {
-      track(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET, {
+      track(MetaMetricsEvents.PERPS_RISK_MANAGEMENT, {
+        [PerpsEventProperties.ACTION_TYPE]:
+          PerpsEventValues.ACTION_TYPE.TAKE_PROFIT_SET,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           actualDirection === 'long'
