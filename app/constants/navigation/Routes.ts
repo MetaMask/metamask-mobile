@@ -347,7 +347,7 @@ const Routes = {
     DEFAULT: 'Send',
   },
   SDK: {
-    RETURN_TO_DAPP_TOAST: 'ReturnToDappToast',
+    RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
 };
 

@@ -37,7 +37,6 @@ import {
   NetworkStatus,
 } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import {
   TransactionController,
   TransactionMeta,
@@ -222,6 +221,8 @@ import { permissionControllerInit } from './controllers/permission-controller-in
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
 ///: END:ONLY_INCLUDE_IF
+import { PreferencesController } from '@metamask/preferences-controller';
+import { preferencesControllerInit } from './controllers/preferences-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -279,6 +280,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  preferencesController: PreferencesController;
 
   readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
     onScanRequested: (request) => {
@@ -314,29 +316,6 @@ export class Engine {
 
     const isBasicFunctionalityToggleEnabled = () =>
       selectBasicFunctionalityEnabled(store.getState());
-
-    const preferencesController = new PreferencesController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'PreferencesController',
-        allowedActions: [],
-        allowedEvents: ['KeyringController:stateChange'],
-      }),
-      state: {
-        ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
-        useTokenDetection:
-          initialState?.PreferencesController?.useTokenDetection ?? true,
-        useNftDetection: true, // set this to true to enable nft detection by default to new users
-        displayNftMedia: true,
-        securityAlertsEnabled: true,
-        smartTransactionsOptInStatus: true,
-        tokenSortConfig: {
-          key: 'tokenFiatAmount',
-          order: 'dsc',
-          sortCallback: 'stringNumeric',
-        },
-        ...initialState.PreferencesController,
-      },
-    });
 
     const errorReportingServiceMessenger =
       this.controllerMessenger.getRestricted({
@@ -644,9 +623,8 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.keyringController = new KeyringController({
-      removeIdentity: preferencesController.removeIdentity.bind(
-        preferencesController,
-      ),
+      removeIdentity: (address: string) =>
+        this.preferencesController.removeIdentity(address),
       encryptor,
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
@@ -829,7 +807,6 @@ export class Engine {
     const existingControllersByName = {
       KeyringController: this.keyringController,
       NetworkController: networkController,
-      PreferencesController: preferencesController,
       SmartTransactionsController: this.smartTransactionsController,
     };
 
@@ -840,6 +817,7 @@ export class Engine {
 
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
+        PreferencesController: preferencesControllerInit,
         AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -903,6 +881,7 @@ export class Engine {
       controllersByName.GatorPermissionsController;
     const selectedNetworkController =
       controllersByName.SelectedNetworkController;
+    const preferencesController = controllersByName.PreferencesController;
 
     // Initialize and store RewardsDataService
     this.rewardsDataService = new RewardsDataService({
@@ -921,6 +900,7 @@ export class Engine {
     this.gatorPermissionsController = gatorPermissionsController;
     this.transactionController = transactionController;
     this.permissionController = controllersByName.PermissionController;
+    this.preferencesController = preferencesController;
 
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
