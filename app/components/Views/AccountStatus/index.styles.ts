@@ -13,7 +13,10 @@ const styles = StyleSheet.create({
   root: {
     height: '100%',
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
+    paddingTop:
+      Platform.OS === 'android'
+        ? (StatusBar.currentHeight ?? 0) + 24 || 48
+        : 24,
   },
   content: {
     flex: 1,
