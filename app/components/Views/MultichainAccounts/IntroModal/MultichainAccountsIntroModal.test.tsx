@@ -70,6 +70,9 @@ describe('MultichainAccountsIntroModal', () => {
       getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.TITLE),
     ).toBeTruthy();
     expect(
+      getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.IMAGE_PLACEHOLDER),
+    ).toBeTruthy();
+    expect(
       getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.SECTION_1_TITLE),
     ).toBeTruthy();
     expect(
