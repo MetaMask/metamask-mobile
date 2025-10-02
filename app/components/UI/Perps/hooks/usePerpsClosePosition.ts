@@ -1,20 +1,14 @@
 import { useCallback, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, OrderResult } from '../controllers/types';
+import type { Position, OrderResult, TrackingData } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { strings } from '../../../../../locales/i18n';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../constants/eventNames';
-import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
-import { OrderFeesResult } from './usePerpsOrderFees';
+import { usePerpsMeasurement } from './usePerpsMeasurement';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -27,8 +21,16 @@ export const usePerpsClosePosition = (
   const { closePosition } = usePerpsTrading();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { track } = usePerpsEventTracking();
+  const [lastResult, setLastResult] = useState<OrderResult>();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+
+  // Track close order submission toast with unified measurement hook
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
+    startConditions: [isClosing], // Start when closing begins
+    endConditions: [!!lastResult || !!error], // End when we have result or error
+    resetConditions: [!isClosing], // Reset when not closing
+  });
 
   const handleClosePosition = useCallback(
     async (
@@ -36,11 +38,12 @@ export const usePerpsClosePosition = (
       size?: string,
       orderType: 'market' | 'limit' = 'market',
       limitPrice?: string,
-      feeResults?: OrderFeesResult,
+      trackingData?: TrackingData,
     ) => {
       try {
         setIsClosing(true);
         setError(null);
+        setLastResult(undefined);
 
         DevLogger.log('usePerpsClosePosition: Closing position', {
           coin: position.coin,
@@ -50,7 +53,6 @@ export const usePerpsClosePosition = (
         });
 
         const closeStartTime = performance.now();
-
         const isLong = parseFloat(position.size) >= 0;
         const direction = isLong
           ? strings('perps.market.long')
@@ -110,81 +112,20 @@ export const usePerpsClosePosition = (
           size, // If undefined, will close full position
           orderType,
           price: limitPrice,
+          trackingData,
         });
 
-        // Measure close order submission toast
-        const submissionDuration = performance.now() - closeStartTime;
-        setMeasurement(
-          PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
-          submissionDuration,
-          'millisecond',
-        );
-
+        setLastResult(result);
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
-          // Check if position was partially closed
-          const closeSize = parseFloat(size || position.size);
-          const positionSize = Math.abs(parseFloat(position.size));
-          const filledSize = result.filledSize
-            ? parseFloat(result.filledSize)
-            : closeSize;
-          const isPartiallyFilled = filledSize > 0 && filledSize < closeSize;
-
-          if (isPartiallyFilled) {
-            // Track partially filled close event
-            track(MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED, {
-              [PerpsEventProperties.ASSET]: position.coin,
-              [PerpsEventProperties.DIRECTION]:
-                parseFloat(position.size) > 0
-                  ? PerpsEventValues.DIRECTION.LONG
-                  : PerpsEventValues.DIRECTION.SHORT,
-              [PerpsEventProperties.OPEN_POSITION_SIZE]: positionSize,
-              [PerpsEventProperties.ORDER_SIZE]: closeSize,
-              [PerpsEventProperties.ORDER_TYPE]: orderType,
-              [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
-              [PerpsEventProperties.REMAINING_AMOUNT]: closeSize - filledSize,
-              [PerpsEventProperties.COMPLETION_DURATION]:
-                performance.now() - closeStartTime,
-            });
-          }
-
-          // Measure close order confirmation toast
+          // Measure close order confirmation toast - kept as direct call due to complex async timing
           const confirmationDuration = performance.now() - closeStartTime;
           setMeasurement(
             PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED,
             confirmationDuration,
             'millisecond',
           );
-
-          const closePercentage = isFullClose
-            ? 100
-            : (closeSize / positionSize) * 100;
-
-          const closeType = isFullClose
-            ? PerpsEventValues.CLOSE_TYPE.FULL
-            : PerpsEventValues.CLOSE_TYPE.PARTIAL;
-
-          // Track position close executed
-          track(MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED, {
-            [PerpsEventProperties.ASSET]: position.coin,
-            [PerpsEventProperties.DIRECTION]:
-              parseFloat(position.size) > 0
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: orderType,
-            [PerpsEventProperties.COMPLETION_DURATION]:
-              performance.now() - closeStartTime,
-            [PerpsEventProperties.METAMASK_FEE]: feeResults?.metamaskFee,
-            [PerpsEventProperties.METAMASK_FEE_RATE]:
-              feeResults?.metamaskFeeRate,
-            [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-              feeResults?.feeDiscountPercentage,
-            [PerpsEventProperties.ESTIMATED_REWARDS]:
-              feeResults?.estimatedPoints,
-            [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
-            [PerpsEventProperties.CLOSE_TYPE]: closeType,
-          });
 
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
@@ -249,17 +190,6 @@ export const usePerpsClosePosition = (
         );
         setError(closeError);
 
-        // Track position close failed event as required by specs
-        track(MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED, {
-          [PerpsEventProperties.ASSET]: position.coin,
-          [PerpsEventProperties.ERROR_MESSAGE]: closeError.message,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(position.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_SIZE]: size?.toString(),
-        });
-
         // Call error callback
         options?.onError?.(closeError);
 
@@ -268,13 +198,7 @@ export const usePerpsClosePosition = (
         setIsClosing(false);
       }
     },
-    [
-      PerpsToastOptions.positionManagement,
-      closePosition,
-      options,
-      showToast,
-      track,
-    ],
+    [PerpsToastOptions.positionManagement, closePosition, options, showToast],
   );
 
   return {

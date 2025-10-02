@@ -98,6 +98,45 @@ const useNetworksByNamespaceModule = jest.requireMock(
   '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
 );
 
+// Import and mock useNetworkEnablement
+const useNetworkEnablementModule = jest.requireMock(
+  '../../../hooks/useNetworkEnablement/useNetworkEnablement',
+);
+
+jest.mock('@metamask/keyring-api', () => ({
+  EthMethod: {
+    PersonalSign: 'personal_sign',
+    SignTransaction: 'eth_signTransaction',
+    SignTypedDataV4: 'eth_signTypedData_v4',
+  },
+  EthScope: {
+    Eoa: 'eip155:eoa',
+  },
+  SolAccountType: {
+    DataAccount: 'solana:dataAccount',
+  },
+  BtcAccountType: {
+    P2wpkh: 'bip122:p2wpkh',
+  },
+  BtcScope: {
+    Mainnet: 'bip122:000000000019d6689c085ae165831e93',
+    Testnet: 'bip122:000000000933ea01ad0ee984209779ba',
+  },
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    Devnet: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+  },
+  isEvmAccountType: jest.fn(() => true),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn(() => null)),
+}));
+
+jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(),
+}));
+
 // Import and mock useStyles
 const useStylesModule = jest.requireMock('../../../hooks/useStyles');
 
@@ -186,6 +225,9 @@ describe('BaseControlBar', () => {
       totalEnabledNetworksCount: 2,
     });
     useStylesModule.useStyles.mockReturnValue({ styles: defaultStyles });
+    useNetworkEnablementModule.useNetworkEnablement.mockReturnValue({
+      enableAllPopularNetworks: jest.fn(),
+    });
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
     // Setup selector mocks
@@ -236,9 +278,9 @@ describe('BaseControlBar', () => {
         mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       });
 
-      it('should show "All Networks" when multiple networks are enabled', () => {
+      it('should show "Popular Networks" when multiple networks are enabled', () => {
         const { getByText } = renderComponent();
-        expect(getByText('wallet.all_networks')).toBeTruthy();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
       });
 
       it('should show current network name when only one network is enabled', () => {
@@ -623,7 +665,7 @@ describe('BaseControlBar', () => {
 
       const { getByText } = renderComponent();
 
-      expect(getByText('wallet.all_networks')).toBeTruthy();
+      expect(getByText('wallet.popular_networks')).toBeTruthy();
     });
 
     it('should call strings function for fallback text', () => {

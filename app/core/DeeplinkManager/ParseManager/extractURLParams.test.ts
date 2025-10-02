@@ -46,7 +46,7 @@ describe('extractURLParams', () => {
 
     const { params } = extractURLParams(url);
 
-    expect(params).toEqual(expectedParams);
+    expect(params).toEqual({ ...expectedParams, hr: false });
   });
 
   it('extracts UTM parameters from a URL', () => {
@@ -73,7 +73,7 @@ describe('extractURLParams', () => {
 
     const { params } = extractURLParams(url);
 
-    expect(params).toEqual(expectedParams);
+    expect(params).toEqual({ ...expectedParams, hr: false });
   });
 
   it('returns an empty params object when the URL has no query parameters', () => {
@@ -97,6 +97,7 @@ describe('extractURLParams', () => {
       utm_campaign: '',
       utm_term: '',
       utm_content: '',
+      hr: false,
     });
   });
 
@@ -128,6 +129,7 @@ describe('extractURLParams', () => {
       utm_campaign: '',
       utm_term: '',
       utm_content: '',
+      hr: false,
     });
 
     expect(alertSpy).toHaveBeenCalledWith(
@@ -160,7 +162,7 @@ describe('extractURLParams', () => {
 
     const { params } = extractURLParams(url);
 
-    expect(params).toEqual(expectedParams);
+    expect(params).toEqual({ ...expectedParams, hr: false });
   });
 
   it('extracts parameters from a valid URL with duplicate query parameters', () => {
@@ -188,6 +190,100 @@ describe('extractURLParams', () => {
 
     const { params } = extractURLParams(url);
 
-    expect(params).toEqual(expectedParams);
+    expect(params).toEqual({ ...expectedParams, hr: false });
+  });
+
+  describe('hr parameter (hideReturnToApp)', () => {
+    it('extracts hr parameter as true when set to "1"', () => {
+      const url = `${PROTOCOLS.DAPP}/https://example.com?hr=1&channelId=123`;
+      const expectedParams = {
+        channelId: '123',
+        uri: '',
+        redirect: '',
+        originatorInfo: '',
+        rpc: '',
+        sdkVersion: '',
+        comm: '',
+        pubkey: '',
+        v: '',
+        attributionId: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        hr: '1',
+      };
+
+      mockQs.parse.mockReturnValue(expectedParams);
+
+      const { params } = extractURLParams(url);
+
+      expect(params).toEqual({
+        ...expectedParams,
+        hr: true, // Should be converted to boolean true
+      });
+    });
+
+    it('extracts hr parameter as false when set to any value other than "1"', () => {
+      const url = `${PROTOCOLS.DAPP}/https://example.com?hr=0&channelId=123`;
+      const expectedParams = {
+        channelId: '123',
+        uri: '',
+        redirect: '',
+        originatorInfo: '',
+        rpc: '',
+        sdkVersion: '',
+        comm: '',
+        pubkey: '',
+        v: '',
+        attributionId: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+        hr: '0',
+      };
+
+      mockQs.parse.mockReturnValue(expectedParams);
+
+      const { params } = extractURLParams(url);
+
+      expect(params).toEqual({
+        ...expectedParams,
+        hr: false, // Should be converted to boolean false
+      });
+    });
+
+    it('extracts hr parameter as false when not provided', () => {
+      const url = `${PROTOCOLS.DAPP}/https://example.com?channelId=123`;
+      const expectedParams = {
+        channelId: '123',
+        uri: '',
+        redirect: '',
+        originatorInfo: '',
+        rpc: '',
+        sdkVersion: '',
+        comm: '',
+        pubkey: '',
+        v: '',
+        attributionId: '',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+      };
+
+      mockQs.parse.mockReturnValue(expectedParams);
+
+      const { params } = extractURLParams(url);
+
+      expect(params).toEqual({
+        ...expectedParams,
+        hr: false, // Should default to false
+      });
+    });
   });
 });

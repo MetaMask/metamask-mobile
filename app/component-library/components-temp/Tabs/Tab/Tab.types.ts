@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { PressableProps } from 'react-native';
+import { PressableProps, LayoutChangeEvent } from 'react-native';
 
 /**
  * Tab component props
@@ -21,4 +21,8 @@ export interface TabProps extends PressableProps {
    * Callback when tab is pressed
    */
   onPress: () => void;
+  /**
+   * Callback when tab layout changes
+   */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }

@@ -10,7 +10,12 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion } from '../constants';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_US_REGION,
+  MOCK_BUY_QUOTE,
+} from '../testUtils/constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -30,7 +35,7 @@ const mockSdkResponse: DepositSdkMethodState<'getKycRequirement'> = {
   isFetching: false,
 };
 
-const mockQuote: BuyQuote = { quoteId: 'test-quote' } as BuyQuote;
+const mockQuote: BuyQuote = MOCK_BUY_QUOTE;
 
 jest.useFakeTimers();
 
@@ -59,10 +64,13 @@ describe('useKycPolling', () => {
       logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
-      selectedRegion: {
-        isoCode: 'US',
-      } as DepositRegion,
+      selectedRegion: MOCK_US_REGION,
       setSelectedRegion: jest.fn(),
+      selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
+      setSelectedPaymentMethod: jest.fn(),
+      selectedCryptoCurrency: MOCK_USDC_TOKEN,
+      setSelectedCryptoCurrency: jest.fn(),
+      selectedWalletAddress: '0x1234567890123456789012345678901234567890',
     });
   });
 

@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-
+import {
+  selectActiveTab,
+  selectPointsEvents,
+} from '../../../../reducers/rewards/selectors';
+import { setPointsEvents as setPointsEventsAction } from '../../../../reducers/rewards';
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
   subscriptionId: string;
 }
 
 export interface UsePointsEventsResult {
-  pointsEvents: PointsEventDto[];
+  pointsEvents: PointsEventDto[] | null;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -23,20 +28,34 @@ export const usePointsEvents = (
   options: UsePointsEventsOptions,
 ): UsePointsEventsResult => {
   const { seasonId, subscriptionId } = options;
-
-  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[]>([]);
+  const dispatch = useDispatch();
+  const activeTab = useSelector(selectActiveTab);
+  const uiStorePointsEvents = useSelector(selectPointsEvents);
+  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[] | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(!!seasonId && !!subscriptionId);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null);
+  const isLoadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPointsEvents = useCallback(
-    async (
-      isInitial: boolean,
-      currentCursor: string | null = null,
-    ): Promise<void> => {
+    async ({
+      isInitial,
+      currentCursor = null,
+      forceFresh = false,
+    }: {
+      isInitial: boolean;
+      currentCursor?: string | null;
+      forceFresh?: boolean;
+    }) => {
+      if (isLoadingRef.current) {
+        return;
+      }
+      isLoadingRef.current = true;
       if (isInitial) {
         setIsLoading(true);
         setError(null);
@@ -52,13 +71,21 @@ export const usePointsEvents = (
             seasonId,
             subscriptionId,
             cursor: currentCursor,
+            forceFresh,
           },
         );
 
         if (isInitial) {
           setPointsEvents(pointsEventsData.results);
+          dispatch(setPointsEventsAction(pointsEventsData.results));
         } else {
-          setPointsEvents((prev) => [...prev, ...pointsEventsData.results]);
+          setPointsEvents((prev) => {
+            const newPointsEvents = prev
+              ? [...prev, ...pointsEventsData.results]
+              : pointsEventsData.results;
+            dispatch(setPointsEventsAction(newPointsEvents));
+            return newPointsEvents;
+          });
         }
 
         setCursor(pointsEventsData.cursor);
@@ -67,12 +94,8 @@ export const usePointsEvents = (
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
         setError(errorMessage);
-
-        // If it's a pagination error, don't clear existing data, but clear on initial fetch or refresh
-        if (isInitial) {
-          setPointsEvents([]);
-        }
       } finally {
+        isLoadingRef.current = false;
         if (isInitial) {
           setIsLoading(false);
         } else {
@@ -80,33 +103,59 @@ export const usePointsEvents = (
         }
       }
     },
-    [seasonId, subscriptionId],
+    [seasonId, subscriptionId, dispatch],
   );
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && hasMore && cursor) {
-      fetchPointsEvents(false, cursor);
+      fetchPointsEvents({
+        isInitial: false,
+        currentCursor: cursor,
+      });
     }
   }, [isLoadingMore, hasMore, cursor, fetchPointsEvents]);
+
+  useEffect(() => {
+    if (
+      pointsEvents === null &&
+      uiStorePointsEvents !== null &&
+      uiStorePointsEvents?.length > 0
+    ) {
+      setPointsEvents(uiStorePointsEvents);
+    }
+  }, [
+    pointsEvents,
+    seasonId,
+    subscriptionId,
+    fetchPointsEvents,
+    uiStorePointsEvents,
+  ]);
 
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     setCursor(null);
     setHasMore(true);
-    await fetchPointsEvents(true);
+    await fetchPointsEvents({
+      isInitial: true,
+      forceFresh: true,
+    });
     setIsRefreshing(false);
   }, [fetchPointsEvents]);
 
-  // Initial data fetch
+  // Listen for activeTab changes to refresh when switching to activity tab
   useEffect(() => {
-    if (seasonId && subscriptionId) {
-      fetchPointsEvents(true);
+    if (activeTab === 'activity') {
+      fetchPointsEvents({ isInitial: true });
     }
-  }, [seasonId, subscriptionId, fetchPointsEvents]);
+  }, [activeTab, fetchPointsEvents]);
 
   // Listen for reward claimed events to trigger refetch
   useInvalidateByRewardEvents(
-    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:pointsEventsUpdated',
+    ],
     refresh,
   );
 

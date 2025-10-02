@@ -9,6 +9,12 @@ import { RootState } from '../../reducers';
 export const selectRewardsControllerState = (state: RootState) =>
   state.engine.backgroundState.RewardsController;
 
+export const selectRewardsActiveAccountSubscriptionId = createSelector(
+  selectRewardsControllerState,
+  (rewardsControllerState): string | null =>
+    rewardsControllerState.activeAccount?.subscriptionId ?? null,
+);
+
 /**
  * A memoized selector that returns the rewards subscription id,
  * falling back to candidateSubscriptionId if not 'pending' or 'error'
@@ -27,18 +33,13 @@ export const selectRewardsSubscriptionId = createSelector(
     if (
       candidateSubscriptionId &&
       candidateSubscriptionId !== 'pending' &&
-      candidateSubscriptionId !== 'error'
+      candidateSubscriptionId !== 'error' &&
+      candidateSubscriptionId !== 'retry'
     ) {
       return candidateSubscriptionId;
     }
     return null;
   },
-);
-
-export const selectRewardsActiveAccountHasOptedIn = createSelector(
-  selectRewardsControllerState,
-  (rewardsControllerState): boolean | null =>
-    rewardsControllerState.activeAccount?.hasOptedIn ?? null,
 );
 
 export const selectRewardsActiveAccountAddress = createSelector(
@@ -50,6 +51,3 @@ export const selectRewardsActiveAccountAddress = createSelector(
     return parts[parts.length - 1];
   },
 );
-
-export const selectHideUnlinkedAccountsBanner = (state: RootState): boolean =>
-  state.rewards.hideUnlinkedAccountsBanner;

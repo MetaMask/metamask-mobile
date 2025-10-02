@@ -381,15 +381,18 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!selectedTooltip) return null;
 
     return (
-      <Modal visible transparent animationType="none" statusBarTranslucent>
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-          key={selectedTooltip}
-        />
-      </Modal>
+      // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+      <View>
+        <Modal visible transparent animationType="none" statusBarTranslucent>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey={selectedTooltip}
+            testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+            key={selectedTooltip}
+          />
+        </Modal>
+      </View>
     );
   }, [selectedTooltip, handleTooltipClose]);
 
@@ -428,7 +431,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSM}
           color={TextColor.Default}
           style={styles.statisticsTitle}
           testID={PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE}

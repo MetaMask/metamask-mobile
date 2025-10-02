@@ -39,9 +39,6 @@ const styleSheet = (params: { theme: Theme }) => {
     titleButtonsRightContainer: {
       flexDirection: 'row',
     },
-    tutorialButton: {
-      padding: 4,
-    },
     searchButton: {
       padding: 4,
       marginRight: 4,
@@ -85,7 +82,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     flashListContent: {
-      paddingBottom: 16,
+      paddingBottom: 120, // Increased to account for balance component (~80px) + tab bar + safe area
     },
     skeletonContainer: {
       flexDirection: 'row',
@@ -150,6 +147,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,
+      minHeight: 50,
     },
     searchIcon: {
       marginRight: 10,
@@ -159,10 +157,30 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       fontSize: 16,
       color: colors.text.default,
+      includeFontPadding: false, // Android-specific: removes extra font padding
     },
     clearButton: {
       padding: 4,
       marginLeft: 8,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 48,
+      marginBottom: 120, // Account for tab bar height
+    },
+    emptyStateIcon: {
+      marginBottom: 16,
+    },
+    emptyStateTitle: {
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    emptyStateDescription: {
+      textAlign: 'center',
+      maxWidth: 280,
     },
   });
 };

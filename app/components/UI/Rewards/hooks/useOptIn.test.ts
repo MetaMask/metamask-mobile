@@ -1,13 +1,15 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useOptin } from './useOptIn';
 import Engine from '../../../../core/Engine';
 import { handleRewardsErrorMessage } from '../utils';
+import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -18,11 +20,23 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../utils', () => ({
   handleRewardsErrorMessage: jest.fn(),
+  deriveAccountMetricProps: jest.fn().mockReturnValue({
+    account_type: 'Imported',
+    scope: 'evm',
+  }),
+}));
+
+jest.mock('../../../../reducers/rewards', () => ({
+  setCandidateSubscriptionId: jest.fn(),
 }));
 
 describe('useOptIn', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
+  >;
+  const mockDispatch = jest.fn();
+  const mockUseDispatch = useDispatch as jest.MockedFunction<
+    typeof useDispatch
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
@@ -30,6 +44,10 @@ describe('useOptIn', () => {
   const mockHandleRewardsErrorMessage =
     handleRewardsErrorMessage as jest.MockedFunction<
       typeof handleRewardsErrorMessage
+    >;
+  const mockSetCandidateSubscriptionId =
+    setCandidateSubscriptionId as jest.MockedFunction<
+      typeof setCandidateSubscriptionId
     >;
 
   const mockAccount: InternalAccount = {
@@ -51,6 +69,11 @@ describe('useOptIn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(mockAccount);
+    mockUseDispatch.mockReturnValue(mockDispatch);
+    mockSetCandidateSubscriptionId.mockReturnValue({
+      type: 'rewards/setCandidateSubscriptionId',
+      payload: expect.any(String),
+    });
   });
 
   describe('initial state', () => {
@@ -126,6 +149,160 @@ describe('useOptIn', () => {
         mockAccount,
         undefined,
       );
+    });
+  });
+
+  describe('subscription ID dispatch handling', () => {
+    it('should dispatch setCandidateSubscriptionId when subscriptionId is returned', async () => {
+      // Arrange
+      const mockSubscriptionId = 'subscription-12345';
+      mockEngineCall.mockResolvedValueOnce(mockSubscriptionId);
+
+      const { result } = renderHook(() => useOptin());
+
+      // Act
+      await act(async () => {
+        await result.current.optin({ referralCode: 'TEST123' });
+      });
+
+      // Assert
+      expect(result.current.optinLoading).toBe(false);
+      expect(result.current.optinError).toBeNull();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId(mockSubscriptionId),
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockAccount,
+        'TEST123',
+      );
+    });
+
+    it('should dispatch setCandidateSubscriptionId when subscriptionId is returned without referral code', async () => {
+      // Arrange
+      const mockSubscriptionId = 'subscription-67890';
+      mockEngineCall.mockResolvedValueOnce(mockSubscriptionId);
+
+      const { result } = renderHook(() => useOptin());
+
+      // Act
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Assert
+      expect(result.current.optinLoading).toBe(false);
+      expect(result.current.optinError).toBeNull();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId(mockSubscriptionId),
+      );
+    });
+
+    it('should not dispatch setCandidateSubscriptionId when subscriptionId is undefined', async () => {
+      // Arrange
+      mockEngineCall.mockResolvedValueOnce(undefined);
+
+      const { result } = renderHook(() => useOptin());
+
+      // Act
+      await act(async () => {
+        await result.current.optin({ referralCode: 'TEST123' });
+      });
+
+      // Assert
+      expect(result.current.optinLoading).toBe(false);
+      expect(result.current.optinError).toBeNull();
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.any(Function), // Any dispatch call with action creator
+      );
+      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
+    });
+
+    it('should not dispatch setCandidateSubscriptionId when subscriptionId is null', async () => {
+      // Arrange
+      mockEngineCall.mockResolvedValueOnce(null);
+
+      const { result } = renderHook(() => useOptin());
+
+      // Act
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Assert
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.any(Function), // Any dispatch call with action creator
+      );
+      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
+    });
+
+    it('should not dispatch setCandidateSubscriptionId when subscriptionId is empty string', async () => {
+      // Arrange
+      mockEngineCall.mockResolvedValueOnce('');
+
+      const { result } = renderHook(() => useOptin());
+
+      // Act
+      await act(async () => {
+        await result.current.optin({ referralCode: 'TEST' });
+      });
+
+      // Assert
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.any(Function), // Any dispatch call with action creator
+      );
+      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
+    });
+
+    it('should handle dispatch during error scenario - no dispatch when error occurs', async () => {
+      // Arrange
+      const mockError = new Error('Network error');
+      mockEngineCall.mockRejectedValueOnce(mockError);
+      mockHandleRewardsErrorMessage.mockReturnValueOnce(
+        'Network error occurred',
+      );
+
+      const { result } = renderHook(() => useOptin());
+
+      // Act
+      await act(async () => {
+        await result.current.optin({ referralCode: 'TEST123' });
+      });
+
+      // Assert
+      expect(result.current.optinError).toBe('Network error occurred');
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.any(Function), // Any dispatch call with action creator
+      );
+      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
+    });
+
+    it('should dispatch with different subscription ID types correctly', async () => {
+      // Test different subscription ID formats
+      const testCases = [
+        'sub-12345',
+        'SUBSCRIPTION_ABC123',
+        '123456789',
+        'uuid-4-format-id-123',
+      ];
+
+      for (const subscriptionId of testCases) {
+        // Arrange
+        jest.clearAllMocks(); // Clear previous calls
+        mockEngineCall.mockResolvedValueOnce(subscriptionId);
+
+        const { result } = renderHook(() => useOptin());
+
+        // Act
+        await act(async () => {
+          await result.current.optin({});
+        });
+
+        // Assert
+        expect(mockDispatch).toHaveBeenCalledWith(
+          mockSetCandidateSubscriptionId(subscriptionId),
+        );
+      }
     });
   });
 
@@ -389,6 +566,39 @@ describe('useOptIn', () => {
       const secondClearFunction = result.current.clearOptinError;
 
       expect(firstClearFunction).toBe(secondClearFunction);
+    });
+  });
+
+  describe('dispatch function stability', () => {
+    it('should maintain stable dispatch reference when dispatch function changes', () => {
+      const { result, rerender } = renderHook(() => useOptin());
+
+      const firstOptinFunction = result.current.optin;
+
+      // Change dispatch function
+      const newMockDispatch = jest.fn();
+      mockUseDispatch.mockReturnValue(newMockDispatch);
+
+      rerender();
+
+      const secondOptinFunction = result.current.optin;
+
+      // Functions should be different because dispatch dependency changed
+      expect(firstOptinFunction).not.toBe(secondOptinFunction);
+    });
+
+    it('should maintain stable dispatch reference when dispatch function is unchanged', () => {
+      const { result, rerender } = renderHook(() => useOptin());
+
+      const firstOptinFunction = result.current.optin;
+
+      // Rerender without changing dependencies
+      rerender();
+
+      const secondOptinFunction = result.current.optin;
+
+      // Functions should be the same because dependencies haven't changed
+      expect(firstOptinFunction).toBe(secondOptinFunction);
     });
   });
 

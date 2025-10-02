@@ -103,7 +103,6 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
-  TUTORIAL_BUTTON: 'perps-market-list-tutorial-button',
   SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
   CLOSE_BUTTON: 'perps-market-list-close-button',
   BACK_HEADER_BUTTON: 'perps-market-header-back-button',
@@ -347,6 +346,18 @@ export const PerpsChartGridLinesSelectorsIDs = {
   GRID_PRICE_LABEL: 'grid-price-label', // Use as `grid-price-label-${index}`
 };
 
+// ========================================
+// PERPS MARKET BALANCE ACTIONS SELECTORS
+// ========================================
+
+export const PerpsMarketBalanceActionsSelectorsIDs = {
+  CONTAINER: 'perps-market-balance-actions',
+  BALANCE_VALUE: 'perps-market-balance-value',
+  ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
+  WITHDRAW_BUTTON: 'perps-market-withdraw-button',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP: 'perps-market-balance-geo-block-tooltip',
+};
+
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {
   // Auxiliary lines container (TP/SL lines)
   AUXILIARY_LINES: 'auxiliary-lines',
@@ -377,7 +388,8 @@ export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
   CAROUSEL: 'perps-tutorial-carousel',
-  CARD: 'perps-tutorial-card',
+  CHARACTER_IMAGE: 'perps-tutorial-character-image',
+  TUTORIAL_CARD: 'perps-tutorial-card',
 } as const;
 
 // ========================================
@@ -430,6 +442,7 @@ export const PerpsClosePositionViewSelectorsIDs = {
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
   FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
+  POINTS_TOOLTIP_BUTTON: 'close-position-points-tooltip-button',
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
 };
 

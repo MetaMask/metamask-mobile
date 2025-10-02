@@ -219,7 +219,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       isEqual,
     );
 
-    const favicon = useFavicon(resolvedUrlRef.current);
+    const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
     const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
       useMetrics();
     /**
@@ -1519,6 +1519,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}
                       webviewDebuggingEnabled={isTest}
+                      paymentRequestEnabled
                     />
                     {ipfsBannerVisible && (
                       <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />

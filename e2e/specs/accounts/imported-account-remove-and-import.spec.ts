@@ -6,7 +6,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
@@ -39,7 +38,6 @@ describe(
         {
           fixture: new FixtureBuilder()
             .withImportedAccountKeyringController()
-            .ensureMultichainIntroModalSuppressed()
             .build(),
           restartDevice: true,
           testSpecificMock,
@@ -53,7 +51,6 @@ describe(
           await AccountListBottomSheet.tapAccountEllipsisButtonV2(
             ACCOUNT_INDEX,
           );
-          await AccountActionsBottomSheet.tapAccountDetails();
           await AccountDetails.tapDeleteAccountLink();
           await DeleteAccount.tapDeleteAccount();
 

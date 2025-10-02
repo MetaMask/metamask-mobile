@@ -1,15 +1,17 @@
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
-import Engine from '../../../../core/Engine';
-import { store } from '../../../../store';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsNetwork } from '../selectors/perpsController';
-import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
-import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { captureException, setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
-import { captureException } from '@sentry/react-native';
+import performance from 'react-native-performance';
+import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { store } from '../../../../store';
 import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
+import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
+import { selectPerpsNetwork } from '../selectors/perpsController';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 
 // simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -39,6 +41,7 @@ class PerpsConnectionManagerClass {
   private balanceUpdateThrottleMs = PERPS_CONSTANTS.BALANCE_UPDATE_THROTTLE_MS;
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
+  private pendingReconnectPromise: Promise<void> | null = null;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -90,7 +93,18 @@ class PerpsConnectionManagerClass {
           },
         );
 
-        // Trigger reconnection asynchronously
+        // Immediately clear ALL cached data to prevent old account data from showing
+        const streamManager = getStreamManagerInstance();
+
+        // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
+        streamManager.positions.clearCache();
+        streamManager.orders.clearCache();
+        streamManager.account.clearCache();
+        streamManager.prices.clearCache();
+        streamManager.marketData.clearCache();
+
+        // Force the controller to reconnect with new account
+        // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
           DevLogger.log(
             'PerpsConnectionManager: Failed to reconnect after account/network change',
@@ -153,14 +167,18 @@ class PerpsConnectionManagerClass {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
-        this.performActualDisconnection();
+        this.performActualDisconnection().catch((error) => {
+          console.error('Error performing actual disconnection:', error);
+        });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS) as unknown as number;
       // Stop immediately after scheduling (not in the callback)
       BackgroundTimer.stop();
     } else if (Device.isAndroid()) {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
-        this.performActualDisconnection();
+        this.performActualDisconnection().catch((error) => {
+          console.error('Error performing actual disconnection:', error);
+        });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS);
     }
   }
@@ -366,6 +384,7 @@ class PerpsConnectionManagerClass {
     this.clearError();
 
     this.initPromise = (async () => {
+      const connectionStartTime = performance.now();
       try {
         DevLogger.log('PerpsConnectionManager: Initializing connection');
 
@@ -399,10 +418,47 @@ class PerpsConnectionManagerClass {
         this.isConnecting = false;
         // Clear errors on successful connection
         this.clearError();
+
+        // Track WebSocket connection establishment performance (pure connection)
+        const connectionDuration = performance.now() - connectionStartTime;
+
+        // Log connection performance measurement with consistent marker
+        DevLogger.log(
+          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection established`,
+          {
+            metric: PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT,
+            duration: `${connectionDuration.toFixed(0)}ms`,
+          },
+        );
+
+        setMeasurement(
+          PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT,
+          connectionDuration,
+          'millisecond',
+        );
+
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
         // Pre-load positions and orders subscriptions to populate cache
         await this.preloadSubscriptions();
+
+        // Track total connection time including preload (user-perceived performance)
+        const totalConnectionDuration = performance.now() - connectionStartTime;
+
+        // Log connection with preload performance measurement
+        DevLogger.log(
+          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection with preload completed`,
+          {
+            metric: PerpsMeasurementName.WEBSOCKET_CONNECTION_WITH_PRELOAD,
+            duration: `${totalConnectionDuration.toFixed(0)}ms`,
+          },
+        );
+
+        setMeasurement(
+          PerpsMeasurementName.WEBSOCKET_CONNECTION_WITH_PRELOAD,
+          totalConnectionDuration,
+          'millisecond',
+        );
       } catch (error) {
         this.isConnecting = false;
         this.isConnected = false;
@@ -449,6 +505,24 @@ class PerpsConnectionManagerClass {
    * Used when user switches accounts or networks
    */
   async reconnectWithNewContext(): Promise<void> {
+    // Cancel any pending reconnection and start fresh
+    this.pendingReconnectPromise = null;
+
+    // Create a new reconnection promise
+    this.pendingReconnectPromise = this.performReconnection();
+
+    try {
+      await this.pendingReconnectPromise;
+    } finally {
+      this.pendingReconnectPromise = null;
+    }
+  }
+
+  /**
+   * Performs the actual reconnection logic
+   */
+  private async performReconnection(): Promise<void> {
+    const reconnectionStartTime = performance.now();
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
@@ -511,12 +585,31 @@ class PerpsConnectionManagerClass {
       this.isInitialized = true;
       // Clear errors on successful reconnection
       this.clearError();
+
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
 
       // Pre-load subscriptions again with new account
       await this.preloadSubscriptions();
+
+      // Track account switch reconnection performance including preload
+      const reconnectionDuration = performance.now() - reconnectionStartTime;
+
+      // Log account switch reconnection performance measurement
+      DevLogger.log(
+        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Account switch reconnection completed`,
+        {
+          metric: PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+          duration: `${reconnectionDuration.toFixed(0)}ms`,
+        },
+      );
+
+      setMeasurement(
+        PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+        reconnectionDuration,
+        'millisecond',
+      );
     } catch (error) {
       this.isConnected = false;
       this.isInitialized = false;
@@ -564,32 +657,7 @@ class PerpsConnectionManagerClass {
     }
   }
 
-  /**
-   * Update persisted perps balances in controller state
-   * This is called when account or position data changes
-   */
-  private updatePerpsBalances(): void {
-    const now = Date.now();
-    // Throttle updates to prevent too frequent state changes
-    if (now - this.lastBalanceUpdateTime < this.balanceUpdateThrottleMs) {
-      return;
-    }
-
-    try {
-      const controller = Engine.context.PerpsController;
-      const currentAccount = controller.state.accountState;
-
-      if (currentAccount) {
-        // Update persisted balances
-        controller.updatePerpsBalances(currentAccount);
-        this.lastBalanceUpdateTime = now;
-
-        DevLogger.log('PerpsConnectionManager: Updated persisted balances');
-      }
-    } catch (error) {
-      DevLogger.log('PerpsConnectionManager: Failed to update balances', error);
-    }
-  }
+  // Balance persistence removed - portfolio balances now use live account data directly
 
   /**
    * Pre-load critical WebSocket subscriptions to populate cache
@@ -621,18 +689,9 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
-      // Add subscriptions that update persisted balances for portfolio
-      // Account updates (includes totalValue and unrealizedPnl) - throttled
-      const balanceAccountCleanup = streamManager.account.subscribe({
-        callback: () => this.updatePerpsBalances(),
-        throttleMs: this.balanceUpdateThrottleMs,
-      });
+      // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
-      // Position updates (immediate, no throttling for actual position changes)
-      const balancePositionCleanup = streamManager.positions.subscribe({
-        callback: () => this.updatePerpsBalances(),
-        throttleMs: 0, // No throttling for position changes
-      });
+      // Position updates are no longer needed for balance persistence since we use live streams
       // Price channel prewarm is async and subscribes to all market prices
       const priceCleanup = await streamManager.prices.prewarm();
 
@@ -641,8 +700,6 @@ class PerpsConnectionManagerClass {
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
-        balanceAccountCleanup,
-        balancePositionCleanup,
         priceCleanup,
       );
 

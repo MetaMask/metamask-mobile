@@ -15,12 +15,12 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ActivityEventRow } from './ActivityEventRow';
 import {
   selectSeasonId,
+  selectSeasonStartDate,
   selectSeasonStatusLoading,
 } from '../../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
 import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { setActiveTab } from '../../../../../../actions/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
@@ -33,21 +33,6 @@ const LoadingFooter: React.FC = () => (
 );
 
 const ItemSeparator: React.FC = () => <Box twClassName="h-6" />;
-
-const IntermediateState: React.FC<{ message?: string; isError?: boolean }> = ({
-  message,
-  isError = false,
-}) => (
-  <Box twClassName="flex-1 items-center justify-center relative mt-4">
-    {!isError && (
-      <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
-    )}
-
-    {isError && (
-      <BannerAlert severity={BannerAlertSeverity.Error} description={message} />
-    )}
-  </Box>
-);
 
 const EmptyState: React.FC = () => {
   const dispatch = useDispatch();
@@ -90,9 +75,11 @@ const EmptyState: React.FC = () => {
 };
 
 export const ActivityTab: React.FC = () => {
+  const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const seasonId = useSelector(selectSeasonId);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
   const {
     pointsEvents,
     isLoading,
@@ -107,7 +94,7 @@ export const ActivityTab: React.FC = () => {
   });
   const accountNameRequests = useMemo(
     () =>
-      pointsEvents.map((event) => ({
+      pointsEvents?.map((event) => ({
         type: NameType.EthereumAddress,
         value: event.accountAddress ?? '',
         variation: '',
@@ -115,7 +102,7 @@ export const ActivityTab: React.FC = () => {
     [pointsEvents],
   );
 
-  const accountNames = useAccountNames(accountNameRequests);
+  const accountNames = useAccountNames(accountNameRequests || []);
 
   const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
     <ActivityEventRow event={item} accountName={accountNames?.[index]} />
@@ -125,40 +112,68 @@ export const ActivityTab: React.FC = () => {
     if (isLoadingMore) {
       return <LoadingFooter />;
     }
-    return null;
+    return <Box twClassName="h-4" />;
   };
 
-  if ((isLoading || seasonStatusLoading) && !isRefreshing) {
-    return <IntermediateState />;
+  if (
+    (isLoading || (seasonStatusLoading && !!seasonStartDate)) &&
+    !isRefreshing
+  ) {
+    return (
+      <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
+    );
+  } else if (
+    !isLoading &&
+    !error &&
+    pointsEvents &&
+    pointsEvents.length === 0
+  ) {
+    return null;
   }
 
-  if (error) {
+  if (error && !pointsEvents?.length) {
     return (
-      <IntermediateState
-        message={`${strings('rewards.error_loading_activity')}: ${error}`}
-        isError
+      <RewardsErrorBanner
+        title={strings('rewards.active_activity_error.error_fetching_title')}
+        description={strings(
+          'rewards.active_activity_error.error_fetching_description',
+        )}
+        onConfirm={refresh}
+        confirmButtonLabel={strings(
+          'rewards.active_activity_error.retry_button',
+        )}
       />
     );
   }
 
-  if (pointsEvents.length === 0) {
-    return <EmptyState />;
+  // Determine what to render based on loading state and data
+  const shouldShowLoadingSkeleton =
+    (isLoading || pointsEvents === null) && !pointsEvents?.length && !error;
+
+  const hasPointsEvents = pointsEvents?.length;
+
+  if (shouldShowLoadingSkeleton) {
+    return <Skeleton style={tw.style('h-32 bg-rounded')} />;
   }
 
-  return (
-    <FlatList
-      testID="flatlist"
-      data={pointsEvents}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      showsVerticalScrollIndicator={false}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={renderFooter}
-      ItemSeparatorComponent={ItemSeparator}
-      onRefresh={refresh}
-      refreshing={isRefreshing}
-      horizontal={false}
-    />
-  );
+  if (hasPointsEvents) {
+    return (
+      <FlatList
+        testID="flatlist"
+        data={pointsEvents}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        ItemSeparatorComponent={ItemSeparator}
+        onRefresh={refresh}
+        refreshing={isRefreshing}
+        horizontal={false}
+      />
+    );
+  }
+
+  return <EmptyState />;
 };

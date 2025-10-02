@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import PerpsWithdrawView from './PerpsWithdrawView';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 
@@ -15,6 +16,21 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   ButtonSize: { Lg: 'Lg', Md: 'Md' },
   ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
   ButtonWidthTypes: { Full: 'Full', Auto: 'Auto' },
+}));
+
+// Mock usePerpsLiveAccount hook
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000.00',
+      totalBalance: '1000.00',
+      marginUsed: '0.00',
+      unrealizedPnl: '0.00',
+      returnOnEquity: '0.00',
+      totalValue: '1000.00',
+    },
+    isInitialLoading: false,
+  })),
 }));
 
 // Mock locales
@@ -72,10 +88,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-  })),
   useWithdrawValidation: jest.fn(() => ({
     hasAmount: false,
     isBelowMinimum: false,
@@ -83,6 +95,7 @@ jest.mock('../../hooks', () => ({
     getMinimumAmount: jest.fn(() => '10.00'),
   })),
   usePerpsNetwork: jest.fn(() => 'mainnet'),
+  usePerpsMeasurement: jest.fn(),
 }));
 
 // Mock components
@@ -225,7 +238,7 @@ describe('PerpsWithdrawView', () => {
             >
           }
         >
-          {component}
+          <PerpsStreamProvider>{component}</PerpsStreamProvider>
         </ToastContext.Provider>
       </SafeAreaProvider>,
     );
