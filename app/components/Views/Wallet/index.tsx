@@ -182,6 +182,7 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -876,6 +877,11 @@ const Wallet = ({
    * Show multichain accounts intro modal if state 2 is enabled and never showed before
    */
   useMultichainAccountsIntroModal();
+
+  /**
+   * Show rewards intro modal if ff is enabled and never showed before
+   */
+  useRewardsIntroModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
