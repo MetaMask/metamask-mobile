@@ -1,12 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isSelected: boolean; hasStartAccessory: boolean };
-}) => {
-  const { theme, vars } = params;
-  const { isSelected, hasStartAccessory } = vars;
+const styleSheet = (params: { theme: Theme; vars: unknown }) => {
+  const { theme } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -14,7 +10,6 @@ const styleSheet = (params: {
       gap: 16,
       paddingTop: 16,
       paddingBottom: 16,
-      opacity: isSelected && !hasStartAccessory ? 0.7 : 1,
     },
     avatar: {
       borderRadius: 6, // Slightly smaller to account for wrapper border

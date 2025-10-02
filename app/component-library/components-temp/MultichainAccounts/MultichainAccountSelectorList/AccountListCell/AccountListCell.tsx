@@ -38,7 +38,6 @@ const AccountListCell = memo(
             }
             accountGroup={accountGroup}
             avatarAccountType={avatarAccountType}
-            isSelected={isSelected}
             onSelectAccount={handlePress}
           />
         </View>

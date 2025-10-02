@@ -27,7 +27,6 @@ import { createAccountGroupDetailsNavigationDetails } from '../../../../componen
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
-  isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
   onSelectAccount?: () => void;
@@ -36,15 +35,11 @@ interface AccountCellProps {
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
-  isSelected,
   hideMenu = false,
   startAccessory,
   onSelectAccount,
 }: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, {
-    isSelected,
-    hasStartAccessory: Boolean(startAccessory),
-  });
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
