@@ -79,6 +79,18 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
     }
   }, [displayPrice]);
 
+  const formattedChange = useMemo(() => {
+    if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    try {
+      return formatPercentage(displayChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+  }, [displayPrice, displayChange]);
+
   return (
     <View style={styles.container}>
       <Text
@@ -93,7 +105,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         color={changeColor}
         testID={testIDChange}
       >
-        {formatPercentage(displayChange.toString())}
+        {formattedChange}
       </Text>
     </View>
   );
