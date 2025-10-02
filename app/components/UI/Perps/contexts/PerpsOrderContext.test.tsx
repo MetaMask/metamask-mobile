@@ -42,10 +42,8 @@ describe('PerpsOrderContext', () => {
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
-    calculations: {
-      positionSize: '0',
-      marginRequired: '10.00',
-    },
+    optimizeOrderAmount: jest.fn(),
+    maxPossibleAmount: 1000,
   };
 
   beforeEach(() => {
@@ -139,12 +137,17 @@ describe('PerpsOrderContext', () => {
       expect(result.current.handlePercentageAmount).toBeDefined();
       expect(result.current.handleMaxAmount).toBeDefined();
       expect(result.current.handleMinAmount).toBeDefined();
-      expect(result.current.calculations).toBeDefined();
+      expect(result.current.optimizeOrderAmount).toBeDefined();
+      expect(result.current.maxPossibleAmount).toBeDefined();
 
       // Check that functions are callable
       expect(typeof result.current.setAmount).toBe('function');
       expect(typeof result.current.setLeverage).toBe('function');
       expect(typeof result.current.updateOrderForm).toBe('function');
+      expect(typeof result.current.optimizeOrderAmount).toBe('function');
+
+      // Check that maxPossibleAmount is a number
+      expect(typeof result.current.maxPossibleAmount).toBe('number');
     });
 
     it('updates when usePerpsOrderForm returns new values', () => {
@@ -215,12 +218,12 @@ describe('PerpsOrderContext', () => {
       consoleError.mockRestore();
     });
 
-    it('provides access to calculations from the hook', () => {
+    it('provides access to maxPossibleAmount from the hook', () => {
       const { result } = renderHookWithProvider(() => usePerpsOrderContext());
 
-      expect(result.current.calculations).toBeDefined();
-      expect(result.current.calculations.positionSize).toBe('0');
-      expect(result.current.calculations.marginRequired).toBe('10.00');
+      expect(result.current.maxPossibleAmount).toBeDefined();
+      expect(result.current.maxPossibleAmount).toBe(1000);
+      expect(typeof result.current.maxPossibleAmount).toBe('number');
     });
   });
 
@@ -280,13 +283,15 @@ describe('PerpsOrderContext', () => {
       expect(contextResult).toHaveProperty('handlePercentageAmount');
       expect(contextResult).toHaveProperty('handleMaxAmount');
       expect(contextResult).toHaveProperty('handleMinAmount');
-      expect(contextResult).toHaveProperty('calculations');
+      expect(contextResult).toHaveProperty('optimizeOrderAmount');
+      expect(contextResult).toHaveProperty('maxPossibleAmount');
 
       // Verify types are correct
       expect(typeof contextResult.orderForm).toBe('object');
       expect(typeof contextResult.updateOrderForm).toBe('function');
       expect(typeof contextResult.setAmount).toBe('function');
-      expect(typeof contextResult.calculations).toBe('object');
+      expect(typeof contextResult.optimizeOrderAmount).toBe('function');
+      expect(typeof contextResult.maxPossibleAmount).toBe('number');
     });
   });
 });
