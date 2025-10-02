@@ -1,4 +1,6 @@
 import React, { createContext, useContext } from 'react';
+import { setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -12,6 +14,7 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 
@@ -32,6 +35,8 @@ abstract class StreamChannel<T> {
   protected wsSubscription: (() => void) | null = null;
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
+  // Track WebSocket connection timing for first data measurement
+  protected wsConnectionStartTime: number | null = null;
 
   protected notifySubscribers(updates: T) {
     this.subscribers.forEach((subscriber) => {
@@ -113,6 +118,7 @@ abstract class StreamChannel<T> {
       this.wsSubscription = null;
     }
     this.accountAddress = null;
+    this.wsConnectionStartTime = null;
   }
 
   protected getCachedData(): T | null {
@@ -128,6 +134,7 @@ abstract class StreamChannel<T> {
 
     // Reset account context immediately
     this.accountAddress = null;
+    this.wsConnectionStartTime = null;
 
     // Clear the cache
     this.cache.clear();
@@ -458,6 +465,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       return;
     }
 
+    // Track WebSocket connection start time for first data measurement
+    this.wsConnectionStartTime = performance.now();
+
     // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
@@ -475,6 +485,29 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           return;
         }
         this.accountAddress = currentAccount;
+
+        // Track first position data from WebSocket (only once per connection)
+        if (this.wsConnectionStartTime !== null) {
+          const firstDataDuration =
+            performance.now() - this.wsConnectionStartTime;
+
+          // Log WebSocket performance measurement with consistent marker
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First position data received`,
+            {
+              metric: PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA,
+              duration: `${firstDataDuration.toFixed(0)}ms`,
+            },
+          );
+
+          setMeasurement(
+            PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA,
+            firstDataDuration,
+            'millisecond',
+          );
+          // Clear the start time so we only measure once per WebSocket connection
+          this.wsConnectionStartTime = null;
+        }
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);

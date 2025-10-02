@@ -1332,8 +1332,8 @@
         "error_message": "Données de marché introuvables. Veuillez revenir en arrière et réessayer."
       },
       "statistics": "Aperçu",
-      "24hr_high": "Le prix le plus élevé atteint au cours des 24 dernières heures",
-      "24hr_low": "Le prix le plus bas atteint au cours des 24 dernières heures",
+      "24h_high": "Le prix le plus élevé atteint au cours des 24 dernières heures",
+      "24h_low": "Le prix le plus bas atteint au cours des 24 dernières heures",
       "24h_volume": "Volume sur 24 heures",
       "open_interest": "Intérêts ouverts",
       "funding_rate": "Taux de financement",
