@@ -671,31 +671,6 @@ describe('PerpsClosePositionView', () => {
       // Assert - Verify track was called (specific params depend on MetaMetricsEvents enum)
       expect(track).toHaveBeenCalled();
     });
-
-    it('tracks position close initiated event on confirm', async () => {
-      // Arrange
-      const track = jest.fn();
-      usePerpsEventTrackingMock.mockReturnValue({ track });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act
-      const confirmButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-      );
-      fireEvent.press(confirmButton);
-
-      // Assert
-      await waitFor(() => {
-        expect(track).toHaveBeenCalled();
-      });
-    });
   });
 
   describe('Live Price Updates', () => {

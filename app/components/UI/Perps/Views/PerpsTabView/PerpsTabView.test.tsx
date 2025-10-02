@@ -422,7 +422,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
-        params: { source: 'positionTab' },
+        params: { source: 'position_tab' },
       });
     });
 
