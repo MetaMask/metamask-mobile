@@ -59,7 +59,7 @@
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "fingerprint:generate": "node scripts/generate-fingerprint.js",
-    "build:repack": "PLATFORM=android node scripts/repack.js",
+    "build:repack:android": "PLATFORM=android node scripts/repack.js",
     "build:repack:ios": "PLATFORM=ios node scripts/repack.js",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle:qa": "GENERATE_BUNDLE=true ./scripts/build.sh android QA --pre",
