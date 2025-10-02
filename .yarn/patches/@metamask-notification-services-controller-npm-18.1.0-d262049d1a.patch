@@ -1,0 +1,26 @@
+diff --git a/dist/NotificationServicesController/services/feature-announcements.cjs b/dist/NotificationServicesController/services/feature-announcements.cjs
+index 2f740dea382014ee31ca8be7dec84b8b41d49d13..a6ae256d1ec1c2e3738134c14cd705499be196a3 100644
+--- a/dist/NotificationServicesController/services/feature-announcements.cjs
++++ b/dist/NotificationServicesController/services/feature-announcements.cjs
+@@ -84,6 +84,8 @@ const fetchFeatureAnnouncementNotifications = async (env, previewToken) => {
+                 },
+                 extensionMinimumVersionNumber: fields.extensionMinimumVersionNumber,
+                 mobileMinimumVersionNumber: fields.mobileMinimumVersionNumber,
++                extensionMaximumVersionNumber: fields.extensionMaximumVersionNumber,
++                mobileMaximumVersionNumber: fields.mobileMaximumVersionNumber,
+             },
+         };
+         return notification;
+diff --git a/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts b/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts
+index 43524ca93fb604f66aa9d582128e2daf4ec29c43..02f71c41d780a2ef28c8ab88e00a03129d3b547b 100644
+--- a/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts
++++ b/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts
+@@ -34,6 +34,8 @@ export type TypeFeatureAnnouncementFields = {
+         clients?: EntryFieldTypes.Text<'extension' | 'mobile' | 'portfolio'>;
+         extensionMinimumVersionNumber?: EntryFieldTypes.Text;
+         mobileMinimumVersionNumber?: EntryFieldTypes.Text;
++        extensionMaximumVersionNumber?: EntryFieldTypes.Text;
++        mobileMaximumVersionNumber?: EntryFieldTypes.Text;
+     };
+     contentTypeId: 'productAnnouncement';
+ };
