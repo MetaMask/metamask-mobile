@@ -32,6 +32,37 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   })),
 }));
 
+// Mock usePerpsOrderForm to avoid PerpsStreamProvider requirement
+jest.mock('../../hooks/usePerpsOrderForm', () => ({
+  usePerpsOrderForm: jest.fn(() => ({
+    orderForm: {
+      asset: 'BTC',
+      direction: 'long',
+      amount: '6',
+      leverage: 5,
+      balancePercent: 10,
+      type: 'market',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      limitPrice: undefined,
+    },
+    updateOrderForm: jest.fn(),
+    setAmount: jest.fn(),
+    setLeverage: jest.fn(),
+    setDirection: jest.fn(),
+    setAsset: jest.fn(),
+    setTakeProfitPrice: jest.fn(),
+    setStopLossPrice: jest.fn(),
+    setLimitPrice: jest.fn(),
+    setOrderType: jest.fn(),
+    handlePercentageAmount: jest.fn(),
+    handleMaxAmount: jest.fn(),
+    handleMinAmount: jest.fn(),
+    optimizeOrderAmount: jest.fn(),
+    maxPossibleAmount: 1000,
+  })),
+}));
+
 describe('PerpsBottomSheetTooltip', () => {
   const mockOnClose = jest.fn();
 
