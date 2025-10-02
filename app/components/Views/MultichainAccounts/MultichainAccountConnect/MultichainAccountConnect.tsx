@@ -198,6 +198,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations],
   );
 
+  const nonTestNetworkCaipChainIds = nonTestNetworkConfigurations.map(
+    ({ caipChainId }) => caipChainId,
+  );
+  const testNetworkCaipChainIds = testNetworkConfigurations.map(
+    ({ caipChainId }) => caipChainId,
+  );
+
   const alreadyConnectedCaipChainIds = useMemo(
     () =>
       getAllScopesFromCaip25CaveatValue(existingPermissionsCaip25CaveatValue),
@@ -223,9 +230,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const requestedAndAlreadyConnectedCaipChainIdsOrDefault = useMemo(() => {
     const allNetworksList = [
-      ...nonTestNetworkConfigurations,
-      ...testNetworkConfigurations,
-    ].map(({ caipChainId }) => caipChainId);
+      ...nonTestNetworkCaipChainIds,
+      ...testNetworkCaipChainIds,
+    ];
 
     const walletRequest =
       requestedCaipChainIds.filter(
@@ -235,13 +242,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
     let additionalChains: CaipChainId[] = [];
     if (walletRequest && isEip1193Request) {
-      additionalChains = nonTestNetworkConfigurations
-        .map(({ caipChainId }) => caipChainId)
-        .filter((caipChainId) =>
-          requestedNamespacesWithoutWallet.includes(
-            parseCaipChainId(caipChainId).namespace,
-          ),
-        );
+      additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
+        requestedNamespacesWithoutWallet.includes(
+          parseCaipChainId(caipChainId).namespace,
+        ),
+      );
     }
 
     const supportedRequestedCaipChainIds = Array.from(
@@ -255,16 +260,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
     // If globally selected network is a test network, include that in the default selected networks for connection request
     const currentlySelectedNetworkChainId = currentlySelectedNetwork.chainId;
-    const selectedNetworkIsTestNetwork = testNetworkConfigurations.find(
-      (network: { caipChainId: CaipChainId }) =>
-        network.caipChainId === currentlySelectedNetworkChainId,
+    const selectedNetworkIsTestNetwork = testNetworkCaipChainIds.find(
+      (network) => network === currentlySelectedNetworkChainId,
     );
 
     const defaultSelectedNetworkList = selectedNetworkIsTestNetwork
-      ? [...nonTestNetworkConfigurations, selectedNetworkIsTestNetwork].map(
-          ({ caipChainId }) => caipChainId,
-        )
-      : nonTestNetworkConfigurations.map(({ caipChainId }) => caipChainId);
+      ? [...nonTestNetworkCaipChainIds, selectedNetworkIsTestNetwork]
+      : nonTestNetworkCaipChainIds;
 
     if (supportedRequestedCaipChainIds.length > 0) {
       return Array.from(
@@ -288,8 +290,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
     return defaultSelectedNetworkList;
   }, [
-    nonTestNetworkConfigurations,
-    testNetworkConfigurations,
+    nonTestNetworkCaipChainIds,
+    testNetworkCaipChainIds,
     requestedCaipChainIds,
     isEip1193Request,
     currentlySelectedNetwork.chainId,

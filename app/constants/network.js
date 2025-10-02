@@ -1,4 +1,5 @@
 import { NetworkType, toHex } from '@metamask/controller-utils';
+import { KnownCaipNamespace, toCaipChainId } from '@metamask/utils';
 
 export const INFURA_PROJECT_ID = process.env.MM_INFURA_PROJECT_ID;
 
