@@ -928,6 +928,41 @@ describe('PerpsMarketListView', () => {
       expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
     });
 
+    it('shows empty state when search returns no results', () => {
+      renderWithProvider(<PerpsMarketListView />);
+
+      // First toggle search visibility
+      const searchButton = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
+      );
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+
+      act(() => {
+        fireEvent.changeText(searchInput, 'NONEXISTENT');
+      });
+
+      // Should show empty state message
+      expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'We couldn\'t find any tokens with the name "NONEXISTENT". Try a different search.',
+        ),
+      ).toBeOnTheScreen();
+
+      // Should not show any market rows
+      expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
+
+      // Should not show list header when empty state is shown
+      expect(screen.queryByText('Volume')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Price / 24h change')).not.toBeOnTheScreen();
+    });
+
     it('handles search with whitespace', () => {
       renderWithProvider(<PerpsMarketListView />);
 

@@ -1,5 +1,5 @@
 import { IConnectionStore } from '../types/connection-store';
-import { PersistedConnection } from '../types/persisted-connection';
+import { ConnectionInfo } from '../types/connection-info';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 
@@ -20,19 +20,19 @@ export class ConnectionStore implements IConnectionStore {
     return `${this.prefix}/${id}`;
   }
 
-  async save(connection: PersistedConnection): Promise<void> {
+  async save(connection: ConnectionInfo): Promise<void> {
     await StorageWrapper.setItem(
       this.getKey(connection.id),
       JSON.stringify(connection),
     );
   }
 
-  async get(id: string): Promise<PersistedConnection | null> {
+  async get(id: string): Promise<ConnectionInfo | null> {
     const json = await StorageWrapper.getItem(this.getKey(id));
-    return json ? (JSON.parse(json) as PersistedConnection) : null;
+    return json ? (JSON.parse(json) as ConnectionInfo) : null;
   }
 
-  async list(): Promise<PersistedConnection[]> {
+  async list(): Promise<ConnectionInfo[]> {
     const keys = await AsyncStorage.getAllKeys();
     const connectionKeys = keys.filter((key) => key.startsWith(this.prefix));
 
@@ -44,10 +44,10 @@ export class ConnectionStore implements IConnectionStore {
     return items.reduce((acc, item) => {
       // item is a [key, value] tuple
       if (item[1]) {
-        acc.push(JSON.parse(item[1]) as PersistedConnection);
+        acc.push(JSON.parse(item[1]) as ConnectionInfo);
       }
       return acc;
-    }, [] as PersistedConnection[]);
+    }, [] as ConnectionInfo[]);
   }
 
   async delete(id: string): Promise<void> {

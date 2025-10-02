@@ -138,8 +138,7 @@ const FundActionMenu = () => {
             } else if (assetContext) {
               navigate(
                 ...createBuyNavigationDetails({
-                  address: assetContext.address,
-                  chainId: getChainIdForAsset(),
+                  assetId: assetContext.assetId,
                 }),
               );
             } else {

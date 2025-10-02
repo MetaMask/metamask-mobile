@@ -64,6 +64,7 @@ import {
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import type {
+  InputMethod,
   OrderParams,
   OrderType,
   PerpsNavigationParamList,
@@ -142,6 +143,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isSubmittingRef = useRef(false);
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
+  const inputMethodRef = useRef<InputMethod>('default');
 
   const { account } = usePerpsLiveAccount();
 
@@ -242,10 +244,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     }
   }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
-  // Track trading screen viewed event using unified declarative API
+  // Track trading screen viewed event using unified declarative API (main's event name)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
+      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TRADING,
       [PerpsEventProperties.ASSET]: orderForm.asset,
       [PerpsEventProperties.DIRECTION]:
         orderForm.direction === 'long'
@@ -280,11 +283,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
     };
   }, [currentPrice]);
 
-  // Track order type viewed event using unified declarative API
+  // Track order type viewed event using unified declarative API (main's event structure)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_UI_INTERACTION,
     conditions: [!!(orderForm.amount && parseFloat(orderForm.amount) > 0)],
     properties: {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.ORDER_TYPE_VIEWED,
       [PerpsEventProperties.ASSET]: orderForm.asset,
       [PerpsEventProperties.DIRECTION]:
         orderForm.direction === 'long'
@@ -514,6 +519,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      inputMethodRef.current = 'keypad';
       // Enforce 9-digit limit (ignoring non-digits like separators)
       const digitCount = (value.match(/\d/g) || []).length;
       if (digitCount > 9) {
@@ -525,10 +531,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
   );
 
   const handlePercentagePress = (percentage: number) => {
+    inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
   };
 
   const handleMaxPress = () => {
+    inputMethodRef.current = 'max';
     handleMaxAmount();
   };
 
@@ -577,7 +585,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         );
 
         // Track validation failure as error encountered
-        track(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED, {
+        track(MetaMetricsEvents.PERPS_ERROR, {
           [PerpsEventProperties.ERROR_TYPE]:
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]: firstError,
@@ -627,6 +635,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           estimatedPoints: feeResults.estimatedPoints
             ? Number(feeResults.estimatedPoints)
             : undefined,
+          inputMethod: inputMethodRef.current,
         },
       };
 
@@ -762,7 +771,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={parseFloat(orderForm.amount || '0')}
-              onValueChange={(value) => setAmount(Math.floor(value).toString())}
+              onValueChange={(value) => {
+                inputMethodRef.current = 'slider';
+                setAmount(Math.floor(value).toString());
+              }}
               minimumValue={0}
               maximumValue={amountTimesLeverage}
               step={1}
@@ -993,7 +1005,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {strings('perps.points')}
+                  {strings('perps.estimated_points')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => handleTooltipPress('points')}
@@ -1163,7 +1175,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 : PerpsEventValues.INPUT_METHOD.PRESET;
           }
 
-          track(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED, eventProperties);
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            ...eventProperties,
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
+            [PerpsEventProperties.SETTING_TYPE]:
+              PerpsEventValues.SETTING_TYPE.LEVERAGE,
+          });
         }}
         leverage={orderForm.leverage}
         minLeverage={1}

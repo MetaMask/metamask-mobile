@@ -165,6 +165,26 @@ export const LIMIT_PRICE_CONFIG = {
 } as const;
 
 /**
+ * HyperLiquid order limits based on leverage
+ * From: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/contract-specifications
+ */
+export const HYPERLIQUID_ORDER_LIMITS = {
+  // Market orders
+  MARKET_ORDER_LIMITS: {
+    // $15,000,000 for max leverage >= 25
+    HIGH_LEVERAGE: 15_000_000,
+    // $5,000,000 for max leverage in [20, 25)
+    MEDIUM_HIGH_LEVERAGE: 5_000_000,
+    // $2,000,000 for max leverage in [10, 20)
+    MEDIUM_LEVERAGE: 2_000_000,
+    // $500,000 for max leverage < 10
+    LOW_LEVERAGE: 500_000,
+  },
+  // Limit orders are 10x market order limits
+  LIMIT_ORDER_MULTIPLIER: 10,
+} as const;
+
+/**
  * Close position configuration
  * Controls behavior and constants specific to position closing
  */

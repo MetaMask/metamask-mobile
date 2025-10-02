@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -37,6 +37,7 @@ import {
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
 } from '../../hooks';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
@@ -82,15 +83,17 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Track homescreen tab viewed - declarative with privacy compliant position count
+  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [
       !isInitialLoading,
       !!positions,
       account?.totalBalance !== undefined,
     ],
     properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
       [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
     },
   });
@@ -200,14 +203,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => {
-            const sizeValue = parseFloat(position.size);
-            const directionSegment = Number.isFinite(sizeValue)
-              ? sizeValue > 0
-                ? 'long'
-                : sizeValue < 0
-                ? 'short'
-                : 'unknown'
-              : 'unknown';
+            const directionSegment = getPositionDirection(position.size);
             return (
               <View
                 key={`${position.coin}-${index}`}
@@ -235,23 +231,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <View style={styles.content}>
+        <ScrollView style={styles.content}>
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <View style={styles.firstTimeContent}>
-                <PerpsEmptyState
-                  onStartTrading={handleNewTrade}
-                  testID="perps-empty-state"
-                />
-              </View>
+              <PerpsEmptyState
+                onAction={handleNewTrade}
+                testID="perps-empty-state"
+                twClassName="mx-auto"
+              />
             ) : (
               <View style={styles.tradeInfoContainer}>
-                <View style={styles.section}>{renderPositionsSection()}</View>
-                <View style={styles.section}>{renderOrdersSection()}</View>
+                <View>{renderPositionsSection()}</View>
+                <View>{renderOrdersSection()}</View>
               </View>
             )}
           </View>
-        </View>
+        </ScrollView>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

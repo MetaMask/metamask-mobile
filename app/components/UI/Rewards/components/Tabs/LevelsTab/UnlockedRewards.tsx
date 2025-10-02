@@ -7,6 +7,7 @@ import {
   selectUnlockedRewards,
   selectUnlockedRewardError,
   selectSeasonStartDate,
+  selectCurrentTier,
 } from '../../../../../../reducers/rewards/selectors';
 import { RewardDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -15,12 +16,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from './RewardItem';
 import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button/Button.types';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { ActivityIndicator } from 'react-native';
 interface UnlockedRewardItemProps {
   reward: RewardDto;
@@ -76,6 +72,7 @@ const UnlockedRewards: React.FC = () => {
   const isLoading = useSelector(selectUnlockedRewardLoading);
   const hasError = useSelector(selectUnlockedRewardError);
   const seasonStartDate = useSelector(selectSeasonStartDate);
+  const currentTier = useSelector(selectCurrentTier);
   const tw = useTailwind();
 
   const { fetchUnlockedRewards } = useUnlockedRewards();
@@ -84,7 +81,8 @@ const UnlockedRewards: React.FC = () => {
     const shouldShowSkeleton =
       (isLoading || unlockedRewards === null) &&
       !unlockedRewards?.length &&
-      !hasError;
+      !hasError &&
+      !!currentTier?.pointsNeeded;
 
     if (shouldShowSkeleton) {
       return <Skeleton style={tw.style('h-32 bg-rounded')} />;
@@ -106,7 +104,10 @@ const UnlockedRewards: React.FC = () => {
 
     return <></>;
   };
-  if (unlockedRewards && !unlockedRewards?.length) {
+  if (
+    (unlockedRewards && !unlockedRewards?.length) ||
+    !currentTier?.pointsNeeded
+  ) {
     // Not pending and empty, for unlocked rewards we don't show anything
     return null;
   }
@@ -127,19 +128,15 @@ const UnlockedRewards: React.FC = () => {
 
       {/* Show error banner if there's an error */}
       {hasError && !unlockedRewards?.length && !isLoading && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
+        <RewardsErrorBanner
           title={strings('rewards.unlocked_rewards_error.error_fetching_title')}
           description={strings(
             'rewards.unlocked_rewards_error.error_fetching_description',
           )}
-          actionButtonProps={{
-            size: ButtonSize.Md,
-            style: tw.style('mt-2'),
-            onPress: fetchUnlockedRewards,
-            label: strings('rewards.unlocked_rewards_error.retry_button'),
-            variant: ButtonVariants.Primary,
-          }}
+          onConfirm={fetchUnlockedRewards}
+          confirmButtonLabel={strings(
+            'rewards.unlocked_rewards_error.retry_button',
+          )}
         />
       )}
 

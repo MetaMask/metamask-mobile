@@ -787,29 +787,6 @@ export class PerpsController extends BaseController<
         provider.setUserFeeDiscount(feeDiscountBips);
       }
 
-      // Track trade transaction initiated
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED,
-        )
-          .addProperties({
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.DIRECTION]: params.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.size,
-            [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-            [PerpsEventProperties.LIMIT_PRICE]:
-              params.orderType === 'limit' ? params.price : null,
-            [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-            [PerpsEventProperties.ASSET_PRICE]:
-              params.trackingData?.marketPrice,
-          })
-          .build(),
-      );
-
       // Optimistic update - exclude trackingData to avoid persisting analytics data
       const { trackingData, ...orderWithoutTracking } = params;
       this.update((state) => {
@@ -817,29 +794,6 @@ export class PerpsController extends BaseController<
       });
 
       const result = await provider.placeOrder(params);
-
-      // Track trade transaction submitted
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED,
-        )
-          .addProperties({
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.DIRECTION]: params.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.size,
-            [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-            [PerpsEventProperties.LIMIT_PRICE]:
-              params.orderType === 'limit' ? params.price : null,
-            [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-            [PerpsEventProperties.ASSET_PRICE]:
-              params.trackingData?.marketPrice,
-          })
-          .build(),
-      );
 
       // Clear discount context after order (success or failure)
       if (provider.setUserFeeDiscount) {
@@ -857,35 +811,43 @@ export class PerpsController extends BaseController<
 
         // Track trade transaction executed
         const completionDuration = performance.now() - startTime;
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED,
-          )
-            .addProperties({
-              [PerpsEventProperties.ASSET]: params.coin,
-              [PerpsEventProperties.DIRECTION]: params.isBuy
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-              [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-              [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]:
-                result.filledSize || params.size,
-              [PerpsEventProperties.ASSET_PRICE]:
-                result.averagePrice || params.trackingData?.marketPrice,
-              [PerpsEventProperties.MARGIN_USED]:
-                params.trackingData?.marginUsed,
-              [PerpsEventProperties.METAMASK_FEE]:
-                params.trackingData?.metamaskFee,
-              [PerpsEventProperties.METAMASK_FEE_RATE]:
-                params.trackingData?.metamaskFeeRate,
-              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-                params.trackingData?.feeDiscountPercentage,
-              [PerpsEventProperties.ESTIMATED_REWARDS]:
-                params.trackingData?.estimatedPoints,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            })
-            .build(),
-        );
+
+        const eventBuilder = MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        ).addProperties({
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+          [PerpsEventProperties.ASSET]: params.coin,
+          [PerpsEventProperties.DIRECTION]: params.isBuy
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: params.orderType,
+          [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
+          [PerpsEventProperties.ORDER_SIZE]: result.filledSize || params.size,
+          [PerpsEventProperties.ASSET_PRICE]:
+            result.averagePrice || params.trackingData?.marketPrice,
+          [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
+          [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
+          [PerpsEventProperties.METAMASK_FEE_RATE]:
+            params.trackingData?.metamaskFeeRate,
+          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+            params.trackingData?.feeDiscountPercentage,
+          [PerpsEventProperties.ESTIMATED_REWARDS]:
+            params.trackingData?.estimatedPoints,
+          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          // Add TP/SL if set (for new orders)
+          ...(params.takeProfitPrice && {
+            [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+              params.takeProfitPrice,
+            ),
+          }),
+          ...(params.stopLossPrice && {
+            [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+              params.stopLossPrice,
+            ),
+          }),
+        });
+
+        MetaMetrics.getInstance().trackEvent(eventBuilder.build());
 
         // Report to data lake (fire-and-forget with retry)
         this.reportOrderToDataLake({
@@ -914,9 +876,10 @@ export class PerpsController extends BaseController<
         const completionDuration = performance.now() - startTime;
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED,
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: params.coin,
               [PerpsEventProperties.DIRECTION]: params.isBuy
                 ? PerpsEventValues.DIRECTION.LONG
@@ -961,9 +924,10 @@ export class PerpsController extends BaseController<
       const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED,
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
         )
           .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
             [PerpsEventProperties.ASSET]: params.coin,
             [PerpsEventProperties.DIRECTION]: params.isBuy
               ? PerpsEventValues.DIRECTION.LONG
@@ -1014,13 +978,61 @@ export class PerpsController extends BaseController<
    * Edit an existing order
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
+
     const result = await provider.editOrder(params);
+    const completionDuration = performance.now() - startTime;
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Track order edit executed
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+            [PerpsEventProperties.ASSET]: params.newOrder.coin,
+            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            ...(params.newOrder.price && {
+              [PerpsEventProperties.LIMIT_PRICE]: parseFloat(
+                params.newOrder.price,
+              ),
+            }),
+          })
+          .build(),
+      );
+    } else {
+      // Track order edit failed
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.newOrder.coin,
+            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+          })
+          .build(),
+      );
     }
 
     return result;
@@ -1030,13 +1042,45 @@ export class PerpsController extends BaseController<
    * Cancel an existing order
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
+
     const result = await provider.cancelOrder(params);
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Track order cancel executed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          })
+          .build(),
+      );
+    } else {
+      // Track order cancel failed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+          })
+          .build(),
+      );
     }
 
     return result;
@@ -1108,9 +1152,11 @@ export class PerpsController extends BaseController<
           // Track partially filled event
           MetaMetrics.getInstance().trackEvent(
             MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
+              MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
             )
               .addProperties({
+                [PerpsEventProperties.STATUS]:
+                  PerpsEventValues.STATUS.PARTIALLY_FILLED,
                 [PerpsEventProperties.ASSET]: position.coin,
                 [PerpsEventProperties.DIRECTION]: direction,
                 [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
@@ -1150,9 +1196,10 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_TYPE]: orderType,
@@ -1207,9 +1254,10 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_SIZE]:
@@ -1275,9 +1323,10 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_SIZE]:
@@ -1331,13 +1380,65 @@ export class PerpsController extends BaseController<
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
+
     const result = await provider.updatePositionTPSL(params);
 
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
+
+      // Track TP/SL update executed - ONE event with both properties
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            ...(params.takeProfitPrice && {
+              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                params.takeProfitPrice,
+              ),
+            }),
+            ...(params.stopLossPrice && {
+              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                params.stopLossPrice,
+              ),
+            }),
+          })
+          .build(),
+      );
+    } else {
+      // Track TP/SL update failed - ONE event with both properties
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+            ...(params.takeProfitPrice && {
+              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                params.takeProfitPrice,
+              ),
+            }),
+            ...(params.stopLossPrice && {
+              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                params.stopLossPrice,
+              ),
+            }),
+          })
+          .build(),
+      );
     }
 
     return result;

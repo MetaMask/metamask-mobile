@@ -302,8 +302,7 @@ describe('FundActionMenu', () => {
 
     it('uses asset context for navigation when provided without custom onBuy', async () => {
       const assetContext = {
-        address: '0x123',
-        chainId: '0x89',
+        assetId: 'eip155:137/slip44:60',
       };
       mockUseRoute.mockReturnValue({
         params: { asset: assetContext },
@@ -317,32 +316,9 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          address: '0x123',
-          chainId: 137,
+          assetId: 'eip155:137/slip44:60',
         });
         expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
-      });
-    });
-
-    it('uses asset context chainId when provided, falls back to current chainId when not', async () => {
-      const assetContext = {
-        address: '0x123',
-      };
-      mockUseRoute.mockReturnValue({
-        params: { asset: assetContext },
-      } as never);
-
-      const { getByTestId } = render(<FundActionMenu />);
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-      );
-
-      await waitFor(() => {
-        expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          address: '0x123',
-          chainId: 1,
-        });
       });
     });
 
@@ -541,10 +517,9 @@ describe('FundActionMenu', () => {
       });
     });
 
-    it('handles undefined chainId in asset context', async () => {
+    it('handles undefined assetId in asset context', async () => {
       const assetContext = {
-        address: '0x123',
-        chainId: undefined,
+        assetId: undefined,
       };
       mockUseRoute.mockReturnValue({
         params: { asset: assetContext },
@@ -558,8 +533,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          address: '0x123',
-          chainId: 1,
+          assetId: undefined,
         });
       });
     });

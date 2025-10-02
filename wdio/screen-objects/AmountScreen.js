@@ -1,7 +1,8 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 import {
   AMOUNT_ERROR,
   AMOUNT_SCREEN,
@@ -10,12 +11,14 @@ import {
 } from './testIDs/Screens/AmountScreen.testIds';
 
 class AmountScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get amountInputField() {
@@ -65,13 +68,13 @@ class AmountScreen {
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-        await numberKey.waitFor('visible',{ timeout: 30000 });
-        await numberKey.tap();
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        await AppwrightGestures.tap(numberKey);
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await numberKey.waitFor('visible', { timeout: 30000 });
-        await numberKey.tap();
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        await AppwrightGestures.tap(numberKey);
       }
     }
     }
@@ -92,8 +95,7 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    const element = await this.nextButton;
-    await element.tap();
+    await AppwrightGestures.tap(this.nextButton, );
   }
 
   async isVisible() {
@@ -102,7 +104,7 @@ class AmountScreen {
       await element.waitForDisplayed();
     } else {
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, '25%');
-      await expect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible();
     }
   }
 }

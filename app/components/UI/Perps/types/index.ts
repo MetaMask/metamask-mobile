@@ -59,14 +59,6 @@ export * from './config';
 export * from './token';
 
 /**
- * Standard Structure for Perps LaunchDarkly Feature Flags
- */
-export interface PerpsLaunchDarklyFlag {
-  enabled: boolean;
-  minimumVersion: string;
-}
-
-/**
  * Order form state for the Perps order view
  */
 export interface OrderFormState {

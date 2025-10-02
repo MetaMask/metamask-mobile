@@ -34,4 +34,8 @@ export interface TabEmptyStateProps extends Omit<BoxProps, 'children'> {
    * Any additional children to display in the TabEmptyState
    */
   children?: React.ReactNode;
+  /**
+   * The class name to apply to the TabEmptyState
+   */
+  twClassName?: string;
 }

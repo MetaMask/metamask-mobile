@@ -231,9 +231,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     },
   });
 
-  // Track asset screen viewed event - declarative
+  // Track asset screen viewed event - declarative (main's event name)
   usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED,
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [
       !!market,
       !!marketStats,
@@ -241,8 +241,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !isLoadingPosition,
     ],
     properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
       [PerpsEventProperties.ASSET]: market?.symbol || '',
-      [PerpsEventProperties.SOURCE]: source || PerpsEventValues.SOURCE.UNKNOWN,
+      [PerpsEventProperties.SOURCE]:
+        source || PerpsEventValues.SOURCE.PERP_MARKETS,
       [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
     },
   });
@@ -252,10 +255,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
-      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
         [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 

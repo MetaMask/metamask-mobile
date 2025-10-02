@@ -41,7 +41,6 @@ import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { NetworkManagerSelectorIDs } from '../../../../../e2e/selectors/wallet/NetworkManager.selectors';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
@@ -194,10 +193,10 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             variant={TextVariant.BodyMDMedium}
             style={styles.controlButtonText}
             numberOfLines={1}
-            testID={`${NetworkManagerSelectorIDs.BASE_CONTROL_BAR_NETWORK_LABEL}-${currentNetworkCaipChainId}`}
+            testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
           >
             {displayAllNetworks
-              ? strings('wallet.all_networks')
+              ? strings('wallet.popular_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
         </View>
