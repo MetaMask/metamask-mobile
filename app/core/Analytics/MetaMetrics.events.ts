@@ -521,7 +521,8 @@ enum EVENT_NAME {
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
 
-  // Perps Trading - Consolidated Events
+  // Perps Trading
+  // Perps Events - Consolidated
   PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
   PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
   PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
