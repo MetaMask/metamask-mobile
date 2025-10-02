@@ -38,9 +38,6 @@ interface RemoteImageProps {
 
 const createStyles = () =>
   StyleSheet.create({
-    badgeWrapper: {
-      flex: 1,
-    },
     imageStyle: {
       width: '100%',
       height: '100%',
@@ -48,15 +45,6 @@ const createStyles = () =>
     },
     detailedImageStyle: {
       borderRadius: 8,
-    },
-    textWrapper: {
-      textAlign: 'center',
-      marginTop: 16,
-    },
-    textWrapperIcon: {
-      textAlign: 'center',
-      fontSize: 18,
-      marginTop: 16,
     },
   });
 

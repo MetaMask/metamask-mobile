@@ -145,7 +145,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             <Text
               big={big}
               small={tiny ?? small}
-              style={tiny ? styles.textWrapperIcon : styles.textWrapper}
+              style={[styles.textWrapper, tiny ? styles.textWrapperIcon : {}]}
             >
               {collectible.tokenId
                 ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`

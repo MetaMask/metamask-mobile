@@ -60,9 +60,6 @@ const styleSheet = (params: {
       marginTop: 16,
     },
     textWrapperIcon: {
-      flex: 1,
-      textAlign: 'center',
-      fontSize: 18,
       marginTop: 16,
     },
     mediaPlayer: {
