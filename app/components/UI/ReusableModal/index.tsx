@@ -163,7 +163,11 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
     const debouncedHide = useMemo(
       // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
-      () => debounce(hide, 2000, { leading: true }),
+      // 1000ms = 300ms animation + 700ms buffer for navigation/state changes
+      // Conservative timing accounts for low-end device performance (frame drops, slow React Native bridge)
+      // Prevents React Navigation stack corruption during rapid modal changes.
+      // 50% improvement over original 2000ms timing while maintaining stability.
+      () => debounce(hide, 1000, { leading: true }),
       [hide],
     );
 
