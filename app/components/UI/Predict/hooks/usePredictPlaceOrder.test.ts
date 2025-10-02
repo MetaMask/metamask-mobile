@@ -33,7 +33,8 @@ describe('usePredictPlaceOrder', () => {
   const mockPlaceOrder = jest.fn();
   const mockGetPositions = jest.fn();
   const mockClaim = jest.fn();
-  const mockCalculateToWinAmount = jest.fn();
+  const mockCalculateBetAmounts = jest.fn();
+  const mockCalculateCashOutAmounts = jest.fn();
 
   const mockOrderParams = {
     outcomeId: 'outcome-123',
@@ -59,7 +60,8 @@ describe('usePredictPlaceOrder', () => {
       placeOrder: mockPlaceOrder,
       getPositions: mockGetPositions,
       claim: mockClaim,
-      calculateToWinAmount: mockCalculateToWinAmount,
+      calculateBetAmounts: mockCalculateBetAmounts,
+      calculateCashOutAmounts: mockCalculateCashOutAmounts,
     });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
