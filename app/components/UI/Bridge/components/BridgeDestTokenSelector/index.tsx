@@ -38,6 +38,7 @@ import {
 } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectValidDestInternalAccountsByScope } from '../../../../../selectors/bridge';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -66,6 +67,9 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const getSelectedInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const getValidDestAccountsByScope = useSelector(
+    selectValidDestInternalAccountsByScope,
+  );
   const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
     balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
@@ -76,12 +80,21 @@ export const BridgeDestTokenSelector: React.FC = () => {
       dispatch(setDestToken(token));
 
       const destChainId = formatChainIdToCaip(token.chainId);
-      const internalAccount = getSelectedInternalAccountByScope(destChainId);
-      dispatch(setDestAddress(internalAccount?.address));
+      let destInternalAccount = getSelectedInternalAccountByScope(destChainId);
+      if (!destInternalAccount) {
+        const validDestAccounts = getValidDestAccountsByScope(destChainId);
+        destInternalAccount = validDestAccounts.values().next().value;
+      }
+      dispatch(setDestAddress(destInternalAccount?.address));
 
       navigation.goBack();
     },
-    [dispatch, navigation, getSelectedInternalAccountByScope],
+    [
+      dispatch,
+      navigation,
+      getSelectedInternalAccountByScope,
+      getValidDestAccountsByScope,
+    ],
   );
 
   const debouncedTokenPress = useMemo(

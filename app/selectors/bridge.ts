@@ -11,9 +11,10 @@ import {
   selectSelectedInternalAccountAddress,
 } from '../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
-import { EthScope } from '@metamask/keyring-api';
+import { CaipChainId, EthScope } from '@metamask/keyring-api';
 import { selectMultichainAccountsState2Enabled } from './featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from './util';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account
@@ -68,4 +69,26 @@ export const selectValidDestInternalAccountIds = createDeepEqualSelector(
       [...byDestScope, ...evmWildcard].map((a) => a.id),
     );
   },
+);
+
+/**
+ * Returns a Set of InternalAccounts that are valid as destination accounts
+ * for the given chainId. For EVM destinations, includes
+ * both the specific EVM chain and the EVM wildcard scope (eip155:0).
+ */
+export const selectValidDestInternalAccountsByScope = createDeepEqualSelector(
+  [(state: RootState) => state],
+  (state) =>
+    (chainId: CaipChainId): Set<InternalAccount> => {
+      if (!chainId) return new Set<InternalAccount>();
+
+      const isEvm = chainId.startsWith('eip155:');
+
+      const byDestScope = selectInternalAccountsByScope(state, chainId);
+      const evmWildcard = isEvm
+        ? selectInternalAccountsByScope(state, EthScope.Eoa)
+        : [];
+
+      return new Set<InternalAccount>([...byDestScope, ...evmWildcard]);
+    },
 );
