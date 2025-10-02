@@ -23,7 +23,6 @@ jest.mock(
 
 describe('FontPreloader', () => {
   beforeEach(() => {
-    FontPreloader.reset();
     jest.clearAllMocks();
   });
 
@@ -38,10 +37,12 @@ describe('FontPreloader', () => {
   });
 
   it('should initially report fonts as not loaded', () => {
+    FontPreloader.reset();
     expect(FontPreloader.areFontsLoaded()).toBe(false);
   });
 
   it('should preload fonts successfully on React Native', async () => {
+    FontPreloader.reset();
     expect(FontPreloader.areFontsLoaded()).toBe(false);
 
     await FontPreloader.preloadFonts();
@@ -50,6 +51,8 @@ describe('FontPreloader', () => {
   });
 
   it('should not reload fonts if already loaded', async () => {
+    FontPreloader.reset();
+
     // First load
     await FontPreloader.preloadFonts();
     const firstLoadResult = FontPreloader.areFontsLoaded();
@@ -64,6 +67,10 @@ describe('FontPreloader', () => {
   });
 
   it('should return the same promise for concurrent loading attempts', () => {
+    // Reset to ensure clean state
+    FontPreloader.reset();
+
+    // Make concurrent calls - should return same promise
     const promise1 = FontPreloader.preloadFonts();
     const promise2 = FontPreloader.preloadFonts();
 
@@ -71,6 +78,7 @@ describe('FontPreloader', () => {
   });
 
   it('should reset font loading state', async () => {
+    FontPreloader.reset();
     await FontPreloader.preloadFonts();
     expect(FontPreloader.areFontsLoaded()).toBe(true);
 
@@ -79,6 +87,8 @@ describe('FontPreloader', () => {
   });
 
   it('should handle errors gracefully', async () => {
+    FontPreloader.reset();
+
     // Mock setTimeout to throw an error
     const originalSetTimeout = global.setTimeout;
     const mockSetTimeout = jest.fn().mockImplementation(() => {
@@ -95,6 +105,9 @@ describe('FontPreloader', () => {
   });
 
   it('should provide loading promise access', async () => {
+    // Reset first to ensure clean state for this specific test
+    FontPreloader.reset();
+
     const loadingPromise = FontPreloader.preloadFonts();
     const retrievedPromise = FontPreloader.getLoadingPromise();
 
