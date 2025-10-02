@@ -37,7 +37,6 @@ import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import {
   KEEP_SRP_SAFE_URL,
   NON_CUSTODIAL_WALLET_URL,
-  PRIVATE_KEY_GUIDE_URL,
   SRP_GUIDE_URL,
 } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -607,12 +606,6 @@ const RevealPrivateCredential = ({
     </Text>
   );
 
-  const renderPrivateKeyBannerDescription = () => (
-    <Text variant={TextVariant.BodyMD}>
-      {strings('multichain_accounts.reveal_private_key.banner_description')}
-    </Text>
-  );
-
   const renderWarning = (privCredentialName: string) => (
     <View style={[styles.rowWrapper, styles.warningWrapper]}>
       <View style={[styles.warningRowWrapper]}>
@@ -683,12 +676,9 @@ const RevealPrivateCredential = ({
                   title={strings(
                     'multichain_accounts.reveal_private_key.banner_title',
                   )}
-                  description={renderPrivateKeyBannerDescription()}
-                  actionButtonProps={{
-                    variant: ButtonVariants.Link,
-                    label: strings('reveal_credential.learn_more'),
-                    onPress: () => Linking.openURL(PRIVATE_KEY_GUIDE_URL),
-                  }}
+                  description={strings(
+                    'multichain_accounts.reveal_private_key.banner_description',
+                  )}
                 />
               </>
             ) : (
