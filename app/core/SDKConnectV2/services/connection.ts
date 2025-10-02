@@ -44,12 +44,10 @@ export class Connection {
     this.bridge.on('response', (payload) => {
       logger.debug('Sending message:', this.id, payload);
 
-      /**
-       * TODO (wenfix):
-       * 1) How should errors be handled?
-       * 2) What responses do not warrant a toast?
-       **/
-      this.hostApp.showReturnToApp(this.info);
+      // If payload.data includes an id its a JSON-RPC response, otherwise its a notification
+      if ('data' in payload && 'id' in payload.data) {
+        this.hostApp.showReturnToApp(this.info);
+      }
 
       this.client.sendResponse(payload);
     });

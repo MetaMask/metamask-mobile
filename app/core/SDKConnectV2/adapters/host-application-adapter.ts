@@ -50,8 +50,8 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
       showSimpleNotification({
         id: conninfo.id,
         autodismiss: 8000,
-        title: strings('sdk_return_to_app_toast.returnToAppLabel'),
-        description: null,
+        title: strings('sdk_connect_v2.show_return_to_app.title'),
+        description: strings('sdk_connect_v2.show_return_to_app.description'),
         status: 'success',
       }),
     );
