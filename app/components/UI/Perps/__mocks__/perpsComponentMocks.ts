@@ -130,10 +130,6 @@ export const setupPerpsHookMocks = () => {
   jest.mock('../../hooks/usePerpsEventTracking', () => ({
     usePerpsEventTracking: jest.fn(),
   }));
-
-  jest.mock('../../hooks/usePerpsScreenTracking', () => ({
-    usePerpsScreenTracking: jest.fn(),
-  }));
 };
 
 // Mock MetaMask hooks
@@ -166,9 +162,7 @@ export const getPerpsHookMocks = () => ({
   usePerpsEventTrackingMock: jest.requireMock(
     '../../hooks/usePerpsEventTracking',
   ).usePerpsEventTracking,
-  usePerpsScreenTrackingMock: jest.requireMock(
-    '../../hooks/usePerpsScreenTracking',
-  ).usePerpsScreenTracking,
+  // usePerpsScreenTracking removed - migrated to usePerpsMeasurement
   useMinimumOrderAmountMock:
     jest.requireMock('../../hooks').useMinimumOrderAmount,
   usePerpsOrderValidationMock:

@@ -75,3 +75,5 @@ export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATI
 export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
+
+export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;

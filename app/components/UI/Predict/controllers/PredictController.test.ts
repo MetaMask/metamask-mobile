@@ -339,6 +339,299 @@ describe('PredictController', () => {
       });
     });
   });
+
+  describe('getMarket', () => {
+    it('get market details successfully with default provider', async () => {
+      const mockMarket = {
+        id: 'market-1',
+        question: 'Will it rain tomorrow?',
+        outcomes: ['YES', 'NO'],
+        status: 'open',
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails = jest
+          .fn()
+          .mockResolvedValue(mockMarket);
+
+        const result = await controller.getMarket({ marketId: 'market-1' });
+
+        expect(result).toEqual(mockMarket);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: 'market-1',
+        });
+      });
+    });
+
+    it('get market details successfully with custom provider', async () => {
+      const mockMarket = {
+        id: 'market-2',
+        question: 'Will BTC hit 100k?',
+        outcomes: ['YES', 'NO'],
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails = jest
+          .fn()
+          .mockResolvedValue(mockMarket);
+
+        const result = await controller.getMarket({
+          marketId: 'market-2',
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockMarket);
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: 'market-2',
+        });
+      });
+    });
+
+    it('throw error when marketId is empty', async () => {
+      await withController(async ({ controller }) => {
+        await expect(controller.getMarket({ marketId: '' })).rejects.toThrow(
+          'marketId is required',
+        );
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getMarket({
+            marketId: 'market-1',
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle error when getMarketDetails throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch market';
+        mockPolymarketProvider.getMarketDetails = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getMarket({ marketId: 'market-1' }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle non-Error objects thrown by getMarketDetails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getMarket({ marketId: 'market-1' }),
+        ).rejects.toThrow('MARKET_DETAILS_FAILED');
+
+        expect(controller.state.lastError).toBe('MARKET_DETAILS_FAILED');
+      });
+    });
+
+    it('convert number marketId to string', async () => {
+      const mockMarket = { id: '123', question: 'Test?' };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails = jest
+          .fn()
+          .mockResolvedValue(mockMarket);
+
+        const result = await controller.getMarket({ marketId: 123 as any });
+
+        expect(result).toEqual(mockMarket);
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: '123',
+        });
+      });
+    });
+  });
+
+  describe('getPriceHistory', () => {
+    const mockPriceHistory = [
+      { timestamp: 1234567890, price: 0.45 },
+      { timestamp: 1234567900, price: 0.47 },
+    ];
+
+    it('get price history successfully with single provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockPriceHistory);
+
+        const result = await controller.getPriceHistory({
+          marketId: 'market-1',
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockPriceHistory);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getPriceHistory).toHaveBeenCalledWith({
+          marketId: 'market-1',
+          providerId: 'polymarket',
+        });
+      });
+    });
+
+    it('get price history with fidelity and interval parameters', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockPriceHistory);
+
+        const result = await controller.getPriceHistory({
+          marketId: 'market-1',
+          providerId: 'polymarket',
+          fidelity: 100,
+          interval: '1h' as any,
+        });
+
+        expect(result).toEqual(mockPriceHistory);
+        expect(mockPolymarketProvider.getPriceHistory).toHaveBeenCalledWith({
+          marketId: 'market-1',
+          providerId: 'polymarket',
+          fidelity: 100,
+          interval: '1h',
+        });
+      });
+    });
+
+    it('aggregate price history from multiple providers', async () => {
+      const mockHistory1 = [{ timestamp: 1234567890, price: 0.45 }];
+      const mockHistory2 = [{ timestamp: 1234567900, price: 0.47 }];
+
+      await withController(async ({ controller }) => {
+        // Add a second provider for testing
+        const mockProvider2 = {
+          getPriceHistory: jest.fn().mockResolvedValue(mockHistory2),
+        };
+        (controller as any).providers.set('provider2', mockProvider2);
+
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockHistory1);
+
+        const result = await controller.getPriceHistory({
+          marketId: 'market-1',
+        });
+
+        expect(result).toEqual([...mockHistory1, ...mockHistory2]);
+        expect(mockPolymarketProvider.getPriceHistory).toHaveBeenCalled();
+        expect(mockProvider2.getPriceHistory).toHaveBeenCalled();
+      });
+    });
+
+    it('handle empty results from providers', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockResolvedValue([]);
+
+        const result = await controller.getPriceHistory({
+          marketId: 'market-1',
+        });
+
+        expect(result).toEqual([]);
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+
+    it('handle undefined results from providers', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockResolvedValue(undefined);
+
+        const result = await controller.getPriceHistory({
+          marketId: 'market-1',
+        });
+
+        expect(result).toEqual([]);
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getPriceHistory({
+            marketId: 'market-1',
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle error when getPriceHistory throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch price history';
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getPriceHistory({ marketId: 'market-1' }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle non-Error objects thrown by getPriceHistory', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getPriceHistory({ marketId: 'market-1' }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe('PRICE_HISTORY_FAILED');
+      });
+    });
+
+    it('handle partial provider failures in multi-provider scenario', async () => {
+      const mockHistory1 = [{ timestamp: 1234567890, price: 0.45 }];
+
+      await withController(async ({ controller }) => {
+        // Add a second provider that fails
+        const mockProvider2 = {
+          getPriceHistory: jest
+            .fn()
+            .mockRejectedValue(new Error('Provider 2 failed')),
+        };
+        (controller as any).providers.set('provider2', mockProvider2);
+
+        mockPolymarketProvider.getPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockHistory1);
+
+        // Should throw because one provider failed
+        await expect(
+          controller.getPriceHistory({ marketId: 'market-1' }),
+        ).rejects.toThrow();
+      });
+    });
+  });
+
   describe('placeOrder', () => {
     const mockMarket = {
       id: 'market-1',

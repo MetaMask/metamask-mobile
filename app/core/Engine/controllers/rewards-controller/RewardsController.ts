@@ -31,6 +31,7 @@ import type { RewardsControllerMessenger } from '../../messengers/rewards-contro
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -56,7 +57,7 @@ export const DEFAULT_BLOCKED_REGIONS = ['UK'];
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
-const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
+const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 60 * 24; // 24 hours
 
 // Perps discount refresh threshold
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
@@ -74,7 +75,7 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
-const POINTS_EVENTS_CACHE_THRESHOLD_MS = 0; // 0 seconds cache, enable SWR background refresh
+const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 /**
  * State metadata for the RewardsController
@@ -335,6 +336,7 @@ export class RewardsController extends BaseController<
       has_more: pointsEvents.has_more,
       cursor: pointsEvents.cursor,
       total_results: pointsEvents.total_results,
+      lastFetched: Date.now(),
     };
   }
 
@@ -462,6 +464,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getFirstSubscriptionId',
       this.getFirstSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:resetAll',
+      this.resetAll.bind(this),
     );
   }
 
@@ -1179,13 +1185,6 @@ export class RewardsController extends BaseController<
     // Add 500ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
     const cacheBalanceUpdatedAt =
       (cachedSeasonStatus.balance.updatedAt || 0) + 500;
-    Logger.log(
-      'RewardsController: Comparing cache timestamps with latest updatedAt',
-      {
-        cacheBalanceUpdatedAt,
-        latestUpdatedAt,
-      },
-    );
 
     // If cache timestamp is older than the latest event update, emit balance updated event
     if (latestUpdatedAt > cacheBalanceUpdatedAt) {
@@ -1248,7 +1247,10 @@ export class RewardsController extends BaseController<
       readCache: (key) => {
         const cached = this.state.pointsEvents[key];
         return cached
-          ? { payload: this.#convertPointsEventsStateToDto(cached) }
+          ? {
+              payload: this.#convertPointsEventsStateToDto(cached),
+              lastFetched: cached.lastFetched,
+            }
           : undefined;
       },
       fetchFresh: async () => {
@@ -1328,6 +1330,10 @@ export class RewardsController extends BaseController<
   ): Promise<Date | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return null;
+    Logger.log(
+      'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
+      params,
+    );
     const result = await this.messagingSystem.call(
       'RewardsDataService:getPointsEventsLastUpdated',
       params,
@@ -1662,6 +1668,48 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Reset rewards account state and clear all access tokens
+   */
+  async resetAll(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      return;
+    }
+
+    try {
+      const currentActiveAccount = this.state.activeAccount?.account;
+      this.resetState();
+      this.update((state: RewardsControllerState) => {
+        if (currentActiveAccount) {
+          state.activeAccount = {
+            account: currentActiveAccount,
+            hasOptedIn: false,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          };
+        }
+      });
+
+      // Remove all tokens from secure storage
+      await resetAllSubscriptionTokens();
+
+      Logger.log('RewardsController: Reset completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Reset failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Logout user from rewards and clear associated data
    * @param subscriptionId - Optional subscription ID to logout from
    */
@@ -1815,11 +1863,6 @@ export class RewardsController extends BaseController<
     if (this.state.activeAccount?.subscriptionId) {
       return this.state.activeAccount.subscriptionId;
     }
-
-    Logger.log(
-      'RewardsController: Subscriptions map',
-      this.state.subscriptions?.length,
-    );
 
     // Fallback to the first subscription ID from the subscriptions map
     const subscriptionIds = Object.keys(this.state.subscriptions);
@@ -2076,7 +2119,6 @@ export class RewardsController extends BaseController<
         const currentActiveAccount = this.state.activeAccount?.account;
         this.resetState();
         this.update((state: RewardsControllerState) => {
-          // Set activeAccount with optIn: false if there was an active account
           if (currentActiveAccount) {
             state.activeAccount = {
               account: currentActiveAccount,
