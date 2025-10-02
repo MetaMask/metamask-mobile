@@ -16,6 +16,9 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       backgroundColor: colors.background.default,
     },
+    filterScrollView: {
+      flexGrow: 0,
+    },
     filterTabContainer: {
       gap: 8,
     },
