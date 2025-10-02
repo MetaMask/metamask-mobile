@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { View, TextInput } from 'react-native';
+import { View, TextInput, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -44,6 +44,7 @@ import {
   createNavigationDetails,
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { PRIVATE_KEY_GUIDE_URL } from '../../../../constants/urls';
 import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
 
 import styleSheet from './styles';
@@ -287,6 +288,11 @@ export const PrivateKeyList = () => {
           description={`${strings(
             'multichain_accounts.private_key_list.warning_description',
           )}`}
+          actionButtonProps={{
+            variant: ButtonVariants.Link,
+            label: strings('reveal_credential.learn_more'),
+            onPress: () => Linking.openURL(PRIVATE_KEY_GUIDE_URL),
+          }}
           style={styles.banner}
           testID={PrivateKeyListIds.BANNER}
         />
