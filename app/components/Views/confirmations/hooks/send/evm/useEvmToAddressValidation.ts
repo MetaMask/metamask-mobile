@@ -46,7 +46,7 @@ export const shouldSkipValidation = ({
   const existingContact =
     address && chainId && addressBook[chainId as Hex]?.[address];
   if (existingContact) {
-    return true;
+    return false;
   }
 
   // sending to an internal account
@@ -54,7 +54,7 @@ export const shouldSkipValidation = ({
     areAddressesEqual(account.address, address),
   );
   if (internalAccount) {
-    return true;
+    return false;
   }
 
   return false;

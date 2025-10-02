@@ -30,7 +30,7 @@ export const shouldSkipValidation = ({
     areAddressesEqual(account.address, toAddress),
   );
   if (internalAccount) {
-    return true;
+    return false;
   }
 
   return false;
