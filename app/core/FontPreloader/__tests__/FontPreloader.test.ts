@@ -72,11 +72,11 @@ describe('FontPreloader', () => {
 
     // Mock setTimeout to not resolve immediately
     const originalSetTimeout = global.setTimeout;
-    let resolveCallback: (() => void) | null = null;
-    global.setTimeout = jest.fn().mockImplementation((callback) => {
+    let resolveCallback: (() => void) | undefined;
+    global.setTimeout = jest.fn().mockImplementation((callback: () => void) => {
       resolveCallback = callback;
       return 123; // mock timer id
-    }) as any;
+    }) as unknown as typeof setTimeout;
 
     // Make concurrent calls - should return same promise
     const promise1 = FontPreloader.preloadFonts();
@@ -126,11 +126,11 @@ describe('FontPreloader', () => {
 
     // Mock setTimeout to control timing
     const originalSetTimeout = global.setTimeout;
-    let resolveCallback: (() => void) | null = null;
-    global.setTimeout = jest.fn().mockImplementation((callback) => {
+    let resolveCallback: (() => void) | undefined;
+    global.setTimeout = jest.fn().mockImplementation((callback: () => void) => {
       resolveCallback = callback;
       return 123; // mock timer id
-    }) as any;
+    }) as unknown as typeof setTimeout;
 
     const loadingPromise = FontPreloader.preloadFonts();
     const retrievedPromise = FontPreloader.getLoadingPromise();
