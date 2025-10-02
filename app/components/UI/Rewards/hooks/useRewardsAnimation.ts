@@ -9,7 +9,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 
 // Rive animation constants - defined in rewards_icon_animations.riv
-const STATE_MACHINE_NAME = 'State Machine 1';
+const STATE_MACHINE_NAME = 'Rewards_Icon';
 const BASE_FOX_POSITION = -20;
 const ANIMATION_DURATION = {
   BLAZING_FAST: 100,
@@ -27,11 +27,14 @@ export enum RewardAnimationState {
 }
 
 enum RewardsIconTriggers {
-  Disable = 'Disable',
   Start = 'Start',
   RefreshRight = 'Refresh_right',
   RefreshLeft = 'Refresh_left',
   RefreshDoubleFlip = 'Refresh_doubleflip',
+  LoadLeft = 'Load_left',
+  LoadRight = 'Load_right',
+  DisableRight = 'Disable_right',
+  DisableLeft = 'Disable_left',
 }
 
 interface UseRewardsAnimationParams {
@@ -143,7 +146,7 @@ export const useRewardsAnimation = ({
       });
     }
 
-    triggerRiveAnimation(RewardsIconTriggers.Disable);
+    triggerRiveAnimation(RewardsIconTriggers.DisableRight);
   }, [
     animatedValue,
     rivePosition,
@@ -169,7 +172,7 @@ export const useRewardsAnimation = ({
       duration: ANIMATION_DURATION.FAST,
     });
 
-    triggerRiveAnimation(RewardsIconTriggers.Disable);
+    triggerRiveAnimation(RewardsIconTriggers.DisableRight);
   }, [
     rivePosition,
     triggerRiveAnimation,
@@ -200,7 +203,7 @@ export const useRewardsAnimation = ({
       const trigger =
         currentValue > 0
           ? RewardsIconTriggers.RefreshLeft
-          : RewardsIconTriggers.Disable;
+          : RewardsIconTriggers.DisableRight;
 
       triggerRiveAnimation(trigger);
       previousValueRef.current = currentValue;
