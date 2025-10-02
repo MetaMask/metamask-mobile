@@ -708,7 +708,7 @@ describe('Login test suite 2', () => {
         fireEvent.press(otherMethodsButton);
       });
 
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.ONBOARDING);
       expect(spyResetOauthState).toHaveBeenCalled();
     });
 

@@ -373,7 +373,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.goBack();
+    navigation.navigate(Routes.ONBOARDING.ONBOARDING);
     OAuthService.resetOauthState();
   };
 
