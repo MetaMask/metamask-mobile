@@ -24,22 +24,22 @@ export interface DeeplinkUrlParams {
   utm_term?: string;
   utm_content?: string;
   account?: string; // This is the format => "address@chainId"
-  
+
   // Route-specific parameters for analytics
   // Common parameters
   from?: string;
   to?: string;
   amount?: string;
   asset?: string;
-  
+
   // Swap-specific parameters
   slippage?: string;
-  
+
   // Perps-specific parameters
   symbol?: string;
   screen?: string;
   tab?: string;
-  
+
   // Deposit-specific parameters
   provider?: string;
   payment_method?: string;
@@ -47,15 +47,15 @@ export interface DeeplinkUrlParams {
   fiat_currency?: string;
   fiat_quantity?: string;
   assetId?: string;
-  
+
   // Transaction-specific parameters
   gas?: string;
   gasPrice?: string;
-  
+
   // Buy-specific parameters
   crypto_currency?: string;
   crypto_amount?: string;
-  
+
   // Any other route-specific parameters
   [key: string]: string | undefined;
 }
@@ -87,11 +87,10 @@ function extractURLParams(url: string) {
 
   if (urlObj.query.length) {
     try {
-      // Use arrayLimit: 1 to prevent arrays from being returned for duplicate parameters
       const parsedParams = qs.parse(urlObj.query.substring(1), {
         arrayLimit: 99,
       });
-      params = { ...params, ...parsedParams };
+      params = { ...params, ...parsedParams } as DeeplinkUrlParams;
 
       if (params.message) {
         params.message = params.message?.replace(/ /g, '+');
