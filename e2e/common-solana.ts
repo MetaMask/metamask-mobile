@@ -5,6 +5,9 @@ import TestHelpers from './helpers';
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import { DappVariants } from './framework/Constants';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from './api-mocking/mock-responses/feature-flags-mocks';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from './api-mocking/helpers/remoteFeatureFlagsHelper';
 
 export async function withSolanaAccountEnabled(
   {
@@ -39,6 +42,12 @@ export async function withSolanaAccountEnabled(
         },
       ],
       restartDevice: true,
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          remoteFeatureMultichainAccountsAccountDetailsV2(),
+        );
+      },
     },
     async () => {
       await TestHelpers.reverseServerPort();
