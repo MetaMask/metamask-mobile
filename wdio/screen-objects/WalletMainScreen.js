@@ -154,10 +154,11 @@ class WalletMainScreen {
   async tapOnToken(token) {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
-    } else {
-      let tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token); // for some reason by Id does not work sometimes
+    } 
+    let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
+      //let tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token); // for some reason by Id does not work sometimes
       await tokenName.tap();
-    }
+    
   }
 
   async isTokenVisible(token) {

@@ -14,12 +14,14 @@ import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
 import { TEST_AMOUNTS } from '../../../utils/TestConstants.js';
 import { login } from '../../../utils/Flows.js';
+import TokenOverviewScreen from 'wdio/screen-objects/TokenOverviewScreen.js';
 
 /* Scenario 9: Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3 */
 test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
+  test.setTimeout(1500000000)
   WalletAccountModal.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -30,6 +32,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
   NetworksScreen.device = device;
+  TokenOverviewScreen.device = device;
 
   await login(device);
   // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
@@ -38,10 +41,12 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
 
-  await WalletMainScreen.tapNetworkNavBar();
-  await NetworksScreen.selectNetwork('Ethereum');
+  // await WalletMainScreen.tapNetworkNavBar();
+  // await NetworksScreen.selectNetwork('Ethereum');
+  await device.pause(150000000000)
+  await WalletMainScreen.tapOnToken('ETH');
+  await TokenOverviewScreen.tapSendButton();
   timer1.start();
-  await WalletActionModal.tapSendButton();
   await SendScreen.isVisible();
   timer1.stop();
   const timer2 = new TimerHelper(
@@ -54,7 +59,12 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on ETH, until the amount screen is displayed',
   );
 
+  await SendScreen.selectNetwork('Ethereum');
+  await SendScreen.typeTokenName('ETH');
+  await device.pause(150000000000)
   await SendScreen.selectToken('Ethereum', 'ETH');
+  	
+//(//XCUIElementTypeStaticText[@name="Ethereum"])[2]
   timer3.start();
   await AmountScreen.isVisible();
   timer3.stop();

@@ -79,6 +79,10 @@ class SendScreen {
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
+
+  get searchTokenField() {
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
+  }
   
 
   async openNetworkPicker() {
@@ -185,12 +189,26 @@ class SendScreen {
     }
   }
 
+  async typeTokenName(tokenName) {
+    if (!this._device) {
+      await Gestures.typeText(this.searchTokenField, tokenName);
+    } else {
+      const element = await this.searchTokenField;
+      await element.fill(tokenName);
+    }
+  }
+
   async selectNetwork(network) {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
     } else {
-      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
-      await AppwrightGestures.tap(networkButton);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
+        await AppwrightGestures.tap(networkButton);
+      } else {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${network}"]`);
+        await AppwrightGestures.tap(networkButton);
+      }
     }
   }
 
@@ -199,7 +217,8 @@ class SendScreen {
     if (!this._device) {
       await Gestures.tapTextByXpath(tokenName);
     } else {
-      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName}, ${tokenSymbol}`);
+      await this._device.pause(150000000000)
+      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName} ${tokenSymbol}`);
       await tokenButton.tap();
     }
   }
