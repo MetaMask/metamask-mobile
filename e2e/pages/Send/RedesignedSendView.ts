@@ -1,5 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -13,6 +14,20 @@ class SendView {
   get continueButton(): DetoxElement {
     return Matchers.getElementByText('Continue');
   }
+
+  get recipientAddressInput(): DetoxElement {
+    return Matchers.getElementByID(
+      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+    );
+  }
+
+  // get nextButton(): DetoxElement {
+  //   return device.getPlatform() === 'ios'
+  //     ? Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON)
+  //     : Matchers.getElementByLabel(
+  //         SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+  //       );
+  // }
 
   async selectEthereumToken(): Promise<void> {
     await Gestures.waitAndTap(this.ethereumTokenButton, {
@@ -31,6 +46,18 @@ class SendView {
       elemDescription: 'Continue button',
     });
   }
+
+  async inputRecipientAddress(address: string): Promise<void> {
+    await Gestures.typeText(this.recipientAddressInput, address, {
+      elemDescription: 'Enter recipient address',
+    });
+  }
+
+  // async tapNextButton(): Promise<void> {
+  //   await Gestures.waitAndTap(this.nextButton, {
+  //     elemDescription: 'Next Button in Send View',
+  //   });
+  // }
 }
 
 export default new SendView();

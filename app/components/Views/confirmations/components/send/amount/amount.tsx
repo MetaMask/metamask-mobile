@@ -15,6 +15,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { isE2E } from '../../../../../../util/test/utils';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -135,7 +136,7 @@ export const Amount = () => {
             >
               {amount?.length ? amount : defaultValue}
             </Text>
-            <AnimatedCursor />
+            {!isE2E && <AnimatedCursor />}
             <Text
               style={styles.inputText}
               color={amountError ? TextColor.Error : TextColor.Muted}
