@@ -31,6 +31,7 @@ import type { RewardsControllerMessenger } from '../../messengers/rewards-contro
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -463,6 +464,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getFirstSubscriptionId',
       this.getFirstSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:resetAll',
+      this.resetAll.bind(this),
     );
   }
 
@@ -1663,6 +1668,48 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Reset rewards account state and clear all access tokens
+   */
+  async resetAll(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      return;
+    }
+
+    try {
+      const currentActiveAccount = this.state.activeAccount?.account;
+      this.resetState();
+      this.update((state: RewardsControllerState) => {
+        if (currentActiveAccount) {
+          state.activeAccount = {
+            account: currentActiveAccount,
+            hasOptedIn: false,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          };
+        }
+      });
+
+      // Remove all tokens from secure storage
+      await resetAllSubscriptionTokens();
+
+      Logger.log('RewardsController: Reset completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Reset failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Logout user from rewards and clear associated data
    * @param subscriptionId - Optional subscription ID to logout from
    */
@@ -2072,7 +2119,6 @@ export class RewardsController extends BaseController<
         const currentActiveAccount = this.state.activeAccount?.account;
         this.resetState();
         this.update((state: RewardsControllerState) => {
-          // Set activeAccount with optIn: false if there was an active account
           if (currentActiveAccount) {
             state.activeAccount = {
               account: currentActiveAccount,
