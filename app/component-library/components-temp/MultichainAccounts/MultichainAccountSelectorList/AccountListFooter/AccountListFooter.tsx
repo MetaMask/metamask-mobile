@@ -44,7 +44,7 @@ const AccountListFooter = memo(
       loadingMessage: accountOperationLoadingMessage,
     } = useAccountWalletOperationsLoadingStates(walletId);
 
-    const isLoadingState = areAnyOperationsLoading;
+    const isLoadingState = isLoading || areAnyOperationsLoading;
 
     const actionLabel = useMemo(() => {
       if (areAnyOperationsLoading) {
