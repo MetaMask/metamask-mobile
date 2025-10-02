@@ -24,6 +24,7 @@ export interface DeeplinkUrlParams {
   utm_term?: string;
   utm_content?: string;
   account?: string; // This is the format => "address@chainId"
+  hr: boolean; // Hide Return to App
 
   // Route-specific parameters for analytics
   // Common parameters
@@ -83,6 +84,7 @@ function extractURLParams(url: string) {
     utm_campaign: '',
     utm_term: '',
     utm_content: '',
+    hr: false, // string 1 means true
   };
 
   if (urlObj.query.length) {
@@ -90,7 +92,7 @@ function extractURLParams(url: string) {
       const parsedParams = qs.parse(urlObj.query.substring(1), {
         arrayLimit: 99,
       });
-      params = { ...params, ...parsedParams } as DeeplinkUrlParams;
+      params = { ...params, ...parsedParams, hr: parsedParams.hr === '1' } as DeeplinkUrlParams;
 
       if (params.message) {
         params.message = params.message?.replace(/ /g, '+');

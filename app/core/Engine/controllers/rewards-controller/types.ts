@@ -252,6 +252,12 @@ export interface PerpsEventPayload {
    * Asset information
    */
   asset: EventAssetDto;
+
+  /**
+   * PNL of the position
+   * @example 10.0464
+   */
+  pnl?: string;
 }
 
 /**
@@ -579,6 +585,7 @@ export type PointsEventsDtoState = {
   has_more: boolean;
   cursor: string | null;
   total_results: number;
+  lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -905,6 +912,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for resetting controller state
+ */
+export interface RewardsControllerResetAllAction {
+  type: 'RewardsController:resetAll';
+  handler: () => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -929,7 +944,8 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerClaimRewardAction;
+  | RewardsControllerClaimRewardAction
+  | RewardsControllerResetAllAction;
 
 export const CURRENT_SEASON_ID = 'current';
 
@@ -957,6 +973,12 @@ export interface OptInStatusDto {
    * @example [true, true, false]
    */
   ois: boolean[];
+
+  /**
+   * The subscription IDs of the addresses in the same order as the input
+   * @example ['sub_123', 'sub_456', null]
+   */
+  sids: (string | null)[];
 }
 
 /**
