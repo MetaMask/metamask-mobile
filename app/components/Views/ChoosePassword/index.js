@@ -805,7 +805,9 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.DisplayMD}
                     color={TextColor.Default}
                   >
-                    {strings('choose_password.title')}
+                    {Platform.OS === 'ios'
+                      ? strings('choose_password.title_ios')
+                      : strings('choose_password.title')}
                   </Text>
                   <Text
                     variant={TextVariant.BodyMD}
@@ -847,12 +849,11 @@ class ChoosePassword extends PureComponent {
                     color={TextColor.Default}
                     style={styles.label}
                   >
-                    {strings('choose_password.password')}
+                    {Platform.OS === 'ios'
+                      ? strings('choose_password.password_ios')
+                      : strings('choose_password.password')}
                   </Label>
                   <TextField
-                    placeholder={strings(
-                      'import_from_seed.enter_strong_password',
-                    )}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
@@ -917,11 +918,12 @@ class ChoosePassword extends PureComponent {
                     color={TextColor.Default}
                     style={styles.label}
                   >
-                    {strings('choose_password.confirm_password')}
+                    {Platform.OS === 'ios'
+                      ? strings('choose_password.confirm_password_ios')
+                      : strings('choose_password.confirm_password')}
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
-                    placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
@@ -1014,7 +1016,11 @@ class ChoosePassword extends PureComponent {
                   <Button
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}
-                    label={strings('choose_password.create_password_cta')}
+                    label={
+                      Platform.OS === 'ios'
+                        ? strings('choose_password.create_password_cta_ios')
+                        : strings('choose_password.create_password_cta')
+                    }
                     disabled={!canSubmit}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}

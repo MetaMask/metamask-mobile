@@ -103,7 +103,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
               }
             >
-              MetaMask password
+              MetaMask PIN
             </Text>
             <Text
               accessibilityRole="text"
@@ -143,7 +143,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
               testID="label"
             >
-              Create new password
+              Create pin
             </Text>
             <View
               accessibilityState={
@@ -207,7 +207,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholder="Enter a strong password"
                   placeholderTextColor="#b7bbc8"
                   returnKeyType="next"
                   secureTextEntry={true}
@@ -279,7 +278,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
               testID="label"
             >
-              Confirm password
+              Confirm pin
             </Text>
             <View
               accessibilityState={
@@ -344,7 +343,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholder="Re-enter your password"
                   placeholderTextColor="#b7bbc8"
                   returnKeyType="done"
                   secureTextEntry={true}
@@ -555,7 +553,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   }
                 }
               >
-                Create password
+                Create PIN
               </Text>
             </TouchableOpacity>
           </View>
