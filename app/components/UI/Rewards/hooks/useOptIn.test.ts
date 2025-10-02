@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useOptin } from './useOptIn';
 import Engine from '../../../../core/Engine';
 import { handleRewardsErrorMessage } from '../utils';
-import { setCandidateSubscriptionId } from '../../../../actions/rewards';
+import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock dependencies
@@ -20,9 +20,13 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../utils', () => ({
   handleRewardsErrorMessage: jest.fn(),
+  deriveAccountMetricProps: jest.fn().mockReturnValue({
+    account_type: 'Imported',
+    scope: 'evm',
+  }),
 }));
 
-jest.mock('../../../../actions/rewards', () => ({
+jest.mock('../../../../reducers/rewards', () => ({
   setCandidateSubscriptionId: jest.fn(),
 }));
 

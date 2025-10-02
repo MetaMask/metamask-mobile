@@ -37,6 +37,7 @@ import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -49,6 +50,7 @@ interface BoostCardProps {
 
 const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -67,6 +69,14 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   // TODO: coordinate backend changes to support other default assets, or go to perps
   const handleBoostTap = () => {
     goToSwaps();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_ACTIVE_BOOST_CLICKED)
+        .addProperties({
+          boost_id: boost.id,
+          boost_name: boost.name,
+        })
+        .build(),
+    );
   };
 
   const renderBoostBadge = () => {
@@ -151,7 +161,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   isLoading,
 }) => (
   <Box>
-    <Box twClassName="flex-row items-center gap-2 items-center">
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.active_boosts_title')}
       </Text>
