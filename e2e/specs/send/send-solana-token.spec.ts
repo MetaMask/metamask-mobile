@@ -6,8 +6,8 @@ import { withSolanaAccountEnabled } from '../../common-solana';
 
 const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
 
-describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
-  it('should send ETH to an address', async () => {
+describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
+  it('should send solana to an address', async () => {
     await withSolanaAccountEnabled({}, async () => {
       await device.disableSynchronization();
       await WalletView.tapWalletSendButton();
