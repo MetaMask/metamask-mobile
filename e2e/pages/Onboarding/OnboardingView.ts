@@ -1,7 +1,6 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { BASE_DEFAULTS, Utilities } from '../../framework';
 
 class OnboardingView {
   get container(): DetoxElement {
@@ -25,19 +24,9 @@ class OnboardingView {
   }
 
   async tapHaveAnExistingWallet() {
-    await Utilities.executeWithRetry(
-      async () => {
-        await Gestures.waitAndTap(this.existingWalletButton, {
-          elemDescription: 'Onboarding Have an Existing Wallet Button',
-          waitForElementToDisappear: true,
-        });
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'tapHaveAnExistingWallet()',
-        elemDescription: 'Taps to prompt bottom sheet',
-      },
-    );
+    await Gestures.waitAndTap(this.existingWalletButton, {
+      elemDescription: 'Onboarding Have an Existing Wallet Button',
+    });
   }
 }
 
