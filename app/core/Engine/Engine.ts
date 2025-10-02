@@ -10,6 +10,7 @@ import {
 import {
   AccountTrackerController,
   AssetsContractController,
+  CodefiTokenPricesServiceV2,
   NftController,
   NftDetectionController,
   TokenBalancesController,
@@ -17,7 +18,6 @@ import {
   TokenListController,
   TokenRatesController,
   TokensController,
-  CodefiTokenPricesServiceV2,
   TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
@@ -26,9 +26,7 @@ import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
   getDefaultNetworkControllerState,
@@ -49,9 +47,7 @@ import {
   type CaveatSpecificationConstraint,
   PermissionController,
   type PermissionSpecificationConstraint,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
@@ -69,23 +65,23 @@ import {
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
-  fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
-  renderFromTokenMinimalUnit,
   balanceToFiatNumber,
-  weiToFiatNumber,
-  toHexadecimal,
   hexToBN,
+  renderFromTokenMinimalUnit,
   renderFromWei,
+  toHexadecimal,
+  weiToFiatNumber,
 } from '../../util/number';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
-import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
@@ -114,13 +110,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import {
-  ChainId,
-  type TraceCallback,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  toHex,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/controller-utils';
+import { ChainId, toHex, type TraceCallback } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   MetaMetricsEventCategory,
@@ -145,20 +135,20 @@ import { multichainAccountServiceInit } from './controllers/multichain-account-s
 import {
   cronjobControllerInit,
   executionServiceInit,
+  SnapControllerGetSnapAction,
+  SnapControllerHandleRequestAction,
   snapControllerInit,
+  SnapControllerIsMinimumPlatformVersionAction,
   snapInterfaceControllerInit,
   snapsRegistryInit,
-  SnapControllerGetSnapAction,
-  SnapControllerIsMinimumPlatformVersionAction,
-  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
   BaseControllerMessenger,
-  EngineState,
   EngineContext,
+  EngineState,
   StatefulControllers,
 } from './types';
 import {
@@ -199,8 +189,8 @@ import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import {
   MultichainRouter,
-  MultichainRouterMessenger,
   MultichainRouterArgs,
+  MultichainRouterMessenger,
 } from '@metamask/snaps-controllers';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
@@ -219,6 +209,9 @@ import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFl
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -686,16 +679,6 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    this.subjectMetadataController = new SubjectMetadataController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SubjectMetadataController',
-        allowedActions: [`PermissionController:hasPermissions`],
-        allowedEvents: [],
-      }),
-      state: initialState.SubjectMetadataController || {},
-      subjectCacheLimit: 100,
-    });
-
     const authenticationControllerMessenger =
       getAuthenticationControllerMessenger(this.controllerMessenger);
     const authenticationController = createAuthenticationController({
@@ -849,6 +832,9 @@ export class Engine {
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        SubjectMetadataController: subjectMetadataControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
@@ -942,6 +928,8 @@ export class Engine {
       controllersByName.NotificationServicesController;
     const notificationServicesPushController =
       controllersByName.NotificationServicesPushController;
+    this.subjectMetadataController =
+      controllersByName.SubjectMetadataController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
