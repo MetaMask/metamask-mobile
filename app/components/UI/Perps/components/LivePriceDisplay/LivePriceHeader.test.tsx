@@ -6,13 +6,42 @@ import {
   formatPerpsFiat,
   formatPercentage,
   formatPnl,
+  PRICE_RANGES_DETAILED_VIEW,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
 
 // Mock dependencies
 jest.mock('../../hooks/stream');
-jest.mock('../../utils/formatUtils');
+jest.mock('../../utils/formatUtils', () => ({
+  formatPerpsFiat: jest.fn(),
+  formatPercentage: jest.fn(),
+  formatPnl: jest.fn(),
+  PRICE_RANGES_DETAILED_VIEW: [
+    {
+      condition: (v: number) => v >= 1,
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+      threshold: 1,
+    },
+    {
+      condition: (v: number) => v < 1,
+      minimumDecimals: 2,
+      maximumDecimals: 7,
+      significantDigits: 3,
+      threshold: 0.0000001,
+    },
+  ],
+}));
 jest.mock('../../../../../component-library/hooks');
+jest.mock('../../constants/perpsConfig', () => ({
+  PERPS_CONSTANTS: {
+    FALLBACK_PRICE_DISPLAY: '$---',
+    FALLBACK_DATA_DISPLAY: '--',
+  },
+  PERFORMANCE_CONFIG: {
+    MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000,
+  },
+}));
 
 describe('LivePriceHeader', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
@@ -49,6 +78,10 @@ describe('LivePriceHeader', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       theme: {} as any,
     });
+
+    // Mock PRICE_RANGES_DETAILED_VIEW
+    (PRICE_RANGES_DETAILED_VIEW as typeof PRICE_RANGES_DETAILED_VIEW) =
+      mockPriceRangesDetailedView;
   });
 
   it('should render with live price data', () => {
@@ -253,5 +286,189 @@ describe('LivePriceHeader', () => {
     expect(getByText('$0.20')).toBeTruthy();
     // 15% of 0.2 = 0.03
     expect(getByText('15%')).toBeTruthy();
+  });
+
+  // New tests for edge case handling and error handling
+  describe('Edge case handling', () => {
+    it('should display fallback when price is zero', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ZERO: {
+          coin: 'ZERO',
+          price: '0',
+          percentChange24h: '5',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { getByText } = render(<LivePriceHeader symbol="ZERO" />);
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('5%')).toBeTruthy();
+    });
+
+    it('should display fallback when price is negative', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        NEG: {
+          coin: 'NEG',
+          price: '-100',
+          percentChange24h: '2',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { getByText } = render(<LivePriceHeader symbol="NEG" />);
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('2%')).toBeTruthy();
+    });
+
+    it('should display fallback when price is NaN', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        NAN: {
+          coin: 'NAN',
+          price: 'invalid',
+          percentChange24h: '1',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { getByText } = render(<LivePriceHeader symbol="NAN" />);
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('1%')).toBeTruthy();
+    });
+
+    it('should display fallback when price is Infinity', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        INF: {
+          coin: 'INF',
+          price: 'Infinity',
+          percentChange24h: '3',
+          timestamp: Date.now(),
+        },
+      });
+
+      const { getByText } = render(<LivePriceHeader symbol="INF" />);
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('3%')).toBeTruthy();
+    });
+
+    it('should display fallback when fallback price is invalid', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { getByText } = render(
+        <LivePriceHeader
+          symbol="INVALID"
+          fallbackPrice="invalid"
+          fallbackChange="2"
+        />,
+      );
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('2%')).toBeTruthy();
+    });
+
+    it('should display fallback when fallback price is zero', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { getByText } = render(
+        <LivePriceHeader
+          symbol="ZERO_FALLBACK"
+          fallbackPrice="0"
+          fallbackChange="4"
+        />,
+      );
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('4%')).toBeTruthy();
+    });
+  });
+
+  describe('Format error handling', () => {
+    it('should display fallback when formatPerpsFiat throws an error', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ERROR: {
+          coin: 'ERROR',
+          price: '100',
+          percentChange24h: '5',
+          timestamp: Date.now(),
+        },
+      });
+
+      // Mock formatPerpsFiat to throw an error
+      mockFormatPerpsFiat.mockImplementation(() => {
+        throw new Error('Formatting error');
+      });
+
+      const { getByText } = render(<LivePriceHeader symbol="ERROR" />);
+
+      expect(getByText('$---')).toBeTruthy();
+      expect(getByText('5%')).toBeTruthy();
+    });
+
+    it('should call formatPerpsFiat with PRICE_RANGES_DETAILED_VIEW', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        RANGES: {
+          coin: 'RANGES',
+          price: '50',
+          percentChange24h: '2',
+          timestamp: Date.now(),
+        },
+      });
+
+      render(<LivePriceHeader symbol="RANGES" />);
+
+      expect(mockFormatPerpsFiat).toHaveBeenCalledWith(50, {
+        ranges: PRICE_RANGES_DETAILED_VIEW,
+      });
+    });
+
+    it('should handle formatPerpsFiat success with detailed view ranges', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        SUCCESS: {
+          coin: 'SUCCESS',
+          price: '123.456',
+          percentChange24h: '7',
+          timestamp: Date.now(),
+        },
+      });
+
+      // Mock successful formatting with detailed ranges
+      mockFormatPerpsFiat.mockReturnValue('$123.46');
+
+      const { getByText } = render(<LivePriceHeader symbol="SUCCESS" />);
+
+      expect(getByText('$123.46')).toBeTruthy();
+      expect(getByText('7%')).toBeTruthy();
+      expect(mockFormatPerpsFiat).toHaveBeenCalledWith(123.456, {
+        ranges: PRICE_RANGES_DETAILED_VIEW,
+      });
+    });
+  });
+
+  describe('Memoization behavior', () => {
+    it('should memoize price formatting based on displayPrice', () => {
+      const { rerender } = render(<LivePriceHeader symbol="MEMO" />);
+
+      // First render
+      expect(mockFormatPerpsFiat).toHaveBeenCalledTimes(1);
+
+      // Re-render with same price - should not call formatPerpsFiat again
+      rerender(<LivePriceHeader symbol="MEMO" />);
+      expect(mockFormatPerpsFiat).toHaveBeenCalledTimes(1);
+
+      // Re-render with different price - should call formatPerpsFiat again
+      mockUsePerpsLivePrices.mockReturnValue({
+        MEMO: {
+          coin: 'MEMO',
+          price: '200',
+          percentChange24h: '1',
+          timestamp: Date.now(),
+        },
+      });
+      rerender(<LivePriceHeader symbol="MEMO" />);
+      expect(mockFormatPerpsFiat).toHaveBeenCalledTimes(2);
+    });
   });
 });
