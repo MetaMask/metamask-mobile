@@ -1455,13 +1455,8 @@ export class RewardsController extends BaseController<
           );
           return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
         } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get season status:',
-            error instanceof Error ? error.message : String(error),
-          );
           if (error instanceof AuthorizationFailedError) {
             // Attempt to reauth with a valid account.
-
             try {
               if (this.state.activeAccount?.subscriptionId === subscriptionId) {
                 const account = this.messagingSystem.call(
@@ -1519,8 +1514,13 @@ export class RewardsController extends BaseController<
               );
               this.invalidateSubscriptionCache(subscriptionId);
               this.invalidateAccountsAndSubscriptions();
+              throw error;
             }
           }
+          Logger.log(
+            'RewardsController: Failed to get season status:',
+            error instanceof Error ? error.message : String(error),
+          );
           throw error;
         }
       },

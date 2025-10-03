@@ -19,6 +19,7 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import { handleRewardsErrorMessage } from '../utils';
+import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
 import { strings } from '../../../../../locales/i18n';
 
 // Mock dependencies
@@ -259,7 +260,7 @@ describe('useSeasonStatus', () => {
   });
 
   it('should handle 403 errors by resetting rewards state and setting candidate subscription to retry', async () => {
-    const mock403Error = new Error('403 Forbidden');
+    const mock403Error = new AuthorizationFailedError('403 Forbidden');
     mockEngineCall.mockRejectedValueOnce(mock403Error);
 
     renderHook(() => useSeasonStatus());
