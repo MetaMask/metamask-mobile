@@ -1,11 +1,15 @@
 import { StyleSheet } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
+import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
   StyleSheet.create({
     root: {
       flexGrow: 1,
-      paddingBottom: 32,
+      paddingBottom: 16,
+      backgroundColor: isDarkMode
+        ? colors.background.default
+        : importedColors.white,
     },
     contentContainer: {
       flexDirection: 'column',
@@ -18,12 +22,9 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 16,
     },
     buttonWrapper: {
-      paddingHorizontal: 16,
-      marginTop: 'auto',
-      flex: 1,
-      justifyContent: 'flex-end',
-      height: '100%',
-      marginBottom: 16,
+      paddingHorizontal: 0,
+      marginTop: 4,
+      marginBottom: 8,
     },
     emoji: {
       textAlign: 'center',
@@ -58,6 +59,8 @@ const createStyles = (colors: ThemeColors) =>
     },
     textTitle: {
       marginBottom: 24,
+      marginHorizontal: 60,
+      textAlign: 'center',
     },
     imageWrapper: {
       display: 'flex',
@@ -92,7 +95,8 @@ const createStyles = (colors: ThemeColors) =>
       marginTop: 24,
     },
     footerWrapper: {
-      marginVertical: 24,
+      marginTop: 12,
+      marginBottom: 0,
       flexDirection: 'column',
       rowGap: 16,
     },
@@ -120,6 +124,41 @@ const createStyles = (colors: ThemeColors) =>
       flexDirection: 'column',
       rowGap: 0,
       justifyContent: 'flex-start',
+    },
+    animationContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 32,
+      marginHorizontal: -16,
+    },
+    riveAnimation: {
+      width: '100%', // Full width to screen edges
+      height: 300,
+      alignSelf: 'stretch',
+    },
+    textOverlay: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      marginTop: 24,
+    },
+    footerLink: {
+      alignItems: 'center',
+      paddingVertical: 0,
+    },
+    subtitle: {
+      fontSize: 16,
+      textAlign: 'center',
+      marginTop: 16,
+      lineHeight: 22,
+      color: colors.text.alternative,
+    },
+    fadeOutContainer: {
+      position: 'absolute',
+    },
+    fadeInContainer: {
+      opacity: 1,
     },
   });
 
