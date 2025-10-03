@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types */
 
+/**
+ * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native` with variant `ButtonVariant.Primary`
+ */
+
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, GestureResponderEvent } from 'react-native';
