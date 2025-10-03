@@ -10,12 +10,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import emptyStateNftsLight from '../../../images/empty-state-nfts-light.png';
 import emptyStateNftsDark from '../../../images/empty-state-nfts-dark.png';
 
-interface CollectiblesEmptyStateProps extends TabEmptyStateProps {
-  onDiscoverCollectibles?: () => void;
-}
+interface CollectiblesEmptyStateProps extends TabEmptyStateProps {}
 
 export const CollectiblesEmptyState: React.FC<CollectiblesEmptyStateProps> = ({
-  onDiscoverCollectibles,
   ...props
 }) => {
   const collectiblesImage = useAssetFromTheme(
@@ -34,7 +31,6 @@ export const CollectiblesEmptyState: React.FC<CollectiblesEmptyStateProps> = ({
       }
       description={strings('wallet.nft_empty_description')}
       actionButtonText={strings('wallet.discover_nfts')}
-      onAction={onDiscoverCollectibles}
       {...props}
     />
   );

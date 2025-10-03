@@ -5,15 +5,14 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../../viewHelper';
 import Assertions from '../../../framework/Assertions';
 import TokenOverview from '../../../pages/wallet/TokenOverview';
-import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
-import QuoteView from '../../../pages/swaps/QuoteView';
+import NetworkManager from '../../../pages/wallet/NetworkManager';
 
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(RegressionAssets('Import Tokens'), () => {
-  it('should display tokens across networks when all networks filter is toggled on', async () => {
+describe(RegressionAssets('Asset list - '), () => {
+  it('displays tokens across networks when all popular networks are selected', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -21,8 +20,10 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterAll();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapPopularNetworksTab();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.closeNetworkManager();
         const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
         await Assertions.expectElementToBeVisible(eth);
         const avax = WalletView.tokenInWallet(AVAX_NAME);
@@ -34,7 +35,7 @@ describe(RegressionAssets('Import Tokens'), () => {
     );
   });
 
-  it('should display tokens of current network when current networks filter is toggled on', async () => {
+  it('shows only Ethereum tokens when selecting Ethereum network', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -42,10 +43,9 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterAll();
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterCurrent();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapNetwork('eip155:1');
+        await NetworkManager.closeNetworkManager();
         const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
         const avax = WalletView.tokenInWallet(AVAX_NAME);
         const bnb = WalletView.tokenInWallet(BNB_NAME);
@@ -56,7 +56,7 @@ describe(RegressionAssets('Import Tokens'), () => {
     );
   });
 
-  it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
+  it('opens asset details for a native token on another network', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -64,63 +64,10 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
-        const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterAll();
-        const avax = WalletView.tokenInWallet('AVAX');
-        await WalletView.scrollToToken('AVAX');
-        await Assertions.expectElementToBeVisible(avax);
-        await WalletView.tapOnToken('AVAX');
-        await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
-        await TokenOverview.tapSendButton();
-        await Assertions.expectElementToBeVisible(
-          NetworkEducationModal.container,
-        );
-        await Assertions.expectElementToHaveText(
-          NetworkEducationModal.networkName,
-          AVAX_NETWORK_NAME,
-        );
-        await NetworkEducationModal.tapGotItButton();
-      },
-    );
-  });
-
-  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterAll();
-        await WalletView.scrollToToken('BNB');
-        const bnb = WalletView.tokenInWallet('BNB');
-        await Assertions.expectElementToBeVisible(bnb);
-        await WalletView.tapOnToken('BNB');
-        await TokenOverview.tapSwapButton();
-        await QuoteView.tapOnCancelButton();
-        await TokenOverview.tapBackButton();
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterCurrent();
-        const bnbCurrentNetwork = WalletView.tokenInWallet('BNB');
-        await Assertions.expectElementToBeVisible(bnbCurrentNetwork);
-      },
-    );
-  });
-
-  it('should allows clicking into the asset details page of native token on another network', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterAll();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapPopularNetworksTab();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.closeNetworkManager();
         await WalletView.scrollToToken('AVAX');
         await WalletView.tapOnToken('AVAX');
 
