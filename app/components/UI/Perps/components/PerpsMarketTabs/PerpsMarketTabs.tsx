@@ -443,7 +443,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSM}
           color={TextColor.Default}
           style={styles.statisticsTitle}
           testID={PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE}

@@ -11,7 +11,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import { ScrollView, View, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -51,7 +51,6 @@ import {
 } from '../../constants/eventNames';
 import {
   usePerpsConnection,
-  usePerpsPerformance,
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
@@ -59,6 +58,7 @@ import {
   usePerpsDataMonitor,
   type DataMonitorParams,
 } from '../../hooks/usePerpsDataMonitor';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
@@ -82,29 +82,21 @@ interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
   monitoringIntent?: Partial<DataMonitorParams>;
+  isNavigationFromOrderSuccess?: boolean;
+  source?: string;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, initialTab, monitoringIntent } = route.params || {};
+  const { market, initialTab, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  // Track screen load time
-  const { startMeasure, endMeasure } = usePerpsPerformance();
-  const hasTrackedAssetView = useRef(false);
-
   const isEligible = useSelector(selectPerpsEligibility);
-
-  // Start measuring screen load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
-  }, [startMeasure]);
 
   // Set navigation header with proper back button
   useEffect(() => {
@@ -130,14 +122,47 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
 
+  usePerpsConnection();
+  const { depositWithConfirmation } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
   // Programmatic tab control state for data-driven navigation
   const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
     string | null
   >(null);
 
-  usePerpsConnection();
-  const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+  // Callback to handle data detection from monitoring hook
+  const handleDataDetected = useCallback(
+    ({
+      detectedData,
+    }: {
+      detectedData: 'positions' | 'orders';
+      asset: string;
+      reason: string;
+    }) => {
+      const targetTab = detectedData === 'positions' ? 'position' : 'orders';
+      setProgrammaticActiveTab(targetTab);
+
+      // Reset programmatic tab control after a brief delay to prevent render loops
+      setTimeout(() => {
+        setProgrammaticActiveTab(null);
+      }, 100); // PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS
+
+      // Clear monitoringIntent to allow fresh monitoring next time
+      navigation.setParams({ monitoringIntent: undefined });
+    },
+    [navigation],
+  );
+
+  // Handle data-driven monitoring when coming from order success (declarative API)
+  usePerpsDataMonitor({
+    asset: monitoringIntent?.asset,
+    monitorOrders: monitoringIntent?.monitorOrders,
+    monitorPositions: monitoringIntent?.monitorPositions,
+    timeoutMs: monitoringIntent?.timeoutMs,
+    onDataDetected: handleDataDetected,
+    enabled: !!(monitoringIntent && market && monitoringIntent.asset),
+  });
 
   // Callback to handle data detection from monitoring hook
   const handleDataDetected = useCallback(
@@ -266,53 +291,50 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
-  // Track screen load and position data loaded
-  useEffect(() => {
-    if (
-      market &&
-      marketStats &&
-      !isLoadingHistory &&
-      !isLoadingPosition &&
-      !hasTrackedAssetView.current
-    ) {
-      // Track asset screen loaded
-      endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
+  // Track Perps asset screen load performance with simplified API
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+    conditions: [
+      !!market,
+      !!marketStats,
+      !isLoadingHistory,
+      !isLoadingPosition,
+    ],
+    debugContext: {
+      symbol: market?.symbol,
+      hasMarketStats: !!marketStats,
+      loadingStates: { isLoadingHistory, isLoadingPosition },
+    },
+  });
 
-      // Track asset screen viewed event - only once
-      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
-        [PerpsEventProperties.ASSET]: market.symbol,
-        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
-        [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
-      });
-
-      hasTrackedAssetView.current = true;
-    }
-  }, [
-    market,
-    marketStats,
-    isLoadingHistory,
-    isLoadingPosition,
-    existingPosition,
-    track,
-    endMeasure,
-  ]);
-
-  useEffect(() => {
-    if (!isLoadingPosition && market) {
-      // Track position data loaded for asset screen
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
-    }
-  }, [isLoadingPosition, market, endMeasure]);
+  // Track asset screen viewed event - declarative (main's event name)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [
+      !!market,
+      !!marketStats,
+      !isLoadingHistory,
+      !isLoadingPosition,
+    ],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+      [PerpsEventProperties.ASSET]: market?.symbol || '',
+      [PerpsEventProperties.SOURCE]:
+        source || PerpsEventValues.SOURCE.PERP_MARKETS,
+      [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
+    },
+  });
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
       setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
-      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
         [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
@@ -406,7 +428,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation.goBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigation.navigate(Routes.PERPS.MARKETS);
+      navigation.navigate(Routes.PERPS.MARKETS, { source });
     }
   };
 
@@ -457,12 +479,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       console.error('Failed to navigate to deposit:', error);
     }
   };
-
-  const handleTradingViewPress = useCallback(() => {
-    Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      console.error('Failed to open Trading View URL:', error);
-    });
-  }, []);
 
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
@@ -596,13 +612,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               color={TextColor.Alternative}
             >
               {strings('perps.risk_disclaimer')}{' '}
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
-                onPress={handleTradingViewPress}
-              >
-                Trading View.
-              </Text>
             </Text>
           </View>
         </ScrollView>
