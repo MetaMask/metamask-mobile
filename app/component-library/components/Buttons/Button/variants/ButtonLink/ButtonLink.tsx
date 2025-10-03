@@ -1,4 +1,9 @@
 /* eslint-disable react/prop-types */
+
+/**
+ * @deprecated Please update your code to use `TextButton` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React, { useState, useCallback } from 'react';
 import { GestureResponderEvent, StyleProp, TextStyle } from 'react-native';
