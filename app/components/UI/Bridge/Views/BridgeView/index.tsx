@@ -39,7 +39,7 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectNoFeeAssets,
-  selectIsNonEvmToNonEvm,
+  selectIsNonEvmNonEvmBridge,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -125,7 +125,7 @@ const BridgeView = () => {
   );
 
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
-  const isNonEvmToNonEvmBridge = useSelector(selectIsNonEvmToNonEvm);
+  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -153,7 +153,7 @@ const BridgeView = () => {
 
   useInitialSlippage();
 
-  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmToNonEvmBridge;
+  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -179,15 +179,15 @@ const BridgeView = () => {
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
+  const isSwap = sourceToken?.chainId === destToken?.chainId;
+
   const hasValidBridgeInputs =
     isValidSourceAmount &&
     !!sourceToken &&
     !!destToken &&
     // Prevent quote fetching when destination address is not set
-    // Destinations address is only needed for EVM <> Solana bridges
-    (!isEvmNonEvmBridge ||
-      (isEvmNonEvmBridge && Boolean(destAddress)) ||
-      (isNonEvmToNonEvmBridge && Boolean(destAddress)));
+    // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
+    (isSwap || (hasDestinationPicker && Boolean(destAddress)));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
@@ -321,7 +321,6 @@ const BridgeView = () => {
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    const isSwap = sourceToken?.chainId === destToken?.chainId;
     return isSwap
       ? strings('bridge.confirm_swap')
       : strings('bridge.confirm_bridge');
