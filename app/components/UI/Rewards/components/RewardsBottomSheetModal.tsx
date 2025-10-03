@@ -117,7 +117,6 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     switch (type) {
       case ModalType.Danger:
         iconName = IconName.Danger;
-        iconStyle = 'text-warning-default';
         break;
       case ModalType.Confirmation:
         iconName = IconName.Question;
@@ -167,7 +166,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     >
       {typeof description === 'string' ? (
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           style={tw.style('text-alternative text-center')}
         >
           {description}

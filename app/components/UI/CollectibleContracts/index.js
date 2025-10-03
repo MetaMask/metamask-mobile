@@ -12,7 +12,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -28,7 +28,6 @@ import {
   multichainCollectiblesByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import AppConstants from '../../../core/AppConstants';
 import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
@@ -176,7 +175,6 @@ const CollectibleContracts = ({
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
-  const tw = useTailwind();
   if (isFirstRender.current) {
     trace({ name: TraceName.CollectibleContractsComponent });
   }
@@ -500,16 +498,21 @@ const CollectibleContracts = ({
 
   const renderEmpty = useCallback(
     () => (
-      <CollectiblesEmptyState
-        onDiscoverCollectibles={goToAddCollectible}
-        actionButtonProps={{
-          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-          isDisabled: !isAddNFTEnabled,
-        }}
-        style={tw.style('mx-auto')}
-      />
+      <>
+        {!isNftFetchingProgress && (
+          <CollectiblesEmptyState
+            onAction={goToAddCollectible}
+            actionButtonProps={{
+              testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+              isDisabled: !isAddNFTEnabled,
+            }}
+            twClassName="mx-auto mt-4"
+            testID="collectibles-empty-state"
+          />
+        )}
+      </>
     ),
-    [goToAddCollectible, tw, isAddNFTEnabled],
+    [goToAddCollectible, isAddNFTEnabled, isNftFetchingProgress],
   );
 
   const renderList = useCallback(
@@ -558,7 +561,7 @@ const CollectibleContracts = ({
     ],
   );
 
-  // TODO: Placeholder variable for now until we update the network enablement controller
+  // Placeholder variable for now until we update the network enablement controller
   const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
   const networkImageSource = getNetworkImageSource({
     chainId: firstEnabledChainId,
@@ -597,7 +600,7 @@ const CollectibleContracts = ({
                       numberOfLines={1}
                     >
                       {enabledNetworks.length > 1
-                        ? strings('wallet.all_networks')
+                        ? strings('wallet.popular_networks')
                         : currentNetworkName ??
                           strings('wallet.current_network')}
                     </TextComponent>

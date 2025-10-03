@@ -51,9 +51,3 @@ export const selectRewardsActiveAccountAddress = createSelector(
     return parts[parts.length - 1];
   },
 );
-
-export const selectHideUnlinkedAccountsBanner = (state: RootState): boolean =>
-  state.rewards.hideUnlinkedAccountsBanner;
-
-export const selectSeasonStatusError = (state: RootState): string | null =>
-  state.rewards.seasonStatusError;

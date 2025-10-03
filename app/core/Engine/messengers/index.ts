@@ -45,6 +45,13 @@ import { getMultichainAccountServiceMessenger } from './multichain-account-servi
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
+import {
+  getPermissionControllerInitMessenger,
+  getPermissionControllerMessenger,
+} from './permission-controller-messenger';
+import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
+import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
+
 /**
  * The messengers for the controllers that have been.
  */
@@ -79,6 +86,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PreferencesController: {
+    getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
   SignatureController: {
@@ -118,6 +129,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getNotificationServicesPushControllerMessenger,
     getInitMessenger: noop,
   },
+  SubjectMetadataController: {
+    getMessenger: getSubjectMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
   WebSocketService: {
     getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
@@ -141,6 +156,10 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
+  PermissionController: {
+    getMessenger: getPermissionControllerMessenger,
+    getInitMessenger: getPermissionControllerInitMessenger,
+  },
   SeedlessOnboardingController: {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,

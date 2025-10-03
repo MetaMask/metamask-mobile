@@ -14,7 +14,10 @@ import {
   DEVELOPMENT_CONFIG,
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -154,13 +157,23 @@ export function usePerpsOrderFees({
         });
 
         const { RewardsController } = Engine.context;
+        const feeDiscountStartTime = performance.now();
         const discountBips = await RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
+        );
+        const feeDiscountDuration = performance.now() - feeDiscountStartTime;
+
+        // Measure fee discount API call performance
+        setMeasurement(
+          PerpsMeasurementName.REWARDS_FEE_DISCOUNT_API_CALL,
+          feeDiscountDuration,
+          'millisecond',
         );
 
         DevLogger.log('Rewards: Fee discount bips fetched via controller', {
           address,
           discountBips,
+          duration: `${feeDiscountDuration.toFixed(0)}ms`,
         });
 
         // Cache the discount for configured duration
@@ -237,8 +250,18 @@ export function usePerpsOrderFees({
         });
 
         const { RewardsController } = Engine.context;
+        const pointsEstimationStartTime = performance.now();
         const result = await RewardsController.estimatePoints(
           estimatePointsDto,
+        );
+        const pointsEstimationDuration =
+          performance.now() - pointsEstimationStartTime;
+
+        // Measure points estimation API call performance
+        setMeasurement(
+          PerpsMeasurementName.REWARDS_POINTS_ESTIMATION_API_CALL,
+          pointsEstimationDuration,
+          'millisecond',
         );
 
         DevLogger.log('Rewards: Points estimated via controller', {
@@ -247,6 +270,7 @@ export function usePerpsOrderFees({
           coin: tradeCoin,
           size: amountNum,
           isClose,
+          duration: `${pointsEstimationDuration.toFixed(0)}ms`,
         });
 
         return result;

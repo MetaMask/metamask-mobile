@@ -17,7 +17,7 @@ jobs:
   android-build:
     name: Test Android Build QA App
     #runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-large
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}

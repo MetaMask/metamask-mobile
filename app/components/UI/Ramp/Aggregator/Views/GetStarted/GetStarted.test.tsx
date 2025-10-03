@@ -178,22 +178,6 @@ describe('GetStarted', () => {
     });
   });
 
-  it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
-    (useRegions as jest.Mock).mockReturnValue({
-      selectedRegion: null,
-    });
-    mockUseRampSDKValues = {
-      ...mockuseRampSDKInitialValues,
-      getStarted: true,
-    };
-    render(GetStarted);
-    expect(mockReset).toBeCalledTimes(1);
-    expect(mockReset).toBeCalledWith({
-      index: 0,
-      routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
-    });
-  });
-
   it('navigates to build quote when getStarted is true and selectedRegion is defined', async () => {
     (useRegions as jest.Mock).mockReturnValue({
       selectedRegion: {

@@ -2,10 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
-import { PredictCategory, Side } from '../../types';
+import { PredictCategory, PredictPositionStatus, Side } from '../../types';
 import {
   ClobAuthDomain,
   EIP712Domain,
+  HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
@@ -33,22 +34,27 @@ import {
   buildMarketOrderCreationArgs,
   buildPolyHmacSignature,
   calculateBuyMarketPrice,
+  calculateFeeAmount,
   calculateMarketPrice,
   calculateSellMarketPrice,
   createApiKey,
   decimalPlaces,
   deriveApiKey,
   encodeApprove,
+  encodeClaim,
+  encodeRedeemNegRiskPositions,
+  encodeRedeemPositions,
   generateSalt,
   getContractConfig,
   getL1Headers,
   getL2Headers,
-  getMarketFromPolymarketApi,
-  getMarketOrderRawAmounts,
   getMarketsFromPolymarketApi,
+  getMarketOrderRawAmounts,
+  getParsedMarketsFromPolymarketApi,
   getOrderBook,
   getOrderTypedData,
   getPolymarketEndpoints,
+  getPredictPositionStatus,
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
@@ -1066,6 +1072,84 @@ describe('polymarket utils', () => {
         }),
       ).rejects.toThrow('Network error');
     });
+
+    it('includes feeAuthorization in request body when provided', async () => {
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({ ...mockClobOrder, feeAuthorization }),
+        },
+      );
+    });
+
+    it('omits feeAuthorization when undefined', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization: undefined,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
+        },
+      );
+    });
+
+    it('serializes feeAuthorization correctly to JSON', async () => {
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0x1234567890123456789012345678901234567890',
+            operation: 0,
+            data: '0xabcdef',
+            value: '100',
+          },
+          sig: '0xdeadbeef',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody).toHaveProperty('feeAuthorization');
+      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
   });
 
   describe('parsePolymarketEvents', () => {
@@ -1195,81 +1279,218 @@ describe('polymarket utils', () => {
   });
 
   describe('parsePolymarketPositions', () => {
+    const createPosition = (
+      id: string,
+      index: number,
+      props: Partial<PolymarketPosition>,
+    ): PolymarketPosition => ({
+      asset: `position-${id}`,
+      conditionId: 'condition-1',
+      icon: `https://example.com/icon${id}.png`,
+      title: `Position ${id}`,
+      slug: `position-${id}`,
+      size: 100,
+      outcome: 'Yes',
+      outcomeIndex: index,
+      cashPnl: 10,
+      curPrice: 0.6,
+      currentValue: 60,
+      percentPnl: 5,
+      realizedPnl: 0,
+      initialValue: 50,
+      avgPrice: 0.5,
+      redeemable: false,
+      negativeRisk: false,
+      endDate: '2024-12-31',
+      ...props,
+    });
+
     const mockPositions: PolymarketPosition[] = [
-      {
-        asset: 'position-1',
-        conditionId: 'condition-1',
-        icon: 'https://example.com/icon1.png',
-        title: 'Position 1',
-        slug: 'position-1',
-        size: 100,
-        outcome: 'Yes',
-        outcomeIndex: 0,
-        cashPnl: 10,
-        curPrice: 0.6,
-        currentValue: 60,
-        percentPnl: 5,
-        initialValue: 50,
-        avgPrice: 0.5,
-        redeemable: false,
-        negativeRisk: false,
-        endDate: '2024-12-31',
-      },
-      {
-        asset: 'position-2',
-        conditionId: 'condition-1',
-        icon: 'https://example.com/icon2.png',
-        title: 'Position 2',
-        slug: 'position-2',
+      createPosition('1', 0, {}),
+      createPosition('2', 1, {
         size: 50,
         outcome: 'No',
-        outcomeIndex: 1,
         cashPnl: -5,
         curPrice: 0.4,
         currentValue: 20,
         percentPnl: -10,
         initialValue: 25,
-        avgPrice: 0.5,
         redeemable: true,
-        negativeRisk: false,
-        endDate: '2024-12-31',
+      }),
+      createPosition('3', 2, {
+        size: 75,
+        outcome: 'Maybe',
+        cashPnl: 15,
+        curPrice: 0.8,
+        percentPnl: 20,
+        avgPrice: 0.67,
+        redeemable: true,
+      }),
+    ];
+
+    const mockMarketResponse: Partial<PolymarketApiMarket>[] = [
+      {
+        conditionId: 'condition-1',
+        events: [
+          {
+            id: 'event-1',
+            slug: 'slug-1',
+            title: 'Mock Event',
+            description: 'Mock Description',
+            icon: 'mock-icon.png',
+            closed: false,
+            series: [],
+            markets: [],
+          },
+        ],
       },
     ];
 
-    it('parse positions correctly', () => {
-      const result = parsePolymarketPositions({ positions: mockPositions });
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockMarketResponse),
+      });
+    });
 
-      expect(result).toHaveLength(2);
+    it('parse positions correctly and enrich with market data', async () => {
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      expect(result).toHaveLength(3);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1&condition_ids=condition-1',
+      );
+
       expect(result[0]).toEqual({
-        ...mockPositions[0],
         id: 'position-1',
         providerId: 'polymarket',
-        marketId: 'condition-1',
+        marketId: 'event-1',
         outcomeId: 'condition-1',
+        outcome: 'Yes',
         outcomeTokenId: 'position-1',
+        outcomeIndex: 0,
+        negRisk: false,
         amount: 100,
         price: 0.6,
         status: 'open',
+        realizedPnl: 0,
+        percentPnl: 5,
+        cashPnl: 10,
+        initialValue: 50,
+        avgPrice: 0.5,
+        endDate: '2024-12-31',
+        title: 'Position 1',
+        icon: 'https://example.com/icon1.png',
+        size: 100,
+        claimable: false,
+        currentValue: 60,
       });
 
       expect(result[1]).toEqual({
-        ...mockPositions[1],
         id: 'position-2',
         providerId: 'polymarket',
-        marketId: 'condition-1',
+        marketId: 'event-1',
         outcomeId: 'condition-1',
+        outcome: 'No',
         outcomeTokenId: 'position-2',
+        outcomeIndex: 1,
+        negRisk: false,
         amount: 50,
         price: 0.4,
-        status: 'redeemable',
+        status: 'lost',
+        realizedPnl: 0,
+        percentPnl: -10,
+        cashPnl: -5,
+        initialValue: 25,
+        avgPrice: 0.5,
+        endDate: '2024-12-31',
+        title: 'Position 2',
+        icon: 'https://example.com/icon2.png',
+        size: 50,
+        claimable: true,
+        currentValue: 20,
+      });
+
+      expect(result[2]).toEqual({
+        id: 'position-3',
+        providerId: 'polymarket',
+        marketId: 'event-1',
+        outcomeId: 'condition-1',
+        outcome: 'Maybe',
+        outcomeTokenId: 'position-3',
+        outcomeIndex: 2,
+        negRisk: false,
+        amount: 75,
+        price: 0.8,
+        status: 'won',
+        realizedPnl: 0,
+        percentPnl: 20,
+        cashPnl: 15,
+        initialValue: 50,
+        avgPrice: 0.67,
+        endDate: '2024-12-31',
+        title: 'Position 3',
+        icon: 'https://example.com/icon3.png',
+        size: 75,
+        claimable: true,
+        currentValue: 60,
       });
     });
 
-    it('handle empty positions array', () => {
-      const result = parsePolymarketPositions({ positions: [] });
-
+    it('handle empty positions array', async () => {
+      const result = await parsePolymarketPositions({ positions: [] });
       expect(result).toEqual([]);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    it('handle positions without a matching market', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]), // No markets found
+      });
+
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      expect(result[0].marketId).toBe('');
+      expect(result[1].marketId).toBe('');
+    });
+
+    it('handle market data fetch failure gracefully', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      // Should still return positions with empty marketId when API fails
+      expect(result).toHaveLength(3);
+      expect(result[0].marketId).toBe('');
+      expect(result[1].marketId).toBe('');
+      expect(result[2].marketId).toBe('');
+      expect(result[0].id).toBe('position-1');
+      expect(result[1].id).toBe('position-2');
+      expect(result[2].id).toBe('position-3');
+    });
+  });
+
+  describe('getPredictPositionStatus', () => {
+    it.each([
+      { claimable: false, cashPnl: 10, expected: PredictPositionStatus.OPEN },
+      { claimable: false, cashPnl: -5, expected: PredictPositionStatus.OPEN },
+      { claimable: true, cashPnl: 15, expected: PredictPositionStatus.WON },
+      { claimable: true, cashPnl: 0, expected: PredictPositionStatus.LOST },
+      { claimable: true, cashPnl: -5, expected: PredictPositionStatus.LOST },
+    ])(
+      'returns $expected when claimable=$claimable and cashPnl=$cashPnl',
+      ({ claimable, cashPnl, expected }) => {
+        const result = getPredictPositionStatus({ claimable, cashPnl });
+        expect(result).toBe(expected);
+      },
+    );
   });
 
   describe('getMarketsFromPolymarketApi', () => {
@@ -1311,7 +1532,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await getMarketsFromPolymarketApi();
+      const result = await getParsedMarketsFromPolymarketApi();
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
@@ -1337,7 +1558,7 @@ describe('polymarket utils', () => {
         offset: 5,
       };
 
-      const result = await getMarketsFromPolymarketApi(params);
+      const result = await getParsedMarketsFromPolymarketApi(params);
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
@@ -1362,7 +1583,7 @@ describe('polymarket utils', () => {
         limit: 5,
       };
 
-      await getMarketsFromPolymarketApi(params);
+      await getParsedMarketsFromPolymarketApi(params);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/events/pagination?limit=5&active=true&archived=false&closed=false&ascending=false&offset=0&tag_slug=crypto&order=volume24hr',
@@ -1375,7 +1596,7 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await getMarketsFromPolymarketApi();
+      const result = await getParsedMarketsFromPolymarketApi();
 
       expect(result).toEqual([]);
     });
@@ -1384,7 +1605,7 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(getMarketsFromPolymarketApi()).rejects.toThrow(
+      await expect(getParsedMarketsFromPolymarketApi()).rejects.toThrow(
         'Network error',
       );
     });
@@ -1416,11 +1637,11 @@ describe('polymarket utils', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await getMarketFromPolymarketApi({
-        conditionId: 'market-1',
+      const result = await getMarketsFromPolymarketApi({
+        conditionIds: ['market-1'],
       });
 
-      expect(result).toEqual(mockMarket);
+      expect(result).toEqual(mockResponse);
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/markets?condition_ids=market-1',
       );
@@ -1431,8 +1652,341 @@ describe('polymarket utils', () => {
       mockFetch.mockRejectedValue(error);
 
       await expect(
-        getMarketFromPolymarketApi({ conditionId: 'market-1' }),
+        getMarketsFromPolymarketApi({ conditionIds: ['market-1'] }),
       ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('encodeRedeemPositions', () => {
+    it('encode redeem positions function call correctly', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [1, 2];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('handle different index sets', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [1, 2, 3, 4];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle bigint amounts', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [BigInt(1), BigInt(2)];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('encodeRedeemNegRiskPositions', () => {
+    it('encode redeem neg risk positions function call correctly', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = [100, 200];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('handle bigint amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = [BigInt(100), BigInt(200)];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle string amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = ['100', '200'];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('encodeClaim', () => {
+    it('encode claim for non-negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = false;
+
+      const result = encodeClaim(conditionId, negRisk);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('encode claim for negRisk positions with amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = [100, 200];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('throw error for negRisk positions without amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+
+      expect(() => encodeClaim(conditionId, negRisk)).toThrow(
+        'amounts parameter is required when negRisk is true',
+      );
+    });
+
+    it('handle bigint amounts for negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = [BigInt(100), BigInt(200)];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle string amounts for negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = ['100', '200'];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('calculateFeeAmount', () => {
+    it('calculates 4% fee for BUY orders', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '1000000',
+        takerAmount: '500000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(40000));
+    });
+
+    it('returns zero fee for SELL orders', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '1000000',
+        takerAmount: '500000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.SELL,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(0));
+    });
+
+    it('handles large maker amounts correctly', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '100000000000',
+        takerAmount: '50000000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(4000000000));
+    });
+
+    it('returns bigint type', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '250000',
+        takerAmount: '125000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(typeof feeAmount).toBe('bigint');
+      expect(feeAmount).toBe(BigInt(10000));
+    });
+  });
+
+  describe('submitClobOrder error handling', () => {
+    const mockHeaders: ClobHeaders = {
+      POLY_ADDRESS: mockAddress,
+      POLY_SIGNATURE: 'test-signature_',
+      POLY_TIMESTAMP: '1704067200',
+      POLY_API_KEY: 'test-api-key',
+      POLY_PASSPHRASE: 'test-passphrase',
+    };
+
+    const mockClobOrder: ClobOrderObject = {
+      maker: mockAddress,
+      signer: mockAddress,
+      taker: '0x0000000000000000000000000000000000000000',
+      tokenId: 'test-token',
+      makerAmount: '100000000',
+      takerAmount: '50000000',
+      expiration: '0',
+      nonce: '0',
+      feeRateBps: '0',
+      side: Side.BUY,
+      signatureType: SignatureType.EOA,
+      signature: 'mock-signature',
+      salt: 12345,
+    };
+
+    it('handle 403 geoblock response with specific error message', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'You are unable to access this provider.',
+        errorCode: 403,
+      });
+    });
+
+    it('handle non-403 error with JSON error message', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: jest.fn().mockResolvedValue({
+          error: 'Invalid order parameters',
+        }),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Invalid order parameters',
+      });
+    });
+
+    it('handle non-403 error without JSON error field, use statusText', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Internal Server Error',
+      });
     });
   });
 });

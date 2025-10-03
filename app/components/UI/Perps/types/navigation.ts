@@ -65,9 +65,14 @@ export interface PerpsNavigationParamList extends ParamListBase {
   // Market and position management routes
   PerpsMarketList: undefined;
 
+  PerpsMarketListView: {
+    source?: string;
+  };
+
   PerpsMarketDetails: {
     market: PerpsMarketData;
     initialTab?: 'position' | 'orders' | 'info';
+    source?: string;
   };
 
   PerpsPositions: undefined;

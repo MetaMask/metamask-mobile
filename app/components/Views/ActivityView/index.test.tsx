@@ -76,6 +76,13 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
 jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
 jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
@@ -221,7 +228,7 @@ describe('ActivityView', () => {
       it('shows "All Networks" text when multiple networks are enabled', () => {
         const { getByText } = renderComponent(mockInitialState);
 
-        expect(getByText('All Networks')).toBeTruthy();
+        expect(getByText('Popular networks')).toBeTruthy();
       });
 
       it('shows current network name when only one network is enabled', () => {

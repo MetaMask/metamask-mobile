@@ -207,6 +207,7 @@ describe('useRewardOptinSummary', () => {
       // Arrange - Account1 and Account3 opted in, Account2 not opted in
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true], // Account1: true, Account2: false, Account3: true
+        sids: ['sub_123', null, 'sub_456'], // Account1: sub_123, Account2: null, Account3: sub_456
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -287,6 +288,7 @@ describe('useRewardOptinSummary', () => {
       // Arrange
       const mockResponse: OptInStatusDto = {
         ois: [false, false, false],
+        sids: [null, null, null],
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -323,6 +325,7 @@ describe('useRewardOptinSummary', () => {
       // Arrange
       const mockResponse: OptInStatusDto = {
         ois: [true, true, true],
+        sids: ['sub_123', 'sub_456', 'sub_789'],
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -370,6 +373,7 @@ describe('useRewardOptinSummary', () => {
 
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'],
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -504,6 +508,7 @@ describe('useRewardOptinSummary', () => {
       // Arrange
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'],
       };
       mockEngineCall.mockResolvedValueOnce(mockResponse);
 
@@ -542,6 +547,7 @@ describe('useRewardOptinSummary', () => {
 
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'],
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -577,7 +583,8 @@ describe('useRewardOptinSummary', () => {
     it('should only fetch opt-in status for supported accounts', async () => {
       // Arrange - Only account1 and account3 are supported
       const mockResponse: OptInStatusDto = {
-        ois: [true, false], // Only 2 accounts supported: account1 (true), account3 (false)
+        ois: [true, false],
+        sids: ['sub_123', null], // Only 2 accounts supported: account1 (true), account3 (false)
       };
 
       mockEngineCall.mockImplementation((method: string, ...args) => {
@@ -636,7 +643,8 @@ describe('useRewardOptinSummary', () => {
     it('should handle when selected account is unsupported but others are supported', async () => {
       // Arrange - Account1 (selected) is unsupported, but account2 and account3 are supported
       const mockResponse: OptInStatusDto = {
-        ois: [true, false], // account2 (true), account3 (false)
+        ois: [true, false],
+        sids: ['sub_123', null], // account2 (true), account3 (false)
       };
 
       mockEngineCall.mockImplementation((method: string, ...args) => {
@@ -735,6 +743,7 @@ describe('useRewardOptinSummary', () => {
 
       const mockResponse: OptInStatusDto = {
         ois: [true],
+        sids: ['sub_123'],
       };
       mockEngineCall
         .mockResolvedValueOnce(mockResponse)
@@ -792,6 +801,7 @@ describe('useRewardOptinSummary', () => {
       // Arrange - accounts already exist
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'],
       };
       mockEngineCall.mockResolvedValueOnce(mockResponse);
 
@@ -833,6 +843,7 @@ describe('useRewardOptinSummary', () => {
       // Arrange
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'],
       };
       mockEngineCall.mockResolvedValueOnce(mockResponse);
 
@@ -865,7 +876,8 @@ describe('useRewardOptinSummary', () => {
         .mockReturnValueOnce(null); // selectRewardsActiveAccountSubscriptionId (null)
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -917,7 +929,8 @@ describe('useRewardOptinSummary', () => {
         .mockReturnValueOnce('active-subscription-id'); // selectRewardsActiveAccountSubscriptionId
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -970,7 +983,8 @@ describe('useRewardOptinSummary', () => {
         .mockReturnValueOnce(subscriptionId); // selectRewardsActiveAccountSubscriptionId
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -1028,7 +1042,8 @@ describe('useRewardOptinSummary', () => {
       });
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       mockEngineCall.mockImplementation((method: string, ...args) => {
@@ -1097,7 +1112,8 @@ describe('useRewardOptinSummary', () => {
       });
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       mockEngineCall.mockImplementation((method: string, ..._args) => {
@@ -1146,7 +1162,8 @@ describe('useRewardOptinSummary', () => {
       });
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       // Mock convertInternalAccountToCaipAccountId to return null for Account3
@@ -1221,7 +1238,8 @@ describe('useRewardOptinSummary', () => {
       });
 
       const mockResponse: OptInStatusDto = {
-        ois: [true, false, true], // Account1 and Account3 opted in
+        ois: [true, false, true],
+        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
       };
 
       mockEngineCall.mockImplementation((method: string, ...args) => {

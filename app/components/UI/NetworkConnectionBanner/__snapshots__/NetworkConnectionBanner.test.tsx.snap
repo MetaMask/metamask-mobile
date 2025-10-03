@@ -101,7 +101,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for different n
 </View>
 `;
 
-exports[`NetworkConnectionBanner snapshots should match snapshot for slow status banner 1`] = `
+exports[`NetworkConnectionBanner snapshots should match snapshot for degraded status banner 1`] = `
 <View
   style={
     {

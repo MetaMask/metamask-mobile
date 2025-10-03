@@ -21,13 +21,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RewardsTab } from '../../../../reducers/rewards/types';
 import {
   selectActiveTab,
+  selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
-import {
-  selectRewardsSubscriptionId,
-  selectHideUnlinkedAccountsBanner,
-} from '../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
@@ -42,6 +40,7 @@ import { TabsListRef } from '../../../../component-library/components-temp/Tabs/
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { convertInternalAccountToCaipAccountId } from '../utils';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -51,6 +50,8 @@ const RewardsDashboard: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedDashboardViewed = useRef(false);
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
@@ -194,6 +195,23 @@ const RewardsDashboard: React.FC = () => {
     showNotSupportedModal,
     hasShownModal,
   ]);
+
+  useEffect(() => {
+    if (!hasTrackedDashboardViewed.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED).build(),
+      );
+      hasTrackedDashboardViewed.current = true;
+    }
+  }, [trackEvent, createEventBuilder]);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
+        .addProperties({ tab: activeTab })
+        .build(),
+    );
+  }, [activeTab, trackEvent, createEventBuilder]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">

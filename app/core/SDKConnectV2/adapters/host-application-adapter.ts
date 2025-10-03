@@ -4,33 +4,45 @@ import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
+import {
+  hideNotificationById,
+  showSimpleNotification,
+} from '../../../actions/notification';
+import { strings } from '../../../../locales/i18n';
+import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import logger from '../services/logger';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
-  showLoading(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showLoading called but is not yet implemented.',
+  showConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo.id,
+        autodismiss: 8000,
+        title: strings('sdk_connect_v2.show_loading.title'),
+        description: strings('sdk_connect_v2.show_loading.description', {
+          dappName: conninfo.metadata.dapp.name,
+        }),
+        status: 'pending',
+      }),
     );
   }
 
-  hideLoading(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.hideLoading called but is not yet implemented.',
-    );
+  hideConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(hideNotificationById(conninfo.id));
   }
 
-  showAlert(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showAlert called but is not yet implemented.',
+  showConnectionError(): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_error.title'),
+        description: strings('sdk_connect_v2.show_error.description'),
+        status: 'error',
+      }),
     );
-  }
-
-  showOTPModal(): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showOTPModal called but is not yet implemented.',
-    );
-    return Promise.resolve();
   }
 
   syncConnectionList(conns: Connection[]): void {
@@ -58,17 +70,18 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
 
   /**
    * Revokes {@link Caip25EndowmentPermissionName} permission from a connection / origin.
-   * @param connectionId - The origin of the connection.
+   * @param connId - The origin of the connection.
    */
-  revokePermissions(connectionId: string): void {
+  revokePermissions(connId: string): void {
     try {
       Engine.context.PermissionController.revokePermission(
-        connectionId,
+        connId,
         Caip25EndowmentPermissionName,
       );
     } catch {
-      console.warn(
-        `[SDKConnectV2] HostApplicationAdapter.revokePermissions called but no ${Caip25EndowmentPermissionName} permission for ${connectionId}.`,
+      logger.error(
+        `Failed to revoke ${Caip25EndowmentPermissionName} permission for connection`,
+        connId,
       );
     }
   }

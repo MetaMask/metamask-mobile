@@ -9,12 +9,6 @@ const styleSheet = (params: { theme: Theme }) => {
     tradeInfoContainer: {
       paddingBottom: 12,
     },
-    firstTimeIcon: {
-      width: 48,
-      height: 48,
-      marginTop: 16,
-      marginBottom: 8,
-    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -25,7 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
     contentContainer: {
       flexGrow: 1,
     },
-    section: {},
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',

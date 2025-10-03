@@ -246,8 +246,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
           }
         }
       >
-        <Image
-          onError={[Function]}
+        <View
           source={
             {
               "uri": "https://on-ramp-content-uat.api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -261,8 +260,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
             }
           }
         />
-        <Image
-          onError={[Function]}
+        <View
           source={
             {
               "uri": "https://on-ramp-content-uat.api.cx.metamask.io/assets/Mastercard-regular@3x.png",

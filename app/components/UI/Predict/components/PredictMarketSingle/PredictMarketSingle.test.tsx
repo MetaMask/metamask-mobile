@@ -16,13 +16,12 @@ jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
 // Mock navigation
 const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();

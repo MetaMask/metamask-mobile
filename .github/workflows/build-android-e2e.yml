@@ -19,7 +19,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
@@ -130,7 +130,7 @@ jobs:
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
-          yarn build:repack
+          yarn build:repack:android
           echo "📦 Final APK size: $(du -h "android/app/build/outputs/apk/prod/release/app-prod-release.apk" | cut -f1)"
         env:
           PLATFORM: android

@@ -6,7 +6,10 @@ import {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
 } from '../../../../reducers/rewards';
-import { selectSeasonId } from '../../../../reducers/rewards/selectors';
+import {
+  selectCurrentTier,
+  selectSeasonId,
+} from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { useFocusEffect } from '@react-navigation/native';
@@ -22,11 +25,12 @@ interface UseUnlockedRewardsReturn {
 export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
   const seasonId = useSelector(selectSeasonId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const currentTier = useSelector(selectCurrentTier);
   const dispatch = useDispatch();
   const isLoadingRef = useRef(false);
   const fetchUnlockedRewards = useCallback(async (): Promise<void> => {
-    // Don't fetch if no subscriptionId
-    if (!subscriptionId || !seasonId) {
+    // Don't fetch if no subscriptionId or if current tier is base tier.
+    if (!subscriptionId || !seasonId || !currentTier?.pointsNeeded) {
       dispatch(setUnlockedRewards(null));
       dispatch(setUnlockedRewardLoading(false));
       dispatch(setUnlockedRewardError(false));
@@ -50,14 +54,15 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
       );
 
       dispatch(setUnlockedRewards(unlockedRewardsData));
-    } catch (err) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setUnlockedRewardError(true));
+      console.error('Error fetching unlocked rewards');
     } finally {
       isLoadingRef.current = false;
       dispatch(setUnlockedRewardLoading(false));
     }
-  }, [dispatch, seasonId, subscriptionId]);
+  }, [currentTier?.pointsNeeded, dispatch, seasonId, subscriptionId]);
 
   useFocusEffect(
     useCallback(() => {

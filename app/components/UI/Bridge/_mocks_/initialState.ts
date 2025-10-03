@@ -84,6 +84,29 @@ export const initialState = {
                 isUnifiedUIEnabled: true,
               },
             },
+            bip44DefaultPairs: {
+              bip122: {
+                other: {},
+                standard: {
+                  'bip122:000000000019d6689c085ae165831e93/slip44:0':
+                    'eip155:1/slip44:60',
+                },
+              },
+              eip155: {
+                other: {},
+                standard: {
+                  'eip155:1/slip44:60':
+                    'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                },
+              },
+              solana: {
+                other: {},
+                standard: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501':
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                },
+              },
+            },
           },
         },
       },

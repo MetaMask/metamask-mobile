@@ -63,7 +63,9 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   const handleSelect = (type: OrderType) => {
     // Track order type selected only if it's different from current
     if (type !== currentOrderType) {
-      track(MetaMetricsEvents.PERPS_ORDER_TYPE_SELECTED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           direction === 'long'

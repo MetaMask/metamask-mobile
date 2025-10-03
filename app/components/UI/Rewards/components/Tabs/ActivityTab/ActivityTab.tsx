@@ -112,7 +112,7 @@ export const ActivityTab: React.FC = () => {
     if (isLoadingMore) {
       return <LoadingFooter />;
     }
-    return null;
+    return <Box twClassName="h-4" />;
   };
 
   if (
@@ -131,7 +131,7 @@ export const ActivityTab: React.FC = () => {
     return null;
   }
 
-  if (error) {
+  if (error && !pointsEvents?.length) {
     return (
       <RewardsErrorBanner
         title={strings('rewards.active_activity_error.error_fetching_title')}

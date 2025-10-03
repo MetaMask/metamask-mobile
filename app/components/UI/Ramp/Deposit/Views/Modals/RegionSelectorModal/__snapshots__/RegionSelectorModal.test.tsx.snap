@@ -498,25 +498,25 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -644,7 +644,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
@@ -657,7 +656,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             removeClippedSubviews={false}
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
-                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -1206,25 +1204,25 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -1379,7 +1377,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
@@ -1392,7 +1389,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             removeClippedSubviews={false}
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
-                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -1408,44 +1404,35 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -1506,51 +1493,42 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -1611,7 +1589,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -2128,25 +2106,25 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -2326,7 +2304,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
@@ -2339,7 +2316,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             removeClippedSubviews={false}
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
-                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -2355,46 +2331,35 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          {
-                                            "backgroundColor": "#4459ff1a",
-                                          },
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -2455,51 +2420,69 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                  <View
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "backgroundColor": "#4459ff1a",
+                                        "bottom": 0,
+                                        "flexDirection": "row",
+                                        "left": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "backgroundColor": "#4459ff",
+                                          "borderRadius": 2,
+                                          "marginLeft": 4,
+                                          "marginVertical": 4,
+                                          "width": 4,
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -2560,53 +2543,42 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={false}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={true}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          {
-                                            "opacity": 0.5,
-                                          },
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -2667,51 +2639,42 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -2772,7 +2735,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -3166,7 +3129,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={20}
+                          handlerTag={8}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -3289,25 +3252,25 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -3471,12 +3434,11 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={19}
+                            handlerTag={7}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
@@ -3489,7 +3451,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             removeClippedSubviews={false}
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
-                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -3915,7 +3876,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={13}
+                          handlerTag={5}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -4038,25 +3999,25 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -4235,12 +4196,11 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={12}
+                            handlerTag={4}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
@@ -4253,7 +4213,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             removeClippedSubviews={false}
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
-                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -4269,44 +4228,35 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={9}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -4367,7 +4317,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -4884,25 +4834,25 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -5082,7 +5032,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
                             keyboardShouldPersistTaps="always"
-                            nestedScrollEnabled={true}
                             onContentSizeChange={[Function]}
                             onGestureHandlerEvent={[Function]}
                             onGestureHandlerStateChange={[Function]}
@@ -5095,7 +5044,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             removeClippedSubviews={false}
                             renderItem={[Function]}
                             renderScrollComponent={[Function]}
-                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             style={
@@ -5111,46 +5059,35 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          {
-                                            "backgroundColor": "#4459ff1a",
-                                          },
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -5211,51 +5148,69 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                  <View
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "backgroundColor": "#4459ff1a",
+                                        "bottom": 0,
+                                        "flexDirection": "row",
+                                        "left": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "backgroundColor": "#4459ff",
+                                          "borderRadius": 2,
+                                          "marginLeft": 4,
+                                          "marginVertical": 4,
+                                          "width": 4,
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -5316,53 +5271,42 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={false}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={true}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          {
-                                            "opacity": 0.5,
-                                          },
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -5423,51 +5367,42 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
                                 style={null}
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
                                   <View
-                                    accessibilityRole="button"
+                                    accessibilityRole="none"
                                     accessible={true}
-                                    collapsable={false}
-                                    style={{}}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
@@ -5528,7 +5463,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       </View>
                                     </View>
                                   </View>
-                                </RNGestureHandlerButton>
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </RCTScrollView>

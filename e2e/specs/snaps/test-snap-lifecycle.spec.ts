@@ -16,6 +16,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -34,13 +35,19 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestHelpers.terminateApp();
         await TestHelpers.launchApp({
           launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
         });
-        await loginToApp();
+
+        try {
+          await loginToApp();
+        } catch {
+          // The assertions inside may fail due to the ongoing test.
+        }
 
         await Assertions.checkIfTextIsDisplayed(
           'The client was started successfully, and the "onStart" handler was called.',

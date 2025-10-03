@@ -129,6 +129,7 @@ export class PayHook {
 
     const result = await this.#messenger.call(
       'BridgeStatusController:submitTx',
+      from,
       quote,
       isSmartTransaction,
     );

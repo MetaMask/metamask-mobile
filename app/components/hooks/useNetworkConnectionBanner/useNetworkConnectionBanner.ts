@@ -20,7 +20,7 @@ import { INFURA_PROJECT_ID } from '../../../constants/network';
 
 const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
-const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
+const DEGRADED_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
 const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 
 function sanitizeRpcUrl(rpcUrl: string) {
@@ -67,11 +67,10 @@ const useNetworkConnectionBanner = (): {
     // Tracking the event
     trackEvent(
       createEventBuilder(
-        status === 'slow'
-          ? MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED
-          : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED,
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
       )
         .addProperties({
+          banner_type: status,
           chain_id_caip: `eip155:${hexToNumber(chainId)}`,
           rpc_endpoint_url: sanitizeRpcUrl(rpcUrl),
         })
@@ -167,10 +166,10 @@ const useNetworkConnectionBanner = (): {
       }
     };
 
-    // Set up slow banner timeout (5 seconds)
-    const slowTimeout = setTimeout(() => {
-      checkNetworkStatus('slow');
-    }, SLOW_BANNER_TIMEOUT);
+    // Set up degraded banner timeout (5 seconds)
+    const degradedTimeout = setTimeout(() => {
+      checkNetworkStatus('degraded');
+    }, DEGRADED_BANNER_TIMEOUT);
 
     // Set up unavailable banner timeout (30 seconds)
     const unavailableTimeout = setTimeout(() => {
@@ -178,7 +177,7 @@ const useNetworkConnectionBanner = (): {
     }, UNAVAILABLE_BANNER_TIMEOUT);
 
     return () => {
-      clearTimeout(slowTimeout);
+      clearTimeout(degradedTimeout);
       clearTimeout(unavailableTimeout);
     };
   }, [evmEnabledNetworksChainIds, dispatch]);
@@ -190,12 +189,9 @@ const useNetworkConnectionBanner = (): {
   useEffect(() => {
     if (networkConnectionBannerState.visible) {
       trackEvent(
-        createEventBuilder(
-          networkConnectionBannerState.status === 'slow'
-            ? MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN
-            : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
-        )
+        createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
           .addProperties({
+            banner_type: networkConnectionBannerState.status,
             chain_id_caip: `eip155:${hexToNumber(
               networkConnectionBannerState.chainId,
             )}`,

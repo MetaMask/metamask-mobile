@@ -8,6 +8,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
@@ -101,6 +102,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             twClassName="text-text-default"
             testID={REWARDS_VIEW_SELECTORS.TIER_NAME}
           >
@@ -117,6 +119,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.upcoming_rewards.points_needed', {

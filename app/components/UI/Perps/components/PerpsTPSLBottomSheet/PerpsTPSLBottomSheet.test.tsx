@@ -46,14 +46,6 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 // Mock hooks
-jest.mock('../../hooks', () => ({
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
-}));
 
 // Mock liquidation price hook to avoid async side effects
 jest.mock('../../hooks/usePerpsLiquidationPrice', () => ({
