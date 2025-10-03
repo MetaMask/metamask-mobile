@@ -793,11 +793,14 @@ export class PerpsController extends BaseController<
         state.pendingOrders.push(orderWithoutTracking);
       });
 
-      const result = await provider.placeOrder(params);
-
-      // Clear discount context after order (success or failure)
-      if (provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(undefined);
+      let result: OrderResult;
+      try {
+        result = await provider.placeOrder(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
       }
 
       // Update state only on success
@@ -1404,11 +1407,14 @@ export class PerpsController extends BaseController<
       provider.setUserFeeDiscount(feeDiscountBips);
     }
 
-    const result = await provider.updatePositionTPSL(params);
-
-    // Clear discount context after operation (success or failure)
-    if (provider.setUserFeeDiscount) {
-      provider.setUserFeeDiscount(undefined);
+    let result: OrderResult;
+    try {
+      result = await provider.updatePositionTPSL(params);
+    } finally {
+      // Always clear discount context, even on exception
+      if (provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(undefined);
+      }
     }
 
     const completionDuration = performance.now() - startTime;
