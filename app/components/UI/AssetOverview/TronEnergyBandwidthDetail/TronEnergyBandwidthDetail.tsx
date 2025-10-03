@@ -29,6 +29,9 @@ const TronEnergyBandwidthDetail = () => {
   const BANDWIDTH_MAX = 600;
   const bandwidthProgress = Math.min(1, (bandwidthValue || 0) / BANDWIDTH_MAX);
 
+  const ENERGY_MAX = 130000;
+  const energyProgress = Math.min(1, (energyValue || 0) / ENERGY_MAX);
+
   const ENERGY_PER_TRC20_TRANSFER_BASELINE = 65000;
   const BANDWIDTH_PER_TRX_TRANSFER_BASELINE = 280;
 
@@ -58,7 +61,7 @@ const TronEnergyBandwidthDetail = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-4"
         >
-          <ResourceRing icon={IconName.Flash} indeterminate />
+          <ResourceRing icon={IconName.Flash} progress={energyProgress} />
           <Box>
             <Text variant={TextVariant.BodyLg}>
               {strings('asset_overview.tron.energy')}
