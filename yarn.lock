@@ -7907,25 +7907,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-core@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@metamask/mobile-wallet-protocol-core@npm:0.1.1"
+"@metamask/mobile-wallet-protocol-core@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/mobile-wallet-protocol-core@npm:0.2.0"
   dependencies:
     centrifuge: ^5.3.5
     eventemitter3: ^5.0.1
     uuid: ^11.1.0
-  checksum: c19e17999d25b0872152961489560dc252ae7a7bbce058dadb86fccfbd8652db19fe98cc5c292f67508e92c9c429eb63489ff166deea5a0d8d370bee291a5d5a
+  checksum: 963a4c8aabae2318bab973055125d1474a29451dc013e87744e3a04608982934b9916c1d28699207c11604386348b6c2ed007125ed9a0ee2c98d0604b9358c4f
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.1.1"
+"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.2.1"
   dependencies:
-    "@metamask/mobile-wallet-protocol-core": ^0.1.1
+    "@metamask/mobile-wallet-protocol-core": ^0.2.0
     "@metamask/utils": ^9.1.0
     uuid: ^11.1.0
-  checksum: 604bc953c90a1c62692d00667149db0578d06ead97a8410b22f94eeba00428cee0621205afbb1814c991737d8743abe313ddfbaeffb6411e2eb23edbb9943198
+  checksum: 53c4965a81bf9d93c3ed6b1317045190c6c7b31dcd764e9c7a38b7b7855afd11eb4ad644cb9d27c68f2257a698ed7f1eea1923b14bf8aa6193500941b44bf4d8
   languageName: node
   linkType: hard
 
@@ -34084,8 +34084,8 @@ __metadata:
     "@metamask/message-signing-snap": ^1.1.2
     "@metamask/metamask-eth-abis": 3.1.1
     "@metamask/mobile-provider": ^3.0.0
-    "@metamask/mobile-wallet-protocol-core": ^0.1.1
-    "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.1
+    "@metamask/mobile-wallet-protocol-core": ^0.2.0
+    "@metamask/mobile-wallet-protocol-wallet-client": ^0.2.1
     "@metamask/multichain-account-service": ^1.5.0
     "@metamask/multichain-api-client": ^0.7.0
     "@metamask/multichain-api-middleware": 1.1.0
