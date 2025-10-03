@@ -14,6 +14,14 @@ export * from '../../types/navigation';
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
+// Input method for amount entry tracking
+export type InputMethod =
+  | 'default'
+  | 'slider'
+  | 'keypad'
+  | 'percentage'
+  | 'max';
+
 // Unified tracking data interface for analytics events (never persisted in state)
 export interface TrackingData {
   // Common to all operations
@@ -26,6 +34,7 @@ export interface TrackingData {
 
   // Order-specific (used for trade operations)
   marginUsed?: number; // Margin required for this order
+  inputMethod?: InputMethod; // How user set the amount
 
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close
@@ -332,6 +341,13 @@ export interface OrderFill {
   timestamp: number; // Fill timestamp
   startPosition?: string; // Start position
   success?: boolean; // Whether the order was filled successfully
+  liquidation?: {
+    liquidatedUser: string; // Address of the liquidated user. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
+    markPx: string; // Mark price at liquidation
+    method: string; // Liquidation method (e.g., 'market')
+  };
+  orderType?: 'take_profit' | 'stop_loss' | 'liquidation' | 'regular';
+  detailedOrderType?: string; // Original order type from exchange
 }
 
 // Parameter interfaces - all fully optional for better UX

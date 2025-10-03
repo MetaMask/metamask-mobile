@@ -27,12 +27,12 @@ const state2Mock = {
 
 describe('Multichain Accounts Feature Flag', () => {
   describe('selectMultichainAccountsState1Enabled', () => {
-    it('returns false when the flag is undefined', () => {
+    it('returns true when the flag is undefined', () => {
       const result = selectMultichainAccountsState1Enabled.resultFunc({
         // @ts-expect-error testing undefined case
         enableMultichainAccounts: undefined,
       });
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it('returns false when the feature is not enabled', () => {
@@ -51,12 +51,12 @@ describe('Multichain Accounts Feature Flag', () => {
   });
 
   describe('selectMultichainAccountsState2Enabled', () => {
-    it('returns false when the flag is undefined', () => {
+    it('returns true when the flag is undefined', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
         // @ts-expect-error testing undefined case
         enableMultichainAccountsState2: undefined,
       });
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it('returns false when the feature is not enabled', () => {

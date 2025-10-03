@@ -46,6 +46,12 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'rewards.settings.link_account_error_title') {
       return 'Failed to link account';
     }
+    if (key === 'rewards.settings.link_account_failed_error') {
+      return 'Failed to link account';
+    }
+    if (key === 'rewards.settings.link_account_unknown_error') {
+      return 'Unknown error occurred';
+    }
     return key;
   }),
 }));

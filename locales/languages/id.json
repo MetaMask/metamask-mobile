@@ -1037,6 +1037,7 @@
         "insufficient_funds": "Dana tidak cukup",
         "insufficient_balance": "Saldo tidak mencukupi. Diperlukan: ${{required}}, Tersedia: ${{available}}",
         "invalid_leverage": "Leverage harus berada di antara {{min}}x dan {{max}}x",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Leverage yang tinggi meningkatkan risiko likuidasi",
         "invalid_take_profit": "Ambil profit harus {{direction}} harga saat ini untuk posisi {{positionType}}",
         "invalid_stop_loss": "Stop loss harus {{direction}} harga saat ini untuk posisi {{positionType}}",
@@ -1331,8 +1332,8 @@
         "error_message": "Data pasar tidak ditemukan. Kembali dan coba lagi."
       },
       "statistics": "Ikhtisar",
-      "24hr_high": "Tinggi 24 jam",
-      "24hr_low": "Rendah 24 jam",
+      "24h_high": "Tinggi 24 jam",
+      "24h_low": "Rendah 24 jam",
       "24h_volume": "Volume 24 jam",
       "open_interest": "Kontrak terbuka",
       "funding_rate": "Tingkat pendanaan",
@@ -1459,6 +1460,8 @@
     "failed_to_load_market_data": "Gagal memuat data pasar",
     "tap_to_retry": "Ketuk untuk mencoba lagi",
     "search_by_token_symbol": "Cari berdasarkan simbol token",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1611,8 +1614,7 @@
     "accept": "Terima"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Pindai kode QR",
-    "receive_tab": "Kode QR Anda"
+    "scanner_tab": "Pindai kode QR"
   },
   "banner": {
     "bridge": {
@@ -6011,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,6 +6025,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },

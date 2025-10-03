@@ -553,9 +553,12 @@ describe('ActivityTab', () => {
   });
 
   describe('Error States', () => {
-    it('should show error banner when there is an error', () => {
+    it('should show error banner when there is an error and no points events', () => {
       mockUsePointsEvents.mockReturnValueOnce(
-        makePointsEventsResult({ error: 'Network error' }),
+        makePointsEventsResult({
+          error: 'Network error',
+          pointsEvents: [],
+        }),
       );
 
       const { getByTestId } = render(<ActivityTab />);
@@ -564,11 +567,43 @@ describe('ActivityTab', () => {
       expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
 
+    it('should not show error banner when there is an error but points events exist', () => {
+      const swapEvent = createMockEvent({ type: 'SWAP' });
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          error: 'Network error',
+          pointsEvents: [swapEvent],
+        }),
+      );
+
+      const { queryByTestId, getByText } = render(<ActivityTab />);
+
+      // Should not show error banner when points events exist
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
+      // Should still show the points events
+      expect(getByText(`event:${swapEvent.id}`)).toBeOnTheScreen();
+    });
+
+    it('should not show error banner when there is no error', () => {
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          error: null,
+          pointsEvents: [],
+        }),
+      );
+
+      const { queryByTestId } = render(<ActivityTab />);
+
+      // Should not show error banner when no error
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
+    });
+
     it('should call refresh when retry button is pressed in error state', () => {
       const mockRefresh = jest.fn();
       mockUsePointsEvents.mockReturnValueOnce(
         makePointsEventsResult({
           error: 'Network error',
+          pointsEvents: [],
           refresh: mockRefresh,
         }),
       );

@@ -188,7 +188,17 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) => chainAssets)
+      .filter((asset) => {
+        // We need to filter out Tron energy and bandwidth from this list
+        if (
+          asset.chainId?.includes('tron:') &&
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
+        ) {
+          return false;
+        }
+        return true;
+      });
 
     const stakedAssetsArray = [];
     for (const asset of assets) {

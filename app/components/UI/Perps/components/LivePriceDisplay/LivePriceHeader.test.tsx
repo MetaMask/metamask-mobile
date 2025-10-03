@@ -1,257 +1,192 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import {
-  formatPerpsFiat,
-  formatPercentage,
-  formatPnl,
-} from '../../utils/formatUtils';
-import { useStyles } from '../../../../../component-library/hooks';
+import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
 
 // Mock dependencies
-jest.mock('../../hooks/stream');
-jest.mock('../../utils/formatUtils');
-jest.mock('../../../../../component-library/hooks');
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(),
+}));
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: jest.fn(() => ({
+    styles: {
+      container: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+      positionValue: { fontWeight: '700' },
+      priceChange24h: { fontSize: 12 },
+    },
+    theme: {},
+  })),
+}));
+
+const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
+  typeof usePerpsLivePrices
+>;
 
 describe('LivePriceHeader', () => {
-  const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
-    typeof usePerpsLivePrices
-  >;
-  const mockFormatPerpsFiat = formatPerpsFiat as jest.MockedFunction<
-    typeof formatPerpsFiat
-  >;
-  const mockFormatPercentage = formatPercentage as jest.MockedFunction<
-    typeof formatPercentage
-  >;
-  const mockFormatPnl = formatPnl as jest.MockedFunction<typeof formatPnl>;
-  const mockUseStyles = useStyles as jest.MockedFunction<typeof useStyles>;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFormatPerpsFiat.mockImplementation((price) => {
-      const num = typeof price === 'string' ? parseFloat(price) : price;
-      return `$${num.toFixed(2)}`;
-    });
-    mockFormatPercentage.mockImplementation((pct) => `${pct}%`);
-    mockFormatPnl.mockImplementation((amount) => {
-      const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-      return num >= 0
-        ? `+$${Math.abs(num).toFixed(2)}`
-        : `-$${Math.abs(num).toFixed(2)}`;
-    });
-    mockUseStyles.mockReturnValue({
-      styles: {
-        container: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-        positionValue: { fontWeight: '700' },
-        priceChange24h: { fontSize: 12 },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      theme: {} as any,
-    });
   });
 
-  it('should render with live price data', () => {
+  it('should render without crashing', () => {
+    mockUsePerpsLivePrices.mockReturnValue({});
+    const component = render(<LivePriceHeader symbol="ETH" />);
+    expect(component).toBeDefined();
+  });
+
+  it('should show placeholders when no price data available', () => {
+    mockUsePerpsLivePrices.mockReturnValue({});
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$---')).toBeTruthy();
+    expect(getByText('--%')).toBeTruthy();
+  });
+
+  it('should show placeholders when price data is undefined', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: {
-        coin: 'BTC',
-        price: '50000',
+      ETH: undefined as unknown as PriceUpdate,
+    });
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$---')).toBeTruthy();
+    expect(getByText('--%')).toBeTruthy();
+  });
+
+  it('should show placeholders when price is invalid (zero)', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '0',
+        percentChange24h: '5',
+        timestamp: Date.now(),
+      },
+    });
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$---')).toBeTruthy();
+    expect(getByText('--%')).toBeTruthy();
+  });
+
+  it('should show placeholders when price is invalid (negative)', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '-100',
+        percentChange24h: '5',
+        timestamp: Date.now(),
+      },
+    });
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$---')).toBeTruthy();
+    expect(getByText('--%')).toBeTruthy();
+  });
+
+  it('should show placeholders when price is invalid (NaN)', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: 'invalid',
+        percentChange24h: '5',
+        timestamp: Date.now(),
+      },
+    });
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$---')).toBeTruthy();
+    expect(getByText('--%')).toBeTruthy();
+  });
+
+  it('should render valid price and positive change', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '3000',
         percentChange24h: '5.5',
         timestamp: Date.now(),
       },
     });
-
-    const { getByText } = render(<LivePriceHeader symbol="BTC" />);
-
-    expect(getByText('$50000.00')).toBeTruthy();
-    // 5.5% of 50000 = 2750
-    expect(getByText('5.5%')).toBeTruthy();
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$3,000.00')).toBeTruthy();
+    expect(getByText('+5.50%')).toBeTruthy();
   });
 
-  it('should use fallback values when no live data', () => {
-    mockUsePerpsLivePrices.mockReturnValue({});
-
-    const { getByText } = render(
-      <LivePriceHeader
-        symbol="ETH"
-        fallbackPrice="3000"
-        fallbackChange="2.5"
-      />,
-    );
-
-    expect(getByText('$3000.00')).toBeTruthy();
-    // 2.5% of 3000 = 75
-    expect(getByText('2.5%')).toBeTruthy();
+  it('should render valid price and negative change', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '2500',
+        percentChange24h: '-3.2',
+        timestamp: Date.now(),
+      },
+    });
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$2,500.00')).toBeTruthy();
+    expect(getByText('-3.20%')).toBeTruthy();
   });
 
-  it('should handle negative price change', () => {
+  it('should render valid price and zero change', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '2000',
+        percentChange24h: '0',
+        timestamp: Date.now(),
+      },
+    });
+    const { getByText } = render(<LivePriceHeader symbol="ETH" />);
+    expect(getByText('$2,000.00')).toBeTruthy();
+    expect(getByText('+0.00%')).toBeTruthy();
+  });
+
+  it('should handle different symbols', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       SOL: {
         coin: 'SOL',
         price: '100',
-        percentChange24h: '-10',
+        percentChange24h: '2.1',
         timestamp: Date.now(),
       },
     });
-
     const { getByText } = render(<LivePriceHeader symbol="SOL" />);
-
     expect(getByText('$100.00')).toBeTruthy();
-    // -10% of 100 = -10
-    expect(getByText('-10%')).toBeTruthy();
+    expect(getByText('+2.10%')).toBeTruthy();
   });
 
-  it('should handle positive price change color', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      AVAX: {
-        coin: 'AVAX',
-        price: '25',
-        percentChange24h: '8',
-        timestamp: Date.now(),
-      },
-    });
-
-    const { getByText } = render(<LivePriceHeader symbol="AVAX" />);
-
-    expect(getByText('8%')).toBeTruthy();
-  });
-
-  it('should handle zero price change', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      MATIC: {
-        coin: 'MATIC',
-        price: '1',
-        percentChange24h: '0',
-        timestamp: Date.now(),
-      },
-    });
-
-    const { getByText } = render(<LivePriceHeader symbol="MATIC" />);
-
-    expect(getByText('$1.00')).toBeTruthy();
-    expect(getByText('0%')).toBeTruthy();
-  });
-
-  it('should use custom throttle value', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      DOGE: {
-        coin: 'DOGE',
-        price: '0.1',
-        percentChange24h: '0',
-        timestamp: Date.now(),
-      },
-    });
-
-    render(<LivePriceHeader symbol="DOGE" throttleMs={2000} />);
-
-    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
-      symbols: ['DOGE'],
-      throttleMs: 2000,
-    });
-  });
-
-  it('should use default throttle value of 1000ms', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      UNI: {
-        coin: 'UNI',
-        price: '10',
-        percentChange24h: '0',
-        timestamp: Date.now(),
-      },
-    });
-
-    render(<LivePriceHeader symbol="UNI" />);
-
-    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
-      symbols: ['UNI'],
-      throttleMs: 1000,
-    });
-  });
-
-  it('should apply test IDs correctly', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      LINK: {
-        coin: 'LINK',
-        price: '15',
-        percentChange24h: '3',
-        timestamp: Date.now(),
-      },
-    });
-
-    const { getByTestId } = render(
+  it('should use fallback values when no live data', () => {
+    mockUsePerpsLivePrices.mockReturnValue({});
+    const { getByText } = render(
       <LivePriceHeader
-        symbol="LINK"
-        testIDPrice="price-test"
-        testIDChange="change-test"
+        symbol="ETH"
+        fallbackPrice="1500"
+        fallbackChange="1.5"
       />,
     );
-
-    expect(getByTestId('price-test')).toBeTruthy();
-    expect(getByTestId('change-test')).toBeTruthy();
+    expect(getByText('$1,500.00')).toBeTruthy();
+    expect(getByText('+1.50%')).toBeTruthy();
   });
 
-  it('should handle missing percentChange24h', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      DOT: {
-        coin: 'DOT',
-        price: '5',
-        timestamp: Date.now(),
-        // percentChange24h is missing
-      },
-    });
-
-    const { getByText } = render(<LivePriceHeader symbol="DOT" />);
-
-    expect(getByText('$5.00')).toBeTruthy();
-    expect(getByText('0%')).toBeTruthy(); // Defaults to 0
-  });
-
-  it('should calculate change amount correctly', () => {
-    mockUsePerpsLivePrices.mockReturnValue({
-      ADA: {
-        coin: 'ADA',
-        price: '0.5',
-        percentChange24h: '20',
-        timestamp: Date.now(),
-      },
-    });
-
-    const { getByText } = render(<LivePriceHeader symbol="ADA" />);
-
-    expect(getByText('$0.50')).toBeTruthy();
-    // 20% of 0.5 = 0.1
-    expect(getByText('20%')).toBeTruthy();
-  });
-
-  it('should use fallback values as defaults', () => {
+  it('should show placeholders when fallback price is invalid', () => {
     mockUsePerpsLivePrices.mockReturnValue({});
-
     const { getByText } = render(
-      <LivePriceHeader symbol="XRP" fallbackPrice="0.6" fallbackChange="-5" />,
+      <LivePriceHeader symbol="ETH" fallbackPrice="0" fallbackChange="1.5" />,
     );
-
-    expect(getByText('$0.60')).toBeTruthy();
-    // -5% of 0.6 = -0.03
-    expect(getByText('-5%')).toBeTruthy();
+    expect(getByText('$---')).toBeTruthy();
+    expect(getByText('--%')).toBeTruthy();
   });
 
   it('should prefer live data over fallback', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      ALGO: {
-        coin: 'ALGO',
-        price: '0.2',
-        percentChange24h: '15',
+      BTC: {
+        coin: 'BTC',
+        price: '50000',
+        percentChange24h: '3.0',
         timestamp: Date.now(),
       },
     });
-
     const { getByText } = render(
-      <LivePriceHeader symbol="ALGO" fallbackPrice="0.3" fallbackChange="10" />,
+      <LivePriceHeader
+        symbol="BTC"
+        fallbackPrice="45000"
+        fallbackChange="2.0"
+      />,
     );
-
-    // Should use live data, not fallback
-    expect(getByText('$0.20')).toBeTruthy();
-    // 15% of 0.2 = 0.03
-    expect(getByText('15%')).toBeTruthy();
+    expect(getByText('$50,000.00')).toBeTruthy();
+    expect(getByText('+3.00%')).toBeTruthy();
   });
 });

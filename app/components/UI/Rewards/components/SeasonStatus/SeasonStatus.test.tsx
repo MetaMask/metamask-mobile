@@ -22,6 +22,7 @@ jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectNextTierPointsNeeded: jest.fn(),
   selectCurrentTier: jest.fn(),
   selectNextTier: jest.fn(),
+  selectSeasonStatusError: jest.fn(),
 }));
 
 // Import the mocked selectors
@@ -33,15 +34,9 @@ import {
   selectSeasonStartDate,
   selectNextTierPointsNeeded,
   selectCurrentTier,
+  selectSeasonStatusError,
   selectNextTier,
 } from '../../../../../reducers/rewards/selectors';
-
-// Mock rewards selectors
-jest.mock('../../../../../selectors/rewards', () => ({
-  selectSeasonStatusError: jest.fn(),
-}));
-
-import { selectSeasonStatusError } from '../../../../../selectors/rewards';
 
 // Mock useSeasonStatus hook
 jest.mock('../../hooks/useSeasonStatus', () => ({

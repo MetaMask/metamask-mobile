@@ -13,8 +13,7 @@ import AppConstants from '../../../AppConstants';
 
 // Points to the LaunchDarkly environment based on the METAMASK_ENVIRONMENT environment variable
 export const getFeatureFlagAppEnvironment = () => {
-  // Spread process.env, which forces a fresh read when running unit tests
-  const env = { ...process.env }?.METAMASK_ENVIRONMENT;
+  const env = process.env.METAMASK_ENVIRONMENT;
 
   switch (env) {
     case 'production':
@@ -39,8 +38,7 @@ export const getFeatureFlagAppEnvironment = () => {
 };
 
 export const getFeatureFlagAppDistribution = () => {
-  // Spread process.env, which forces a fresh read when running unit tests
-  const dist = { ...process.env }?.METAMASK_BUILD_TYPE;
+  const dist = process.env.METAMASK_BUILD_TYPE;
 
   switch (dist) {
     case 'main':

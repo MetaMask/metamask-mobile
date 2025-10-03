@@ -51,6 +51,7 @@ function createMockMarket(overrides = {}) {
     slug: 'test-market',
     title: 'Test Market',
     description: 'A test market for prediction',
+    endDate: '2024-12-31T23:59:59Z',
     image: 'test-image.png',
     status: 'open' as const,
     recurrence: Recurrence.NONE,

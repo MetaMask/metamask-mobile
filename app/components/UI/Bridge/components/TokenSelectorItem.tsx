@@ -223,20 +223,25 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           </Box>
 
           {/* Token balance and fiat value */}
-          <Box style={styles.balance}>
+          <Box style={styles.balance} gap={4}>
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{balance}</Text>
+                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{secondaryBalance}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {secondaryBalance}
+                </Text>
               )
             ) : null}
           </Box>

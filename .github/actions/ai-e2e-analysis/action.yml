@@ -1,0 +1,156 @@
+name: 'AI E2E Analysis'
+description: 'Run AI-powered E2E test selection analysis based on code changes'
+inputs:
+  changed-files:
+    description: 'Pre-computed list of changed files from needs_e2e_build job'
+    required: true
+  event-name:
+    description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
+    required: true
+  claude-api-key:
+    description: 'Claude API key for AI analysis'
+    required: true
+  github-token:
+    description: 'GitHub token for PR comments (optional)'
+    required: false
+  pr-number:
+    description: 'Pull request number for commenting (optional)'
+    required: false
+  repository:
+    description: 'Repository name (owner/repo) for commenting (optional)'
+    required: false
+  post-comment:
+    description: 'Whether to post a comment to the PR'
+    required: false
+    default: 'false'
+
+outputs:
+  test-matrix:
+    description: 'JSON matrix for GitHub Actions test jobs - array of {tag, fileCount, split, totalSplits}'
+    value: ${{ steps.ai-analysis.outputs.test_matrix }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Minimal checkout for AI analysis
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          .github/scripts
+          e2e/scripts
+          e2e/specs
+          e2e/tags.js
+          .nvmrc
+        sparse-checkout-cone-mode: false
+        fetch-depth: 1
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Install minimal dependencies for AI analysis
+      shell: bash
+      run: |
+        echo "📦 Installing only required packages for AI analysis..."
+        # Install to a separate location that won't be overwritten
+        mkdir -p /tmp/ai-deps
+        cd /tmp/ai-deps
+        npm init -y
+        npm install @anthropic-ai/sdk@latest esbuild-register@latest --no-audit --no-fund
+        echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
+
+    - name: Copy AI dependencies to workspace
+      shell: bash
+      run: |
+        echo "📋 Copying AI dependencies to workspace..."
+        # Create node_modules if it doesn't exist
+        mkdir -p node_modules
+        # Copy our pre-installed dependencies
+        cp -r /tmp/ai-deps/node_modules/* node_modules/
+        echo "✅ AI dependencies available in workspace"
+
+    - name: Test Selection AI Analysis
+      id: ai-analysis
+      shell: bash
+      env:
+        E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
+        CHANGED_FILES: ${{ inputs.changed-files }}
+        EVENT_NAME: ${{ inputs.event-name }}
+      run: |
+        # Only run AI analysis for pull_request events with changed files
+        if [[ "$EVENT_NAME" == "pull_request" ]] && [[ -n "$CHANGED_FILES" ]]; then
+          echo "✅ Running AI analysis for PR with changed files"
+          node .github/scripts/ai-e2e-analysis.mjs \
+            "$EVENT_NAME" \
+            "$CHANGED_FILES"
+        else
+          echo "⏭️ Skipping AI analysis - only runs on PRs with changed files (event: $EVENT_NAME, has files: $([ -n "$CHANGED_FILES" ] && echo 'yes' || echo 'no'))"
+          echo "test_matrix=[]" >> "$GITHUB_OUTPUT"
+          echo "tags=" >> "$GITHUB_OUTPUT"
+          echo "tags_display=None (AI analysis skipped)" >> "$GITHUB_OUTPUT"
+          echo "risk_level=N/A" >> "$GITHUB_OUTPUT"
+          echo "reasoning=AI analysis only runs for pull_request events with changed files" >> "$GITHUB_OUTPUT"
+          echo "confidence=0" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Delete existing AI E2E comments
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo "🗑️ Deleting all existing AI E2E comments..."
+
+        # Get all AI E2E comment IDs (both analysis-only and test mode comments)
+        ALL_COMMENT_IDS=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
+          --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis|🔍 AI E2E Analysis Report")) | .id')
+
+        COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
+        echo "📊 Found $COMMENT_COUNT existing AI E2E comments"
+
+        if [ -n "$ALL_COMMENT_IDS" ] && [ "$COMMENT_COUNT" -gt 0 ]; then
+          echo "🗑️ Deleting all $COMMENT_COUNT AI E2E comments..."
+
+          echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
+            if [ -n "$COMMENT_ID" ]; then
+              echo "   Deleting comment: $COMMENT_ID"
+              gh api "repos/${{ inputs.repository }}/issues/comments/$COMMENT_ID" \
+                --method DELETE > /dev/null 2>&1 || echo "   ⚠️ Failed to delete comment $COMMENT_ID"
+            fi
+          done
+          echo "✨ Cleanup completed - deleted all $COMMENT_COUNT comments"
+        else
+          echo "📝 No existing AI E2E comments found"
+        fi
+
+    - name: Create PR comment with analysis results
+      if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # Create analysis report comment
+        cat > pr_comment.md << EOF
+        ## 🔍 AI E2E Analysis Report
+
+        **Risk Level:** ${{ steps.ai-analysis.outputs.risk_level }} | **Selected Tags:** ${{ steps.ai-analysis.outputs.tags_display }}
+
+        **🤖 AI Analysis:**
+        > ${{ steps.ai-analysis.outputs.reasoning }}
+
+        **📊 Analysis Results:**
+        - **Confidence:** ${{ steps.ai-analysis.outputs.confidence }}%
+
+        **🏷️ Test Recommendation:**
+        Based on the code changes, the AI recommends testing the following areas: **${{ steps.ai-analysis.outputs.tags_display }}**
+
+        _🔍 [View complete analysis](https://github.com/${{ inputs.repository }}/actions/runs/${{ github.run_id }}) • AI E2E Analysis_
+
+        <!-- ai-e2e-analysis -->
+        EOF
+
+        # Create new comment
+        echo "📝 Creating AI E2E analysis comment..."
+        gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body-file pr_comment.md
+        echo "✅ Successfully created comment"

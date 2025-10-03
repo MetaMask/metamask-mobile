@@ -13,8 +13,6 @@ const Routes = {
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
-    REGION: 'Region',
-    REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
@@ -24,6 +22,9 @@ const Routes = {
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
       FIAT_SELECTOR: 'RampFiatSelectorModal',
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
+      REGION_SELECTOR: 'RampRegionSelectorModal',
+      UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
     },
   },
   DEPOSIT: {
@@ -102,6 +103,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
+    REWARDS_INTRO_MODAL: 'RewardsIntroModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -335,6 +337,7 @@ const Routes = {
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    WELCOME: 'CardWelcome',
   },
   SEND: {
     RECIPIENT: 'Recipient',
@@ -343,7 +346,7 @@ const Routes = {
     DEFAULT: 'Send',
   },
   SDK: {
-    RETURN_TO_DAPP_TOAST: 'ReturnToDappToast',
+    RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
 };
 

@@ -103,7 +103,6 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
-  TUTORIAL_BUTTON: 'perps-market-list-tutorial-button',
   SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
   CLOSE_BUTTON: 'perps-market-list-close-button',
   BACK_HEADER_BUTTON: 'perps-market-header-back-button',
@@ -389,8 +388,8 @@ export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
   CAROUSEL: 'perps-tutorial-carousel',
-  CARD: 'perps-tutorial-card',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
+  TUTORIAL_CARD: 'perps-tutorial-card',
 } as const;
 
 // ========================================

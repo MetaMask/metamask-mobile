@@ -57,7 +57,9 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   useEffect(() => {
     if (isVisible) {
       // Track candle periods bottom sheet viewed when it becomes visible
-      track(MetaMetricsEvents.PERPS_CHART_CANDLE_PERIODS_VIEWED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
         [PerpsEventProperties.ASSET]: asset || '',
         [PerpsEventProperties.CANDLE_PERIOD]: selectedPeriod,
         [PerpsEventProperties.SOURCE]:

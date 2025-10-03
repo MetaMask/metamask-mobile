@@ -49,6 +49,13 @@ jest.mock('../../../../../../core/Engine', () => {
   };
 });
 
+jest.mock(
+  '../../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 describe('AccountNetworkInfo', () => {
   it('should render correctly', async () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfo />, {

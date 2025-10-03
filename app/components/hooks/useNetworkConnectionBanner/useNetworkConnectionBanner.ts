@@ -66,7 +66,9 @@ const useNetworkConnectionBanner = (): {
 
     // Tracking the event
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED)
+      createEventBuilder(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
+      )
         .addProperties({
           banner_type: status,
           chain_id_caip: `eip155:${hexToNumber(chainId)}`,
