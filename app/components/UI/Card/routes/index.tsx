@@ -2,7 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
-import { CardSDKProvider } from '../sdk';
+import { useCardSDK, withCardSDK } from '../sdk';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
@@ -14,6 +14,7 @@ import { StyleSheet, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import Loader from '../../../../component-library/components-temp/Loader';
 
 const Stack = createStackNavigator();
 
@@ -47,8 +48,14 @@ export const cardDefaultNavigationOptions = ({
   ),
 });
 
-const CardRoutes = () => (
-  <CardSDKProvider>
+const CardRoutes = () => {
+  const { isLoading } = useCardSDK();
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  return (
     <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
       <Stack.Screen
         name={Routes.CARD.HOME}
@@ -61,7 +68,7 @@ const CardRoutes = () => (
         options={cardDefaultNavigationOptions}
       />
     </Stack.Navigator>
-  </CardSDKProvider>
-);
+  );
+};
 
-export default CardRoutes;
+export default withCardSDK(CardRoutes);

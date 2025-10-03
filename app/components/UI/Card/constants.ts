@@ -5,3 +5,5 @@ export const BALANCE_SCANNER_ABI =
   balanceScannerAbi as ethers.ContractInterface;
 export const ARBITRARY_ALLOWANCE = 100000000000;
 export const DEPOSIT_SUPPORTED_TOKENS = ['USDC', 'USDT', 'mUSD'];
+// 5 Days
+export const DEFAULT_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 5;

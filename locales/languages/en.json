@@ -5768,9 +5768,13 @@
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
       "add_funds": "Add funds",
+      "change_asset": "Change asset",
       "manage_card_options": {
+        "manage_spending_limit": "Manage spending limit",
+        "manage_spending_limit_description_restricted": "Restricted spending limit is on",
+        "manage_spending_limit_description_full": "Full spending access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
+        "advanced_card_management_description": "Detailed transactions, freeze card, and more"
       }
     }
   },

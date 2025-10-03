@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 
 export interface CardFeatureFlag {
+  isBaanxLoginEnabled?: boolean;
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
 }

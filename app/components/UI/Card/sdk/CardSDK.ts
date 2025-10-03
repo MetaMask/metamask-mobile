@@ -9,6 +9,11 @@ import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import { CardToken } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
+import { getCardBaanxToken } from '../util/cardTokenVault';
+
+// Default timeout for all API requests (10 seconds)
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
 // The CardSDK class provides methods to interact with the Card feature
 // and check if an address is a card holder, get supported tokens, and more.
@@ -18,6 +23,8 @@ export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private chainId: string | number;
   private enableLogs: boolean;
+  private cardBaanxApiBaseUrl: string;
+  private cardBaanxApiKey: string | undefined;
 
   constructor({
     cardFeatureFlag,
@@ -29,6 +36,12 @@ export class CardSDK {
     this.cardFeatureFlag = cardFeatureFlag;
     this.chainId = getDecimalChainId(LINEA_CHAIN_ID);
     this.enableLogs = enableLogs;
+    this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
+    this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
+  }
+
+  get isBaanxLoginEnabled(): boolean {
+    return this.cardFeatureFlag?.isBaanxLoginEnabled ?? false;
   }
 
   get isCardEnabled(): boolean {
@@ -343,6 +356,141 @@ export class CardSDK {
       address,
       nonZeroBalanceTokens,
     );
+  };
+
+  private getBaanxApiBaseUrl() {
+    // always using url from env var if set
+    if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
+    // otherwise using default per-env url
+    return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+  }
+
+  private async makeRequest(
+    endpoint: string,
+    options: RequestInit = {},
+    authenticated: boolean = false,
+    timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
+  ): Promise<Response> {
+    const apiKey = this.cardBaanxApiKey;
+    if (!apiKey) {
+      throw new Error('Card Baanx API key is not defined');
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-client-key': apiKey,
+    };
+
+    // Add bearer token for authenticated requests
+    try {
+      if (authenticated) {
+        const tokenResult = await getCardBaanxToken();
+        if (tokenResult.success && tokenResult.tokenData?.accessToken) {
+          headers.Authorization = `Bearer ${tokenResult.tokenData.accessToken}`;
+        }
+      }
+    } catch (error) {
+      // Continue without bearer token if retrieval fails
+      console.warn('Failed to retrieve bearer token:', error);
+    }
+
+    const url = `${this.cardBaanxApiBaseUrl}${endpoint}`;
+
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        credentials: 'omit',
+        ...options,
+        headers: {
+          ...headers,
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      // Check if the error is due to timeout
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timeout after ${timeoutMs}ms`);
+      }
+
+      throw error;
+    }
+  }
+
+  initiateCardProviderAuthentication = async (body: {
+    redirectUrl: string;
+    state: string;
+  }): Promise<{
+    hostedPageUrl: string;
+  }> => {
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/authorize/initiate',
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+      false,
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to initiate card provider authentication');
+    }
+
+    const data = await response.json();
+    return data;
+  };
+
+  exchangeToken = async (body: {
+    token: string;
+  }): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> => {
+    Logger.log('Starting exchangeToken request', body.token);
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/token',
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+      false,
+    );
+
+    Logger.log('ExchangeToken response', response.status);
+
+    if (!response.ok) {
+      Logger.log('ExchangeToken failed', response.status);
+      throw new Error('Failed to exchange token');
+    }
+
+    const data = await response.json();
+    Logger.log('ExchangeToken success', data);
+    return data;
+  };
+
+  refreshLocalToken = async (
+    refreshToken: string,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> => {
+    const tokenResponse = await this.exchangeToken({
+      token: refreshToken,
+    });
+
+    return tokenResponse;
   };
 
   private getFirstSupportedTokenOrNull(): CardToken | null {

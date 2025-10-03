@@ -17,15 +17,27 @@ import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
+import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
+import Logger from '../../../../../util/Logger';
 
 const CardWelcome = () => {
   const { goBack } = useNavigation();
   const theme = useTheme();
+  const { login, loading } = useCardProviderAuthentication();
 
   const styles = createStyles(theme);
 
   const handleClose = async () => {
     goBack();
+  };
+
+  const performLogin = async () => {
+    try {
+      await login();
+      handleClose();
+    } catch (error) {
+      Logger.log('BaanxOAuth login: error', error);
+    }
   };
 
   return (
@@ -59,8 +71,8 @@ const CardWelcome = () => {
             label={strings('card.card_onboarding.verify_account_button')}
             size={ButtonSize.Lg}
             testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            // Temporary navigation to card home
-            onPress={handleClose}
+            onPress={performLogin}
+            loading={loading}
             style={styles.button}
             width={ButtonWidthTypes.Full}
           />
