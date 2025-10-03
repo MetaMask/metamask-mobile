@@ -214,13 +214,15 @@ const BuildQuote = () => {
     setAmountNumber(0);
   }, [selectedRegion]);
 
-  const shouldShowUnsupportedModal = useMemo(() => (
+  const shouldShowUnsupportedModal = useMemo(
+    () =>
       regions &&
       selectedRegion &&
       (selectedRegion.unsupported ||
         (isBuy && !selectedRegion.support?.buy) ||
-        (isSell && !selectedRegion.support?.sell))
-    ), [regions, selectedRegion, isBuy, isSell]);
+        (isSell && !selectedRegion.support?.sell)),
+    [regions, selectedRegion, isBuy, isSell],
+  );
 
   useFocusEffect(
     useCallback(() => {

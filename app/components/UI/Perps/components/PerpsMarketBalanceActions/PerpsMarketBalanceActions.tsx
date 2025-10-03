@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Modal, Animated, View } from 'react-native';
+import { Modal, Animated, View, ActivityIndicator } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -42,8 +42,9 @@ import {
   USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
+import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
-import stylesheet from './PerpsMarketBalanceActions.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
@@ -51,7 +52,7 @@ interface PerpsMarketBalanceActionsProps {}
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
   const tw = useTailwind();
-  const { styles } = useStyles(stylesheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <Box
@@ -101,10 +102,10 @@ const PerpsMarketBalanceActions: React.FC<
   PerpsMarketBalanceActionsProps
 > = () => {
   const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
-
-  const { styles } = useStyles(stylesheet, {});
+  const { isDepositInProgress } = usePerpsDepositProgress();
 
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -227,12 +228,32 @@ const PerpsMarketBalanceActions: React.FC<
   return (
     <>
       <Box
-        twClassName="mx-4 mt-4 mb-4 p-4 rounded-xl"
+        twClassName="mx-4 mt-4 mb-4 rounded-xl overflow-hidden"
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
+        {/* Deposit Progress Section */}
+        {isDepositInProgress && (
+          <Box twClassName="p-4">
+            <Box twClassName="w-full flex-row justify-between">
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {strings('perps.deposit_in_progress')}
+              </Text>
+              <ActivityIndicator
+                size="small"
+                color={styles.activityIndicator.color}
+              />
+            </Box>
+          </Box>
+        )}
+        {isDepositInProgress && (
+          <Box twClassName="w-full border-b border-muted"></Box>
+        )}
         {/* Balance Section */}
-        <Box twClassName="mb-3">
+        <Box twClassName="p-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -276,7 +297,7 @@ const PerpsMarketBalanceActions: React.FC<
         </Box>
 
         {/* Buttons Section */}
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+        <Box twClassName="mx-4 mb-4 gap-3" flexDirection={BoxFlexDirection.Row}>
           {/* Add Funds Button */}
           <Box twClassName="flex-1">
             <Button
@@ -285,8 +306,10 @@ const PerpsMarketBalanceActions: React.FC<
               }
               size={ButtonSize.Lg}
               onPress={handleAddFunds}
+              disabled={isDepositInProgress}
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
+              style={isDepositInProgress ? tw.style('opacity-50') : undefined}
             >
               {strings('perps.add_funds')}
             </Button>
@@ -299,14 +322,27 @@ const PerpsMarketBalanceActions: React.FC<
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleWithdraw}
+                disabled={isDepositInProgress}
                 isFullWidth
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
+                style={isDepositInProgress ? tw.style('opacity-50') : undefined}
               >
                 {strings('perps.withdraw')}
               </Button>
             </Box>
           )}
         </Box>
+
+        {/* Deposit Progress Message */}
+        {isDepositInProgress && (
+          <Text
+            variant={TextVariant.BodyXS}
+            color={TextColor.Alternative}
+            style={tw.style('text-center pb-4')}
+          >
+            {strings('perps.deposit_pending_try_again')}
+          </Text>
+        )}
       </Box>
 
       {/* Eligibility Modal */}
