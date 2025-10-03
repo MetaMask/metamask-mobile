@@ -95,10 +95,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       <PredictPosition
         position={item}
         onPress={() => {
-          navigation.navigate(Routes.PREDICT.ROOT, {
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
-              position: item,
+              marketId: item.marketId,
+              headerShown: false,
             },
           });
         }}
