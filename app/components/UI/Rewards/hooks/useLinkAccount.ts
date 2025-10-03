@@ -75,7 +75,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
           account,
         );
         setIsError(true);
-        setError('Failed to link account');
+        setError(strings('rewards.settings.link_account_failed_error'));
         return false;
       } catch (err) {
         showToast(
@@ -89,7 +89,11 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         );
         Logger.log('useLinkAccount: Failed to link account', err);
         setIsError(true);
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        setError(
+          err instanceof Error
+            ? err.message
+            : strings('rewards.settings.link_account_unknown_error'),
+        );
         return false;
       } finally {
         setIsLoading(false);
