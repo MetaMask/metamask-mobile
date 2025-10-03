@@ -15,7 +15,7 @@ const encryptor = new Encryptor({
 });
 
 /**
- * Initialize the subject metadata controller.
+ * Initialize the keyring controller.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
