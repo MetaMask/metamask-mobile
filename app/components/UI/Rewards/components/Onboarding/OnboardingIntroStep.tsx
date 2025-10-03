@@ -36,9 +36,9 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import Device from '../../../../../util/device';
 
 /**
  * OnboardingIntroStep Component
@@ -55,14 +55,7 @@ const OnboardingIntroStep: React.FC<{
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { bottom: bottomInsets } = useSafeAreaInsets();
-  const imageBackgroundStyle = useMemo(
-    () => [
-      tw.style('flex-grow px-4 py-8'),
-      { paddingBottom: bottomInsets + 16 },
-    ],
-    [tw, bottomInsets],
-  );
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -346,11 +339,11 @@ const OnboardingIntroStep: React.FC<{
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={imageBackgroundStyle}
+        style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[6%]" />
+        {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
 
         {/* Title Section */}
         {renderTitle()}
