@@ -183,7 +183,8 @@
     "sha.js": "2.4.12",
     "appwright/form-data": "4.0.4",
     "@expo/fingerprint": "^0.15.0",
-    "@metamask/bridge-status-controller@^47.2.0": "patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch"
+    "@metamask/bridge-status-controller@^47.2.0": "patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch",
+    "@metamask/snaps-sdk": "^10.0.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -277,11 +278,11 @@
     "@metamask/signature-controller": "^33.0.0",
     "@metamask/slip44": "^4.2.0",
     "@metamask/smart-transactions-controller": "^18.1.0",
-    "@metamask/snaps-controllers": "^14.2.2",
-    "@metamask/snaps-execution-environments": "^10.2.1",
-    "@metamask/snaps-rpc-methods": "^13.5.0",
-    "@metamask/snaps-sdk": "^9.3.0",
-    "@metamask/snaps-utils": "^11.5.0",
+    "@metamask/snaps-controllers": "^15.0.0",
+    "@metamask/snaps-execution-environments": "^10.2.2",
+    "@metamask/snaps-rpc-methods": "^13.5.2",
+    "@metamask/snaps-sdk": "^10.0.0",
+    "@metamask/snaps-utils": "^11.6.0",
     "@metamask/solana-wallet-snap": "^2.4.2",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.2.0",
