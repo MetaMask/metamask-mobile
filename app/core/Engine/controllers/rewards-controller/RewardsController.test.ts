@@ -2974,6 +2974,15 @@ describe('RewardsController', () => {
         },
       );
 
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache' as any,
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions' as any,
+      );
+
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
@@ -2997,6 +3006,10 @@ describe('RewardsController', () => {
         'RewardsController: Failed to reauth with a valid account after 403 error',
         mock403Error.message,
       );
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
     it('should handle API server error (500)', async () => {
