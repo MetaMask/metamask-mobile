@@ -249,6 +249,13 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
+    enableMultichainAccountsState2: {
+      enabled: false,
+      featureVersion: '2',
+      minimumVersion: '7.53.0',
+    },
+  },
+  {
     mobileMinimumVersions: {
       androidMinimumAPIVersion: 0,
       appMinimumBuild: 0,
