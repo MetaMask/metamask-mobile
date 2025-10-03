@@ -183,7 +183,8 @@
     "sha.js": "2.4.12",
     "appwright/form-data": "4.0.4",
     "@expo/fingerprint": "^0.15.0",
-    "@metamask/bridge-status-controller@^47.2.0": "patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch"
+    "@metamask/bridge-status-controller@^47.2.0": "patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch",
+    "@scure/bip32": "1.7.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -244,13 +245,14 @@
     "@metamask/logging-controller": "^6.0.4",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/metamask-eth-abis": "3.1.1",
-    "@metamask/mobile-wallet-protocol-core": "^0.1.1",
-    "@metamask/mobile-wallet-protocol-wallet-client": "^0.1.1",
+    "@metamask/mobile-wallet-protocol-core": "^0.2.0",
+    "@metamask/mobile-wallet-protocol-wallet-client": "^0.2.1",
     "@metamask/multichain-account-service": "^1.5.0",
     "@metamask/multichain-api-client": "^0.7.0",
     "@metamask/multichain-api-middleware": "1.1.0",
     "@metamask/multichain-network-controller": "^1.0.0",
     "@metamask/multichain-transactions-controller": "^5.0.0",
+    "@metamask/native-utils": "^0.5.0",
     "@metamask/network-controller": "^24.1.0",
     "@metamask/network-enablement-controller": "^2.1.0",
     "@metamask/notification-services-controller": "^18.1.0",
@@ -292,6 +294,7 @@
     "@metamask/tron-wallet-snap": "^1.1.0",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
+    "@noble/curves": "1.9.6",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
@@ -429,6 +432,7 @@
     "react-native-material-textfield": "0.16.1",
     "react-native-mmkv": "^3.2.0",
     "react-native-modal": "^14.0.0-rc.1",
+    "react-native-nitro-modules": "^0.29.6",
     "react-native-os": "^1.2.6",
     "react-native-pager-view": "^6.7.0",
     "react-native-permissions": "^3.7.2",
@@ -724,6 +728,7 @@
       "appwright>@empiricalrun/llm>sharp": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
       "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
+      "react-native-nitro-modules": false,
       "esbuild": false
     }
   },
