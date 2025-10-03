@@ -33,6 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -140,7 +141,12 @@ function SummaryLine({
           gap={12}
         >
           <TransactionDetailsStatusIcon transactionMeta={transaction} />
-          <Text variant={TextVariant.BodyMD}>{title}</Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            testID={TransactionDetailsSelectorIDs.SUMMARY_LINE}
+          >
+            {title}
+          </Text>
         </Box>
         {explorerTxUrl && (
           <ButtonIcon

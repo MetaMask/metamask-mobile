@@ -1317,5 +1317,14 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
         message: 'Account ID is required',
       },
     },
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v\d+\/.*relationships.*$/,
+      responseCode: 400,
+      response: {
+        error: 'Bad Request',
+        message: 'Account ID is required',
+      },
+    },
   ],
 };

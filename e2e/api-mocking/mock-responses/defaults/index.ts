@@ -274,6 +274,11 @@ export const DEFAULT_MOCKS = {
         features: [],
       },
     },
+    {
+      urlEndpoint: /^https:\/\/tx-sentinel-.*\.api\.cx\.metamask\.io.*$/,
+      responseCode: 500,
+      response: {},
+    },
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],

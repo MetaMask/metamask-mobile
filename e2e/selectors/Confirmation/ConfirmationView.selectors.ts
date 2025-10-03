@@ -36,6 +36,7 @@ export const ConfirmationRowComponentIDs = {
   MESSAGE: 'message',
   NETWORK: 'network',
   ORIGIN_INFO: 'origin-info',
+  PAY_WITH: 'pay-with',
   SIMULATION_DETAILS: 'simulation-details',
   SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info',
   STAKING_DETAILS: 'staking-details',
@@ -72,3 +73,11 @@ export const ApproveComponentIDs = {
   EDIT_SPENDING_CAP_INPUT: 'edit-spending-cap-input',
   EDIT_SPENDING_CAP_SAVE_BUTTON: 'edit-spending-cap-save-button',
 } as const;
+
+export const TransactionPayComponentIDs = {
+  CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
+  KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',
+  PAY_WITH_BALANCE: 'pay-with-balance',
+  PAY_WITH_FIAT: 'pay-with-fiat',
+  PAY_WITH_SYMBOL: 'pay-with-symbol',
+};

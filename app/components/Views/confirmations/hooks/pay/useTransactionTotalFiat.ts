@@ -124,9 +124,9 @@ function getBridgeFeeTotal(
   const total = quotes.reduce(
     (acc, quote) =>
       acc.plus(
-        new BigNumber(quote.sentAmount?.valueInCurrency ?? '0')
-          .minus(quote.requiredFiat)
-          .minus(getQuoteDust(quote)),
+        new BigNumber(quote.sentAmount?.valueInCurrency ?? '0').minus(
+          quote.minToTokenAmount?.valueInCurrency ?? '0',
+        ),
       ),
     new BigNumber(0),
   );
@@ -180,14 +180,4 @@ function getMaxNetworkFeeTotal(
     totalNetworkFeeMax: total.toString(10),
     totalNetworkFeeMaxFormatted: format(total),
   };
-}
-
-function getQuoteDust(quote: TransactionBridgeQuoteExtended): BigNumber {
-  const targetAmount = quote.minToTokenAmount?.valueInCurrency ?? '0';
-
-  if (new BigNumber(targetAmount).isLessThanOrEqualTo(quote.requiredFiat)) {
-    return new BigNumber(0);
-  }
-
-  return new BigNumber(targetAmount).minus(quote.requiredFiat);
 }

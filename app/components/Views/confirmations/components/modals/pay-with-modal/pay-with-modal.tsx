@@ -21,6 +21,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { strings } from '../../../../../../../locales/i18n';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { View } from 'react-native';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -98,13 +99,15 @@ export function PayWithModal() {
       });
 
       return (
-        <TokenSelectorItem
-          token={item}
-          onPress={handleTokenSelect}
-          networkName={networkName}
-          networkImageSource={networkImageSource}
-          isSelected={isSelected}
-        />
+        <View testID={`available-token-${item.address}-${item.chainId}`}>
+          <TokenSelectorItem
+            token={item}
+            onPress={handleTokenSelect}
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            isSelected={isSelected}
+          />
+        </View>
       );
     },
     [allNetworkConfigurations, handleTokenSelect, payToken],

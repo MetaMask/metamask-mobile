@@ -28,6 +28,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  ConfirmationRowComponentIDs,
+  TransactionPayComponentIDs,
+} from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -60,7 +64,11 @@ export function PayWithRow() {
   );
 
   return (
-    <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
+    <TouchableOpacity
+      onPress={handleClick}
+      disabled={!canEdit}
+      testID={ConfirmationRowComponentIDs.PAY_WITH}
+    >
       <ListItem
         icon={
           <TokenIcon address={payToken.address} chainId={payToken.chainId} />
@@ -79,12 +87,17 @@ export function PayWithRow() {
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {payToken.symbol}
           </Text>
         }
         rightPrimary={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            testID={TransactionPayComponentIDs.PAY_WITH_FIAT}
+          >
             {payToken.balanceFiat}
           </Text>
         }
@@ -92,6 +105,7 @@ export function PayWithRow() {
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
           >
             {tokenBalance} {payToken.symbol}
           </Text>

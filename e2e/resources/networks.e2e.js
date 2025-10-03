@@ -5,6 +5,15 @@ const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 const PopularNetworksList = {
+  Arbitrum: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: toHex('42161'),
+      rpcUrl: `https://arb1.arbitrum.io/rpc`,
+      nickname: 'Arbitrum Mainnet',
+      ticker: 'ETH',
+    },
+  },
   Avalanche: {
     providerConfig: {
       type: 'rpc',

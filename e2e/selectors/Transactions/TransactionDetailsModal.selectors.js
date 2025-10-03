@@ -9,3 +9,11 @@ export const TransactionDetailsModalSelectorsIDs = {
   TITLE: 'details-modal-title',
   CLOSE_ICON: 'details-modal-close-icon',
 };
+
+export const TransactionDetailsSelectorIDs = {
+  BRIDGE_FEE: 'transaction-details-bridge-fee',
+  NETWORK_FEE: 'transaction-details-network-fee',
+  PAID_WITH_SYMBOL: 'transaction-details-paid-with-symbol',
+  SUMMARY_LINE: 'transaction-details-summary-line',
+  TOTAL: 'transaction-details-total',
+};

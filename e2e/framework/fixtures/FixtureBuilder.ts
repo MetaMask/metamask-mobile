@@ -1224,7 +1224,7 @@ class FixtureBuilder {
           // Using different multipliers to create variety across accounts and tokens
           const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
           const randomVariation = Math.floor(Math.random() * 5000);
-          const finalBalance = baseBalance + randomVariation;
+          const finalBalance = token.balance ?? baseBalance + randomVariation;
 
           // Convert to hex with proper padding for token decimals
           const balanceInWei = (
@@ -2115,6 +2115,21 @@ class FixtureBuilder {
     merge(this.fixture.state, {
       banners: {
         dismissedBanners: [],
+      },
+    });
+
+    return this;
+  }
+
+  withTokenRates(chainId: string, tokenAddress: string, price: number) {
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData: {
+        [chainId]: {
+          [tokenAddress]: {
+            tokenAddress,
+            price,
+          },
+        },
       },
     });
 

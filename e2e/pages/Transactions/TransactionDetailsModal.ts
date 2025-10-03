@@ -1,6 +1,7 @@
 import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
+  TransactionDetailsSelectorIDs,
 } from '../../selectors/Transactions/TransactionDetailsModal.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -14,6 +15,31 @@ class TransactionDetailsModal {
   get closeIcon(): DetoxElement {
     return Matchers.getElementByID(
       TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
+    );
+  }
+
+  get paidWithSymbol(): DetoxElement {
+    return Matchers.getElementByID(
+      TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL,
+    );
+  }
+
+  get networkFee(): DetoxElement {
+    return Matchers.getElementByID(TransactionDetailsSelectorIDs.NETWORK_FEE);
+  }
+
+  get bridgeFee(): DetoxElement {
+    return Matchers.getElementByID(TransactionDetailsSelectorIDs.BRIDGE_FEE);
+  }
+
+  get total(): DetoxElement {
+    return Matchers.getElementByID(TransactionDetailsSelectorIDs.TOTAL);
+  }
+
+  summaryLine(index: number): DetoxElement {
+    return Matchers.getElementByID(
+      TransactionDetailsSelectorIDs.SUMMARY_LINE,
+      index,
     );
   }
 

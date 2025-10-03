@@ -3,6 +3,7 @@ import { TransactionDetailsRow } from '../transaction-details-row/transaction-de
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 export function TransactionDetailsNetworkFeeRow() {
   const { transactionMeta } = useTransactionDetails();
@@ -17,7 +18,9 @@ export function TransactionDetailsNetworkFeeRow() {
     <TransactionDetailsRow
       label={strings('transaction_details.label.network_fee')}
     >
-      <Text>{networkFeeFiat}</Text>
+      <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
+        {networkFeeFiat}
+      </Text>
     </TransactionDetailsRow>
   );
 }

@@ -3,6 +3,7 @@ import { TransactionDetailsRow } from '../transaction-details-row/transaction-de
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 export function TransactionDetailsTotalRow() {
   const { transactionMeta } = useTransactionDetails();
@@ -15,7 +16,7 @@ export function TransactionDetailsTotalRow() {
 
   return (
     <TransactionDetailsRow label={strings('transaction_details.label.total')}>
-      <Text>{totalFiat}</Text>
+      <Text testID={TransactionDetailsSelectorIDs.TOTAL}>{totalFiat}</Text>
     </TransactionDetailsRow>
   );
 }

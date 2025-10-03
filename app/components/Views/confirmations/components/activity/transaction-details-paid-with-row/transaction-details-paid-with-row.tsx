@@ -7,6 +7,7 @@ import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 export function TransactionDetailsPaidWithRow() {
   const { transactionMeta } = useTransactionDetails();
@@ -37,7 +38,9 @@ export function TransactionDetailsPaidWithRow() {
           address={tokenAddress}
           variant={TokenIconVariant.Row}
         />
-        <Text>{token.symbol}</Text>
+        <Text testID={TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL}>
+          {token.symbol}
+        </Text>
       </Box>
     </TransactionDetailsRow>
   );

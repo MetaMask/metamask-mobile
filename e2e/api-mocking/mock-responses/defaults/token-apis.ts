@@ -16,5 +16,10 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: TOKEN_API_TOKENS_RESPONSE,
     },
+    {
+      urlEndpoint: /^https:\/\/token\.api\.cx\.metamask\.io\/token\/\d+\?.*$/,
+      responseCode: 200,
+      response: {},
+    },
   ],
 };
