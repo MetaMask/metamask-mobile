@@ -91,6 +91,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      id-token: write
 
   add-e2e-label:
     needs: create-release-pr

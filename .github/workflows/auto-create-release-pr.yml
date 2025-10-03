@@ -3,6 +3,11 @@ name: Auto Create Release PR
 on:
   create:
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   extract:
     if: ${{ github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/release/') }}
