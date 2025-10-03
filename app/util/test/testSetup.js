@@ -179,6 +179,16 @@ jest.mock('../../store', () => ({
   },
 }));
 
+// Mock SDKConnectV2 singleton to prevent auto-initialization during test setup.
+jest.mock('../../core/SDKConnectV2', () => ({
+  __esModule: true,
+  default: {
+    isConnectDeeplink: jest.fn(() => false),
+    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
+    disconnect: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 jest.mock('../../core/NotificationManager');
 
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
