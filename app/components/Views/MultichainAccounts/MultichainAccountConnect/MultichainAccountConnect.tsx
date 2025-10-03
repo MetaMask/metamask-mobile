@@ -523,9 +523,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           : [];
 
       toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
+        variant: ToastVariants.App,
         labelOptions,
-        networkImageSource: faviconSource,
+        appIconSource: faviconSource,
         hasNoTimeout: false,
       });
     } catch (e) {
