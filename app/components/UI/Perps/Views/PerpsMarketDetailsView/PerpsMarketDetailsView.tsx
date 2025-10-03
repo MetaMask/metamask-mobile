@@ -146,39 +146,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset programmatic tab control after a brief delay to prevent render loops
       setTimeout(() => {
         setProgrammaticActiveTab(null);
-      }, 100); // PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS
-
-      // Clear monitoringIntent to allow fresh monitoring next time
-      navigation.setParams({ monitoringIntent: undefined });
-    },
-    [navigation],
-  );
-
-  // Handle data-driven monitoring when coming from order success (declarative API)
-  usePerpsDataMonitor({
-    asset: monitoringIntent?.asset,
-    monitorOrders: monitoringIntent?.monitorOrders,
-    monitorPositions: monitoringIntent?.monitorPositions,
-    timeoutMs: monitoringIntent?.timeoutMs,
-    onDataDetected: handleDataDetected,
-    enabled: !!(monitoringIntent && market && monitoringIntent.asset),
-  });
-
-  // Callback to handle data detection from monitoring hook
-  const handleDataDetected = useCallback(
-    ({
-      detectedData,
-    }: {
-      detectedData: 'positions' | 'orders';
-      asset: string;
-      reason: string;
-    }) => {
-      const targetTab = detectedData === 'positions' ? 'position' : 'orders';
-      setProgrammaticActiveTab(targetTab);
-
-      // Reset programmatic tab control after a brief delay to prevent render loops
-      setTimeout(() => {
-        setProgrammaticActiveTab(null);
       }, PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS);
 
       // Clear monitoringIntent to allow fresh monitoring next time
