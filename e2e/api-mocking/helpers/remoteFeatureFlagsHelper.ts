@@ -249,6 +249,13 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
+    enableMultichainAccountsState2: {
+      enabled: false,
+      featureVersion: '2',
+      minimumVersion: '7.53.0',
+    },
+  },
+  {
     mobileMinimumVersions: {
       androidMinimumAPIVersion: 0,
       appMinimumBuild: 0,
@@ -336,28 +343,18 @@ export const setupRemoteFeatureFlagsMock = async (
   flagOverrides: Record<string, unknown> = {},
   distribution: string = 'main',
 ): Promise<void> => {
-  const {
-    urlEndpoint: devUrl,
-    response,
-    responseCode,
-  } = createRemoteFeatureFlagsMock(flagOverrides, distribution);
-  const { urlEndpoint: prodUrl } = createRemoteFeatureFlagsMock(
-    flagOverrides,
-    distribution,
-    'prod',
-  );
+  const environments = ['dev', 'test', 'prod'] as const;
+  const mockPromises = environments.map((environment) => {
+    const { urlEndpoint, response, responseCode } =
+      createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
 
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: devUrl,
-    response,
-    responseCode,
+    return setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode,
+    });
   });
 
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: prodUrl,
-    response,
-    responseCode,
-  });
+  await Promise.all(mockPromises);
 };
