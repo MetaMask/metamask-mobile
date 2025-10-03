@@ -24,7 +24,6 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             Object.assign({}, ...confirmationsRedesignedFeatureFlags),
-            'flask',
           );
         },
       },
