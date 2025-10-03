@@ -450,7 +450,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           decelerationRate="fast"
           testID={testID ? `${testID}-content` : undefined}
         >
-          {enabledTabs.map((enabledTab) => (
+          {/* {enabledTabs.map((enabledTab) => (
             <Box
               key={enabledTab.key}
               style={tw.style('flex-1', { width: containerWidth })}
@@ -459,7 +459,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                 ? enabledTab.content
                 : null}
             </Box>
-          ))}
+          ))} */}
         </ScrollView>
       </Box>
     );

@@ -7,7 +7,6 @@ const styleSheet = () =>
       flexDirection: 'row',
       paddingTop: 24, // Balance to Main Action Buttons: 24px
       paddingBottom: 0, // Remove bottom padding, will be handled by carousel spacing
-      paddingHorizontal: 16,
       gap: 8, // Gap between Main Action Buttons: 8px (unchanged)
     },
     buttonContainer: {

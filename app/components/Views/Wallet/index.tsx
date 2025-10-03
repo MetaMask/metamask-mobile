@@ -32,7 +32,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
-import Tokens from '../../UI/Tokens';
+import Tokens from '../../UI/Tokens/useTokensList';
 
 import {
   NavigationProp,
@@ -182,12 +182,15 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftGrid from '../../UI/NftGrid';
+import { FlashList } from '@shopify/flash-list';
+import useNftGrid from '../../UI/NftGrid/useNftGrid';
+import { RecyclerViewProps } from '@shopify/flash-list/dist/recyclerview/RecyclerViewProps';
+import useTokensList from '../../UI/Tokens/useTokensList';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
-      paddingHorizontal: 16,
+      marginHorizontal: 16,
     },
     wrapper: {
       flex: 1,
@@ -196,7 +199,6 @@ const createStyles = ({ colors }: Theme) =>
     walletAccount: { marginTop: 28 },
 
     tabContainer: {
-      paddingHorizontal: 16,
       flex: 1,
     },
     loader: {
@@ -207,7 +209,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     banner: {
       marginTop: 20,
-      paddingHorizontal: 16,
     },
     assetsActionsContainer: {
       marginBottom: 16,
@@ -427,7 +428,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
 
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
+      tabs.push(
+        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
+      );
     } else if (collectiblesEnabled) {
       tabs.push(
         <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
@@ -1180,8 +1183,11 @@ const Wallet = ({
     }
   }, []);
 
+  const [currentTab, setCurrentTab] = useState(0);
+
   const onChangeTab = useCallback(
     async (obj: { i: number; ref: React.ReactNode }) => {
+      setCurrentTab(obj.i);
       const tabLabel =
         React.isValidElement(obj.ref) && obj.ref.props
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
@@ -1352,10 +1358,53 @@ const Wallet = ({
     [styles],
   );
 
+  // TODO juan: check if we should pass props and use them like in PerpsTabView
+  const { ListHeaderComponent: NftHeader, ...nftGridListProps } = useNftGrid();
+  const { ListHeaderComponent: TokenHeader, ...tokensListProps } =
+    useTokensList();
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? renderContent() : renderLoader()}
+        <FlashList
+          data={[]}
+          renderItem={() => null}
+          {...(currentTab === 0 && tokensListProps)}
+          {...(currentTab === 3 && nftGridListProps)}
+          contentContainerStyle={styles.base}
+          ListHeaderComponent={
+            selectedInternalAccount ? (
+              <>
+                {renderContent()}
+                {currentTab === 0 && TokenHeader}
+                {currentTab === 1 && (
+                  <PerpsTabView
+                  // {...perpsTabProps}
+                  // key={perpsTabProps.key}
+                  // isVisible={isPerpsTabVisible}
+                  // onVisibilityChange={(callback) => {
+                  //   perpsVisibilityCallback.current = callback;
+                  // }}
+                  />
+                )}
+                {currentTab === 2 && (
+                  <DeFiPositionsList
+                    tabLabel="DeFi"
+                    // {...perpsTabProps}
+                    // key={perpsTabProps.key}
+                    // isVisible={isPerpsTabVisible}
+                    // onVisibilityChange={(callback) => {
+                    //   perpsVisibilityCallback.current = callback;
+                    // }}
+                  />
+                )}
+                {currentTab === 3 && NftHeader}
+              </>
+            ) : (
+              renderLoader()
+            )
+          }
+        />
       </View>
     </ErrorBoundary>
   );

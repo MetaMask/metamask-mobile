@@ -2,16 +2,16 @@ import React, {
   useRef,
   useState,
   LegacyRef,
-  memo,
   useCallback,
   useEffect,
   useMemo,
+  useLayoutEffect,
 } from 'react';
-import { View, InteractionManager } from 'react-native';
+import { View, InteractionManager, RefreshControl } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -19,7 +19,7 @@ import {
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import createStyles from './styles';
-import { TokenList } from './TokenList';
+import { FlashListAssetKey } from './TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
@@ -35,13 +35,28 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import Loader from '../../../component-library/components-temp/Loader';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { TokenListFooter } from './TokenList/TokenListFooter';
+import { FlashListProps, FlashListRef } from '@shopify/flash-list';
+import Routes from '../../../constants/navigation/Routes';
+import { TokenListItem, TokenListItemBip44 } from './TokenList/TokenListItem';
+import {
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+  selectPrivacyMode,
+} from '../../../selectors/preferencesController';
+import TextComponent, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
 }
 
-const Tokens = memo(() => {
+interface UseTokensListReturn extends FlashListProps<FlashListAssetKey> {
+  ref: React.RefObject<FlashListRef<FlashListAssetKey>>;
+}
+
+const useTokensList = (): UseTokensListReturn => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
@@ -235,61 +250,123 @@ const Tokens = memo(() => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
-  return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <AssetPollingProvider />
-      <TokenListControlBar goToAddToken={goToAddToken} />
-      {!isTokensLoading &&
-      renderedTokenKeys.length === 0 &&
-      progressiveTokens.length === 0 ? (
-        <View style={styles.wrapper} />
-      ) : (
-        <>
-          {isTokensLoading && progressiveTokens.length === 0 && (
-            <Loader size="large" />
-          )}
-          {(progressiveTokens.length > 0 || renderedTokenKeys.length > 0) && (
-            <TokenList
-              tokenKeys={
-                isTokensLoading ? progressiveTokens : renderedTokenKeys
-              }
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              showRemoveMenu={showRemoveMenu}
-              setShowScamWarningModal={handleScamWarningModal}
-            />
-          )}
-        </>
-      )}
-      {showScamWarningModal && (
-        <ScamWarningModal
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
-      )}
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
-      />
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
-      />
-    </View>
+  const privacyMode = useSelector(selectPrivacyMode);
+  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
+    selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
-});
 
-Tokens.displayName = 'Tokens';
+  const TokenListItemComponent = isMultichainAccountsState2Enabled
+    ? TokenListItemBip44
+    : TokenListItem;
 
-export default Tokens;
+  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
+
+  useLayoutEffect(() => {
+    listRef.current?.recomputeViewableItems();
+  }, [isTokenNetworkFilterEqualCurrentNetwork]);
+
+  const handleLink = () => {
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.ONBOARDING.GENERAL_SETTINGS,
+    });
+  };
+
+  const renderTokenListItem = useCallback(
+    ({ item }: { item: FlashListAssetKey }) => (
+      <TokenListItemComponent
+        assetKey={item}
+        showRemoveMenu={showRemoveMenu}
+        setShowScamWarningModal={handleScamWarningModal}
+        privacyMode={privacyMode}
+        showPercentageChange
+      />
+    ),
+    [
+      showRemoveMenu,
+      handleScamWarningModal,
+      privacyMode,
+      TokenListItemComponent,
+    ],
+  );
+
+  return {
+    ref: listRef,
+    testID: WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    data: isTokensLoading ? progressiveTokens : renderedTokenKeys,
+    removeClippedSubviews: false,
+    viewabilityConfig: {
+      itemVisiblePercentThreshold: 50,
+      minimumViewTime: 1000,
+    },
+    decelerationRate: 0,
+    renderItem: renderTokenListItem,
+    keyExtractor: (item) => {
+      const staked = item.isStaked ? 'staked' : 'unstaked';
+      return `${item.address}-${item.chainId}-${staked}`;
+    },
+    ListHeaderComponent: (
+      <>
+        <AssetPollingProvider />
+        <TokenListControlBar goToAddToken={goToAddToken} />
+      </>
+    ),
+    ListFooterComponent: (
+      <>
+        {isTokensLoading && <Loader size="large" />}
+
+        <TokenListFooter />
+        {showScamWarningModal && (
+          <ScamWarningModal
+            showScamWarningModal={showScamWarningModal}
+            setShowScamWarningModal={setShowScamWarningModal}
+          />
+        )}
+        <ActionSheet
+          ref={actionSheet as LegacyRef<typeof ActionSheet>}
+          title={strings('wallet.remove_token_title')}
+          options={[strings('wallet.remove'), strings('wallet.cancel')]}
+          cancelButtonIndex={1}
+          destructiveButtonIndex={0}
+          onPress={onActionSheetPress}
+        />
+        <ActionSheet
+          ref={actionSheet as LegacyRef<typeof ActionSheet>}
+          title={strings('wallet.remove_token_title')}
+          options={[strings('wallet.remove'), strings('wallet.cancel')]}
+          cancelButtonIndex={1}
+          destructiveButtonIndex={0}
+          onPress={onActionSheetPress}
+        />
+      </>
+    ),
+    //Todo juan: make this available
+    // refreshControl: (
+    //   <RefreshControl
+    //     colors={[colors.primary.default]}
+    //     tintColor={colors.icon.default}
+    //     refreshing={refreshing}
+    //     onRefresh={onRefresh}
+    //   />
+    // ),
+    ListEmptyComponent: (
+      <View style={styles.emptyView}>
+        <View style={styles.emptyTokensView}>
+          <TextComponent style={styles.emptyTokensViewText}>
+            {strings('wallet.no_tokens')}
+          </TextComponent>
+          <TextComponent
+            style={styles.emptyTokensViewText}
+            color={TextColor.Info}
+            onPress={handleLink}
+          >
+            {strings('wallet.show_tokens_without_balance')}
+          </TextComponent>
+        </View>
+      </View>
+    ),
+    extraData: { isTokenNetworkFilterEqualCurrentNetwork },
+    scrollEnabled: true,
+  };
+};
+
+export default useTokensList;

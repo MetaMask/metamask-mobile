@@ -2,11 +2,12 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import NftGridList from './NftGridList';
+import useNftGrid from './useNftGrid';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { FlashList } from '@shopify/flash-list';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
@@ -83,6 +84,16 @@ jest.mock('@shopify/flash-list', () => ({
 // Mock ActionSheet - simplified since we don't test the action sheet behavior in this component
 jest.mock('@metamask/react-native-actionsheet', () => () => null);
 
+// Mock BaseControlBar to avoid ButtonBase issues
+jest.mock('../shared/BaseControlBar', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return () => (
+    <View testID="base-control-bar">
+      <Text>Control Bar</Text>
+    </View>
+  );
+});
+
 // Mock child components with minimal complexity
 jest.mock('./NftGridListRefreshControl', () => () => null);
 jest.mock('./NftGridItemActionSheet', () => () => null);
@@ -145,6 +156,17 @@ jest.mock('../CollectibleMedia', () => () => null);
 jest.mock('@metamask/design-system-react-native', () => ({
   Text: ({ children }: { children: React.ReactNode }) => children,
   TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+  Box: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return <View {...props}>{children}</View>;
+  },
+  BoxFlexDirection: { Row: 'row' },
 }));
 
 jest.mock('../../../component-library/components/Texts/Text', () => {
@@ -175,6 +197,12 @@ jest.mock('../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: { LoadCollectibles: 'LoadCollectibles' },
 }));
+
+// Test component that uses the hook
+const NftGridList = () => {
+  const nftGridProps = useNftGrid();
+  return <FlashList {...nftGridProps} />;
+};
 
 describe('NftGridList', () => {
   const mockNft: Nft = {

@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -70,6 +70,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       account?.totalBalance !== undefined,
     ],
   });
+
+  useEffect(() => {
+    console.log('PerpsTabView mounted');
+  }, []);
 
   const orders = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders

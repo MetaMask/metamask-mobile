@@ -1,7 +1,7 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import Tokens from './';
+import Tokens from './useTokensList';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';

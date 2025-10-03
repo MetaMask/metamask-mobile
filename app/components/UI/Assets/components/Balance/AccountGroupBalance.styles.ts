@@ -4,7 +4,6 @@ const createStyles = () =>
     accountGroupBalance: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginHorizontal: 16,
       justifyContent: 'space-between',
       paddingTop: 24,
     },

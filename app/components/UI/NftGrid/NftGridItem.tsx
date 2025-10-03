@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
@@ -31,6 +31,10 @@ const NftGridItem = ({
   onLongPress: (nft: Nft) => void;
 }) => {
   const navigation = useNavigation();
+
+  useEffect(() => {
+    console.log('item', item.address);
+  }, [item.address]);
 
   const onPress = useCallback(() => {
     debouncedNavigation(navigation, item);

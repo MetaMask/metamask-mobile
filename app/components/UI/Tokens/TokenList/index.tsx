@@ -91,7 +91,7 @@ const TokenListComponent = ({
     ],
   );
 
-  return tokenKeys?.length ? (
+  return (
     <FlashList
       ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
@@ -116,24 +116,25 @@ const TokenListComponent = ({
           onRefresh={onRefresh}
         />
       }
+      ListEmptyComponent={
+        <View style={styles.emptyView}>
+          <View style={styles.emptyTokensView}>
+            <TextComponent style={styles.emptyTokensViewText}>
+              {strings('wallet.no_tokens')}
+            </TextComponent>
+            <TextComponent
+              style={styles.emptyTokensViewText}
+              color={TextColor.Info}
+              onPress={handleLink}
+            >
+              {strings('wallet.show_tokens_without_balance')}
+            </TextComponent>
+          </View>
+        </View>
+      }
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
       scrollEnabled
     />
-  ) : (
-    <View style={styles.emptyView}>
-      <View style={styles.emptyTokensView}>
-        <TextComponent style={styles.emptyTokensViewText}>
-          {strings('wallet.no_tokens')}
-        </TextComponent>
-        <TextComponent
-          style={styles.emptyTokensViewText}
-          color={TextColor.Info}
-          onPress={handleLink}
-        >
-          {strings('wallet.show_tokens_without_balance')}
-        </TextComponent>
-      </View>
-    </View>
   );
 };
 
