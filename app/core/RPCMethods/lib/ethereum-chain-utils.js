@@ -260,8 +260,8 @@ export async function switchToNetwork({
         },
       });
     } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
-    // We do not handle this case for now.
-    // Mobile doesn't really support simultaneous approvals in the first place.
+      // We do not handle this case for now.
+      // Mobile doesn't really support simultaneous approvals in the first place.
     }
   } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
