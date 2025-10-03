@@ -2899,6 +2899,106 @@ describe('RewardsController', () => {
       );
     });
 
+    it('should handle 403 error, reauth, and re-throw error if reauth failed', async () => {
+      // Arrange
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
+      const mockReauthError = new Error('Reauth failed');
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x123',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger calls
+      let getSeasonStatusCallCount = 0;
+      localMockMessenger.call.mockImplementation(
+        async (method, ..._args): Promise<any> => {
+          if (method === 'RewardsDataService:getSeasonStatus') {
+            getSeasonStatusCallCount++;
+            return Promise.reject(mock403Error);
+          }
+          if (method === 'AccountsController:getSelectedMultichainAccount') {
+            return mockAccount;
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return 'mock-signature';
+          }
+          if (method === 'RewardsDataService:login') {
+            return Promise.reject(mockReauthError);
+          }
+          return undefined;
+        },
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow(mock403Error);
+
+      // Verify reauth was attempted and status was fetched again
+      expect(getSeasonStatusCallCount).toBe(2);
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: mockAccount.address,
+        }),
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to reauth with a valid account after 403 error',
+        mock403Error.message,
+      );
+    });
+
     it('should handle API server error (500)', async () => {
       // Arrange
       const serverError = new Error('Internal Server Error: 500');
