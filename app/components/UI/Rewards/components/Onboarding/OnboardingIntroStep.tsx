@@ -1,9 +1,7 @@
-import React, { useCallback } from 'react';
-import { Image, ImageBackground, Text as RNText } from 'react-native';
-
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -38,7 +36,9 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 /**
  * OnboardingIntroStep Component
@@ -46,11 +46,23 @@ import Engine from '../../../../../core/Engine';
  * Main introduction screen for the rewards onboarding flow.
  * Handles geo validation, account type checking, and navigation to next steps.
  */
-const OnboardingIntroStep: React.FC = () => {
+const OnboardingIntroStep: React.FC<{
+  title: string;
+  description: string;
+  confirmLabel: string;
+}> = ({ title, description, confirmLabel }) => {
   // Navigation and Redux hooks
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const { bottom: bottomInsets } = useSafeAreaInsets();
+  const imageBackgroundStyle = useMemo(
+    () => [
+      tw.style('flex-grow px-4 py-8'),
+      { paddingBottom: bottomInsets + 16 },
+    ],
+    [tw, bottomInsets],
+  );
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -64,7 +76,9 @@ const OnboardingIntroStep: React.FC = () => {
 
   // Computed state
   const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
+    !subscriptionId &&
+    (candidateSubscriptionId === 'pending' ||
+      candidateSubscriptionId === 'retry');
   const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   // If we don't know of a subscription id, we need to fetch the geo rewards metadata
@@ -199,6 +213,9 @@ const OnboardingIntroStep: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedOnboardingStart = useRef(false);
+
   /**
    * Auto-redirect to dashboard if user is already opted in
    */
@@ -206,8 +223,15 @@ const OnboardingIntroStep: React.FC = () => {
     useCallback(() => {
       if (subscriptionId) {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
+      } else if (!hasTrackedOnboardingStart.current) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,
+          ).build(),
+        );
+        hasTrackedOnboardingStart.current = true;
       }
-    }, [subscriptionId, navigation]),
+    }, [subscriptionId, navigation, trackEvent, createEventBuilder]),
   );
 
   /**
@@ -246,28 +270,21 @@ const OnboardingIntroStep: React.FC = () => {
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '400' },
+            {
+              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+            },
           ]}
         >
-          {strings('rewards.onboarding.intro_title_1')}
-        </RNText>
-        <RNText
-          style={[
-            tw.style('text-center text-white text-12'),
-            // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '400' },
-          ]}
-        >
-          {strings('rewards.onboarding.intro_title_2')}
+          {title}
         </RNText>
       </Box>
       <Text
         variant={TextVariant.BodyMd}
-        style={tw.style('text-center text-white')}
+        style={tw.style('text-center text-white font-medium')}
       >
-        {strings('rewards.onboarding.intro_description')}
+        {description}
       </Text>
     </Box>
   );
@@ -276,7 +293,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center py-2">
+    <Box twClassName="flex-1 justify-center items-center my-4">
       <Image
         source={intro}
         resizeMode="contain"
@@ -303,8 +320,8 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
+        <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
+          {confirmLabel}
         </Text>
       </ButtonHero>
       <DSRNButton
@@ -314,7 +331,7 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
       >
-        <Text twClassName="text-white">
+        <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}
         </Text>
       </DSRNButton>
@@ -329,11 +346,11 @@ const OnboardingIntroStep: React.FC = () => {
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={imageBackgroundStyle}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[5%]" />
+        <Box twClassName="flex-basis-[6%]" />
 
         {/* Title Section */}
         {renderTitle()}

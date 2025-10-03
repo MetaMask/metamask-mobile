@@ -103,9 +103,9 @@ const TokenListComponent = ({
       }}
       decelerationRate={0}
       renderItem={renderTokenListItem}
-      keyExtractor={(item) => {
+      keyExtractor={(item, idx) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
-        return `${item.address}-${item.chainId}-${staked}`;
+        return `${item.address}-${item.chainId}-${staked}-${idx}`;
       }}
       ListFooterComponent={<TokenListFooter />}
       refreshControl={
@@ -117,7 +117,7 @@ const TokenListComponent = ({
         />
       }
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
-      scrollEnabled={false}
+      scrollEnabled
     />
   ) : (
     <View style={styles.emptyView}>
