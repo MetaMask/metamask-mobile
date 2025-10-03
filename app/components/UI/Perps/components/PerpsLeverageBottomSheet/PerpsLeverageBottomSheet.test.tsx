@@ -119,10 +119,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-// Mock usePerpsScreenTracking hook
-jest.mock('../../hooks/usePerpsScreenTracking', () => ({
-  usePerpsScreenTracking: jest.fn(),
-}));
+// usePerpsScreenTracking removed - migrated to usePerpsMeasurement
 
 // Mock BottomSheet components from component library
 jest.mock(

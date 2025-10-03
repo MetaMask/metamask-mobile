@@ -27,6 +27,7 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
 
 const mockSetActiveNetwork = jest.fn();
@@ -105,7 +106,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockQueryGetCountries = jest.fn();
-const mockClearUnsupportedRegion = jest.fn();
 
 const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   data: mockRegionsData,
@@ -113,8 +113,6 @@ const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   error: null,
   query: mockQueryGetCountries,
   selectedRegion: mockRegionsData[0],
-  unsupportedRegion: undefined,
-  clearUnsupportedRegion: mockClearUnsupportedRegion,
 };
 
 let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
@@ -232,7 +230,6 @@ let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
 
 jest.mock('../../hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
 
-const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
 const mockSetSelectedFiatCurrencyId = jest.fn();
@@ -240,7 +237,6 @@ const mockSetSelectedFiatCurrencyId = jest.fn();
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: mockPaymentMethods[0].id,
   selectedRegion: mockRegionsData[0],
-  setSelectedRegion: mockSetSelectedRegion,
   selectedAsset: mockCryptoCurrenciesData[0],
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
@@ -324,7 +320,6 @@ describe('BuildQuote View', () => {
     mockReset.mockClear();
     mockPop.mockClear();
     mockTrackEvent.mockClear();
-    (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
     jest.clearAllMocks();
   });
 
@@ -504,17 +499,19 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetCountries).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedRegion when selecting a region', async () => {
+    it('navigates to region selector modal when region button is pressed', async () => {
       render(BuildQuote);
       await act(async () =>
         fireEvent.press(
           getByRoleButton(mockUseRegionsValues.selectedRegion?.emoji),
         ),
       );
-      await act(async () =>
-        fireEvent.press(getByRoleButton(mockRegionsData[1].name)),
-      );
-      expect(mockSetSelectedRegion).toHaveBeenCalledWith(mockRegionsData[1]);
+      expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+        screen: 'RampRegionSelectorModal',
+        params: {
+          regions: mockRegionsData,
+        },
+      });
     });
   });
 
@@ -611,12 +608,18 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedPaymentMethodId when selecting a payment method', async () => {
+    it('navigates to payment method selector when payment method button is pressed', async () => {
       render(BuildQuote);
-      fireEvent.press(getByRoleButton(mockPaymentMethods[0].name));
-      fireEvent.press(getByRoleButton(mockPaymentMethods[1].name));
-      expect(mockSetSelectedPaymentMethodId).toHaveBeenCalledWith(
-        mockPaymentMethods[1]?.id,
+      fireEvent.press(getByRoleButton('Change'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentMethodSelectorModal',
+          params: expect.objectContaining({
+            paymentMethods: mockPaymentMethods,
+            location: 'Amount to Buy Screen',
+          }),
+        }),
       );
     });
   });
@@ -650,12 +653,13 @@ describe('BuildQuote View', () => {
       expect(mockGetFiatCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedFiatCurrencyId when selecting a new fiat', async () => {
+    it('navigates to fiat select modal when pressing fiat selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
-      fireEvent.press(getByRoleButton(mockFiatCurrenciesData[1].symbol));
-      expect(mockSetSelectedFiatCurrencyId).toHaveBeenCalledWith(
-        mockFiatCurrenciesData[1]?.id,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createFiatSelectorModalNavigationDetails({
+          currencies: mockFiatCurrenciesData,
+        }),
       );
     });
   });

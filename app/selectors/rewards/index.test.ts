@@ -3,7 +3,7 @@ import {
   selectRewardsControllerState,
   selectRewardsSubscriptionId,
   selectRewardsActiveAccountAddress,
-  selectHideUnlinkedAccountsBanner,
+  selectRewardsActiveAccountSubscriptionId,
 } from './index';
 
 // Mock rewards controller state
@@ -338,33 +338,61 @@ describe('Rewards Selectors', () => {
     });
   });
 
-  describe('selectHideUnlinkedAccountsBanner', () => {
-    it('returns true when hideUnlinkedAccountsBanner is true', () => {
+  describe('selectRewardsActiveAccountSubscriptionId', () => {
+    it('returns subscription ID when active account has subscription', () => {
       // Arrange
-      const state = createMockRootState(
-        {},
-        { hideUnlinkedAccountsBanner: true },
-      );
+      const subscriptionId = 'test-subscription-123';
+      const state = createMockRootState({
+        activeAccount: {
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          subscriptionId,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        },
+      });
 
       // Act
-      const result = selectHideUnlinkedAccountsBanner(state);
+      const result = selectRewardsActiveAccountSubscriptionId(state);
 
       // Assert
-      expect(result).toBe(true);
+      expect(result).toBe(subscriptionId);
     });
 
-    it('returns false when hideUnlinkedAccountsBanner is false', () => {
+    it('returns null when active account has no subscription', () => {
       // Arrange
-      const state = createMockRootState(
-        {},
-        { hideUnlinkedAccountsBanner: false },
-      );
+      const state = createMockRootState({
+        activeAccount: {
+          account: 'eip155:1:0x123',
+          hasOptedIn: false,
+          subscriptionId: null,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        },
+      });
 
       // Act
-      const result = selectHideUnlinkedAccountsBanner(state);
+      const result = selectRewardsActiveAccountSubscriptionId(state);
 
       // Assert
-      expect(result).toBe(false);
+      expect(result).toBeNull();
+    });
+
+    it('returns null when no active account exists', () => {
+      // Arrange
+      const state = createMockRootState({
+        activeAccount: null,
+      });
+
+      // Act
+      const result = selectRewardsActiveAccountSubscriptionId(state);
+
+      // Assert
+      expect(result).toBeNull();
     });
   });
 });

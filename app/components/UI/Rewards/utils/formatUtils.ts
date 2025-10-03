@@ -27,13 +27,13 @@ export const formatNumber = (value: number | null): string => {
 };
 
 /**
- * Formats a timestamp for rewards date
- * @param timestamp - Unix timestamp in milliseconds
+ * Formats a date for rewards date
+ * @param date - Date object
  * @returns Formatted date string with time
  * @example 'Jan 24 2:30 PM'
  */
 export const formatRewardsDate = (
-  timestamp: number,
+  date: Date,
   locale: string = I18n.locale,
 ): string =>
   new Intl.DateTimeFormat(locale, {
@@ -41,7 +41,7 @@ export const formatRewardsDate = (
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  }).format(new Date(timestamp));
+  }).format(date);
 
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
@@ -73,9 +73,9 @@ export type PerpsEventType =
 const getPerpsEventDirection = (direction: string) => {
   switch (direction) {
     case 'LONG':
-      return 'Long';
+      return strings('perps.market.long');
     case 'SHORT':
-      return 'Short';
+      return strings('perps.market.short');
   }
 };
 
@@ -120,7 +120,14 @@ const getPerpsEventDetails = (
     case PerpsEventType.CLOSE_POSITION:
     case PerpsEventType.TAKE_PROFIT:
     case PerpsEventType.STOP_LOSS:
-      return `$${symbol} ${formattedAmount}`;
+      if (payload.pnl) {
+        const pnl = Number(payload.pnl);
+        if (isNaN(pnl)) return `${symbol}`;
+        const sign = pnl > 0 ? '+' : pnl < 0 ? '-' : '';
+        const formattedAbsPnl = Math.round(Math.abs(pnl) * 100) / 100;
+        return `${symbol} ${sign}$${formattedAbsPnl}`;
+      }
+      return `${symbol}`;
     default:
       return undefined;
   }

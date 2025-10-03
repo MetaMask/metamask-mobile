@@ -1,8 +1,8 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 import {
   AMOUNT_ERROR,
   AMOUNT_SCREEN,
@@ -10,10 +10,7 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
 
-class AmountScreen extends AppwrightGestures {
-  constructor() {
-    super();
-  }
+class AmountScreen {
 
   get device() {
     return this._device;
@@ -21,7 +18,7 @@ class AmountScreen extends AppwrightGestures {
 
   set device(device) {
     this._device = device;
-    super.device = device; // Set device in parent class too
+
   }
 
   get amountInputField() {
@@ -71,13 +68,13 @@ class AmountScreen extends AppwrightGestures {
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-        await numberKey.waitFor('visible',{ timeout: 30000 });
-        await this.tap(numberKey);
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        await AppwrightGestures.tap(numberKey);
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
-        await numberKey.waitFor('visible', { timeout: 30000 });
-        await this.tap(numberKey); 
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
+        await AppwrightGestures.tap(numberKey);
       }
     }
     }
@@ -98,7 +95,7 @@ class AmountScreen extends AppwrightGestures {
   }
 
   async tapOnNextButton() {
-    await this.tap(this.nextButton);
+    await AppwrightGestures.tap(this.nextButton, );
   }
 
   async isVisible() {
@@ -107,7 +104,7 @@ class AmountScreen extends AppwrightGestures {
       await element.waitForDisplayed();
     } else {
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, '25%');
-      await expect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible();
     }
   }
 }

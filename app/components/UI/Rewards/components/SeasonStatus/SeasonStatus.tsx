@@ -23,9 +23,9 @@ import {
   selectNextTierPointsNeeded,
   selectCurrentTier,
   selectNextTier,
+  selectSeasonStatusError,
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
-import { selectSeasonStatusError } from '../../../../../selectors/rewards';
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
@@ -197,11 +197,18 @@ const SeasonStatus: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           twClassName="gap-2"
         >
-          <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+          <MetamaskRewardsPointsImage
+            name="MetamaskRewardsPoints"
+            style={tw.style('mt-0.5')}
+          />
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
             <Text
-              style={tw.style({ fontSize: 22, fontWeight: FontWeight.Bold })}
+              style={tw.style({
+                fontSize: 22,
+                fontWeight: FontWeight.Bold,
+                marginTop: 2,
+              })}
             >
               {formatNumber(balanceTotal)}
             </Text>
