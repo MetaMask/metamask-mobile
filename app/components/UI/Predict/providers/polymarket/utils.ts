@@ -549,7 +549,6 @@ function replaceAll(s: string, search: string, replace: string) {
 export const submitClobOrder = async ({
   headers,
   clobOrder,
-  feeAuthorization,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
@@ -557,7 +556,9 @@ export const submitClobOrder = async ({
 }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
   let url = `${CLOB_ENDPOINT}/order`;
-  const body = JSON.stringify({ ...clobOrder, feeAuthorization });
+
+  // TODO: Add feeAuthorization to the body when relayer is ready
+  const body = JSON.stringify({ ...clobOrder });
   let finalHeaders = { ...headers };
 
   // TODO: Remove this and simply update endpoint once we have a
