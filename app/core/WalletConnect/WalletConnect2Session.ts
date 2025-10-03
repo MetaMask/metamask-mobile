@@ -546,10 +546,9 @@ class WalletConnect2Session {
         networkClientId,
         nativeCurrency: networkConfiguration.nativeCurrency,
         chainId: hexChainIdString,
-        requestUserApproval: onRequestUserApproval(channelId),
+        rpcUrl: networkConfiguration.rpcUrl,
         analytics: {},
         origin: this.channelId,
-        isSwitchFlow: true,
         hooks: getRpcMethodMiddlewareHooks({
           origin: this.channelId,
           url: { current: origin },

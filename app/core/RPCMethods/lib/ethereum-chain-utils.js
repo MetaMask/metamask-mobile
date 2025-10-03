@@ -221,13 +221,11 @@ export function findExistingNetwork(chainId, networkConfigurations) {
 export async function switchToNetwork({
   networkClientId,
   nativeCurrency,
+  rpcUrl,
   chainId,
-  requestUserApproval,
   analytics,
   origin,
   autoApprove = false,
-  isSwitchFlow = false,
-  isAddFlow = false,
   hooks,
 }) {
   const {
@@ -246,6 +244,10 @@ export async function switchToNetwork({
 
   let ethChainIds;
 
+  // TODO: DRY this when aligning with extension and drying into core
+  // I know this can be rewritten to be more DRY now, but I want to keep the shape
+  // similar to what is in extension so it's easier for the future dev to
+  // reconcile the last bit of differences first.
   if (caip25Caveat) {
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
 
@@ -257,7 +259,7 @@ export async function switchToNetwork({
           rpcUrl,
         },
       });
-    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && !isAddFlow) {
+    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
     // We do not handle this case for now.
     // Mobile doesn't really support simultaneous approvals in the first place.
     }
