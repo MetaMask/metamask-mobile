@@ -250,6 +250,22 @@ export const selectWalletByAccount = createSelector(
 );
 
 /**
+ * Get a wallet status.
+ *
+ * @param walletId - The wallet ID.
+ * @returns The wallet status is wallet has been found, null otherwise.
+ */
+export const selectWalletStatus = createSelector(
+  [selectWalletsMap],
+  (wallets) =>
+    (walletId: AccountWalletId): AccountWalletObject['status'] | null => {
+      if (!wallets) return null;
+
+      return wallets[walletId]?.status ?? null;
+    },
+);
+
+/**
  * Resolves the selected account group preferring the controller's explicit selection,
  * and falling back to deriving from the selected internal account.
  */

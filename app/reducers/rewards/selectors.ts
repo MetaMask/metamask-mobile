@@ -100,3 +100,6 @@ export const selectSeasonRewardById =
     (state.rewards.seasonTiers || [])
       .flatMap((tier) => tier.rewards)
       ?.find((reward) => reward.id === rewardId);
+
+export const selectPointsEvents = (state: RootState) =>
+  state.rewards.pointsEvents;

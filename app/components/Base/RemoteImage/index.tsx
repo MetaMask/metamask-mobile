@@ -11,38 +11,15 @@ import FadeIn from 'react-native-fade-in-image';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import Identicon from '../../UI/Identicon';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../selectors/networkController';
-import {
-  getTestNetImageByChainId,
-  isLineaMainnetChainId,
-  isMainNet,
-  isSolanaMainnet,
-  isTestNet,
-} from '../../../util/networks';
-import images from 'images/image-icons';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-
-import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
-import { toHex } from '@metamask/controller-utils';
-import {
-  CustomNetworkImgMapping,
-  PopularList,
-  UnpopularNetworkList,
-} from '../../../util/networks/customNetworks';
 import {
   Image,
   ImageContentFit,
   ImageErrorEventData,
   ImageLoadEventData,
 } from 'expo-image';
+import RemoteImageBadgeWrapper from './RemoteImageBadgeWrapper';
+import Identicon from '../../UI/Identicon';
 
 interface RemoteImageProps {
   fadeIn?: boolean;
@@ -61,9 +38,6 @@ interface RemoteImageProps {
 
 const createStyles = () =>
   StyleSheet.create({
-    badgeWrapper: {
-      flex: 1,
-    },
     imageStyle: {
       width: '100%',
       height: '100%',
@@ -72,15 +46,6 @@ const createStyles = () =>
     detailedImageStyle: {
       borderRadius: 8,
     },
-    textWrapper: {
-      textAlign: 'center',
-      marginTop: 16,
-    },
-    textWrapperIcon: {
-      textAlign: 'center',
-      fontSize: 18,
-      marginTop: 16,
-    },
   });
 
 const RemoteImage: React.FC<RemoteImageProps> = (props) => {
@@ -88,11 +53,6 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
-  const currentChainId = useSelector(selectChainId);
-  // The chainId would be passed in props from parent for collectible media
-  //TODO remove once migrated to TS and chainID is properly typed to hex
-  const chainId = props.chainId ? toHex(props.chainId) : currentChainId;
-  const networkName = useSelector(selectNetworkName);
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>(false);
 
   const uri =
@@ -169,33 +129,6 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
     [calculateImageDimensions],
   );
 
-  const NetworkBadgeSource = useCallback(() => {
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-
-    if (isMainNet(chainId)) return images.ETHEREUM;
-
-    if (isLineaMainnetChainId(chainId)) return images['LINEA-MAINNET'];
-
-    if (isSolanaMainnet(chainId)) return images.SOLANA;
-
-    const unpopularNetwork = UnpopularNetworkList.find(
-      (networkConfig) => networkConfig.chainId === chainId,
-    );
-
-    const popularNetwork = PopularList.find(
-      (networkConfig) => networkConfig.chainId === chainId,
-    );
-    const network = unpopularNetwork || popularNetwork;
-    const customNetworkImg = CustomNetworkImgMapping[chainId as `0x${string}`];
-
-    if (network) {
-      return network.rpcPrefs.imageSource;
-    } else if (customNetworkImg) {
-      return customNetworkImg;
-    }
-    return undefined;
-  }, [chainId]);
-
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
   }
@@ -206,26 +139,14 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
 
   if (props.fadeIn) {
     const { style, ...restProps } = props;
-    const showFullRatioImage = props.isFullRatio && dimensions;
+    const showFullRatioImage = !!(props.isFullRatio && dimensions);
 
     return (
       <FadeIn placeholderStyle={props.placeholderStyle}>
         {props.isTokenImage ? (
-          <BadgeWrapper
-            badgePosition={{
-              bottom: 5,
-              right: 5,
-            }}
-            anchorElementShape={BadgeAnchorElementShape.Rectangular}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource()}
-                name={networkName}
-                isScaled={false}
-                size={showFullRatioImage ? AvatarSize.Md : AvatarSize.Xs}
-              />
-            }
+          <RemoteImageBadgeWrapper
+            chainId={props.chainId}
+            isFullRatio={showFullRatioImage}
           >
             {showFullRatioImage ? (
               <Image
@@ -249,7 +170,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
                 />
               </View>
             )}
-          </BadgeWrapper>
+          </RemoteImageBadgeWrapper>
         ) : (
           defaultImage
         )}

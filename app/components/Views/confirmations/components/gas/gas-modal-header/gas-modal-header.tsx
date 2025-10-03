@@ -3,9 +3,7 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './gas-modal-header.styles';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
@@ -26,7 +24,6 @@ export const GasModalHeader = ({
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           onPress={onBackButtonClick}
-          size={ButtonIconSizes.Sm}
           testID="back-button"
         />
       </View>

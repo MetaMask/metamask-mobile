@@ -1332,8 +1332,8 @@
         "error_message": "Không tìm thấy dữ liệu thị trường. Vui lòng quay lại và thử lại."
       },
       "statistics": "Tổng quan",
-      "24hr_high": "Đỉnh 24 giờ",
-      "24hr_low": "Đáy 24 giờ",
+      "24h_high": "Đỉnh 24 giờ",
+      "24h_low": "Đáy 24 giờ",
       "24h_volume": "Khối lượng 24 giờ",
       "open_interest": "Lãi suất mở",
       "funding_rate": "Tỷ lệ tài trợ",
@@ -1614,8 +1614,7 @@
     "accept": "Chấp nhận"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Quét mã QR",
-    "receive_tab": "Mã QR của bạn"
+    "scanner_tab": "Quét mã QR"
   },
   "banner": {
     "bridge": {

@@ -1332,8 +1332,8 @@
         "error_message": "未找到市场数据。请返回并重试。"
       },
       "statistics": "概览",
-      "24hr_high": "24 小时最高价",
-      "24hr_low": "24 小时最低价",
+      "24h_high": "24 小时最高价",
+      "24h_low": "24 小时最低价",
       "24h_volume": "24 小时成交量",
       "open_interest": "未平仓合约量",
       "funding_rate": "资金费率",
@@ -1614,8 +1614,7 @@
     "accept": "接受"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "扫描二维码",
-    "receive_tab": "您的二维码"
+    "scanner_tab": "扫描二维码"
   },
   "banner": {
     "bridge": {

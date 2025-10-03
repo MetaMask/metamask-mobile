@@ -126,14 +126,16 @@ Component input → Hook state → Validation → Controller action
 
 ## Quick Hook Selection Guide
 
-| Need                     | Use Hook               | Key Features                                    |
-| ------------------------ | ---------------------- | ----------------------------------------------- |
-| Place buy orders         | `usePredictBuy`        | Loading states, toast notifications, callbacks  |
-| Place sell orders        | `usePredictSell`       | Loading states, toast notifications, callbacks  |
-| Direct controller access | `usePredictTrading`    | Core buy/sell/getPositions operations           |
-| Market data with search  | `usePredictMarketData` | Pagination, infinite scroll, category filtering |
-| User positions           | `usePredictPositions`  | Focus refresh, loading states, account-based    |
-| Order notifications      | `usePredictOrders`     | Automatic toast notifications, status tracking  |
+| Need                     | Use Hook                 | Key Features                                                                     |
+| ------------------------ | ------------------------ | -------------------------------------------------------------------------------- |
+| Place buy orders         | `usePredictBuy`          | Loading states, toast notifications, callbacks                                   |
+| Place sell orders        | `usePredictSell`         | Loading states, toast notifications, callbacks                                   |
+| Direct controller access | `usePredictTrading`      | Core buy/sell/getPositions operations                                            |
+| Market data with search  | `usePredictMarketData`   | Pagination, infinite scroll, category filtering                                  |
+| User positions           | `usePredictPositions`    | Focus refresh, loading states, account-based                                     |
+| Market data              | `usePredictMarket`       | Market data fetching with pagination, search, infinite scroll, and retry logic   |
+| Price history            | `usePredictPriceHistory` | Price history fetching with pagination, search, infinite scroll, and retry logic |
+| Order notifications      | `usePredictOrders`       | Automatic toast notifications, status tracking                                   |
 
 ## Core Types and Utilities
 

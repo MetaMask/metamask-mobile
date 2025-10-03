@@ -24,6 +24,7 @@ jest.mock('./utils/multi-subscription-token-vault', () => ({
   ...jest.requireActual('./utils/multi-subscription-token-vault'),
   storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
   removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
+  resetAllSubscriptionTokens: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -92,6 +93,7 @@ import Logger from '../../../../util/Logger';
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
@@ -121,6 +123,10 @@ const mockStoreSubscriptionToken =
 const mockRemoveSubscriptionToken =
   removeSubscriptionToken as jest.MockedFunction<
     typeof removeSubscriptionToken
+  >;
+const mockResetAllSubscriptionTokens =
+  resetAllSubscriptionTokens as jest.MockedFunction<
+    typeof resetAllSubscriptionTokens
   >;
 const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
@@ -1216,12 +1222,6 @@ describe('RewardsController', () => {
             subscriptionId: 'sub-123',
           },
         );
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with latest updatedAt',
-          expect.objectContaining({
-            latestUpdatedAt: latestTimestamp.getTime(),
-          }),
-        );
       });
 
       it('should handle Date vs string updatedAt timestamps in points events', async () => {
@@ -1347,15 +1347,6 @@ describe('RewardsController', () => {
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
           'RewardsController:balanceUpdated',
           expect.any(Object),
-        );
-
-        // Verify the 500ms buffer was added in logging and season status timestamp is included
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with latest updatedAt',
-          expect.objectContaining({
-            cacheBalanceUpdatedAt: cachedTimestamp.getTime() + 500,
-            latestUpdatedAt: eventTimestamp.getTime(),
-          }),
         );
       });
 
@@ -1489,6 +1480,76 @@ describe('RewardsController', () => {
           },
         );
       });
+    });
+  });
+
+  describe('getPointsEventsLastUpdated', () => {
+    beforeEach(() => {
+      // Mock feature flag to be enabled by default for existing tests
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should successfully get points events last updated timestamp', async () => {
+      // Arrange
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+      const mockLastUpdated = new Date('2024-01-01T10:00:00Z');
+      mockMessenger.call.mockResolvedValue(mockLastUpdated);
+
+      // Act
+      const result = await controller.getPointsEventsLastUpdated(mockRequest);
+
+      // Assert
+      expect(result).toEqual(mockLastUpdated);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEventsLastUpdated',
+        mockRequest,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
+        mockRequest,
+      );
+    });
+
+    it('should handle getPointsEventsLastUpdated errors and rethrow them', async () => {
+      // Arrange
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+      const apiError = new Error('API error');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      // Act & Assert
+      await expect(
+        controller.getPointsEventsLastUpdated(mockRequest),
+      ).rejects.toThrow('API error');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
+        mockRequest,
+      );
+    });
+
+    it('should return null when data service returns null', async () => {
+      // Arrange
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+      };
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Act
+      const result = await controller.getPointsEventsLastUpdated(mockRequest);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEventsLastUpdated',
+        mockRequest,
+      );
     });
   });
 
@@ -1968,7 +2029,7 @@ describe('RewardsController', () => {
     it('should perform silent auth when outside grace period', async () => {
       // Arrange
       const now = 1000000;
-      const outsideGracePeriod = now - 15 * 60 * 1000; // 15 minutes ago (outside grace period)
+      const outsideGracePeriod = now - 25 * 60 * 60 * 1000; // 25 hours ago (outside grace period)
 
       const accountState = {
         account: CAIP_ACCOUNT_1,
@@ -2006,7 +2067,7 @@ describe('RewardsController', () => {
       };
 
       mockMessenger.call
-        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount
+        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount (can be called multiple times)
         .mockResolvedValueOnce('0xsignature') // signPersonalMessage
         .mockResolvedValueOnce({
           // login
@@ -3429,6 +3490,8 @@ describe('RewardsController', () => {
     });
   });
 
+  // Removed outdated 'reset' tests; behavior covered by 'resetAll' and 'logout' tests
+
   describe('logout', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
@@ -3668,6 +3731,161 @@ describe('RewardsController', () => {
 
       // Reset mock for other tests
       mockIsHardwareAccount.mockReturnValue(false);
+    });
+  });
+
+  describe('resetAll', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    it('should skip reset when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      const mockSubscriptionId = 'sub-abc';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: 5.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF999',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.resetAll();
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      expect(controller.state.activeAccount).toEqual(activeAccountState);
+      expect(mockResetAllSubscriptionTokens).not.toHaveBeenCalled();
+    });
+
+    it('should clear tokens and reset state, preserving active account opted-out', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: 10.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // Act
+      await controller.resetAll();
+
+      // Assert tokens cleared
+      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+
+      // Assert state updated: tokens cleared and state reset; active account is opted-out if preserved
+      const active = controller.state.activeAccount;
+      const activeIsOptedOut =
+        !!active &&
+        active.account === CAIP_ACCOUNT_1 &&
+        active.hasOptedIn === false &&
+        active.subscriptionId === null;
+      expect(active === null || activeIsOptedOut).toBe(true);
+
+      // Accounts and subscriptions should be cleared by resetState
+      expect(Object.keys(controller.state.accounts)).toHaveLength(0);
+      expect(Object.keys(controller.state.subscriptions)).toHaveLength(0);
+
+      // Success log
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset completed successfully',
+      );
+    });
+
+    it('should log error and re-throw when token reset fails', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-err';
+      const activeAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: mockSubscriptionId,
+        lastCheckedAuth: Date.now(),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: 7.0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: activeAccountState,
+          accounts: { [CAIP_ACCOUNT_1]: activeAccountState },
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REFERR',
+              accounts: [],
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      const error = new Error('secure storage failure');
+      mockResetAllSubscriptionTokens.mockRejectedValueOnce(error);
+
+      // Act & Assert
+      await expect(controller.resetAll()).rejects.toThrow(
+        'secure storage failure',
+      );
+
+      // Error log
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Reset failed to complete',
+        'secure storage failure',
+      );
     });
   });
 

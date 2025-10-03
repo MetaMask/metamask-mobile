@@ -14,6 +14,15 @@ import PredictMarketSingle from './';
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
+// Mock navigation
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 const mockUsePredictBuy = jest.fn();
@@ -83,6 +92,7 @@ describe('PredictMarketSingle', () => {
     jest.clearAllMocks();
     mockAlert.mockClear();
     mockPlaceBuyOrder.mockClear();
+    mockNavigate.mockClear();
   });
 
   it('render market information correctly', () => {

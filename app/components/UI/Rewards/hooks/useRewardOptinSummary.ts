@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectInternalAccounts,
@@ -13,6 +13,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { selectRewardsActiveAccountSubscriptionId } from '../../../../selectors/rewards';
 import { convertInternalAccountToCaipAccountId } from '../utils';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -41,6 +43,8 @@ export const useRewardOptinSummary = (
   const activeAccountSubscriptionId = useSelector(
     selectRewardsActiveAccountSubscriptionId,
   );
+  const { addTraitsToUser } = useMetrics();
+  const hasTrackedLinkedAccountsRef = useRef(false);
 
   const [optedInAccounts, setOptedInAccounts] = useState<
     AccountWithOptInStatus[]
@@ -168,6 +172,27 @@ export const useRewardOptinSummary = (
     }
     return linkedAccounts;
   }, [activeAccountSubscriptionId, linkedAccounts]);
+
+  // Update user traits with the count of reward-enabled accounts
+  useEffect(() => {
+    const updateUserTraits = async () => {
+      const traits = {
+        [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]:
+          coercedLinkedAccounts.length,
+      };
+      Logger.log(
+        'Triggering update of user traits for reward-enabled accounts',
+        traits,
+      );
+      await addTraitsToUser(traits);
+    };
+
+    // Only track once per session when we have the data
+    if (!hasTrackedLinkedAccountsRef.current && !isLoading) {
+      hasTrackedLinkedAccountsRef.current = true;
+      updateUserTraits();
+    }
+  }, [coercedLinkedAccounts, addTraitsToUser, isLoading]);
 
   return {
     linkedAccounts: coercedLinkedAccounts,

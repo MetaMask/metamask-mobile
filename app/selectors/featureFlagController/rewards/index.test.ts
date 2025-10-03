@@ -1,4 +1,9 @@
-import { selectRewardsEnabledFlag, FEATURE_FLAG_NAME } from '.';
+import {
+  selectRewardsEnabledFlag,
+  FEATURE_FLAG_NAME,
+  selectRewardsAnnouncementModalEnabledFlag,
+  ANNOUNCEMENT_MODAL_FLAG_NAME,
+} from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { EngineState } from '../../types';
 import {
@@ -603,6 +608,402 @@ describe('Rewards Feature Flag Selector', () => {
 
       // Assert
       expect(result).toBe(false); // Should be false since rewards flag is not in mockedState
+    });
+  });
+});
+
+// New tests for the announcement modal feature flag
+describe('Rewards Announcement Modal Feature Flag Selector', () => {
+  const mockedStateWithAnnouncementModalEnabled = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            [ANNOUNCEMENT_MODAL_FLAG_NAME]: true,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+
+  const mockedStateWithAnnouncementModalDisabled = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            [ANNOUNCEMENT_MODAL_FLAG_NAME]: false,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+
+  const mockedStateWithoutAnnouncementModalFlag = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            someOtherFlag: true,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+
+  it('returns true when announcement modal flag is enabled', () => {
+    const result = selectRewardsAnnouncementModalEnabledFlag(
+      mockedStateWithAnnouncementModalEnabled,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false when announcement modal flag is explicitly disabled', () => {
+    const result = selectRewardsAnnouncementModalEnabledFlag(
+      mockedStateWithAnnouncementModalDisabled,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when announcement modal flag property is missing', () => {
+    const result = selectRewardsAnnouncementModalEnabledFlag(
+      mockedStateWithoutAnnouncementModalFlag,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when feature flag state is empty', () => {
+    const result = selectRewardsAnnouncementModalEnabledFlag(
+      mockedEmptyFlagsState,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
+    const result = selectRewardsAnnouncementModalEnabledFlag(
+      mockedUndefinedFlagsState,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('handles non-boolean values by preserving the value (string)', () => {
+    const stateWithNonBooleanFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              [ANNOUNCEMENT_MODAL_FLAG_NAME]: 'true' as unknown,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    } as unknown as EngineState;
+
+    const result = selectRewardsAnnouncementModalEnabledFlag(
+      stateWithNonBooleanFlag as unknown as StateWithPartialEngine,
+    );
+    expect(result).toBe('true');
+  });
+
+  describe('Data Type Variations', () => {
+    it('handles numeric 0 as falsy', () => {
+      const stateWithNumericZero = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: 0,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithNumericZero);
+      expect(result).toBe(0);
+    });
+
+    it('handles numeric 1 as truthy', () => {
+      const stateWithNumericOne = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: 1,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithNumericOne);
+      expect(result).toBe(1);
+    });
+
+    it('handles empty string as falsy', () => {
+      const stateWithEmptyString = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: '',
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithEmptyString);
+      expect(result).toBe('');
+    });
+
+    it('handles string "false" as preserved value', () => {
+      const stateWithStringFalse = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: 'false',
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithStringFalse);
+      expect(result).toBe('false');
+    });
+
+    it('handles null value', () => {
+      const stateWithNullValue = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithNullValue);
+      expect(result).toBe(null);
+    });
+
+    it('handles undefined value', () => {
+      const stateWithUndefinedValue = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: undefined,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(
+        stateWithUndefinedValue,
+      );
+      expect(result).toBe(undefined);
+    });
+
+    it('handles object value', () => {
+      const stateWithObjectValue = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: { enabled: true },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithObjectValue);
+      expect(result).toEqual({ enabled: true });
+    });
+
+    it('handles array value', () => {
+      const stateWithArrayValue = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: [true, false],
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result =
+        selectRewardsAnnouncementModalEnabledFlag(stateWithArrayValue);
+      expect(result).toEqual([true, false]);
+    });
+  });
+
+  describe('State Structure Validation', () => {
+    it('returns false with consistent default when flag structure is malformed', () => {
+      const malformedState = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: 'invalid',
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(malformedState);
+      expect(result).toBe(false);
+    });
+
+    it('handles case where remoteFeatureFlags is not an object', () => {
+      const stateWithNonObjectFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: 'not an object',
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(
+        stateWithNonObjectFlags,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('properly handles multiple feature flags with different types', () => {
+      const stateWithMultipleFlags = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                someOtherFlag: 'string value',
+                numericFlag: 42,
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: true,
+                booleanFlag: false,
+              },
+              cacheTimestamp: Date.now(),
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(
+        stateWithMultipleFlags,
+      );
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('Cache Timestamp Scenarios', () => {
+    it('works correctly with current timestamp', () => {
+      const currentTime = Date.now();
+      const stateWithCurrentTimestamp = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: true,
+              },
+              cacheTimestamp: currentTime,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(
+        stateWithCurrentTimestamp,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('works correctly with old timestamp', () => {
+      const oldTime = Date.now() - 86400000; // 24 hours ago
+      const stateWithOldTimestamp = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: false,
+              },
+              cacheTimestamp: oldTime,
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(
+        stateWithOldTimestamp,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('works correctly with missing cache timestamp', () => {
+      const stateWithoutTimestamp = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [ANNOUNCEMENT_MODAL_FLAG_NAME]: true,
+              },
+              // Missing cacheTimestamp
+            },
+          },
+        },
+      } as unknown as StateWithPartialEngine;
+
+      const result = selectRewardsAnnouncementModalEnabledFlag(
+        stateWithoutTimestamp,
+      );
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('Selector Memoization', () => {
+    it('returns the same reference for identical inputs', () => {
+      const state = mockedStateWithAnnouncementModalEnabled;
+      const result1 = selectRewardsAnnouncementModalEnabledFlag(state);
+      const result2 = selectRewardsAnnouncementModalEnabledFlag(state);
+      expect(result1).toBe(result2);
+    });
+
+    it('recalculates when input state changes', () => {
+      const state1 = mockedStateWithAnnouncementModalEnabled;
+      const state2 = mockedStateWithAnnouncementModalDisabled;
+
+      const result1 = selectRewardsAnnouncementModalEnabledFlag(state1);
+      const result2 = selectRewardsAnnouncementModalEnabledFlag(state2);
+
+      expect(result1).toBe(true);
+      expect(result2).toBe(false);
+      expect(result1).not.toBe(result2);
     });
   });
 });

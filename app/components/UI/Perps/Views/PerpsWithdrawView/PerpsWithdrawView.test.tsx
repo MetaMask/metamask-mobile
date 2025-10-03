@@ -88,10 +88,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-  })),
   useWithdrawValidation: jest.fn(() => ({
     hasAmount: false,
     isBelowMinimum: false,
@@ -99,6 +95,7 @@ jest.mock('../../hooks', () => ({
     getMinimumAmount: jest.fn(() => '10.00'),
   })),
   usePerpsNetwork: jest.fn(() => 'mainnet'),
+  usePerpsMeasurement: jest.fn(),
 }));
 
 // Mock components

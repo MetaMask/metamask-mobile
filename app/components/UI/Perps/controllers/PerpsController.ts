@@ -537,7 +537,9 @@ export class PerpsController extends BaseController<
       };
     }
 
-    this.refreshEligibility();
+    this.refreshEligibility().catch((error) => {
+      console.error('Error refreshing eligibility:', error);
+    });
   }
 
   /**
@@ -622,8 +624,18 @@ export class PerpsController extends BaseController<
         return undefined;
       }
 
+      const orderExecutionFeeDiscountStartTime = performance.now();
       const discountBips = await RewardsController.getPerpsDiscountForAccount(
         caipAccountId,
+      );
+      const orderExecutionFeeDiscountDuration =
+        performance.now() - orderExecutionFeeDiscountStartTime;
+
+      // Measure order execution fee discount API call performance
+      setMeasurement(
+        PerpsMeasurementName.REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+        orderExecutionFeeDiscountDuration,
+        'millisecond',
       );
 
       DevLogger.log('PerpsController: Fee discount calculated', {
@@ -631,6 +643,7 @@ export class PerpsController extends BaseController<
         caipAccountId,
         discountBips,
         discountPercentage: discountBips / 100,
+        duration: `${orderExecutionFeeDiscountDuration.toFixed(0)}ms`,
       });
 
       return discountBips;
@@ -846,6 +859,8 @@ export class PerpsController extends BaseController<
           tp_price: params.takeProfitPrice
             ? parseFloat(params.takeProfitPrice)
             : undefined,
+        }).catch((error) => {
+          console.error('Error reporting open order to data lake:', error);
         });
 
         // End trace with success data
@@ -969,6 +984,13 @@ export class PerpsController extends BaseController<
     const result = await provider.editOrder(params);
     const completionDuration = performance.now() - startTime;
 
+    // Record operation duration as measurement
+    setMeasurement(
+      PerpsMeasurementName.ORDER_EDIT_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
+
     if (result.success) {
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
@@ -1031,6 +1053,14 @@ export class PerpsController extends BaseController<
     const provider = this.getActiveProvider();
 
     const result = await provider.cancelOrder(params);
+    const completionDuration = performance.now() - startTime;
+
+    // Record operation duration as measurement
+    setMeasurement(
+      PerpsMeasurementName.ORDER_CANCEL_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
 
     if (result.success) {
       this.update((state) => {
@@ -1038,7 +1068,6 @@ export class PerpsController extends BaseController<
       });
 
       // Track order cancel executed
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
@@ -1052,7 +1081,6 @@ export class PerpsController extends BaseController<
       );
     } else {
       // Track order cancel failed
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
@@ -1111,7 +1139,12 @@ export class PerpsController extends BaseController<
         });
 
         // Report to data lake (fire-and-forget with retry)
-        this.reportOrderToDataLake({ action: 'close', coin: params.coin });
+        this.reportOrderToDataLake({
+          action: 'close',
+          coin: params.coin,
+        }).catch((error) => {
+          console.error('Error reporting close order to data lake:', error);
+        });
 
         // Determine direction from position size
         const direction =
@@ -1364,6 +1397,14 @@ export class PerpsController extends BaseController<
     const provider = this.getActiveProvider();
 
     const result = await provider.updatePositionTPSL(params);
+    const completionDuration = performance.now() - startTime;
+
+    // Record operation duration as measurement
+    setMeasurement(
+      PerpsMeasurementName.POSITION_TPSL_UPDATE_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
 
     if (result.success) {
       this.update((state) => {
@@ -1371,7 +1412,6 @@ export class PerpsController extends BaseController<
       });
 
       // Track TP/SL update executed - ONE event with both properties
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
@@ -1395,7 +1435,6 @@ export class PerpsController extends BaseController<
       );
     } else {
       // Track TP/SL update failed - ONE event with both properties
-      const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
@@ -1601,6 +1640,8 @@ export class PerpsController extends BaseController<
    * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
+    const startTime = performance.now();
+
     trace({
       name: TraceName.PerpsWithdraw,
       op: TraceOperation.PerpsOperation,
@@ -1664,6 +1705,20 @@ export class PerpsController extends BaseController<
           withdrawalId: result.withdrawalId,
         });
 
+        // Track withdrawal transaction executed
+        const completionDuration = performance.now() - startTime;
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            })
+            .build(),
+        );
+
         // Note: The withdrawal result will be cleared by usePerpsWithdrawStatus hook
         // after showing the appropriate toast messages
 
@@ -1702,6 +1757,22 @@ export class PerpsController extends BaseController<
         params,
       });
 
+      // Track withdrawal transaction failed
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              result.error || 'Unknown error',
+          })
+          .build(),
+      );
+
       endTrace({
         name: TraceName.PerpsWithdraw,
         data: {
@@ -1736,6 +1807,21 @@ export class PerpsController extends BaseController<
         };
       });
 
+      // Track withdrawal transaction failed (catch block)
+      const completionDuration = performance.now() - startTime;
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+        )
+          .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+          })
+          .build(),
+      );
+
       endTrace({
         name: TraceName.PerpsWithdraw,
         data: {
@@ -1752,19 +1838,20 @@ export class PerpsController extends BaseController<
    * Get current positions
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
-    trace({
-      name: TraceName.PerpsAccountStateUpdate,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        provider: this.state.activeProvider,
-        operation: 'getPositions',
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    const startTime = performance.now();
 
     try {
       const provider = this.getActiveProvider();
       const positions = await provider.getPositions(params);
+
+      const completionDuration = performance.now() - startTime;
+
+      // Record operation duration as measurement
+      setMeasurement(
+        PerpsMeasurementName.GET_POSITIONS_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
 
       // Only update state if the provider call succeeded
       this.update((state) => {
@@ -1772,16 +1859,17 @@ export class PerpsController extends BaseController<
         state.lastError = null; // Clear any previous errors
       });
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: true,
-          positionsCount: positions.length,
-        },
-      });
-
       return positions;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Record operation duration as measurement even on failure
+      setMeasurement(
+        PerpsMeasurementName.GET_POSITIONS_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
+
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -1793,14 +1881,6 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
-      });
-
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
@@ -1810,47 +1890,79 @@ export class PerpsController extends BaseController<
    * Get historical user fills (trade executions)
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
-    return provider.getOrderFills(params);
+    const result = await provider.getOrderFills(params);
+
+    const completionDuration = performance.now() - startTime;
+    setMeasurement(
+      PerpsMeasurementName.GET_ORDER_FILLS_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
+
+    return result;
   }
 
   /**
    * Get historical user orders (order lifecycle)
    */
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
-    return provider.getOrders(params);
+    const result = await provider.getOrders(params);
+
+    const completionDuration = performance.now() - startTime;
+    setMeasurement(
+      PerpsMeasurementName.GET_ORDERS_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
+
+    return result;
   }
 
   /**
    * Get currently open orders (real-time status)
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
-    return provider.getOpenOrders(params);
+    const result = await provider.getOpenOrders(params);
+
+    const completionDuration = performance.now() - startTime;
+    setMeasurement(
+      PerpsMeasurementName.GET_OPEN_ORDERS_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
+
+    return result;
   }
 
   /**
    * Get historical user funding history (funding payments)
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+    const startTime = performance.now();
     const provider = this.getActiveProvider();
-    return provider.getFunding(params);
+    const result = await provider.getFunding(params);
+
+    const completionDuration = performance.now() - startTime;
+    setMeasurement(
+      PerpsMeasurementName.GET_FUNDING_OPERATION,
+      completionDuration,
+      'millisecond',
+    );
+
+    return result;
   }
 
   /**
    * Get account state (balances, etc.)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
-    trace({
-      name: TraceName.PerpsAccountStateUpdate,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        provider: this.state.activeProvider,
-        operation: 'getAccountState',
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    const startTime = performance.now();
 
     try {
       const provider = this.getActiveProvider();
@@ -1867,6 +1979,15 @@ export class PerpsController extends BaseController<
           return;
         }),
       ]);
+
+      const completionDuration = performance.now() - startTime;
+
+      // Record operation duration as measurement
+      setMeasurement(
+        PerpsMeasurementName.GET_ACCOUNT_STATE_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
 
       // Add safety check for accountState to prevent TypeError
       if (!accountState) {
@@ -1905,18 +2026,17 @@ export class PerpsController extends BaseController<
       });
       DevLogger.log('PerpsController: Redux store updated successfully');
 
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: true,
-          hasBalance: parseFloat(accountState.totalBalance) > 0,
-          hasHistoricalData:
-            parseFloat(historicalPortfolioToUse?.accountValue1dAgo || '0') > 0,
-        },
-      });
-
       return accountState;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Record operation duration as measurement even on failure
+      setMeasurement(
+        PerpsMeasurementName.GET_ACCOUNT_STATE_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
+
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -1926,14 +2046,6 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-      });
-
-      endTrace({
-        name: TraceName.PerpsAccountStateUpdate,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
       });
 
       // Re-throw the error so components can handle it appropriately
@@ -1947,15 +2059,31 @@ export class PerpsController extends BaseController<
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {
+    const startTime = performance.now();
+
     try {
       const provider = this.getActiveProvider();
       const result = await provider.getHistoricalPortfolio(params);
+
+      const completionDuration = performance.now() - startTime;
+      setMeasurement(
+        PerpsMeasurementName.GET_HISTORICAL_PORTFOLIO_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
 
       // Return the result without storing it in state
       // Historical data can be fetched when needed
 
       return result;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+      setMeasurement(
+        PerpsMeasurementName.GET_HISTORICAL_PORTFOLIO_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
+
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -1976,20 +2104,20 @@ export class PerpsController extends BaseController<
    * Get available markets with optional filtering
    */
   async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
-    trace({
-      name: TraceName.PerpsMarketDataUpdate,
-      op: TraceOperation.PerpsMarketData,
-      tags: {
-        provider: this.state.activeProvider,
-        operation: 'getMarkets',
-        isTestnet: this.state.isTestnet,
-        symbolsRequested: params?.symbols?.length || 0,
-      },
-    });
+    const startTime = performance.now();
 
     try {
       const provider = this.getActiveProvider();
       const allMarkets = await provider.getMarkets();
+
+      const completionDuration = performance.now() - startTime;
+
+      // Record operation duration as measurement
+      setMeasurement(
+        PerpsMeasurementName.GET_MARKETS_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -2005,29 +2133,20 @@ export class PerpsController extends BaseController<
           ),
         );
 
-        endTrace({
-          name: TraceName.PerpsMarketDataUpdate,
-          data: {
-            success: true,
-            marketsCount: filtered.length,
-            totalMarkets: allMarkets.length,
-          },
-        });
-
         return filtered;
       }
 
-      endTrace({
-        name: TraceName.PerpsMarketDataUpdate,
-        data: {
-          success: true,
-          marketsCount: allMarkets.length,
-          totalMarkets: allMarkets.length,
-        },
-      });
-
       return allMarkets;
     } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Record operation duration as measurement even on failure
+      setMeasurement(
+        PerpsMeasurementName.GET_MARKETS_OPERATION,
+        completionDuration,
+        'millisecond',
+      );
+
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -2037,14 +2156,6 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-      });
-
-      endTrace({
-        name: TraceName.PerpsMarketDataUpdate,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
       });
 
       // Re-throw the error so components can handle it appropriately
@@ -2793,6 +2904,8 @@ export class PerpsController extends BaseController<
             sl_price,
             tp_price,
             retryCount: retryCount + 1,
+          }).catch((err) => {
+            console.error('Error reporting retry order to data lake:', err);
           });
         }, retryDelay);
       } else {

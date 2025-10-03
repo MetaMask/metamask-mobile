@@ -1,15 +1,17 @@
-import { captureException } from '@sentry/react-native';
+import { captureException, setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
+import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { store } from '../../../../store';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 
 // simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -165,14 +167,18 @@ class PerpsConnectionManagerClass {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
-        this.performActualDisconnection();
+        this.performActualDisconnection().catch((error) => {
+          console.error('Error performing actual disconnection:', error);
+        });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS) as unknown as number;
       // Stop immediately after scheduling (not in the callback)
       BackgroundTimer.stop();
     } else if (Device.isAndroid()) {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
-        this.performActualDisconnection();
+        this.performActualDisconnection().catch((error) => {
+          console.error('Error performing actual disconnection:', error);
+        });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS);
     }
   }
@@ -378,6 +384,7 @@ class PerpsConnectionManagerClass {
     this.clearError();
 
     this.initPromise = (async () => {
+      const connectionStartTime = performance.now();
       try {
         DevLogger.log('PerpsConnectionManager: Initializing connection');
 
@@ -411,10 +418,47 @@ class PerpsConnectionManagerClass {
         this.isConnecting = false;
         // Clear errors on successful connection
         this.clearError();
+
+        // Track WebSocket connection establishment performance (pure connection)
+        const connectionDuration = performance.now() - connectionStartTime;
+
+        // Log connection performance measurement with consistent marker
+        DevLogger.log(
+          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection established`,
+          {
+            metric: PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT,
+            duration: `${connectionDuration.toFixed(0)}ms`,
+          },
+        );
+
+        setMeasurement(
+          PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT,
+          connectionDuration,
+          'millisecond',
+        );
+
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
         // Pre-load positions and orders subscriptions to populate cache
         await this.preloadSubscriptions();
+
+        // Track total connection time including preload (user-perceived performance)
+        const totalConnectionDuration = performance.now() - connectionStartTime;
+
+        // Log connection with preload performance measurement
+        DevLogger.log(
+          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection with preload completed`,
+          {
+            metric: PerpsMeasurementName.WEBSOCKET_CONNECTION_WITH_PRELOAD,
+            duration: `${totalConnectionDuration.toFixed(0)}ms`,
+          },
+        );
+
+        setMeasurement(
+          PerpsMeasurementName.WEBSOCKET_CONNECTION_WITH_PRELOAD,
+          totalConnectionDuration,
+          'millisecond',
+        );
       } catch (error) {
         this.isConnecting = false;
         this.isConnected = false;
@@ -478,6 +522,7 @@ class PerpsConnectionManagerClass {
    * Performs the actual reconnection logic
    */
   private async performReconnection(): Promise<void> {
+    const reconnectionStartTime = performance.now();
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
@@ -540,12 +585,31 @@ class PerpsConnectionManagerClass {
       this.isInitialized = true;
       // Clear errors on successful reconnection
       this.clearError();
+
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
 
       // Pre-load subscriptions again with new account
       await this.preloadSubscriptions();
+
+      // Track account switch reconnection performance including preload
+      const reconnectionDuration = performance.now() - reconnectionStartTime;
+
+      // Log account switch reconnection performance measurement
+      DevLogger.log(
+        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Account switch reconnection completed`,
+        {
+          metric: PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+          duration: `${reconnectionDuration.toFixed(0)}ms`,
+        },
+      );
+
+      setMeasurement(
+        PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+        reconnectionDuration,
+        'millisecond',
+      );
     } catch (error) {
       this.isConnected = false;
       this.isInitialized = false;

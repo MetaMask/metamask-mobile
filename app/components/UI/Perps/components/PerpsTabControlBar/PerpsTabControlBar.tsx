@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -18,6 +18,13 @@ import {
 } from '../../utils/formatUtils';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
@@ -32,6 +39,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const { styles } = useStyles(styleSheet, {});
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const { isDepositInProgress } = usePerpsDepositProgress();
 
   // Use the reusable hooks for balance animation
   const {
@@ -148,6 +156,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           style={balancePillContainerStyle}
           onPress={handlePress}
           testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
+          disabled={isDepositInProgress}
         >
           <View style={styles.leftSection}>
             <Text
@@ -155,19 +164,38 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               color={TextColor.Alternative}
               style={styles.titleText}
             >
-              {strings('perps.available_balance')}
+              {isDepositInProgress
+                ? strings('perps.deposit_in_progress')
+                : strings('perps.available_balance')}
             </Text>
           </View>
           <View style={styles.rightSection}>
-            <Animated.View style={[getBalanceAnimatedStyle]}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
+            {isDepositInProgress ? (
+              <ActivityIndicator
+                size="small"
+                color={styles.activityIndicator.color}
+              />
+            ) : (
+              <Animated.View
+                style={[
+                  getBalanceAnimatedStyle,
+                  styles.availableBalanceContainer,
+                ]}
               >
-                {formatPerpsFiat(availableBalance)}
-              </Text>
-            </Animated.View>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
+                >
+                  {formatPerpsFiat(availableBalance)}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              </Animated.View>
+            )}
           </View>
         </TouchableOpacity>
       )}

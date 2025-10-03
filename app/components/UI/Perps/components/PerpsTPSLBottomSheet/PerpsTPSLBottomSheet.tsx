@@ -17,10 +17,14 @@ import Text, {
 import Keypad from '../../../../../components/Base/Keypad';
 import { useTheme } from '../../../../../util/theme';
 
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 import type { Position } from '../../controllers/types';
-import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   getPerpsTPSLBottomSheetSelector,
   PerpsTPSLBottomSheetSelectorsIDs,
@@ -74,7 +78,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
@@ -199,15 +202,24 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
     tpslForm.display;
 
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [isVisible],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
+      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.DIRECTION]:
+        actualDirection === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+    },
+  });
+
   useEffect(() => {
     if (isVisible) {
-      startMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
-      bottomSheetRef.current?.onOpenBottomSheet(() => {
-        // Measure TP/SL bottom sheet loaded when animation actually completes
-        endMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
-      });
+      bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible, startMeasure, endMeasure]);
+  }, [isVisible]);
 
   // Handle close without saving
   const handleClose = useCallback(() => {
