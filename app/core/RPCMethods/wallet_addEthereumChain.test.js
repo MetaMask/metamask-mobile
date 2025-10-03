@@ -105,7 +105,7 @@ const correctParams = {
 const networkConfigurationResult = {
   id: '1',
   chainId: '0x64',
-  rpcEndpoints: [correctParams.rpcUrls[0]],
+  rpcEndpoints: [{ url: correctParams.rpcUrls[0], networkClientId: '1' }],
   defaultRpcEndpointIndex: 0,
 };
 
@@ -409,6 +409,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
       autoApprove: true,
       chainId: '0x64',
+      metadata: {
+        rpcUrl: 'https://rpc.gnosischain.com',
+      },
     });
   });
 

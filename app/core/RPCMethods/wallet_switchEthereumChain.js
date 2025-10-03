@@ -4,7 +4,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../selectors/network
 import { store } from '../../store';
 import {
   validateChainId,
-  findExistingNetwork,
+  findtoNetworkConfiguration,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
@@ -54,11 +54,10 @@ export const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
-    store.getState(),
-  );
-  const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
-  if (existingNetwork) {
+
+  const toNetworkConfiguration =
+    hooks.getNetworkConfigurationByChainId(_chainId);
+  if (toNetworkConfiguration) {
     const currentDomainSelectedNetworkClientId =
       SelectedNetworkController.getNetworkClientIdForDomain(origin);
     const {
@@ -78,17 +77,15 @@ export const wallet_switchEthereumChain = async ({
       currentChainIdForOrigin,
     );
 
-    const toNetworkConfiguration =
-      hooks.getNetworkConfigurationByChainId(_chainId);
-
-    const networkClientIdToSwitchTo =
-      toNetworkConfiguration?.rpcEndpoints[
+    const { networkClientId, url: rpcUrl } =
+      toNetworkConfiguration.rpcEndpoints[
         toNetworkConfiguration.defaultRpcEndpointIndex
-      ].networkClientId;
+      ];
 
     await switchToNetwork({
-      networkClientId: networkClientIdToSwitchTo,
+      networkClientId,
       nativeCurrency: toNetworkConfiguration.nativeCurrency,
+      rpcUrl,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,

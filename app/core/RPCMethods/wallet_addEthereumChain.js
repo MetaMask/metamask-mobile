@@ -226,7 +226,7 @@ export const wallet_addEthereumChain = async ({
     MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
 
-  const { networkClientId } =
+  const { networkClientId, url: rpcUrl } =
     updatedNetworkConfiguration.rpcEndpoints[
       updatedNetworkConfiguration.defaultRpcEndpointIndex
     ];
@@ -234,6 +234,7 @@ export const wallet_addEthereumChain = async ({
   await switchToNetwork({
     networkClientId,
     nativeCurrency: updatedNetworkConfiguration.nativeCurrency,
+    rpcUrl,
     chainId,
     controllers: {
       MultichainNetworkController,

@@ -179,8 +179,13 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     });
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(false);
     otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue({
-      ticker: 'ETH',
-      rpcEndpoints: [{ networkClientId: 'test-network-configuration-id' }],
+      nativeCurrency: 'ETH',
+      rpcEndpoints: [
+        {
+          url: 'https://rpc.test-chain.com',
+          networkClientId: 'test-network-configuration-id',
+        },
+      ],
       defaultRpcEndpointIndex: 0,
     });
 
@@ -234,8 +239,13 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       },
     });
     otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue({
-      ticker: 'ETH',
-      rpcEndpoints: [{ networkClientId: 'test-network-configuration-id' }],
+      nativeCurrency: 'ETH',
+      rpcEndpoints: [
+        {
+          url: 'https://rpc.test-chain.com',
+          networkClientId: 'test-network-configuration-id',
+        },
+      ],
       defaultRpcEndpointIndex: 0,
     });
 
@@ -252,6 +262,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     ).toHaveBeenCalledWith({
       chainId: '0x64',
       autoApprove: false,
+      metadata: {
+        rpcUrl: 'https://rpc.test-chain.com',
+      },
     });
     expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledWith(
       origin,
