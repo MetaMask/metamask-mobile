@@ -1,11 +1,19 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import {
+  selectInternalAccountsById,
+  selectSelectedInternalAccount,
+} from '../../../../selectors/accountsController';
 import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import {
+  selectAccountGroupsByWallet,
+  selectWalletByAccount,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 
 export interface UseOptinResult {
   /**
@@ -39,6 +47,32 @@ export const useOptin = (): UseOptinResult => {
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const walletSections = useSelector(selectAccountGroupsByWallet);
+  const walletByAccount = useSelector(selectWalletByAccount);
+  const currentAccountWalletId = useMemo(
+    () => (account ? walletByAccount(account.id) : null),
+    [account, walletByAccount],
+  );
+  const currentWalletSection = useMemo(
+    () =>
+      walletSections?.find(
+        (section) => section.wallet.id === currentAccountWalletId?.id,
+      ),
+    [walletSections, currentAccountWalletId],
+  );
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const sideEffectAccountToLink = useMemo(
+    () =>
+      currentWalletSection?.data[0]?.accounts[0] &&
+      internalAccountsById &&
+      currentWalletSection.data[0].accounts[0] in internalAccountsById
+        ? internalAccountsById[currentWalletSection.data[0].accounts[0]]
+        : null,
+    [currentWalletSection, internalAccountsById],
+  );
+  const multichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const handleOptin = useCallback(
     async ({
@@ -94,8 +128,32 @@ export const useOptin = (): UseOptinResult => {
       } finally {
         setOptinLoading(false);
       }
+
+      if (multichainAccountsState2Enabled && sideEffectAccountToLink) {
+        try {
+          if (
+            sideEffectAccountToLink &&
+            sideEffectAccountToLink.id !== account.address
+          ) {
+            Engine.controllerMessenger.call(
+              'RewardsController:linkAccountToSubscriptionCandidate',
+              sideEffectAccountToLink,
+            );
+          }
+        } catch {
+          // ignore error, we tried to opt in to rewards for the default account as well.
+        }
+      }
     },
-    [account, createEventBuilder, dispatch, trackEvent, addTraitsToUser],
+    [
+      account,
+      trackEvent,
+      createEventBuilder,
+      multichainAccountsState2Enabled,
+      sideEffectAccountToLink,
+      dispatch,
+      addTraitsToUser,
+    ],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);
