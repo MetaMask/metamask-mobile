@@ -920,8 +920,8 @@ workflows:
 
             if ! echo "$BITRISE_GIT_MESSAGE" | grep -q "\[skip ci\] Bump version
             number to"; then
-              echo "Commit message doesn't contain expected pattern, skipping workflow"
-              exit 0
+              echo "Commit message doesn't contain expected pattern, failing workflow"
+              exit 1
             fi
   # E2E Steps
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
