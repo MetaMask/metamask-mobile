@@ -283,5 +283,24 @@ describe('Account Network Row', () => {
         },
       });
     });
+
+    it('returns early when switchRequestSubmitted is true', async () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+
+      // First click to trigger the switch and set switchRequestSubmitted to true
+      fireEvent(switchComponent, 'onValueChange', false);
+
+      // Second click while switchRequestSubmitted is true - should return early
+      fireEvent(switchComponent, 'onValueChange', true);
+
+      // Calls downgradeAccount once
+      expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
+    });
   });
 });
