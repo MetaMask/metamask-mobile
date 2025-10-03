@@ -11,6 +11,17 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 
+export interface WithdrawalRequest {
+  id: string;
+  timestamp: number;
+  amount: string;
+  asset: string;
+  txHash?: string;
+  status: 'pending' | 'completed' | 'failed';
+  destination?: string;
+  withdrawalId?: string;
+}
+
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format
  * @param fills - Array of abstract OrderFill objects
@@ -305,6 +316,68 @@ export function transformUserHistoryToTransactions(
         txHash,
         status,
         type: isDeposit ? 'deposit' : 'withdrawal',
+      },
+    };
+  });
+}
+
+/**
+ * Transform WithdrawalRequest objects to PerpsTransaction format
+ * @param withdrawalRequests - Array of WithdrawalRequest objects
+ * @returns Array of PerpsTransaction objects
+ */
+export function transformWithdrawalRequestsToTransactions(
+  withdrawalRequests: WithdrawalRequest[],
+): PerpsTransaction[] {
+  return withdrawalRequests.map((request) => {
+    const { id, timestamp, amount, asset, txHash, status, destination } =
+      request;
+
+    // Format amount with negative sign for withdrawals
+    const amountBN = BigNumber(amount);
+    const displayAmount = `-$${amountBN.toFixed(2)}`;
+
+    // Determine status text and styling
+    let statusText = '';
+    let isPositive = false;
+
+    switch (status) {
+      case 'completed':
+        statusText = 'Completed';
+        isPositive = true; // Completed withdrawals are shown as positive (green)
+        break;
+      case 'failed':
+        statusText = 'Failed';
+        isPositive = false;
+        break;
+      case 'pending':
+        statusText = 'Pending';
+        isPositive = false;
+        break;
+    }
+
+    // Create subtitle with status and transaction hash if available
+    let subtitle = `${statusText}`;
+    if (txHash) {
+      subtitle += ` • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`;
+    }
+
+    return {
+      id: `withdrawal-${id}`,
+      type: 'withdrawal',
+      category: 'withdrawal',
+      title: `Withdrew ${amount} ${asset}`,
+      subtitle,
+      timestamp,
+      asset,
+      depositWithdrawal: {
+        amount: displayAmount,
+        amountNumber: -amountBN.toNumber(), // Negative for withdrawals
+        isPositive,
+        asset,
+        txHash: txHash || '',
+        status,
+        type: 'withdrawal',
       },
     };
   });

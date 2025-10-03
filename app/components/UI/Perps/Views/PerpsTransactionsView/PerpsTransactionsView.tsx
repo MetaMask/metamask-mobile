@@ -26,6 +26,7 @@ import {
   usePerpsFunding,
   usePerpsOrderFills,
   usePerpsOrders,
+  useWithdrawalRequests,
 } from '../../hooks';
 import {
   FilterTab,
@@ -39,6 +40,7 @@ import {
   transformFillsToTransactions,
   transformFundingToTransactions,
   transformOrdersToTransactions,
+  transformWithdrawalRequestsToTransactions,
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
@@ -102,6 +104,29 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     params: fundingParams,
     skipInitialFetch: !isConnected,
   });
+
+  // Memoize the withdrawal params to prevent infinite re-renders
+  const withdrawalParams = useMemo(
+    () => ({
+      startTime: (() => {
+        // Get start of today (midnight UTC) to see today's withdrawals
+        const now = new Date();
+        return new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        ).getTime();
+      })(),
+    }),
+    [], // Empty dependency array since we want this to be stable
+  );
+
+  // Get withdrawal requests
+  const { withdrawalRequests, refetch: refreshWithdrawalRequests } =
+    useWithdrawalRequests({
+      startTime: withdrawalParams.startTime,
+      skipInitialFetch: !isConnected,
+    });
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
@@ -191,13 +216,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [fundingData],
   );
 
-  // Separate deposits and withdrawals - for now showing empty states
-  const depositTransactions = useMemo(
-    () => [], // Empty array for now
-    [],
+  // Transform withdrawal requests to transactions
+  const withdrawalTransactions = useMemo(
+    () => transformWithdrawalRequestsToTransactions(withdrawalRequests),
+    [withdrawalRequests],
   );
 
-  const withdrawalTransactions = useMemo(
+  // Separate deposits and withdrawals - for now showing empty states
+  const depositTransactions = useMemo(
     () => [], // Empty array for now
     [],
   );
@@ -241,13 +267,24 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     setRefreshing(true);
     try {
       // Refresh all data sources in parallel
-      await Promise.all([refreshFills(), refreshOrders(), refreshFunding()]);
+      await Promise.all([
+        refreshFills(),
+        refreshOrders(),
+        refreshFunding(),
+        refreshWithdrawalRequests(),
+      ]);
     } catch (error) {
       console.warn('Failed to refresh transaction data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [isConnected, refreshFills, refreshOrders, refreshFunding]);
+  }, [
+    isConnected,
+    refreshFills,
+    refreshOrders,
+    refreshFunding,
+    refreshWithdrawalRequests,
+  ]);
 
   // Initial loading is handled by the hooks themselves
 
@@ -463,7 +500,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
-          scrollEnabled={true}
+          scrollEnabled
         >
           {filterTabs.map(renderFilterTab)}
         </ScrollView>

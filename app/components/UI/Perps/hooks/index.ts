@@ -55,6 +55,7 @@ export { default as usePerpsToasts } from './usePerpsToasts';
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
+export { useWithdrawalRequests } from './useWithdrawalRequests';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';

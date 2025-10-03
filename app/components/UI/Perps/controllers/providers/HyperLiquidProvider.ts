@@ -1367,8 +1367,52 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get historical portfolio data for percentage calculations
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
    */
+  async getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<unknown[]> {
+    try {
+      console.log(
+        'Getting user non-funding ledger updates via HyperLiquid SDK:',
+        params,
+      );
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId as `${string}:${string}:${string}` | undefined,
+      );
+
+      console.log('Calling userNonFundingLedgerUpdates with:', {
+        user: userAddress,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+        startTimeDate: new Date(params?.startTime || 0).toISOString(),
+        endTimeDate: params?.endTime
+          ? new Date(params.endTime).toISOString()
+          : 'undefined',
+      });
+
+      const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress as `0x${string}`,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      console.log(
+        'User non-funding ledger updates received:',
+        rawLedgerUpdates,
+      );
+
+      return rawLedgerUpdates || [];
+    } catch (error) {
+      console.log('Error getting user non-funding ledger updates:', error);
+      return [];
+    }
+  }
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {

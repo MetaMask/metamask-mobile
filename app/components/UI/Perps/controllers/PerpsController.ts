@@ -166,6 +166,18 @@ export type PerpsControllerState = {
     error?: string;
   } | null;
 
+  // Withdrawal request tracking (persistent, for transaction history)
+  withdrawalRequests: {
+    id: string;
+    timestamp: number;
+    amount: string;
+    asset: string;
+    txHash?: string;
+    status: 'pending' | 'completed' | 'failed';
+    destination?: string;
+    withdrawalId?: string;
+  }[];
+
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
 
@@ -202,6 +214,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawInProgress: false,
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
+  withdrawalRequests: [],
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
@@ -1666,6 +1679,22 @@ export class PerpsController extends BaseController<
       // Set withdrawal in progress
       this.update((state) => {
         state.withdrawInProgress = true;
+
+        // Add withdrawal request to tracking
+        const withdrawalRequest = {
+          id: `withdraw-${Date.now()}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
+          timestamp: Date.now(),
+          amount: params.amount,
+          asset: 'USDC', // Default to USDC for now
+          txHash: undefined,
+          status: 'pending' as const,
+          destination: params.destination,
+          withdrawalId: undefined,
+        };
+
+        state.withdrawalRequests.unshift(withdrawalRequest); // Add to beginning of array
       });
 
       // Get provider (all validation is handled at the provider level)
@@ -1696,6 +1725,14 @@ export class PerpsController extends BaseController<
             txHash: result.txHash,
             amount: params.amount,
           };
+
+          // Update the most recent withdrawal request
+          if (state.withdrawalRequests.length > 0) {
+            const latestRequest = state.withdrawalRequests[0];
+            latestRequest.status = 'completed';
+            latestRequest.txHash = result.txHash;
+            latestRequest.withdrawalId = result.withdrawalId;
+          }
         });
 
         DevLogger.log('PerpsController: WITHDRAWAL SUCCESSFUL', {
@@ -1750,6 +1787,12 @@ export class PerpsController extends BaseController<
           success: false,
           error: result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED,
         };
+
+        // Update the most recent withdrawal request to failed
+        if (state.withdrawalRequests.length > 0) {
+          const latestRequest = state.withdrawalRequests[0];
+          latestRequest.status = 'failed';
+        }
       });
 
       DevLogger.log('PerpsController: WITHDRAWAL FAILED', {
@@ -1805,6 +1848,12 @@ export class PerpsController extends BaseController<
           success: false,
           error: errorMessage,
         };
+
+        // Update the most recent withdrawal request to failed
+        if (state.withdrawalRequests.length > 0) {
+          const latestRequest = state.withdrawalRequests[0];
+          latestRequest.status = 'failed';
+        }
       });
 
       // Track withdrawal transaction failed (catch block)

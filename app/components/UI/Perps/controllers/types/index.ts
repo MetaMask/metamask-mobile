@@ -597,6 +597,15 @@ export interface IPerpsProvider {
    */
   getFunding(params?: GetFundingParams): Promise<Funding[]>;
 
+  /**
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
+   */
+  getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<unknown[]>;
+
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
