@@ -30,7 +30,6 @@ import {
   hideWCLoadingState,
   isSwitchingChainRequest,
   getRequestOrigin,
-  onRequestUserApproval,
   hasPermissionsToSwitchChainRequest,
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,

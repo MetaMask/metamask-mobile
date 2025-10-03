@@ -237,17 +237,6 @@ export const getScopedPermissions = async ({
   };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const onRequestUserApproval = (origin: string) => async (args: any) => {
-  Engine.context.ApprovalController.clear(providerErrors.userRejectedRequest());
-  const responseData = await Engine.context.ApprovalController.add({
-    origin,
-    type: args.type,
-    requestData: args.requestData,
-  });
-  return responseData;
-};
-
 export const isSwitchingChainRequest = (
   request: WalletKitTypes.SessionRequest,
 ) => {

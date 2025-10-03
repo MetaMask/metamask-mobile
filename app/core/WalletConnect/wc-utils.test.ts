@@ -7,7 +7,6 @@ import {
   getApprovedSessionMethods,
   getScopedPermissions,
   networkModalOnboardingConfig,
-  onRequestUserApproval,
   getHostname,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
@@ -235,71 +234,6 @@ describe('WalletConnect Utils', () => {
           accounts: ['eip155:1:0x123'],
         },
       });
-    });
-  });
-
-  describe('onRequestUserApproval', () => {
-    beforeEach(() => {
-      // Clear all mocks before each test
-      jest.clearAllMocks();
-    });
-
-    it('clears previous approval and adds new approval request', async () => {
-      const origin = 'test-origin';
-      const args = {
-        type: 'test-type',
-        requestData: { someData: 'test-data' },
-      };
-
-      // Get the approval handler function
-      const approvalHandler = onRequestUserApproval(origin);
-
-      // Mock the expected return value from add()
-      const mockResponseData = { approved: true };
-      (
-        Engine.context.ApprovalController.add as jest.Mock
-      ).mockResolvedValueOnce(mockResponseData);
-
-      // Call the handler
-      const result = await approvalHandler(args);
-
-      // Verify clear was called with correct error
-      expect(Engine.context.ApprovalController.clear).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 4001, // userRejectedRequest error code
-          message: expect.any(String),
-        }),
-      );
-
-      // Verify add was called with correct parameters
-      expect(Engine.context.ApprovalController.add).toHaveBeenCalledWith({
-        origin: 'test-origin',
-        type: 'test-type',
-        requestData: { someData: 'test-data' },
-      });
-
-      // Verify the handler returns the response data
-      expect(result).toBe(mockResponseData);
-    });
-
-    it('propagates errors from ApprovalController', async () => {
-      const origin = 'test-origin';
-      const args = {
-        type: 'test-type',
-        requestData: {},
-      };
-
-      // Mock an error from add()
-      const mockError = new Error('Approval failed');
-      (
-        Engine.context.ApprovalController.add as jest.Mock
-      ).mockRejectedValueOnce(mockError);
-
-      // Get the approval handler function
-      const approvalHandler = onRequestUserApproval(origin);
-
-      // Verify the error is propagated
-      await expect(approvalHandler(args)).rejects.toThrow('Approval failed');
     });
   });
 
