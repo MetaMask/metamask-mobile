@@ -122,6 +122,7 @@ export const downloadStateLogs = async (
   fullState: RootState,
   loggedIn = true,
 ) => {
+  const environment = process.env.METAMASK_ENVIRONMENT;
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
@@ -141,6 +142,7 @@ export const downloadStateLogs = async (
         appVersion,
         buildNumber,
         metaMetricsId,
+        environment,
       },
       loggedIn,
     );
