@@ -2492,8 +2492,27 @@ PODS:
     - React
   - RNInAppBrowser (3.7.0):
     - React-Core
-  - RNKeychain (8.0.0):
+  - RNKeychain (9.2.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNNotifee (9.0.2):
     - React-Core
     - RNNotifee/NotifeeCore (= 9.0.2)
@@ -3443,7 +3462,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 9c8bf98209e658e1ceb13026f176e4ede1f24491
   RNI18n: 11ec5086508673ef71b5b567da3e8bcca8a926e1
   RNInAppBrowser: 6d3eb68d471b9834335c664704719b8be1bfdb20
-  RNKeychain: 3194f1c9d8599f39e570b4b5ecbcdd8cd610e771
+  RNKeychain: 6ee77734c4a38bc95accc34dce4d6e40553c06a4
   RNNotifee: 5165d37aaf980031837be3caece2eae5a6d73ae8
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
   RNPermissions: 77ecf18a1aed5621334279a197252be4241a36fa
