@@ -69,6 +69,7 @@ const config = {
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
+    '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
   },
   // Disable jest cache
   cache: false,
