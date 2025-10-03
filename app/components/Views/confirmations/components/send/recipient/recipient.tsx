@@ -202,7 +202,7 @@ export const Recipient = () => {
                 />
               )}
               <Button
-                testID={'review-button'}
+                testID="review-button"
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
                 onPress={handleReview}
