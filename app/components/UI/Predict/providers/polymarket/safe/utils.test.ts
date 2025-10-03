@@ -237,5 +237,100 @@ describe('safe utils', () => {
       const secondCallArgs = mockQuery.mock.calls[1];
       expect(secondCallArgs[2][0].to).toBe(TEST_SAFE_ADDRESS);
     });
+
+    it('handles signature v value adjustment for 0 and 1', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth.authorization.sig).toBeTruthy();
+      expect(feeAuth.authorization.sig).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('handles signature v value adjustment for 27 and 28', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889901b',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth.authorization.sig).toBeTruthy();
+      expect(feeAuth.authorization.sig).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('throws error for invalid signature v value', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899ff',
+      );
+
+      await expect(createSafeFeeAuthorization(testParams)).rejects.toThrow(
+        'Invalid signature',
+      );
+    });
+
+    it('handles signature v value 0 correctly', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth).toHaveProperty('type', 'safe-transaction');
+      expect(feeAuth).toHaveProperty('authorization');
+      expect(feeAuth.authorization).toHaveProperty('tx');
+      expect(feeAuth.authorization).toHaveProperty('sig');
+      expect(feeAuth.authorization.sig).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('handles signature v value 1 correctly', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889901',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth).toHaveProperty('type', 'safe-transaction');
+      expect(feeAuth).toHaveProperty('authorization');
+      expect(feeAuth.authorization).toHaveProperty('tx');
+      expect(feeAuth.authorization).toHaveProperty('sig');
+      expect(feeAuth.authorization.sig).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('handles signature v value 27 correctly', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889901b',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth).toHaveProperty('type', 'safe-transaction');
+      expect(feeAuth).toHaveProperty('authorization');
+      expect(feeAuth.authorization).toHaveProperty('tx');
+      expect(feeAuth.authorization).toHaveProperty('sig');
+      expect(feeAuth.authorization.sig).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('handles signature v value 28 correctly', async () => {
+      setupMocksForFeeAuth();
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889901c',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth).toHaveProperty('type', 'safe-transaction');
+      expect(feeAuth).toHaveProperty('authorization');
+      expect(feeAuth.authorization).toHaveProperty('tx');
+      expect(feeAuth.authorization).toHaveProperty('sig');
+      expect(feeAuth.authorization.sig).toMatch(/^0x[a-f0-9]+$/);
+    });
   });
 });

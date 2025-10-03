@@ -1904,4 +1904,89 @@ describe('polymarket utils', () => {
       expect(feeAmount).toBe(BigInt(10000));
     });
   });
+
+  describe('submitClobOrder error handling', () => {
+    const mockHeaders: ClobHeaders = {
+      POLY_ADDRESS: mockAddress,
+      POLY_SIGNATURE: 'test-signature_',
+      POLY_TIMESTAMP: '1704067200',
+      POLY_API_KEY: 'test-api-key',
+      POLY_PASSPHRASE: 'test-passphrase',
+    };
+
+    const mockClobOrder: ClobOrderObject = {
+      maker: mockAddress,
+      signer: mockAddress,
+      taker: '0x0000000000000000000000000000000000000000',
+      tokenId: 'test-token',
+      makerAmount: '100000000',
+      takerAmount: '50000000',
+      expiration: '0',
+      nonce: '0',
+      feeRateBps: '0',
+      side: Side.BUY,
+      signatureType: SignatureType.EOA,
+      signature: 'mock-signature',
+      salt: 12345,
+    };
+
+    it('handle 403 geoblock response with specific error message', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'You are unable to access this provider.',
+        errorCode: 403,
+      });
+    });
+
+    it('handle non-403 error with JSON error message', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: jest.fn().mockResolvedValue({
+          error: 'Invalid order parameters',
+        }),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Invalid order parameters',
+      });
+    });
+
+    it('handle non-403 error without JSON error field, use statusText', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Internal Server Error',
+      });
+    });
+  });
 });
