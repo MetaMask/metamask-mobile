@@ -2,17 +2,14 @@
 
 > **⚠️ ESSENTIAL:** Read [E2E Testing Overview](../../docs/readme/e2e-testing.md) for complete setup guide
 
-- [E2E Testing Architecture and Framework](#e2e-testing-architecture-and-framework)
 - [E2E Framework Structure](#e2e-framework-structure)
-- [E2E Testing Best Practices and Guidelines](#e2e-testing-best-practices-and-guidelines)
+- [E2E Testing Best Practices](#e2e-testing-best-practices)
 - [E2E Test Examples and Patterns](#e2e-test-examples-and-patterns)
 - [E2E Testing Anti-Patterns (AVOID THESE)](#e2e-testing-anti-patterns-avoid-these)
 - [E2E Code Review Checklist](#e2e-code-review-checklist)
-- [Smart E2E Test Selection (AI-Enhanced)](#smart-e2e-test-selection-ai-enhanced)
-- [Important E2E Testing Notes](#important-e2e-testing-notes)
 - [AI E2E Testing System](#ai-e2e-testing-system)
 
-**E2E Framework Structure:**
+## E2E Framework Structure
 
 - **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
 - **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
@@ -39,7 +36,7 @@
 - `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
 - `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
 
-## E2E Testing Best Practices and Guidelines
+## E2E Testing Best Practices
 
 **CRITICAL: Always Use withFixtures Pattern**
 Every E2E test MUST use `withFixtures` for proper test setup and cleanup:
@@ -110,6 +107,16 @@ await Gestures.tap(loadingButton, {
 ```
 
 ## E2E Test Examples and Patterns
+
+- **ALWAYS** use `withFixtures` - every test must use this pattern
+- **NEVER** skip the setup phase - run `yarn setup:e2e` first
+- **Framework Migration**: Use TypeScript framework (`e2e/framework/`), not legacy JavaScript (`e2e/utils/`)
+- **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
+- **Page Objects**: Mandatory pattern - no direct element access in test specs
+- **Element State**: Configure visibility, enabled, and stability checking appropriately
+- **Debugging**: Check test output for unmocked API requests and framework warnings
+- **Performance**: Use `checkStability: false` by default, enable only for animated elements
+- Check `e2e/.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 
@@ -324,18 +331,6 @@ await Utilities.executeWithRetry(
 2. Add corresponding job declarations to `.github/workflows/smart-e2e-ai-selection.yml`
 3. Follow existing pattern: `{tag-name}-{platform}-smoke` with conditional execution
 4. Update this documentation list
-
-## Important E2E Testing Notes
-
-- **ALWAYS** use `withFixtures` - every test must use this pattern
-- **NEVER** skip the setup phase - run `yarn setup:e2e` first
-- **Framework Migration**: Use TypeScript framework (`e2e/framework/`), not legacy JavaScript (`e2e/utils/`)
-- **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
-- **Page Objects**: Mandatory pattern - no direct element access in test specs
-- **Element State**: Configure visibility, enabled, and stability checking appropriately
-- **Debugging**: Check test output for unmocked API requests and framework warnings
-- **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `e2e/.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
 
 ## AI E2E Testing System
 

@@ -8,8 +8,6 @@
 
 Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
 
-## Table of Contents
-
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
   - [Environment files](#environment-files)
