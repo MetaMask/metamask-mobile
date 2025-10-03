@@ -575,75 +575,6 @@ export class Engine {
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const authenticationControllerMessenger =
-      getAuthenticationControllerMessenger(this.controllerMessenger);
-    const authenticationController = createAuthenticationController({
-      messenger: authenticationControllerMessenger,
-      initialState: initialState.AuthenticationController,
-      metametrics: {
-        agent: Platform.MOBILE,
-        getMetaMetricsId: async () =>
-          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
-      },
-    });
-
-    const userStorageControllerMessenger = getUserStorageControllerMessenger(
-      this.controllerMessenger,
-    );
-    const userStorageController = createUserStorageController({
-      messenger: userStorageControllerMessenger,
-      initialState: initialState.UserStorageController,
-      nativeScryptCrypto: calculateScryptKey,
-      // @ts-expect-error Controller uses string for names rather than enum
-      trace,
-      config: {
-        contactSyncing: {
-          onContactUpdated: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Contact Updated',
-                })
-                .build(),
-            );
-          },
-          onContactDeleted: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Contact Deleted',
-                })
-                .build(),
-            );
-          },
-          onContactSyncErroneousSituation(profileId, situationMessage) {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Erroneous Situation',
-                  additional_description: situationMessage,
-                })
-                .build(),
-            );
-          },
-        },
-      },
-    });
-    ///: END:ONLY_INCLUDE_IF
-
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
     const smartTransactionsControllerTrackMetaMetricsEvent = (
@@ -732,11 +663,11 @@ export class Engine {
       controllerInitFunctions: {
         PreferencesController: preferencesControllerInit,
         AccountsController: accountsControllerInit,
-        PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         SnapKeyringBuilder: snapKeyringBuilderInit,
         ///: END:ONLY_INCLUDE_IF
         KeyringController: keyringControllerInit,
+        PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -855,6 +786,75 @@ export class Engine {
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const authenticationControllerMessenger =
+      getAuthenticationControllerMessenger(this.controllerMessenger);
+    const authenticationController = createAuthenticationController({
+      messenger: authenticationControllerMessenger,
+      initialState: initialState.AuthenticationController,
+      metametrics: {
+        agent: Platform.MOBILE,
+        getMetaMetricsId: async () =>
+          (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
+      },
+    });
+
+    const userStorageControllerMessenger = getUserStorageControllerMessenger(
+      this.controllerMessenger,
+    );
+    const userStorageController = createUserStorageController({
+      messenger: userStorageControllerMessenger,
+      initialState: initialState.UserStorageController,
+      nativeScryptCrypto: calculateScryptKey,
+      // @ts-expect-error Controller uses string for names rather than enum
+      trace,
+      config: {
+        contactSyncing: {
+          onContactUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Updated',
+                })
+                .build(),
+            );
+          },
+          onContactDeleted: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Deleted',
+                })
+                .build(),
+            );
+          },
+          onContactSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Erroneous Situation',
+                  additional_description: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
+      },
+    });
+    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
