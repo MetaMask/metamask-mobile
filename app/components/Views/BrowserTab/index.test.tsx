@@ -29,7 +29,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock react-native-device-info to provide a valid version string
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.0.0'),
 }));
@@ -79,18 +78,6 @@ jest.mock('../../../util/phishingDetection', () => ({
   ),
   isProductSafetyDappScanningEnabled: jest.fn(() => false),
 }));
-
-// Mock browser utilities
-// jest.mock('../../../util/browser', () => ({
-//   processUrlForBrowser: jest.fn((url) => url),
-//   prefixUrlWithProtocol: jest.fn((url) => url),
-//   isTLD: jest.fn(() => false),
-//   protocolAllowList: ['http:', 'https:'],
-//   trustedProtocolToDeeplink: ['tel:', 'mailto:', 'sms:'],
-//   getAlertMessage: jest.fn(() => 'Test alert message'),
-//   allowLinkOpen: jest.fn(),
-//   getUrlObj: jest.fn(() => ({ host: 'example.com' })),
-// }));
 
 const mockProps = {
   id: 1,
