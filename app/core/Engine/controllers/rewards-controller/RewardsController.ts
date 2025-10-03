@@ -1459,7 +1459,7 @@ export class RewardsController extends BaseController<
             // Attempt to reauth with a valid account.
             try {
               if (this.state.activeAccount?.subscriptionId === subscriptionId) {
-                const account = this.messagingSystem.call(
+                const account = await this.messagingSystem.call(
                   'AccountsController:getSelectedMultichainAccount',
                 );
                 Logger.log(
@@ -1474,7 +1474,7 @@ export class RewardsController extends BaseController<
                   (acc) => acc.subscriptionId === subscriptionId,
                 );
                 if (accountForSub) {
-                  const accounts = this.messagingSystem.call(
+                  const accounts = await this.messagingSystem.call(
                     'AccountsController:listMultichainAccounts',
                   );
                   const convertInternalAccountToCaipAccountId =

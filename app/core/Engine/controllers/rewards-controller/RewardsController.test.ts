@@ -2753,7 +2753,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle 403 error and attempt reauth with active account', async () => {
+    it('should handle 403 error, reauth, and fetch status again', async () => {
       // Arrange
       const mock403Error = new AuthorizationFailedError(
         'Rewards authorization failed. Please login and try again.',
@@ -2765,6 +2765,22 @@ describe('RewardsController', () => {
         type: 'eip155:eoa',
         options: {},
         metadata: {},
+      };
+      const mockLoginResponse = {
+        subscription: { id: 'new-mock-subscription-id' },
+      };
+      const mockSeasonStatus = {
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z'),
+          endDate: new Date('2024-12-31T23:59:59Z'),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+        },
+        currentTierId: 'tier-1',
       };
 
       const localMockMessenger = {
@@ -2806,30 +2822,80 @@ describe('RewardsController', () => {
         state.pointsEvents = {};
       });
 
-      // Mock the messenger to return the account and reject with 403
-      localMockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getSeasonStatus') {
-          return Promise.reject(mock403Error);
-        }
-        if (method === 'AccountsController:getSelectedMultichainAccount') {
-          return Promise.resolve(mockAccount);
-        }
-        return Promise.resolve({});
-      });
-
-      // Act & Assert
-      await expect(
-        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow(
-        'Rewards authorization failed. Please login and try again.',
+      // Mock the messenger calls
+      let getSeasonStatusCallCount = 0;
+      localMockMessenger.call.mockImplementation(
+        async (method, ..._args): Promise<any> => {
+          if (method === 'RewardsDataService:getSeasonStatus') {
+            getSeasonStatusCallCount++;
+            if (getSeasonStatusCallCount === 1) {
+              return Promise.reject(mock403Error);
+            }
+            // The second call should succeed
+            return mockSeasonStatus;
+          }
+          if (method === 'AccountsController:getSelectedMultichainAccount') {
+            return mockAccount;
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return 'mock-signature';
+          }
+          if (method === 'RewardsDataService:login') {
+            return mockLoginResponse;
+          }
+          return undefined;
+        },
       );
 
-      // Verify reauth was attempted with active account
+      // Act
+      const result = await testableController.getSeasonStatus(
+        mockSubscriptionId,
+        mockSeasonId,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        season: {
+          id: mockSeasonId,
+          name: 'Mock Season',
+          startDate: new Date('2024-01-01T00:00:00Z').getTime(),
+          endDate: new Date('2024-12-31T23:59:59Z').getTime(),
+          tiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 0 }],
+        },
+        balance: {
+          total: 0,
+          refereePortion: undefined,
+          updatedAt: undefined,
+        },
+        tier: {
+          currentTier: {
+            id: 'tier-1',
+            name: 'Tier 1',
+            pointsNeeded: 0,
+          },
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+        lastFetched: 1000000,
+      });
+
+      // Verify reauth was attempted and status was fetched again
+      expect(getSeasonStatusCallCount).toBe(2);
       expect(localMockMessenger.call).toHaveBeenCalledWith(
         'AccountsController:getSelectedMultichainAccount',
       );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.objectContaining({
+          account: mockAccount.address,
+        }),
+      );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Attempting to reauth with a valid account after 403 error',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully fetched season status after reauth',
+        mockSeasonStatus,
       );
     });
 
