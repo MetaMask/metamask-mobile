@@ -22,6 +22,7 @@ const ButtonPrimary = ({
   isDanger = false,
   isInverse = false,
   label,
+  labelTextVariant = DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
   ...props
 }: ButtonPrimaryProps) => {
   const [pressed, setPressed] = useState(false);
@@ -77,10 +78,7 @@ const ButtonPrimary = ({
 
   const renderLabel = () =>
     typeof label === 'string' ? (
-      <TextComponent
-        variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
-        color={textColor}
-      >
+      <TextComponent variant={labelTextVariant} color={textColor}>
         {label}
       </TextComponent>
     ) : (
