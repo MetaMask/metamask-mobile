@@ -148,6 +148,25 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     }
   });
 
+  it('should throw error if no networkConfiguration is found for the chainId', async () => {
+    try {
+      const origin = 'https://test.com';
+      otherOptions.hooks.getNetworkConfigurationByChainId.mockReturnValue(
+        undefined,
+      );
+
+      await wallet_switchEthereumChain({
+        req: {
+          params: [{ chainId: '0x64' }],
+          origin,
+        },
+        ...otherOptions,
+      });
+    } catch (error) {
+      expect(error.message).toContain('Unrecognized chain ID');
+    }
+  });
+
   it('should not change network permissions and should switch without user approval when chain is already permitted', async () => {
     const origin = 'https://test.com';
     const spyOnGrantPermissionsIncremental = jest.spyOn(
