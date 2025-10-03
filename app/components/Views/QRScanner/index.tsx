@@ -154,6 +154,11 @@ const QRScanner = ({
       }
 
       if (SDKConnectV2.isConnectDeeplink(response.data)) {
+        // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
+        // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
+        // parent components don't need to be notified.
+        // See: app/core/DeeplinkManager/Handlers/handleDeeplink.ts for details.
+        shouldReadBarCodeRef.current = false;
         SDKConnectV2.handleConnectDeeplink(response.data);
         end();
         return;
