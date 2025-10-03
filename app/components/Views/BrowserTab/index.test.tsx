@@ -71,6 +71,27 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
   get: () => '',
 }));
 
+// // Mock phishing detection utilities
+jest.mock('../../../util/phishingDetection', () => ({
+  getPhishingTestResult: jest.fn(() => ({ result: false, name: '' })),
+  getPhishingTestResultAsync: jest.fn(() =>
+    Promise.resolve({ result: false, name: '' }),
+  ),
+  isProductSafetyDappScanningEnabled: jest.fn(() => false),
+}));
+
+// Mock browser utilities
+// jest.mock('../../../util/browser', () => ({
+//   processUrlForBrowser: jest.fn((url) => url),
+//   prefixUrlWithProtocol: jest.fn((url) => url),
+//   isTLD: jest.fn(() => false),
+//   protocolAllowList: ['http:', 'https:'],
+//   trustedProtocolToDeeplink: ['tel:', 'mailto:', 'sms:'],
+//   getAlertMessage: jest.fn(() => 'Test alert message'),
+//   allowLinkOpen: jest.fn(),
+//   getUrlObj: jest.fn(() => ({ host: 'example.com' })),
+// }));
+
 const mockProps = {
   id: 1,
   activeTab: 1,
@@ -99,5 +120,131 @@ describe('BrowserTab', () => {
     );
 
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  describe('WebView originWhitelist', () => {
+    it('sets originWhitelist to wildcard for all URLs', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      expect(webView.props.originWhitelist).toEqual(['*']);
+    });
+  });
+
+  describe('WebView onShouldStartLoadWithRequest', () => {
+    it('blocks ftp URL protocol', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      expect(
+        onShouldStartLoadWithRequest({
+          url: 'ftp://example.com',
+        }),
+      ).toBe(false);
+    });
+
+    it('Stops webview from loading resource and prompts user', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      expect(
+        onShouldStartLoadWithRequest({
+          url: 'tel:+1234567890',
+        }),
+      ).toBe(false);
+    });
+
+    it('allow https resorce to load on webview', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      screen.debug();
+
+      expect(
+        onShouldStartLoadWithRequest({
+          url: 'https://google.com',
+        }),
+      ).toBe(true);
+    });
+
+    it('shows alert for non-whitelisted protocol javascript:', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      expect(
+        onShouldStartLoadWithRequest({
+          url: 'javascript://example.com',
+        }),
+      ).toBe(false);
+    });
+
+    it('stops webview from loading a phishing website', async () => {
+      const {
+        getPhishingTestResult,
+      } = require('../../../util/phishingDetection');
+      getPhishingTestResult.mockReturnValue({
+        result: true,
+        name: 'phishing-site',
+      });
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      const phishingResult = onShouldStartLoadWithRequest({
+        url: 'https://phishing-site.com',
+      });
+      expect(phishingResult).toBe(false);
+    });
   });
 });
