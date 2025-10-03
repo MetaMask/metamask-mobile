@@ -257,3 +257,9 @@ export type Result<T = void> = {
   error?: string;
   value?: T;
 };
+
+export interface UnrealizedPnL {
+  user: string;
+  cashUpnl: number;
+  percentUpnl: number;
+}
