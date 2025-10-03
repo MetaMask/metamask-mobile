@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -72,6 +72,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
+import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -85,7 +86,16 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(): Promise<void> {
+  private async dispatchLogin(
+    options: {
+      clearAccountTreeState: boolean;
+    } = {
+      clearAccountTreeState: false,
+    },
+  ): Promise<void> {
+    if (options.clearAccountTreeState) {
+      AccountTreeInitService.clearState();
+    }
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
@@ -154,9 +164,7 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -214,9 +222,7 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAndCreateAccounts(
-        entropySource ?? this.getPrimaryEntropySourceId(),
-      );
+      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
     });
   };
 
@@ -256,9 +262,7 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -492,7 +496,9 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -525,7 +531,9 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -614,7 +622,6 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
-
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -651,10 +658,18 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      const errorMessage = (e as Error).message;
+
+      // Track authentication failures that could indicate vault/keychain issues to Segment
+      trackVaultCorruption(errorMessage, {
+        error_type: 'authentication_service_failure',
+        context: 'app_triggered_auth_failed',
+      });
+
       ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
-        (e as Error).message,
+        errorMessage,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         this.authData,
       );

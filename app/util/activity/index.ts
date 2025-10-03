@@ -115,7 +115,10 @@ export const filterByAddressAndNetwork = (
   const isInBatchWithPerpsDeposit =
     type !== TransactionType.perpsDeposit &&
     allTransactions?.some(
-      (t) => t.batchId === batchId && t.type === TransactionType.perpsDeposit,
+      (t) =>
+        batchId &&
+        t.batchId === batchId &&
+        t.type === TransactionType.perpsDeposit,
     );
 
   if (isInBatchWithPerpsDeposit) {
@@ -133,6 +136,69 @@ export const filterByAddressAndNetwork = (
   if (
     isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     condition &&
+    tx.status !== TX_UNAPPROVED
+  ) {
+    return isTransfer
+      ? !!tokens.find(({ address }) =>
+          areAddressesEqual(
+            address,
+            transferInformation?.contractAddress ?? '',
+          ),
+        )
+      : true;
+  }
+
+  return false;
+};
+
+export const filterByAddress = (
+  tx: TransactionMeta,
+  tokens: { address: string }[],
+  selectedAddress: string,
+  allTransactions?: TransactionMeta[],
+): boolean => {
+  const {
+    batchId,
+    id: transactionId,
+    isTransfer,
+    transferInformation,
+    txParams: { from, to },
+    type,
+  } = tx;
+
+  const requiredTransactionIds = allTransactions
+    ?.map((t) => t.requiredTransactionIds ?? [])
+    .flat();
+
+  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
+
+  if (isRequiredTransaction) {
+    return false;
+  }
+
+  const requiredTransactionHashes = allTransactions
+    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
+    .map((t) => t.hash?.toLowerCase());
+
+  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
+    return false;
+  }
+
+  const isInBatchWithPerpsDeposit =
+    type !== TransactionType.perpsDeposit &&
+    allTransactions?.some(
+      (t) =>
+        batchId &&
+        t.batchId === batchId &&
+        t.type === TransactionType.perpsDeposit,
+    );
+
+  if (isInBatchWithPerpsDeposit) {
+    return false;
+  }
+
+  if (
+    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     tx.status !== TX_UNAPPROVED
   ) {
     return isTransfer

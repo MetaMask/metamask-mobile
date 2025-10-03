@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "資金不足"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
-    "password": "新規パスワードの作成",
+    "password": "Create password",
     "confirm_password": "パスワードの確認",
     "create_button": "パスワードを作成",
     "import_with_seed_phrase": "秘密のリカバリーフレーズでインポート",
@@ -404,7 +404,7 @@
     "show": "表示",
     "hide": "非表示",
     "seed_phrase": "秘密のリカバリーフレーズ",
-    "must_be_at_least": "パスワードは{{number}}文字以上で設定してください",
+    "must_be_at_least": "{{number}}文字以上必要です",
     "remember_me": "認証情報を保存",
     "security_alert_title": "セキュリティアラート",
     "security_alert_message": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "このパスワードを忘れると、ウォレットに永久にアクセスできなくなります。MetaMask側ではウォレットをリセットできません。",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "再試行してください"
   },
   "import_from_seed": {
     "title": "ウォレットをインポート",
     "seed_phrase_placeholder": "秘密のリカバリーフレーズを入力してください",
-    "create_new_password": "新規パスワードの作成",
+    "create_new_password": "Create password",
     "confirm_password": "パスワードの確認",
     "import_button": "インポート",
     "cancel_button": "キャンセル",
@@ -491,7 +491,7 @@
     "srp": "シークレットリカバリーフレーズです。",
     "srp_placeholder": "各単語の間に半角スペースを入れ、誰にも見られないようにご注意ください.",
     "learn_more_link": "詳細",
-    "create_password_cta": "パスワードを作成",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Flowで続行",
     "steps": "ステップ{{currentStep}}/{{totalSteps}}",
     "password_error": "パスワードが一致しません。もう一度お試しください。",
@@ -507,6 +507,7 @@
     "home": "ホーム",
     "browser": "ブラウザ",
     "activity": "アクティビティ",
+    "trade": "Trade",
     "settings": "設定",
     "rewards": "報酬"
   },
@@ -573,7 +574,8 @@
     "show_more_nfts": "他のNFTを表示",
     "token_contract_warning": "このアドレスはトークンコントラクトアドレスです。このアドレスにトークンを送ると、トークンが失われます。",
     "invisible_character_error": "ENS名に表示されない文字が検出されました。詐欺防止のため、ENS名を確認してください。",
-    "could_not_resolve_name": "Couldn't resolve name"
+    "could_not_resolve_name": "Couldn't resolve name",
+    "invalid_address": "Invalid address"
   },
   "deposit": {
     "title": "入金",
@@ -865,12 +867,12 @@
     "margin_used": "利用中証拠金",
     "gtm_content": {
       "title": "パーペチュアルが登場",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "最大40倍のレバレッジでロングまたはショートが可能。ワンクリックでアカウントに入金できます。",
       "not_now": "後で",
       "try_now": "開始"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "今日",
+    "yesterday": "昨日",
     "unrealized_pnl": "含み損益",
     "withdraw": "出金",
     "refresh_balance": "残高を更新",
@@ -883,6 +885,7 @@
       "title": "入金額",
       "get_usdc_hyperliquid": "USDCを入手 • Hyperliquid",
       "insufficient_funds": "資金不足",
+      "no_funds_available": "No funds available. Please deposit first.",
       "enter_amount": "金額を入力してください",
       "fetching_quote": "クォートを取得中",
       "submitting": "トランザクションを送信中",
@@ -1034,6 +1037,7 @@
         "insufficient_funds": "資金不足",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "レバレッジが高くなると清算リスクが高まります",
         "invalid_take_profit": "{{positionType}}ポジションの利益確定ラインは、現在の価格より{{direction}}である必要があります",
         "invalid_stop_loss": "{{positionType}}ポジションの損切りラインは、現在の価格より{{direction}}である必要があります",
@@ -1060,8 +1064,8 @@
       "take_profit": "利益確定",
       "stop_loss": "ストップロス",
       "tp_sl": "TP/SL",
-      "tp": "TP",
-      "sl": "SL",
+      "tp": "利確",
+      "sl": "損切",
       "button": {
         "long": "{{asset}}をロング",
         "short": "{{asset}}をショート"
@@ -1088,16 +1092,16 @@
         "limit_price_below": "リミット価格が現在の価格を下回っています"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "レバレッジ",
         "confirm": "確定",
         "entry_price": "エントリー価格",
         "current_price": "現在の価格",
         "liquidation_price": "清算価格",
         "liquidation_distance": "清算価格との距離",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "価格が{{percentage}}{{direction}}すると清算されます",
+        "drops": "下落",
+        "rises": "上昇",
+        "set_leverage": "{{leverage}}倍に設定"
       },
       "type": {
         "title": "注文タイプ",
@@ -1180,11 +1184,9 @@
     "tpsl": {
       "title": "利益確定とストップロス",
       "description": "損益の割合を選択するか、ポジションを自動的にクローズするトリガー価格をカスタムで入力してください。",
-      "set": "設定",
-      "updating": "更新中...",
       "off": "オフ",
       "current_price": "現在の価格",
-      "entry_price": "Entry price",
+      "entry_price": "エントリー価格",
       "leverage": "レバレッジ",
       "margin": "証拠金",
       "liquidation_price": "清算価格",
@@ -1204,7 +1206,7 @@
       "stop_loss_order_view_warning": "ストップロスが清算価格よりも{{direction}}に設定されています",
       "above": "上",
       "below": "下",
-      "dismiss_tpsl_keypad": "閉じる"
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "使用可能なトークンがありません"
@@ -1297,7 +1299,7 @@
         "empty_title": "保有中のポジションはありません",
         "empty_description": "まだポジションはありません。\n取引を開始すると、こちらに表示されます。",
         "first_time_title": "パーペチュアル",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "最大40倍のレバレッジで価格の変動に賭けます。",
         "start_trading": "取引を開始",
         "start_new_trade": "新規取引を開始",
         "open_positions": "保有中のポジション",
@@ -1330,16 +1332,16 @@
         "error_message": "市場データが見つかりません。前の画面に戻り、もう一度お試しください。"
       },
       "statistics": "概要",
-      "24hr_high": "24時間の最高値",
-      "24hr_low": "24時間の最安値",
+      "24h_high": "24時間の最高値",
+      "24h_low": "24時間の最安値",
       "24h_volume": "24時間の取引高",
       "open_interest": "取組高",
       "funding_rate": "資金調達率",
       "countdown": "カウントダウン",
       "long": "ロング",
       "short": "ショート",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "ロング",
+      "short_lowercase": "ショート",
       "add_funds": "資金を追加",
       "add_funds_to_start_trading_perps": "資金を追加してパーペチュアルの取引を開始します",
       "position": "ポジション",
@@ -1447,9 +1449,9 @@
         "show_more": "さらに表示"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "分",
+        "hours": "時間",
+        "days": "日"
       }
     },
     "perps_markets": "パーペチュアル市場",
@@ -1458,6 +1460,8 @@
     "failed_to_load_market_data": "市場データを読み込めませんでした",
     "tap_to_retry": "タップして再試行",
     "search_by_token_symbol": "トークンシンボルで検索",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "テストネット",
     "mainnet": "メインネット",
     "developer_options": {
@@ -1519,7 +1523,7 @@
       },
       "choose_leverage": {
         "title": "レバレッジの選択",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 1% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "清算に注意",
@@ -1527,16 +1531,17 @@
       },
       "close_anytime": {
         "title": "いつでもクローズ可能",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "いつでも好きなときに取引を終了でき、証拠金に利益を足した額、または損失を引いた額が返金されます。"
       },
       "ready_to_trade": {
         "title": "取引の準備はできましたか？",
         "description": "任意のトークンでパーペチュアルアカウントに入金すれば、数秒で最初の取引ができます。",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMaskはArbitrum上で資金をUSDCに交換し、これを追加手数料なしでHyperEVMに入金します。"
       },
       "got_it": "了解"
     },
     "points": "ポイント",
+    "estimated_points": "Est. Points",
     "unable_to_load": "読み込ませんでした",
     "points_error": "現在、ポイントを読み込めません",
     "points_error_content": "ポイントは獲得できていますのでご心配なく。ポイントはすぐにアカウントに表示されます。または、後ほど「リワード」タブでご確認ください。",
@@ -1609,8 +1614,7 @@
     "accept": "同意する"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "QRコードをスキャン",
-    "receive_tab": "QRコード"
+    "scanner_tab": "QRコードをスキャン"
   },
   "banner": {
     "bridge": {
@@ -1703,7 +1707,6 @@
     "buy_asset": "{{asset}}を購入",
     "no_tokens": "トークンがありません！",
     "show_tokens_without_balance": "残高なしでトークンを表示",
-    "no_nfts_yet": "まだNFTがありません",
     "nfts_autodetection_title": "NFTの検出",
     "nfts_autodetection_desc": "MetaMaskによるウォレット内のNFTの自動検出と表示を許可します。",
     "network_details_check": "ネットワーク情報の確認",
@@ -1861,9 +1864,13 @@
     "agree": "同意する",
     "decline": "同意しない",
     "description_title": "MetaMaskの改善にご協力ください",
-    "description_content_1": "MetaMaskの改善を目的に、基本的な使用状況データを収集したいと思います。ここで提供されるデータが販売されることはありません。",
+    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "指標を収集する際、常に次の条件が適用されます...",
     "description_content_3": "当社がプロファイル用に使用状況データを収集しつつ、どのようにユーザーのプライバシーを守るのかご覧ください。",
+    "gather_basic_usage_title": "Gather basic usage data",
+    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_learn_more": "Learn more",
+    "checkbox_marketing": "Marketing updates",
     "checkbox": "このデータは、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握するために使用されます。また、関連ニュースをお伝えする場合もあります (製品の機能など)。",
     "action_description_1_prefix": "非公開:",
     "action_description_2_prefix": "一般:",
@@ -1873,6 +1880,7 @@
     "action_description_3_description": "使用状況データを共有するか削除するかは、設定でいつでも指定できます。",
     "cta_no_thanks": "いいえ、結構です",
     "cta_i_agree": "同意する",
+    "continue": "Continue",
     "fine_print_1_legacy": "一般データ保護規則 (EU) 2016/679の目的に従い、このデータは集約され匿名化されます。",
     "fine_print_2a_legacy": "*MetaMaskでInfuraをデフォルトのRPCプロバイダーとして使用する場合、Infuraはトランザクションの送信時にユーザーのIPアドレスおよびイーサリアムウォレットアドレスを収集します。当社がこれらの情報を、システムによりこれら2つのデータが関連付けられる形で保管することはありません。続行する前に、RPCプロバイダーを構成できます。",
     "fine_print_2b_legacy": "データ収集の観点におけるMetaMaskとInfuraのやり取りに関する詳細は、最新情報をご覧ください。",
@@ -2034,7 +2042,10 @@
       "bitcoin_regtest_account_name": "ビットコインRegtestアカウント",
       "solana_devnet_account_name": "Solana Devnetアカウント",
       "solana_testnet_account_name": "Solanaテストネットアカウント",
-      "solana_account_name": "Solanaアカウント"
+      "solana_account_name": "Solanaアカウント",
+      "tron_account_name": "Tron Account",
+      "tron_nile_account_name": "Tron Nile Account",
+      "tron_shasta_account_name": "Tron Shasta Account"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}}アカウントを作成できませんでした"
@@ -3433,7 +3444,7 @@
     "error_multiple_srp_word_error_3": "が正しくないか、スペルが間違っています。",
     "error_invalid_srp": "無効なシークレットリカバリーフレーズ",
     "error_duplicate_srp": "このシークレットリカバリーフレーズはすでにインポートされています。",
-    "success_1": "シークレットリカバリーフレーズです。",
+    "success_1": "Wallet",
     "success_2": "インポートされました"
   },
   "first_incoming_transaction": {
@@ -4031,14 +4042,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "購入",
     "sell": "売却",
-    "orders": "注文",
+    "orders": "Transfers",
     "All": "すべて",
     "Buy": "購入",
     "Sell": "売却",
     "token_marketplace": "トークンマーケットプレイス",
     "Purchased": "購入しました",
     "Sold": "売却しました",
-    "empty_orders_list": "注文がありません",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "購入注文がありません",
     "empty_sell_orders_list": "売却注文がありません",
     "purchased_currency": "{{currency}}を購入しました",
@@ -4048,11 +4059,6 @@
     "order_status_completed": "完了",
     "order_status_failed": "失敗",
     "order_status_cancelled": "キャンセル済み",
-    "network_switcher": {
-      "title": "サポートされていない{{rampType}}ネットワーク",
-      "description": "仮想通貨を{{rampType}}するには、サポートされているネットワークに切り替える必要があります",
-      "no_networks_found": "サポートされているネットワークが見つかりませんでした"
-    },
     "onboarding": {
       "what_to_expect": "今後の流れ",
       "quotes": "当社の仮想通貨購入機能は提携ベンダーからクォートを集め、それらのソースからのクォートを提供し、待ち時間なしで直接ウォレットに仮想通貨を入金します。",
@@ -4881,12 +4887,14 @@
     "import_account": "秘密鍵",
     "add_bitcoin_account": "ビットコインアカウント",
     "add_solana_account": "Solanaアカウント",
+    "add_tron_account": "Tron account",
     "switch_to_smart_account": "スマートアカウントに切り替える",
     "rename_account": "アカウント名を変更",
     "addresses": "アドレス",
     "headers": {
       "bitcoin": "ビットコイン",
-      "solana": "Solana"
+      "solana": "Solana",
+      "tron": "Tron"
     }
   },
   "show_nft": {
@@ -5424,9 +5432,10 @@
     "quote_info_title": "レート",
     "network_fee_info_title": "ネットワーク手数料",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "ポイント",
+    "points": "Est. points",
     "points_tooltip": "ポイント",
-    "points_tooltip_content": "この取引で獲得するMetaMaskリワードポイントの見積もりです。ポイントがリワード残高に反映されるまでに最大1時間かかる場合があります。",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5917,8 +5926,7 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
+      "link_account_button": "Add"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -5933,19 +5941,25 @@
         "processing": "Processing..."
       }
     },
-    "unlinked_accounts_info": {
-      "title": "Accounts not earning points",
-      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
-      "go_to_settings": "Go to settings"
+    "toast_dismiss": "Dismiss",
+    "dashboard_modal_info": {
+      "active_account": {
+        "title": "Don't miss out",
+        "description": "Add your account to start earning points from your activity.",
+        "confirm": "Add account"
+      },
+      "multiple_unlinked_accounts": {
+        "title": "Start earning points",
+        "description": "Add your accounts so you can track your rewards at a glance.",
+        "confirm": "Add accounts"
+      },
+      "account_not_supported": {
+        "title": "Account not supported",
+        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
+        "confirm": "Go back"
+      }
     },
-    "unlinked_account_info": {
-      "title": "Account not earning points",
-      "title_optin_not_supported": "Account not supported",
-      "description": "This account's activity is not being tracked for this season.",
-      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
-    },
-    "link_account": "Add account",
-    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
@@ -5961,12 +5975,12 @@
       },
       "perps": {
         "title": "パーペチュアル",
-        "description": "10 points per $100",
+        "description": "$100ごとに10ポイント",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "パーペチュアルを取引",
+          "points": "$100ごとに10ポイント",
+          "description": "オープンやクローズ、ストップロス注文や利益確定注文、証拠金の調整など、取引のたびにポイントを獲得できます。",
+          "cta_label": "取引を開始"
         }
       },
       "referrals": {
@@ -5987,7 +6001,6 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
-      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "友達を紹介",
         "share_referral_subject": "MetaMaskリワードにご参加ください"
@@ -6000,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6012,6 +6025,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "left",
       "expired": "Expired"
     }
   },

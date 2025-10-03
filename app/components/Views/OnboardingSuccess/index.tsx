@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -45,6 +46,7 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
+import { discoverAccounts } from '../../../multichain-accounts/discovery';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -91,8 +93,11 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     const onOnboardingSuccess = async () => {
       // We're not running EVM discovery on its own if state 2 is enabled. The discovery
       // will be run on every account providers (EVM included) prior to that point.
-      // See: Authentication.ts
-      if (!isMultichainAccountsState2Enabled()) {
+      if (isMultichainAccountsState2Enabled()) {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } else {
         await importAdditionalAccounts();
       }
     };
@@ -253,27 +258,29 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.root]}
-      testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
-    >
-      <View style={styles.contentContainer}>
-        <View style={styles.contentWrapper}>
-          {renderContent()}
-          {renderFooter()}
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.root}
+        testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
+      >
+        <View style={styles.contentContainer}>
+          <View style={styles.contentWrapper}>
+            {renderContent()}
+            {renderFooter()}
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button
+              testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+              label={strings('onboarding_success.done')}
+              variant={ButtonVariants.Primary}
+              onPress={handleOnDone}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            label={strings('onboarding_success.done')}
-            variant={ButtonVariants.Primary}
-            onPress={handleOnDone}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

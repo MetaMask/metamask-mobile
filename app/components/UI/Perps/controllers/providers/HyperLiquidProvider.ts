@@ -3,6 +3,7 @@ import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import { captureException } from '@sentry/react-native';
 import {
   BUILDER_FEE_CONFIG,
@@ -33,6 +34,7 @@ import {
 } from '../../utils/hyperLiquidAdapter';
 import {
   createErrorResult,
+  getMaxOrderValue,
   getSupportedPaths,
   validateAssetSupport,
   validateBalance,
@@ -41,6 +43,7 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
+import { formatPerpsFiat } from '../../utils/formatUtils';
 import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
@@ -124,6 +127,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     { value: number; timestamp: number }
   >();
 
+  // Fee discount context for MetaMask reward discounts (in basis points)
+  private userFeeDiscountBips?: number;
+
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
@@ -177,6 +183,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
     DevLogger.log('Asset mapping built', {
       assetCount: meta.universe.length,
       coins: Array.from(this.coinToAssetId.keys()),
+    });
+  }
+
+  /**
+   * Set user fee discount context for next operations
+   * Used by PerpsController to apply MetaMask reward discounts
+   * @param discountBips - The discount in basis points (e.g., 550 = 5.5%)
+   */
+  setUserFeeDiscount(discountBips: number | undefined): void {
+    this.userFeeDiscountBips = discountBips;
+
+    DevLogger.log('HyperLiquid: Fee discount context updated', {
+      discountBips,
+      discountPercentage: discountBips ? discountBips / 100 : undefined,
+      isActive: discountBips !== undefined,
     });
   }
 
@@ -539,7 +560,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         averagePrice: filledOrder?.avgPx,
       };
     } catch (error) {
-      DevLogger.log('Order placement failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order placement failed',
+        context: 'HyperLiquidProvider.placeOrder',
+      });
       const mappedError = this.mapError(error);
       return createErrorResult(mappedError, { success: false });
     }
@@ -644,7 +668,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: params.orderId.toString(),
       };
     } catch (error) {
-      DevLogger.log('Order modification failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order modification failed',
+        context: 'HyperLiquidProvider.editOrder',
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -690,7 +717,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error: success ? undefined : 'Order cancellation failed',
       };
     } catch (error) {
-      DevLogger.log('Order cancellation failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order cancellation failed',
+        context: 'HyperLiquidProvider.cancelOrder',
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -726,7 +756,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         positions = await this.getPositions();
       } catch (error) {
-        DevLogger.log('Error getting positions:', error);
+        Logger.error(error as Error, {
+          message: 'Error getting positions during close position',
+          context: 'HyperLiquidProvider.closePosition',
+        });
 
         // Capture exception with data context
         captureException(
@@ -1146,6 +1179,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
             pnl: fill.closedPnl,
             direction: fill.dir,
             success: true,
+            liquidation: fill.liquidation
+              ? {
+                  liquidatedUser: fill.liquidation.liquidatedUser,
+                  markPx: fill.liquidation.markPx,
+                  method: fill.liquidation.method,
+                }
+              : undefined,
           });
         }
 
@@ -1237,6 +1277,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           status: normalizedStatus,
           timestamp: statusTimestamp,
           lastUpdated: statusTimestamp,
+          detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
         };
       });
 
@@ -1432,7 +1473,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return accountState;
     } catch (error) {
-      DevLogger.log('Error getting account state:', error);
+      Logger.error(error as Error, {
+        message: 'Error getting account state',
+        context: 'HyperLiquidProvider.getAccountState',
+      });
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
       throw error;
@@ -1593,6 +1637,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
           isValid: false,
           error: strings('perps.order.validation.limit_price_required'),
         };
+      }
+
+      // Validate order value against max limits
+      if (params.currentPrice && params.leverage) {
+        try {
+          const maxLeverage = await this.getMaxLeverage(params.coin);
+
+          const maxOrderValue = getMaxOrderValue(maxLeverage, params.orderType);
+          const orderValue = parseFloat(params.size) * params.currentPrice;
+
+          if (orderValue > maxOrderValue) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.max_order_value', {
+                maxValue: formatPerpsFiat(maxOrderValue, {
+                  minimumDecimals: 0,
+                  maximumDecimals: 0,
+                }).replace('$', ''),
+              }),
+            };
+          }
+        } catch (error) {
+          DevLogger.log('Failed to validate max order value', error);
+          // Continue without max order validation if we can't get leverage
+        }
       }
 
       return { isValid: true };
@@ -2407,8 +2476,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
           : parsedAmount * protocolFeeRate
         : undefined;
 
-    // MetaMask builder fee (0.1% = 0.001)
-    const metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+    // MetaMask builder fee (0.1% = 0.001) with optional reward discount
+    let metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+
+    // Apply MetaMask reward discount if active
+    if (this.userFeeDiscountBips !== undefined) {
+      const discount = this.userFeeDiscountBips / 10000; // Convert basis points to decimal
+      metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
+
+      DevLogger.log('HyperLiquid: Applied MetaMask fee discount', {
+        originalRate: BUILDER_FEE_CONFIG.maxFeeDecimal,
+        discountBips: this.userFeeDiscountBips,
+        discountPercentage: this.userFeeDiscountBips / 100,
+        adjustedRate: metamaskFeeRate,
+        discountAmount: BUILDER_FEE_CONFIG.maxFeeDecimal * discount,
+      });
+    }
+
     const metamaskFeeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)

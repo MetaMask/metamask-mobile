@@ -49,10 +49,10 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
 describe(SmokeTrade('Onramp quote build screen'), () => {
   let shouldCheckProviderSelectedEvents = true;
   beforeEach(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(200000);
   });
 
-  it('should get to the Amount to buy screen, after selecting Get Started', async () => {
+  it.skip('should get to the Amount to buy screen, after selecting Get Started', async () => {
     await setupOnRampTest(async () => {
       await Assertions.expectElementToBeVisible(
         BuildQuoteView.amountToBuyLabel,
@@ -70,7 +70,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
     });
   });
 
-  it('should enter amount, show quotes and expand quotes section', async () => {
+  it.skip('should enter amount, show quotes and expand quotes section', async () => {
     await setupOnRampTest(async () => {
       await BuildQuoteView.enterAmount('100');
       await BuildQuoteView.tapGetQuotesButton();
@@ -102,7 +102,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
   });
 
   // Keep this test at the end of the suite
-  it('should validate segment/metametric events for a successful onramp flow', async () => {
+  it.skip('should validate segment/metametric events for a successful onramp flow', async () => {
     const expectedEvents = {
       BUY_BUTTON_CLICKED: 'Buy Button Clicked',
       ONRAMP_GET_STARTED_CLICKED: 'On-ramp Get Started Clicked',

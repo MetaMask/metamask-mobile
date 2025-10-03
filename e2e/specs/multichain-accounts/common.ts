@@ -25,7 +25,7 @@ export const HD_ACCOUNT: Account = {
 };
 
 export const SIMPLE_KEYPAIR_ACCOUNT: Account = {
-  name: 'Account 4',
+  name: 'Account 2', // This is an imported Account. Under Imported account section.
   index: 4,
   address: DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 };
@@ -72,7 +72,6 @@ export const withMultichainAccountDetailsV2EnabledFixtures = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
-        .ensureMultichainIntroModalSuppressed()
         .build(),
       restartDevice: true,
       testSpecificMock,

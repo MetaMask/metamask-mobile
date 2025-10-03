@@ -1,4 +1,5 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
@@ -6,12 +7,14 @@ import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/
 import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
 
 class SwapScreen {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
   get sourceTokenInput() {
     return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
@@ -121,8 +124,7 @@ class SwapScreen {
   }
 
   async enterDestinationTokenAmount(amount) {
-    const element = await this.destTokenInput;
-    await element.fill(amount);
+    await AppwrightGestures.typeText(this.destTokenInput, amount);
   }
 
   async isVisible() {

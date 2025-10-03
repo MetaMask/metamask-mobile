@@ -53,6 +53,8 @@ jest.mock(
   }),
 );
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 const mockSetOptions = jest.fn();
 const mockNavigation = {
   addListener: jest.fn(),
@@ -107,7 +109,6 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         ],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
@@ -186,6 +187,7 @@ describe('Confirm', () => {
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
   });
+
   afterEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();

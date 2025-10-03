@@ -1,3 +1,4 @@
+import { AppState, AppStateStatus } from 'react-native';
 import { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import {
   ConnectionRequest,
@@ -6,18 +7,25 @@ import {
 import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
+import { ConnectionInfo } from '../types/connection-info';
+import logger from './logger';
+import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
  * lifecycle of all SDKConnectV2 connections.
  */
 export class ConnectionRegistry {
+  private readonly DEEPLINK_PREFIX = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`;
+
   private readonly RELAY_URL: string;
   private readonly keymanager: IKeyManager;
   private readonly hostapp: IHostApplicationAdapter;
   private readonly store: IConnectionStore;
 
+  private readonly ready: Promise<void>;
   private connections = new Map<string, Connection>();
+  private deeplinks = new Set<string>();
 
   constructor(
     relayURL: string,
@@ -29,6 +37,41 @@ export class ConnectionRegistry {
     this.keymanager = keymanager;
     this.hostapp = hostapp;
     this.store = store;
+    this.ready = this.initialize();
+    this.setupAppStateListener();
+  }
+
+  /**
+   * One-time initialization to resume all persisted connections on app cold start.
+   */
+  private async initialize(): Promise<void> {
+    const persisted = await this.store.list().catch(() => []);
+
+    const promises = persisted.map(async (connInfo) => {
+      try {
+        const conn = await Connection.create(
+          connInfo,
+          this.keymanager,
+          this.RELAY_URL,
+        );
+        await conn.resume();
+        this.connections.set(conn.id, conn);
+        logger.debug('Connection resumed', conn.id);
+      } catch (error) {
+        logger.error('Failed to resume connection', connInfo.id, error);
+      }
+    });
+
+    await Promise.allSettled(promises);
+  }
+
+  /**
+   * Returns true if the deeplink is a connect deeplink
+   * @param url - The url to check
+   * @returns - True if the deeplink is a connect deeplink
+   */
+  public isConnectDeeplink(url: unknown): url is string {
+    return typeof url === 'string' && url.startsWith(this.DEEPLINK_PREFIX);
   }
 
   /**
@@ -36,41 +79,46 @@ export class ConnectionRegistry {
    * @param url The full deeplink URL that triggered the connection.
    *
    * Happy path:
-   * 1. Show loading indicator
-   * 2. Parse the connection request
+   * 1. Parse the connection request
+   * 2. Show loading indicator
    * 3. Create a new connection and connect
    * 4. Save the connection to the store
    * 5. Sync the connection list to the host application
    * 6. Hide loading indicator
+   *
+   * NOTE: As the host app might call this function multiple times in a short period of time,
+   * we need keep track of the deeplinks to make this function idempotent.
    */
   public async handleConnectDeeplink(url: string): Promise<void> {
+    if (this.deeplinks.has(url)) return;
+    this.deeplinks.add(url);
+
+    logger.debug('Handling connect deeplink:', url);
+
     let conn: Connection | undefined;
+    let connInfo: ConnectionInfo | undefined;
 
     try {
-      const connreq = this.parseConnectionRequest(url);
-      this.hostapp.showLoading();
-      conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
-      await conn.connect(connreq.sessionRequest);
+      const connReq = this.parseConnectionRequest(url);
+      connInfo = this.toConnectionInfo(connReq);
+      this.hostapp.showConnectionLoading(connInfo);
+      conn = await Connection.create(connInfo, this.keymanager, this.RELAY_URL);
+      await conn.connect(connReq.sessionRequest);
       this.connections.set(conn.id, conn);
-      await this.store.save({ id: conn.id, metadata: connreq.metadata });
+      await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      console.warn(
-        `[SDKConnectV2] Connection with ${connreq.metadata.dapp.name} successfully established.`,
-      );
+      logger.debug('Handled connect deeplink.', connInfo);
     } catch (error) {
-      console.error('[SDKConnectV2] Connection handshake failed:', error);
+      logger.error('Failed to handle connect deeplink:', error, url);
+      this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
-      this.hostapp.showAlert(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
     } finally {
-      this.hostapp.hideLoading();
+      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
   }
 
   /**
-   * Disconnects a session, cleans up all associated data
+   * Disconnects a connection, cleans up all associated data
    * and revokes permissions.
    * @param id The ID of the connection to terminate.
    */
@@ -80,6 +128,7 @@ export class ConnectionRegistry {
     this.connections.delete(id);
     this.hostapp.revokePermissions(id);
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+    logger.debug('Connection disconnected:', id);
   }
 
   /**
@@ -90,34 +139,75 @@ export class ConnectionRegistry {
    * Format: metamask://connect/mwp?p=<encoded_connection_request>
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
-    let parsed: URL;
-
-    try {
-      parsed = new URL(url);
-    } catch (error) {
-      throw new Error('[SDKConnectV2] Invalid URL format.');
-    }
+    const parsed = new URL(url);
 
     const payload = parsed.searchParams.get('p');
     if (!payload) {
-      throw new Error('[SDKConnectV2] No payload found in URL.');
+      throw new Error('No payload found in URL.');
     }
 
     if (payload.length > 1024 * 1024) {
-      throw new Error('[SDKConnectV2] Payload too large (max 1MB).');
+      throw new Error('Payload too large (max 1MB).');
     }
 
-    let connreq: unknown;
-    try {
-      connreq = JSON.parse(payload);
-    } catch (error) {
-      throw new Error('[SDKConnectV2] Invalid JSON in payload.');
+    const connReq: unknown = JSON.parse(payload);
+
+    if (!isConnectionRequest(connReq)) {
+      throw new Error('Invalid connection request structure.');
     }
 
-    if (!isConnectionRequest(connreq)) {
-      throw new Error('[SDKConnectV2] Invalid connection request structure.');
-    }
+    return connReq;
+  }
 
-    return connreq;
+  private toConnectionInfo(connReq: ConnectionRequest): ConnectionInfo {
+    return {
+      id: connReq.sessionRequest.id,
+      metadata: connReq.metadata,
+    };
+  }
+
+  /**
+   * Sets up the listener for app state lifecycle events to handle reconnection.
+   */
+  private setupAppStateListener(): void {
+    let isColdStart = true;
+
+    AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus): void => {
+        if (nextAppState !== 'active') {
+          return;
+        }
+
+        // First 'active' event on a cold start is ignored
+        if (isColdStart) {
+          isColdStart = false;
+          return;
+        }
+
+        // For all subsequent 'active' events, we reconnect, but only after
+        // the initial setup is guaranteed to be complete to avoid race conditions.
+        this.ready.then(() => this.reconnectAll());
+      },
+    );
+  }
+
+  /**
+   * Proactively refreshes all active connections. This is the primary mechanism
+   * for preventing stale/zombie connections after the app was put in the background.
+   */
+  private async reconnectAll(): Promise<void> {
+    const connections = Array.from(this.connections.values());
+
+    const promises = connections.map((conn) =>
+      conn.client
+        .reconnect()
+        .then(() => logger.debug('Connection reconnected:', conn.id))
+        .catch((err: Error) =>
+          logger.error('Failed to reconnect connection:', err, conn.id),
+        ),
+    );
+
+    await Promise.allSettled(promises);
   }
 }

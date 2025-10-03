@@ -66,11 +66,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock hooks
 jest.mock('../../hooks', () => ({
-  usePerpsLiveAccount: jest.fn(() => ({
-    account: {
-      availableBalance: '$1000.00',
-    },
-    isInitialLoading: false,
+  usePerpsAccount: jest.fn(() => ({
+    availableBalance: '$1000.00',
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {
@@ -91,10 +88,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-  })),
   useWithdrawValidation: jest.fn(() => ({
     hasAmount: false,
     isBelowMinimum: false,
@@ -102,6 +95,7 @@ jest.mock('../../hooks', () => ({
     getMinimumAmount: jest.fn(() => '10.00'),
   })),
   usePerpsNetwork: jest.fn(() => 'mainnet'),
+  usePerpsMeasurement: jest.fn(),
 }));
 
 // Mock components

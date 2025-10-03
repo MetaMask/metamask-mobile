@@ -3,6 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfo from './account-network-info-row';
+import { MAINNET_DISPLAY_NAME } from '../../../../../../core/Engine/constants';
 
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
@@ -48,12 +49,19 @@ jest.mock('../../../../../../core/Engine', () => {
   };
 });
 
+jest.mock(
+  '../../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 describe('AccountNetworkInfo', () => {
   it('should render correctly', async () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfo />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('0x935E7...05477')).toBeDefined();
-    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText(MAINNET_DISPLAY_NAME)).toBeDefined();
   });
 });

@@ -71,12 +71,16 @@ import TransactionElement from '../TransactionElement';
 import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    listContentContainer: {
+      paddingBottom: 80,
     },
     bottomModal: {
       justifyContent: 'flex-end',
@@ -189,6 +193,10 @@ class Transactions extends PureComponent {
      * Chain ID of the token
      */
     tokenChainId: PropTypes.string,
+    /**
+     * Whether multichain accounts state 2 is enabled
+     */
+    isMultichainAccountsState2Enabled: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -309,6 +317,7 @@ class Transactions extends PureComponent {
     }
   };
 
+  // TODO: we should delete this is dead code.
   toggleDetailsView = (id, index) => {
     const oldId = this.selectedTx && this.selectedTx.id;
     const oldIndex = this.selectedTx && this.selectedTx.index;
@@ -359,6 +368,9 @@ class Transactions extends PureComponent {
     const styles = createStyles(colors);
 
     const shouldShowSwitchNetwork = () => {
+      if (this.props.isMultichainAccountsState2Enabled) {
+        return false;
+      }
       if (!this.props.tokenChainId || !this.props.chainId) {
         return false;
       }
@@ -547,8 +559,7 @@ class Transactions extends PureComponent {
   };
 
   signQRTransaction = async (tx) => {
-    const { KeyringController, ApprovalController } = Engine.context;
-    await KeyringController.resetQRKeyringState();
+    const { ApprovalController } = Engine.context;
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
@@ -794,6 +805,7 @@ class Transactions extends PureComponent {
                   ? this.footer
                   : this.renderEmpty()
               }
+              contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}
@@ -904,6 +916,8 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
+  isMultichainAccountsState2Enabled:
+    selectMultichainAccountsState2Enabled(state),
 });
 
 Transactions.contextType = ThemeContext;
