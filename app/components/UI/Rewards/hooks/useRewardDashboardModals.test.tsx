@@ -6,7 +6,7 @@ import {
   RewardsDashboardModalType,
 } from './useRewardDashboardModals';
 import Routes from '../../../../constants/navigation/Routes';
-import { useLinkAccount } from './useLinkAccount';
+import { useLinkAccount } from './useLinkAccountGroup';
 import { isHardwareAccount } from '../../../../util/address';
 
 // Mock dependencies
@@ -57,8 +57,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.dashboard_modal_info.account_not_supported.description_general':
         'This account type is not supported',
       'rewards.dashboard_modal_info.account_not_supported.confirm': 'OK',
-      'rewards.linking_account': 'Linking...',
-      'rewards.link_account': 'Link Account',
+      'rewards.link_account_group.linking_account': 'Linking...',
+      'rewards.link_account_group.link_account': 'Link Account',
       'confirmation_modal.confirm_cta': 'OK',
       'drawer.cancel': 'Cancel',
     };

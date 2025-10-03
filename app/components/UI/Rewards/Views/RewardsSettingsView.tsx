@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getNavigationOptionsTitle } from '../../Navbar';
@@ -10,20 +9,18 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import Toast from '../../../../component-library/components/Toast';
-import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
-import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
+import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 import { useOptout } from '../hooks/useOptout';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { ScrollView } from 'react-native';
 import { RewardsMetricsButtons } from '../utils';
 
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedSettingsViewed = useRef(false);
@@ -74,7 +71,7 @@ const RewardsSettingsView: React.FC = () => {
           </Box>
 
           {/* Section 2: Account Tabs */}
-          <RewardSettingsTabs initialTabIndex={0} />
+          <RewardSettingsAccountGroupList />
 
           {/* Section 3: Opt Out */}
           <Box twClassName="gap-4 flex-col">
@@ -109,9 +106,6 @@ const RewardsSettingsView: React.FC = () => {
           </Box>
         </Box>
       </ScrollView>
-
-      {/* Toast for success feedback */}
-      <Toast ref={toastRef} />
     </ErrorBoundary>
   );
 };
