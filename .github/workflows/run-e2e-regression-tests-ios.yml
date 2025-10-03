@@ -187,7 +187,7 @@ jobs:
           EXIT_CODE=0
           {
             echo "summary<<EOF"
-            node scripts/generate-regression-slack-summary.mjs iOS || EXIT_CODE=$?
+            node .github/scripts/generate-regression-slack-summary.mjs iOS || EXIT_CODE=$?
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
           exit $EXIT_CODE

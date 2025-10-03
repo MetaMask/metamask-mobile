@@ -2,7 +2,7 @@
 
 /**
  * Generate Slack notification summary for regression E2E tests
- * Usage: node scripts/generate-regression-slack-summary.mjs [platform] [results-path]
+ * Usage: node .github/scripts/generate-regression-slack-summary.mjs [platform] [results-path]
  */
 
 import fs from 'fs';
