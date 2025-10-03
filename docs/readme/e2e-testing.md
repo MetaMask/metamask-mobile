@@ -13,9 +13,13 @@ Our end-to-end (E2E) testing strategy leverages a combination of technologies to
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
   - [Environment files](#environment-files)
-- [Building the app (optional)](#building-the-app-optional)
-  - [Development Commands](#development-commands)
-  - [E2E Testing Commands](#e2e-testing-commands)
+- [Build the app (optional)](#build-the-app-optional)
+- [Use a prebuilt app file](#use-a-prebuilt-app-file)
+  - [iOS builds](#ios-builds)
+  - [Android builds](#android-builds)
+- [Run the E2E Tests](#run-the-e2e-tests)
+- [Setup Troubleshooting](#setup-troubleshooting)
+- [Appium](#appium)
 
 ## Local environment setup
 
@@ -55,8 +59,6 @@ Ensure that following devices are set up:
 
 ### Environment files
 
-<!-- Refer to the .js.env file in the mobile 1Password vault for the complete list of environment variables. -->
-
 1. Copy the E2E environment variables from the example file:
 
    ```bash
@@ -87,50 +89,100 @@ Ensure that following devices are set up:
    yarn setup:expo
    ```
 
-### Building the app (optional)
+### Build the app (optional)
 
 Sometimes it is necessary to build the app locally, for example, to enable build-time feature flags (like GNS), to debug issues more effectively, or to identify and update element locators.
 
-#### Development commands
+> **NOTE**: Building the app locally requires significant system resources.
 
-```bash
-# Full setup with native dependencies (required for native development)
-yarn setup
+Please follow the [native development guide](../../README.md#native-development) for more details.
 
-# Start Metro bundler for development and before running the tests
-yarn watch:clean
+### Use a prebuilt app file
 
-# Build and run the app with Metro bundler
-yarn start:ios
-yarn start:android
+You can use prebuilt app files instead of building the app locally.
 
-# Clean all build artifacts and node_modules
-yarn clean
-```
+#### iOS builds
 
-#### E2E Testing commands
+1. **Download iOS simulator builds** from Runway/Bitrise/GitHub workflows (build jobs)
+
+2. **Copy and rename the build**: Copy your downloaded .app file to the prebuild path
+
+   ```bash
+   # Copy your downloaded .app file to the prebuild path
+   cp /path/to/your/downloaded/AAA.app build/MetaMask.app
+   ```
+
+3. **Start the E2E watcher**:
+
+   ```bash
+   source .e2e.env && yarn watch
+   ```
+
+4. **Launch the iPhone 15 Pro simulator** from Xcode or in a new terminal by:
+
+   ```bash
+   xcrun simctl boot "iPhone 15 Pro"
+   open -a Simulator # to open the simulator app GUI
+   ```
+
+#### Android builds
+
+1. **Download Android builds** from Runway/Bitrise/GitHub workflows (build jobs)
+
+   > ⚠️ **Important**: You need **both APK files** from the downloaded zip:
+   >
+   > - Main APK from `/prod/debug/` folder
+   > - Test APK from `/androidTest/` folder
+
+2. **Install the builds**:
+
+   ```bash
+   # Copy the main APK (from /prod/debug/ folder)
+   cp /path/to/downloaded/prod/debug/AAA.apk build/MetaMask.apk
+
+   # Copy the test APK (from /androidTest/ folder)
+   cp /path/to/downloaded/androidTest/prod/debug/BBB.apk build/MetaMask-Test.apk
+   ```
+
+3. **Start the E2E watcher**:
+
+   ```bash
+   source .e2e.env && yarn watch
+   ```
+
+4. **Launch the Android emulator**: through Android Studio
+
+### Run the E2E Tests
 
 ```bash
 # Setup E2E dependencies (run this first)
-yarn setup:e2e
+source .e2e.env && yarn setup:e2e
 
-# iOS Tests
-yarn test:e2e:ios:debug:build    # Build iOS app for testing
-yarn test:e2e:ios:debug:run      # Run all iOS tests
+# Run all Tests
+source .e2e.env && yarn test:e2e:ios:debug:run
+source .e2e.env && yarn test:e2e:android:debug:run
 
-# Android Tests
-yarn test:e2e:android:debug:build    # Build Android app for testing
-yarn test:e2e:android:debug:run      # Run all Android tests
+# Run specific folder
+source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/your-folder
+source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/your-folder
 
 # Run specific test
-yarn test:e2e:ios:debug:run e2e/specs/onboarding/create-wallet.spec.js
+source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/onboarding/create-wallet.spec.js
+source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/onboarding/create-wallet.spec.js
 
 # Run tests by tag
-yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
+source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
+source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
-- **Android notice**: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
+### Setup Troubleshooting
 
+- **The application is not opening**: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
+- **Build folder doesn't exist**: Run `mkdir build` in your project root
+- **Simulator/Emulator not found**: Ensure the device names match exactly as specified in prerequisites
+- **Android SDK not found**: Verify `$ANDROID_SDK_ROOT` is set correctly with `echo $ANDROID_SDK_ROOT`
+- **My Expo Application shows an error "Failed to connect to localhost/127.0.0.1:8081"**: The emulator may need to have the expo port forwarded. Try `adb reverse tcp:8081 tcp:8081` and rerun the test command.
+- **Android notice**: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
   - install a build on the emulator
     - either install the apk or keep an existing install on the emulator
   - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
