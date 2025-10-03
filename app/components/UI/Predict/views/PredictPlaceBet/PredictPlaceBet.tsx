@@ -61,8 +61,13 @@ const PredictPlaceBet = () => {
     userBetAmount: currentValue,
   });
 
-  const title =
-    market.outcomes.length > 1 ? `${outcome.groupItemTitle} •` : market.title;
+  const title = market.title;
+  const outcomeGroupTitle = outcome.groupItemTitle
+    ? `${outcome.groupItemTitle} • `
+    : '';
+  const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
+    outcomeToken?.price ?? 0,
+  )}`;
 
   const onPlaceBet = () => {
     // Implement cash out action here
@@ -110,6 +115,16 @@ const PredictPlaceBet = () => {
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Box flexDirection={BoxFlexDirection.Row}>
+              {outcomeGroupTitle && (
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {outcomeGroupTitle}
+                </Text>
+              )}
               <Text
                 variant={TextVariant.BodySMMedium}
                 color={
@@ -120,7 +135,7 @@ const PredictPlaceBet = () => {
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {outcomeToken?.title} at {formatCents(outcomeToken?.price ?? 0)}
+                {outcomeTokenLabel}
               </Text>
             </Box>
           </Box>
