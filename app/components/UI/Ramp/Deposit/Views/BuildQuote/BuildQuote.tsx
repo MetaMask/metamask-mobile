@@ -378,6 +378,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
@@ -388,6 +389,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
