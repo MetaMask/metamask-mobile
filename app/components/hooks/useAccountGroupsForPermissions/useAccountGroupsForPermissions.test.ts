@@ -571,10 +571,10 @@ describe('useAccountGroupsForPermissions', () => {
     expect(result.current.supportedAccountGroups).toHaveLength(2);
     expect(result.current.supportedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toHaveLength(1);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested[0],
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups[0],
     ).toBe(`eip155:1:${mockEvmAccount2.address}`);
   });
 
@@ -637,13 +637,13 @@ describe('useAccountGroupsForPermissions', () => {
     expect(result.current.connectedAccountGroups).toHaveLength(1);
     expect(result.current.connectedAccountGroups[0].id).toBe(MOCK_GROUP_ID_1);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toHaveLength(2);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toContain(`eip155:1:${mockEvmAccount1.address}`);
     expect(
-      result.current.caipAccountIdsOfConnectedAccountGroupWithRequested,
+      result.current.caipAccountIdsOfConnectedAndRequestedAccountGroups,
     ).toContain(`eip155:1:${mockEvmAccount2.address}`);
 
     // Group 2 should be first in supported groups because it fulfills requested accounts
@@ -898,9 +898,11 @@ describe('useAccountGroupsForPermissions', () => {
         expect(result.current.selectedAndRequestedAccountGroups[0].id).toBe(
           MOCK_GROUP_ID_2,
         );
-        // Selected group (Group 1) should still be included
-        expect(result.current.selectedAndRequestedAccountGroups).toContainEqual(
-          expect.objectContaining({ id: MOCK_GROUP_ID_1 }),
+        expect(result.current.selectedAndRequestedAccountGroups).toHaveLength(
+          1,
+        );
+        expect(result.current.selectedAndRequestedAccountGroups[0].id).toBe(
+          MOCK_GROUP_ID_2,
         );
       });
     });
@@ -979,7 +981,9 @@ describe('useAccountGroupsForPermissions', () => {
         const requestedCaipAccountIds: CaipAccountId[] = [
           `eip155:1:${mockEvmAccount1.address}` as CaipAccountId,
         ];
-        const requestedCaipChainIds: CaipChainId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [
+          'eip155:1' as CaipChainId,
+        ];
         const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
 
         const { result } = renderHookWithStore(
@@ -989,7 +993,7 @@ describe('useAccountGroupsForPermissions', () => {
           requestedNamespacesWithoutWallet,
         );
 
-        expect(result.current.supportedAccountGroups).toHaveLength(1);
+        expect(result.current.supportedAccountGroups).toHaveLength(2);
         expect(result.current.supportedAccountGroups[0].id).toBe(
           MOCK_GROUP_ID_1,
         );
