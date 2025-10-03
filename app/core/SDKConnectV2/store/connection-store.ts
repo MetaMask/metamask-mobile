@@ -42,14 +42,18 @@ export class ConnectionStore implements IConnectionStore {
 
       // Expiration check
       if (connectionInfo.expiresAt < Date.now()) {
-        await this.delete(id);
+        await this.delete(id).catch(() => {
+          // Silently ignore delete errors - connection is already invalid
+        });
         return null;
       }
 
       return connectionInfo;
     } catch (error) {
       // Corrupted data, clean it up
-      await this.delete(id);
+      await this.delete(id).catch(() => {
+        // Silently ignore delete errors - connection is already invalid
+      });
       return null;
     }
   }

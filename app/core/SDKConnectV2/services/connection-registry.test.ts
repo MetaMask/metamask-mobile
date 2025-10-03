@@ -14,6 +14,11 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
+jest.mock('../../../store', () => ({
+  store: {
+    dispatch: jest.fn(),
+  },
+}));
 
 // A valid, sample connection request payload for use in tests
 const mockConnectionRequest: ConnectionRequest = {

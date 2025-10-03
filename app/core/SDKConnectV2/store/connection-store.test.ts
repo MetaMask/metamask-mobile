@@ -112,8 +112,12 @@ describe('ConnectionStore', () => {
 
     const result = await store.get('expired-id');
 
-    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix/expired-id');
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith('test-prefix/expired-id');
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+      'test-prefix/expired-id',
+    );
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/expired-id',
+    );
     expect(result).toBeNull();
   });
 
@@ -124,8 +128,12 @@ describe('ConnectionStore', () => {
 
     const result = await store.get('corrupted-id');
 
-    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix/corrupted-id');
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith('test-prefix/corrupted-id');
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+      'test-prefix/corrupted-id',
+    );
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/corrupted-id',
+    );
     expect(result).toBeNull();
   });
 
@@ -211,7 +219,9 @@ describe('ConnectionStore', () => {
     const result = await store.list();
 
     expect(result).toEqual([validConnection]);
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith('test-prefix/expired-id');
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/expired-id',
+    );
     expect(StorageWrapper.removeItem).toHaveBeenCalledTimes(1);
   });
 
@@ -238,7 +248,9 @@ describe('ConnectionStore', () => {
     const result = await store.list();
 
     expect(result).toEqual([validConnection]);
-    expect(StorageWrapper.removeItem).toHaveBeenCalledWith('test-prefix/corrupted-id');
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/corrupted-id',
+    );
     expect(StorageWrapper.removeItem).toHaveBeenCalledTimes(1);
   });
 
@@ -247,6 +259,49 @@ describe('ConnectionStore', () => {
 
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       'test-prefix/test-id',
+    );
+  });
+
+  it('should continue list operation even if delete fails', async () => {
+    const validConnection: ConnectionInfo = {
+      id: 'valid-id',
+      metadata: {
+        dapp: { name: 'Valid DApp', url: 'https://valid.com' },
+        sdk: { version: '1.0.0', platform: 'ios' },
+      },
+      expiresAt: Date.now() + 1000 * 60 * 60,
+    };
+
+    const expiredConnection: ConnectionInfo = {
+      id: 'expired-id',
+      metadata: {
+        dapp: { name: 'Expired DApp', url: 'https://expired.com' },
+        sdk: { version: '1.0.0', platform: 'ios' },
+      },
+      expiresAt: Date.now() - 1000,
+    };
+
+    (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValueOnce([
+      'test-prefix/valid-id',
+      'test-prefix/expired-id',
+    ]);
+
+    (AsyncStorage.multiGet as jest.Mock).mockResolvedValueOnce([
+      ['test-prefix/valid-id', JSON.stringify(validConnection)],
+      ['test-prefix/expired-id', JSON.stringify(expiredConnection)],
+    ]);
+
+    // Simulate delete error
+    (StorageWrapper.removeItem as jest.Mock).mockRejectedValueOnce(
+      new Error('Delete failed'),
+    );
+
+    // Should not throw and should still return valid connections
+    const result = await store.list();
+
+    expect(result).toEqual([validConnection]);
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/expired-id',
     );
   });
 });
