@@ -23,6 +23,14 @@ import {
   CustomAmount,
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
+import { useSelector } from 'react-redux';
+import {
+  selectIsTransactionBridgeQuotesLoadingById,
+  selectTransactionBridgeQuotesById,
+} from '../../../../../../core/redux/slices/confirmationMetrics';
+import { RootState } from '../../../../../../reducers';
+import { useTransactionPayTokenAmounts } from '../../../hooks/pay/useTransactionPayTokenAmounts';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export interface CustomAmountInfoProps {
   currency?: string;
@@ -36,6 +44,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setKeyboardVisible] = useState(true);
     const { setIsFooterVisible } = useConfirmationContext();
+
+    const isResultReady = useIsResultReady({
+      isKeyboardVisible,
+    });
 
     const {
       amountFiat,
@@ -87,7 +99,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <PayWithRow />
           </InfoSection>
           {isKeyboardVisible && <AlertMessage alertMessage={alertMessage} />}
-          {!isKeyboardVisible && (
+          {isResultReady && (
             <>
               <InfoSection>
                 <BridgeFeeRow />
@@ -125,5 +137,28 @@ export function CustomAmountInfoSkeleton() {
       </Box>
       <DepositKeyboardSkeleton />
     </Box>
+  );
+}
+
+function useIsResultReady({
+  isKeyboardVisible,
+}: {
+  isKeyboardVisible: boolean;
+}) {
+  const transactionMeta = useTransactionMetadataRequest();
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
+  const transactionId = transactionMeta?.id ?? '';
+
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId),
+  );
+
+  const isQuotesLoading = useSelector((state: RootState) =>
+    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
+  );
+
+  return (
+    !isKeyboardVisible &&
+    (isQuotesLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0)
   );
 }

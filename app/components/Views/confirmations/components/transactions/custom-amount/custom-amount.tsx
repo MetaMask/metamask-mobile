@@ -58,6 +58,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
         onChangeText={onChange}
         keyboardType="number-pad"
         maxLength={MAX_LENGTH}
+        caretHidden
       />
     </View>
   );
