@@ -1,4 +1,4 @@
-name: Android E2E Smoke Tests
+name: Android Flask E2E Smoke Tests
 
 on:
   workflow_call:
