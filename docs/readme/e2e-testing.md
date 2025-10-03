@@ -30,7 +30,7 @@ Ensure that following devices are set up:
 - **iOS**: iPhone 15 Pro
 - **Android**: Pixel 5 API 34
 
-> **Note**: You can change the default devices at any time by updating the `device.type` in the Detox config located at `e2e/.detoxrc.js`.
+> **Note**: You can change the default devices at any time by updating the `device.type` in the Detox config located at `.detoxrc.js`.
 
 **iOS:**
 
@@ -46,14 +46,12 @@ Ensure that following devices are set up:
 3. Click **Create Virtual Device**
 4. Select a Pixel device (or similar)
 5. Choose API level 34
-6. **Important**: Name the emulator exactly **Pixel 5 Pro API 34** to match our configuration
+6. **Important**: Name the emulator exactly **Pixel_5_Pro_API_34** to match our configuration
+7. Set up **Android SDK path** by adding this to your shell profile (`.bashrc`, `.zshrc`, etc.):
 
-<!--
-- **Set up Android SDK path** by adding this to your shell profile (`.bashrc`, `.zshrc`, etc.):
-
-  ```bash
-  export ANDROID_SDK_ROOT="/Users/${USER}/Library/Android/sdk"
-  ``` -->
+   ```bash
+   export ANDROID_SDK_ROOT="/Users/${USER}/Library/Android/sdk"
+   ```
 
 ### Environment files
 
@@ -116,10 +114,10 @@ You can use prebuilt app files instead of building the app locally.
    cp /path/to/your/downloaded/AAA.app build/MetaMask.app
    ```
 
-3. **Start the E2E watcher**:
+3. **Start the build watcher**:
 
    ```bash
-   source .e2e.env && yarn watch
+   source .e2e.env && yarn watch:clean
    ```
 
 4. **Launch the iPhone 15 Pro simulator** from Xcode or in a new terminal by:
@@ -148,10 +146,10 @@ You can use prebuilt app files instead of building the app locally.
    cp /path/to/downloaded/androidTest/prod/debug/BBB.apk build/MetaMask-Test.apk
    ```
 
-3. **Start the E2E watcher**:
+3. **Start the build watcher**:
 
    ```bash
-   source .e2e.env && yarn watch
+   source .e2e.env && yarn watch:clean
    ```
 
 4. **Launch the Android emulator**: through Android Studio
@@ -159,6 +157,10 @@ You can use prebuilt app files instead of building the app locally.
 ### Run the E2E Tests
 
 ```bash
+# Firstly, make sure the build watcher is running in a dedicated terminal for the logs
+# and the emulators are up and running
+source .e2e.env && yarn watch:clean
+
 # Setup E2E dependencies (run this first)
 source .e2e.env && yarn setup:e2e
 
