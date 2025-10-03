@@ -188,6 +188,172 @@ describe('transactionTransforms', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('should correctly identify take profit fills', () => {
+      const tpFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '55000',
+        pnl: '500',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Take Profit Market',
+      };
+
+      const result = transformFillsToTransactions([tpFill]);
+
+      expect(result[0].fill?.isTakeProfit).toBe(true);
+      expect(result[0].fill?.isStopLoss).toBe(false);
+      expect(result[0].fill?.isLiquidation).toBe(false);
+    });
+
+    it('should correctly identify stop loss fills', () => {
+      const slFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '45000',
+        pnl: '-500',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Stop Market',
+      };
+
+      const result = transformFillsToTransactions([slFill]);
+
+      expect(result[0].fill?.isStopLoss).toBe(true);
+      expect(result[0].fill?.isTakeProfit).toBe(false);
+      expect(result[0].fill?.isLiquidation).toBe(false);
+    });
+
+    it('should correctly identify liquidation fills', () => {
+      const liquidationFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '44900',
+        pnl: '-1000',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        liquidation: {
+          liquidatedUser: '0x123',
+          markPx: '44900',
+          method: 'market',
+        },
+      };
+
+      const result = transformFillsToTransactions([liquidationFill]);
+
+      expect(result[0].fill?.isLiquidation).toBe(true);
+      expect(result[0].fill?.liquidation).toEqual({
+        liquidatedUser: '0x123',
+        markPx: '44900',
+        method: 'market',
+      });
+      expect(result[0].fill?.isTakeProfit).toBe(false);
+      expect(result[0].fill?.isStopLoss).toBe(false);
+    });
+
+    it('should handle fills with stop loss and liquidation (edge case)', () => {
+      const complexFill: OrderFill = {
+        orderId: '123',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '44900',
+        pnl: '-1000',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Stop Market',
+        liquidation: {
+          liquidatedUser: '0x123',
+          markPx: '44900',
+          method: 'market',
+        },
+      };
+
+      const result = transformFillsToTransactions([complexFill]);
+
+      // Both should be true in this edge case
+      expect(result[0].fill?.isStopLoss).toBe(true);
+      expect(result[0].fill?.isLiquidation).toBe(true);
+    });
+
+    it('should handle fills without detailedOrderType or liquidation', () => {
+      const regularFill: OrderFill = {
+        orderId: '123',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '1.0',
+        price: '3000',
+        pnl: '0',
+        direction: 'Open Long',
+        fee: '3',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+      };
+
+      const result = transformFillsToTransactions([regularFill]);
+
+      expect(result[0].fill?.isTakeProfit).toBe(false);
+      expect(result[0].fill?.isStopLoss).toBe(false);
+      expect(result[0].fill?.isLiquidation).toBe(false);
+      expect(result[0].fill?.liquidation).toBeUndefined();
+    });
+
+    it('should correctly identify Take Profit Limit orders', () => {
+      const tpLimitFill: OrderFill = {
+        orderId: '456',
+        symbol: 'ETH',
+        side: 'sell',
+        size: '2.0',
+        price: '3500',
+        pnl: '1000',
+        direction: 'Close Long',
+        fee: '7',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Take Profit Limit',
+      };
+
+      const result = transformFillsToTransactions([tpLimitFill]);
+
+      expect(result[0].fill?.isTakeProfit).toBe(true);
+      expect(result[0].fill?.isStopLoss).toBe(false);
+    });
+
+    it('should correctly identify Stop Limit orders', () => {
+      const slLimitFill: OrderFill = {
+        orderId: '789',
+        symbol: 'SOL',
+        side: 'buy',
+        size: '10',
+        price: '100',
+        pnl: '-200',
+        direction: 'Close Short',
+        fee: '2',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        detailedOrderType: 'Stop Limit',
+      };
+
+      const result = transformFillsToTransactions([slLimitFill]);
+
+      expect(result[0].fill?.isStopLoss).toBe(true);
+      expect(result[0].fill?.isTakeProfit).toBe(false);
+    });
+
     it('should handle unknown actions by logging error and returning empty array', () => {
       // Mock console.error to test the error logging
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();

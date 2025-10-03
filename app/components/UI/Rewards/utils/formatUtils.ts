@@ -73,9 +73,9 @@ export type PerpsEventType =
 const getPerpsEventDirection = (direction: string) => {
   switch (direction) {
     case 'LONG':
-      return 'Long';
+      return strings('perps.market.long');
     case 'SHORT':
-      return 'Short';
+      return strings('perps.market.short');
   }
 };
 
