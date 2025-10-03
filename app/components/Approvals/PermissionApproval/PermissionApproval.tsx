@@ -48,8 +48,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     } = requestData;
 
     if (
-      requestData?.diff?.permissionDiffMap?.[Caip25EndowmentPermissionName] ||
-      requestData?.metadata?.isSwitchEthereumChain
+      requestData?.diff?.permissionDiffMap?.[Caip25EndowmentPermissionName]
     ) {
       // Use the SwitchChainApproval component to handle this request instead
       return;

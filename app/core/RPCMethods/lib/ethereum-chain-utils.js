@@ -252,17 +252,9 @@ export async function switchToNetwork({
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
 
     if (!ethChainIds?.includes(chainId)) {
-      let metadata;
-      if (isSwitchFlow) {
-        metadata = {
-          isSwitchEthereumChain: true,
-        };
-      }
       await requestPermittedChainsPermissionIncrementalForOrigin({
         chainId,
         autoApprove,
-        metadata,
-      });
     } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && !isAddFlow) {
       await requestUserApproval({
         type: 'SWITCH_ETHEREUM_CHAIN',
@@ -270,6 +262,8 @@ export async function switchToNetwork({
           toNetworkConfiguration,
           fromNetworkConfiguration,
           type: 'switch',
+        metadata: {
+          rpcUrl,
         },
       });
     }
@@ -277,6 +271,9 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       chainId,
       autoApprove,
+      metadata: {
+        rpcUrl,
+      },
     });
   }
 

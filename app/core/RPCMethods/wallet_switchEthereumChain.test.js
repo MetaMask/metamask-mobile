@@ -252,9 +252,6 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     ).toHaveBeenCalledWith({
       chainId: '0x64',
       autoApprove: false,
-      metadata: {
-        isSwitchEthereumChain: true,
-      },
     });
     expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledWith(
       origin,
