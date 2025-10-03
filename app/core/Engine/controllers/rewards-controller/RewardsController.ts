@@ -32,6 +32,7 @@ import {
   storeSubscriptionToken,
   removeSubscriptionToken,
   resetAllSubscriptionTokens,
+  getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -1919,7 +1920,16 @@ export class RewardsController extends BaseController<
           i < optInStatusResponse.sids.length
             ? optInStatusResponse.sids[i]
             : null;
-        if (subscriptionId) return subscriptionId;
+        const sessionToken = subscriptionId
+          ? await getSubscriptionToken(subscriptionId)
+          : undefined;
+        if (
+          subscriptionId &&
+          Boolean(sessionToken?.token) &&
+          Boolean(sessionToken?.success)
+        ) {
+          return subscriptionId;
+        }
         try {
           silentAuthAttempts++;
           subscriptionId = await this.#performSilentAuth(
