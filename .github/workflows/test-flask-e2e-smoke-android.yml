@@ -43,7 +43,7 @@ jobs:
   flask-android-smoke:
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     needs: [build-android-flask-apps]
     uses: ./.github/workflows/run-e2e-workflow.yml
@@ -52,7 +52,7 @@ jobs:
       platform: android
       test_suite_tag: "FlaskBuildTests"
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       build_type: 'flask'
       metamask_environment: 'e2e'
     secrets: inherit
