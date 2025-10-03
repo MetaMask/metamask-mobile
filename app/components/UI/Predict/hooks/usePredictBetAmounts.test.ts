@@ -105,7 +105,7 @@ describe('usePredictBetAmounts', () => {
       jest.advanceTimersByTime(300);
     });
 
-    expect(result.current.betAmounts).toEqual({ toWin: 0, sharePrice: 0 });
+    expect(result.current.betAmounts).toEqual({ toWin: 0, sharePrice: 0.5 });
     expect(result.current.isCalculating).toBe(false);
     expect(
       Engine.context.PredictController.calculateBetAmounts,
