@@ -685,6 +685,26 @@ describe('PredictController', () => {
       });
     });
 
+    it('handle non-Error objects thrown by placeOrder', async () => {
+      await withController(async ({ controller }) => {
+        // Mock the provider to throw a non-Error object
+        mockPolymarketProvider.placeOrder.mockImplementation(() =>
+          Promise.reject('String error'),
+        );
+
+        const result = await controller.placeOrder({
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.SELL,
+          size: 2,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('PLACE_ORDER_FAILED');
+      });
+    });
+
     it('handle provider not available error', async () => {
       await withController(async ({ controller }) => {
         const result = await controller.placeOrder({
@@ -700,17 +720,10 @@ describe('PredictController', () => {
       });
     });
 
-    it('pass signer with signPersonalMessage to prepareSellOrder', async () => {
+    it('pass signer with signPersonalMessage to placeOrder', async () => {
       const mockTxMeta = { id: 'tx-signer-sell' } as any;
       await withController(async ({ controller }) => {
-        const mockPosition = {
-          marketId: 'market-1',
-          providerId: 'polymarket',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'outcome-token-1',
-        };
-
-        mockPolymarketProvider.prepareSellOrder.mockResolvedValue({
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
           id: 'sell-order-signer',
           providerId: 'polymarket',
           outcomeId: 'outcome-1',
@@ -736,12 +749,16 @@ describe('PredictController', () => {
           transactionMeta: mockTxMeta,
         });
 
-        await controller.sell({
-          position: mockPosition as any,
+        await controller.placeOrder({
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+          side: Side.SELL,
+          size: 2,
         });
 
         // Verify that signPersonalMessage is included in the signer object
-        expect(mockPolymarketProvider.prepareSellOrder).toHaveBeenCalledWith(
+        expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             signer: expect.objectContaining({
               signPersonalMessage: expect.any(Function),
@@ -1063,6 +1080,74 @@ describe('PredictController', () => {
         expect(controller.state).toEqual(initial);
       });
     });
+
+    it('not modify state when transactionConfirmed event has no batchId or txId', () => {
+      withController(({ controller, messenger }) => {
+        const initial = { ...controller.state };
+        const event = {
+          batchId: undefined,
+          id: undefined,
+          hash: '0xabc',
+          status: 'confirmed',
+          txParams: { from: '0x1', to: '0x2', value: '0x0' },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state).toEqual(initial);
+      });
+    });
+
+    it('not modify state when transactionFailed event has no batchId or txId', () => {
+      withController(({ controller, messenger }) => {
+        const initial = { ...controller.state };
+        const event = {
+          transactionMeta: {
+            batchId: undefined,
+            id: undefined,
+            hash: '0xabc',
+            status: 'failed',
+            error: { message: 'Transaction failed' },
+            txParams: { from: '0x1', to: '0x2', value: '0x0' },
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionFailed',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state).toEqual(initial);
+      });
+    });
+
+    it('not modify state when transactionRejected event has no batchId or txId', () => {
+      withController(({ controller, messenger }) => {
+        const initial = { ...controller.state };
+        const event = {
+          transactionMeta: {
+            batchId: undefined,
+            id: undefined,
+            hash: '0xdef',
+            status: 'rejected',
+            txParams: { from: '0x1', to: '0x2', value: '0x0' },
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionRejected',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state).toEqual(initial);
+      });
+    });
   });
 
   describe('provider error handling', () => {
@@ -1367,6 +1452,35 @@ describe('PredictController', () => {
         expect(result).toEqual(mockPositions);
         expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith({
           address: '0x1234567890123456789012345678901234567890', // Default from AccountsController
+        });
+      });
+    });
+
+    it('use custom address in getPositions', async () => {
+      await withController(async ({ controller }) => {
+        const mockPositions = [
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '75',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockPositions as any,
+        );
+
+        const customAddress = '0x9876543210987654321098765432109876543210';
+
+        // Call with custom address parameter
+        const result = await controller.getPositions({
+          address: customAddress,
+        });
+
+        expect(result).toEqual(mockPositions);
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith({
+          address: customAddress,
         });
       });
     });

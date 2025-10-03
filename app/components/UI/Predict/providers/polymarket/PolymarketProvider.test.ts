@@ -2,6 +2,7 @@ import Engine from '../../../../../core/Engine';
 import {
   PredictPositionStatus,
   PredictPriceHistoryInterval,
+  Recurrence,
   Side,
 } from '../../types';
 import { PolymarketProvider } from './PolymarketProvider';
@@ -20,9 +21,7 @@ import {
   priceValid,
   submitClobOrder,
 } from './utils';
-import { SellOrderParams, type BuyOrderParams } from '../types';
-import { PolymarketProvider } from './PolymarketProvider';
-import { OrderType } from './types';
+import { PlaceOrderParams } from '../types';
 import { computeSafeAddress, createSafeFeeAuthorization } from './safe/utils';
 
 // Mock external dependencies
@@ -98,7 +97,6 @@ const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
-const mockEncodeErc1155Approve = encodeErc1155Approve as jest.Mock;
 const mockComputeSafeAddress = computeSafeAddress as jest.Mock;
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 
@@ -494,6 +492,19 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
+    const mockMarket = {
+      id: 'market-1',
+      providerId: 'polymarket',
+      slug: 'test-market',
+      title: 'Test Market',
+      description: 'A test market for prediction',
+      image: 'test-image.png',
+      status: 'open' as const,
+      recurrence: Recurrence.NONE,
+      categories: [],
+      outcomes: [],
+    };
+
     // Mock the private buildOrderArtifacts method
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockBuildOrderArtifacts = jest.spyOn(
@@ -590,6 +601,7 @@ describe('PolymarketProvider', () => {
       mockAddress,
       mockSigner,
       mockBuildOrderArtifacts,
+      mockMarket,
     };
   }
 
@@ -747,10 +759,12 @@ describe('PolymarketProvider', () => {
       const mockSigner1 = {
         address: mockAddress1,
         signTypedMessage: mockSignTypedMessage,
+        signPersonalMessage: mockSignPersonalMessage,
       };
       const mockSigner2 = {
         address: mockAddress2,
         signTypedMessage: mockSignTypedMessage,
+        signPersonalMessage: mockSignPersonalMessage,
       };
 
       const provider = createProvider();
@@ -882,33 +896,33 @@ describe('PolymarketProvider', () => {
     });
   });
 
-  describe('prepareBuyOrder with Safe fee authorization', () => {
+  describe('placeOrder with Safe fee authorization', () => {
     it('computes Safe address before creating order', async () => {
-      const { provider, mockSigner, mockMarket } = setupOrderTest();
-      const orderParams: BuyOrderParams = {
-        signer: mockSigner,
-        market: mockMarket,
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const orderParams: PlaceOrderParams = {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
+        side: Side.BUY,
         size: 1,
+        providerId: 'polymarket',
       };
 
-      await provider.prepareBuyOrder(orderParams);
+      await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
       expect(mockComputeSafeAddress).toHaveBeenCalledWith(mockSigner);
     });
 
     it('calculates 4% fee from maker amount', async () => {
-      const { provider, mockSigner, mockMarket } = setupOrderTest();
-      const orderParams: BuyOrderParams = {
-        signer: mockSigner,
-        market: mockMarket,
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const orderParams: PlaceOrderParams = {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
+        side: Side.BUY,
         size: 1,
+        providerId: 'polymarket',
       };
 
-      await provider.prepareBuyOrder(orderParams);
+      await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
       const expectedFeeAmount = (BigInt(1000000) * BigInt(4)) / BigInt(100);
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
@@ -919,16 +933,16 @@ describe('PolymarketProvider', () => {
     });
 
     it('creates fee authorization with correct parameters', async () => {
-      const { provider, mockSigner, mockMarket } = setupOrderTest();
-      const orderParams: BuyOrderParams = {
-        signer: mockSigner,
-        market: mockMarket,
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const orderParams: PlaceOrderParams = {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
+        side: Side.BUY,
         size: 1,
+        providerId: 'polymarket',
       };
 
-      await provider.prepareBuyOrder(orderParams);
+      await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith({
         safeAddress: '0x9999999999999999999999999999999999999999',
@@ -938,167 +952,53 @@ describe('PolymarketProvider', () => {
       });
     });
 
-    it('includes feeAuthorization in offchainTradeParams', async () => {
-      const { provider, mockSigner, mockMarket } = setupOrderTest();
-      const orderParams: BuyOrderParams = {
-        signer: mockSigner,
-        market: mockMarket,
+    it('includes feeAuthorization when submitting order', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const orderParams: PlaceOrderParams = {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
+        side: Side.BUY,
         size: 1,
+        providerId: 'polymarket',
       };
 
-      const result = await provider.prepareBuyOrder(orderParams);
+      await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
-      expect(result.offchainTradeParams).toBeDefined();
-      expect(result.offchainTradeParams).toHaveProperty('feeAuthorization');
-      expect(result.offchainTradeParams?.feeAuthorization).toEqual({
-        type: 'safe-transaction',
-        authorization: {
-          tx: {
-            to: '0xCollateralAddress',
-            operation: 0,
-            data: '0xdata',
-            value: '0',
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          feeAuthorization: {
+            type: 'safe-transaction',
+            authorization: {
+              tx: {
+                to: '0xCollateralAddress',
+                operation: 0,
+                data: '0xdata',
+                value: '0',
+              },
+              sig: '0xsig',
+            },
           },
-          sig: '0xsig',
-        },
-      });
+        }),
+      );
     });
 
     it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
-      const { provider, mockSigner, mockMarket } = setupOrderTest();
-      const orderParams: BuyOrderParams = {
-        signer: mockSigner,
-        market: mockMarket,
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const orderParams: PlaceOrderParams = {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
+        side: Side.BUY,
         size: 1,
+        providerId: 'polymarket',
       };
 
-      await provider.prepareBuyOrder(orderParams);
+      await provider.placeOrder({ ...orderParams, signer: mockSigner });
 
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
         expect.objectContaining({
           to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
         }),
       );
-    });
-  });
-
-  describe('submitOffchainTrade with fee authorization', () => {
-    it('passes feeAuthorization to submitClobOrder when provided', async () => {
-      const provider = createProvider();
-      jest.clearAllMocks();
-      mockSubmitClobOrder.mockResolvedValue({
-        success: true,
-        errorMsg: '',
-        makingAmount: '1000000',
-        orderID: 'order-123',
-        status: 'success',
-        takingAmount: '0',
-        transactionsHashes: [],
-      });
-
-      const feeAuth = {
-        type: 'safe-transaction' as const,
-        authorization: {
-          tx: {
-            to: '0xCollateralAddress',
-            operation: 0,
-            data: '0xdata',
-            value: '0',
-          },
-          sig: '0xsig',
-        },
-      };
-
-      const offchainTradeParams: OffchainTradeParams = {
-        clobOrder: {
-          order: {
-            maker: '0x123',
-            taker: '0x000',
-            tokenId: '0',
-            makerAmount: '1000000',
-            takerAmount: '0',
-            side: Side.BUY,
-            feeRateBps: '0',
-            nonce: '123',
-            expiration: '0',
-            signatureType: 0,
-            salt: 12345,
-            signature: '0xsignature',
-          },
-          owner: 'test-owner',
-          orderType: OrderType.FOK,
-        },
-        headers: {
-          POLY_ADDRESS: 'address',
-          POLY_SIGNATURE: 'signature',
-          POLY_TIMESTAMP: 'timestamp',
-          POLY_API_KEY: 'apiKey',
-          POLY_PASSPHRASE: 'passphrase',
-        },
-        feeAuthorization: feeAuth,
-      };
-
-      await provider.submitOffchainTrade(offchainTradeParams);
-
-      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
-        headers: offchainTradeParams.headers,
-        clobOrder: offchainTradeParams.clobOrder,
-        feeAuthorization: feeAuth,
-      });
-    });
-
-    it('handles undefined feeAuthorization', async () => {
-      const provider = createProvider();
-      jest.clearAllMocks();
-      mockSubmitClobOrder.mockResolvedValue({
-        success: true,
-        errorMsg: '',
-        makingAmount: '1000000',
-        orderID: 'order-123',
-        status: 'success',
-        takingAmount: '0',
-        transactionsHashes: [],
-      });
-
-      const offchainTradeParams: OffchainTradeParams = {
-        clobOrder: {
-          order: {
-            maker: '0x123',
-            taker: '0x000',
-            tokenId: '0',
-            makerAmount: '1000000',
-            takerAmount: '0',
-            side: Side.BUY,
-            feeRateBps: '0',
-            nonce: '123',
-            expiration: '0',
-            signatureType: 0,
-            salt: 12345,
-            signature: '0xsignature',
-          },
-          owner: 'test-owner',
-          orderType: OrderType.FOK,
-        },
-        headers: {
-          POLY_ADDRESS: 'address',
-          POLY_SIGNATURE: 'signature',
-          POLY_TIMESTAMP: 'timestamp',
-          POLY_API_KEY: 'apiKey',
-          POLY_PASSPHRASE: 'passphrase',
-        },
-      };
-
-      await provider.submitOffchainTrade(offchainTradeParams);
-
-      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
-        headers: offchainTradeParams.headers,
-        clobOrder: offchainTradeParams.clobOrder,
-        feeAuthorization: undefined,
-      });
     });
   });
 
@@ -1220,11 +1120,6 @@ describe('PolymarketProvider', () => {
         providerId: 'polymarket',
         outcomeTokenId: 'token-123',
         userBetAmount: 150, // USD amount to spend
-      });
-      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
-        headers: offchainTradeParams.headers,
-        clobOrder: offchainTradeParams.clobOrder,
-        feeAuthorization: undefined,
       });
 
       // Assert - Should return result with calculated shares and price
