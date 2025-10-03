@@ -1,5 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { screen, waitFor } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
@@ -11,6 +12,11 @@ const mockNavigation = {
   canGoBack: true,
   canGoForward: true,
   addListener: jest.fn(),
+  navigate: jest.fn(),
+};
+
+const mockRoute = {
+  params: { url: '' },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -19,19 +25,29 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => mockNavigation,
     useIsFocused: () => true,
+    useRoute: () => mockRoute,
   };
 });
 
+// Mock react-native-device-info to provide a valid version string
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.0.0'),
+}));
+
 const mockInitialState = {
-  browser: { activeTab: '' },
+  browser: {
+    activeTab: 1,
+    history: [],
+    whitelist: [],
+    tabs: [],
+    favicons: [],
+    visitedDappsByHostname: {},
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
-  },
-  transaction: {
-    selectedAsset: '',
   },
 };
 
@@ -44,25 +60,26 @@ jest.mock('../../../core/Engine', () => ({
     AccountsController: {
       listMultichainAccounts: () => [],
     },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(),
+    },
   },
+}));
+
+jest.mock('../../../core/EntryScriptWeb3', () => ({
+  init: jest.fn(),
+  get: () => '',
 }));
 
 const mockProps = {
   id: 1,
   activeTab: 1,
   defaultProtocol: 'https://',
-  selectedAddress: '0x123',
-  whitelist: [],
-  bookmarks: [],
   searchEngine: 'Google',
   newTab: jest.fn(),
   addBookmark: jest.fn(),
-  addToBrowserHistory: jest.fn(),
-  addToWhitelist: jest.fn(),
   updateTabInfo: jest.fn(),
   showTabs: jest.fn(),
-  isIpfsGatewayEnabled: false,
-  chainId: '0x1',
   isInTabsView: false,
   initialUrl: 'https://metamask.io',
   homePageUrl: AppConstants.HOMEPAGE_URL,
@@ -73,10 +90,14 @@ describe('BrowserTab', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<BrowserTab {...mockProps} />, {
+  it('render Browser', async () => {
+    renderWithProvider(<BrowserTab {...mockProps} />, {
       state: mockInitialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    await waitFor(() =>
+      expect(screen.getByTestId('browser-webview')).toBeVisible(),
+    );
+
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
