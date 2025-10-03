@@ -271,22 +271,21 @@ describe('Remote Feature Flags Helper', () => {
     it('should call setupMockRequest with default configuration', async () => {
       await setupRemoteFeatureFlagsMock(mockServer);
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(2);
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
 
-      // Check dev URL call
-      expect(mockSetupMockRequest).toHaveBeenNthCalledWith(1, mockServer, {
-        requestMethod: 'GET',
-        url: 'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-        response: expect.any(Array),
-        responseCode: 200,
-      });
+      const expectedEnvironments = ['dev', 'test', 'prod'];
 
-      // Check prod URL call
-      expect(mockSetupMockRequest).toHaveBeenNthCalledWith(2, mockServer, {
-        requestMethod: 'GET',
-        url: 'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod',
-        response: expect.any(Array),
-        responseCode: 200,
+      expectedEnvironments.forEach((env, index) => {
+        expect(mockSetupMockRequest).toHaveBeenNthCalledWith(
+          index + 1,
+          mockServer,
+          {
+            requestMethod: 'GET',
+            url: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=${env}`,
+            response: expect.any(Array),
+            responseCode: 200,
+          },
+        );
       });
 
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
@@ -299,7 +298,7 @@ describe('Remote Feature Flags Helper', () => {
     it('should call setupMockRequest with flag overrides', async () => {
       await setupRemoteFeatureFlagsMock(mockServer, { rewards: true });
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(2);
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
       expect(callArgs.response).toContainEqual({ rewards: true });
     });
@@ -307,14 +306,18 @@ describe('Remote Feature Flags Helper', () => {
     it('should call setupMockRequest with custom distribution', async () => {
       await setupRemoteFeatureFlagsMock(mockServer, {}, 'flask');
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(2);
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
       const devCallArgs = mockSetupMockRequest.mock.calls[0][1];
-      const prodCallArgs = mockSetupMockRequest.mock.calls[1][1];
+      const testCallArgs = mockSetupMockRequest.mock.calls[1][1];
+      const prodCallArgs = mockSetupMockRequest.mock.calls[2][1];
       expect(devCallArgs.url).toBe(
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
       );
       expect(prodCallArgs.url).toBe(
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=prod',
+      );
+      expect(testCallArgs.url).toBe(
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=test',
       );
     });
 
