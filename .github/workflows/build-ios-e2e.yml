@@ -70,7 +70,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@7f4144dbb1d51e4e71434b84bc47b98ba1923346
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
         with:
           platform: ios
           setup-simulator: false

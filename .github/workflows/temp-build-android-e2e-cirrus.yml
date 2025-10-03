@@ -38,7 +38,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@7f4144dbb1d51e4e71434b84bc47b98ba1923346
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
         with:
           platform: android
           setup-simulator: false
