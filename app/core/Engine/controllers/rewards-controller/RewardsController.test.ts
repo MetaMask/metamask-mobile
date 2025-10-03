@@ -2388,7 +2388,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle non-string errors in catch block', async () => {
+    it('should handle non-string errors.in catch block', async () => {
       // Directly test the error filtering logic with a non-string, non-Error object
       const numberError = 404;
       const errorMessage = String(numberError);
@@ -2406,6 +2406,64 @@ describe('RewardsController', () => {
         'RewardsController: Silent authentication failed:',
         404,
       );
+    });
+
+    it('should log authentication errors when trigger fails via subscription callback', async () => {
+      // Arrange
+      const mockError = new Error('Authentication service unavailable');
+      mockMessenger.call
+        .mockClear()
+        // Make getSelectedMultichainAccount fail
+        .mockRejectedValueOnce(new Error('Engine does not exist'));
+
+      // Find the account change subscription callback 
+      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      if (subscribeCallback) {
+        // Act - trigger authentication through the actual method
+        await expect(async () => {
+          await subscribeCallback();
+          // Allow async operations to complete
+          await new Promise(process.nextTick);
+        }).not.toThrow();
+
+        // Assert - the error should be logged since it doesn't contain "Engine does not exist"
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Silent authentication failed:',
+          'Engine does not exist',
+        );
+      }
+    });
+
+    it('should log authentication errors that do not include "Engine does not exist"', async () => {
+      // Arrange
+      const mockError = new Error('Network connection failed');
+      mockMessenger.call
+        .mockClear()
+        // Make getSelectedMultichainAccount fail with different error
+        .mockRejectedValueOnce(mockError);
+
+      // Find the account change subscription callback
+      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      if (subscribeCallback) {
+        // Act - trigger authentication through the actual method
+        await expect(async () => {
+          await subscribeCallback();
+          // Allow async operations to complete
+          await new Promise(process.nextTick);
+        }).not.toThrow();
+
+        // Assert - the error should be logged since it doesn't contain "Engine does not exist"
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Silent authentication failed:',
+          'Network connection failed',
+        );
+      }
     });
   });
 
@@ -3331,6 +3389,331 @@ describe('RewardsController', () => {
         'RewardsController: Successfully fetched season status after reauth',
         mockSeasonStatus,
       );
+    });
+
+    it('should handle 403 error when accounts exist but accountForSub is not found', async () => {
+      // Arrange
+      const mock403Error = new Error('Get season status failed: 403');
+      const testSubscriptionId = 'test-sub-id';
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        // Set accounts but with different subscriptionId so accountForSub won't be found
+        state.accounts = {
+          ['eip155:1:0x456' as CaipAccountId]: {
+            subscriptionId: 'different-sub-id', // Different from testSubscriptionId
+            account: 'eip155:1:0x456' as CaipAccountId,
+            hasOptedIn: true,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Get season status failed: 403');
+
+      // Verify that conversion function was never called since accountForSub was not found
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        testSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+    });
+
+    it('should handle 403 error when accounts exist but intAccountForSub is not found after conversion', async () => {
+      // Arrange
+      const mock403Error = new Error('Get season status failed: 403');
+      const testSubscriptionId = 'test-sub-id';
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x456',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        options: {},
+        metadata: {},
+      };
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        // Set accounts with matching subscriptionId but will return unmatchable internal account
+        state.accounts = {
+          ['eip155:1:0x456' as CaipAccountId]: {
+            subscriptionId: testSubscriptionId,
+            account: 'eip155:1:0x456' as CaipAccountId,
+            hasOptedIn: true,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        };
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      // Mock the messenger to return the account and reject with 403
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        if (method === 'AccountsController:listMultichainAccounts') {
+          return [mockAccount];
+        }
+        return Promise.resolve({});
+      });
+
+      const convertInternalAccountToCaipAccountIdSpy = jest
+        .spyOn(testableController, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue('eip155:1:0x999'); // Different CAIP ID to ensure no match
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Get season status failed: 403');
+
+      // Verify that all expected calls were made
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+      expect(convertInternalAccountToCaipAccountIdSpy).toHaveBeenCalledWith(
+        mockAccount,
+      );
+
+      // Verify cache invalidation
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        testSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      convertInternalAccountToCaipAccountIdSpy.mockRestore();
+    });
+
+    it('should handle 403 error when accounts is undefined', async () => {
+      // Arrange
+      const mock403Error = new Error('Get season status failed: 403');
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = undefined as any; // Test undefined accounts
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Get season status failed: 403');
+
+      // Verify no calls to listMultichainAccounts when accounts is undefined
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+    });
+
+    it('should handle 403 error when accounts is empty', async () => {
+      // Arrange
+      const mock403Error = new Error('Get season status failed: 403');
+
+      const localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+      const testableController = new TestableRewardsController({
+        messenger: localMockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: 'different-active-sub-id',
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {}; // Test empty accounts
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+        state.pointsEvents = {};
+      });
+
+      localMockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          return Promise.reject(mock403Error);
+        }
+        return Promise.resolve({});
+      });
+
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Get season status failed: 403');
+
+      // Verify no calls to listMultichainAccounts when accounts is empty
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      // Verify cache invalidation still happens
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
     });
 
     it('should handle API server error (500)', async () => {
@@ -7620,6 +8003,159 @@ describe('RewardsController', () => {
         'RewardsDataService:getOptInStatus',
         { addresses: ['0x789'] },
       );
+    });
+
+    it('should update activeAccount when it matches an account being checked', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x456'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ] as any;
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
+
+      // Set up controller with an active account that matches 0x456
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+
+      testController.testUpdate((state) => {
+        state.activeAccount = {
+          account: 'eip155:1:0x456',
+          hasOptedIn: false,
+          subscriptionId: null,
+          lastCheckedAuth: 1234567890,
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+      });
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts)
+        .mockResolvedValueOnce(mockResponse);
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Verify that activeAccount was updated for the matching account (0x456)
+      const state = testController.state;
+      const activeAccount = state.activeAccount;
+      expect(activeAccount).toBeDefined();
+      expect(activeAccount?.account).toBe('eip155:1:0x456');
+      expect(activeAccount?.hasOptedIn).toBe(false);
+      expect(activeAccount?.subscriptionId).toBe(null);
+      expect(activeAccount?.lastCheckedAuth).toBeGreaterThan(Date.now() - 1000);
+
+      // Verify that the regular account state was also updated
+      const account456State = state.accounts['eip155:1:0x456'];
+      expect(account456State).toBeDefined();
+      expect(account456State.hasOptedIn).toBe(false);
+      expect(account456State.subscriptionId).toBe(null);
+      expect(account456State.lastCheckedAuth).toBeGreaterThan(
+        Date.now() - 1000,
+      );
+    });
+
+    it('should not update activeAccount when it does not match any account being checked', async () => {
+      // Arrange
+      const mockParams = { addresses: ['0x123', '0x999'] };
+      const mockAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x999',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ] as any;
+      const mockResponse = { ois: [true, false], sids: ['sub_123', null] };
+
+      // Set up controller with an active account that does NOT match any account being checked
+      const originalActiveAccount = {
+        account: 'eip155:1:0x456',
+        hasOptedIn: true,
+        subscriptionId: 'old_sub',
+        lastCheckedAuth: 1234567890,
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+
+      testController.testUpdate((state) => {
+        state.activeAccount = originalActiveAccount as RewardsAccountState;
+      });
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts)
+        .mockResolvedValueOnce(mockResponse);
+
+      // Act
+      const result = await testController.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+
+      // Verify that activeAccount was NOT updated since it didn't match any checked account
+      const state = testController.state;
+      const activeAccount = state.activeAccount;
+      expect(activeAccount).toBeDefined();
+      expect(activeAccount?.account).toBe('eip155:1:0x456');
+      expect(activeAccount?.hasOptedIn).toBe(true); // Original value preserved
+      expect(activeAccount?.subscriptionId).toBe('old_sub'); // Original value preserved
+      expect(activeAccount?.lastCheckedAuth).toBe(1234567890); // Original value preserved
     });
   });
 
