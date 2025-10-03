@@ -571,12 +571,17 @@ class WalletConnect2Session {
         );
       };
 
+      const rpcUrl =
+        networkConfiguration.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ].url;
+
       // Switching to the network is allowed so try switching into it
       await switchToNetwork({
         networkClientId,
         nativeCurrency: networkConfiguration.nativeCurrency,
         chainId: hexChainIdString,
-        rpcUrl: networkConfiguration.rpcUrl,
+        rpcUrl,
         analytics: {},
         origin: this.channelId,
         hooks: getRpcMethodMiddlewareHooks({
