@@ -6073,7 +6073,7 @@
 
     "link_account_group": {
       "link_account": "Link account",
-      "link_account_with_name": "Link {{accountName}}",
+      "link_account_with_name": "Linked Addresses for {{accountName}}",
       "linking_account": "Linking {{accountName}}...",
       "link_account_success": "{{accountName}} linked successfully",
       "link_account_error": "Failed to link one or more addresses for {{accountName}}",
