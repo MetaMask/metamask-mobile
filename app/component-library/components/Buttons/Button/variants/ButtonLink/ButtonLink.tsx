@@ -28,6 +28,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
   isDanger = false,
   size = DEFAULT_BUTTONLINK_SIZE,
   label,
+  labelTextVariant = DEFAULT_BUTTONLINK_LABEL_TEXTVARIANT,
   ...props
 }) => {
   const [pressed, setPressed] = useState(false);
@@ -61,7 +62,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
   const renderLabel = () =>
     typeof label === 'string' ? (
       <Text
-        variant={DEFAULT_BUTTONLINK_LABEL_TEXTVARIANT}
+        variant={labelTextVariant}
         color={getLabelColor()}
         style={pressed && styles.pressedText}
       >
