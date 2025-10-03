@@ -588,7 +588,7 @@ const CollectibleContracts = ({
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
         estimatedItemSize={100}
-        scrollEnabled={false}
+        scrollEnabled
       />
     ),
     [

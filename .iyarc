@@ -4,5 +4,6 @@ GHSA-c76h-2ccp-4975
 # Appwright nested dependency vulnerabilities - these are in @puppeteer/browsers and geckodriver
 # https://github.com/advisories/GHSA-pq67-2wwv-3xjx
 GHSA-pq67-2wwv-3xjx
+GHSA-vj76-c3g6-qr5v
 # https://github.com/advisories/GHSA-8cj5-5rvv-wf4v
 GHSA-8cj5-5rvv-wf4v

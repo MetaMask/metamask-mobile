@@ -455,4 +455,38 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
 
     expect(result).toEqual(false);
   });
+
+  it('returns true if no batch id and perps deposit', () => {
+    const transaction = {
+      id: '123',
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '789',
+        chainId: '0x1',
+        type: TransactionType.perpsDeposit,
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    expect(result).toEqual(true);
+  });
 });

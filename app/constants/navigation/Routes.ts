@@ -107,6 +107,7 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    SOCIAL_LOGIN_SUCCESS: 'SocialLoginSuccess',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -115,6 +116,7 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
+    SECURE_EXISTING_WALLET: 'SecureExistingWallet',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

@@ -245,9 +245,9 @@ describe('ChoosePassword', () => {
       fireEvent.press(checkbox);
     });
 
-    const submitButton = component.getByRole('button', {
-      name: strings('choose_password.create_password_cta'),
-    });
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
 
     // Button should still be disabled (checkbox not checked)
     expect(submitButton.props.disabled).toBe(false);

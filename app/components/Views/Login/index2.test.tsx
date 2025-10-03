@@ -37,6 +37,7 @@ import { RecursivePartial } from '../../../core/Authentication/Authentication.te
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
+import { Platform } from 'react-native';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -466,6 +467,7 @@ describe('Login test suite 2', () => {
     });
 
     it('handle SeedlessOnboardingControllerRecoveryError Invalid Password', async () => {
+      Platform.OS = 'android';
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
@@ -706,7 +708,7 @@ describe('Login test suite 2', () => {
         fireEvent.press(otherMethodsButton);
       });
 
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.ONBOARDING);
       expect(spyResetOauthState).toHaveBeenCalled();
     });
 

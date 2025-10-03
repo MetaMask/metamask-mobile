@@ -39,7 +39,7 @@
       "buy_action": "买入 %{nativeCurrency}"
     },
     "signed_or_submitted": {
-      "title": "Transaction in progress",
+      "title": "交易进行中",
       "message": "之前的交易仍在签署或提交中。"
     },
     "signed_or_submitted_perps_deposit": {
@@ -62,11 +62,11 @@
       "message": "资金不足"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "message": "{{symbol}} 不足以支付费用。请减少转入金额或选择其他代币继续操作。",
+      "title": "资金不足"
     },
     "insufficient_pay_token_native": {
-      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
+      "message": "{{ticker}} 不足以支付费用。请选择其他网络上的代币继续操作。"
     },
     "no_pay_token_quotes": {
       "message": "目前该支付路径不可用。请调整金额、网络或代币类型，系统将为您匹配最优选项。"
@@ -184,9 +184,9 @@
     "have_existing_wallet": "我已有一个钱包",
     "import_using_srp": "使用私钥助记词导入",
     "import_using_srp_social_login": "我已有一个钱包",
-    "by_continuing": "By continuing, you agree to MetaMask's",
+    "by_continuing": "继续即表示您同意 MetaMask 的 ",
     "terms_of_use": "使用条款",
-    "privacy_notice": "Privacy notice",
+    "privacy_notice": "隐私声明",
     "and": "与"
   },
   "onboarding_success": {
@@ -348,9 +348,9 @@
     "seedless_password_outdated_modal_title": "您的密码已更改",
     "seedless_password_outdated_modal_content": "您的密码最近已更改，因此您需要输入新密码以保持 MetaMask 的登录状态。",
     "seedless_password_outdated_modal_confirm": "继续",
-    "no_internet_connection": "Seedless account recovery requires internet connection.",
+    "no_internet_connection": "无种子账户恢复需要互联网连接。",
     "seedless_controller_error_prompt_title": "出错了......",
-    "seedless_controller_error_prompt_description": "An issue occurred while unlocking. Re-login with Google and your MetaMask password.",
+    "seedless_controller_error_prompt_description": "解锁时出现问题。请使用 Google 账号和您的 MetaMask 密码重新登录。",
     "seedless_controller_error_prompt_primary_button_label": "登录",
     "security_alert_title": "安全警报",
     "security_alert_desc": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
@@ -388,10 +388,10 @@
     "title": "MetaMask 密码",
     "description": "仅在当前设备上解锁 MetaMask。",
     "description_social_login": "使用此助记词即可在所有设备上恢复钱包。",
-    "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
-    "description_social_login_update_bold": "MetaMask can't reset it.",
+    "description_social_login_update": "若丢失此密码，将无法访问所有设备上的钱包。请将其妥善保存在安全的地方，",
+    "description_social_login_update_bold": "MetaMask 无法重设该密码。",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
-    "password": "创建新密码",
+    "password": "创建密码",
     "confirm_password": "确认密码",
     "create_button": "创建密码",
     "import_with_seed_phrase": "使用私钥助记词导入",
@@ -415,9 +415,9 @@
     "disable_biometric_error": "您已经禁用了该应用程序的生物识别功能。更新“记住我\"设置，然后再试一次。",
     "create_password_cta": "创建密码",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
-    "password_error": "Passwords don’t match.",
-    "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "password_error": "密码不匹配。",
+    "marketing_opt_in_description": "获取产品更新、提示和新闻（包括电子邮件推送）。我们可能会利用您的互动信息来优化我们分享的内容。",
+    "loose_password_description": "如果我丢失此密码，MetaMask 无法重设它。"
   },
   "reset_password": {
     "title": "更改密码",
@@ -455,14 +455,14 @@
     "changing_password": "正在更改密码……",
     "changing_password_subtitle": "这应该不需要很长时间",
     "checkbox_forgot_password": "如果我忘记此密码，我将永久失去对该钱包的访问权限。MetaMask 无法为我重设密码。",
-    "seedless_change_password_error_modal_title": "Change password failed",
-    "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_title": "更改密码失败",
+    "seedless_change_password_error_modal_content": "我们无法更改您的密码。请重试。",
+    "seedless_change_password_error_modal_confirm": "请重试"
   },
   "import_from_seed": {
     "title": "导入钱包",
     "seed_phrase_placeholder": "在此输入您的助记词",
-    "create_new_password": "创建新密码",
+    "create_new_password": "创建密码",
     "confirm_password": "确认密码",
     "import_button": "导入",
     "cancel_button": "取消",
@@ -491,7 +491,7 @@
     "srp": "私钥助记词，",
     "srp_placeholder": "在每个单词之间加空格，并确保无人窥视.",
     "learn_more_link": "了解详情",
-    "create_password_cta": "创建密码",
+    "import_create_password_cta": "创建密码",
     "pass_flow": "使用 Flow 继续",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "password_error": "密码不匹配。请重试。",
@@ -507,6 +507,7 @@
     "home": "主页",
     "browser": "浏览器",
     "activity": "活动",
+    "trade": "交易",
     "settings": "设置",
     "rewards": "奖励"
   },
@@ -573,7 +574,8 @@
     "show_more_nfts": "显示更多 NFT",
     "token_contract_warning": "此地址为代币合约地址。若向该地址发送代币，将导致代币丢失。",
     "invisible_character_error": "我们检测到 ENS 名称中包含不可见字符。请仔细检查该 ENS 名称，谨防潜在欺诈风险。",
-    "could_not_resolve_name": "Couldn't resolve name"
+    "could_not_resolve_name": "无法解析名称",
+    "invalid_address": "地址无效"
   },
   "deposit": {
     "title": "保证金",
@@ -847,12 +849,12 @@
       "try_again": "请重试"
     },
     "errors": {
-      "fetch_regions": "There was an issue fetching the regions.",
-      "fetch_tokens": "There was an issue fetching the tokens.",
-      "fetch_payment_methods": "There was an issue fetching the payment methods.",
-      "try_again": "Try Again",
-      "error_details_title": "Error Details",
-      "see_more": "See more"
+      "fetch_regions": "获取地区时出现问题。",
+      "fetch_tokens": "获取代币时出现问题。",
+      "fetch_payment_methods": "获取支付方式时出现问题。",
+      "try_again": "请重试",
+      "error_details_title": "错误详情",
+      "see_more": "查看更多"
     }
   },
   "perps": {
@@ -865,12 +867,12 @@
     "margin_used": "已用保证金",
     "gtm_content": {
       "title": "永续合约已上线",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "支持最高 40 倍杠杆的多头仓位或空头仓位。一键即可为账户充值。",
       "not_now": "暂时不",
       "try_now": "开始"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "今天",
+    "yesterday": "昨天",
     "unrealized_pnl": "未实现盈亏",
     "withdraw": "提取",
     "refresh_balance": "刷新余额",
@@ -883,6 +885,7 @@
       "title": "要存入的金额",
       "get_usdc_hyperliquid": "获取 USDC • Hyperliquid",
       "insufficient_funds": "资金不足",
+      "no_funds_available": "No funds available. Please deposit first.",
       "enter_amount": "输入金额",
       "fetching_quote": "正在获取报价",
       "submitting": "正在提交交易",
@@ -1060,8 +1063,8 @@
       "take_profit": "止盈",
       "stop_loss": "止损",
       "tp_sl": "止盈/止损",
-      "tp": "TP",
-      "sl": "SL",
+      "tp": "止盈",
+      "sl": "止损",
       "button": {
         "long": "做多 {{asset}}",
         "short": "做空 {{asset}}"
@@ -1094,10 +1097,10 @@
         "current_price": "当前价格",
         "liquidation_price": "清算价格",
         "liquidation_distance": "清算距离",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "如果价格{{direction}} {{percentage}}，您将被平仓",
+        "drops": "下跌",
+        "rises": "上涨",
+        "set_leverage": "设置 {{leverage}} 倍"
       },
       "type": {
         "title": "订单类型",
@@ -1184,7 +1187,7 @@
       "updating": "正在更新......",
       "off": "关闭",
       "current_price": "当前价格",
-      "entry_price": "Entry price",
+      "entry_price": "入场价格",
       "leverage": "杠杆",
       "margin": "保证金",
       "liquidation_price": "清算价格",
@@ -1297,7 +1300,7 @@
         "empty_title": "无未平仓头寸",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
         "first_time_title": "永续合约",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "利用高达 40 倍杠杆押注价格走势。",
         "start_trading": "开始交易",
         "start_new_trade": "开始新交易",
         "open_positions": "未平仓头寸",
@@ -1338,8 +1341,8 @@
       "countdown": "倒计时",
       "long": "做多",
       "short": "做空",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "多头仓位",
+      "short_lowercase": "空头仓位",
       "add_funds": "充值",
       "add_funds_to_start_trading_perps": "充值以开始交易永续合约",
       "position": "仓位",
@@ -1447,9 +1450,9 @@
         "show_more": "展开"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "分钟",
+        "hours": "小时",
+        "days": "天"
       }
     },
     "perps_markets": "永续合约市场",
@@ -1519,7 +1522,7 @@
       },
       "choose_leverage": {
         "title": "选择您的杠杆",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "杠杆交易会同步放大收益和亏损。使用 40 倍杠杆时，1% 的价格波动将导致保证金产生 40% 的盈利或亏损。"
       },
       "watch_liquidation": {
         "title": "注意清算风险",
@@ -1527,16 +1530,17 @@
       },
       "close_anytime": {
         "title": "随时平仓",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "随时可以平仓。平仓后将获得保证金余额，并获得盈利或扣除亏损。"
       },
       "ready_to_trade": {
         "title": "准备好交易了吗？",
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。"
       },
       "got_it": "知道了"
     },
     "points": "积分",
+    "estimated_points": "Est. Points",
     "unable_to_load": "无法加载",
     "points_error": "当前无法加载积分",
     "points_error_content": "请放心，您的积分仍在累计。稍后将在账户中显示或可在奖励标签页查看。",
@@ -1544,49 +1548,49 @@
     "sl_on_chart": "图表显示止损"
   },
   "predict": {
-    "title": "MetaMask Predict",
-    "prediction_markets": "Prediction Markets",
-    "market_list": "Market List",
-    "market_details": "Market Details",
+    "title": "MetaMask 预测",
+    "prediction_markets": "预测市场",
+    "market_list": "市场列表",
+    "market_details": "市场详情",
     "tab": {
-      "no_predictions": "No predictions yet",
-      "no_predictions_description": "Open a prediction to get started.",
-      "explore": "Explore markets",
-      "new_prediction": "New prediction"
+      "no_predictions": "暂无预测",
+      "no_predictions_description": "开启一项预测即可开始。",
+      "explore": "探索市场",
+      "new_prediction": "新预测"
     },
-    "sell_position": "Sell Position",
-    "cash_out": "Cash Out",
-    "buy_yes": "Yes",
-    "buy_no": "No",
-    "outcomes": "outcomes",
-    "volume_abbreviated": "Vol.",
+    "sell_position": "卖出仓位",
+    "cash_out": "提现",
+    "buy_yes": "是",
+    "buy_no": "否",
+    "outcomes": "结果",
+    "volume_abbreviated": "交易量",
     "recurrence": {
-      "none": "None",
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "monthly": "Monthly",
-      "yearly": "Yearly",
-      "quarterly": "Quarterly"
+      "none": "无",
+      "daily": "每日",
+      "weekly": "每周",
+      "monthly": "每月",
+      "yearly": "每年",
+      "quarterly": "每季度"
     },
-    "outcomes_singular": "more outcome",
-    "outcomes_plural": "more outcomes",
+    "outcomes_singular": "更多结果",
+    "outcomes_plural": "更多结果",
     "category": {
-      "trending": "Trending",
-      "new": "New",
-      "sports": "Sports",
-      "crypto": "Crypto",
-      "politics": "Politics"
+      "trending": "趋势",
+      "new": "新增",
+      "sports": "体育",
+      "crypto": "加密货币",
+      "politics": "政治"
     },
-    "search_placeholder": "Search prediction markets",
-    "search_cancel": "Cancel",
-    "claim_button": "Claim",
-    "markets_won": "Markets won",
-    "won_markets_text": "Won {{count}} market{{s}}",
-    "won_markets_text_singular": "Won {{count}} market",
-    "won_markets_text_plural": "Won {{count}} markets",
-    "claim_amount_text": "Claim ${{amount}}",
-    "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "search_placeholder": "搜索预测市场",
+    "search_cancel": "取消",
+    "claim_button": "领取",
+    "markets_won": "已赢取的市场",
+    "won_markets_text": "已赢取 {{count}} 个市场{{s}}",
+    "won_markets_text_singular": "已赢取 {{count}} 个市场",
+    "won_markets_text_plural": "已赢取 {{count}} 个市场",
+    "claim_amount_text": "领取 ${{amount}}",
+    "unrealized_pnl_label": "未实现盈亏",
+    "unrealized_pnl_value": "{{amount}}（{{percent}}）"
   },
   "receive": {
     "title": "接收"
@@ -1657,7 +1661,7 @@
     "collectibles": "收藏品",
     "defi": "去中心化金融",
     "perps": "永续合约",
-    "predict": "Predictions",
+    "predict": "预测",
     "transactions": "交易",
     "no_collectibles": "您没有任何收藏品！",
     "no_available_tokens": "没有看到您的代币？",
@@ -1723,8 +1727,8 @@
     "nfts_autodetection_cta": "在设置中打开 NFT 检测",
     "learn_more": "了解更多",
     "add_collectibles": "添加收藏品",
-    "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
-    "discover_nfts": "Import NFTs",
+    "nft_empty_description": "NFT 世界广阔无限，立即开启您的收藏之旅。",
+    "discover_nfts": "导入 NFT",
     "no_transactions": "您没有交易！",
     "switch_network_to_view_transactions": "请切换网络以查看交易",
     "send_button": "发送",
@@ -1761,7 +1765,7 @@
       "link": "开启基本功能"
     },
     "carousel": {
-      "empty_state": "You're all caught up!"
+      "empty_state": "全部搞定啦！"
     }
   },
   "asset_details": {
@@ -1835,8 +1839,8 @@
   "defi_positions": {
     "loading_positions": "正在加载去中心化金融持仓......",
     "empty_state": {
-      "description": "Lend, borrow, and trade, right in your wallet.",
-      "explore_defi": "Explore DeFi"
+      "description": "借出、借入与交易，均可在您的钱包中轻松完成。",
+      "explore_defi": "探索去中心化金融"
     },
     "error_cannot_load_page": "我们无法加载该页面。",
     "error_visit_again": "请稍后再次尝试访问。",
@@ -1861,9 +1865,13 @@
     "agree": "我同意",
     "decline": "不，谢谢",
     "description_title": "帮助我们改进 MetaMask",
-    "description_content_1": "我们希望收集基本的使用数据，以改进 MetaMask。请注意，我们绝不会出卖您在此处提供的数据。",
+    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "当我们收集指标时，总是...",
     "description_content_3": "了解我们如何在收集您的个人资料使用数据的同时保护您的隐私。",
+    "gather_basic_usage_title": "Gather basic usage data",
+    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_learn_more": "Learn more",
+    "checkbox_marketing": "Marketing updates",
     "checkbox": "我们将使用此数据来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点）。",
     "action_description_1_prefix": "私密：",
     "action_description_2_prefix": "综合:",
@@ -1873,6 +1881,7 @@
     "action_description_3_description": "您可以随时决定是否通过设置共享或删除您的使用数据。",
     "cta_no_thanks": "不，谢谢",
     "cta_i_agree": "我同意",
+    "continue": "Continue",
     "fine_print_1_legacy": "此数据是汇总数据，因而可以保持匿名，以遵守《通用数据保护条例》（欧盟）2016/679。",
     "fine_print_2a_legacy": "* 如果您在MetaMask中使用Infura作为默认的RPC提供商，在您发送交易时，Infura会收集您的IP地址和以太坊钱包地址。我们不会以允许系统将这两项数据关联起来的方式来存储此信息。您可以先配置RPC提供商，然后才继续。",
     "fine_print_2b_legacy": "要进一步了解MetaMask和Infura在数据收集方面如何交互，请参阅我们的更新。",
@@ -2034,7 +2043,10 @@
       "bitcoin_regtest_account_name": "比特币 Regtest 账户",
       "solana_devnet_account_name": "Solana 开发网账户",
       "solana_testnet_account_name": "Solana 测试网账户",
-      "solana_account_name": "Solana 账户"
+      "solana_account_name": "Solana 账户",
+      "tron_account_name": "Tron Account",
+      "tron_nile_account_name": "Tron Nile Account",
+      "tron_shasta_account_name": "Tron Shasta Account"
     },
     "error_messages": {
       "failed_to_create_account": "创建 {{clientType}} 账户失败"
@@ -2182,8 +2194,8 @@
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
     "show_custom_nonce": "自定义交易 nonce",
     "custom_nonce_desc": "打开这个功能可以改变确认屏幕上的 nonce（交易号码）。这是一个高级功能，请谨慎使用。",
-    "accounts_identicon_title": "Account icon",
-    "accounts_identicon_desc": "Choose from three different styles of unique icons that can help you identify accounts at a glance.",
+    "accounts_identicon_title": "账户图标",
+    "accounts_identicon_desc": "从三种不同风格的独特图标中选择，助您轻松实现账户清晰显示。",
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "通用",
@@ -2521,8 +2533,8 @@
     "cancel": "取消"
   },
   "sdk_return_to_app_toast": {
-    "returnToAppLabel": "Now you can return to app",
-    "networkSwitchMethodLabel": "Network successfully switched"
+    "returnToAppLabel": "现在您可以返回应用",
+    "networkSwitchMethodLabel": "网络切换成功"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -2628,7 +2640,7 @@
     "deposit_button": "存款",
     "earn_button": "赚取",
     "perps_button": "永续合约",
-    "predict_button": "Predictions",
+    "predict_button": "预测",
     "add_collectible_button": "添加",
     "info": "信息",
     "swap": "兑换",
@@ -2662,7 +2674,7 @@
     "receive_description": "接收加密货币",
     "earn_description": "通过您的代币赚取奖励",
     "perps_description": "交易永续合约",
-    "predict_description": "Trade on real-world events",
+    "predict_description": "基于现实事件进行交易",
     "chart_time_period": {
       "1d": "今天",
       "7d": "过去 7 天",
@@ -3124,8 +3136,8 @@
     "request_from": "请求来自",
     "network_fee": "网络费",
     "network_fee_tooltip": "网络上处理交易所支付的金额。",
-    "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
-    "confirm_gas_fee_token_metamask_fee": "Includes {{metamaskFeeFiat}} fee",
+    "confirm_gas_fee_token_tooltip": "此项费用需支付给网络以处理您的交易。其中包含 {{metamaskFeeFiat}} MetaMask 费用（适用于非 ETH 代币或预存 ETH 的情况）。",
+    "confirm_gas_fee_token_metamask_fee": "包含 {{metamaskFeeFiat}} 费用",
     "smart_account_upgrade": "升级至智能账户",
     "smart_account_downgrade": "切换到标准账户",
     "batched_transactions": "批量交易",
@@ -3433,7 +3445,7 @@
     "error_multiple_srp_word_error_3": " 不正确或拼写错误。",
     "error_invalid_srp": "私钥助记词无效",
     "error_duplicate_srp": "此私钥助记词已导入。",
-    "success_1": "私钥助记词，",
+    "success_1": "Wallet",
     "success_2": "已导入"
   },
   "first_incoming_transaction": {
@@ -3823,7 +3835,7 @@
     "list": {
       "0": "所有",
       "1": "钱包",
-      "2": "Announcement"
+      "2": "公告"
     },
     "copied_to_clipboard": "已复制到剪贴板",
     "address_copied_to_clipboard": "地址已复制到剪贴板",
@@ -4031,14 +4043,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "买入",
     "sell": "卖出",
-    "orders": "订单",
+    "orders": "转账",
     "All": "所有",
     "Buy": "买入",
     "Sell": "卖出",
     "token_marketplace": "代币市场",
     "Purchased": "已购买",
     "Sold": "已卖出",
-    "empty_orders_list": "您没有任何订单",
+    "empty_orders_list": "暂无银行转账或卡转账。",
     "empty_buy_orders_list": "您没有任何买入订单！",
     "empty_sell_orders_list": "您没有任何卖出订单！",
     "purchased_currency": "已购买 {{currency}}",
@@ -4048,11 +4060,6 @@
     "order_status_completed": "已完成",
     "order_status_failed": "失败",
     "order_status_cancelled": "已取消",
-    "network_switcher": {
-      "title": "不支持的 {{rampType}} 网络",
-      "description": "要 {{rampType}} 加密货币，您需要切换到支持的网络",
-      "no_networks_found": "找不到支持的网络"
-    },
     "onboarding": {
       "what_to_expect": "将会发生什么",
       "quotes": "我们的加密货币买入功能汇合了来自集成供应商的报价，以便为您提供来自这些来源的报价；加密货币将会直接进入您的钱包，无需等待。",
@@ -4112,7 +4119,7 @@
     "select_a_quote": "选择报价",
     "recommended_quote": "建议报价",
     "select_a_cryptocurrency": "选择加密货币",
-    "select_a_cryptocurrency_description": "Select from the list of tokens available.",
+    "select_a_cryptocurrency_description": "从可用代币列表中选择。",
     "search_by_cryptocurrency": "按加密货币搜索",
     "search_by_currency": "搜索货币",
     "update_payment_method": "更新付款方式",
@@ -4149,9 +4156,9 @@
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
     "incompatible_token_account_modal": {
-      "title": "Incompatible Account",
-      "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
-      "cta": "Got it"
+      "title": "不兼容的账户",
+      "description": "您的当前账户不支持 {{networkName}} 网络上的代币。请切换到兼容账户以继续操作。",
+      "cta": "知道了"
     },
     "region": {
       "buy_crypto_tokens": "购买加密代币",
@@ -4467,17 +4474,17 @@
     "contact_support": "联系支持团队"
   },
   "whats_new": {
-    "title": "What's New",
+    "title": "最新动态",
     "remove_gns_new_ui_update": {
-      "title": "New UI update",
-      "introduction": "We've made updates to improve the app experience.",
+      "title": "全新 UI 更新",
+      "introduction": "我们进行了更新以优化应用体验。",
       "descriptions": {
-        "description_1": "Network dropdown moved to your assets",
-        "description_2": "Swap and Bridge in one simple flow",
-        "description_3": "Streamlined Send experience",
-        "description_4": "A fresh account view"
+        "description_1": "网络下拉菜单已移至您的资产",
+        "description_2": "一站式完成兑换与桥接",
+        "description_3": "更简化的发送体验",
+        "description_4": "全新账户视图"
       },
-      "more_information": "Now you can focus on your tokens and activity, not the networks behind them.",
+      "more_information": "现在您可以专注于您的代币和活动，而无需担心其背后的网络。",
       "got_it": "知道了"
     }
   },
@@ -4881,12 +4888,14 @@
     "import_account": "私钥",
     "add_bitcoin_account": "比特币账户",
     "add_solana_account": "Solana 账户",
+    "add_tron_account": "Tron account",
     "switch_to_smart_account": "切换到智能账户",
     "rename_account": "重命名账户",
     "addresses": "地址",
     "headers": {
       "bitcoin": "比特币",
-      "solana": "Solana"
+      "solana": "Solana",
+      "tron": "Tron"
     }
   },
   "show_nft": {
@@ -5047,7 +5056,7 @@
     "earn_eth_rewards": "赚取 ETH 奖励.",
     "earn_eth_rewards_description": "质押后，即刻开始赚取奖励。奖励自动计算。",
     "flexible_unstaking": "灵活解除质押.",
-    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
+    "flexible_unstaking_description": "随时解除质押。通常需要不到 3 天的时间，但处理过程最多可能需要 44 天。",
     "disclaimer": "质押并不能保证回报，而且涉及包括资金损失在内的风险。",
     "learn_more": "了解详情",
     "got_it": "知道了",
@@ -5083,7 +5092,7 @@
       "geo_blocked": "您所在的地区不允许解除质押或质押。",
       "approximately": "大约"
     },
-    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
+    "unstake_input_banner_description": "平均而言，不到 3 天时间即可领取解除质押的 ETH，但也可能最长需要 44 天的时间。",
     "max": "最大值",
     "staking_from": "质押提供商",
     "advanced_details": "高级信息",
@@ -5107,7 +5116,7 @@
       }
     },
     "use_max": "使用最大",
-    "estimated_unstaking_time": "1 to 44 days",
+    "estimated_unstaking_time": "1 - 44 天",
     "proceed_anyway": "仍然继续",
     "gas_cost_impact": "燃料成本影响",
     "select_a_token_to_deposit": "选择要存入的代币",
@@ -5214,7 +5223,7 @@
     },
     "unstaking_time": {
       "title": "解除质押时间",
-      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
+      "tooltip": "通常需要不到 3 天的时间来解除 ETH 质押，但处理过程最多可能需要 44 天。确切的持续时间取决于您解除质押的金额以及 ETH 的质押活动"
     }
   },
   "confirm": {
@@ -5243,10 +5252,10 @@
       "bridge_estimated_time": "预计时间",
       "pay_with": "支付方式：",
       "total": "总额",
-      "transaction_fee": "Transaction fee",
+      "transaction_fee": "交易费用",
       "metamask_fee": "MetaMask 费用",
       "network_fee": "网络费",
-      "bridge_fee": "Bridge provider fee"
+      "bridge_fee": "桥接服务商费用"
     },
     "title": {
       "signature": "签名请求",
@@ -5420,15 +5429,16 @@
     "quote_details": "报价详情",
     "price_impact": "价格影响",
     "time": "时间",
-    "quote_info_content": "The best rate we found from providers, including provider fees and a 0.875% MetaMask fee.",
+    "quote_info_content": "我们从服务商找到的最优价格，包括服务商费用及 0.875% 的 MetaMask 手续费。",
     "quote_info_title": "费率",
     "network_fee_info_title": "网络费",
-    "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "积分",
+    "network_fee_info_content": "网络费用取决于网络的繁忙程度及交易的复杂程度。",
+    "points": "预计积分",
     "points_tooltip": "积分",
-    "points_tooltip_content": "预估通过此次交易可获得的 MetaMask 奖励积分。积分最多可能需要 1 小时才能在您的奖励余额中确认",
-    "unable_to_load": "Unable to load",
-    "points_error": "We can't load points right now",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "unable_to_load": "无法加载",
+    "points_error": "当前无法加载积分",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
     "see_other_quotes": "查看其他报价",
     "receive_at": "接收地址：",
@@ -5438,29 +5448,29 @@
     "select_amount": "选择金额",
     "bridge_to": "桥接至",
     "swap_to": "兑换至",
-    "bridge_from": "Bridge from",
-    "swap_from": "Swap from",
+    "bridge_from": "桥接自",
+    "swap_from": "兑换自",
     "title": "桥接",
     "submitting_transaction": "正在提交",
     "fetching_quote": "正在获取报价",
-    "fee_disclaimer": "Includes {{feePercentage}}% MM fee",
-    "no_mm_fee": "No MM fee",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
+    "fee_disclaimer": "包含 {{feePercentage}}% MM 费用",
+    "no_mm_fee": "无 MM 费用",
+    "no_mm_fee_disclaimer": "兑换成 {{destTokenSymbol}} 时无 MM 费用",
     "hardware_wallet_not_supported": "目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "hardware_wallet_not_supported_solana": "Solana 目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "price_impact_info_title": "价格影响",
     "price_impact_info_description": "价格影响反映您的兑换订单对资产市场价格的影响程度。它取决于交易规模及资金池的可用流动性状况。MetaMask 不参与亦不控制价格影响。",
-    "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
+    "price_impact_info_gasless_description": "价格影响反映您的兑换订单对资产市场价格的影响程度。如果您没有足够的资金支付燃料费，系统将自动分配部分源代币用于支付费用，这会扩大价格影响。MetaMask 不参与亦不控制价格影响。",
     "slippage_info_title": "滑移",
-    "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
+    "slippage_info_description": "在交易取消前，您愿意接受的价格波动百分比。",
     "blockaid_error_title": "此交易将被撤销",
     "max": "最大值",
-    "approval_needed": "This will approve {{amount}} {{symbol}} for swapping.",
-    "approval_tooltip_title": "Grant exact access",
-    "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
-    "minimum_received": "Minimum Received",
-    "minimum_received_tooltip_title": "Minimum Received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
+    "approval_needed": "此操作将批准 {{amount}} {{symbol}} 用于兑换。",
+    "approval_tooltip_title": "授予精确访问权限",
+    "approval_tooltip_content": "您正在授权动用指定金额（{{amount}} {{symbol}}）。该合约将无法动用超出此额度的任何资金。",
+    "minimum_received": "最低收款",
+    "minimum_received_tooltip_title": "最低收款",
+    "minimum_received_tooltip_content": "若交易处理期间价格发生波动，根据您设置的滑移容限，此为您将收到的最低金额。该金额来自流动性供应商提供的预估，最终到账金额可能存在差异。"
   },
   "quote_expired_modal": {
     "title": "有新的报价",
@@ -5587,24 +5597,24 @@
   },
   "multichain_accounts": {
     "intro": {
-      "title": "Introducing multichain accounts",
-      "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
-      "section_2_title": "Same address, more networks",
-      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
-      "view_accounts_button": "View accounts",
+      "title": "多链账户简介",
+      "section_1_title": "什么是多链账户？",
+      "section_1_description": "单一账户即可应对 MetaMask 支持的所有网络的地址。现在您无需切换账户即可顺畅使用以太坊、Solana 等。",
+      "section_2_title": "相同地址，更多网络",
+      "section_2_description": "我们已合并您的账户，您仍可照常使用 MetaMask。您的资金安全无虞且未变动。",
+      "view_accounts_button": "查看账户",
       "learn_more_button": "Learn more",
-      "setting_up_accounts": "Setting up your accounts"
+      "setting_up_accounts": "设置您的账户"
     },
     "learn_more": {
       "title": "Learn more",
-      "description": "Multichain accounts are now the default. To opt out, turn off basic functionality.",
+      "description": "多链账户现设为默认。如需退出，请关闭基础功能。",
       "checkbox_label": "Turn off basic functionality",
       "confirm_button": "Confirm"
     },
     "add_wallet": "添加钱包",
     "add_hardware_wallet": "添加硬件钱包",
-    "syncing": "Syncing",
+    "syncing": "同步中",
     "account_details": {
       "header_title": "账户详情",
       "account_name": "账户名称",
@@ -5649,8 +5659,8 @@
       "reveal_recovery_phrase_with_index": "显示私钥助记词 {{index}}"
     },
     "smart_account": {
-      "title": "Use smart account",
-      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
+      "title": "使用智能账户",
+      "description": "在支持的网络上，解锁更快的交易速度、更低的网络费用及增强的安全性。",
       "learn_more": "了解详情"
     },
     "edit_account_name": {
@@ -5660,7 +5670,7 @@
       "name": "名称",
       "save_button": "保存",
       "error": "编辑账户名称失败",
-      "error_duplicate_name": "This name is already in use.",
+      "error_duplicate_name": "此名称已占用。",
       "error_empty_name": "账户名称不能为空"
     },
     "delete_account": {
@@ -5726,10 +5736,10 @@
     "invalid": {
       "title": "此页面不存在",
       "description": "我们找不到您要查找的页面。",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "update_to_store_link": "更新至 MetaMask 最新版本",
+      "well_take_you_to_right_place": " 即可为您呈现对应界面。"
     },
-    "go_to_home_button": "Go to the home page",
+    "go_to_home_button": "前往主页",
     "back_button": "返回",
     "continue_button": "继续"
   },
@@ -5917,8 +5927,7 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
+      "link_account_button": "Add"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -5933,19 +5942,25 @@
         "processing": "Processing..."
       }
     },
-    "unlinked_accounts_info": {
-      "title": "Accounts not earning points",
-      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
-      "go_to_settings": "Go to settings"
+    "toast_dismiss": "Dismiss",
+    "dashboard_modal_info": {
+      "active_account": {
+        "title": "Don't miss out",
+        "description": "Add your account to start earning points from your activity.",
+        "confirm": "Add account"
+      },
+      "multiple_unlinked_accounts": {
+        "title": "Start earning points",
+        "description": "Add your accounts so you can track your rewards at a glance.",
+        "confirm": "Add accounts"
+      },
+      "account_not_supported": {
+        "title": "Account not supported",
+        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
+        "confirm": "Go back"
+      }
     },
-    "unlinked_account_info": {
-      "title": "Account not earning points",
-      "title_optin_not_supported": "Account not supported",
-      "description": "This account's activity is not being tracked for this season.",
-      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
-    },
-    "link_account": "Add account",
-    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
@@ -5961,12 +5976,12 @@
       },
       "perps": {
         "title": "永续合约",
-        "description": "10 points per $100",
+        "description": "每 100 美元 10 积分",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "交易永续合约",
+          "points": "每 100 美元 10 积分",
+          "description": "每笔交易均可赚取积分，包括开仓与平仓、止损与止盈订单设置以及保证金调整等操作。",
+          "cta_label": "开始交易"
         }
       },
       "referrals": {
@@ -6032,18 +6047,18 @@
     },
     "summary_title": {
       "bridge": "从 {{sourceSymbol}} 桥接至 {{targetSymbol}}",
-      "bridge_approval": "Approve {{approveSymbol}}",
-      "bridge_approval_loading": "Approve",
-      "bridge_loading": "Bridge",
+      "bridge_approval": "批准 {{approveSymbol}}",
+      "bridge_approval_loading": "批准",
+      "bridge_loading": "桥接",
       "default": "交易",
       "perps_deposit": "充值",
       "swap": "兑换代币",
-      "swap_approval": "Approve tokens"
+      "swap_approval": "批准代币"
     }
   },
   "network_connection_banner": {
-    "still_connecting_network": "Still connecting to {{networkName}}...",
-    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
-    "update_rpc": "Update RPC"
+    "still_connecting_network": "仍在连接到 {{networkName}}……",
+    "unable_to_connect_network": "无法连接到 {{networkName}}。",
+    "update_rpc": "更新 RPC（远程过程调用）"
   }
 }

@@ -7,6 +7,7 @@ import {
   BackHandler,
   TouchableOpacity,
   TextInput,
+  Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -55,6 +56,7 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
   trace,
@@ -175,6 +177,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     selectIsSeedlessPasswordOutdated,
   );
 
+  const invalidCredentialsError = () => {
+    if (Platform.OS === 'ios' && isComingFromOauthOnboarding) {
+      return strings('login.invalid_pin');
+    }
+    return strings('login.invalid_password');
+  };
+
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -279,6 +288,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
+    // Track vault corruption handling attempt
+    trackVaultCorruption(VAULT_ERROR, {
+      error_type: 'vault_corruption_handling',
+      context: 'vault_corruption_recovery_attempt',
+      oauth_login: isComingFromOauthOnboarding,
+    });
+
     // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
@@ -314,9 +330,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
     } catch (e: unknown) {
+      // Track vault corruption handling failure
+      trackVaultCorruption((e as Error).message, {
+        error_type: 'vault_corruption_handling_failed',
+        context: 'vault_corruption_recovery_failed',
+        oauth_login: isComingFromOauthOnboarding,
+      });
+
       Logger.error(e as Error);
       setLoading(false);
-      setError(strings('login.invalid_password'));
+
+      setError(invalidCredentialsError());
     }
   };
 
@@ -349,7 +373,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.goBack();
+    navigation.navigate(Routes.ONBOARDING.ONBOARDING);
     OAuthService.resetOauthState();
   };
 
@@ -431,7 +455,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
-        setError(strings('login.invalid_password'));
+        setError(invalidCredentialsError());
         return;
       } else if (
         seedlessError.message ===
@@ -506,7 +530,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
 
     setLoading(false);
-    setError(strings('login.invalid_password'));
+
+    setError(invalidCredentialsError());
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   };
 
@@ -550,6 +575,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       containsErrorMessage(loginError, VAULT_ERROR) ||
       containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
     ) {
+      // Track vault corruption detected
+      trackVaultCorruption(loginErrorMessage, {
+        error_type: containsErrorMessage(loginError, VAULT_ERROR)
+          ? 'vault_error'
+          : 'json_parse_error',
+        context: 'login_authentication',
+        oauth_login: isComingFromOauthOnboarding,
+      });
+
       await handleVaultCorruption();
     } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
       updateBiometryChoice(false);
@@ -766,16 +800,22 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.label}
-              >
-                {strings('login.password')}
-              </Label>
+              {(Platform.OS === 'android' || !isComingFromOauthOnboarding) && (
+                <Label
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  style={styles.label}
+                >
+                  {strings('login.password')}
+                </Label>
+              )}
               <TextField
                 size={TextFieldSize.Lg}
-                placeholder={strings('login.password_placeholder')}
+                placeholder={
+                  Platform.OS === 'ios' && isComingFromOauthOnboarding
+                    ? strings('login.pin_placeholder')
+                    : strings('login.password_placeholder')
+                }
                 placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
@@ -825,7 +865,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 loading={finalLoading}
               />
 
-              {!isComingFromOauthOnboarding && (
+              {isComingFromOauthOnboarding ? (
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={handleUseOtherMethod}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  label={strings('login.other_methods')}
+                  loading={finalLoading}
+                  isDisabled={finalLoading}
+                  size={ButtonSize.Lg}
+                />
+              ) : (
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
@@ -837,21 +888,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 />
               )}
             </View>
-
-            {isComingFromOauthOnboarding && (
-              <View style={styles.footer}>
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={handleUseOtherMethod}
-                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                  label={strings('login.other_methods')}
-                  loading={finalLoading}
-                  isDisabled={finalLoading}
-                  size={ButtonSize.Lg}
-                />
-              </View>
-            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />

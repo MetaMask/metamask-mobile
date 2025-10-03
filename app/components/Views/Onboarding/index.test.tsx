@@ -710,7 +710,7 @@ describe('Onboarding', () => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
-    it('should call Google OAuth login for create wallet flow', async () => {
+    it('should call Google OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccess', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -750,9 +750,113 @@ describe('Onboarding', () => {
         'mockGoogleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+        expect.objectContaining({
+          accountName: 'test@example.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
+    });
+
+    it('should call Google OAuth login for create wallet flow on Android and navigate directly to ChoosePassword', async () => {
+      Platform.OS = 'android'; // Set platform to Android
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+      );
+      // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccess
+      expect(mockNavigate).toHaveBeenCalledWith(
         'ChoosePassword',
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
+
+      // Reset Platform.OS back to iOS for other tests
+      Platform.OS = 'ios';
+    });
+
+    it('should call Apple OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccess', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@icloud.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(true);
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockAppleHandler',
+      );
+      // On iOS with Apple login, should navigate to SocialLoginSuccess
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+        expect.objectContaining({
+          accountName: 'test@icloud.com',
           oauthLoginSuccess: true,
           onboardingTraceCtx: expect.any(Object),
         }),
@@ -799,7 +903,7 @@ describe('Onboarding', () => {
         'mockAppleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        'Rehydrate',
+        Routes.ONBOARDING.SECURE_EXISTING_WALLET,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,

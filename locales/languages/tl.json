@@ -573,7 +573,8 @@
     "show_more_nfts": "Magpakita ng mga NFT",
     "token_contract_warning": "Ang address na ito ay isang address ng kontrata ng token. Kung magpapadala ka ng mga token sa address na ito, mawawala ang mga ito sa iyo.",
     "invisible_character_error": "May natukoy kaming hindi nakikitang character sa ENS name. Suriin ang ENS name para maiwasan ang potensyal na panloloko.",
-    "could_not_resolve_name": "Couldn't resolve name"
+    "could_not_resolve_name": "Couldn't resolve name",
+    "invalid_address": "Invalid address"
   },
   "deposit": {
     "title": "Magdeposito",
@@ -865,12 +866,12 @@
     "margin_used": "Nagamit na Margin",
     "gtm_content": {
       "title": "NARITO NA ANG PERPS",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Long o short na may hanggang 40x leverage. Pondohan ang iyong account sa isang click.",
       "not_now": "Hindi sa ngayon",
       "try_now": "Magsimula"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Ngayong araw",
+    "yesterday": "Kahapon",
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "I-withdraw",
     "refresh_balance": "I-refresh ang Balanse",
@@ -883,6 +884,7 @@
       "title": "Halagang idedeposito",
       "get_usdc_hyperliquid": "Kumuha ng USDC • Hyperliquid",
       "insufficient_funds": "Hindi sapat ang pondo",
+      "no_funds_available": "No funds available. Please deposit first.",
       "enter_amount": "Ilagay ang halaga",
       "fetching_quote": "Kumukuha ng quote",
       "submitting": "Isinusumite ang transaksyon",
@@ -1094,10 +1096,10 @@
         "current_price": "Kasalukuyang presyo",
         "liquidation_price": "Liquidation Price",
         "liquidation_distance": "Layo sa Liquidation",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Mali-liquidate ka kapag ang presyo ay {{direction}} ng {{percentage}}",
+        "drops": "bumaba",
+        "rises": "tumaas",
+        "set_leverage": "Itakda sa {{leverage}}x"
       },
       "type": {
         "title": "Uri ng Order",
@@ -1297,7 +1299,7 @@
         "empty_title": "Walang Bukas na Posisyon",
         "empty_description": "Wala ka pang anumang bukas na posisyon.\nSimulang mag-trade para makita ang iyong mga posisyon dito.",
         "first_time_title": "Perps",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "Tumaya sa paggalaw ng presyo na may hanggang 40x leverage.",
         "start_trading": "Simulang mag-trade",
         "start_new_trade": "Magsimula ng bagong trade",
         "open_positions": "Mga Bukas na Posisyon",
@@ -1447,9 +1449,9 @@
         "show_more": "Higit pa"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "Minuto",
+        "hours": "Oras",
+        "days": "Araw"
       }
     },
     "perps_markets": "Mga perps market",
@@ -1519,7 +1521,7 @@
       },
       "choose_leverage": {
         "title": "Piliin ang leverage mo",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 1% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "Bantayan ang liquidation",
@@ -1527,16 +1529,17 @@
       },
       "close_anytime": {
         "title": "Magsara anumang oras",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Lumabas kung kailan mo gusto. Makukuha mo pabalik ang margin mo, kasama ang mga kita o ibinawas ang mga pagkalugi."
       },
       "ready_to_trade": {
         "title": "Handa nang mag-trade?",
         "description": "Pondohan ang perps account mo gamit ang anumang token at isagawa ang una mong trade sa ilang segundo.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "Isu-swap ng MetaMask ang iyong mga pondo sa USDC sa Arbitrum, at idedeposito ang mga iyon sa HyperEVM nang walang dagdag na bayad."
       },
       "got_it": "Nakuha ko"
     },
     "points": "Mga Point",
+    "estimated_points": "Est. Points",
     "unable_to_load": "Hindi mai-load",
     "points_error": "Hindi namin mai-load ang mga point sa ngayon",
     "points_error_content": "Huwag mag-alala, nakakakuha ka parin ng mga point. Lalabas ang mga iyon sa iyong account mayamaya, o pwede mong tingnan ang tab ng mga Reward mamaya.",
@@ -1861,9 +1864,13 @@
     "agree": "Sang-ayon ako",
     "decline": "Huwag na lang",
     "description_title": "Tulungan kaming mapahusay ang MetaMask",
-    "description_content_1": "Nais naming mangalap ng data para sa batayang paggamit upang mapahusay ang MetaMask. Dapat mong malaman na hindi namin ibebenta ang data na iyong ibibigay rito.",
+    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
+    "gather_basic_usage_title": "Gather basic usage data",
+    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_learn_more": "Learn more",
+    "checkbox_marketing": "Marketing updates",
     "checkbox": "Gagamitin namin ang data na ito para matutunan kung paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
@@ -1873,6 +1880,7 @@
     "action_description_3_description": "Ikaw ang magpapasya kung nais mong ibahagi o tanggalin ang iyong data ng paggamit sa pamamagitan ng mga setting anumang oras.",
     "cta_no_thanks": "Salamat nalang",
     "cta_i_agree": "Sumasang-ayon ako",
+    "continue": "Continue",
     "fine_print_1_legacy": "Ang data na ito ay pinagsama-sama at dahil dito ay wala nang pagkakilanlan para sa layunin ng General Data Protection Regulation (EU) 2016/679.",
     "fine_print_2a_legacy": "*Kapag gumamit ka ng Infura bilang iyong RPC provider sa MetaMask, kokolektahin ng Infura ang iyong IP address at ang address ng wallet mo sa Ethereum kapag nagpadala ka ng transaksyon. Hindi kami mag-iimbak ng impormasyong ito sa paraan na nagpapahintulot sa aming mga system upang iugnay ang dalawang pirasong iyon ng data. Maaari mong i-configure ang iyong RPC provider",
     "fine_print_2b_legacy": "bago magpatuloy.\nPara sa higit pang impormasyon kung paano nakikipag-usap ang MetaMask at Infura mula sa perspektibo ng koleksyon ng datos, tingnan ang aming update",
@@ -2034,7 +2042,10 @@
       "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account"
+      "solana_account_name": "Solana Account",
+      "tron_account_name": "Tron Account",
+      "tron_nile_account_name": "Tron Nile Account",
+      "tron_shasta_account_name": "Tron Shasta Account"
     },
     "error_messages": {
       "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
@@ -3433,7 +3444,7 @@
     "error_multiple_srp_word_error_3": " ay hindi tama o mali ang baybay ng mga ito.",
     "error_invalid_srp": "Di-wastong Lihim na Parirala sa Pagbawi",
     "error_duplicate_srp": "Na-import na ang Lihim na Parirala sa Pagbawi na ito.",
-    "success_1": "Lihim na Parirala sa Pagbawi (Secret Recovery Phrase)",
+    "success_1": "Wallet",
     "success_2": "na-import"
   },
   "first_incoming_transaction": {
@@ -4048,11 +4059,6 @@
     "order_status_completed": "Nakumpleto",
     "order_status_failed": "Nabigo",
     "order_status_cancelled": "Nakansela",
-    "network_switcher": {
-      "title": "Hindi suportadong {{rampType}} Network",
-      "description": "Para {{rampType}} ng crypto, kailangan mong lumipat sa isang suportadong network",
-      "no_networks_found": "Walang nahanap na mga suportadong network"
-    },
     "onboarding": {
       "what_to_expect": "Ano ang Aasahan",
       "quotes": "Pinagsasama-sama ng aming tampok sa pagbili ng crypto ang mga quote mula sa mga pinagsama-samang vendor, na nagbibigay sa iyo ng pinakamahusay na quote mula sa mga pinagmulan na iyon para direktang maipasok mo ang crypto sa iyong wallet nang walang panahon ng paghihintay.",
@@ -4881,12 +4887,14 @@
     "import_account": "Pribadong key",
     "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "add_tron_account": "Tron account",
     "switch_to_smart_account": "Lumipat sa Smart account",
     "rename_account": "Palitan ang pangalan ng account",
     "addresses": "Mga Address",
     "headers": {
       "bitcoin": "Bitcoin",
-      "solana": "Solana"
+      "solana": "Solana",
+      "tron": "Tron"
     }
   },
   "show_nft": {
@@ -5917,8 +5925,7 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
+      "link_account_button": "Add"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -5933,19 +5940,25 @@
         "processing": "Processing..."
       }
     },
-    "unlinked_accounts_info": {
-      "title": "Accounts not earning points",
-      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
-      "go_to_settings": "Go to settings"
+    "toast_dismiss": "Dismiss",
+    "dashboard_modal_info": {
+      "active_account": {
+        "title": "Don't miss out",
+        "description": "Add your account to start earning points from your activity.",
+        "confirm": "Add account"
+      },
+      "multiple_unlinked_accounts": {
+        "title": "Start earning points",
+        "description": "Add your accounts so you can track your rewards at a glance.",
+        "confirm": "Add accounts"
+      },
+      "account_not_supported": {
+        "title": "Account not supported",
+        "description_hardware": "Hardware wallet accounts are not yet eligible to earn points. Please switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible to earn points. Please switch to a different account to proceed.",
+        "confirm": "Go back"
+      }
     },
-    "unlinked_account_info": {
-      "title": "Account not earning points",
-      "title_optin_not_supported": "Account not supported",
-      "description": "This account's activity is not being tracked for this season.",
-      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
-    },
-    "link_account": "Add account",
-    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
@@ -5961,12 +5974,12 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 point kada $100",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Mag-trade ng perps",
+          "points": "10 point kada $100",
+          "description": "Makakakuha ng mga point sa bawat trade, kabilang ang mga open at close, stop loss at take profit na mga order, at pagsasaayos ng margin.",
+          "cta_label": "Simulan ang pag-trade"
         }
       },
       "referrals": {
