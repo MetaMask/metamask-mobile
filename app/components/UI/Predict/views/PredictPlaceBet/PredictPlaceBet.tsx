@@ -69,19 +69,21 @@ const PredictPlaceBet = () => {
     outcomeToken?.price ?? 0,
   )}`;
 
-  const onPlaceBet = () => {
-    // Implement cash out action here
-    placeOrder({
+  const onPlaceBet = async () => {
+    await placeOrder({
       outcomeId: outcome.id,
       outcomeTokenId: outcomeToken.id,
       side: Side.BUY,
-      size: 1,
+      size: currentValue,
       providerId: outcome.providerId,
     });
-    setTimeout(() => {
+    try {
       dispatch(StackActions.pop());
       dispatch(StackActions.replace(Routes.PREDICT.MARKET_LIST));
-    }, 1000);
+    } catch (error) {
+      // Navigation errors should not prevent the bet from being placed
+      console.warn('Navigation error after placing bet:', error);
+    }
   };
 
   const renderHeader = () => (

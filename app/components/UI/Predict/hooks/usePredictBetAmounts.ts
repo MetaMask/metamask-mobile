@@ -27,8 +27,7 @@ export const usePredictBetAmounts = ({
 
   const calculateBetAmounts = useCallback(async () => {
     if (!outcomeToken || userBetAmount <= 0) {
-      setBetAmounts({ toWin: 0, sharePrice: 0 });
-      setIsCalculating(false);
+      setBetAmounts({ toWin: 0, sharePrice: outcomeToken?.price || 0 });
       return;
     }
 
