@@ -57,6 +57,7 @@ describe('handleMetaMaskProtocol', () => {
     redirect: '',
     channelId: '',
     comm: '',
+    hr: false,
   } as ReturnType<typeof extractURLParams>['params'];
 
   let origin = '';
@@ -92,6 +93,7 @@ describe('handleMetaMaskProtocol', () => {
       redirect: '',
       channelId: '',
       comm: '',
+      hr: false,
     };
 
     origin = 'test-origin';
@@ -269,7 +271,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should displays RETURN_TO_DAPP_TOAST', () => {
+    it('should displays RETURN_TO_DAPP_NOTIFICATION', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -288,7 +290,58 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        hideReturnToApp: false,
+      });
+    });
+
+    it('should displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to true', () => {
+      params.redirect = 'true';
+      params.hr = true;
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '17' });
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        hideReturnToApp: true,
+      });
+    });
+
+    it('should displays RETURN_TO_DAPP_NOTIFICATION with hideReturnToApp set to false', () => {
+      params.redirect = 'true';
+      params.hr = false;
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '17' });
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
+        hideReturnToApp: false,
       });
     });
 
@@ -316,6 +369,91 @@ describe('handleMetaMaskProtocol', () => {
         protocolVersion: 1,
         originatorInfo: undefined,
         rpc: undefined,
+        hideReturnToApp: false,
+        sdkConnect: {
+          getConnections: mockGetConnections,
+          connectToChannel: mockConnectToChannel,
+          revalidateChannel: mockRevalidateChannel,
+          reconnect: mockReconnect,
+          getApprovedHosts: mockGetApprovedHosts,
+          bindAndroidSDK: mockBindAndroidSDK,
+          state: {
+            navigation: {
+              navigate: mockNavigate,
+            },
+          },
+        },
+      });
+    });
+
+    it('should call handleDeeplink with hideReturnToApp set to true', () => {
+      origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+      params.channelId = 'ABC';
+      params.redirect = '';
+      params.hr = true;
+      mockGetApprovedHosts.mockReturnValue({ ABC: true });
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        channelId: params.channelId,
+        origin,
+        url,
+        context: 'deeplink_scheme',
+        otherPublicKey: params.pubkey,
+        protocolVersion: 1,
+        originatorInfo: undefined,
+        rpc: undefined,
+        hideReturnToApp: true,
+        sdkConnect: {
+          getConnections: mockGetConnections,
+          connectToChannel: mockConnectToChannel,
+          revalidateChannel: mockRevalidateChannel,
+          reconnect: mockReconnect,
+          getApprovedHosts: mockGetApprovedHosts,
+          bindAndroidSDK: mockBindAndroidSDK,
+          state: {
+            navigation: {
+              navigate: mockNavigate,
+            },
+          },
+        },
+      });
+    });
+
+    it('should call handleDeeplink with hideReturnToApp set to false', () => {
+      origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+      params.channelId = 'ABC';
+      params.redirect = '';
+      params.hr = false;
+      mockGetApprovedHosts.mockReturnValue({ ABC: true });
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        channelId: params.channelId,
+        origin,
+        url,
+        context: 'deeplink_scheme',
+        otherPublicKey: params.pubkey,
+        protocolVersion: 1,
+        originatorInfo: undefined,
+        rpc: undefined,
+        hideReturnToApp: false,
         sdkConnect: {
           getConnections: mockGetConnections,
           connectToChannel: mockConnectToChannel,
