@@ -276,7 +276,10 @@ import {
   PerpsControllerEvents,
 } from '../../components/UI/Perps/controllers/PerpsController';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
-import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
+import {
+  RewardsDataService,
+  RewardsDataServiceActions,
+} from './controllers/rewards-controller/services/rewards-data-service';
 import type {
   RewardsControllerState,
   RewardsControllerEvents,
@@ -406,6 +409,7 @@ type GlobalActions =
   | EarnControllerActions
   | PerpsControllerActions
   | RewardsControllerActions
+  | RewardsDataServiceActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions

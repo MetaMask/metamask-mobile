@@ -404,7 +404,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 #### **1. PR_Smoke_e2e_Pipeline**
 
 - **Triggers**:
-  - **When "Run Smoke E2E" label is applied to a Pull request**: Automatically runs smoke tests.
+  - **When "run-ios-e2e-smoke" label is applied to a Pull request**: Automatically runs smoke tests.
 - **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `pr_smoke_e2e_pipeline` from the pipeline dropdown menu.
 
 #### **2. PR_Regression_e2e_Pipeline**
@@ -477,4 +477,5 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 For detailed E2E framework documentation, patterns, and best practices, see:
 
 - **[E2E Framework Guide](../../e2e/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
+- **[Mocking Guide](../../e2e/MOCKING.md)** - Guide on how to mock API call in tests
 - **[General E2E Best Practices](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md)** - MetaMask-wide testing guidelines

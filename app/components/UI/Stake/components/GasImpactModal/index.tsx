@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -30,6 +30,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import { EVM_SCOPE } from '../../../Earn/constants/networks';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,7 +40,9 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_confirmations;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const { navigate } = useNavigation();
 
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -100,7 +103,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
       try {
         await attemptDepositTransaction(
           amountWeiString,
-          activeAccount?.address as string,
+          selectedAccount?.address as string,
         );
         navigate('StakeScreens', {
           screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -127,7 +130,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     isStakingDepositRedesignedEnabled,
     metricsEvent,
     attemptDepositTransaction,
-    activeAccount?.address,
+    selectedAccount?.address,
     navigate,
     amountFiat,
     annualRewardsETH,

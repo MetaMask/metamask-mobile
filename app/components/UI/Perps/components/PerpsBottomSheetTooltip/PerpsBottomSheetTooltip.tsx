@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import React, { useRef, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import BottomSheet, {
@@ -15,7 +16,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
@@ -23,12 +23,30 @@ import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
+/**
+ * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
+ * Wrap the PerpsBottomSheetTooltip in a <Modal> (react-native) component.
+ *
+ * Known compatibility issue:
+ * - On Android, the PerpsBottomSheetTooltip is not rendered correctly when wrapped in a <Modal> component.
+ * Fixed by wrapping the <Modal> in a plain <View> component.
+ *
+ * Example:
+ * {isEligibilityModalVisible && (
+ *   <View>
+ *     <Modal visible transparent animationType="fade">
+ *       <PerpsBottomSheetTooltip isVisible onClose={() => setIsEligibilityModalVisible(false)} contentKey={'geo_block'} />
+ *     </Modal>
+ *   </View>
+ * )}
+ */
 const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
   ({
     isVisible,
     onClose,
     contentKey,
     testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
+    buttonConfig: buttonConfigProps,
     data,
   }) => {
     const { styles } = useStyles(createStyles, {});
@@ -75,7 +93,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [],
     );
 
-    const footerButtons = useMemo<ButtonProps[]>(
+    const buttonConfigDefault = useMemo(
       () => [
         {
           label: buttonLabel,
@@ -86,6 +104,11 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         },
       ],
       [buttonLabel, handleGotItPress],
+    );
+
+    const footerButtons = useMemo(
+      () => buttonConfigProps || buttonConfigDefault,
+      [buttonConfigProps, buttonConfigDefault],
     );
 
     // Only render when visible and title is defined

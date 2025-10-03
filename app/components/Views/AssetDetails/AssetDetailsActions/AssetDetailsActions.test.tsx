@@ -40,7 +40,7 @@ describe('AssetDetailsActions', () => {
   const mockOnReceive = jest.fn();
 
   const defaultProps = {
-    displayFundButton: true,
+    displayBuyButton: true,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
@@ -81,7 +81,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    expect(getByText(strings('asset_overview.fund_button'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
     expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
     expect(getByText(strings('asset_overview.send_button'))).toBeTruthy();
@@ -99,7 +99,7 @@ describe('AssetDetailsActions', () => {
       { state: createStateWithSigningCapability() },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
@@ -115,7 +115,7 @@ describe('AssetDetailsActions', () => {
       { state: createStateWithSigningCapability() },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
@@ -177,13 +177,13 @@ describe('AssetDetailsActions', () => {
     expect(mockOnReceive).toHaveBeenCalled();
   });
 
-  it('does not render the buy button when displayFundButton is false', () => {
+  it('does not render the buy button when displayBuyButton is false', () => {
     const { queryByText } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayFundButton={false} />,
+      <AssetDetailsActions {...defaultProps} displayBuyButton={false} />,
       { state: initialRootState },
     );
 
-    expect(queryByText(strings('asset_overview.fund_button'))).toBeNull();
+    expect(queryByText(strings('asset_overview.buy_button'))).toBeNull();
   });
 
   it('does not render the swap button when displaySwapsButton is false', () => {
@@ -225,7 +225,7 @@ describe('AssetDetailsActions', () => {
     );
 
     // Should have 4 buttons: Buy, Swap, Send, Receive (no Bridge)
-    expect(queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
     expect(
@@ -244,7 +244,7 @@ describe('AssetDetailsActions', () => {
     );
 
     // Should have 5 buttons: Buy, Swap, Bridge, Send, Receive
-    expect(queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();

@@ -7,7 +7,12 @@ import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
 
 const AccountListCell = memo(
-  ({ accountGroup, isSelected, onSelectAccount }: AccountListCellProps) => {
+  ({
+    accountGroup,
+    avatarAccountType,
+    isSelected,
+    onSelectAccount,
+  }: AccountListCellProps) => {
     const { styles } = useStyles(createStyles, {});
 
     const handlePress = useCallback(() => {
@@ -20,7 +25,11 @@ const AccountListCell = memo(
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        <AccountCell accountGroup={accountGroup} isSelected={isSelected} />
+        <AccountCell
+          accountGroup={accountGroup}
+          avatarAccountType={avatarAccountType}
+          isSelected={isSelected}
+        />
       </TouchableOpacity>
     );
   },

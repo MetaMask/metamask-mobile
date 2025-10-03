@@ -12,7 +12,6 @@ import { ConfirmationUIType } from '../../../../../../e2e/selectors/Confirmation
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
@@ -28,6 +27,20 @@ import Title from '../title';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
+import { TransactionType } from '@metamask/transaction-controller';
+import { PerpsDepositSkeleton } from '../../external/perps-temp/components/deposit-skeleton';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
+
+export enum ConfirmationLoader {
+  Default = 'default',
+  PerpsDeposit = 'perpsDeposit',
+}
+
+export interface ConfirmationParams {
+  loader?: ConfirmationLoader;
+  maxValueMode?: boolean;
+}
 
 const ConfirmWrapped = ({
   styles,
@@ -46,13 +59,17 @@ const ConfirmWrapped = ({
             <LedgerContextProvider>
               <Title />
               <ScrollView
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 style={styles.scrollView}
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner />
+                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -110,11 +127,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   // Show spinner if there is no approvalRequest
   if (!approvalRequest) {
-    return (
-      <View style={styles.spinnerContainer} testID="spinner">
-        <AnimatedSpinner size={SpinnerSize.MD} />
-      </View>
-    );
+    return <Loader />;
   }
 
   // Show confirmation in a flat container if the confirmation is full screen
@@ -139,3 +152,28 @@ export const Confirm = ({ route }: ConfirmProps) => {
     </BottomSheet>
   );
 };
+
+function Loader() {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+  const params = useParams<ConfirmationParams>();
+  const loader = params?.loader ?? ConfirmationLoader.Default;
+
+  if (loader === ConfirmationLoader.PerpsDeposit) {
+    return (
+      <View style={styles.flatContainer} testID="confirm-loader-perps-deposit">
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <PerpsDepositSkeleton />
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.spinnerContainer} testID="confirm-loader-default">
+      <AnimatedSpinner size={SpinnerSize.MD} />
+    </View>
+  );
+}

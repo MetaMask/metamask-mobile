@@ -15,12 +15,12 @@ export function getAccountTreeControllerMessenger(
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
       'AccountsController:selectedAccountChange',
-      'AccountsController:accountRenamed',
     ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccount',
       'AccountsController:getSelectedMultichainAccount',
+      'AccountsController:getSelectedAccount',
       'AccountsController:setSelectedAccount',
       'SnapController:get',
       'KeyringController:getState',

@@ -64,15 +64,17 @@ describe('usePerpsPositionData', () => {
   });
 
   it('should fetch historical candles on mount', async () => {
-    const { waitForNextUpdate } = renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
-    );
+    await act(async () => {
+      renderHook(() =>
+        usePerpsPositionData({
+          coin: 'ETH',
+          selectedInterval: CandlePeriod.ONE_HOUR,
+          selectedDuration: TimeDuration.ONE_DAY,
+        }),
+      );
 
-    await waitForNextUpdate();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 24);
   });
@@ -82,7 +84,7 @@ describe('usePerpsPositionData', () => {
   // Price data updates have been moved to usePerpsLivePrices hook
 
   it('should handle loading state correctly', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
         selectedInterval: CandlePeriod.ONE_HOUR,
@@ -94,7 +96,9 @@ describe('usePerpsPositionData', () => {
     expect(result.current.isLoadingHistory).toBe(true);
 
     // Wait for historical data to load
-    await waitForNextUpdate();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(result.current.isLoadingHistory).toBe(false);
     expect(result.current.candleData).toEqual(mockCandleData);
@@ -106,7 +110,7 @@ describe('usePerpsPositionData', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     mockFetchHistoricalCandles.mockRejectedValue(new Error('Failed to fetch'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
         selectedInterval: CandlePeriod.ONE_HOUR,
@@ -114,7 +118,9 @@ describe('usePerpsPositionData', () => {
       }),
     );
 
-    await waitForNextUpdate();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Give more time for async operations
+    });
 
     expect(result.current.isLoadingHistory).toBe(false);
     expect(result.current.candleData).toBe(null);
@@ -1063,7 +1069,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert
-      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '5m', 100); // calculateCandleCount result
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '5m', 288); // calculateCandleCount result (1 day / 5min intervals)
     });
 
     it('refetches data when duration changes', async () => {
@@ -1094,7 +1100,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert
-      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 100); // calculateCandleCount result
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 168); // calculateCandleCount result (1 week / 1h intervals)
     });
   });
 

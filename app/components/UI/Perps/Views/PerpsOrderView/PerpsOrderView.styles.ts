@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -23,9 +23,9 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: 32,
+      paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     },
     sliderSection: {
       paddingHorizontal: 32,
@@ -34,10 +34,15 @@ const createStyles = (colors: Colors) =>
     },
     detailsWrapper: {
       paddingHorizontal: 16,
-      gap: 2,
+      flex: 1,
+      flexGrow: 1,
+      gap: 1,
+    },
+    detailItemWrapper: {
+      paddingVertical: 12,
     },
     detailItem: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       overflow: 'hidden',
     },
     detailItemFirst: {
@@ -61,8 +66,8 @@ const createStyles = (colors: Colors) =>
       marginBottom: -10, // Keep icon at same vertical position
     },
     infoSection: {
-      paddingHorizontal: 24,
-      paddingVertical: 16,
+      paddingHorizontal: 16,
+      borderRadius: 12,
     },
     infoRow: {
       flexDirection: 'row',
@@ -70,23 +75,26 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    stopLossLiquidationWarning: {
+      paddingHorizontal: 8,
+      paddingTop: 8,
+    },
     validationContainer: {
       marginBottom: 12,
     },
     bottomSection: {
-      paddingHorizontal: 24,
       paddingVertical: 24,
     },
     percentageButtonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingBottom: 8,
+      paddingBottom: 12,
       gap: 8,
+      paddingHorizontal: 16,
     },
     percentageButton: {
       flex: 1,
-      minWidth: 0, // Ensures buttons can shrink properly
+      minWidth: 0,
     },
     keypad: {
       paddingHorizontal: 16,

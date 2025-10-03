@@ -17,6 +17,12 @@ import {
   useQRHardwareContext,
 } from './qr-hardware-context';
 
+jest.mock('../../hooks/transactions/useTransactionConfirm', () => ({
+  useTransactionConfirm: jest.fn(() => ({
+    onConfirm: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {

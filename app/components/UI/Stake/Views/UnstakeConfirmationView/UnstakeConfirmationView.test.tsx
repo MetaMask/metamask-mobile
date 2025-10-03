@@ -1,11 +1,14 @@
 import React from 'react';
 import UnstakeConfirmationView from './UnstakeConfirmationView';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
+import { RootState } from '../../../../../reducers';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -15,12 +18,31 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-const mockInitialState = {
+const mockSelectedAccount =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+  ];
+
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTree: {
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
+          wallets: {
+            'keyring:test-wallet': {
+              groups: {
+                'keyring:test-wallet/ethereum': {
+                  accounts: [mockSelectedAccount.id],
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
 };

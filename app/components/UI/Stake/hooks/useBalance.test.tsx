@@ -4,9 +4,13 @@ import {
 } from '../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
 import useBalance from './useBalance';
 import { toHex } from '@metamask/controller-utils';
+import { RootState } from '../../../../reducers';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -14,11 +18,30 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
 ]);
 
-const initialState = {
+const mockSelectedAccount =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+  ];
+
+const initialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTree: {
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
+          wallets: {
+            'keyring:test-wallet': {
+              groups: {
+                'keyring:test-wallet/ethereum': {
+                  accounts: [mockSelectedAccount.id],
+                },
+              },
+            },
+          },
+        },
+      },
       AccountTrackerController: {
         accountsByChainId: {
           '0x1': {
@@ -111,9 +134,21 @@ describe('useBalance', () => {
         engine: {
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState([
-              MOCK_ADDRESS_1,
-            ]),
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+                wallets: {
+                  'keyring:test-wallet': {
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        accounts: [mockSelectedAccount.id],
+                      },
+                    },
+                  },
+                },
+              },
+            },
             AccountTrackerController: {
               accountsByChainId: {
                 '0x1': {

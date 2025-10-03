@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -18,6 +18,10 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../PressablePerpsComponent/PressablePerpsComponent';
 
 /**
  * PerpsCard Component
@@ -33,6 +37,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
+  const coordinatedPress = useCoordinatedPress();
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
@@ -77,27 +83,33 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       // Find the market data for this symbol
       const market = markets.find((m) => m.symbol === symbol);
       if (market) {
+        const initialTab = order ? 'orders' : position ? 'position' : undefined;
         // Navigate to market details with the full market data
         // When navigating from a tab, we need to navigate through the root stack
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
             market,
+            initialTab,
           },
         });
       }
     }
-  }, [onPress, markets, symbol, navigation]);
+  }, [onPress, markets, symbol, navigation, order, position]);
+
+  const memoizedPressHandler = useCallback(() => {
+    coordinatedPress(handlePress);
+  }, [coordinatedPress, handlePress]);
 
   if (!position && !order) {
     return null;
   }
 
   return (
-    <TouchableOpacity
+    <TouchablePerpsComponent
       style={styles.card}
       activeOpacity={0.7}
-      onPress={handlePress}
+      onPress={memoizedPressHandler}
       testID={testID}
     >
       <View style={styles.cardContent}>
@@ -130,7 +142,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </TouchablePerpsComponent>
   );
 };
 

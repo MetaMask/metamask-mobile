@@ -83,6 +83,10 @@ jest.mock('../../../core/Engine', () => ({
         },
       },
     },
+    MultichainAssetsRatesController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
     AccountsController: {
       state: {
         internalAccounts: {
@@ -267,6 +271,10 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
     selectNetwork: jest.fn(),
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
+  }),
+  useNetworksByCustomNamespace: () => ({
+    areAllNetworksSelected: false,
+    totalEnabledNetworksCount: 2,
   }),
   NetworkType: {
     Popular: 'popular',

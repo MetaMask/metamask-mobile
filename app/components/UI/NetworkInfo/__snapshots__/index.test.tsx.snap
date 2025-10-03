@@ -21,9 +21,8 @@ exports[`NetworkInfo render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 16,
-          "fontWeight": "600",
           "marginVertical": 10,
           "textAlign": "center",
         }
@@ -97,9 +96,8 @@ exports[`NetworkInfo render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 14,
-          "fontWeight": "600",
           "marginBottom": 15,
           "textAlign": "center",
         }
@@ -298,9 +296,8 @@ exports[`NetworkInfo render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
@@ -340,9 +337,8 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 16,
-          "fontWeight": "600",
           "marginVertical": 10,
           "textAlign": "center",
         }
@@ -418,9 +414,8 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
         style={
           {
             "color": "#b7bbc866",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 10,
-            "fontWeight": "400",
             "paddingVertical": 5,
             "textAlign": "center",
           }
@@ -433,9 +428,8 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 14,
-          "fontWeight": "600",
           "marginBottom": 15,
           "textAlign": "center",
         }
@@ -634,9 +628,8 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
@@ -676,9 +669,8 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 16,
-          "fontWeight": "600",
           "marginVertical": 10,
           "textAlign": "center",
         }
@@ -752,9 +744,8 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 14,
-          "fontWeight": "600",
           "marginBottom": 15,
           "textAlign": "center",
         }
@@ -892,9 +883,8 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {

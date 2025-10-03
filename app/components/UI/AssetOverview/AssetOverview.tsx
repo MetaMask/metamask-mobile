@@ -80,7 +80,7 @@ import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNaviga
 
 interface AssetOverviewProps {
   asset: TokenI;
-  displayFundButton?: boolean;
+  displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   displayBridgeButton?: boolean;
   swapsIsLive?: boolean;
@@ -89,7 +89,7 @@ interface AssetOverviewProps {
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
-  displayFundButton,
+  displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
@@ -418,7 +418,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayFundButton={displayFundButton}
+            displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}

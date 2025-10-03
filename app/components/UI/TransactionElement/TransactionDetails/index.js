@@ -46,7 +46,10 @@ import { selectContractExchangeRatesByChainId } from '../../../../selectors/toke
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import { selectPrimaryCurrency } from '../../../../selectors/settings';
+import {
+  selectPrimaryCurrency,
+  selectAvatarAccountType,
+} from '../../../../selectors/settings';
 import {
   selectSwapsTransactions,
   selectTransactions,
@@ -168,6 +171,10 @@ class TransactionDetails extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Avatar style to render for account icons
+     */
+    avatarAccountType: PropTypes.string,
   };
 
   state = {
@@ -439,7 +446,9 @@ class TransactionDetails extends PureComponent {
                 <View style={styles.accountNameAvatar}>
                   <Avatar
                     variant={AvatarVariant.Account}
-                    type={AvatarAccountType.Jazzicon}
+                    type={
+                      this.props.avatarAccountType || AvatarAccountType.Maskicon
+                    }
                     accountAddress={updatedTransactionDetails.renderFrom}
                     size={AvatarSize.Md}
                     style={styles.accountAvatar}
@@ -467,8 +476,10 @@ class TransactionDetails extends PureComponent {
                 <View style={styles.accountNameAvatar}>
                   <Avatar
                     variant={AvatarVariant.Account}
-                    type={AvatarAccountType.Jazzicon}
-                    accountAddress={updatedTransactionDetails.renderFrom}
+                    type={
+                      this.props.avatarAccountType || AvatarAccountType.Maskicon
+                    }
+                    accountAddress={updatedTransactionDetails.renderTo}
                     size={AvatarSize.Md}
                     style={styles.accountAvatar}
                   />
@@ -571,6 +582,7 @@ const mapStateToProps = (state, ownProps) => ({
     state,
     ownProps.transactionObject.chainId,
   ),
+  avatarAccountType: selectAvatarAccountType(state),
 });
 
 TransactionDetails.contextType = ThemeContext;

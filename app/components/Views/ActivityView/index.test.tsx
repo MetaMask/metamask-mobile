@@ -158,7 +158,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      const filterControlsButton = getByTestId('token-network-filter');
+      const filterControlsButton = getByTestId('tokens-network-filter');
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
@@ -188,7 +188,7 @@ describe('ActivityView', () => {
 
       const { getByTestId } = renderComponent(mockInitialState);
 
-      const filterControlsButton = getByTestId('token-network-filter');
+      const filterControlsButton = getByTestId('tokens-network-filter');
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
@@ -265,7 +265,7 @@ describe('ActivityView', () => {
 
         const { getByTestId } = renderComponent(mockInitialState);
 
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId('tokens-network-filter');
         fireEvent.press(filterButton);
 
         expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
@@ -358,7 +358,7 @@ describe('ActivityView', () => {
 
         const { getByTestId } = renderComponent(mockInitialState);
 
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId('tokens-network-filter');
         fireEvent.press(filterButton);
 
         expect(
@@ -381,7 +381,7 @@ describe('ActivityView', () => {
         mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
 
         const { getByTestId } = renderComponent(mockInitialState);
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId('tokens-network-filter');
 
         expect(filterButton.props.disabled).toBe(true);
       });

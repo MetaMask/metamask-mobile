@@ -40,12 +40,12 @@ describe('handleUniversalLinks', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
+  const mockHandleDepositCash = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockHandleOpenHome = jest.fn();
   const mockHandleSwap = jest.fn();
   const mockHandleCreateAccount = jest.fn();
-  // const mockHandlePerps = jest.fn();
-  // const mockHandlePerpsAsset = jest.fn();
+  const mockHandlePerps = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -61,12 +61,12 @@ describe('handleUniversalLinks', () => {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
+    _handleDepositCash: mockHandleDepositCash,
     _handleBrowserUrl: mockHandleBrowserUrl,
     _handleOpenHome: mockHandleOpenHome,
     _handleSwap: mockHandleSwap,
     _handleCreateAccount: mockHandleCreateAccount,
-    // _handlePerps: mockHandlePerps,
-    // _handlePerpsAsset: mockHandlePerpsAsset,
+    _handlePerps: mockHandlePerps,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -155,6 +155,28 @@ describe('handleUniversalLinks', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockHandleSellCrypto).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('ACTIONS.DEPOSIT', () => {
+    it('calls instance._handleDepositCash if action is ACTIONS.DEPOSIT', async () => {
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DEPOSIT}/additional/path`,
+        href: 'test-href',
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}/additional/path/additional/path`;
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleDepositCash).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -415,76 +437,51 @@ describe('handleUniversalLinks', () => {
     });
   });
 
-  // Disabled for 7.55.0 to force user to update
-  // describe('ACTIONS.PERPS', () => {
-  //   it('calls _handlePerps when action is PERPS', async () => {
-  //     const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}/markets`;
-  //     const perpsUrlObj = {
-  //       ...urlObj,
-  //       hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-  //       href: perpsUrl,
-  //       pathname: `/${ACTIONS.PERPS}/markets`,
-  //     };
+  describe('ACTIONS.PERPS', () => {
+    it('calls _handlePerps when action is PERPS', async () => {
+      const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}/markets`;
+      const perpsUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsUrl,
+        pathname: `/${ACTIONS.PERPS}/markets`,
+      };
 
-  //     await handleUniversalLink({
-  //       instance,
-  //       handled,
-  //       urlObj: perpsUrlObj,
-  //       browserCallBack: mockBrowserCallBack,
-  //       url: perpsUrl,
-  //       source: 'test-source',
-  //     });
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsUrl,
+        source: 'test-source',
+      });
 
-  //     expect(handled).toHaveBeenCalled();
-  //     expect(mockHandlePerps).toHaveBeenCalledWith('/markets');
-  //   });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePerps).toHaveBeenCalledWith('/markets');
+    });
 
-  //   it('calls _handlePerps when action is PERPS_MARKETS', async () => {
-  //     const perpsMarketsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_MARKETS}`;
-  //     const perpsMarketsUrlObj = {
-  //       ...urlObj,
-  //       hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-  //       href: perpsMarketsUrl,
-  //       pathname: `/${ACTIONS.PERPS_MARKETS}`,
-  //     };
+    it('calls _handlePerps when action is PERPS_MARKETS', async () => {
+      const perpsMarketsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_MARKETS}`;
+      const perpsMarketsUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsMarketsUrl,
+        pathname: `/${ACTIONS.PERPS_MARKETS}`,
+      };
 
-  //     await handleUniversalLink({
-  //       instance,
-  //       handled,
-  //       urlObj: perpsMarketsUrlObj,
-  //       browserCallBack: mockBrowserCallBack,
-  //       url: perpsMarketsUrl,
-  //       source: 'test-source',
-  //     });
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsMarketsUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsMarketsUrl,
+        source: 'test-source',
+      });
 
-  //     expect(handled).toHaveBeenCalled();
-  //     expect(mockHandlePerps).toHaveBeenCalledWith('');
-  //   });
-  // });
-
-  // describe('ACTIONS.PERPS_ASSET', () => {
-  //   it('calls _handlePerpsAsset when action is PERPS_ASSET', async () => {
-  //     const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}/BTC`;
-  //     const perpsAssetUrlObj = {
-  //       ...urlObj,
-  //       hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-  //       href: perpsAssetUrl,
-  //       pathname: `/${ACTIONS.PERPS_ASSET}/BTC`,
-  //     };
-
-  //     await handleUniversalLink({
-  //       instance,
-  //       handled,
-  //       urlObj: perpsAssetUrlObj,
-  //       browserCallBack: mockBrowserCallBack,
-  //       url: perpsAssetUrl,
-  //       source: 'test-source',
-  //     });
-
-  //     expect(handled).toHaveBeenCalled();
-  //     expect(mockHandlePerpsAsset).toHaveBeenCalledWith('/BTC');
-  //   });
-  // });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePerps).toHaveBeenCalledWith('');
+    });
+  });
 
   describe('ACTIONS.WC', () => {
     const testCases = [
@@ -665,6 +662,35 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('interstitial whitelist', () => {
+    const whitelistedUrls = [
+      'https://link.metamask.io/perps-asset?symbol=ETH',
+    ] as const;
+
+    it.each(whitelistedUrls)(
+      'skips interstitial modal for whitelisted URL: %s',
+      async (testUrl) => {
+        const parsedUrl = new URL(testUrl);
+        const testUrlObj = {
+          ...urlObj,
+          hostname: parsedUrl.hostname,
+          href: testUrl,
+          pathname: parsedUrl.pathname,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handled).toHaveBeenCalled();
+      },
+    );
+
     it('does not show interstitial modal for WC action', async () => {
       const wcUri = 'wc:abc123@2?relay-protocol=irn&symKey=xyz';
       const encodedWcUri = encodeURIComponent(wcUri);
@@ -690,6 +716,33 @@ describe('handleUniversalLinks', () => {
       expect(mockParse).toHaveBeenCalledWith(wcUri, {
         origin: 'test-source',
       });
+    });
+
+    it('shows interstitial modal for non-whitelisted URLs', async () => {
+      const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+      const nonWhitelistedUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: nonWhitelistedUrl,
+        pathname: `/${ACTIONS.DAPP}/example.com`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: nonWhitelistedUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: nonWhitelistedUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
     });
   });
 });

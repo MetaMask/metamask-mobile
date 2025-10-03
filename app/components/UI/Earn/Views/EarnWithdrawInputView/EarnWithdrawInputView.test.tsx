@@ -49,6 +49,12 @@ jest.mock('../../../../../selectors/multichain', () => ({
   })),
 }));
 
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+  })),
+}));
+
 const mockBalanceBN = new BN4('1000000000000000000');
 
 const mockSetOptions = jest.fn();

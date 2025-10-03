@@ -537,7 +537,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
-                          handlerTag={-1}
+                          handlerTag={1}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -549,7 +549,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 ]
                               }
                               onRefresh={[Function]}
-                              refreshing={false}
+                              refreshing={true}
                               tintColor="#121314"
                             />
                           }
@@ -1651,7 +1651,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 ]
                               }
                               onRefresh={[Function]}
-                              refreshing={false}
+                              refreshing={true}
                               tintColor="#121314"
                             />
                           }

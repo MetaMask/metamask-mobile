@@ -18,6 +18,13 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(() => ({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  })),
+}));
+
 const mockDeviceId = 'MockDeviceId';
 const mockCloseLedgerSignModal = jest.fn();
 jest.mock('../../../context/ledger-context', () => ({

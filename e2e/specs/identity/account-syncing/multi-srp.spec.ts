@@ -3,7 +3,7 @@ import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags.js';
+import { RegressionIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { arrangeTestUtils } from '../utils/helpers.ts';
@@ -19,7 +19,7 @@ import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountT
 import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import { createUserStorageController } from '../utils/mocks.ts';
 
-describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
+describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
@@ -30,7 +30,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   const DEFAULT_ACCOUNT_NAME = 'Account 1';
   const SECOND_ACCOUNT_NAME = 'Account 2';
   const SRP_2_FIRST_ACCOUNT = 'Account 3';
-  const SRP_2_SECOND_ACCOUNT = 'My Fourth Account';
+  const SRP_2_SECOND_ACCOUNT = 'Number 4';
 
   /**
    * This test verifies account syncing when adding accounts across multiple SRPs:

@@ -6,10 +6,7 @@ import { useSelector } from 'react-redux';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
-import {
-  AvatarAccountType,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -36,6 +33,7 @@ import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -49,13 +47,8 @@ const AccountConnectSingle = ({
   connection,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const renderSheetAction = useCallback(
     () => (

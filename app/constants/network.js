@@ -27,10 +27,12 @@ export const IPFS_DEFAULT_GATEWAY_URL = 'https://dweb.link/ipfs/';
 export const NETWORKS_CHAIN_ID = {
   MAINNET: toHex('1'),
   OPTIMISM: toHex('10'),
+  OPTIMISM_SEPOLIA: toHex('11155420'),
   BSC: toHex('56'),
   POLYGON: toHex('137'),
   FANTOM: toHex('250'),
   BASE: toHex('8453'),
+  BASE_SEPOLIA: toHex('84532'),
   ARBITRUM: toHex('42161'),
   AVAXCCHAIN: toHex('43114'),
   CELO: toHex('42220'),
@@ -52,6 +54,7 @@ export const NETWORKS_CHAIN_ID = {
   MEGAETH_TESTNET: toHex('6342'),
   SEI: toHex('1329'),
   MONAD_TESTNET: toHex('10143'),
+  HYPER_EVM: toHex('999'),
 };
 
 // To add a deprecation warning to a network, add it to the array

@@ -29,7 +29,11 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
+      } else {
+        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Enter a strong password"]');
+      }
     }
   }
 
@@ -39,21 +43,15 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
+      } else {
+        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Re-enter your password"]');
+      }
     }
   }
 
   get iUnderstandCheckbox() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-      );
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
-    }
-  }
-
-  get iUnderstandCheckboxNewWallet() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,

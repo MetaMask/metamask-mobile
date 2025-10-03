@@ -41,6 +41,37 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 jest.mock('../services/PerpsConnectionManager');
+
+// Mock navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({
+    goBack: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    reset: jest.fn(),
+  })),
+}));
+
+// Mock PerpsConnectionErrorView to avoid complex navigation dependencies
+jest.mock('../components/PerpsConnectionErrorView', () => ({
+  __esModule: true,
+  default: ({
+    error,
+    onRetry,
+  }: {
+    error: string | Error;
+    onRetry: () => void;
+  }) => {
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-connection-error">
+        <Text>{error instanceof Error ? error.message : error}</Text>
+        <TouchableOpacity onPress={onRetry} testID="retry-button">
+          <Text>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
 jest.mock('../hooks/usePerpsDepositStatus', () => ({
   usePerpsDepositStatus: jest.fn(),
 }));
@@ -678,6 +709,14 @@ describe('Connection Lifecycle Integration Tests', () => {
       const connectionError = new Error('Connection failed');
       mockConnect.mockRejectedValueOnce(connectionError);
 
+      // Mock the connection state to return error state persistently
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
       mockUsePerpsConnectionLifecycle.mockImplementation(
         ({ isVisible, onConnect, onError }: PerpsConnectionLifecycleParams) => {
           React.useEffect(() => {
@@ -696,13 +735,15 @@ describe('Connection Lifecycle Integration Tests', () => {
         return <Text>{error || 'No error'}</Text>;
       };
 
-      const { getByText } = render(
+      const { getByText, getByTestId } = render(
         <PerpsConnectionProvider isVisible>
           <TestComponent />
         </PerpsConnectionProvider>,
       );
 
+      // Should show error view instead of children due to environment-level error handling
       await waitFor(() => {
+        expect(getByTestId('perps-connection-error')).toBeDefined();
         expect(getByText('Connection failed')).toBeDefined();
       });
     });

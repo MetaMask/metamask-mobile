@@ -13,11 +13,7 @@ import { Box } from '../../../Box/Box';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import {
-  AvatarAccountType,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { RootState } from '../../../../../reducers';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
 import { View, StyleSheet } from 'react-native';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -27,6 +23,13 @@ import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import { selectValidDestInternalAccountIds } from '../../../../../selectors/bridge';
+import {
+  selectAccountGroups,
+  selectSelectedAccountGroup,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -56,26 +59,45 @@ const DestinationAccountSelector = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const hasInitialized = useRef(false);
+  const currentlySelectedAccount = useSelector(selectSelectedAccountGroup);
+
+  // Filter accounts using BIP-44 aware multichain selectors via account IDs
+  const validDestIds = useSelector(selectValidDestInternalAccountIds);
+  const accountGroups = useSelector(selectAccountGroups);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const filteredAccounts = useMemo(() => {
+    if (!validDestIds || validDestIds.size === 0) return [];
+    return accounts
+      .filter((account) => validDestIds.has(account.id))
+      .map((account) => {
+        // Use account group name if available, otherwise use account name
+        let accountName = account.name;
+        if (isMultichainAccountsState2Enabled) {
+          const accountGroup = accountGroups.find((group) =>
+            group.accounts.includes(account.id),
+          );
+          accountName = accountGroup?.metadata.name || account.name;
+        }
+        return {
+          ...account,
+          name: accountName,
+        };
+      });
+  }, [
+    accounts,
+    validDestIds,
+    accountGroups,
+    isMultichainAccountsState2Enabled,
+  ]);
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
-
-  const filteredAccounts = useMemo(() => {
-    if (isEvmToSolana) {
-      return accounts.filter((account) => isSolanaAddress(account.address));
-    } else if (isSolanaToEvm) {
-      return accounts.filter((account) => !isSolanaAddress(account.address));
-    }
-    return []; // No addresses to pick if EVM <> EVM, or Solana <> Solana, will go to current account
-  }, [accounts, isEvmToSolana, isSolanaToEvm]);
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -106,7 +128,19 @@ const DestinationAccountSelector = () => {
       (!hasInitialized.current && !destAddress) ||
       !doesDestAddrMatchNetworkType
     ) {
-      handleSelectAccount(filteredAccounts[0].caipAccountId);
+      // Find an account from the currently selected account group that supports the destination network
+      let defaultAccount = filteredAccounts[0]; // fallback to first account
+      if (currentlySelectedAccount) {
+        const accountFromCurrentGroup = filteredAccounts.find((account) =>
+          currentlySelectedAccount.accounts.includes(account.id),
+        );
+
+        if (accountFromCurrentGroup) {
+          defaultAccount = accountFromCurrentGroup;
+        }
+      }
+
+      handleSelectAccount(defaultAccount.caipAccountId);
       hasInitialized.current = true;
     }
   }, [
@@ -115,6 +149,7 @@ const DestinationAccountSelector = () => {
     handleSelectAccount,
     isEvmToSolana,
     isSolanaToEvm,
+    currentlySelectedAccount,
   ]);
 
   return (
@@ -133,11 +168,12 @@ const DestinationAccountSelector = () => {
               accountAddress: destAddress,
               style: styles.avatarStyle,
             }}
+            onPress={handleClearDestAddress}
           >
             <View style={styles.closeButtonContainer}>
               <ButtonIcon
                 onPress={handleClearDestAddress}
-                iconName={IconName.Close}
+                iconName={IconName.Edit}
               />
             </View>
           </Cell>

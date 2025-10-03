@@ -46,6 +46,7 @@ import {
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -76,7 +77,16 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     skipInitialFetch: !isConnected,
   });
 
+  // Memoize the funding params to prevent infinite re-renders
+  const fundingParams = useMemo(
+    () => ({
+      startTime: getUserFundingsListTimePeriod(),
+    }),
+    [], // Empty dependency array since we want this to be stable
+  );
+
   const { funding: fundingData, refresh: refreshFunding } = usePerpsFunding({
+    params: fundingParams,
     skipInitialFetch: !isConnected,
   });
 
@@ -187,8 +197,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Initial loading is handled by the hooks themselves
 
   const renderFilterTab = useCallback(
-    (tab: FilterTab) => {
+    (tab: FilterTab, index: number) => {
       const isActive = activeFilter === tab;
+
+      // Convert index to i18n key
+      const i18nKeys = ['trades', 'orders', 'funding'];
+      const i18nKey = i18nKeys[index];
 
       const handleTabPress = () => {
         // Immediately scroll to top and switch tabs
@@ -218,10 +232,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           delayPressOut={0}
         >
           <Text
-            variant={TextVariant.BodyMDBold}
+            variant={TextVariant.BodySMBold}
             style={isActive ? null : styles.filterTabText}
           >
-            {strings(`perps.transactions.tabs.${tab.toLowerCase()}`)}
+            {strings(`perps.transactions.tabs.${i18nKey}`)}
           </Text>
         </TouchableOpacity>
       );
@@ -348,6 +362,13 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [],
   );
 
+  const filterTabDescription = useMemo(() => {
+    if (activeFilter === 'Funding') {
+      return strings('perps.transactions.tabs.funding_description');
+    }
+    return null;
+  }, [activeFilter]);
+
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer} pointerEvents="box-none">
@@ -361,6 +382,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           {filterTabs.map(renderFilterTab)}
         </ScrollView>
       </View>
+
+      {filterTabDescription && (
+        <View style={styles.tabDescription}>
+          <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
+        </View>
+      )}
 
       <FlashList
         ref={flashListRef}

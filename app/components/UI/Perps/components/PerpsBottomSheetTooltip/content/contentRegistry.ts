@@ -1,4 +1,5 @@
 import FeesTooltipContent from './FeesTooltipContent';
+import TPSLCountWarningTooltipContent from './TPSLCountWarningTooltipContent';
 import WithdrawalFeesTooltipContent from './WithdrawalFeesTooltipContent';
 import { ContentRegistry } from './types';
 
@@ -22,8 +23,10 @@ export const tooltipContentRegistry: ContentRegistry = {
   margin: undefined,
   open_interest: undefined,
   funding_rate: undefined,
-  perps_geo_block: undefined,
-  estimated_pnl: undefined, // Uses default string content
-  limit_price: undefined, // Uses default string content
+  geo_block: undefined,
+  estimated_pnl: undefined,
+  limit_price: undefined,
   tp_sl: undefined,
+  close_position_you_receive: undefined,
+  tpsl_count_warning: TPSLCountWarningTooltipContent,
 };

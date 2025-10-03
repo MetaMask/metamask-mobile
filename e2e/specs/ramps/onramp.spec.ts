@@ -38,7 +38,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();
@@ -61,7 +61,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       await BuildQuoteView.tapCancelButton();
 
       // Should not show the Get Started screen again
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await Assertions.expectElementToBeVisible(
         BuildQuoteView.amountToBuyLabel,

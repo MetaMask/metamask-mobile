@@ -14,6 +14,12 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
     ...createGeolocationResponse(RampsRegions[RampsRegionsEnum.UNITED_STATES]),
     {
       urlEndpoint:
+        /^https:\/\/on-ramp\.dev-api\.cx\.metamask\.io\/regions\/networks/,
+      responseCode: 200,
+      response: RAMPS_NETWORKS_RESPONSE,
+    },
+    {
+      urlEndpoint:
         /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
       responseCode: 200,
       response: RAMPS_NETWORKS_RESPONSE,

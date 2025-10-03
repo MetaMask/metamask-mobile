@@ -12,11 +12,12 @@ import {
   selectSelectedInternalAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { Balance } from '@metamask/keyring-api';
+import { Balance, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
+import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
@@ -40,7 +41,6 @@ import {
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../featureFlagController';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -404,7 +404,13 @@ export const selectNonEvmTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
   selectSelectedNonEvmNetworkChainId,
-  (nonEvmTransactions, selectedAccount, selectedNonEvmNetworkChainId) => {
+  selectIsSolanaTestnetEnabled,
+  (
+    nonEvmTransactions,
+    selectedAccount,
+    selectedNonEvmNetworkChainId,
+    isSolanaTestnetEnabled,
+  ) => {
     if (!selectedAccount) {
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
@@ -414,6 +420,15 @@ export const selectNonEvmTransactions = createDeepEqualSelector(
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
+    // If trying to access devnet transactions but feature flag is disabled, return the default transaction state entry
+    if (
+      selectedNonEvmNetworkChainId === SolScope.Devnet &&
+      !isSolanaTestnetEnabled
+    ) {
+      return DEFAULT_TRANSACTION_STATE_ENTRY;
+    }
+
+    // For all other cases, return transactions for the selected chain
     return (
       accountTransactions[selectedNonEvmNetworkChainId] ??
       DEFAULT_TRANSACTION_STATE_ENTRY
@@ -490,11 +505,6 @@ export const makeSelectNonEvmAssetById = () =>
     },
   );
 
-export const selectSolanaOnboardingModalEnabled = createDeepEqualSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => Boolean(remoteFeatureFlags.solanaOnboardingModal),
-);
-
 export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
   selectInternalAccounts,
   selectMultichainBalances,
@@ -530,8 +540,6 @@ export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
             ...accountNativeBalance,
           },
         };
-
-        return list;
       }
 
       return list;

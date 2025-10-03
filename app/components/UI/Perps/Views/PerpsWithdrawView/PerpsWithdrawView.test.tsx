@@ -5,8 +5,33 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import PerpsWithdrawView from './PerpsWithdrawView';
 import { ToastContext } from '../../../../../component-library/components/Toast';
+
+// Mock component-library Button to avoid IconSize import issues during tests
+jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
+  __esModule: true,
+  default: 'Button',
+  ButtonSize: { Lg: 'Lg', Md: 'Md' },
+  ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
+  ButtonWidthTypes: { Full: 'Full', Auto: 'Auto' },
+}));
+
+// Mock usePerpsLiveAccount hook
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000.00',
+      totalBalance: '1000.00',
+      marginUsed: '0.00',
+      unrealizedPnl: '0.00',
+      returnOnEquity: '0.00',
+      totalValue: '1000.00',
+    },
+    isInitialLoading: false,
+  })),
+}));
 
 // Mock locales
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -41,8 +66,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock hooks
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(() => ({
-    availableBalance: '$1000.00',
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '$1000.00',
+    },
+    isInitialLoading: false,
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {
@@ -124,30 +152,13 @@ jest.mock('@metamask/design-system-react-native', () => ({
     Between: 'Between',
   },
   ButtonBase: 'ButtonBase',
-}));
-
-// Mock Icons
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: 'Icon',
+  IconSize: {
+    Xl: 'Xl',
+  },
   IconColor: {
-    Alternative: 'Alternative',
+    PrimaryDefault: 'PrimaryDefault',
   },
 }));
-
-jest.mock(
-  '../../../../../component-library/components/Icons/Icon/Icon.types',
-  () => ({
-    IconName: {
-      Close: 'Close',
-      Info: 'Info',
-      Clock: 'Clock',
-    },
-    IconSize: {
-      Sm: 'Sm',
-    },
-  }),
-);
 
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({
@@ -233,7 +244,7 @@ describe('PerpsWithdrawView', () => {
             >
           }
         >
-          {component}
+          <PerpsStreamProvider>{component}</PerpsStreamProvider>
         </ToastContext.Provider>
       </SafeAreaProvider>,
     );
@@ -250,7 +261,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(strings('perps.withdrawal.title')),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial amount display
+      expect(screen.getByText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
