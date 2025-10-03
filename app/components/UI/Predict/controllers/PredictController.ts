@@ -5,6 +5,7 @@ import {
 } from '@metamask/base-controller';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import {
+  PersonalMessageParams,
   SignTypedDataVersion,
   TypedMessageParams,
 } from '@metamask/keyring-controller';
@@ -757,6 +758,8 @@ export class PredictController extends BaseController<
             params: TypedMessageParams,
             version: SignTypedDataVersion,
           ) => KeyringController.signTypedMessage(params, version),
+          signPersonalMessage: (params: PersonalMessageParams) =>
+            KeyringController.signPersonalMessage(params),
         },
         outcomeId,
         outcomeTokenId,
@@ -862,6 +865,8 @@ export class PredictController extends BaseController<
             params: TypedMessageParams,
             version: SignTypedDataVersion,
           ) => KeyringController.signTypedMessage(params, version),
+          signPersonalMessage: (params: PersonalMessageParams) =>
+            KeyringController.signPersonalMessage(params),
         },
         position,
       });
