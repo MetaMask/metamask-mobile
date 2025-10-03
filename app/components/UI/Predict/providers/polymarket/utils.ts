@@ -15,6 +15,7 @@ import { getRecurrence } from '../../utils/format';
 import {
   ClobAuthDomain,
   EIP712Domain,
+  FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
@@ -43,6 +44,7 @@ import {
 } from './types';
 import { GetMarketsParams } from '../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { SafeFeeAuthorization } from './safe/types';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -545,17 +547,37 @@ function replaceAll(s: string, search: string, replace: string) {
 export const submitClobOrder = async ({
   headers,
   clobOrder,
+  feeAuthorization,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
+  feeAuthorization?: SafeFeeAuthorization;
 }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+  let url = `${CLOB_ENDPOINT}/order`;
+  const body = JSON.stringify({ ...clobOrder, feeAuthorization });
+  let finalHeaders = { ...headers };
 
-  const body = JSON.stringify(clobOrder);
+  // TODO: Remove this and simply update endpoint once we have a
+  // production relayer.
+  const TEST_RELAYER = false;
+  if (TEST_RELAYER) {
+    url = `http://localhost:3000/order`;
+    // For our relayer, we need to replace the underscores with dashes
+    // since underscores are not standardly allowed in headers
+    finalHeaders = {
+      ...finalHeaders,
+      ...Object.entries(headers)
+        .map(([key, value]) => ({
+          [key.replace(/_/g, '-')]: value,
+        }))
+        .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+    };
+  }
 
-  const response = await fetch(`${CLOB_ENDPOINT}/order`, {
+  const response = await fetch(url, {
     method: 'POST',
-    headers,
+    headers: finalHeaders,
     body,
   });
 
@@ -595,6 +617,7 @@ export const parsePolymarketEvents = (
         ? PredictMarketStatus.CLOSED
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
+      endDate: event.endDate,
       categories: [category],
       outcomes: event.markets.map((market: PolymarketApiMarket) => {
         const outcomeTokensIds = market.clobTokenIds
@@ -706,6 +729,22 @@ export const getMarketsFromPolymarketApi = async ({
   const responseData = await response.json();
   const market = responseData;
   return market as PolymarketApiMarket[];
+};
+
+export const getMarketDetailsFromGammaApi = async ({
+  marketId,
+}: {
+  marketId: string;
+}): Promise<PolymarketApiEvent> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+  const response = await fetch(`${GAMMA_API_ENDPOINT}/events/${marketId}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get market details');
+  }
+
+  const responseData = await response.json();
+  return responseData as PolymarketApiEvent;
 };
 
 export const getPredictPositionStatus = ({
@@ -848,4 +887,11 @@ export function encodeClaim(
     conditionId,
     amounts,
   });
+}
+
+export function calculateFeeAmount(order: OrderData): bigint {
+  if (order.side !== UtilsSide.BUY) {
+    return BigInt(0);
+  }
+  return (BigInt(order.makerAmount) * BigInt(FEE_PERCENTAGE)) / BigInt(100);
 }

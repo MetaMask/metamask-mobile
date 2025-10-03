@@ -87,6 +87,7 @@ import MultichainPermissionsSummary, {
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
+import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
@@ -167,6 +168,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const { origin: channelIdOrHostname } = hostInfo.metadata;
+
+  const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
+  const isOriginMMSDKV2RemoteConn = useMemo(
+    () => Boolean(sdkV2Connection?.isV2),
+    [sdkV2Connection?.isV2],
+  );
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -285,7 +292,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
 
-  const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+  const dappUrl =
+    sdkConnection?.originatorInfo?.url ??
+    sdkV2Connection?.originatorInfo?.url ??
+    '';
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
@@ -304,11 +314,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
       dappHostname = channelIdOrHostname;
+    } else if (isOriginMMSDKV2RemoteConn) {
+      title = sdkV2Connection?.origin;
+      dappHostname = sdkV2Connection?.originatorInfo?.title ?? '';
     }
     return { domainTitle: title, hostname: dappHostname };
   }, [
     isOriginWalletConnect,
     isOriginMMSDKRemoteConn,
+    isOriginMMSDKV2RemoteConn,
+    sdkV2Connection,
     isChannelId,
     dappUrl,
     channelIdOrHostname,
@@ -317,7 +332,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   ]);
 
   const urlWithProtocol =
-    hostname && !isUUID(hostname)
+    hostname && !isUUID(hostname) && !isOriginMMSDKV2RemoteConn
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
