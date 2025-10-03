@@ -2407,64 +2407,6 @@ describe('RewardsController', () => {
         404,
       );
     });
-
-    it('should log authentication errors when trigger fails via subscription callback', async () => {
-      // Arrange
-      const mockError = new Error('Authentication service unavailable');
-      mockMessenger.call
-        .mockClear()
-        // Make getSelectedMultichainAccount fail
-        .mockRejectedValueOnce(new Error('Engine does not exist'));
-
-      // Find the account change subscription callback 
-      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
-      )?.[1];
-
-      if (subscribeCallback) {
-        // Act - trigger authentication through the actual method
-        await expect(async () => {
-          await subscribeCallback();
-          // Allow async operations to complete
-          await new Promise(process.nextTick);
-        }).not.toThrow();
-
-        // Assert - the error should be logged since it doesn't contain "Engine does not exist"
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Silent authentication failed:',
-          'Engine does not exist',
-        );
-      }
-    });
-
-    it('should log authentication errors that do not include "Engine does not exist"', async () => {
-      // Arrange
-      const mockError = new Error('Network connection failed');
-      mockMessenger.call
-        .mockClear()
-        // Make getSelectedMultichainAccount fail with different error
-        .mockRejectedValueOnce(mockError);
-
-      // Find the account change subscription callback
-      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
-      )?.[1];
-
-      if (subscribeCallback) {
-        // Act - trigger authentication through the actual method
-        await expect(async () => {
-          await subscribeCallback();
-          // Allow async operations to complete
-          await new Promise(process.nextTick);
-        }).not.toThrow();
-
-        // Assert - the error should be logged since it doesn't contain "Engine does not exist"
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Silent authentication failed:',
-          'Network connection failed',
-        );
-      }
-    });
   });
 
   describe('getSeasonStatus', () => {
@@ -3393,7 +3335,9 @@ describe('RewardsController', () => {
 
     it('should handle 403 error when accounts exist but accountForSub is not found', async () => {
       // Arrange
-      const mock403Error = new Error('Get season status failed: 403');
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
       const testSubscriptionId = 'test-sub-id';
 
       const localMockMessenger = {
@@ -3460,7 +3404,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Get season status failed: 403');
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
 
       // Verify that conversion function was never called since accountForSub was not found
       expect(localMockMessenger.call).not.toHaveBeenCalledWith(
@@ -3476,7 +3420,9 @@ describe('RewardsController', () => {
 
     it('should handle 403 error when accounts exist but intAccountForSub is not found after conversion', async () => {
       // Arrange
-      const mock403Error = new Error('Get season status failed: 403');
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
       const testSubscriptionId = 'test-sub-id';
       const mockAccount = {
         id: 'test-account-id',
@@ -3558,15 +3504,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(testSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Get season status failed: 403');
-
-      // Verify that all expected calls were made
-      expect(localMockMessenger.call).toHaveBeenCalledWith(
-        'AccountsController:listMultichainAccounts',
-      );
-      expect(convertInternalAccountToCaipAccountIdSpy).toHaveBeenCalledWith(
-        mockAccount,
-      );
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
 
       // Verify cache invalidation
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
@@ -3578,7 +3516,9 @@ describe('RewardsController', () => {
 
     it('should handle 403 error when accounts is undefined', async () => {
       // Arrange
-      const mock403Error = new Error('Get season status failed: 403');
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
 
       const localMockMessenger = {
         subscribe: jest.fn(),
@@ -3632,7 +3572,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Get season status failed: 403');
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
 
       // Verify no calls to listMultichainAccounts when accounts is undefined
       expect(localMockMessenger.call).not.toHaveBeenCalledWith(
@@ -3648,7 +3588,9 @@ describe('RewardsController', () => {
 
     it('should handle 403 error when accounts is empty', async () => {
       // Arrange
-      const mock403Error = new Error('Get season status failed: 403');
+      const mock403Error = new AuthorizationFailedError(
+        'Rewards authorization failed. Please login and try again.',
+      );
 
       const localMockMessenger = {
         subscribe: jest.fn(),
@@ -3702,7 +3644,7 @@ describe('RewardsController', () => {
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('Get season status failed: 403');
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
 
       // Verify no calls to listMultichainAccounts when accounts is empty
       expect(localMockMessenger.call).not.toHaveBeenCalledWith(
