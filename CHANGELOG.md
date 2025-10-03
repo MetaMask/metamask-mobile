@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.56.2]
+
+### Fixed
+* fix: address feature flag config issue
+
+## [7.56.1]
+
+### Fixed
+* fix: in recipient validations for internal accounts ([#20694](https://github.com/MetaMask/metamask-mobile/pull/20694)) 
+* feat: iOS Rehydration Flow Update to release/7.56.1 ([#20681](https://github.com/MetaMask/metamask-mobile/pull/20681))
+* feat: social login success screen added for social login users and ios platform. ([#20679](https://github.com/MetaMask/metamask-mobile/pull/20679))
+* fix: Returned Scrollview to Perps and Defi tab cp-7.56.1 ([#20650](https://github.com/MetaMask/metamask-mobile/pull/20650))
+* fix: missing transactions in activity after perps deposit (\#20507) ([09ef7e5](https://github.com/MetaMask/metamask-mobile/commit/09ef7e5f5111d0d3592b5e6d60499f31dc22f013))
+* fix: cp-7.56.1 Temp Revert page-level scroll for Wallet (#20579) ([#20616](https://github.com/MetaMask/metamask-mobile/pull/20616)) 
+* fix: Temp Revert page-level scroll for Wallet (\#20579) ([9022244](https://github.com/MetaMask/metamask-mobile/commit/902224410fbdf37250b990c75986eb7a948fb5ec))
+
 ## [7.56.0]
 
 ### Added
@@ -571,6 +587,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: bump assets controllers to v73.3.0 ([#18483](https://github.com/MetaMask/metamask-mobile/pull/18483))
 - chore: bump shajs and cipher base ([#18578](https://github.com/MetaMask/metamask-mobile/pull/18578))
 - chore: bitcoin v0.19.3 ([#18493](https://github.com/MetaMask/metamask-mobile/pull/18493))
+
+## [7.55.1]
+
+### Fixed
+
+- fix: deep link perps ([#20338](https://github.com/MetaMask/metamask-mobile/pull/20338))
 
 ## [7.55.0]
 
@@ -7598,8 +7620,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.0...HEAD
-[7.56.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.55.0...v7.56.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.2...HEAD
+[7.56.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.1...v7.56.2
+[7.56.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.0...v7.56.1
+[7.56.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.55.1...v7.56.0
+[7.55.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.55.0...v7.55.1
 [7.55.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.2...v7.55.0
 [7.54.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.1...v7.54.2
 [7.54.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.0...v7.54.1
