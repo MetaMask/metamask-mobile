@@ -1523,6 +1523,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}
                       webviewDebuggingEnabled={isTest}
+                      paymentRequestEnabled
                     />
                     {ipfsBannerVisible && (
                       <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
