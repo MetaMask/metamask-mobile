@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { RiveRef } from 'rive-react-native';
 
 // These come from the Rive file, need to go into the Rive Editor to see them, or talk to designers
-const STATE_MACHINE_NAME = 'State Machine 1';
+const STATE_MACHINE_NAME = 'Rewards_Icon';
 enum RewardsIconTriggers {
   Disable = 'Disable',
   Start = 'Start',
