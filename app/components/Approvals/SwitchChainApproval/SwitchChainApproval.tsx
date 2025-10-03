@@ -41,24 +41,6 @@ const SwitchChainApproval = () => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  const onConfirm = useCallback(() => {
-    defaultOnConfirm();
-
-    // If portfolio view is enabled should set network filter
-    if (isPortfolioViewEnabled()) {
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        selectNetwork(approvalRequest?.requestData?.chainId);
-      }
-    }
-
-    dispatch(
-      networkSwitched({
-        networkUrl: approvalRequest?.requestData?.rpcUrl,
-        networkStatus: true,
-      }),
-    );
-  }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork]);
-
   const permittedEthChainIds = getPermittedEthChainIds(
     approvalRequest?.requestData?.diff?.permissionDiffMap?.[
       Caip25EndowmentPermissionName
@@ -72,6 +54,24 @@ const SwitchChainApproval = () => {
 
   const chainId = permittedEthChainIds[0];
 
+  const onConfirm = useCallback(() => {
+    defaultOnConfirm();
+
+    // If portfolio view is enabled should set network filter
+    if (isPortfolioViewEnabled()) {
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        selectNetwork(chainId);
+      }
+    }
+
+    dispatch(
+      networkSwitched({
+        networkUrl: approvalRequest?.requestData?.metadata?.rpcUrl,
+        networkStatus: true,
+      }),
+    );
+  }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork, chainId]);
+
   const customNetworkInformation = {
     chainId,
     chainName: evmNetworkConfigurations[chainId]?.name,
@@ -81,7 +81,7 @@ const SwitchChainApproval = () => {
     approvalRequest?.requestData?.diff?.permissionDiffMap?.[
       Caip25EndowmentPermissionName
     ] ||
-    approvalRequest?.requestData?.metadata?.isSwitchEthereumChain ||
+    // TODO: Revisit removing this when we DRY the addEthereumChain and switchEthereumChain handlers into core
     approvalRequest?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN
   ) {
     return (
