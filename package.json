@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.57.0",
+  "version": "7.58.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -336,7 +336,6 @@
     "@walletconnect/utils": "^2.19.2",
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
-    "appwright": "^0.1.45",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.8.2",
     "base-64": "1.0.0",
@@ -558,6 +557,7 @@
     "appium-adb": "^9.11.4",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
+    "appwright": "^0.1.45",
     "assert": "^1.5.0",
     "babel-jest": "^29.7.0",
     "babel-loader": "^9.1.3",
