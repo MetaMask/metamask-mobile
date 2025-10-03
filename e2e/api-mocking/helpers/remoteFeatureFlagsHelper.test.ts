@@ -271,22 +271,21 @@ describe('Remote Feature Flags Helper', () => {
     it('should call setupMockRequest with default configuration', async () => {
       await setupRemoteFeatureFlagsMock(mockServer);
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(2);
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
 
-      // Check dev URL call
-      expect(mockSetupMockRequest).toHaveBeenNthCalledWith(1, mockServer, {
-        requestMethod: 'GET',
-        url: 'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-        response: expect.any(Array),
-        responseCode: 200,
-      });
+      const expectedEnvironments = ['dev', 'test', 'prod'];
 
-      // Check prod URL call
-      expect(mockSetupMockRequest).toHaveBeenNthCalledWith(2, mockServer, {
-        requestMethod: 'GET',
-        url: 'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod',
-        response: expect.any(Array),
-        responseCode: 200,
+      expectedEnvironments.forEach((env, index) => {
+        expect(mockSetupMockRequest).toHaveBeenNthCalledWith(
+          index + 1,
+          mockServer,
+          {
+            requestMethod: 'GET',
+            url: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=${env}`,
+            response: expect.any(Array),
+            responseCode: 200,
+          },
+        );
       });
 
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
