@@ -34,7 +34,7 @@ const styleSheet = (params: {
         backgroundColor,
         borderRadius: 12,
         paddingHorizontal: 4,
-        paddingTop: 8,
+        paddingTop: 16,
         paddingBottom: 16,
         justifyContent: 'center',
         alignItems: 'center',
