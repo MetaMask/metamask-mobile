@@ -41,17 +41,16 @@ const SwitchChainApproval = () => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  const permittedEthChainIds = getPermittedEthChainIds(
+  const caip25CaveatValue =
     approvalRequest?.requestData?.diff?.permissionDiffMap?.[
       Caip25EndowmentPermissionName
-    ]?.[Caip25CaveatType] ?? {
-      requiredScopes: {},
-      optionalScopes: {},
-      sessionProperties: {},
-      isMultichainOrigin: false,
-    },
-  );
+    ]?.[Caip25CaveatType];
 
+  const permittedEthChainIds = caip25CaveatValue
+    ? getPermittedEthChainIds(caip25CaveatValue)
+    : [];
+
+  // There should only be one if one exists
   const chainId = permittedEthChainIds[0];
 
   const onConfirm = useCallback(() => {
@@ -72,11 +71,6 @@ const SwitchChainApproval = () => {
     );
   }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork, chainId]);
 
-  const customNetworkInformation = {
-    chainId,
-    chainName: evmNetworkConfigurations[chainId]?.name,
-  };
-
   if (
     approvalRequest?.requestData?.diff?.permissionDiffMap?.[
       Caip25EndowmentPermissionName
@@ -84,6 +78,11 @@ const SwitchChainApproval = () => {
     // TODO: Revisit removing this when we DRY the addEthereumChain and switchEthereumChain handlers into core
     approvalRequest?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN
   ) {
+    const customNetworkInformation = {
+      chainId,
+      chainName: evmNetworkConfigurations[chainId]?.name,
+    };
+
     return (
       <ApprovalModal isVisible onCancel={onReject}>
         <SwitchCustomNetwork
