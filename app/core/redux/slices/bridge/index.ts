@@ -415,7 +415,7 @@ export const selectIsNonEvmToEvm = createSelector(
     !isNonEvmChainId(destToken.chainId),
 );
 
-export const selectIsNonEvmToNonEvm = createSelector(
+export const selectIsNonEvmNonEvmBridge = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
