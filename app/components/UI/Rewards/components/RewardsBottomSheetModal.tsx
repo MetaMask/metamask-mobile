@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 
@@ -30,10 +30,11 @@ export enum ModalType {
 
 export interface ModalAction {
   label: string;
-  onPress: () => void;
+  onPress: () => void | Promise<void>;
   variant?: ButtonVariant;
   disabled?: boolean;
   isLoading?: boolean;
+  loadOnPress?: boolean;
 }
 
 interface RewardsBottomSheetModalProps {
@@ -58,6 +59,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
   const {
     title,
     description,
@@ -90,11 +92,32 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     }
   }, [onCancel, handleDismiss, closeBottomSheetAndNavigate]);
 
-  const handleConfirmAction = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      confirmAction.onPress();
-    });
-  }, [closeBottomSheetAndNavigate, confirmAction]);
+  const handleConfirmAction = useCallback(async () => {
+    // If loadOnPress is true, set loading state
+    if (confirmAction.loadOnPress) {
+      setIsLoading(true);
+    }
+
+    try {
+      const result = confirmAction.onPress();
+
+      // If the result is a promise, wait for it
+      if (result instanceof Promise) {
+        await result;
+
+        setIsLoading(false);
+        sheetRef.current?.onCloseBottomSheet();
+      } else {
+        setIsLoading(false);
+        sheetRef.current?.onCloseBottomSheet();
+      }
+    } catch {
+      // Reset loading state if it was set
+      if (confirmAction.loadOnPress) {
+        setIsLoading(false);
+      }
+    }
+  }, [confirmAction]);
 
   const renderIcon = () => {
     // If custom icon is provided, use it
@@ -193,8 +216,8 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
               variant={confirmAction.variant || ButtonVariant.Primary}
               size={ButtonSize.Lg}
               onPress={handleConfirmAction}
-              disabled={confirmAction.disabled}
-              isLoading={confirmAction.isLoading}
+              disabled={confirmAction.disabled || isLoading}
+              isLoading={confirmAction.isLoading || isLoading}
               isDanger={type === ModalType.Danger}
               twClassName="w-full"
             >
@@ -223,7 +246,8 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
           variant={confirmAction.variant || ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleConfirmAction}
-          disabled={confirmAction.disabled}
+          disabled={confirmAction.disabled || isLoading}
+          isLoading={confirmAction.isLoading || isLoading}
           isDanger={type === ModalType.Danger}
           twClassName="w-full"
         >
