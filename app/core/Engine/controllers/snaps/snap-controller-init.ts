@@ -107,7 +107,6 @@ export const snapControllerInit: ControllerInitFunction<
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
-      useCaip25Permission: true,
       ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
       ///: END:ONLY_INCLUDE_IF

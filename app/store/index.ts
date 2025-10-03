@@ -31,9 +31,7 @@ const createStoreAndPersistor = async () => {
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isE2E
-    ? await ReadOnlyNetworkStore.getState()
-    : undefined;
+  const initialState = await ReadOnlyNetworkStore.getState();
 
   const sagaMiddleware = createSagaMiddleware();
 
