@@ -187,7 +187,7 @@ const BridgeView = () => {
     !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
-    (isSwap || (hasDestinationPicker && Boolean(destAddress)));
+    (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
