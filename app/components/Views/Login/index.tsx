@@ -110,7 +110,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import { selectIsSeedlessPasswordOutdated , selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -176,9 +176,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
+  const isSocialLoginUser = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const invalidCredentialsError = () => {
-    if (Platform.OS === 'ios' && isComingFromOauthOnboarding) {
+    if (
+      Platform.OS === 'ios' &&
+      (isComingFromOauthOnboarding || isSocialLoginUser)
+    ) {
       return strings('login.invalid_pin');
     }
     return strings('login.invalid_password');
@@ -800,7 +804,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              {(Platform.OS === 'android' || !isComingFromOauthOnboarding) && (
+              {(Platform.OS === 'android' ||
+                !(isComingFromOauthOnboarding || isSocialLoginUser)) && (
                 <Label
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Default}
@@ -812,7 +817,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={
-                  Platform.OS === 'ios' && isComingFromOauthOnboarding
+                  Platform.OS === 'ios' &&
+                  (isComingFromOauthOnboarding || isSocialLoginUser)
                     ? strings('login.pin_placeholder')
                     : strings('login.password_placeholder')
                 }
@@ -882,7 +888,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
+                  label={
+                    Platform.OS === 'ios' && isSocialLoginUser
+                      ? strings('login.forgot_pin')
+                      : strings('login.forgot_password')
+                  }
                   isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
