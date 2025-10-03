@@ -18,7 +18,7 @@ import {
   InterstitialState,
   SignatureStatus,
   DeepLinkAnalyticsContext,
-} from '../../core/DeeplinkManager/types/deepLinkAnalytics';
+} from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 
 // Mock Logger to avoid console output during tests
 jest.mock('../Logger', () => ({

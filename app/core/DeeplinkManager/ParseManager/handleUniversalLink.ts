@@ -10,7 +10,7 @@ import {
   MISSING,
   VALID,
 } from './utils/verifySignature';
-import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import { DeepLinkModalLinkType } from '../types/deepLink.types';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
 import {
@@ -21,7 +21,8 @@ import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
   InterstitialState,
-} from '../types/deepLinkAnalytics';
+} from '../types/deepLinkAnalytics.types';
+import { SUPPORTED_ACTIONS } from '../types/deepLink.types';
 import { MetaMetrics } from '../../Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
@@ -33,23 +34,6 @@ const {
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-enum SUPPORTED_ACTIONS {
-  DAPP = ACTIONS.DAPP,
-  BUY = ACTIONS.BUY,
-  BUY_CRYPTO = ACTIONS.BUY_CRYPTO,
-  SELL = ACTIONS.SELL,
-  SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
-  DEPOSIT = ACTIONS.DEPOSIT,
-  HOME = ACTIONS.HOME,
-  SWAP = ACTIONS.SWAP,
-  SEND = ACTIONS.SEND,
-  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
-  PERPS = ACTIONS.PERPS,
-  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
-  PERPS_ASSET = ACTIONS.PERPS_ASSET,
-  REWARDS = ACTIONS.REWARDS,
-  WC = ACTIONS.WC,
-}
 
 /**
  * Actions that should not show the deep link modal
@@ -141,32 +125,44 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
-  const shouldProceed =
-    WHITELISTED_ACTIONS.includes(action) ||
-    (await new Promise<boolean>((resolve) => {
-      const [, actionName] = validatedUrl.pathname.split('/');
-      const sanitizedAction = actionName?.replace(/-/g, ' ');
-      const pageTitle: string =
-        capitalize(sanitizedAction?.toLowerCase()) || '';
+  const interstitialAction =
+    WHITELISTED_ACTIONS.includes(action) 
+      ? InterstitialState.ACCEPTED
+      : (await new Promise<InterstitialState>((resolve) => {
+          const [, actionName] = validatedUrl.pathname.split('/');
+          const sanitizedAction = actionName?.replace(/-/g, ' ');
+          const pageTitle: string =
+            capitalize(sanitizedAction?.toLowerCase()) || '';
 
-      const validatedUrlString = validatedUrl.toString();
-      if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
-        resolve(true);
-        return;
-      }
+          const validatedUrlString = validatedUrl.toString();
+          if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+            resolve(InterstitialState.ACCEPTED);
+            return;
+          }
 
-      handleDeepLinkModalDisplay({
-        linkType: linkType(),
-        pageTitle,
-        onContinue: () => resolve(true),
-        onBack: () => resolve(false),
-      });
-    }));
+          handleDeepLinkModalDisplay({
+            linkType: linkType(),
+            pageTitle,
+            onContinue: () => resolve(InterstitialState.ACCEPTED),
+            onBack: () => resolve(InterstitialState.REJECTED),
+          }, {
+            url,
+            route: mapSupportedActionToRoute(action),
+            urlParams: {
+              ...extractURLParams(url).params,
+              hr: extractURLParams(url).params.hr ? '1' : '0', // Convert boolean back to string for analytics
+            },
+            signatureStatus: SignatureStatus.MISSING,
+            interstitialShown: false, // Will be updated when modal is shown
+            interstitialDisabled: false, // Will be updated based on user settings
+            interstitialAction: undefined, // Will be set when user acts
+          });
+        }));
 
   // Universal links
   handled();
 
-  if (!shouldProceed) {
+  if (interstitialAction === InterstitialState.REJECTED) {
     return false;
   }
 
@@ -206,14 +202,15 @@ async function handleUniversalLink({
     // Create analytics context
     const analyticsContext: DeepLinkAnalyticsContext = {
       url,
-      route: mapSupportedActionToRoute(action as unknown as ACTIONS), // Proper mapping function
-      urlParams: params as unknown as Record<string, string>,
+      route: mapSupportedActionToRoute(action), // Proper mapping function
+            urlParams: {
+              ...params,
+              hr: params.hr ? '1' : '0', // Convert boolean back to string for analytics
+            },
       signatureStatus,
-      interstitialShown: !shouldProceed, // If user didn't accept, interstitial was shown
+      interstitialShown: interstitialAction !== InterstitialState.ACCEPTED, // If user didn't accept, interstitial was shown
       interstitialDisabled: isModalDisabled, // Get actual modal disabled state
-      interstitialAction: shouldProceed
-        ? InterstitialState.ACCEPTED
-        : InterstitialState.REJECTED,
+      interstitialAction,
     };
 
     // Create and track the consolidated event

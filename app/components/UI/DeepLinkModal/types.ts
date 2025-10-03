@@ -1,18 +1,12 @@
 import { TextStyle, ImageStyle, ViewStyle } from 'react-native';
-
-/**
- * Deeplink Modal Link Type
- */
-export enum DeepLinkModalLinkType {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  INVALID = 'invalid',
-}
+import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
+import { DeepLinkAnalyticsContext } from '../../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CommonLinkParams = {
   linkType: DeepLinkModalLinkType;
   onBack: () => void;
+  deepLinkContext?: DeepLinkAnalyticsContext;
 };
 
 type PublicLinkParams = CommonLinkParams & {

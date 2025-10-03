@@ -5,24 +5,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../components/UI/Perps/constants/perpsConfig';
 import { store } from '../../../store';
 import { selectIsFirstTimePerpsUser } from '../../../components/UI/Perps/selectors/perpsController';
-
-interface HandlePerpsUrlParams {
-  perpsPath: string;
-}
-
-/**
- * Extensible interface for parsed perps navigation parameters
- * Supports current screens and can be easily extended for future screens
- */
-interface PerpsNavigationParams {
-  screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
-  symbol?: string;
-  tab?: string; // For future tab selection within wallet home
-  // Future extensibility - add new parameters here:
-  // portfolio?: boolean;
-  // position?: string;
-  // timeframe?: string;
-}
+import { HandlePerpsUrlParams, PerpsNavigationParams } from '../types/deepLink.types';
 
 /**
  * Parse URL parameters into typed navigation parameters

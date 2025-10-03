@@ -39,7 +39,7 @@ import {
   InterstitialState,
   SignatureStatus,
   DeepLinkRoute,
-} from '../../../core/DeeplinkManager/types/deepLinkAnalytics';
+} from '../../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 import Logger from '../../../util/Logger';
 import { Box } from '../../../components/UI/Box/Box';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
@@ -167,14 +167,17 @@ const DeepLinkModal = () => {
   useEffect(() => {
     const trackModalViewed = async () => {
       try {
+        // Use actual deep link context if available, otherwise fallback to defaults
+        const deepLinkContext = params.deepLinkContext;
         const eventBuilder = await createDeepLinkUsedEventBuilder({
-          url: '', // URL not available in modal context
-          route: DeepLinkRoute.INVALID, // Will be determined by the calling context
-          urlParams: {},
-          signatureStatus: SignatureStatus.MISSING, // Default for modal context
+          url: deepLinkContext?.url || '',
+          route: deepLinkContext?.route || DeepLinkRoute.INVALID,
+          urlParams: deepLinkContext?.urlParams || {},
+          signatureStatus:
+            deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
           interstitialShown: true,
           interstitialDisabled: false,
-          interstitialAction: InterstitialState.NOT_SHOWN, // Will be updated when user acts
+          interstitialAction: InterstitialState.NOT_SHOWN,
         });
 
         eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
@@ -188,7 +191,7 @@ const DeepLinkModal = () => {
     };
 
     trackModalViewed();
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, params.deepLinkContext]);
 
   const dismissModal = (cb?: () => void): void =>
     bottomSheetRef?.current?.onCloseBottomSheet(cb);
@@ -196,11 +199,13 @@ const DeepLinkModal = () => {
   const onDimiss = useCallback(() => {
     dismissModal(async () => {
       try {
+        const deepLinkContext = params.deepLinkContext;
         const eventBuilder = await createDeepLinkUsedEventBuilder({
-          url: '', // URL not available in modal context
-          route: DeepLinkRoute.INVALID, // Will be determined by the calling context
-          urlParams: {},
-          signatureStatus: SignatureStatus.MISSING, // Default for modal context
+          url: deepLinkContext?.url || '',
+          route: deepLinkContext?.route || DeepLinkRoute.INVALID,
+          urlParams: deepLinkContext?.urlParams || {},
+          signatureStatus:
+            deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
           interstitialShown: true,
           interstitialDisabled: false,
           interstitialAction: InterstitialState.REJECTED,
@@ -236,11 +241,13 @@ const DeepLinkModal = () => {
   const onPrimaryButtonPressed = useCallback(() => {
     dismissModal(async () => {
       try {
+        const deepLinkContext = params.deepLinkContext;
         const eventBuilder = await createDeepLinkUsedEventBuilder({
-          url: '', // URL not available in modal context
-          route: DeepLinkRoute.INVALID, // Will be determined by the calling context
-          urlParams: {},
-          signatureStatus: SignatureStatus.MISSING, // Default for modal context
+          url: deepLinkContext?.url || '',
+          route: deepLinkContext?.route || DeepLinkRoute.INVALID,
+          urlParams: deepLinkContext?.urlParams || {},
+          signatureStatus:
+            deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
           interstitialShown: true,
           interstitialDisabled: false,
           interstitialAction: InterstitialState.ACCEPTED,
@@ -275,11 +282,13 @@ const DeepLinkModal = () => {
 
   const onDontRemindMeAgainPressed = useCallback(async () => {
     try {
+      const deepLinkContext = params.deepLinkContext;
       const eventBuilder = await createDeepLinkUsedEventBuilder({
-        url: '', // URL not available in modal context
-        route: DeepLinkRoute.INVALID, // Will be determined by the calling context
-        urlParams: {},
-        signatureStatus: SignatureStatus.MISSING, // Default for modal context
+        url: deepLinkContext?.url || '',
+        route: deepLinkContext?.route || DeepLinkRoute.INVALID,
+        urlParams: deepLinkContext?.urlParams || {},
+        signatureStatus:
+          deepLinkContext?.signatureStatus || SignatureStatus.MISSING,
         interstitialShown: true,
         interstitialDisabled: !isChecked, // Will be disabled if checking the box
         interstitialAction: !isChecked

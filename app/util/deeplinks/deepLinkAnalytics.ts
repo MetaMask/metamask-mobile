@@ -10,10 +10,10 @@ import {
   SignatureStatus,
   DeepLinkRoute,
   DeepLinkAnalyticsContext,
-} from '../../core/DeeplinkManager/types/deepLinkAnalytics';
+} from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
-import { ACTIONS } from '../../constants/deeplinks';
+import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.types';
 
 /**
  * Determine app installation status from Branch.io parameters
@@ -111,65 +111,110 @@ export const extractSensitiveProperties = (
   try {
     const sensitiveProps: Record<string, string> = {};
 
+    // Helper function to safely extract string values
+    const getStringValue = (key: string): string | undefined => {
+      const value = urlParams[key];
+      return typeof value === 'string' && value.trim() !== ''
+        ? value
+        : undefined;
+    };
+
     // Extract route-specific properties based on route type
     switch (route) {
       case DeepLinkRoute.SWAP:
         // Extract common properties for swap
-        if (urlParams.from) sensitiveProps.from = urlParams.from;
-        if (urlParams.to) sensitiveProps.to = urlParams.to;
-        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
-        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.slippage) sensitiveProps.slippage = urlParams.slippage;
+        const swapFrom = getStringValue('from');
+        const swapTo = getStringValue('to');
+        const swapAmount = getStringValue('amount');
+        const swapAsset = getStringValue('asset');
+        const swapSlippage = getStringValue('slippage');
+
+        if (swapFrom) sensitiveProps.from = swapFrom;
+        if (swapTo) sensitiveProps.to = swapTo;
+        if (swapAmount) sensitiveProps.amount = swapAmount;
+        if (swapAsset) sensitiveProps.asset = swapAsset;
+        if (swapSlippage) sensitiveProps.slippage = swapSlippage;
         break;
 
       case DeepLinkRoute.PERPS:
         // Extract common properties for perps
-        if (urlParams.from) sensitiveProps.from = urlParams.from;
-        if (urlParams.to) sensitiveProps.to = urlParams.to;
-        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
-        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.symbol) sensitiveProps.symbol = urlParams.symbol;
-        if (urlParams.screen) sensitiveProps.screen = urlParams.screen;
-        if (urlParams.tab) sensitiveProps.tab = urlParams.tab;
+        const perpsFrom = getStringValue('from');
+        const perpsTo = getStringValue('to');
+        const perpsAmount = getStringValue('amount');
+        const perpsAsset = getStringValue('asset');
+        const perpsSymbol = getStringValue('symbol');
+        const perpsScreen = getStringValue('screen');
+        const perpsTab = getStringValue('tab');
+
+        if (perpsFrom) sensitiveProps.from = perpsFrom;
+        if (perpsTo) sensitiveProps.to = perpsTo;
+        if (perpsAmount) sensitiveProps.amount = perpsAmount;
+        if (perpsAsset) sensitiveProps.asset = perpsAsset;
+        if (perpsSymbol) sensitiveProps.symbol = perpsSymbol;
+        if (perpsScreen) sensitiveProps.screen = perpsScreen;
+        if (perpsTab) sensitiveProps.tab = perpsTab;
         break;
 
       case DeepLinkRoute.DEPOSIT:
         // Extract common properties for deposit
-        if (urlParams.from) sensitiveProps.from = urlParams.from;
-        if (urlParams.to) sensitiveProps.to = urlParams.to;
-        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
-        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.provider) sensitiveProps.provider = urlParams.provider;
-        if (urlParams.payment_method)
-          sensitiveProps.payment_method = urlParams.payment_method;
-        if (urlParams.sub_payment_method)
-          sensitiveProps.sub_payment_method = urlParams.sub_payment_method;
-        if (urlParams.fiat_currency)
-          sensitiveProps.fiat_currency = urlParams.fiat_currency;
-        if (urlParams.fiat_quantity)
-          sensitiveProps.fiat_quantity = urlParams.fiat_quantity;
+        const depositFrom = getStringValue('from');
+        const depositTo = getStringValue('to');
+        const depositAmount = getStringValue('amount');
+        const depositAsset = getStringValue('asset');
+        const depositProvider = getStringValue('provider');
+        const depositPaymentMethod = getStringValue('payment_method');
+        const depositSubPaymentMethod = getStringValue('sub_payment_method');
+        const depositFiatCurrency = getStringValue('fiat_currency');
+        const depositFiatQuantity = getStringValue('fiat_quantity');
+
+        if (depositFrom) sensitiveProps.from = depositFrom;
+        if (depositTo) sensitiveProps.to = depositTo;
+        if (depositAmount) sensitiveProps.amount = depositAmount;
+        if (depositAsset) sensitiveProps.asset = depositAsset;
+        if (depositProvider) sensitiveProps.provider = depositProvider;
+        if (depositPaymentMethod)
+          sensitiveProps.payment_method = depositPaymentMethod;
+        if (depositSubPaymentMethod)
+          sensitiveProps.sub_payment_method = depositSubPaymentMethod;
+        if (depositFiatCurrency)
+          sensitiveProps.fiat_currency = depositFiatCurrency;
+        if (depositFiatQuantity)
+          sensitiveProps.fiat_quantity = depositFiatQuantity;
         break;
 
       case DeepLinkRoute.TRANSACTION:
         // Extract common properties for transaction
-        if (urlParams.from) sensitiveProps.from = urlParams.from;
-        if (urlParams.to) sensitiveProps.to = urlParams.to;
-        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
-        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.gas) sensitiveProps.gas = urlParams.gas;
-        if (urlParams.gasPrice) sensitiveProps.gasPrice = urlParams.gasPrice;
+        const txFrom = getStringValue('from');
+        const txTo = getStringValue('to');
+        const txAmount = getStringValue('amount');
+        const txAsset = getStringValue('asset');
+        const txGas = getStringValue('gas');
+        const txGasPrice = getStringValue('gasPrice');
+
+        if (txFrom) sensitiveProps.from = txFrom;
+        if (txTo) sensitiveProps.to = txTo;
+        if (txAmount) sensitiveProps.amount = txAmount;
+        if (txAsset) sensitiveProps.asset = txAsset;
+        if (txGas) sensitiveProps.gas = txGas;
+        if (txGasPrice) sensitiveProps.gasPrice = txGasPrice;
         break;
 
       case DeepLinkRoute.BUY:
         // Extract common properties for buy
-        if (urlParams.from) sensitiveProps.from = urlParams.from;
-        if (urlParams.to) sensitiveProps.to = urlParams.to;
-        if (urlParams.amount) sensitiveProps.amount = urlParams.amount;
-        if (urlParams.asset) sensitiveProps.asset = urlParams.asset;
-        if (urlParams.crypto_currency)
-          sensitiveProps.crypto_currency = urlParams.crypto_currency;
-        if (urlParams.crypto_amount)
-          sensitiveProps.crypto_amount = urlParams.crypto_amount;
+        const buyFrom = getStringValue('from');
+        const buyTo = getStringValue('to');
+        const buyAmount = getStringValue('amount');
+        const buyAsset = getStringValue('asset');
+        const buyCryptoCurrency = getStringValue('crypto_currency');
+        const buyCryptoAmount = getStringValue('crypto_amount');
+
+        if (buyFrom) sensitiveProps.from = buyFrom;
+        if (buyTo) sensitiveProps.to = buyTo;
+        if (buyAmount) sensitiveProps.amount = buyAmount;
+        if (buyAsset) sensitiveProps.asset = buyAsset;
+        if (buyCryptoCurrency)
+          sensitiveProps.crypto_currency = buyCryptoCurrency;
+        if (buyCryptoAmount) sensitiveProps.crypto_amount = buyCryptoAmount;
         break;
 
       case DeepLinkRoute.HOME:
@@ -253,22 +298,24 @@ export const determineSignatureStatus = (
 /**
  * Map SUPPORTED_ACTIONS to DeepLinkRoute
  */
-export const mapSupportedActionToRoute = (action: ACTIONS): DeepLinkRoute => {
+export const mapSupportedActionToRoute = (
+  action: SUPPORTED_ACTIONS,
+): DeepLinkRoute => {
   switch (action) {
-    case ACTIONS.SWAP: // 'swap'
+    case SUPPORTED_ACTIONS.SWAP:
       return DeepLinkRoute.SWAP;
-    case ACTIONS.PERPS: // 'perps'
-    case ACTIONS.PERPS_MARKETS: // 'perps-markets'
-    case ACTIONS.PERPS_ASSET: // 'perps-asset'
+    case SUPPORTED_ACTIONS.PERPS:
+    case SUPPORTED_ACTIONS.PERPS_MARKETS:
+    case SUPPORTED_ACTIONS.PERPS_ASSET:
       return DeepLinkRoute.PERPS;
-    case ACTIONS.DEPOSIT: // 'deposit'
+    case SUPPORTED_ACTIONS.DEPOSIT:
       return DeepLinkRoute.DEPOSIT;
-    case ACTIONS.SEND: // 'send'
+    case SUPPORTED_ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
-    case ACTIONS.BUY: // 'buy'
-    case ACTIONS.BUY_CRYPTO: // 'buy-crypto'
+    case SUPPORTED_ACTIONS.BUY:
+    case SUPPORTED_ACTIONS.BUY_CRYPTO:
       return DeepLinkRoute.BUY;
-    case ACTIONS.HOME: // 'home'
+    case SUPPORTED_ACTIONS.HOME:
       return DeepLinkRoute.HOME;
     default:
       return DeepLinkRoute.INVALID;

@@ -53,8 +53,8 @@ jest.mock('../../../util/metrics', () =>
 );
 
 // Mock the analytics utilities
-jest.mock('../../../core/DeeplinkManager/utils/deepLinkAnalytics', () => ({
-  createDeepLinkUsedEvent: jest.fn(),
+jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
+  createDeepLinkUsedEventBuilder: jest.fn(),
 }));
 
 jest.mock('../../../core/DeeplinkManager/types/deepLinkAnalytics', () => ({
@@ -109,22 +109,42 @@ describe('DeepLinkModal', () => {
       linkType: 'public',
     });
 
-    // Set up default mock for createDeepLinkUsedEvent
+    // Set up default mock for createDeepLinkUsedEventBuilder
     (createDeepLinkUsedEventBuilder as jest.Mock).mockImplementation(
-      (context) =>
-        Promise.resolve({
-          route: 'invalid',
-          was_app_installed: true,
-          signature: 'missing',
-          interstitial: context.interstitialAction || 'not shown',
-          attribution_id: '',
-          utm_source: '',
-          utm_medium: '',
-          utm_campaign: '',
-          utm_term: '',
-          utm_content: '',
-          target: '',
-        }),
+      (context) => {
+        const mockBuilder = {
+          additionalProperties: {},
+          addProperties: jest.fn().mockImplementation(function(props) {
+            this.additionalProperties = { ...this.additionalProperties, ...props };
+            return this;
+          }),
+          addSensitiveProperties: jest.fn().mockImplementation(function() {
+            return this;
+          }),
+          build: jest.fn().mockImplementation(function() {
+            return {
+              name: 'Deep link Used',
+              properties: {
+                route: 'invalid',
+                was_app_installed: true,
+                signature: 'missing',
+                interstitial: context.interstitialAction || 'not shown',
+                attribution_id: '',
+                utm_source: '',
+                utm_medium: '',
+                utm_campaign: '',
+                utm_term: '',
+                utm_content: '',
+                target: '',
+                ...this.additionalProperties,
+              },
+              sensitiveProperties: {},
+              saveDataRecording: true,
+            };
+          }),
+        };
+        return Promise.resolve(mockBuilder);
+      },
     );
   });
 

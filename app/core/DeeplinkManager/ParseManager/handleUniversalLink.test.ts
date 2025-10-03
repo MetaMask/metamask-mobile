@@ -9,7 +9,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
-import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import { DeepLinkModalLinkType } from '../types/deepLink.types';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -67,8 +67,12 @@ jest.mock('../../../util/metrics', () => ({
   __esModule: true,
   default: jest.fn(() => ({})),
 }));
-jest.mock('../utils/deepLinkAnalytics', () => ({
-  createDeepLinkUsedEvent: jest.fn(() => Promise.resolve({})),
+jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
+  createDeepLinkUsedEventBuilder: jest.fn(() => Promise.resolve({
+    addProperties: jest.fn().mockReturnThis(),
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({}),
+  })),
   mapSupportedActionToRoute: jest.fn(() => 'test-route'),
 }));
 
@@ -675,6 +679,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -700,6 +712,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -725,6 +745,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -750,6 +778,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -835,6 +871,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
