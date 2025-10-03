@@ -8081,41 +8081,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:18.1.0":
-  version: 18.1.0
-  resolution: "@metamask/notification-services-controller@npm:18.1.0"
+"@metamask/notification-services-controller@npm:^18.2.0":
+  version: 18.2.0
+  resolution: "@metamask/notification-services-controller@npm:18.2.0"
   dependencies:
     "@contentful/rich-text-html-renderer": ^16.5.2
-    "@metamask/base-controller": ^8.3.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/utils": ^11.4.2
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/utils": ^11.8.1
     bignumber.js: ^9.1.2
     firebase: ^11.2.0
     loglevel: ^1.8.1
+    semver: ^7.6.3
     uuid: ^8.3.2
   peerDependencies:
     "@metamask/keyring-controller": ^23.0.0
     "@metamask/profile-sync-controller": ^25.0.0
-  checksum: 6dd8ad2b5eeb690b1683537391dd594cc83feea8e590ff595641ca8ee11749d40f39189282ebb33453c375a1879c465484aad5a05d7914365e8bc2f05270868a
-  languageName: node
-  linkType: hard
-
-"@metamask/notification-services-controller@patch:@metamask/notification-services-controller@npm%3A18.1.0#./.yarn/patches/@metamask-notification-services-controller-npm-18.1.0-d262049d1a.patch::locator=metamask%40workspace%3A.":
-  version: 18.1.0
-  resolution: "@metamask/notification-services-controller@patch:@metamask/notification-services-controller@npm%3A18.1.0#./.yarn/patches/@metamask-notification-services-controller-npm-18.1.0-d262049d1a.patch::version=18.1.0&hash=70565e&locator=metamask%40workspace%3A."
-  dependencies:
-    "@contentful/rich-text-html-renderer": ^16.5.2
-    "@metamask/base-controller": ^8.3.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/utils": ^11.4.2
-    bignumber.js: ^9.1.2
-    firebase: ^11.2.0
-    loglevel: ^1.8.1
-    uuid: ^8.3.2
-  peerDependencies:
-    "@metamask/keyring-controller": ^23.0.0
-    "@metamask/profile-sync-controller": ^25.0.0
-  checksum: df98ae172020599b4533c8ccb81a0bb8c53e0988f998b140dcd38ad09c6d6b17c1dbdbcc0ad6afb351dafc921fe74b05e3a72b85e8c98100a29814a231999c9b
+  checksum: 1c1d988de821d1cb76790a5d9a0557a9eff9c778a72b7df09647919adb4dcd9e4011b70dbdd52b1d16919473bfd8942cf0d7799fd1109bdf15f70e5cc0455276
   languageName: node
   linkType: hard
 
@@ -34113,7 +34095,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
     "@metamask/network-enablement-controller": ^2.1.0
-    "@metamask/notification-services-controller": ^18.1.0
+    "@metamask/notification-services-controller": ^18.2.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
     "@metamask/phishing-controller": ^13.1.0
