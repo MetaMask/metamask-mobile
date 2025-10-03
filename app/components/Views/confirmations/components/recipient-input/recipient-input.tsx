@@ -9,7 +9,6 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 
-import { RedesignedSendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/RedesignedSendView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
@@ -126,7 +125,7 @@ export const RecipientInput = ({
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
         autoFocus={false}
-        testID={RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT}
+        testID={'recipient-address-input'}
       />
     </Box>
   );
