@@ -1,5 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import TestHelpers from '../../helpers';
 import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
 import { Utilities } from '../../framework';
 
@@ -125,6 +126,7 @@ class SendView {
 
   async pressReviewButton() {
     await Utilities.waitForElementToBeEnabled(this.reviewButton);
+    await TestHelpers.delay(2000);
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
     });

@@ -1,7 +1,6 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../pages/Send/RedesignedSendView';
-import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import { DappVariants } from '../../framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../tags';
@@ -58,7 +57,24 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.pressAmountFiveButton();
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
-        await TestHelpers.delay(2000);
+        await SendView.pressReviewButton();
+        await FooterActions.tapCancelButton();
+
+        // send 50% USDC
+        await WalletView.tapWalletSendButton();
+        await SendView.selectERC20Token();
+        await SendView.pressFiftyPercentButton();
+        await SendView.pressContinueButton();
+        await SendView.inputRecipientAddress(RECIPIENT);
+        await SendView.pressReviewButton();
+        await FooterActions.tapCancelButton();
+
+        // send Max USDC
+        await WalletView.tapWalletSendButton();
+        await SendView.selectERC20Token();
+        await SendView.pressAmountMaxButton();
+        await SendView.pressContinueButton();
+        await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
         await FooterActions.tapCancelButton();
       },
