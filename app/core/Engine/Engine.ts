@@ -43,7 +43,6 @@ import {
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { AcceptOptions } from '@metamask/approval-controller';
-import { HdKeyring } from '@metamask/eth-hd-keyring';
 import {
   type CaveatSpecificationConstraint,
   PermissionController,
@@ -54,18 +53,9 @@ import {
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
-import {
-  QrKeyring,
-  QrKeyringDeferredPromiseBridge,
-} from '@metamask/eth-qr-keyring';
+import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
-import {
-  LedgerKeyring,
-  LedgerMobileBridge,
-  LedgerTransportMiddleware,
-} from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
@@ -130,7 +120,6 @@ import {
   getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
 } from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { createMultichainRatesController } from './controllers/RatesController/utils';
@@ -147,9 +136,6 @@ import {
   snapControllerInit,
   snapInterfaceControllerInit,
   snapsRegistryInit,
-  SnapControllerGetSnapAction,
-  SnapControllerIsMinimumPlatformVersionAction,
-  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
@@ -223,12 +209,13 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { keyringControllerInit } from './controllers/keyring-controller-init';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
-const encryptor = new Encryptor({
-  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
-});
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
@@ -554,88 +541,10 @@ export class Engine {
         allowedEvents: [],
       }),
     });
+
     if (!isProductSafetyDappScanningEnabled()) {
       phishingController.maybeUpdateState();
     }
-
-    const additionalKeyrings = [];
-
-    const qrKeyringBuilder = () => {
-      const keyring = new QrKeyring({ bridge: this.qrKeyringScanner });
-      // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
-      keyring.forgetDevice();
-      return keyring;
-    };
-    qrKeyringBuilder.type = QrKeyring.type;
-
-    additionalKeyrings.push(qrKeyringBuilder);
-
-    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
-    additionalKeyrings.push(ledgerKeyringBuilder);
-
-    const hdKeyringBuilder = () =>
-      new HdKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
-      });
-    hdKeyringBuilder.type = HdKeyring.type;
-    additionalKeyrings.push(hdKeyringBuilder);
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapKeyring',
-      allowedActions: [
-        'ApprovalController:addRequest',
-        'ApprovalController:acceptRequest',
-        'ApprovalController:rejectRequest',
-        'ApprovalController:startFlow',
-        'ApprovalController:endFlow',
-        'ApprovalController:showSuccess',
-        'ApprovalController:showError',
-        'PhishingController:testOrigin',
-        'PhishingController:maybeUpdateState',
-        'KeyringController:getAccounts',
-        'AccountsController:setSelectedAccount',
-        'AccountsController:getAccountByAddress',
-        'AccountsController:setAccountName',
-        'AccountsController:setAccountNameAndSelectAccount',
-        'AccountsController:listMultichainAccounts',
-        SnapControllerHandleRequestAction,
-        SnapControllerGetSnapAction,
-        SnapControllerIsMinimumPlatformVersionAction,
-      ],
-      allowedEvents: [],
-    });
-
-    additionalKeyrings.push(
-      snapKeyringBuilder(snapKeyringBuildMessenger, {
-        persistKeyringHelper: async () => {
-          // Necessary to only persist the keyrings, the `AccountsController` will
-          // automatically react to `KeyringController:stateChange`.
-          await this.keyringController.persistAllKeyrings();
-        },
-        removeAccountHelper: (address) => this.removeAccount(address),
-      }),
-    );
-
-    ///: END:ONLY_INCLUDE_IF
-
-    this.keyringController = new KeyringController({
-      removeIdentity: (address: string) =>
-        this.preferencesController.removeIdentity(address),
-      encryptor,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'KeyringController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: additionalKeyrings,
-      cacheEncryptionKey: true,
-    });
 
     const accountTrackerController = new AccountTrackerController({
       messenger: this.controllerMessenger.getRestricted({
@@ -805,7 +714,6 @@ export class Engine {
       });
 
     const existingControllersByName = {
-      KeyringController: this.keyringController,
       NetworkController: networkController,
       SmartTransactionsController: this.smartTransactionsController,
     };
@@ -813,6 +721,11 @@ export class Engine {
     const initRequest = {
       getState: () => store.getState(),
       getGlobalChainId: () => currentChainId,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      removeAccount: this.removeAccount.bind(this),
+      ///: END:ONLY_INCLUDE_IF
+      initialKeyringState,
+      qrKeyringScanner: this.qrKeyringScanner,
     };
 
     const { controllersByName } = initModularizedControllers({
@@ -820,6 +733,10 @@ export class Engine {
         PreferencesController: preferencesControllerInit,
         AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        SnapKeyringBuilder: snapKeyringBuilderInit,
+        ///: END:ONLY_INCLUDE_IF
+        KeyringController: keyringControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -901,6 +818,7 @@ export class Engine {
     this.transactionController = transactionController;
     this.permissionController = controllersByName.PermissionController;
     this.preferencesController = preferencesController;
+    this.keyringController = controllersByName.KeyringController;
 
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
