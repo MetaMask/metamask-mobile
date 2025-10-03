@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useMemo } from 'react';
 import { Modal, Animated, View, ActivityIndicator } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -30,6 +30,7 @@ import {
   useBalanceComparison,
   usePerpsTrading,
   usePerpsNetworkManagement,
+  usePerpsWithdrawProgress,
 } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsFiat } from '../../utils/formatUtils';
@@ -106,6 +107,7 @@ const PerpsMarketBalanceActions: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
   const { isDepositInProgress } = usePerpsDepositProgress();
+  const { isWithdrawInProgress } = usePerpsWithdrawProgress();
 
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -215,6 +217,26 @@ const PerpsMarketBalanceActions: React.FC<
   const availableBalance = perpsAccount?.availableBalance || '0';
   const isBalanceEmpty = BigNumber(availableBalance).isZero();
 
+  // Determine the status text based on transaction states
+  const statusText = useMemo(() => {
+    if (isDepositInProgress && isWithdrawInProgress) {
+      return strings('perps.multiple_transactions_in_progress');
+    }
+    if (isDepositInProgress) {
+      return strings('perps.deposit_in_progress');
+    }
+    if (isWithdrawInProgress) {
+      return strings('perps.withdraw_in_progress');
+    }
+    return strings('perps.available_balance');
+  }, [isDepositInProgress, isWithdrawInProgress]);
+
+  // Determine if any transaction is in progress
+  const isAnyTransactionInProgress = useMemo(
+    () => isDepositInProgress || isWithdrawInProgress,
+    [isDepositInProgress, isWithdrawInProgress],
+  );
+
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
     return <PerpsMarketBalanceActionsSkeleton />;
@@ -232,15 +254,15 @@ const PerpsMarketBalanceActions: React.FC<
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
-        {/* Deposit Progress Section */}
-        {isDepositInProgress && (
+        {/* Transaction Progress Section */}
+        {isAnyTransactionInProgress && (
           <Box twClassName="p-4">
             <Box twClassName="w-full flex-row justify-between">
               <Text
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Default}
               >
-                {strings('perps.deposit_in_progress')}
+                {statusText}
               </Text>
               <ActivityIndicator
                 size="small"
@@ -249,7 +271,7 @@ const PerpsMarketBalanceActions: React.FC<
             </Box>
           </Box>
         )}
-        {isDepositInProgress && (
+        {isAnyTransactionInProgress && (
           <Box twClassName="w-full border-b border-muted"></Box>
         )}
         {/* Balance Section */}
@@ -306,10 +328,12 @@ const PerpsMarketBalanceActions: React.FC<
               }
               size={ButtonSize.Lg}
               onPress={handleAddFunds}
-              disabled={isDepositInProgress}
+              disabled={isAnyTransactionInProgress}
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-              style={isDepositInProgress ? tw.style('opacity-50') : undefined}
+              style={
+                isAnyTransactionInProgress ? tw.style('opacity-50') : undefined
+              }
             >
               {strings('perps.add_funds')}
             </Button>
@@ -322,27 +346,20 @@ const PerpsMarketBalanceActions: React.FC<
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleWithdraw}
-                disabled={isDepositInProgress}
+                disabled={isAnyTransactionInProgress}
                 isFullWidth
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
-                style={isDepositInProgress ? tw.style('opacity-50') : undefined}
+                style={
+                  isAnyTransactionInProgress
+                    ? tw.style('opacity-50')
+                    : undefined
+                }
               >
                 {strings('perps.withdraw')}
               </Button>
             </Box>
           )}
         </Box>
-
-        {/* Deposit Progress Message */}
-        {isDepositInProgress && (
-          <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Alternative}
-            style={tw.style('text-center pb-4')}
-          >
-            {strings('perps.deposit_pending_try_again')}
-          </Text>
-        )}
       </Box>
 
       {/* Eligibility Modal */}

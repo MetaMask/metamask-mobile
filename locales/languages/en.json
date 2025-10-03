@@ -879,6 +879,8 @@
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
     "deposit_in_progress": "Deposit in progress",
+    "withdraw_in_progress": "Withdraw in progress",
+    "multiple_transactions_in_progress": "2 transactions in progress",
     "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
