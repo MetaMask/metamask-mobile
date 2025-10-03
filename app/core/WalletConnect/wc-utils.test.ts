@@ -13,18 +13,9 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import/no-namespace
 import * as StoreModule from '../../../app/store';
-import Engine from '../Engine';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
 // Mock dependencies
-jest.mock('../Engine', () => ({
-  context: {
-    ApprovalController: {
-      clear: jest.fn(),
-      add: jest.fn().mockResolvedValue({}),
-    },
-  },
-}));
 
 jest.mock('../RPCMethods/RPCMethodMiddleware', () => ({
   getRpcMethodMiddlewareHooks: jest.fn(),

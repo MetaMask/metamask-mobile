@@ -2,19 +2,21 @@ import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { ApprovalRequest } from '@metamask/approval-controller';
 import SwitchChainApproval from './SwitchChainApproval';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 jest.mock('../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../selectors/networkController'),
   selectEvmNetworkConfigurationsByChainId: () => ({
     '0x1': {
       name: 'Ethereum Mainnet',
-    }
+    },
   }),
 }));
 
@@ -78,23 +80,23 @@ const mockApprovalRequest = (approvalRequest?: unknown) => {
 const URL_MOCK = 'test.com';
 
 const mockApprovalRequestData = {
-    metadata: {
-      rpcUrl: URL_MOCK,
-    },
-    diff: {
-      permissionDiffMap: {
-        [Caip25EndowmentPermissionName]: {
-          [Caip25CaveatType]: {
-            requiredScopes: {
-              'eip155:1': {
-                accounts: [],
-              },
+  metadata: {
+    rpcUrl: URL_MOCK,
+  },
+  diff: {
+    permissionDiffMap: {
+      [Caip25EndowmentPermissionName]: {
+        [Caip25CaveatType]: {
+          requiredScopes: {
+            'eip155:1': {
+              accounts: [],
             },
-            optionalScopes: {},
           },
+          optionalScopes: {},
         },
       },
     },
+  },
 };
 
 describe('SwitchChainApproval', () => {
@@ -109,7 +111,7 @@ describe('SwitchChainApproval', () => {
   it('renders', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData
+      requestData: mockApprovalRequestData,
     });
 
     const wrapper = shallow(<SwitchChainApproval />);
@@ -136,7 +138,7 @@ describe('SwitchChainApproval', () => {
   it('calls networkSwitched action when confirm is pressed', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData
+      requestData: mockApprovalRequestData,
     });
 
     const wrapper = shallow(<SwitchChainApproval />);
@@ -153,7 +155,7 @@ describe('SwitchChainApproval', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData
+      requestData: mockApprovalRequestData,
     });
 
     const wrapper = shallow(<SwitchChainApproval />);
@@ -174,7 +176,7 @@ describe('SwitchChainApproval', () => {
 
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData
+      requestData: mockApprovalRequestData,
     });
 
     const wrapper = shallow(<SwitchChainApproval />);
@@ -197,7 +199,7 @@ describe('SwitchChainApproval', () => {
 
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData
+      requestData: mockApprovalRequestData,
     });
 
     const wrapper = shallow(<SwitchChainApproval />);
