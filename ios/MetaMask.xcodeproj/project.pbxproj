@@ -1273,11 +1273,15 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+<<<<<<< HEAD
 <<<<<<< release/7.56.1
 				CURRENT_PROJECT_VERSION = 2638;
 =======
 				CURRENT_PROJECT_VERSION = 2638;
 >>>>>>> stable
+=======
+				CURRENT_PROJECT_VERSION = 2637;
+>>>>>>> 56a2fc1536 (fix bad merge)
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
