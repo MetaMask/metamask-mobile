@@ -119,6 +119,7 @@ class SendView {
   async inputRecipientAddress(address: string): Promise<void> {
     await Gestures.typeText(this.recipientAddressInput, address, {
       elemDescription: 'Enter recipient address',
+      hideKeyboard: true,
     });
   }
 
