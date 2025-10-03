@@ -253,17 +253,13 @@ export async function switchToNetwork({
       await requestPermittedChainsPermissionIncrementalForOrigin({
         chainId,
         autoApprove,
-    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && !isAddFlow) {
-      await requestUserApproval({
-        type: 'SWITCH_ETHEREUM_CHAIN',
-        requestData: {
-          toNetworkConfiguration,
-          fromNetworkConfiguration,
-          type: 'switch',
         metadata: {
           rpcUrl,
         },
       });
+    } else if (hasApprovalRequestsForOrigin?.() && !autoApprove && !isAddFlow) {
+    // We do not handle this case for now.
+    // Mobile doesn't really support simultaneous approvals in the first place.
     }
   } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
