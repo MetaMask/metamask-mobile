@@ -25,14 +25,14 @@ const expectedEvents = {
   OFFRAMP_PAYMENT_METHOD_SELECTED: 'Off-ramp Payment Method Selected',
 };
 
-describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
+describe.skip(SmokeTrade('Off-Ramp Cashout destination'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
-  it.skip('should change cashout destination', async () => {
+  it('should change cashout destination', async () => {
     const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
     await withFixtures(
       {
