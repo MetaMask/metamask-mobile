@@ -132,6 +132,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         },
                         {
                           "gap": 16,
+                          "minHeight": 68,
                           "paddingBottom": 16,
                           "paddingTop": 16,
                         },
@@ -147,6 +148,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           "flex": 1,
                           "flexDirection": "row",
                           "gap": 16,
+                          "minHeight": 36,
                         }
                       }
                     >
@@ -318,6 +320,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         },
                         {
                           "gap": 16,
+                          "minHeight": 68,
                           "paddingBottom": 16,
                           "paddingTop": 16,
                         },
@@ -333,6 +336,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           "flex": 1,
                           "flexDirection": "row",
                           "gap": 16,
+                          "minHeight": 36,
                         }
                       }
                     >
