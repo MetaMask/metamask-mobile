@@ -148,9 +148,9 @@ describe('WalletConnect Utils', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
-    it('navigates back from RETURN_TO_DAPP_TOAST', () => {
+    it('navigates back from RETURN_TO_DAPP_NOTIFICATION', () => {
       mockNavigation.getCurrentRoute.mockReturnValue({
-        name: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        name: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
         key: '123',
       });
       hideWCLoadingState({ navigation: mockNavigation });

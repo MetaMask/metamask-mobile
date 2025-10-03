@@ -88,12 +88,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
     isInitialLoading: false,
@@ -184,17 +178,17 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
 // Mock PerpsEmptyState component to avoid Redux context issues while preserving testID
 jest.mock('../PerpsEmptyState', () => ({
   PerpsEmptyState: ({
-    onStartTrading,
+    onAction,
     testID,
   }: {
-    onStartTrading: () => void;
+    onAction?: () => void;
     testID?: string;
   }) => {
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
     return (
       <View testID={testID}>
         <Text>Bet on price movements with up to 40x leverage.</Text>
-        <TouchableOpacity onPress={onStartTrading}>
+        <TouchableOpacity onPress={onAction}>
           <Text>Start trading</Text>
         </TouchableOpacity>
       </View>
@@ -428,6 +422,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
+        params: { source: 'position_tab' },
       });
     });
 

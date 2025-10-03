@@ -158,6 +158,12 @@ export interface GetPointsEventsDto {
   seasonId: string;
   subscriptionId: string;
   cursor: string | null;
+  forceFresh?: boolean;
+}
+
+export interface GetPointsEventsLastUpdatedDto {
+  seasonId: string;
+  subscriptionId: string;
 }
 
 /**
@@ -246,6 +252,12 @@ export interface PerpsEventPayload {
    * Asset information
    */
   asset: EventAssetDto;
+
+  /**
+   * PNL of the position
+   * @example 10.0464
+   */
+  pnl?: string;
 }
 
 /**
@@ -558,6 +570,25 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PointsEventsDtoState = {
+  results: {
+    id: string;
+    timestamp: number;
+    value: number;
+    bonus: { bips?: number | null; bonuses?: string[] | null } | null;
+    accountAddress: string | null;
+    type: string;
+    updatedAt: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: any;
+  }[];
+  has_more: boolean;
+  cursor: string | null;
+  total_results: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
@@ -580,6 +611,7 @@ export type RewardsControllerState = {
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
+  pointsEvents: { [compositeId: string]: PointsEventsDtoState };
 };
 
 /**
@@ -622,6 +654,19 @@ export interface RewardsControllerBalanceUpdatedEvent {
 }
 
 /**
+ * Event emitted when points events should be invalidated
+ */
+export interface RewardsControllerPointsEventsUpdatedEvent {
+  type: 'RewardsController:pointsEventsUpdated';
+  payload: [
+    {
+      seasonId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -631,7 +676,8 @@ export type RewardsControllerEvents =
     }
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
-  | RewardsControllerBalanceUpdatedEvent;
+  | RewardsControllerBalanceUpdatedEvent
+  | RewardsControllerPointsEventsUpdatedEvent;
 
 /**
  * Patch type for state changes
@@ -866,6 +912,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for resetting controller state
+ */
+export interface RewardsControllerResetAllAction {
+  type: 'RewardsController:resetAll';
+  handler: () => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -890,7 +944,8 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerClaimRewardAction;
+  | RewardsControllerClaimRewardAction
+  | RewardsControllerResetAllAction;
 
 export const CURRENT_SEASON_ID = 'current';
 
@@ -918,6 +973,12 @@ export interface OptInStatusDto {
    * @example [true, true, false]
    */
   ois: boolean[];
+
+  /**
+   * The subscription IDs of the addresses in the same order as the input
+   * @example ['sub_123', 'sub_456', null]
+   */
+  sids: (string | null)[];
 }
 
 /**
