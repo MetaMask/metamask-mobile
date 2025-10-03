@@ -42,7 +42,7 @@ const OnboardingStep2: React.FC = () => {
 
       <Image
         source={step2Img}
-        style={tw.style('h-80 z-10')}
+        style={tw.style('h-[75%] z-10')}
         testID="step-2-image"
         resizeMode="contain"
       />
