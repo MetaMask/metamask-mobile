@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react-native';
 import MarketsWonCard from './MarketsWonCard';
 import { PredictPosition as PredictPositionType } from '../../types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -104,6 +105,19 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
+jest.mock(
+  '../../../../../component-library/components/Skeleton/Skeleton',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ testID, ...props }: { testID?: string }) => (
+        <View testID={testID || 'unrealized-pnl-skeleton'} {...props} />
+      ),
+    };
+  },
+);
+
 // Mock Image component and ActivityIndicator
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -128,6 +142,11 @@ jest.mock('react-native', () => {
     }) => <View testID={testID || 'activity-indicator'} {...props} />,
   };
 });
+
+// Mock the useUnrealizedPnL hook
+jest.mock('../../hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(),
+}));
 
 // Helper function to create mock positions
 function createMockPositions(): PredictPositionType[] {
@@ -211,24 +230,42 @@ function createDefaultProps() {
     positions: createMockPositions(),
     numberOfMarketsWon: 2,
     totalClaimableAmount: 45.2,
-    unrealizedAmount: 8.63,
-    unrealizedPercent: 3.9,
     onClaimPress: jest.fn(),
+    address: '0x1234567890123456789012345678901234567890',
+    providerId: 'polymarket',
   };
 }
 
 // Helper function to set up test environment
-function setupMarketsWonCardTest(propsOverrides = {}) {
+function setupMarketsWonCardTest(propsOverrides = {}, hookOverrides = {}) {
   jest.clearAllMocks();
   const defaultProps = createDefaultProps();
   const props = {
     ...defaultProps,
     ...propsOverrides,
   };
+
+  // Mock the useUnrealizedPnL hook
+  const mockUseUnrealizedPnL = useUnrealizedPnL as jest.MockedFunction<
+    typeof useUnrealizedPnL
+  >;
+  mockUseUnrealizedPnL.mockReturnValue({
+    unrealizedPnL: {
+      user: '0x1234567890123456789012345678901234567890',
+      cashUpnl: 8.63,
+      percentUpnl: 3.9,
+    },
+    isFetching: false,
+    error: null,
+    refetch: jest.fn(),
+    ...hookOverrides,
+  });
+
   return {
     ...renderWithProvider(<MarketsWonCard {...props} />),
     props,
     defaultProps,
+    mockUseUnrealizedPnL,
   };
 }
 
@@ -265,7 +302,7 @@ describe('MarketsWonCard', () => {
     });
 
     it('renders the unrealized P&L row always', () => {
-      renderWithProvider(<MarketsWonCard {...createDefaultProps()} />);
+      setupMarketsWonCardTest();
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
@@ -273,37 +310,39 @@ describe('MarketsWonCard', () => {
 
     it('does not show won markets row when numberOfMarketsWon is undefined', () => {
       const { numberOfMarketsWon, ...propsWithoutWon } = createDefaultProps();
-      renderWithProvider(<MarketsWonCard {...propsWithoutWon} />);
+      setupMarketsWonCardTest({
+        ...propsWithoutWon,
+        numberOfMarketsWon: undefined,
+      });
 
       expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
     });
 
     it('shows claim button only when totalClaimableAmount and onClaimPress are provided', () => {
-      renderWithProvider(<MarketsWonCard {...createDefaultProps()} />);
+      setupMarketsWonCardTest();
 
       expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
 
     it('does not show claim button when onClaimPress is not provided', () => {
       const { onClaimPress, ...propsWithoutCallback } = createDefaultProps();
-      renderWithProvider(<MarketsWonCard {...propsWithoutCallback} />);
+      setupMarketsWonCardTest({
+        ...propsWithoutCallback,
+        onClaimPress: undefined,
+      });
 
       expect(screen.queryByText('Claim $45.20')).not.toBeOnTheScreen();
     });
 
     it('renders claim button correctly with loading states', () => {
       // Test loading state
-      renderWithProvider(
-        <MarketsWonCard {...createDefaultProps()} isLoading />,
-      );
+      setupMarketsWonCardTest({ isLoading: true });
 
       expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
 
       // Test non-loading state
-      renderWithProvider(
-        <MarketsWonCard {...createDefaultProps()} isLoading={false} />,
-      );
+      setupMarketsWonCardTest({ isLoading: false });
 
       expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
@@ -311,56 +350,58 @@ describe('MarketsWonCard', () => {
 
   describe('Amount Formatting', () => {
     it('formats unrealized amount with correct sign and decimal places', () => {
-      renderWithProvider(
-        <MarketsWonCard
-          {...createDefaultProps()}
-          unrealizedAmount={123.456}
-          unrealizedPercent={5.67}
-        />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: 123.456,
+            percentUpnl: 5.67,
+          },
+        },
       );
 
       expect(screen.getByText('+$123.46 (+5.7%)')).toBeOnTheScreen();
     });
 
     it('formats negative unrealized amount correctly', () => {
-      renderWithProvider(
-        <MarketsWonCard
-          {...createDefaultProps()}
-          unrealizedAmount={-50.25}
-          unrealizedPercent={-2.1}
-        />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: -50.25,
+            percentUpnl: -2.1,
+          },
+        },
       );
 
       expect(screen.getByText('-$50.25 (-2.1%)')).toBeOnTheScreen();
     });
 
     it('handles zero unrealized amount correctly', () => {
-      renderWithProvider(
-        <MarketsWonCard
-          {...createDefaultProps()}
-          unrealizedAmount={0}
-          unrealizedPercent={0}
-        />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: 0,
+            percentUpnl: 0,
+          },
+        },
       );
 
       expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
     });
 
     it('formats claimable amount to 2 decimal places', () => {
-      renderWithProvider(
-        <MarketsWonCard
-          {...createDefaultProps()}
-          totalClaimableAmount={123.456}
-        />,
-      );
+      setupMarketsWonCardTest({ totalClaimableAmount: 123.456 });
 
       expect(screen.getByText('Claim $123.46')).toBeOnTheScreen();
     });
 
     it('handles zero claimable amount correctly', () => {
-      renderWithProvider(
-        <MarketsWonCard {...createDefaultProps()} totalClaimableAmount={0} />,
-      );
+      setupMarketsWonCardTest({ totalClaimableAmount: 0 });
 
       expect(screen.getByText('Claim $0.00')).toBeOnTheScreen();
     });
@@ -368,18 +409,14 @@ describe('MarketsWonCard', () => {
 
   describe('Conditional Rendering Logic', () => {
     it('shows won markets row when numberOfMarketsWon is greater than 0', () => {
-      renderWithProvider(
-        <MarketsWonCard {...createDefaultProps()} numberOfMarketsWon={5} />,
-      );
+      setupMarketsWonCardTest({ numberOfMarketsWon: 5 });
 
       expect(screen.getByText('Won 5 markets')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
     });
 
     it('hides won markets row when numberOfMarketsWon is 0', () => {
-      renderWithProvider(
-        <MarketsWonCard {...createDefaultProps()} numberOfMarketsWon={0} />,
-      );
+      setupMarketsWonCardTest({ numberOfMarketsWon: 0 });
 
       expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
@@ -387,15 +424,25 @@ describe('MarketsWonCard', () => {
 
     it('hides won markets row when numberOfMarketsWon is undefined', () => {
       const { numberOfMarketsWon, ...propsWithoutWon } = createDefaultProps();
-      renderWithProvider(<MarketsWonCard {...propsWithoutWon} />);
+      setupMarketsWonCardTest({
+        ...propsWithoutWon,
+        numberOfMarketsWon: undefined,
+      });
 
       expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
     });
 
     it('always shows unrealized P&L row regardless of other props', () => {
-      renderWithProvider(
-        <MarketsWonCard unrealizedAmount={100} unrealizedPercent={10} />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: 100,
+            percentUpnl: 10,
+          },
+        },
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
@@ -405,36 +452,135 @@ describe('MarketsWonCard', () => {
 
   describe('Edge Cases', () => {
     it('handles very large unrealized amounts', () => {
-      renderWithProvider(
-        <MarketsWonCard
-          {...createDefaultProps()}
-          unrealizedAmount={999999.99}
-          unrealizedPercent={999.9}
-        />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: 999999.99,
+            percentUpnl: 999.9,
+          },
+        },
       );
 
       expect(screen.getByText('+$999999.99 (+999.9%)')).toBeOnTheScreen();
     });
 
     it('handles very small unrealized amounts', () => {
-      renderWithProvider(
-        <MarketsWonCard
-          {...createDefaultProps()}
-          unrealizedAmount={0.01}
-          unrealizedPercent={0.1}
-        />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: 0.01,
+            percentUpnl: 0.1,
+          },
+        },
       );
 
       expect(screen.getByText('+$0.01 (+0.1%)')).toBeOnTheScreen();
     });
 
     it('handles missing optional props gracefully', () => {
-      renderWithProvider(
-        <MarketsWonCard unrealizedAmount={50} unrealizedPercent={5} />,
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: 50,
+            percentUpnl: 5,
+          },
+        },
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       expect(screen.getByText('+$50.00 (+5.0%)')).toBeOnTheScreen();
+    });
+  });
+
+  describe('useUnrealizedPnL Hook Integration', () => {
+    it('calls useUnrealizedPnL hook with correct parameters', () => {
+      const { mockUseUnrealizedPnL } = setupMarketsWonCardTest({
+        address: '0x1234567890123456789012345678901234567890',
+        providerId: 'polymarket',
+      });
+
+      expect(mockUseUnrealizedPnL).toHaveBeenCalledWith({
+        address: '0x1234567890123456789012345678901234567890',
+        providerId: 'polymarket',
+      });
+    });
+
+    it('handles loading state from hook', () => {
+      setupMarketsWonCardTest(
+        {},
+        {
+          isFetching: true,
+          unrealizedPnL: null,
+        },
+      );
+
+      expect(screen.getByTestId('unrealized-pnl-skeleton')).toBeOnTheScreen();
+    });
+
+    it('handles error state from hook', () => {
+      setupMarketsWonCardTest(
+        {},
+        {
+          error: 'Failed to fetch unrealized P&L',
+          unrealizedPnL: null,
+        },
+      );
+
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      // Should show fallback values when there's an error
+      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+    });
+
+    it('handles null unrealized P&L data gracefully', () => {
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: null,
+          isFetching: false,
+          error: null,
+        },
+      );
+
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      // Should show fallback values when data is null
+      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+    });
+
+    it('combines loading states from component and hook', () => {
+      setupMarketsWonCardTest(
+        { isLoading: true },
+        {
+          isFetching: true,
+        },
+      );
+
+      // Claim button shows ActivityIndicator while hook shows skeleton (Icon hidden)
+      expect(screen.queryByText('ArrowRight')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('unrealized-pnl-skeleton')).toBeOnTheScreen();
+    });
+
+    it('displays correct unrealized P&L data from hook', () => {
+      setupMarketsWonCardTest(
+        {},
+        {
+          unrealizedPnL: {
+            user: '0x1234567890123456789012345678901234567890',
+            cashUpnl: -15.75,
+            percentUpnl: -8.2,
+          },
+          isFetching: false,
+          error: null,
+        },
+      );
+
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.getByText('-$15.75 (-8.2%)')).toBeOnTheScreen();
     });
   });
 });

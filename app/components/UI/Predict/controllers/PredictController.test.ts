@@ -82,6 +82,7 @@ describe('PredictController', () => {
       isEligible: jest.fn(),
       providerId: 'polymarket',
       placeOrder: jest.fn(),
+      getUnrealizedPnL: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -2661,6 +2662,140 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBe('Claim preparation failed');
+      });
+    });
+  });
+
+  describe('getUnrealizedPnL', () => {
+    it('successfully fetches unrealized P&L data', async () => {
+      await withController(async ({ controller }) => {
+        const mockUnrealizedPnL = {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: -7.337110036077004,
+          percentUpnl: -31.32290842628039,
+        };
+
+        mockPolymarketProvider.getUnrealizedPnL.mockResolvedValue(
+          mockUnrealizedPnL,
+        );
+
+        const result = await controller.getUnrealizedPnL({
+          address: '0x1234567890123456789012345678901234567890',
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockUnrealizedPnL);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getUnrealizedPnL).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('uses selected account address when no address provided', async () => {
+      await withController(async ({ controller }) => {
+        const mockUnrealizedPnL = {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: 0,
+          percentUpnl: 0,
+        };
+
+        mockPolymarketProvider.getUnrealizedPnL.mockResolvedValue(
+          mockUnrealizedPnL,
+        );
+
+        await controller.getUnrealizedPnL({});
+
+        expect(mockPolymarketProvider.getUnrealizedPnL).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('throws error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles provider errors gracefully', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('Failed to fetch unrealized P&L'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('Failed to fetch unrealized P&L');
+
+        expect(controller.state.lastError).toBe(
+          'Failed to fetch unrealized P&L',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles provider returning empty data', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('No unrealized P&L data found'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('No unrealized P&L data found');
+
+        expect(controller.state.lastError).toBe('No unrealized P&L data found');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles network errors from provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          new Error('Network error'),
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow('Network error');
+
+        expect(controller.state.lastError).toBe('Network error');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handles non-Error exceptions from provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
+          'String error',
+        );
+
+        await expect(
+          controller.getUnrealizedPnL({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          'Failed to fetch unrealized P&L',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
   });
