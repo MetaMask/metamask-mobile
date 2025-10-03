@@ -43,6 +43,13 @@ jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
 }));
 
+jest.mock(
+  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
 let mockPerpsGTMModalEnabled = false;

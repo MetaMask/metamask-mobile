@@ -173,6 +173,13 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 const mockAddPopularNetwork = jest
   .fn()
   .mockImplementation(() => Promise.resolve());
