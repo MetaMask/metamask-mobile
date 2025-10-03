@@ -13,9 +13,9 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export interface ResourceRingProps {
   icon: IconName;
-  size?: number; // outer square size
-  strokeWidth?: number; // ring thickness
-  progress?: number; // 0..1
+  size?: number;
+  strokeWidth?: number;
+  progress?: number;
   indeterminate?: boolean;
 }
 
@@ -47,11 +47,13 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
 
   return (
     <Box
+      testID="resource-ring-container"
       twClassName="relative items-center justify-center"
       style={{ width: size, height: size }}
     >
       <Svg width={size} height={size} style={tw.style('absolute')}>
         <Circle
+          testID="resource-ring-background"
           cx={cx}
           cy={cy}
           r={radius}
@@ -61,6 +63,7 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
         />
         {!indeterminate && (
           <AnimatedCircle
+            testID="resource-ring-fill"
             animatedProps={animatedProps}
             cx={cx}
             cy={cy}
@@ -76,13 +79,14 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
       </Svg>
 
       <Box
+        testID="resource-ring-icon-container"
         twClassName="items-center justify-center rounded-full bg-muted"
         style={{
           width: size - strokeWidth * 2,
           height: size - strokeWidth * 2,
         }}
       >
-        <Icon name={icon} />
+        <Icon testID="resource-ring-icon" name={icon} />
       </Box>
     </Box>
   );
