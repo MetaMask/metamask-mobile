@@ -1,5 +1,7 @@
 import React from 'react';
 import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -12,24 +14,55 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
-
-// Bank transfer image from Figma
-const bankTransferImage = require('../../../images/bank.transfer.png');
+import { strings } from '../../../../locales/i18n';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { getDecimalChainId } from '../../../util/networks';
+import { selectChainId } from '../../../selectors/networkController';
+import { trace, TraceName } from '../../../util/trace';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
+import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
+import bankTransferImage from '../../../images/bank.transfer.png';
 
 /**
- * BalanceEmptyState component displays an empty state for wallet balance
- * with an illustration, title, subtitle, and action button.
+ * BalanceEmptyState smart component displays an empty state for wallet balance
+ * with an illustration, title, subtitle, and action button that navigates to deposit flow.
  */
 const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   onAction,
-  testID,
-  title,
-  subtitle,
-  actionText,
+  testID = 'balance-empty-state',
 }) => {
   const tw = useTailwind();
+  const chainId = useSelector(selectChainId);
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const goToDeposit = () => {
+    navigation.navigate(...createDepositNavigationDetails());
+
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+      ).build(),
+    );
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Add funds',
+          location: 'BalanceEmptyState',
+          chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: 'DEPOSIT',
+        })
+        .build(),
+    );
+
+    trace({
+      name: TraceName.LoadDepositExperience,
+    });
+  };
+
+  const handleAction = onAction || goToDeposit;
 
   return (
     <Box
@@ -52,32 +85,33 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           source={bankTransferImage}
           style={tw.style('w-[100px] h-[100px]')}
           resizeMode="cover"
+          testID={`${testID}-image`}
         />
-        {title && (
-          <Text
-            variant={TextVariant.HeadingLg}
-            color={TextColor.TextDefault}
-            twClassName="text-center"
-          >
-            {title}
-          </Text>
-        )}
-        {subtitle && (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-center"
-          >
-            {subtitle}
-          </Text>
-        )}
+        <Text
+          variant={TextVariant.HeadingLg}
+          color={TextColor.TextDefault}
+          twClassName="text-center"
+          testID={`${testID}-title`}
+        >
+          {strings('wallet.fund_your_wallet')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-center"
+          testID={`${testID}-subtitle`}
+        >
+          {strings('wallet.get_ready_for_web3')}
+        </Text>
       </Box>
-      {actionText && onAction && (
-        <ButtonHero onPress={onAction} isFullWidth>
-          {actionText}
-        </ButtonHero>
-      )}
+      <ButtonHero
+        onPress={handleAction}
+        isFullWidth
+        testID={`${testID}-action-button`}
+      >
+        {strings('wallet.add_funds')}
+      </ButtonHero>
     </Box>
   );
 };
