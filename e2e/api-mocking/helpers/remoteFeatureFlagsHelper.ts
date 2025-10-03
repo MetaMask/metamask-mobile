@@ -328,26 +328,29 @@ export const createRemoteFeatureFlagsMock = (
 };
 
 /**
- * Sets up default remote feature flags mock on mockttp server
+ * Sets up default remote feature flags mock on mockttp server for both main and flask distributions
  * This will be called automatically and can be overridden by testSpecificMock
  */
 export const setupRemoteFeatureFlagsMock = async (
   mockServer: Mockttp,
   flagOverrides: Record<string, unknown> = {},
-  distribution: string = 'main',
 ): Promise<void> => {
   const environments = ['dev', 'test', 'prod'] as const;
-  const mockPromises = environments.map((environment) => {
-    const { urlEndpoint, response, responseCode } =
-      createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
+  const distributions = ['main', 'flask'] as const;
 
-    return setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode,
-    });
-  });
+  const mockPromises = distributions.flatMap((distribution) =>
+    environments.map((environment) => {
+      const { urlEndpoint, response, responseCode } =
+        createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
+
+      return setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode,
+      });
+    }),
+  );
 
   await Promise.all(mockPromises);
 };
