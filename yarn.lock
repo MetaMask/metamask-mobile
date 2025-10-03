@@ -7027,7 +7027,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.2.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
   version: 8.4.0
   resolution: "@metamask/base-controller@npm:8.4.0"
   dependencies:
@@ -7267,21 +7267,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/earn-controller@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@metamask/earn-controller@npm:7.0.0"
+"@metamask/earn-controller@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@metamask/earn-controller@npm:8.0.0"
   dependencies:
     "@ethersproject/bignumber": ^5.7.0
     "@ethersproject/providers": ^5.7.0
-    "@metamask/base-controller": ^8.2.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/keyring-api": ^20.1.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/keyring-api": ^21.0.0
     "@metamask/stake-sdk": ^3.2.1
     reselect: ^5.1.1
   peerDependencies:
-    "@metamask/account-tree-controller": ^0.12.1
+    "@metamask/account-tree-controller": ^1.0.0
     "@metamask/network-controller": ^24.0.0
-  checksum: 7b5e02f6a41dd1509cb192249b07ef04df6dace9c8c7100877ac158d83d8848de639ca75a23a678530f05fe8f10676aedf8469fa831b6d19e01ea86327eaa4c0
+  checksum: db88ce2d7672fd7f77c700fe84559324d8b6c8c0606380e74f457f5bbb7be1e9047ff837915f47deb9ad8fa415fce8053dcecfd484800c0f4a425a2ee51eb8ed
   languageName: node
   linkType: hard
 
@@ -34052,7 +34052,7 @@ __metadata:
     "@metamask/design-system-react-native": ^0.4.0
     "@metamask/design-system-twrnc-preset": ^0.2.1
     "@metamask/design-tokens": ^8.1.1
-    "@metamask/earn-controller": ^7.0.0
+    "@metamask/earn-controller": ^8.0.0
     "@metamask/eip-5792-middleware": ^1.2.0
     "@metamask/eip1193-permission-middleware": ^1.0.0
     "@metamask/ens-resolver-snap": ^0.1.4
