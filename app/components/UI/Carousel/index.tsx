@@ -41,6 +41,7 @@ import {
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -74,13 +75,55 @@ function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   return placed.filter(Boolean) as CarouselSlide[];
 }
 
-const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
+export function useFetchCarouselSlides() {
+  const isContentfulCarouselEnabled = useSelector(
+    selectContentfulCarouselEnabledFlag,
+  );
+
   const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
   const [regularContentfulSlides, setRegularContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
+
+  const fetchCallback = useCallback(async () => {
+    if (!isContentfulCarouselEnabled) return;
+    try {
+      const { prioritySlides, regularSlides } =
+        await fetchCarouselSlidesFromContentful();
+      setPriorityContentfulSlides(
+        prioritySlides.filter((slides) => isActive(slides)),
+      );
+      setRegularContentfulSlides(
+        regularSlides.filter((slides) => isActive(slides)),
+      );
+    } catch (err) {
+      console.warn('Failed to fetch Contentful slides:', err);
+    }
+  }, [isContentfulCarouselEnabled]);
+
+  useEffect(() => {
+    // initial fetch
+    fetchCallback();
+
+    // refetch from preview token
+    const unsubscribe = subscribeToContentPreviewToken(fetchCallback);
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchCallback, isContentfulCarouselEnabled]);
+
+  return {
+    priorityContentfulSlides,
+    regularContentfulSlides,
+  };
+}
+
+const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
+  const { priorityContentfulSlides, regularContentfulSlides } =
+    useFetchCarouselSlides();
+
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -121,10 +164,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     carouselScaleY,
   });
 
-  const isContentfulCarouselEnabled = useSelector(
-    selectContentfulCarouselEnabledFlag,
-  );
-
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
   const dispatch = useDispatch();
@@ -139,26 +178,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   ///: END:ONLY_INCLUDE_IF
 
   const isZeroBalance = !hasBalance;
-
-  // Fetch slides from Contentful
-  useEffect(() => {
-    const loadContentfulSlides = async () => {
-      if (!isContentfulCarouselEnabled) return;
-      try {
-        const { prioritySlides, regularSlides } =
-          await fetchCarouselSlidesFromContentful();
-        setPriorityContentfulSlides(
-          prioritySlides.filter((slides) => isActive(slides)),
-        );
-        setRegularContentfulSlides(
-          regularSlides.filter((slides) => isActive(slides)),
-        );
-      } catch (err) {
-        console.warn('Failed to fetch Contentful slides:', err);
-      }
-    };
-    loadContentfulSlides();
-  }, [isContentfulCarouselEnabled]);
 
   const applyLocalNavigation = useCallback(
     (s: CarouselSlide): CarouselSlide => {
