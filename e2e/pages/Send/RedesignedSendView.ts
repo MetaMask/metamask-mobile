@@ -48,11 +48,9 @@ class SendView {
   }
 
   get reviewButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON)
-      : Matchers.getElementByLabel(
-          RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-        );
+    return Matchers.getElementByID(
+      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+    );
   }
 
   async selectEthereumToken(): Promise<void> {
