@@ -149,6 +149,9 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
   PREDICT: {
     ROOT: 'Predict',
     MARKET_DETAILS: 'PredictMarketDetails',
+    MODALS: {
+      ROOT: 'PredictModals',
+    },
   },
 }));
 
@@ -237,6 +240,7 @@ describe('PredictTabView', () => {
     outcomeIndex: 0,
     title: 'Test Position',
     cashPnl: 10,
+    marketId: 'market-1',
   };
 
   const mockClaimablePosition = {
@@ -394,10 +398,11 @@ describe('PredictTabView', () => {
 
       fireEvent.press(screen.getByTestId('position-pos-1'));
 
-      expect(mockNavigate).toHaveBeenCalledWith('Predict', {
+      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
         screen: 'PredictMarketDetails',
         params: {
-          position: mockPosition,
+          marketId: mockPosition.marketId,
+          headerShown: false,
         },
       });
     });
