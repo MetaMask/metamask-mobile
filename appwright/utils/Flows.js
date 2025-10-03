@@ -14,6 +14,7 @@ import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
+import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -56,7 +57,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await tapPerpsBottomSheetGotItButton(device);
   await dismissMultichainAccountsIntroModal(device);
-
+  await tapRewardsNotNowButton(device);
   await WalletMainScreen.isMainWalletViewVisible();
 }
 
@@ -120,6 +121,7 @@ export async function login(device, options = {}) {
   // Only tap intro screens on first login
   if (!skipIntro) {
     await dismissMultichainAccountsIntroModal(device);
+    await tapRewardsNotNowButton(device);
     await tapPerpsBottomSheetGotItButton(device);
   }
 }
@@ -129,6 +131,15 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+  }
+}
+
+export async function tapRewardsNotNowButton(device) {
+  RewardsGTMModal.device = device;
+  const container = await RewardsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await RewardsGTMModal.tapNotNowButton();
+    console.log('Rewards onboarding dismissed');
   }
 }
 
