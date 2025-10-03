@@ -58,7 +58,6 @@ describe('switchToNetwork', () => {
       ticker: 'ETH',
     });
 
-    const requestUserApproval = jest.fn();
     const analytics = {
       test: 'test',
     };
@@ -68,8 +67,8 @@ describe('switchToNetwork', () => {
     await switchToNetwork({
       networkClientId,
       nativeCurrency: network.nativeCurrency,
+      rpcUrl: network.rpcEndpoints[0].url,
       chainId,
-      requestUserApproval,
       analytics,
       origin,
       autoApprove,
