@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use Wix/Detox for the majority of our automation tests, and Appium for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
+Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use [Wix/Detox](https://github.com/wix/Detox) for the majority of our automation tests, and for specific non-functional testing like app upgrades and launch times. All tests are written in TypeScript, and use jest and cucumber as test runners.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ Our end-to-end (E2E) testing strategy leverages a combination of technologies to
   - [Tooling setup](#tooling-setup)
   - [Environment files](#environment-files)
 - [Build the app (optional)](#build-the-app-optional)
-- [Use a prebuilt app file](#use-a-prebuilt-app-file)
+- [Use Expo prebuilds (recommended)](#use-expo-prebuilds-recommended)
   - [iOS builds](#ios-builds)
   - [Android builds](#android-builds)
 - [Run the E2E Tests](#run-the-e2e-tests)
@@ -97,7 +97,13 @@ Sometimes it is necessary to build the app locally, for example, to enable build
 
 Please follow the [native development guide](../../README.md#native-development) for more details.
 
-### Use a prebuilt app file
+```bash
+# Build the app for testing
+yarn test:e2e:ios:debug:build
+yarn test:e2e:android:debug:build
+```
+
+### Use Expo prebuilds (recommended)
 
 You can use prebuilt app files instead of building the app locally.
 
@@ -175,6 +181,8 @@ source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
+To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../e2e/docs/README.md).
+
 ### Setup Troubleshooting
 
 - **The application is not opening**: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
@@ -182,6 +190,7 @@ source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 - **Simulator/Emulator not found**: Ensure the device names match exactly as specified in prerequisites
 - **Android SDK not found**: Verify `$ANDROID_SDK_ROOT` is set correctly with `echo $ANDROID_SDK_ROOT`
 - **My Expo Application shows an error "Failed to connect to localhost/127.0.0.1:8081"**: The emulator may need to have the expo port forwarded. Try `adb reverse tcp:8081 tcp:8081` and rerun the test command.
+- **Warning Logs**: Warning logs may sometimes cause test failures by interfering with automation interactions. To prevent this, disable warning logs during test execution.
 - **Android notice**: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
   - install a build on the emulator
     - either install the apk or keep an existing install on the emulator

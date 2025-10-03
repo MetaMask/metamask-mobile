@@ -1,21 +1,52 @@
-# 🚧 Migration Notice (Still In Progress)
+# E2E Testing Architecture and Framework
 
-**TypeScript Framework Utils is NOT YET READY**: The updated TypeScript framework is still in progress.
+> **⚠️ ESSENTIAL:** Read [E2E Testing Overview](../../docs/readme/e2e-testing.md) for complete setup guide
 
-- **Current Framework Utils**: `/e2e/utils/` (JavaScript - existing tests)
-- **New Framework Utils**: `/e2e/framework/` (TypeScript - new tests and migrations)
+- [E2E Testing Architecture and Framework](#e2e-testing-architecture-and-framework)
+- [E2E Framework Structure](#e2e-framework-structure)
+- [E2E Testing Best Practices and Guidelines](#e2e-testing-best-practices-and-guidelines)
+- [E2E Test Examples and Patterns](#e2e-test-examples-and-patterns)
+- [E2E Testing Anti-Patterns (AVOID THESE)](#e2e-testing-anti-patterns-avoid-these)
+- [E2E Code Review Checklist](#e2e-code-review-checklist)
+- [Smart E2E Test Selection (AI-Enhanced)](#smart-e2e-test-selection-ai-enhanced)
+- [Important E2E Testing Notes](#important-e2e-testing-notes)
+- [AI E2E Testing System](#ai-e2e-testing-system)
 
-**Migration Status**:
+**E2E Framework Structure:**
 
-- ✅ Phase 0: TypeScript framework foundation
-- ✅ Phase 1: ESLint for E2E tests
-- ⏳ Phase 2: Legacy framework replacement
-- ⏳ Phase 3: Gradual test migration
+- **TypeScript Framework (`e2e/framework/`)**: Modern testing framework with type safety
+- **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
+- **Page Objects (`e2e/pages/`)**: Page Object Model implementation
+- **Selectors (`e2e/selectors/`)**: Element selectors organized by feature
+- **Fixtures (`e2e/framework/fixtures/`)**: Test data and state management
+- **API Mocking (`e2e/api-mocking/`)**: Comprehensive API mocking system
+
+**Core E2E Framework Classes:**
+
+- **`Assertions.ts`** - Enhanced assertions with auto-retry and detailed error messages
+- **`Gestures.ts`** - Robust user interactions with configurable element state checking
+- **`Matchers.ts`** - Type-safe element selectors with flexible options
+- **`Utilities.ts`** - Core utilities with specialized element state checking
+- **`FixtureBuilder.ts`** - Builder pattern for creating test fixtures
+
+**Key E2E Directories:**
+
+- `e2e/framework/` - TypeScript framework foundation (USE THIS)
+- `e2e/specs/` - Test files organized by feature
+- `e2e/pages/` - Page Object classes following POM pattern
+- `e2e/selectors/` - Element selectors (avoid direct use in tests)
+- `e2e/api-mocking/` - API mocking utilities and responses
+- `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
+- `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
+
+## E2E Testing Best Practices and Guidelines
+
+**CRITICAL: Always Use withFixtures Pattern**
+Every E2E test MUST use `withFixtures` for proper test setup and cleanup:
 
 ```typescript
-// New framework usage
-import { Assertions, Gestures, Matchers } from '../framework';
-import { withFixtures } from '../fixtures/framework';
+import { withFixtures } from '../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../framework/fixtures/FixtureBuilder';
 
 await withFixtures(
   {
@@ -23,595 +54,339 @@ await withFixtures(
     restartDevice: true,
   },
   async () => {
-    await Assertions.expectElementToBeVisible(element, {
-      description: 'element should be visible',
-    });
-    await Gestures.tap(element, { description: 'tap element' });
+    // Test code here
   },
 );
 ```
 
-# MetaMask Mobile E2E Testing Framework
+**Framework Usage (MANDATORY):**
 
-This directory contains the End-to-End (E2E) testing framework for MetaMask Mobile, built with Detox and enhanced with TypeScript for better reliability and developer experience.
+- ✅ **ALWAYS** import from `e2e/framework/index.ts` (not individual files)
+- ✅ **ALWAYS** use modern TypeScript framework methods
+- ❌ **NEVER** use legacy methods marked with `@deprecated`
+- ❌ **NEVER** use `TestHelpers.delay()` - use proper waiting instead
 
-## 🚀 Quick Start
+**Page Object Model (REQUIRED):**
 
-### Prerequisites
+- ✅ **ALWAYS** use Page Object pattern - no direct selectors in test specs
+- ✅ **ALWAYS** define element selectors in page objects or selector files
+- ✅ **ALWAYS** access UI elements through page object methods
+- ❌ **NEVER** use `element(by.id())` directly in test specs
+- ❌ **NEVER** use raw Detox assertions in test specs
 
-- Node.js and Yarn installed
-- iOS Simulator or Android Emulator set up
-- MetaMask Mobile development environment configured
-- **📖 [Testing Setup Guide](../../docs/readme/e2e-testing.md)** - Essential reading for:
-  - Local environment setup and configuration
-  - Test wallet setup with testnet/mainnet access
-  - Environment variables configuration (`.e2e.env`, `.js.env`)
-  - Device setup instructions (iPhone 15 Pro, Pixel 5 API 34)
-  - Building apps locally vs using prebuilt apps from Runway
-  - Bitrise CI/CD pipeline information
-  - Appium testing setup and BrowserStack configuration
+**Test Structure Requirements:**
 
-### Running Tests
+- Use descriptive test names without 'should' prefix
+- Include `description` parameters in ALL assertions and gestures
+- Control application state programmatically via fixtures, not UI
+- Use proper element state configuration (visibility, enabled, stability)
+- Handle expected failures with try/catch, not broad timeouts
 
-```bash
-# Setup E2E dependencies
-yarn setup:e2e
+**API Mocking (ESSENTIAL):**
 
-# iOS Tests
-yarn test:e2e:ios:debug:build    # Build iOS app for testing
-yarn test:e2e:ios:debug:run      # Run all iOS tests
+- All tests run with API mocking enabled by default
+- Use `testSpecificMock` parameter in `withFixtures` for test-specific mocks
+- Default mocks are loaded from `e2e/api-mocking/mock-responses/defaults/`
+- Feature flags mocked via `setupRemoteFeatureFlagsMock` helper
 
-# Android Tests
-yarn test:e2e:android:debug:build    # Build Android app for testing
-yarn test:e2e:android:debug:run      # Run all Android tests
-
-# Run specific test
-yarn test:e2e:ios:debug:run e2e/specs/onboarding/create-wallet.spec.js
-
-# Run tests by tag
-yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
-```
-
-## 📁 Directory Structure
-
-```
-e2e/
-├── framework/                  # TypeScript framework foundation
-│   ├── README.md               # Framework documentation
-│   ├── Assertions.ts           # Enhanced assertions with auto-retry
-│   ├── Gestures.ts             # Robust user interactions
-│   ├── Matchers.ts             # Type-safe element selectors
-│   ├── Utilities.ts            # Core utilities and configuration
-│   ├── Utilities.test.ts       # Tests for utilities
-│   ├── Constants.ts            # Framework constants
-│   ├── logger.ts               # Logging functionality
-│   ├── index.ts                # Main entry point
-│   ├── types.ts                # TypeScript type definitions
-│   ├── .eslintrc.js            # ESLint configuration
-│   └── fixtures/               # Framework fixtures (⚠️ still being tested)
-│       ├── FixtureBuilder.ts   # Builder for test fixtures
-│       ├── FixtureHelper.ts    # Helper functions for fixtures
-│       ├── FixtureServer.ts    # Server for fixture data
-│       └── FixtureUtils.ts     # Utility functions for fixtures
-├── specs/                      # Test files organized by feature
-│   ├── accounts/               # Account-related tests
-│   └── wallet/                 # Wallet functionality tests
-├── utils/                      # Legacy utilities
-│   ├── Assertions.js           # Legacy assertions (⚠️ deprecated)
-│   ├── Gestures.js             # Legacy gestures (⚠️ deprecated)
-│   ├── Matchers.js             # Legacy matchers (⚠️ deprecated)
-│   ├── Utilities.js            # Legacy utilities (⚠️ deprecated)
-│   ├── TestHelpers.js          # Test helper utilities
-│   ├── DetoxActions.js         # Detox-specific actions
-│   └── ErrorMessages.js        # Error message utilities
-├── fixtures/                   # Test fixtures (⚠️ will be deprecated after extensive migration testing)
-├── selectors/                  # Element selectors
-├── pages/                      # Page Object classes
-├── seeder/                     # Test data seeding
-├── resources/                  # Test resources and data
-├── api-mocking/                # API mocking utilities
-├── api-specs/                  # API specifications
-├── types/                      # Additional type definitions
-├── helpers.js                  # Helper functions
-├── viewHelper.js               # View helper utilities
-├── tags.js                     # Test tagging utilities
-├── tenderly.js                 # Tenderly integration
-├── common-solana.ts            # Solana-specific utilities
-├── environment.js              # Environment configuration
-├── create-static-server.js     # Server utilities
-└── jest.e2e.config.js          # Jest configuration
-```
-
-## 🔧 Framework Architecture
-
-### TypeScript Framework (Recommended)
-
-The new TypeScript framework utilities provides enhanced reliability, better error messages, and type safety:
-
-#### Core Classes:
-
-- **`Assertions.ts`** - Enhanced assertions with auto-retry and detailed error messages
-  - Modern methods: `expectElementToBeVisible()`, `expectElementToHaveText()`, `expectElementToHaveLabel()`, `expectTextDisplayed()`
-  - Legacy methods marked `@deprecated` - use modern equivalents
-- **`Gestures.ts`** - Robust user interactions with configurable element state checking
-  - Modern methods: `tap()`, `typeText()`, `longPress()`, `swipe()`, `scrollToElement()`
-  - **Element state flags**: `checkVisibility` (default: true), `checkEnabled` (default: true), `checkStability` (default: false)
-  - **Performance optimization**: Stability checking disabled by default for better performance
-  - Legacy methods marked `@deprecated` - use modern equivalents
-- **`Matchers.ts`** - Type-safe element selectors with flexible options
-  - Methods: `getElementByID()`, `getElementByText()`, `getElementByLabel()`, `getWebViewByID()`
-- **`Utilities.ts`** - Core utilities with specialised element state checking
-  - **State checking methods**: `checkElementReadyState()`, `checkElementEnabled()`, `checkElementStable()`
-  - **Retry mechanisms**: `executeWithRetry()`, `waitForElementToBeEnabled()`, `waitForElementToStopMoving()`
-  - **Configuration**: Flexible timeout and retry configuration
-- **`types.ts`** - TypeScript type definitions including `GestureOptions` with element state flags
-
-#### Key Features:
-
-- ✅ **Auto-retry** - Handles flaky network/UI conditions
-- ✅ **Configurable element state checking** - Control visibility, enabled, and stability checks per interaction
-- ✅ **Performance optimization** - Stability checking disabled by default for better performance
-- ✅ **Better error messages** - Descriptive errors with retry context and timing
-- ✅ **Type safety** - Full TypeScript support with IntelliSense
-- ✅ **Flexible configuration** - Adjustable timeouts, retry intervals, and element state validation
-- ✅ **Backwards compatibility** - Works alongside existing JavaScript framework
-
-#### Basic Usage:
+**Element State Configuration:**
 
 ```typescript
-import Assertions from '../utils/Assertions';
-import Gestures from '../utils/Gestures';
-import Matchers from '../utils/Matchers';
-
-// Configurable element state checking
-const button = await Matchers.getElementByID('my-button');
-await Assertions.expectElementToBeVisible(button, {
-  description: 'button should be visible',
-});
-
-// Default behavior: checkVisibility=true, checkEnabled=true, checkStability=false
+// Default behavior (recommended for most cases)
 await Gestures.tap(button, { description: 'tap button' });
+// checkVisibility: true, checkEnabled: true, checkStability: false
 
-// Enable stability checking for animated elements
+// For animated elements
 await Gestures.tap(animatedButton, {
   checkStability: true,
   description: 'tap animated button',
 });
 
-// Skip visibility/enabled checks for special cases
+// For loading/disabled elements
 await Gestures.tap(loadingButton, {
-  checkVisibility: false,
   checkEnabled: false,
   description: 'tap loading button',
 });
 ```
 
-### Legacy JavaScript Framework (Backwards Compatible)
+## E2E Test Examples and Patterns
 
-The original JavaScript framework continues to work but legacy methods are deprecated:
+**Basic E2E Test Structure:**
 
-```javascript
-// ❌ DON'T: Use deprecated methods
-await Assertions.checkIfVisible(element(by.id('my-element')), 15000);
+```typescript
+import { SmokeE2E } from '../../tags';
+import { loginToApp } from '../../viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import WalletView from '../../pages/wallet/WalletView';
+import Assertions from '../../framework/Assertions';
 
-// ✅ DO: Use modern methods instead
+describe(SmokeE2E('Feature Name'), () => {
+  beforeAll(async () => {
+    jest.setTimeout(150000);
+  });
+
+  it('performs expected behavior', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+
+        // Use page object methods, never direct selectors
+        await WalletView.tapSendButton();
+
+        // Use framework assertions with descriptions
+        await Assertions.expectElementToBeVisible(WalletView.sendButton, {
+          description: 'send button should be visible',
+        });
+      },
+    );
+  });
+});
+```
+
+**Advanced Test with API Mocking:**
+
+```typescript
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+  );
+};
+
+await withFixtures(
+  {
+    fixture: new FixtureBuilder()
+      .withGanacheNetwork()
+      .withPermissionControllerConnectedToTestDapp()
+      .build(),
+    restartDevice: true,
+    testSpecificMock,
+  },
+  async () => {
+    // Test implementation with mocked APIs
+  },
+);
+```
+
+**FixtureBuilder Usage Patterns:**
+
+```typescript
+// Basic fixture
+new FixtureBuilder().build();
+
+// With popular networks
+new FixtureBuilder().withPopularNetworks().build();
+
+// With Ganache network
+new FixtureBuilder().withGanacheNetwork().build();
+
+// With connected test dapp
+new FixtureBuilder()
+  .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+  .build();
+
+// With tokens and contacts
+new FixtureBuilder()
+  .withAddressBookControllerContactBob()
+  .withTokensControllerERC20()
+  .build();
+```
+
+**Page Object Implementation Example:**
+
+```typescript
+import { Matchers, Gestures, Assertions } from '../../framework';
+import { WalletViewSelectors } from './WalletView.selectors';
+
+class WalletView {
+  get sendButton() {
+    return Matchers.getElementByID(WalletViewSelectors.SEND_BUTTON);
+  }
+
+  get receiveButton() {
+    return Matchers.getElementByID(WalletViewSelectors.RECEIVE_BUTTON);
+  }
+
+  async tapSendButton(): Promise<void> {
+    await Gestures.tap(this.sendButton, {
+      description: 'tap send button',
+    });
+  }
+
+  async verifySendButtonVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.sendButton, {
+      description: 'send button should be visible',
+    });
+  }
+}
+
+export default new WalletView();
+```
+
+## E2E Testing Anti-Patterns (AVOID THESE)
+
+**❌ PROHIBITED Patterns:**
+
+```typescript
+// DON'T: Use TestHelpers.delay()
+await TestHelpers.delay(5000);
+
+// DON'T: Use deprecated methods
+await Assertions.checkIfVisible(element);
+
+// DON'T: Use direct element selectors in tests
+element(by.id('send-button')).tap();
+
+// DON'T: Use raw Detox assertions
+await waitFor(element).toBeVisible();
+
+// DON'T: Missing descriptions
+await Gestures.tap(button);
+await Assertions.expectElementToBeVisible(element);
+
+// DON'T: Manual retry loops
+let attempts = 0;
+while (attempts < 5) {
+  try {
+    await Gestures.tap(button);
+    break;
+  } catch {
+    attempts++;
+  }
+}
+```
+
+**✅ CORRECT Patterns:**
+
+```typescript
+// DO: Use proper waiting with framework
 await Assertions.expectElementToBeVisible(element, {
   description: 'element should be visible',
 });
-```
 
-## 📋 Page Object Pattern Best Practices
-
-### Page Object Structure
-
-```typescript
-class LoginPage {
-  // Getter pattern for elements
-  get emailInput() {
-    return Matchers.getElementByID('email-input');
-  }
-  get passwordInput() {
-    return Matchers.getElementByID('password-input');
-  }
-  get loginButton() {
-    return Matchers.getElementByID('login-button');
-  }
-
-  // Public methods for actions
-  async login(email: string, password: string): Promise<void> {
-    await Gestures.typeText(this.emailInput, email, {
-      description: 'enter email',
-    });
-    await Gestures.typeText(this.passwordInput, password, {
-      description: 'enter password',
-    });
-    await Gestures.tap(this.loginButton, { description: 'tap login button' });
-  }
-
-  // Public methods for verifications
-  async verifyLoginError(expectedError: string): Promise<void> {
-    await Assertions.expectTextDisplayed(expectedError, {
-      description: 'login error should be displayed',
-    });
-  }
-}
-
-export default new LoginPage();
-```
-
-### ✅ Page Object Best Practices
-
-- Use getter pattern for element references (lazy evaluation)
-- Export as singleton instance (`export default new LoginPage()`)
-- Provide public methods for user actions and verifications
-- Use descriptive method names that reflect user intent
-- Include workflow methods for common multi-step actions
-- Add verification methods for page state validation
-- Use the logger included in the framework
-
-## 🔧 Configuration
-
-```typescript
-// Creating a logger
-const logger = createLogger({
-  name: 'MyTestile',
-});
-
-logger.debug('Testing a specific test step.');
-
-// Per-operation timeout override
-await Assertions.expectElementToBeVisible(element, {
-  timeout: 30000,
-  description: 'slow loading element',
-});
-```
-
-## 🔍 ESLint Rules and Code Quality
-
-The framework includes custom ESLint rules to automatically warn against anti-patterns and encourage best practices:
-
-- **📖 [ESLint Rules Documentation](./ESLINT-RULES.md)** - Complete guide to the custom linting rules
-- **🚨 Automatic Warnings** for `TestHelpers.delay()`, deprecated methods, and poor patterns
-- **💡 Suggestions** for descriptive error messages and modern framework usage
-- **🔧 Configurable** - Currently warnings, can be upgraded to errors for enforcement
-
-### Quick Examples:
-
-```javascript
-// ❌ ESLint will warn about these patterns
-await TestHelpers.delay(5000); // Use proper waiting instead
-await Assertions.checkIfVisible(element); // Deprecated method
-await Gestures.tap(button); // Missing description
-
-// ✅ ESLint approves these patterns
-await Assertions.expectElementToBeVisible(element, {
-  description: 'button should appear',
-});
+// DO: Use modern framework methods
 await Gestures.tap(button, { description: 'tap submit button' });
+
+// DO: Use Page Object methods
+await WalletView.tapSendButton();
+
+// DO: Use framework retry mechanisms
+await Utilities.executeWithRetry(
+  async () => {
+    await Gestures.tap(button, { timeout: 2000 });
+    await Assertions.expectElementToBeVisible(nextScreen, { timeout: 2000 });
+  },
+  {
+    timeout: 30000,
+    description: 'tap button and verify navigation',
+  },
+);
 ```
 
-## ✅ E2E Testing Best Practices
+## E2E Code Review Checklist
 
-### Test Structure Best Practices
+**Before submitting any E2E test, verify:**
 
-```typescript
-import LoginPage from '../pages/LoginPage';
-
-describe('Feature: User Login', () => {
-  beforeAll(() => {
-    Utilities.configure({ timeout: 20000 });
-  });
-
-  it('should login successfully with valid credentials', async () => {
-    await LoginPage.login('user@test.com', 'password123');
-    await LoginPage.verifyLoginSuccess();
-  });
-});
-```
-
-### ✅ DO - Follow These Patterns
-
-- Use modern TypeScript framework with descriptive messages
-- Use Page Object pattern for maintainable tests
-- Let framework handle element stability and retries
-- Configure appropriate timeouts for operations
-- Handle expected failures gracefully with try/catch
-
-### ❌ DON'T - Avoid These Anti-Patterns
-
-- **No arbitrary delays**: Replace `TestHelpers.delay()` with proper waiting
-- **No deprecated methods**: Use modern equivalents (check `@deprecated` tags)
-- **No magic numbers**: Use descriptive constants for timeouts
-- **No repeated selectors**: Define elements once, reuse everywhere
-- **No generic descriptions**: Use specific, helpful error messages
-- **No non extendable logic for specific fixtures**: Make fixtures extandable to be reusable as much as possible in other tests
-
-### Migration from Legacy Patterns
-
-| Legacy Pattern                                                    | Modern Replacement                                                                 |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `TestHelpers.delay(5000)`                                         | `Assertions.expectElementToBeVisible(element, {timeout: 5000})`                    |
-| `checkIfVisible(element, 15000)`                                  | `expectElementToBeVisible(element, {timeout: 15000, description: '...'})`          |
-| `waitFor(element).toBeVisible()`                                  | `expectElementToBeVisible(element, {description: '...'})`                          |
-| `element.tap()`                                                   | `Gestures.tap(element, {description: '...'})`                                      |
-| `clearField(element); typeText(element, text)`                    | `typeText(element, text, {clearFirst: true})`                                      |
-| Manual retry loops                                                | `executeWithRetry()` with proper configuration                                     |
-| Use the old fixture options `dapp=true` and `multichaindapp=true` | Use the new `dapps` option that takes in `DappVariants[]`                          |
-| Use the old fixture options `localNodeOptions='my-node'`          | Use the new `localNodeOptions` option that takes in `LocalLocalNodeOptionsInput[]` |
-
-### Code Review Checklist
-
-Before submitting E2E tests, ensure:
-
+- [ ] Uses `withFixtures` pattern for test setup
+- [ ] Imports from `e2e/framework/index.ts` (not individual files)
 - [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
-- [ ] No deprecated legacy methods (marked with `@deprecated`)
+- [ ] No deprecated methods (check `@deprecated` tags)
 - [ ] All assertions have descriptive `description` parameters
 - [ ] All gestures have descriptive `description` parameters
+- [ ] Page Object pattern used (no direct selectors in tests)
+- [ ] Element selectors defined in page objects or selector files
 - [ ] Appropriate timeouts for operations (not magic numbers)
-- [ ] Page Object pattern used for complex interactions
-- [ ] Element selectors defined once and reused
-- [ ] Framework configuration used appropriately
-- [ ] Error handling for expected failure scenarios
+- [ ] API mocking configured when needed
 - [ ] Tests work on both iOS and Android platforms
+- [ ] Test names are descriptive without 'should' prefix
+- [ ] Uses FixtureBuilder for test data setup
 
-## 🧪 Testing Patterns
+**Predefined Job Coverage** (update when new tags are added):
 
-## 🔄 Migration from Legacy Framework
+- `SmokeConfirmations` (3 splits) / `SmokeConfirmationsRedesigned` (2 splits)
+- `SmokeTrade` (2 splits) / `SmokeWalletPlatform` (2 splits) / `SmokeIdentity` (2 splits)
+- `SmokeAccounts` (2 splits) / `SmokeNetworkAbstractions` (2 splits) / `SmokeNetworkExpansion` (2 splits)
+- `SmokeCore` (2 splits) / `SmokeWalletUX` (2 splits) / `SmokeSwaps` (2 splits)
+- `SmokeAssets` (1 split) / `SmokeStake` (1 split) / `SmokeCard` (1 split) / `SmokeNotifications` (1 split)
 
-The new TypeScript framework is fully backwards compatible. You can:
+**Maintenance**: When adding new smoke test tags:
 
-1. **Start with new tests** - Use TypeScript framework for all new tests
-2. **Gradual migration** - Migrate existing tests one at a time
-3. **Mixed usage** - Use both frameworks in the same test file
-4. **No breaking changes** - All existing tests continue to work
+1. Update `scripts/smart-e2e-selector-ai.ts` with tag mapping and split configuration
+2. Add corresponding job declarations to `.github/workflows/smart-e2e-ai-selection.yml`
+3. Follow existing pattern: `{tag-name}-{platform}-smoke` with conditional execution
+4. Update this documentation list
 
-### Deprecated Legacy Methods
+## Important E2E Testing Notes
 
-The following legacy methods are marked `@deprecated` and should be replaced:
+- **ALWAYS** use `withFixtures` - every test must use this pattern
+- **NEVER** skip the setup phase - run `yarn setup:e2e` first
+- **Framework Migration**: Use TypeScript framework (`e2e/framework/`), not legacy JavaScript (`e2e/utils/`)
+- **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
+- **Page Objects**: Mandatory pattern - no direct element access in test specs
+- **Element State**: Configure visibility, enabled, and stability checking appropriately
+- **Debugging**: Check test output for unmocked API requests and framework warnings
+- **Performance**: Use `checkStability: false` by default, enable only for animated elements
+- Check `e2e/.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
 
-#### Assertions.ts Legacy Methods:
+## AI E2E Testing System
 
-- `checkIfVisible()` → Use `expectElementToBeVisible()`
-- `checkIfTextIsDisplayed()` → Use `expectTextDisplayed()`
-- `checkIfElementToHaveText()` → Use `expectElementToHaveText()`
-- `checkIfElementHasLabel()` → Use `expectElementToHaveLabel()`
-- And many more... (see `@deprecated` tags in code)
+## Overview
 
-#### Gestures.ts Legacy Methods:
+The AI E2E Testing system is an intelligent test selection mechanism that analyzes code changes in pull requests and automatically recommends which End-to-End (E2E) smoke tests should be executed. The system runs in **analysis-only mode** by default, providing test recommendations as PR comments without triggering actual test execution.
 
-- `tapAndLongPress()` → Use `longPress()`
-- `typeTextAndHideKeyboard()` → Use `typeText({hideKeyboard: true})`
-- `clearField()` → Use `typeText({clearFirst: true})`
-- `tapAtIndex()` → Use `tap()` with `element.atIndex()`
-- And many more... (see `@deprecated` tags in code)
+## How It Works
 
-#### Common Anti-Pattern Replacements:
+### Automatic Analysis on Every PR
 
-- `TestHelpers.delay()` → Use proper waiting with `expectVisible()` or similar
-- Manual retry loops → Use `executeWithRetry()` or built-in framework retries
-- Raw Detox assertions → Use framework assertions with descriptions
+The system runs automatically on every pull request:
 
-See the Migration section above for detailed migration instructions.
+1. **File Detection**: The `needs-e2e-build` job detects changed files
+2. **AI Analysis**: The `ai-e2e-analysis` job analyzes changes using Claude AI
+3. **Test Matrix**: A test matrix is generated (available for future use)
 
-## 🛠 Framework Development
+## Configuration
 
-### Adding New Framework Features
+### Environment Variables
 
-1. **Core utilities** - Add to appropriate class in `utils/`
-2. **Type definitions** - Update TypeScript interfaces
-3. **Documentation** - Add examples to `examples/`
-4. **Tests** - Verify functionality works correctly
+- **`E2E_CLAUDE_API_KEY`**: Required for AI analysis (stored in GitHub Secrets)
 
-### Framework Architecture
+### Script Options
 
-```
-framework/Utilities.ts     - Core configuration and helper functions
-framework/Assertions.ts    - Element state verification with retry
-framework/Gestures.ts      - User interactions with stability checking
-framework/Matchers.ts      - Element selection and identification
-framework/types.ts         - TypeScript type definitions
-framework/fixtures         - Fixture helper files
-```
-
-### Best Practices for Framework Development
-
-- **Type safety** - Use proper TypeScript types
-- **Error messages** - Provide descriptive, actionable error messages
-- **Retry logic** - Handle transient failures gracefully
-- **Documentation** - Include usage examples in README
-- **Backwards compatibility** - Don't break existing functionality
-
-## 🔗 Related Documentation
-
-- **[Main README](../README.md)** - Project overview and setup instructions
-- **[Architecture Overview](../README.md#architecture-overview)** - App architecture details
-- **[Development Commands](../README.md#common-development-commands)** - Build and test commands
-
-## 🤝 Contributing
-
-When adding new tests or modifying the framework:
-
-1. **Use TypeScript framework** for new tests and page objects
-2. **Follow page object pattern** for complex UI interactions
-3. **Include descriptive messages** in all assertions and gestures
-4. **Configure appropriate timeouts** for your test environment
-5. **Add examples** for new framework features
-6. **Test on both iOS and Android** platforms
-7. **Avoid deprecated methods** - Use modern equivalents marked in `@deprecated` tags
-8. **No arbitrary delays** - Replace `TestHelpers.delay()` with proper waiting
-9. **Follow best practices** - See the Best Practices section above
-10. **Code review checklist** - Ensure all items are addressed before submitting
-
-## 📞 Support
-
-For framework questions or issues:
-
-1. Review Best Practices section for common patterns and anti-patterns
-2. Check migration guide above for legacy equivalents
-3. Examine TypeScript types for available options
-4. Look at existing tests for usage patterns
-5. Check `@deprecated` tags in legacy methods for modern replacements
-6. Review the comprehensive examples in this README
-
-The framework is designed to be self-documenting through TypeScript types and comprehensive error messages.
-
-## 🚨 Troubleshooting
-
-### Performance Issues
-
-#### **Element State Checking Configuration**
-
-- **Default behavior**: `checkVisibility: true`, `checkEnabled: true`, `checkStability: false`
-- **Performance optimization**: Stability checking disabled by default for better performance
-- **When to enable stability**: Complex animations, moving screens, carousel components
-- **When to disable checks**: Loading states, temporarily disabled elements
-- **Examples**:
-
-  ```typescript
-  // Default: checks visibility + enabled, skips stability
-  await Gestures.tap(button, { description: 'tap button' });
-
-  // Enable stability for animated elements
-  await Gestures.tap(carouselItem, {
-    checkStability: true,
-    description: 'tap carousel item',
-  });
-
-  // Skip checks for loading/processing elements
-  await Gestures.tap(processingButton, {
-    checkVisibility: false,
-    checkEnabled: false,
-    description: 'tap processing button',
-  });
-  ```
-
-### Retry Mechanism Best Practices
-
-#### **Framework vs Manual Retries**
-
-- **Use framework retries**: `Gestures.tap()`, `Assertions.expectVisible()` have built-in retries
-- **Avoid manual retries**: Don't wrap framework methods in additional retry loops
-- **Example**:
-
-  ```typescript
-  // ❌ DON'T: Manual retry around framework method
-  let attempts = 0;
-  while (attempts < 5) {
-    try {
-      await Gestures.tap(button); // Already has retry logic
-      break;
-    } catch {
-      attempts++;
-    }
-  }
-
-  // ✅ DO: Use framework retry with proper configuration
-  await Gestures.tap(button, {
-    timeout: 10000,
-    description: 'tap submit button',
-  });
-  ```
-
-#### **Timeout Configuration Strategy**
-
-- **Quick operations**: Use default timeouts (15s)
-- **Slow operations**: Increase timeout, don't add delays
-- **Example**:
-
-  ```typescript
-  // ❌ DON'T: Add arbitrary delays
-  await TestHelpers.delay(5000);
-  await Gestures.tap(button);
-
-  // ✅ DO: Use appropriate timeout for slow-loading elements
-  await Gestures.tap(slowLoadingButton, { timeout: 30000 });
-  ```
-
-#### **"Element not enabled" Errors**
-
-- **Cause**: Element exists but is not interactive (disabled/loading state)
-- **Root cause**: Framework checks element is both visible AND enabled before interaction by default
-- **Solution**: Use `checkEnabled: false` to bypass enabled state validation
-- **When to use**: Elements that are temporarily disabled during processing, loading states, or elements that appear disabled but should still be interactable (i.e Account List item which is not yet selected)
-- **Example**:
-
-  ```typescript
-  // Default: checks visibility + enabled + stability (if enabled)
-  await Gestures.tap(element, { description: 'tap interactive element' });
-
-  // Skip enabled check for temporarily disabled elements
-  await Gestures.tap(loadingButton, {
-    checkEnabled: false,
-    description: 'tap button during loading',
-  });
-
-  // Skip all checks for special cases
-  await Gestures.tap(processingButton, {
-    checkVisibility: false,
-    checkEnabled: false,
-    description: 'tap button during processing',
-  });
-  ```
-
-#### **"Element moving/animating" Errors**
-
-- **Cause**: UI animations interfering with interactions
-- **Solution**: Enable stability checking for that specific interaction
-- **Example**:
-  ```typescript
-  await Gestures.tap(animatedButton, {
-    checkStability: true, // Wait for animations to complete
-    description: 'tap animated button',
-  });
-  ```
-
-### Common Issues and Solutions:
-
-- **"Test is flaky"** → Remove `TestHelpers.delay()`, use proper assertions with timeouts
-- **"Element not found"** → Use framework retry mechanisms and proper element selectors
-- **"Deprecated method warning"** → Check `@deprecated` tag for modern replacement
-- **"Test is slow"** → Avoid nested retries, use appropriate timeouts, use `checkStability: true` only when needed
-- **"Hard to maintain"** → Implement Page Object pattern, avoid repeated selectors
-- **"Timeouts not working as expected"** → Check for nested retry patterns, use single-level framework retries
-
-#### **Handling Flaky Navigation/Tap Issues**
-
-**Problem**: Element tap succeeds but doesn't trigger navigation or expected action (common with buttons that sometimes don't respond to taps due to obscuration or timing issues).
-
-**Solution**: Use higher-level retry pattern that wraps both the action and verification:
-
-```typescript
-// ✅ DO: Wrap tap + verification in single retry operation
-async tapOpenAllTabsButton(): Promise<void> {
-  return Utilities.executeWithRetry(
-    async () => {
-      await Gestures.waitAndTap(this.tabsButton, {
-        timeout: 2000  // Short timeout for individual action
-      });
-
-      await Assertions.expectElementToBeVisible(this.tabsNumber, {
-        timeout: 2000  // Short timeout for verification
-      });
-    },
-    {
-      timeout: 30000,  // Longer overall timeout for retries
-      description: 'tap open all tabs button and verify navigation',
-      elemDescription: 'Open All Tabs Button',
-    }
-  );
-}
+```bash
+Options:
+  -b, --base-branch <branch>   Base branch to compare against
+  -d, --dry-run               Show commands without running
+  -v, --verbose               Verbose output with AI reasoning
+  -o, --output <format>       Output format (default|json|tags|matrix)
+  --include-main-changes       Include broader context from main branch
+  --show-tags                 Show comparison of available vs pipeline tags
+  --changed-files <files>     Use pre-computed changed files list
+  -h, --help                 Show help information
 ```
 
-**Why this works**:
+### Local Testing
 
-- **Fast inner timeouts (2s)** - Prevents long waits when tap doesn't trigger navigation
-- **Outer retry logic** - Handles the flaky tap scenario by retrying the entire flow
-- **Total timeout control** - 30s outer timeout gives reasonable overall time limit
-- **Clear failure modes** - Each step fails fast, allowing quick retry of the whole operation
+Test the AI analysis locally before pushing:
 
-**When to use this pattern**:
+```bash
+# Test current branch changes
+yarn ai-e2e --verbose
 
-- Buttons that sometimes don't respond (obscuration issues)
-- Navigation taps that may fail silently
-- Actions that require verification of success (screen transitions)
-- Complex interactions where multiple steps must succeed together
+# Test specific base branch
+yarn ai-e2e --base-branch origin/main --verbose
+
+# Get machine-readable output
+yarn ai-e2e --output json | jq '.'
+
+# See the test matrix
+yarn ai-e2e --output matrix | jq '.'
+```
