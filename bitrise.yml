@@ -921,6 +921,7 @@ workflows:
             if ! echo "$BITRISE_GIT_MESSAGE" | grep -q "\[skip ci\] Bump version
             number to"; then
               echo "Commit message doesn't contain expected pattern, failing workflow"
+              echo "To run the release workflow, run https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml and then retry"
               exit 1
             fi
   # E2E Steps
