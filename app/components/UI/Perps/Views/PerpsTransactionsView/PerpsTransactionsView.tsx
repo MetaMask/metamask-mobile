@@ -42,7 +42,7 @@ import {
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 import Button, {
   ButtonSize,
@@ -61,10 +61,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
 
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
-    dependencies: [flatListData.length > 0],
+  // Track screen load performance with new unified hook
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
+    conditions: [flatListData.length > 0],
   });
 
   const { isConnected, isConnecting } = usePerpsConnection();
@@ -148,10 +148,37 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return flattened;
   };
 
+  // Create a map of orderId to order for fast lookup
+  const orderMap = useMemo(() => {
+    const map = new Map<string, (typeof ordersData)[0]>();
+    (ordersData || []).forEach((order) => {
+      map.set(order.orderId, order);
+    });
+    return map;
+  }, [ordersData]);
+
+  // Enrich fills with order data to determine TP/SL
+  const enrichedFills = useMemo(
+    () =>
+      (fillsData || []).map((fill) => {
+        const enrichedFill = { ...fill };
+
+        // Cross-reference with historical orders
+        const matchingOrder = orderMap.get(fill.orderId);
+        if (matchingOrder?.detailedOrderType) {
+          // Add the detailed order type to the fill
+          enrichedFill.detailedOrderType = matchingOrder.detailedOrderType;
+        }
+
+        return enrichedFill;
+      }),
+    [fillsData, orderMap],
+  );
+
   // Transform raw data from hooks into transaction format
   const fillTransactions = useMemo(
-    () => transformFillsToTransactions(fillsData || []),
-    [fillsData],
+    () => transformFillsToTransactions(enrichedFills),
+    [enrichedFills],
   );
 
   const orderTransactions = useMemo(
@@ -368,10 +395,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }, [activeFilter]);
 
   // Determine if we should show loading skeleton
-  const isInitialLoading = useMemo(() =>
-    // Show loading if we're connecting or if any data sources are loading
-     isConnecting || fillsLoading || ordersLoading || fundingLoading
-  , [isConnecting, fillsLoading, ordersLoading, fundingLoading]);
+  const isInitialLoading = useMemo(
+    () =>
+      // Show loading if we're connecting or if any data sources are loading
+      isConnecting || fillsLoading || ordersLoading || fundingLoading,
+    [isConnecting, fillsLoading, ordersLoading, fundingLoading],
+  );
 
   // Determine if we should show empty state (only after loading is complete and no data)
   const shouldShowEmptyState = useMemo(() => {

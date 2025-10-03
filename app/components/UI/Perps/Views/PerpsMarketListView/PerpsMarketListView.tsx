@@ -24,26 +24,27 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import type { PerpsMarketData } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { usePerpsMeasurement } from '../../hooks';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsPerformance } from '../../hooks';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useSelector } from 'react-redux';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -53,6 +54,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { PerpsNavigationParamList } from '../../types/navigation';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -149,26 +151,24 @@ const PerpsMarketListView = ({
     }
   }, [markets.length, fadeAnimation]);
 
+  const { track } = usePerpsEventTracking();
+  const route =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+
   const handleMarketPress = (market: PerpsMarketData) => {
     if (onMarketSelect) {
       onMarketSelect(market);
     } else {
       navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
         market,
+        source: route.params?.source,
       });
     }
   };
-
-  const { track } = usePerpsEventTracking();
-  const { startMeasure, endMeasure } = usePerpsPerformance();
-
-  // Start measuring screen load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
-  }, [startMeasure]);
-
   const handleRefresh = () => {
-    refreshMarkets();
+    refreshMarkets().catch((err) => {
+      console.error('Failed to refresh markets:', err);
+    });
   };
 
   const handleBackPressed = () => {
@@ -232,6 +232,12 @@ const PerpsMarketListView = ({
     }
   };
 
+  // Performance tracking: Measure screen load time until market data is displayed
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.MARKETS_SCREEN_LOADED,
+    conditions: [filteredMarkets.length > 0],
+  });
+
   // Render navbar when keyboard is dismissed. We hide the navbar to give extra room when the OS keyboard is visible.
   useEffect(() => {
     if (!isSearchVisible) return;
@@ -245,38 +251,17 @@ const PerpsMarketListView = ({
     };
   }, [isSearchVisible]);
 
-  // Track screen load performance
-  const hasTrackedMarketsView = useRef(false);
-  const hasTrackedDataDisplay = useRef(false);
-
-  // Track when actual market data is displayed (not just skeleton)
-  useEffect(() => {
-    if (filteredMarkets.length > 0 && !hasTrackedDataDisplay.current) {
-      // End measurement when actual data is displayed
-      const loadTime = endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
-      DevLogger.log('PerpsMarketListView: Market data displayed', {
-        marketCount: filteredMarkets.length,
-        loadTimeMs: loadTime,
-        targetMs: 200,
-      });
-      hasTrackedDataDisplay.current = true;
-    }
-  }, [filteredMarkets.length, endMeasure]);
-
-  useEffect(() => {
-    // Track markets screen viewed event - only once when data is loaded
-    if (markets.length > 0 && !hasTrackedMarketsView.current) {
-      // Track event
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.MARKETS,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-      });
-
-      hasTrackedMarketsView.current = true;
-    }
-  }, [markets, track]);
+  // Track markets screen viewed event
+  const source =
+    route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [markets.length > 0],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.MARKETS,
+      [PerpsEventProperties.SOURCE]: source,
+    },
+  });
 
   const renderMarketList = () => {
     // Skeleton List - show immediately while loading

@@ -17,6 +17,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
   useFocusEffect: jest.fn((callback) => callback()),
 }));
 
@@ -77,12 +78,6 @@ jest.mock('../../hooks', () => ({
   usePerpsNetworkManagement: jest.fn(() => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue({}),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsAccount: jest.fn(() => ({
     account: null,
     isLoading: false,
@@ -94,6 +89,7 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   formatFeeRate: jest.fn((rate) => `${((rate || 0) * 100).toFixed(3)}%`),
+  usePerpsMeasurement: jest.fn(),
 }));
 
 jest.mock('../../components/PerpsMarketBalanceActions', () => {
@@ -338,6 +334,8 @@ describe('PerpsMarketListView', () => {
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
+  const { useRoute } = jest.requireMock('@react-navigation/native');
+  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 
   const mockMarketData: PerpsMarketData[] = [
     {
@@ -387,6 +385,13 @@ describe('PerpsMarketListView', () => {
       mockNavigation as unknown as NavigationProp<ParamListBase>,
     );
     mockNavigation.canGoBack.mockReturnValue(true);
+
+    // Mock useRoute to return a basic route object
+    mockUseRoute.mockReturnValue({
+      key: 'PerpsMarketListView-123',
+      name: 'PerpsMarketListView',
+      params: {},
+    });
 
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockMarketData,
@@ -965,7 +970,7 @@ describe('PerpsMarketListView', () => {
     });
 
     it('calls refresh when retry button is pressed', () => {
-      const mockRefresh = jest.fn();
+      const mockRefresh = jest.fn().mockResolvedValue(undefined);
       mockUsePerpsMarkets.mockReturnValue({
         markets: [],
         isLoading: false,
