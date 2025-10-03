@@ -1,4 +1,4 @@
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { rpcErrors } from '@metamask/rpc-errors';
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { RelayerTypes } from '@walletconnect/types';
@@ -11,7 +11,6 @@ import {
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
-import Engine from '../Engine';
 import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';

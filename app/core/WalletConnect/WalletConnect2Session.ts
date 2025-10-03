@@ -37,10 +37,11 @@ import {
 } from './wc-utils';
 import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { rpcErrors } from '@metamask/rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
+import Engine from '../Engine';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -540,6 +541,33 @@ class WalletConnect2Session {
         existingNetwork,
       );
       const [networkClientId, networkConfiguration] = existingNetwork;
+
+      const hooks = getRpcMethodMiddlewareHooks({
+        origin: this.channelId,
+        url: { current: origin },
+        title: { current: this.session.peer.metadata.name },
+        icon: {
+          current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
+        },
+        analytics: {},
+        channelId: this.channelId,
+        getSource: () => AppConstants.REQUEST_SOURCES.WC,
+      });
+
+      hooks.requestPermittedChainsPermissionIncrementalForOrigin = (
+        ...args
+      ) => {
+        // Clear any pending approvals before prompting the user to permit a new chain.
+        // Unsure why this is needed, but it was previously found here before this code was refactored.
+        // https://github.com/MetaMask/metamask-mobile/blob/081e412f6680e03ad509194acd620c67a273a92b/app/core/WalletConnect/wc-utils.ts#L242
+        Engine.context.ApprovalController.clear(
+          providerErrors.userRejectedRequest(),
+        );
+        return hooks.requestPermittedChainsPermissionIncrementalForOrigin(
+          ...args,
+        );
+      };
+
       // Switching to the network is allowed so try switching into it
       await switchToNetwork({
         networkClientId,
