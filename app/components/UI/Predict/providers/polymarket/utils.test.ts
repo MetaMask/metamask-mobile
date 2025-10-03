@@ -1529,6 +1529,7 @@ describe('polymarket utils', () => {
       title: `Position ${id}`,
       slug: `position-${id}`,
       size: 100,
+      eventId: 'event-1',
       outcome: 'Yes',
       outcomeIndex: index,
       cashPnl: 10,
@@ -2122,19 +2123,23 @@ describe('polymarket utils', () => {
     };
 
     const mockClobOrder: ClobOrderObject = {
-      maker: mockAddress,
-      signer: mockAddress,
-      taker: '0x0000000000000000000000000000000000000000',
-      tokenId: 'test-token',
-      makerAmount: '100000000',
-      takerAmount: '50000000',
-      expiration: '0',
-      nonce: '0',
-      feeRateBps: '0',
-      side: Side.BUY,
-      signatureType: SignatureType.EOA,
-      signature: 'mock-signature',
-      salt: 12345,
+      order: {
+        maker: mockAddress,
+        signer: mockAddress,
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: 'test-token',
+        makerAmount: '100000000',
+        takerAmount: '50000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: Side.BUY,
+        signatureType: SignatureType.EOA,
+        signature: 'mock-signature',
+        salt: 12345,
+      },
+      owner: mockAddress,
+      orderType: OrderType.FOK,
     };
 
     it('handle 403 geoblock response with specific error message', async () => {
