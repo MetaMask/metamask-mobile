@@ -1396,7 +1396,21 @@ export class PerpsController extends BaseController<
     const startTime = performance.now();
     const provider = this.getActiveProvider();
 
+    // Get fee discount from rewards
+    const feeDiscountBips = await this.calculateUserFeeDiscount();
+
+    // Set discount context in provider for this operation
+    if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+      provider.setUserFeeDiscount(feeDiscountBips);
+    }
+
     const result = await provider.updatePositionTPSL(params);
+
+    // Clear discount context after operation (success or failure)
+    if (provider.setUserFeeDiscount) {
+      provider.setUserFeeDiscount(undefined);
+    }
+
     const completionDuration = performance.now() - startTime;
 
     // Record operation duration as measurement
