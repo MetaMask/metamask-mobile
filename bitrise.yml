@@ -904,6 +904,25 @@ workflows:
                 echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
+  check_release_commit_message:
+    steps:
+    - script@1:
+        inputs:
+        - content: >-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with
+            a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            if ! echo "$BITRISE_GIT_MESSAGE" | grep -q "\[skip ci\] Bump version
+            number to"; then
+              echo "Commit message doesn't contain expected pattern, skipping workflow"
+              exit 0
+            fi
   # E2E Steps
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
@@ -2817,6 +2836,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
+      - check_release_commit_message
       - build_android_main_prod
     meta:
       bitrise.io:
@@ -3395,6 +3415,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
+      - check_release_commit_message
       - build_ios_main_prod
   build_ios_rc_and_upload_sourcemaps:
     envs:
