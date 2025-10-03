@@ -67,6 +67,12 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsDepositProgress', () => ({
+  usePerpsDepositProgress: jest.fn(() => ({
+    isDepositInProgress: false,
+  })),
+}));
+
 // Mock design system
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
