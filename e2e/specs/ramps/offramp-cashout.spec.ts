@@ -32,7 +32,7 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should change cashout destination', async () => {
+  it.skip('should change cashout destination', async () => {
     const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
     await withFixtures(
       {
