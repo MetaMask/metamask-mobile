@@ -1474,6 +1474,8 @@
         "trades": "Trades",
         "orders": "Orders",
         "funding": "Finanzierung",
+        "withdraw": "Abheben",
+        "deposit": "Einzahlen",
         "funding_description": "Der Finanzierungsverlauf ist eine Übersicht der von Ihnen gezahlten oder erhaltenen Gebühren, die sich aus den Finanzierungsraten Ihrer offenen Positionen ergeben."
       },
       "not_found": "Transaktion nicht gefunden",

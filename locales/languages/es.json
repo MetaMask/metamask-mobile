@@ -1474,6 +1474,8 @@
         "trades": "Operaciones",
         "orders": "Órdenes",
         "funding": "Financiación",
+        "withdraw": "Retirar",
+        "deposit": "Depositar",
         "funding_description": "El historial de financiación es un resumen de las tarifas que has pagado o recibido, según lo determinado por las tasas de financiación de tus posiciones abiertas."
       },
       "not_found": "Transacción no encontrada",

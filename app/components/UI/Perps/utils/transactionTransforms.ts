@@ -1,5 +1,10 @@
 import { BigNumber } from 'bignumber.js';
-import { Funding, Order, OrderFill } from '../controllers/types';
+import {
+  Funding,
+  Order,
+  OrderFill,
+  UserHistoryItem,
+} from '../controllers/types';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
@@ -251,6 +256,55 @@ export function transformFundingToTransactions(
         fee: amountUSDC,
         feeNumber: parseFloat(amountUsd),
         rate: `${BigNumber(rate).multipliedBy(100).toString()}%`,
+      },
+    };
+  });
+}
+
+/**
+ * Transform UserHistoryItem objects to PerpsTransaction format
+ * @param userHistory - Array of UserHistoryItem objects (deposits/withdrawals)
+ * @returns Array of PerpsTransaction objects
+ */
+export function transformUserHistoryToTransactions(
+  userHistory: UserHistoryItem[],
+): PerpsTransaction[] {
+  return userHistory.map((item) => {
+    const { id, timestamp, type, amount, asset, txHash, status } = item;
+
+    const isDeposit = type === 'deposit';
+    const isWithdrawal = type === 'withdrawal';
+
+    // Format amount with appropriate sign
+    const amountBN = BigNumber(amount);
+    const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
+
+    // Determine status text
+    let statusText = '';
+    if (status === 'completed') {
+      statusText = 'Completed';
+    } else if (status === 'failed') {
+      statusText = 'Failed';
+    } else {
+      statusText = 'Pending';
+    }
+
+    return {
+      id: `${type}-${id}`,
+      type: isDeposit ? 'deposit' : 'withdrawal',
+      category: isDeposit ? 'deposit' : 'withdrawal',
+      title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+      subtitle: `${statusText} • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`,
+      timestamp,
+      asset,
+      depositWithdrawal: {
+        amount: displayAmount,
+        amountNumber: amountBN.toNumber(),
+        isPositive: isDeposit,
+        asset,
+        txHash,
+        status,
+        type: isDeposit ? 'deposit' : 'withdrawal',
       },
     };
   });

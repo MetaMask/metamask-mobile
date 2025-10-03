@@ -191,17 +191,32 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [fundingData],
   );
 
+  // Separate deposits and withdrawals - for now showing empty states
+  const depositTransactions = useMemo(
+    () => [], // Empty array for now
+    [],
+  );
+
+  const withdrawalTransactions = useMemo(
+    () => [], // Empty array for now
+    [],
+  );
+
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(
     () => ({
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
       Funding: groupTransactionsByDate(fundingTransactions),
+      Withdraw: groupTransactionsByDate(withdrawalTransactions),
+      Deposit: groupTransactionsByDate(depositTransactions),
     }),
     [
       fillTransactions,
       orderTransactions,
       fundingTransactions,
+      withdrawalTransactions,
+      depositTransactions,
       groupTransactionsByDate,
     ],
   );
@@ -241,7 +256,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       const isActive = activeFilter === tab;
 
       // Convert index to i18n key
-      const i18nKeys = ['trades', 'orders', 'funding'];
+      const i18nKeys = ['trades', 'orders', 'funding', 'withdraw', 'deposit'];
       const i18nKey = i18nKeys[index];
 
       const handleTabPress = () => {
@@ -383,6 +398,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       strings('perps.transactions.tabs.trades'),
       strings('perps.transactions.tabs.orders'),
       strings('perps.transactions.tabs.funding'),
+      strings('perps.transactions.tabs.withdraw'),
+      strings('perps.transactions.tabs.deposit'),
     ],
     [],
   );
@@ -446,7 +463,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
-          scrollEnabled={false}
+          scrollEnabled={true}
         >
           {filterTabs.map(renderFilterTab)}
         </ScrollView>

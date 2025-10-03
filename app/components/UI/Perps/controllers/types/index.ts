@@ -11,6 +11,32 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// User history item for deposits and withdrawals
+export interface UserHistoryItem {
+  id: string;
+  timestamp: number;
+  type: 'deposit' | 'withdrawal';
+  amount: string;
+  asset: string;
+  txHash: string;
+  status: 'completed' | 'failed' | 'pending';
+  details: {
+    source: string;
+    bridgeContract?: string;
+    recipient?: string;
+    blockNumber?: string;
+    chainId?: string;
+    synthetic?: boolean;
+  };
+}
+
+// Parameters for getting user history
+export interface GetUserHistoryParams {
+  startTime?: number;
+  endTime?: number;
+  accountId?: string;
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
