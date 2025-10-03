@@ -3,8 +3,8 @@ import {
   getInternetCredentials,
   setInternetCredentials,
   resetInternetCredentials,
-  Options,
   ACCESSIBLE,
+  type SetOptions,
 } from 'react-native-keychain';
 import {
   VAULT_BACKUP_FAILED,
@@ -15,7 +15,7 @@ import {
 } from './constants';
 import Logger from '../../util/Logger';
 
-const options: Options = {
+const options: SetOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
@@ -30,7 +30,7 @@ interface KeyringBackupResponse {
  */
 const _resetVaultBackup = async (): Promise<void> => {
   // Clear existing backup
-  await resetInternetCredentials(VAULT_BACKUP_KEY);
+  await resetInternetCredentials({ server: VAULT_BACKUP_KEY });
 };
 
 /**
@@ -38,7 +38,7 @@ const _resetVaultBackup = async (): Promise<void> => {
  */
 const _resetTemporaryVaultBackup = async (): Promise<void> => {
   // Clear temporary backup
-  await resetInternetCredentials(VAULT_BACKUP_TEMP_KEY);
+  await resetInternetCredentials({ server: VAULT_BACKUP_TEMP_KEY });
 };
 
 /**
