@@ -917,6 +917,8 @@ workflows:
             set -o pipefail
             # debug log
             set -x
+            
+            echo "BITRISE_GIT_MESSAGE: $BITRISE_GIT_MESSAGE"
 
             if ! echo "$BITRISE_GIT_MESSAGE" | grep -q "\[skip ci\] Bump version
             number to"; then
