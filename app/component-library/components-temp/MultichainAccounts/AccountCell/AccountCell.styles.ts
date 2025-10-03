@@ -10,6 +10,7 @@ const styleSheet = (params: { theme: Theme; vars: unknown }) => {
       gap: 16,
       paddingTop: 16,
       paddingBottom: 16,
+      minHeight: 68,
     },
     avatar: {
       borderRadius: 6, // Slightly smaller to account for wrapper border
@@ -56,6 +57,7 @@ const styleSheet = (params: { theme: Theme; vars: unknown }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 16,
+      minHeight: 36,
     },
   });
 };
