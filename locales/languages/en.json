@@ -6070,6 +6070,22 @@
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
+
+    "link_account_group": {
+      "link_account": "Link account",
+      "link_account_with_name": "Link {{accountName}}",
+      "linking_account": "Linking {{accountName}}...",
+      "link_account_success": "{{accountName}} linked successfully",
+      "link_account_error": "Failed to link one or more addresses for {{accountName}}",
+      "linking_progress": "Linking progress: {{completed}}/{{total}} accounts",
+      "linking_current_address": "Linking {{address}}...",
+      "cancel_linking": "Cancel Linking",
+      "account_link_status": {
+        "linked_singular": "{{count}} out of {{total}} address linked",
+        "linked_plural": "{{count}} out of {{total}} addresses linked"
+      }
+    },
+
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {

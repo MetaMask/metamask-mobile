@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useLinkAccount } from './useLinkAccount';
+import { useLinkAccount } from './useLinkAccountGroup';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';

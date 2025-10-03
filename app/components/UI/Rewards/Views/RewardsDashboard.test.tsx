@@ -441,7 +441,7 @@ jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
-import { useLinkAccount } from '../hooks/useLinkAccount';
+import { useLinkAccount } from '../hooks/useLinkAccountGroup';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { convertInternalAccountToCaipAccountId } from '../utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';

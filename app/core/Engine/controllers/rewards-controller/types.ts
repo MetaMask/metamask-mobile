@@ -693,10 +693,7 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (
-    account: InternalAccount,
-    referralCode?: string,
-  ) => Promise<string | null>;
+  handler: (referralCode?: string) => Promise<string | null>;
 }
 
 /**

@@ -477,8 +477,8 @@ export class RewardsController extends BaseController<
   #initializeEventSubscriptions(): void {
     // Subscribe to account changes for silent authentication
     this.messagingSystem.subscribe(
-      'AccountsController:selectedAccountChange',
-      () => this.#handleAuthenticationTrigger('Account changed'),
+      'AccountTreeController:selectedAccountGroupChange',
+      () => this.#handleAuthenticationTrigger('Account Group changed'),
     );
 
     // Subscribe to KeyringController unlock events to retry silent auth
@@ -579,6 +579,20 @@ export class RewardsController extends BaseController<
     throw new Error('Unsupported account type for signing rewards message');
   }
 
+  /**
+   * Sort accounts by type, prioritizing EIP155 accounts first
+   */
+  #sortAccounts(accounts: InternalAccount[]): InternalAccount[] {
+    return [...accounts].sort((a, b) => {
+      const aIsEvm = a.type.startsWith('eip155:');
+      const bIsEvm = b.type.startsWith('eip155:');
+
+      if (aIsEvm && !bIsEvm) return -1; // a comes first
+      if (!aIsEvm && bIsEvm) return 1; // b comes first
+      return 0; // maintain original order for same type
+    });
+  }
+
   async #signEvmMessage(
     account: InternalAccount,
     message: string,
@@ -608,19 +622,45 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
 
     if (!rewardsEnabled) {
+      await this.#performSilentAuth(null, true, true);
       return;
     }
+
     Logger.log('RewardsController: handleAuthenticationTrigger', reason);
 
     try {
-      const selectedAccount = this.messagingSystem.call(
-        'AccountsController:getSelectedMultichainAccount',
+      const accounts = this.messagingSystem.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      await this.#performSilentAuth(selectedAccount);
+
+      if (!accounts || accounts.length === 0) {
+        await this.#performSilentAuth(null, true, true);
+      } else {
+        const sortedAccounts = this.#sortAccounts(accounts);
+
+        // Try silent auth on each account until one succeeds
+        let success = false;
+        for (const account of sortedAccounts) {
+          try {
+            const subscriptionId = await this.#performSilentAuth(
+              account,
+              true,
+              true,
+            );
+            success = !!subscriptionId;
+            break; // Stop on first success
+          } catch {
+            // Continue to next account
+          }
+        }
+        if (!success && sortedAccounts.length > 1) {
+          throw new Error('Silent auth failed for all accounts');
+        }
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -1562,13 +1602,112 @@ export class RewardsController extends BaseController<
 
   /**
    * Perform the complete opt-in process for rewards
-   * @param account - The account to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(
+  async optIn(referralCode?: string): Promise<string | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping optin',
+      );
+      return null;
+    }
+
+    const accounts = await this.messagingSystem.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+    );
+
+    if (!accounts || accounts.length === 0) {
+      Logger.log(
+        'RewardsController: No accounts found in selected account group, skipping optin',
+      );
+      return null;
+    }
+
+    Logger.log(
+      'RewardsController: Starting optin process based on account group with {{accountCount}} accounts',
+      {
+        accountCount: accounts.length,
+      },
+    );
+
+    // Sort accounts using private controller method
+    const sortedAccounts = this.#sortAccounts(accounts);
+
+    // Try to opt in iteratively
+    let successfulAccount: InternalAccount | null = null;
+    let optinResult: {
+      subscription: SubscriptionDto;
+      sessionId: string;
+    } | null = null;
+
+    for (const accountToTry of sortedAccounts) {
+      Logger.log(
+        'RewardsController: Trying opt-in for account',
+        accountToTry.address,
+      );
+
+      optinResult = await this.#optIn(accountToTry, referralCode);
+      if (optinResult) {
+        successfulAccount = accountToTry;
+        Logger.log(
+          'RewardsController: Opt-in successful for account',
+          accountToTry.address,
+        );
+        break;
+      }
+    }
+
+    if (!successfulAccount || !optinResult) {
+      throw new Error('Failed to opt in any account from the account group');
+    }
+
+    // Link all other accounts to the successful subscription
+    const remainingAccounts = sortedAccounts.filter(
+      (accountToFilter) =>
+        accountToFilter.address !== successfulAccount?.address,
+    );
+
+    if (remainingAccounts.length > 0) {
+      Logger.log(
+        'RewardsController: Linking remaining {{count}} accounts to subscription',
+        {
+          count: remainingAccounts.length,
+          subscriptionId: optinResult.subscription.id,
+        },
+      );
+
+      for (const accountToLink of remainingAccounts) {
+        try {
+          await this.linkAccountToSubscriptionCandidate(accountToLink);
+          Logger.log(
+            'RewardsController: Successfully linked account to subscription',
+            accountToLink.address,
+          );
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to link account to subscription',
+            accountToLink.address,
+            error instanceof Error ? error.message : String(error),
+          );
+          // Continue with other accounts even if one fails
+        }
+      }
+    }
+
+    return optinResult?.subscription.id || null;
+  }
+
+  /**
+   * Private method to perform opt-in for a single internal account (using mobile opt-in logic)
+   * @param account - The internal account to opt in
+   * @param referralCode - Optional referral code
+   * @returns Promise with subscription data or null if failed
+   */
+  async #optIn(
     account: InternalAccount,
     referralCode?: string,
-  ): Promise<string | null> {
+  ): Promise<{ subscription: SubscriptionDto; sessionId: string } | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log(
@@ -1579,17 +1718,14 @@ export class RewardsController extends BaseController<
       );
       return null;
     }
-
     Logger.log('RewardsController: Starting optin process', {
       account: account.address,
     });
-
     // Generate timestamp and sign the message for mobile optin
     let timestamp = Math.floor(Date.now() / 1000);
     let signature = await this.#signRewardsMessage(account, timestamp);
     let retryAttempt = 0;
     const MAX_RETRY_ATTEMPTS = 1;
-
     const executeMobileOptin = async (
       ts: number,
       sig: string,
@@ -1623,48 +1759,56 @@ export class RewardsController extends BaseController<
         throw error;
       }
     };
-
-    const optinResponse = await executeMobileOptin(timestamp, signature);
-
-    Logger.log(
-      'RewardsController: Optin successful, updating controller state...',
-    );
-
-    // Store the subscription token for authenticated requests
-    if (optinResponse.subscription?.id && optinResponse.sessionId) {
-      await storeSubscriptionToken(
-        optinResponse.subscription.id,
-        optinResponse.sessionId,
-      ).catch((error) => {
-        Logger.log(
-          'RewardsController: Failed to store subscription token:',
-          error,
-        );
-      });
-    }
-
-    // Update state with opt-in response data
-    this.update((state) => {
-      const caipAccount: CaipAccountId | null =
-        this.convertInternalAccountToCaipAccountId(account);
-      if (!caipAccount) {
-        return;
+    try {
+      const optinResponse = await executeMobileOptin(timestamp, signature);
+      Logger.log(
+        'RewardsController: Optin successful, updating controller state...',
+        account.address,
+      );
+      // Store the subscription token for authenticated requests
+      if (optinResponse.subscription?.id && optinResponse.sessionId) {
+        await storeSubscriptionToken(
+          optinResponse.subscription.id,
+          optinResponse.sessionId,
+        ).catch((error) => {
+          Logger.log(
+            'RewardsController: Failed to store subscription token:',
+            error,
+          );
+        });
       }
-      state.activeAccount = {
-        account: caipAccount,
-        hasOptedIn: true,
-        subscriptionId: optinResponse.subscription.id,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
+      // Update state with opt-in response data
+      this.update((state) => {
+        const caipAccount: CaipAccountId | null =
+          this.convertInternalAccountToCaipAccountId(account);
+        if (!caipAccount) {
+          return;
+        }
+        state.activeAccount = {
+          account: caipAccount,
+          hasOptedIn: true,
+          subscriptionId: optinResponse.subscription.id,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts[caipAccount] = state.activeAccount;
+        state.subscriptions[optinResponse.subscription.id] =
+          optinResponse.subscription;
+      });
+      return {
+        subscription: optinResponse.subscription,
+        sessionId: optinResponse.sessionId,
       };
-      state.accounts[caipAccount] = state.activeAccount;
-      state.subscriptions[optinResponse.subscription.id] =
-        optinResponse.subscription;
-    });
-
-    return optinResponse.subscription.id;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Opt-in failed for account',
+        account.address,
+        error instanceof Error ? error.message : String(error),
+      );
+      return null;
+    }
   }
 
   /**
