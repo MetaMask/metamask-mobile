@@ -45,8 +45,6 @@ describe('switchToNetwork', () => {
         .mockReturnValue({ value: getDefaultCaip25CaveatValue() }),
       requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
       hasApprovalRequestsForOrigin: jest.fn(),
-      toNetworkConfiguration: jest.fn(),
-      fromNetworkConfiguration: jest.fn(),
     };
 
     const chainId = '0x1';

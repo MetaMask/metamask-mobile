@@ -396,10 +396,6 @@ export const getRpcMethodMiddlewareHooks = ({
     }),
   hasApprovalRequestsForOrigin: () =>
     Engine.context.ApprovalController.has({ origin }),
-  toNetworkConfiguration: Engine.controllerMessenger.call.bind(
-    Engine.controllerMessenger,
-    'NetworkController:getNetworkConfigurationByChainId',
-  ),
   getCurrentChainIdForDomain: (domain: string) => {
     const networkClientId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(

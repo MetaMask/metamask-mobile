@@ -234,8 +234,6 @@ export async function switchToNetwork({
     getCaveat,
     requestPermittedChainsPermissionIncrementalForOrigin,
     hasApprovalRequestsForOrigin,
-    toNetworkConfiguration,
-    fromNetworkConfiguration,
     rejectApprovalRequestsForOrigin,
   } = hooks;
   const { MultichainNetworkController, SelectedNetworkController } =
