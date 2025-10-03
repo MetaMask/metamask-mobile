@@ -1,25 +1,14 @@
 /**
- * Props for the BalanceEmptyState component
+ * Props for the BalanceEmptyState smart component
  */
 export interface BalanceEmptyStateProps {
   /**
-   * Callback function triggered when the action button is pressed
+   * Optional callback function to override the default deposit navigation.
+   * If not provided, will navigate to the deposit flow with tracking.
    */
   onAction?: () => void;
   /**
    * Test ID for component testing
    */
   testID?: string;
-  /**
-   * Title text to display (defaults to "Fund your wallet")
-   */
-  title?: string;
-  /**
-   * Subtitle text to display (defaults to "Buy tokens to get started")
-   */
-  subtitle?: string;
-  /**
-   * Action button text (defaults to "Buy crypto")
-   */
-  actionText?: string;
 }

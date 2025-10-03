@@ -1,4 +1,5 @@
 import React from 'react';
+
 import BalanceEmptyState from './BalanceEmptyState';
 import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
 
@@ -16,12 +17,4 @@ const BalanceEmptyStateMeta = {
 
 export default BalanceEmptyStateMeta;
 
-export const Default = {
-  args: {
-    title: 'Fund your wallet',
-    subtitle: 'Get your wallet ready to use web3',
-    actionText: 'Add funds',
-    // eslint-disable-next-line no-console
-    onAction: () => console.log('onAction'),
-  },
-};
+export const Default = {};
