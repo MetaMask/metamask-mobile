@@ -1273,7 +1273,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+<<<<<<< release/7.56.1
 				CURRENT_PROJECT_VERSION = 2622;
+=======
+				CURRENT_PROJECT_VERSION = 2624;
+>>>>>>> stable
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
