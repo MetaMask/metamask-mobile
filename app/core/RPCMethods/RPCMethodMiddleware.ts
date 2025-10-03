@@ -373,24 +373,22 @@ export const getRpcMethodMiddlewareHooks = ({
           Engine.context.PermissionController.requestPermissionsIncremental(
             subject,
             requestedPermissions,
-            options
-              ? {
-                  ...options,
-                  metadata: {
-                    ...options.metadata,
-                    pageMeta: {
-                      url: url.current,
-                      title: title.current,
-                      icon: icon.current,
-                      channelId,
-                      analytics: {
-                        request_source: getSource(),
-                        request_platform: analytics?.platform,
-                      },
-                    },
+            {
+              ...options,
+              metadata: {
+                ...options?.metadata,
+                pageMeta: {
+                  url: url.current,
+                  title: title.current,
+                  icon: icon.current,
+                  channelId,
+                  analytics: {
+                    request_source: getSource(),
+                    request_platform: analytics?.platform,
                   },
-                }
-              : undefined,
+                },
+              },
+            },
           ),
       },
     }),
