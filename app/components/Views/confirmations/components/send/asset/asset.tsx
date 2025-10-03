@@ -23,6 +23,7 @@ import { AssetType } from '../../../types/token';
 import { NetworkFilter } from '../../network-filter';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const Asset = () => {
   const tokens = useAccountTokens();
@@ -32,6 +33,7 @@ export const Asset = () => {
   const [selectedNetworkFilter, setSelectedNetworkFilter] =
     useState<string>('all');
   const theme = useTheme();
+  const { bottom: bottomOffset } = useSafeAreaInsets();
 
   const {
     searchQuery,
@@ -117,7 +119,7 @@ export const Asset = () => {
         onExposeFilterControls={handleExposeFilterControls}
         onNetworkFilterChange={handleNetworkFilterChange}
       />
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: bottomOffset }}>
         {hasNoResults && hasActiveFilters ? (
           <Box twClassName="items-center py-8 px-4">
             <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">

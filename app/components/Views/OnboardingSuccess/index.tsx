@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -257,27 +258,29 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.root]}
-      testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
-    >
-      <View style={styles.contentContainer}>
-        <View style={styles.contentWrapper}>
-          {renderContent()}
-          {renderFooter()}
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.root}
+        testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
+      >
+        <View style={styles.contentContainer}>
+          <View style={styles.contentWrapper}>
+            {renderContent()}
+            {renderFooter()}
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button
+              testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+              label={strings('onboarding_success.done')}
+              variant={ButtonVariants.Primary}
+              onPress={handleOnDone}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            label={strings('onboarding_success.done')}
-            variant={ButtonVariants.Primary}
-            onPress={handleOnDone}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

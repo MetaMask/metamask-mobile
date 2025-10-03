@@ -16,6 +16,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -32,6 +33,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendAlertButton');
@@ -51,6 +53,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -66,6 +69,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -83,6 +87,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendCustomButton');

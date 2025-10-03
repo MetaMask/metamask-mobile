@@ -748,6 +748,11 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -2607,6 +2612,11 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -4466,6 +4476,11 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -6366,6 +6381,11 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -8225,6 +8245,11 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -10084,6 +10109,11 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -12514,6 +12544,11 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {
@@ -14373,6 +14408,11 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                         >
                           <RCTScrollView
                             collapsable={false}
+                            contentContainerStyle={
+                              {
+                                "paddingBottom": 80,
+                              }
+                            }
                             keyExtractor={[Function]}
                             maintainVisibleContentPosition={
                               {

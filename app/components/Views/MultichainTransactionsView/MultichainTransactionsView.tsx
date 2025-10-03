@@ -179,6 +179,7 @@ const MultichainTransactionsView = ({
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
               style={baseStyles.flexGrow}
+              contentContainerStyle={style.listContentContainer}
               refreshControl={
                 enableRefresh ? (
                   <RefreshControl
