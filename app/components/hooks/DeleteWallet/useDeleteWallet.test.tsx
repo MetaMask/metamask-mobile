@@ -12,6 +12,9 @@ jest.mock('../../../core/Engine', () => ({
       clearState: jest.fn(),
     },
   },
+  controllerMessenger: {
+    call: jest.fn(),
+  },
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -70,6 +73,9 @@ describe('useDeleteWallet', () => {
       Engine.context.SeedlessOnboardingController,
       'clearState',
     );
+
+    const resetRewardsSpy = jest.spyOn(Engine.controllerMessenger, 'call');
+
     const loggerSpy = jest.spyOn(Logger, 'log');
     const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
 
@@ -79,6 +85,8 @@ describe('useDeleteWallet', () => {
       currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
     });
     expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
+    expect(resetRewardsSpy).toHaveBeenCalledWith('RewardsController:resetAll');
     expect(loggerSpy).not.toHaveBeenCalled();
     expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);
   });
