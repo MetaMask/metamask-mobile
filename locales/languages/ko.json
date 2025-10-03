@@ -1332,8 +1332,8 @@
         "error_message": "시장 데이터를 찾을 수 없습니다. 뒤로 가서 다시 시도해 보세요."
       },
       "statistics": "개요",
-      "24hr_high": "24시간 최고가",
-      "24hr_low": "24시간 최저가",
+      "24h_high": "24시간 최고가",
+      "24h_low": "24시간 최저가",
       "24h_volume": "24시간 거래량",
       "open_interest": "미결제 약정",
       "funding_rate": "펀딩 비율",
@@ -1614,8 +1614,7 @@
     "accept": "수락"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "QR 코드 스캔",
-    "receive_tab": "내 QR 코드"
+    "scanner_tab": "QR 코드 스캔"
   },
   "banner": {
     "bridge": {
