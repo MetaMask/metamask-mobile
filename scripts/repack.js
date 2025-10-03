@@ -120,17 +120,17 @@ async function repackAndroid() {
  */
 function generateExpoPlistIfNeeded(appPath) {
   const expoPlistPath = path.join(appPath, 'Expo.plist');
-  
+
   if (fs.existsSync(expoPlistPath)) {
     logger.info('Expo.plist already exists, skipping generation');
     return;
   }
-  
+
   logger.warn('Expo.plist not found, generating it...');
-  
+
   const appConfig = require(path.join(process.cwd(), 'app.config.js'));
   const packageJson = require(path.join(process.cwd(), 'package.json'));
-  
+
   const manifestBody = JSON.stringify({
     name: appConfig.name || 'MetaMask',
     slug: 'metamask-mobile',
@@ -138,7 +138,7 @@ function generateExpoPlistIfNeeded(appPath) {
     ios: appConfig.ios || {},
     android: appConfig.android || {},
   });
-  
+
   const plistXml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -155,7 +155,7 @@ function generateExpoPlistIfNeeded(appPath) {
   <string>${manifestBody.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</string>
 </dict>
 </plist>`;
-  
+
   fs.writeFileSync(expoPlistPath, plistXml, 'utf8');
   logger.success(`Generated Expo.plist at: ${expoPlistPath}`);
 }
@@ -179,7 +179,7 @@ async function repackIos() {
     if (!fs.existsSync(sourceApp)) {
       throw new Error(`App not found: ${sourceApp}`);
     }
-    
+
     // Generate Expo.plist if it doesn't exist (fallback for builds that don't auto-generate it)
     generateExpoPlistIfNeeded(sourceApp);
 
@@ -233,7 +233,7 @@ async function repackIos() {
  */
 async function main() {
   const platform = (process.env.PLATFORM || '').toLowerCase();
-  
+
   logger.info(`🔧 Repack Platform: ${platform.toUpperCase()}`);
   logger.info(`📍 Working Directory: ${process.cwd()}`);
   logger.info(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);
