@@ -4,7 +4,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../selectors/network
 import { store } from '../../store';
 import {
   validateChainId,
-  findExistingNetwork,
+  findtoNetworkConfiguration,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
@@ -54,12 +54,10 @@ export const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-  // TODO: [SOLANA] - This do not support non evm networks
-  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
-    store.getState(),
-  );
-  const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
-  if (existingNetwork) {
+
+  const toNetworkConfiguration =
+    hooks.getNetworkConfigurationByChainId(_chainId);
+  if (toNetworkConfiguration) {
     const currentDomainSelectedNetworkClientId =
       SelectedNetworkController.getNetworkClientIdForDomain(origin);
     const {
@@ -79,18 +77,21 @@ export const wallet_switchEthereumChain = async ({
       currentChainIdForOrigin,
     );
 
-    const toNetworkConfiguration =
-      hooks.getNetworkConfigurationByChainId(chainId);
+    const { networkClientId, url: rpcUrl } =
+      toNetworkConfiguration.rpcEndpoints[
+        toNetworkConfiguration.defaultRpcEndpointIndex
+      ];
 
     await switchToNetwork({
-      network: existingNetwork,
+      networkClientId,
+      nativeCurrency: toNetworkConfiguration.nativeCurrency,
+      rpcUrl,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
         MultichainNetworkController,
         SelectedNetworkController,
       },
-      requestUserApproval,
       analytics,
       origin,
       autoApprove: isSnapId(origin),
@@ -122,7 +123,7 @@ export const switchEthereumChainHandler = {
     getCurrentChainIdForDomain: true,
     requestPermittedChainsPermissionIncrementalForOrigin: true,
     setTokenNetworkFilter: true,
-    hasApprovalRequestsForOrigin: true,
+    hasApprovalRequestsForOrigin: true, // not needed here, but is needed by wallet_addEthereumChain
     rejectApprovalRequestsForOrigin: true,
   },
 };
