@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
-import { usePerpsDepositAlerts } from './usePerpsDepositAlerts';
+import { usePendingAmountAlerts } from './usePendingAmountAlerts';
 
-jest.mock('../../../hooks/alerts/usePerpsDepositMinimumAlert', () => ({
+jest.mock('./usePerpsDepositMinimumAlert', () => ({
   usePerpsDepositMinimumAlert: () => [
     {
       id: 'alert-2',
@@ -9,7 +9,7 @@ jest.mock('../../../hooks/alerts/usePerpsDepositMinimumAlert', () => ({
   ],
 }));
 
-jest.mock('../../../hooks/alerts/useInsufficientPayTokenBalanceAlert', () => ({
+jest.mock('./useInsufficientPayTokenBalanceAlert', () => ({
   useInsufficientPayTokenBalanceAlert: () => [
     {
       id: 'alert-3',
@@ -17,7 +17,7 @@ jest.mock('../../../hooks/alerts/useInsufficientPayTokenBalanceAlert', () => ({
   ],
 }));
 
-jest.mock('../../../hooks/alerts/usePerpsHardwareAccountAlert', () => ({
+jest.mock('./usePerpsHardwareAccountAlert', () => ({
   usePerpsHardwareAccountAlert: () => [
     {
       id: 'alert-1',
@@ -25,10 +25,10 @@ jest.mock('../../../hooks/alerts/usePerpsHardwareAccountAlert', () => ({
   ],
 }));
 
-describe('usePerpsDepositAlerts', () => {
+describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>
-      usePerpsDepositAlerts({ pendingTokenAmount: '0.01' }),
+      usePendingAmountAlerts({ pendingTokenAmount: '0.01' }),
     );
 
     expect(result.current).toStrictEqual([

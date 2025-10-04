@@ -35,7 +35,6 @@ const PERCENTAGE_BUTTONS = [
 
 export interface DepositKeyboardProps {
   alertMessage?: string;
-  hasInput: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -45,7 +44,6 @@ export interface DepositKeyboardProps {
 export const DepositKeyboard = memo(
   ({
     alertMessage,
-    hasInput,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -53,8 +51,8 @@ export const DepositKeyboard = memo(
   }: DepositKeyboardProps) => {
     const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
-
     const valueString = value.toString();
+    const hasInput = valueString && valueString !== '0' && valueString !== '';
 
     const handleChange = useCallback(
       (data: KeypadChangeData) => {
@@ -78,8 +76,13 @@ export const DepositKeyboard = memo(
           justifyContent={JustifyContent.spaceBetween}
           gap={10}
         >
-          {!hasInput &&
-            !alertMessage &&
+          {alertMessage && (
+            <Box style={styles.alertContainer}>
+              <Text style={styles.alertText}>{alertMessage}</Text>
+            </Box>
+          )}
+          {!alertMessage &&
+            !hasInput &&
             PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
@@ -89,7 +92,7 @@ export const DepositKeyboard = memo(
                 variant={ButtonVariants.Secondary}
               />
             ))}
-          {hasInput && !alertMessage && (
+          {!alertMessage && hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
               label={strings('confirm.deposit_edit_amount_done')}
@@ -97,11 +100,6 @@ export const DepositKeyboard = memo(
               onPress={onDonePress}
               variant={ButtonVariants.Primary}
             />
-          )}
-          {alertMessage && (
-            <Box style={styles.alertContainer}>
-              <Text style={styles.alertText}>{alertMessage}</Text>
-            </Box>
           )}
         </Box>
         <KeypadComponent

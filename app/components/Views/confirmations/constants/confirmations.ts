@@ -46,7 +46,7 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
-  'perpsDeposit',
+  TransactionType.perpsDeposit,
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [

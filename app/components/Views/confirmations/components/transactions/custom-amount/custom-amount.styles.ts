@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 function getFontSize(length: number) {
   if (length <= 8) return 64;
@@ -15,21 +15,10 @@ const styleSheet = (params: {
   StyleSheet.create({
     container: {
       display: 'flex',
-      marginTop: 50,
-      flex: 1,
-      justifyContent: 'space-between',
-      marginBottom: 20,
-    },
-    primaryContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-    },
-    inputContainer: {
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
-      alignItems: 'center',
-      paddingBottom: 16,
+      marginTop: 40,
+      marginBottom: 12,
       minHeight: 100,
       gap: 5,
     },
