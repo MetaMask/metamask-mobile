@@ -172,6 +172,46 @@ export function* handleDeeplinkSaga() {
       completedOnboarding = yield select(selectCompletedOnboarding);
     }
 
+    if (!completedOnboarding) {
+      const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
+      if (onboardingDeeplink?.includes('onboarding')) {
+        const url = new URL(onboardingDeeplink);
+        let onboardingType;
+        url.search
+          .slice(1)
+          .split('&')
+          .forEach((param) => {
+            const [paramKey, paramValue] = param.split('=');
+            if (paramKey === 'type') {
+              onboardingType = paramValue;
+            }
+          });
+
+        if (onboardingType) {
+          const resetRoute = {
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.ONBOARDING,
+                    params: {
+                      onboardingType,
+                    },
+                  },
+                },
+              },
+            ],
+          };
+          NavigationService.navigation?.navigate(resetRoute.routes[0]);
+        }
+
+        AppStateEventProcessor.clearPendingDeeplink();
+        continue;
+      }
+    }
+
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
 

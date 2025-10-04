@@ -289,6 +289,22 @@ class Onboarding extends PureComponent {
     );
   };
 
+  handleOnboardingDeeplink = (onboardingDeepLink) => {
+    const params = this.props.route.params;
+    this.props.navigation.setParams({ ...params, onboardingType: undefined });
+    switch (onboardingDeepLink) {
+      case 'google':
+        this.onPressContinueWithGoogle();
+        break;
+      case 'apple':
+        this.onPressContinueWithApple();
+        break;
+      case 'import_srp':
+        this.onPressImport();
+        break;
+    }
+  };
+
   componentDidMount() {
     this.onboardingTraceCtx = trace({
       name: TraceName.OnboardingJourneyOverall,
@@ -699,6 +715,11 @@ class Onboarding extends PureComponent {
 
   renderContent() {
     const styles = createStyles();
+
+    const onboardingType = this.props.route.params?.onboardingType;
+    if (onboardingType) {
+      this.handleOnboardingDeeplink(onboardingType);
+    }
 
     return (
       <View style={styles.ctas}>
