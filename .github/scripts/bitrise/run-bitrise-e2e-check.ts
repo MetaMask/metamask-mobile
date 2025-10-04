@@ -92,7 +92,29 @@ async function main(): Promise<void> {
   console.log(`Merge Queue: ${flags.isMQ}`);
   console.log(`Has smoke test label: ${flags.hasSmokeTestLabel}`);
 
-  const [shouldRun, reason] = shouldRunBitriseE2E(flags);
+  let [shouldRun, reason] = shouldRunBitriseE2E(flags);
+
+  const isLabelTrigger =
+    triggerAction === PullRequestTriggerType.Labeled &&
+    context.payload?.label?.name === e2eLabel;
+
+  const isAutoTrigger =
+    triggerAction === PullRequestTriggerType.Opened ||
+    triggerAction === PullRequestTriggerType.Reopened ||
+    triggerAction === PullRequestTriggerType.Synchronize;
+
+  // Treat any release/* PR auto events as eligible even without the label
+  const releaseHead = prData.head?.ref || '';
+  const isReleaseBranch = /^release\/\d+\.\d+\.\d+$/i.test(releaseHead);
+  
+
+  if (!shouldRun && isAutoTrigger && isReleaseBranch) {
+    shouldRun = true;
+    reason = `Auto-trigger on release PR (${releaseHead})`;
+    // Signal Bitrise that this run is an auto-trigger from a release PR
+    process.env.TRIGGERED_BY_RELEASE_PR = 'true';
+  }
+
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
 
@@ -107,10 +129,7 @@ async function main(): Promise<void> {
   }
 
   // Kick off E2E smoke tests if E2E smoke label is applied
-  if (
-    triggerAction === PullRequestTriggerType.Labeled &&
-    context.payload?.label?.name === e2eLabel
-  ) {
+  if (isLabelTrigger || isAutoTrigger) {
 
     console.log(`Starting Bitrise build for commit ${latestCommitHash}`);
     // Configure Bitrise configuration for API call
@@ -126,7 +145,12 @@ async function main(): Promise<void> {
           },
           {
             mapped_to: 'TRIGGERED_BY_PR_LABEL',
-            value: `true`,
+            value: `${isLabelTrigger}`,
+            is_expand: true,
+          },
+          {
+            mapped_to: 'TRIGGERED_BY_RELEASE_PR',
+            value: `${isReleaseBranch && isAutoTrigger}`,
             is_expand: true,
           },
           {

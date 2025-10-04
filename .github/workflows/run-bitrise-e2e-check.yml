@@ -15,6 +15,15 @@ env:
 
 jobs:
   run-bitrise-e2e-check:
+    # Job guard:
+    # - Run on pull_request events when the PR head branch starts with "release/X.Y.Z"
+    # - Always run when the PR is labeled "run-ios-e2e-smoke" (any branch)
+    # - Also allow merge queue events (merge_group)
+    # - Issue comments will not run this job because they don't satisfy this guard
+    if: >-
+      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'run-ios-e2e-smoke') ||
+      (github.event_name == 'merge_group')
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
