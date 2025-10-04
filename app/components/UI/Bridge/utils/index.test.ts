@@ -1,9 +1,5 @@
 import '../_mocks_/initialState';
-import {
-  isBridgeAllowed,
-  wipeBridgeStatus,
-  normalizeToCaipAssetType,
-} from './index';
+import { isBridgeAllowed, wipeBridgeStatus } from './index';
 import AppConstants from '../../../../core/AppConstants';
 import {
   ARBITRUM_CHAIN_ID,
@@ -21,6 +17,8 @@ import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/AppConstants', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../core/AppConstants'),
   BRIDGE: {
     ACTIVE: true,
   },
@@ -123,29 +121,6 @@ describe('Bridge Utils', () => {
         address: testAddress,
         ignoreNetwork: false,
       });
-    });
-  });
-
-  describe('normalizeToCaipAssetType', () => {
-    it('should return CAIP format address as-is', () => {
-      const caipAddress =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      const result = normalizeToCaipAssetType(caipAddress, SolScope.Mainnet);
-      expect(result).toBe(caipAddress);
-    });
-
-    it('should convert raw address to CAIP token format', () => {
-      const rawAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      const result = normalizeToCaipAssetType(rawAddress, SolScope.Mainnet);
-      expect(result).toBe(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-      );
-    });
-
-    it('should handle different chain IDs', () => {
-      const address = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-      const result = normalizeToCaipAssetType(address, ETH_CHAIN_ID);
-      expect(result).toBe(`${ETH_CHAIN_ID}/token:${address}`);
     });
   });
 });

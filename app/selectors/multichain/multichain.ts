@@ -276,6 +276,68 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
     return tokens;
   },
 );
+
+export const selectMultichainTokenListForAccountIdAnyChain =
+  createDeepEqualSelector(
+    selectMultichainBalances,
+    selectMultichainAssets,
+    selectMultichainAssetsMetadata,
+    selectMultichainAssetsRates,
+    (_: RootState, accountId: string | undefined) => accountId,
+    (multichainBalances, assets, assetsMetadata, assetsRates, accountId) => {
+      if (!accountId) {
+        return [];
+      }
+
+      const assetIds = assets?.[accountId] || [];
+      const balances = multichainBalances?.[accountId];
+
+      const tokens = [];
+
+      for (const assetId of assetIds) {
+        const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+
+        // Remove the chain filter - include tokens from all chains
+        const isNative = assetNamespace === 'slip44';
+        const balance = balances?.[assetId] || { amount: undefined, unit: '' };
+        const rate = assetsRates?.[assetId]?.rate || '0';
+        const balanceInFiat = balance.amount
+          ? new BigNumber(balance.amount).times(rate)
+          : undefined;
+
+        const assetMetadataFallback = {
+          name: balance.unit || '',
+          symbol: balance.unit || '',
+          fungible: true,
+          units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+        };
+
+        const metadata = assetsMetadata[assetId] || assetMetadataFallback;
+        const decimals = metadata.units[0]?.decimals || 0;
+
+        tokens.push({
+          name: metadata?.name ?? '',
+          address: assetId,
+          symbol: metadata?.symbol ?? '',
+          image: metadata?.iconUrl,
+          logo: metadata?.iconUrl,
+          decimals,
+          chainId,
+          isNative,
+          balance: balance.amount,
+          secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
+          string: '',
+          balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
+          isStakeable: false,
+          aggregators: [],
+          isETH: false,
+          ticker: metadata.symbol,
+        });
+      }
+
+      return tokens;
+    },
+  );
 export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance | undefined;
   totalBalanceFiat: number | undefined;
