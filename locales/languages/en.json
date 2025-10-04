@@ -333,6 +333,7 @@
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
+    "forgot_pin": "Forgot PIN?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
     "invalid_password": "Password is incorrect, try again.",
     "invalid_pin": "Password/PIN is incorrect. Try again.",
