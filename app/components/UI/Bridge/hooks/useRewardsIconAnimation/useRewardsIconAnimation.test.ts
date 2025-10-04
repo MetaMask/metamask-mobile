@@ -108,10 +108,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
 
     it('triggers Disable when hasRewardsError is true', () => {
@@ -124,10 +121,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
 
     it('triggers Start when estimatedPoints > 0 and not loading/error', () => {
@@ -140,7 +134,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
     });
 
     it('does not trigger Start when estimatedPoints is 0', () => {
@@ -195,10 +189,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
 
     it('prioritizes loading state over positive points', () => {
@@ -212,10 +203,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
 
     it('prioritizes error state over positive points', () => {
@@ -229,10 +217,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
   });
 
@@ -248,7 +233,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert initial call
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
 
       // Clear and setup for second render
       mockFireState.mockClear();
@@ -267,10 +252,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert - should trigger Disable for loading state
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
 
     it('does not retrigger when points remain unchanged', () => {
@@ -283,7 +265,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert initial call
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
 
       // Setup for rerender - set previous points to same value and setup fresh mocks
       mockFireState.mockClear();
@@ -317,7 +299,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
     });
 
     it('triggers when transitioning from loading to points', () => {
@@ -334,7 +316,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
     });
   });
 
@@ -395,10 +377,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert - should prioritize error state
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
       // Should set currentPoints to 0 due to error, then update previousPointsRef
       expect(mockPreviousPointsRef.current).toBe(0);
     });
@@ -417,10 +396,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
   });
 
@@ -436,10 +412,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Refresh_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Refresh');
     });
 
     it('does not trigger Refresh when estimatedPoints is 0', () => {
@@ -482,10 +455,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
 
     it('prioritizes error state over refresh', () => {
@@ -500,10 +470,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith(
-        'Rewards_Icon',
-        'Disable_left',
-      );
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
   });
 
@@ -536,7 +503,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
       expect(mockPreviousPointsRef.current).toBe(50);
     });
 
@@ -570,7 +537,7 @@ describe('useRewardsIconAnimation', () => {
       );
 
       // Assert
-      expect(mockFireState).toHaveBeenCalledWith('Rewards_Icon', 'Start');
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
       expect(mockPreviousPointsRef.current).toBe(75);
     });
   });

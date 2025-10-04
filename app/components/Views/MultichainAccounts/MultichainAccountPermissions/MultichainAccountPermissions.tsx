@@ -32,9 +32,9 @@ import {
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import Engine from '../../../../core/Engine';
+import { getCaip25AccountFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountFromAccountGroupAndScope';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../../component-library/components/Toast';
-import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope';
 
 export interface MultichainAccountPermissionsProps {
   route: {
@@ -142,11 +142,10 @@ export const MultichainAccountPermissions = (
       );
 
       // Generate CAIP account IDs from selected account groups and chain IDs
-      const selectedCaipAccountIds =
-        getCaip25AccountIdsFromAccountGroupAndScope(
-          selectedAccountGroups,
-          selectedChainIds,
-        );
+      const selectedCaipAccountIds = getCaip25AccountFromAccountGroupAndScope(
+        selectedAccountGroups,
+        selectedChainIds,
+      );
 
       // Get the existing caveat value
       const existingCaveat = existingPermissionsCaip25CaveatValue;

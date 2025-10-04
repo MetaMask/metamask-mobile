@@ -18,7 +18,6 @@ describe(FlaskBuildTests('Get Preferences Snap Tests'), () => {
           })
           .build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();

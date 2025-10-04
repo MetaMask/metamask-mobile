@@ -13,7 +13,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -31,7 +30,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.fillMessage('dataStateInput', '"bar"');
@@ -52,7 +50,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.tapButton('clearStateButton');
@@ -67,7 +64,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
@@ -91,7 +87,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.tapButton('clearStateUnencryptedButton');
@@ -111,7 +106,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.fillMessage('dataManageStateInput', '23');
@@ -131,7 +125,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.tapButton('clearManageStateButton');
@@ -152,7 +145,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.fillMessage(
@@ -172,7 +164,6 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder().build(),
-            skipReactNativeReload: true,
           },
           async () => {
             await TestSnaps.tapButton('clearUnencryptedManageStateButton');

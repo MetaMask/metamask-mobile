@@ -13,16 +13,13 @@ import { prepareNftDetectionEvents } from '../../../util/assets';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import Logger from '../../../util/Logger';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const NftGridListRefreshControl = () => {
   const { colors } = useTheme();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const allEVMNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
@@ -44,16 +41,20 @@ const NftGridListRefreshControl = () => {
 
   const allNetworkClientIds = useMemo(
     () =>
-      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
-        const entry = allEVMNetworks[chainId as `0x${string}`];
+      chainIdsToDetectNftsFor.flatMap((chainId) => {
+        if (isNonEvmChainId(chainId)) return [];
+        const entry =
+          Engine.context.NetworkController.getNetworkConfigurationByChainId(
+            chainId,
+          );
         if (!entry) {
           return [];
         }
-        const index = entry.defaultRpcEndpointIndex;
+        const index = entry.defaultBlockExplorerUrlIndex || 0;
         const endpoint = entry.rpcEndpoints[index];
         return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
       }),
-    [tokenNetworkFilter, allEVMNetworks],
+    [chainIdsToDetectNftsFor],
   );
 
   const onRefresh = useCallback(async () => {

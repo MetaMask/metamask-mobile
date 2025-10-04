@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ChoosePassword render matches snapshot 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
-    }
-  }
+<RCTSafeAreaView
   style={
     {
       "backgroundColor": "#ffffff",
@@ -583,5 +575,5 @@ exports[`ChoosePassword render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RNCSafeAreaView>
+</RCTSafeAreaView>
 `;

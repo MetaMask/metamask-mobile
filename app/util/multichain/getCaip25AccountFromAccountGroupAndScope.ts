@@ -16,7 +16,7 @@ import { AccountGroupWithInternalAccounts } from '../../selectors/multichainAcco
  * @param scopes - Array of CAIP chain IDs to match against
  * @returns Array of CAIP account IDs that match the provided scopes
  */
-export const getCaip25AccountIdsFromAccountGroupAndScope = (
+export const getCaip25AccountFromAccountGroupAndScope = (
   accountGroups: AccountGroupWithInternalAccounts[],
   scopes: CaipChainId[],
 ): CaipAccountId[] => {

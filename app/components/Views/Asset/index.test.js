@@ -283,13 +283,6 @@ jest.mock('../../../selectors/earnController', () => ({
   },
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 describe('Asset', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(

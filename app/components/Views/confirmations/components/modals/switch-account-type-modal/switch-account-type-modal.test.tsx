@@ -13,8 +13,6 @@ import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
-import {} from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
   delegationAddress: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
@@ -60,13 +58,6 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
 });
-
-jest.mock(
-  '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState1Enabled: () => false,
-  }),
-);
 
 const MOCK_STATE = {
   engine: {

@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Image, ImageBackground, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -36,7 +36,6 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
@@ -55,14 +54,6 @@ const OnboardingIntroStep: React.FC<{
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { bottom: bottomInsets } = useSafeAreaInsets();
-  const imageBackgroundStyle = useMemo(
-    () => [
-      tw.style('flex-grow px-4 py-8'),
-      { paddingBottom: bottomInsets + 16 },
-    ],
-    [tw, bottomInsets],
-  );
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -76,9 +67,7 @@ const OnboardingIntroStep: React.FC<{
 
   // Computed state
   const candidateSubscriptionIdLoading =
-    !subscriptionId &&
-    (candidateSubscriptionId === 'pending' ||
-      candidateSubscriptionId === 'retry');
+    !subscriptionId && candidateSubscriptionId === 'pending';
   const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   // If we don't know of a subscription id, we need to fetch the geo rewards metadata
@@ -270,11 +259,9 @@ const OnboardingIntroStep: React.FC<{
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12 leading-1 pt-1'),
+            tw.style('text-center text-white text-12 leading-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            {
-              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
-            },
+            { fontFamily: 'MM Poly Regular', fontWeight: '500' },
           ]}
         >
           {title}
@@ -346,11 +333,11 @@ const OnboardingIntroStep: React.FC<{
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={imageBackgroundStyle}
+        style={tw.style('flex-grow px-4 py-8')}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[6%]" />
+        <Box twClassName="flex-basis-[10%]" />
 
         {/* Title Section */}
         {renderTitle()}

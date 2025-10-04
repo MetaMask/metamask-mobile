@@ -72,15 +72,16 @@ describe('Multichain Accounts Feature Flag', () => {
     });
   });
 
-  describe('isMultichainAccountsRemoteFeatureEnabled', () => {
-    it('returns true as default value', () => {
-      const result = isMultichainAccountsRemoteFeatureEnabled({}, [
+  describe('isMultichainAccountsRemoteFeatureEnabled - State 1', () => {
+    it('returns false when the feature flag is not defined', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
         {
-          version: '1',
-          featureKey: STATE_1_FLAG,
+          // @ts-expect-error Testing undefined flag
+          [STATE_1_FLAG]: undefined,
         },
-      ]);
-      expect(result).toBe(true);
+        mockState1FeatureVersionsToCheck,
+      );
+      expect(result).toBe(false);
     });
 
     it('returns true when the feature flag meets all conditions', () => {
@@ -126,7 +127,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState2FeatureVersionsToCheck,
       );
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
     it('returns true when the feature flag meets all conditions', () => {
