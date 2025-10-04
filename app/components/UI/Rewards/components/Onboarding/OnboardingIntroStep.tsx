@@ -67,7 +67,9 @@ const OnboardingIntroStep: React.FC<{
 
   // Computed state
   const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
+    !subscriptionId &&
+    (candidateSubscriptionId === 'pending' ||
+      candidateSubscriptionId === 'retry');
   const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   // If we don't know of a subscription id, we need to fetch the geo rewards metadata
