@@ -887,7 +887,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "marginBottom": 8,
-                                      "width": "100%",
                                     }
                                   }
                                 >
@@ -933,34 +932,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      <View
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        numberOfLines={2}
+                                        onTextLayout={[Function]}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "flexWrap": "wrap",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          ellipsizeMode="tail"
-                                          numberOfLines={2}
-                                          onTextLayout={[Function]}
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Failed to fetch quote
-                                        </Text>
-                                      </View>
+                                        Failed to fetch quote
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -2775,7 +2763,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "marginBottom": 8,
-                                      "width": "100%",
                                     }
                                   }
                                 >
@@ -2821,34 +2808,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      <View
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        numberOfLines={2}
+                                        onTextLayout={[Function]}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "flexWrap": "wrap",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          ellipsizeMode="tail"
-                                          numberOfLines={2}
-                                          onTextLayout={[Function]}
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Failed to fetch quote.
-                                        </Text>
-                                      </View>
+                                        Failed to fetch quote.
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -4663,7 +4639,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "marginBottom": 8,
-                                      "width": "100%",
                                     }
                                   }
                                 >
@@ -4709,34 +4684,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      <View
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        numberOfLines={2}
+                                        onTextLayout={[Function]}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "flexWrap": "wrap",
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          ellipsizeMode="tail"
-                                          numberOfLines={2}
-                                          onTextLayout={[Function]}
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Routing failed
-                                        </Text>
-                                      </View>
+                                        Routing failed
+                                      </Text>
                                     </View>
                                   </View>
                                 </View>
@@ -12049,9 +12013,9 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                       {
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
+                                        "fontSize": 14,
                                         "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -12082,10 +12046,10 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 14,
                                           "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "lineHeight": 22,
                                         }
                                       }
                                     >
@@ -19402,9 +19366,9 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                       {
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
+                                        "fontSize": 14,
                                         "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -19435,10 +19399,10 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 14,
                                           "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "lineHeight": 22,
                                         }
                                       }
                                     >
@@ -23121,9 +23085,9 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                       {
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
+                                        "fontSize": 14,
                                         "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -23154,10 +23118,10 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 14,
                                           "letterSpacing": 0,
-                                          "lineHeight": 24,
+                                          "lineHeight": 22,
                                         }
                                       }
                                     >
