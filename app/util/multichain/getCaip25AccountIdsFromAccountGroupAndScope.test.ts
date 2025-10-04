@@ -1,4 +1,4 @@
-import { getCaip25AccountFromAccountGroupAndScope } from './getCaip25AccountFromAccountGroupAndScope';
+import { getCaip25AccountIdsFromAccountGroupAndScope } from './getCaip25AccountIdsFromAccountGroupAndScope';
 import { AccountGroupWithInternalAccounts } from '../../selectors/multichainAccounts/accounts.type';
 import { CaipChainId } from '@metamask/utils';
 import {
@@ -16,7 +16,7 @@ import {
   SolAccountType,
 } from '@metamask/keyring-api';
 
-describe('getCaip25AccountFromAccountGroupAndScope', () => {
+describe('getCaip25AccountIdsFromAccountGroupAndScope', () => {
   const createAccountGroup = (
     id: string,
     accounts: ReturnType<typeof createMockInternalAccount>[],
@@ -53,7 +53,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         'eip155:137' as CaipChainId,
       ];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -77,7 +77,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         'also:invalid:scope:format',
       ] as CaipChainId[];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -94,7 +94,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = [];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -115,7 +115,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         '',
       ] as unknown as CaipChainId[];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -137,7 +137,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -159,7 +159,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -182,7 +182,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -194,7 +194,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       const accountGroups: AccountGroupWithInternalAccounts[] = [];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -208,7 +208,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -230,7 +230,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         'eip155:137' as CaipChainId,
       ];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -250,7 +250,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -270,7 +270,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
       ]; // Non-EVM scope
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -296,7 +296,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         solanaAccount.scopes[0] as CaipChainId, // Should match Solana account
       ];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -319,7 +319,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -345,7 +345,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       );
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         largeAccountGroups,
         scopes,
       );
@@ -367,7 +367,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -390,7 +390,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
       ];
       const scopes: CaipChainId[] = ['eip155:50' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -431,7 +431,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
         solanaSnapAccount.scopes[0] as CaipChainId,
       ];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
@@ -464,7 +464,7 @@ describe('getCaip25AccountFromAccountGroupAndScope', () => {
 
       const scopes: CaipChainId[] = ['eip155:1' as CaipChainId];
 
-      const result = getCaip25AccountFromAccountGroupAndScope(
+      const result = getCaip25AccountIdsFromAccountGroupAndScope(
         accountGroups,
         scopes,
       );
