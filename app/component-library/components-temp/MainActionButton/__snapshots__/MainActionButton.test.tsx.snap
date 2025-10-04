@@ -51,8 +51,9 @@ exports[`MainActionButton should render correctly 1`] = `
           "borderRadius": 12,
           "justifyContent": "center",
           "opacity": 1,
+          "paddingBottom": 16,
           "paddingHorizontal": 4,
-          "paddingVertical": 16,
+          "paddingTop": 8,
         },
         false,
       ]
