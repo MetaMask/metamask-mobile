@@ -26,9 +26,14 @@ jest.mock('@react-navigation/native', () => ({
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 const mockUsePredictBuy = jest.fn();
+const mockUsePredictEligibility = jest.fn();
 
 jest.mock('../../hooks/usePredictBuy', () => ({
   usePredictBuy: () => mockUsePredictBuy(),
+}));
+
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
 const mockOutcome: PredictOutcome = {
@@ -85,6 +90,11 @@ describe('PredictMarketSingle', () => {
       completed: false,
       error: undefined,
       reset: jest.fn(),
+    });
+
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+      refreshEligibility: jest.fn(),
     });
   });
 
@@ -159,5 +169,63 @@ describe('PredictMarketSingle', () => {
     expect(getByText('Unknown Market')).toBeOnTheScreen();
     expect(getByText('0%')).toBeOnTheScreen();
     expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
+  });
+
+  it('navigate to unavailable modal when not eligible', () => {
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes');
+    const noButton = getByText('No');
+
+    fireEvent.press(yesButton);
+    expect(mockNavigate).toHaveBeenCalledWith('PredictUnavailable');
+
+    fireEvent.press(noButton);
+    expect(mockNavigate).toHaveBeenCalledWith('PredictUnavailable');
+
+    // Should not call placeBuyOrder when not eligible
+    expect(mockPlaceBuyOrder).not.toHaveBeenCalled();
+  });
+
+  it('call placeBuyOrder when eligible', () => {
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes');
+    const noButton = getByText('No');
+
+    fireEvent.press(yesButton);
+    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
+      size: 1,
+      outcomeId: mockOutcome.id,
+      outcomeTokenId: mockOutcome.tokens[0].id,
+      market: mockMarket,
+    });
+
+    fireEvent.press(noButton);
+    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
+      size: 1,
+      outcomeId: mockOutcome.id,
+      outcomeTokenId: mockOutcome.tokens[1].id,
+      market: mockMarket,
+    });
+
+    // Should not navigate when eligible
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

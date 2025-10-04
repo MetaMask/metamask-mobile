@@ -18,9 +18,14 @@ jest.mock('@react-navigation/native', () => {
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 const mockUsePredictBuy = jest.fn();
+const mockUsePredictEligibility = jest.fn();
 
 jest.mock('../../hooks/usePredictBuy', () => ({
   usePredictBuy: () => mockUsePredictBuy(),
+}));
+
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
 const mockMarket: PredictMarket = {
@@ -67,6 +72,11 @@ describe('PredictMarket', () => {
       completed: false,
       error: undefined,
       reset: jest.fn(),
+    });
+
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+      refreshEligibility: jest.fn(),
     });
   });
   afterEach(() => {
@@ -171,5 +181,61 @@ describe('PredictMarket', () => {
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
     expect(getByText('75.00%')).toBeOnTheScreen();
+  });
+
+  it('navigate to unavailable modal when not eligible', () => {
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const buttons = UNSAFE_getAllByType(Button);
+
+    fireEvent.press(buttons[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('PredictUnavailable');
+
+    fireEvent.press(buttons[1]);
+    expect(mockNavigate).toHaveBeenCalledWith('PredictUnavailable');
+
+    // Should not call placeBuyOrder when not eligible
+    expect(mockPlaceBuyOrder).not.toHaveBeenCalled();
+  });
+
+  it('call placeBuyOrder when eligible', () => {
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const buttons = UNSAFE_getAllByType(Button);
+
+    fireEvent.press(buttons[0]);
+    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
+      size: 1,
+      outcomeId: mockMarket.outcomes[0].id,
+      outcomeTokenId: mockMarket.outcomes[0].tokens[0].id,
+      market: mockMarket,
+    });
+
+    fireEvent.press(buttons[1]);
+    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
+      size: 1,
+      outcomeId: mockMarket.outcomes[0].id,
+      outcomeTokenId: mockMarket.outcomes[0].tokens[1].id,
+      market: mockMarket,
+    });
+
+    // Should not navigate when eligible
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

@@ -263,6 +263,7 @@ const Routes = {
     MODALS: {
       ROOT: 'PredictModals',
       CASH_OUT: 'PredictCashOut',
+      UNAVAILABLE: 'PredictUnavailable',
     },
   },
   LOCK_SCREEN: 'LockScreen',

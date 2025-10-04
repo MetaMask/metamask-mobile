@@ -20,6 +20,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
@@ -42,6 +43,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
       Alert.alert('Order failed', error);
       reset();
     },
+  });
+  const { isEligible } = usePredictEligibility({
+    providerId: market.providerId,
   });
 
   const getOutcomePrices = (): number[] =>
@@ -70,6 +74,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   );
 
   const handleYes = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      return;
+    }
+
     placeBuyOrder({
       size: 1,
       outcomeId: outcome.id,
@@ -79,6 +88,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   const handleNo = () => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      return;
+    }
+
     placeBuyOrder({
       size: 1,
       outcomeId: outcome.id,

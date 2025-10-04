@@ -23,13 +23,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 import { PredictMarket, PredictOutcome } from '../../types';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-
 interface PredictMarketMultipleProps {
   market: PredictMarket;
 }
@@ -46,6 +46,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       Alert.alert('Order failed', error);
       reset();
     },
+  });
+  const { isEligible } = usePredictEligibility({
+    providerId: market.providerId,
   });
 
   const getFirstOutcomePrice = (
@@ -83,6 +86,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   );
 
   const handleYes = (outcome: PredictOutcome) => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      return;
+    }
+
     placeBuyOrder({
       size: 1,
       outcomeId: outcome.id,
@@ -92,6 +100,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   };
 
   const handleNo = (outcome: PredictOutcome) => {
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      return;
+    }
+
     placeBuyOrder({
       size: 1,
       outcomeId: outcome.id,
