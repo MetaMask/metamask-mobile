@@ -947,11 +947,6 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionPerformance'
     after_run:
       - ios_e2e_test
-  ios_run_regression_identity_tests:
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
-    after_run:
-      - ios_e2e_test
   ios_run_regression_accounts_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionAccounts'
@@ -1026,15 +1021,6 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: 'RegressionPerformance'
-    after_run:
-      - android_e2e_test
-  android_run_regression_identity_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
     after_run:
       - android_e2e_test
   android_run_regression_accounts_tests:

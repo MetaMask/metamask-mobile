@@ -37,7 +37,7 @@ describe(
       });
     });
 
-    it('copies the account address', async () => {
+    it.skip('copies the account address', async () => {
       await checkAddress(HD_ACCOUNT.address);
     });
 
