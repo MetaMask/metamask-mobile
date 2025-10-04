@@ -25,6 +25,9 @@ jest.mock('./utils/multi-subscription-token-vault', () => ({
   storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
   removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
   resetAllSubscriptionTokens: jest.fn().mockResolvedValue(undefined),
+  getSubscriptionToken: jest
+    .fn()
+    .mockResolvedValue({ token: null, success: false }),
 }));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -94,6 +97,7 @@ import {
   storeSubscriptionToken,
   removeSubscriptionToken,
   resetAllSubscriptionTokens,
+  getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import {
@@ -5089,6 +5093,12 @@ describe('RewardsController', () => {
         .spyOn(controller, 'getOptInStatus')
         .mockResolvedValueOnce(mockOptInResponse);
 
+      // Mock getSubscriptionToken to return a valid session token
+      (getSubscriptionToken as jest.Mock).mockResolvedValueOnce({
+        success: true,
+        token: 'valid-session-token',
+      });
+
       // Act
       const result = await controller.getCandidateSubscriptionId();
 
@@ -5097,6 +5107,7 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountsController:listMultichainAccounts',
       );
+      expect(getSubscriptionToken).toHaveBeenCalledWith('sub-from-sids-123');
     });
 
     it('should return active account subscription ID when available', async () => {
