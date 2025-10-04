@@ -33,6 +33,16 @@ on:
         required: false
         type: number
         default: 30
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        type: string
+        default: 'qa'
       changed_files:
         description: 'Changed files'
         required: false
@@ -46,11 +56,15 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+    outputs:
+      apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+      test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
     env:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
-      METAMASK_ENVIRONMENT: 'qa'
-      METAMASK_BUILD_TYPE: 'main'
+      METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+      METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
@@ -108,13 +122,36 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
+      - name: Determine android target paths and Artifact Names
+        id: determine-target-paths
+        if: ${{ inputs.platform == 'android' }}
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
+              echo "artifact_name=app-flask-release"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
+              echo "artifact_name=app-prod-release"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
+
       - name: Setup Android artifacts from build job
         if: ${{ inputs.platform == 'android' }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
-
-          # Create required directories
-          mkdir -p android/app/build/outputs/apk/prod/release/
+          mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          mkdir -p ${{ steps.determine-target-paths.outputs.aab-target-path }}
 
       - name: Download Android build artifacts
         if: ${{ inputs.platform == 'android' }}
@@ -125,27 +162,11 @@ jobs:
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
-          # Move main APK
-          if [[ -f "artifacts/app-prod-release.apk/app-prod-release.apk" ]]; then
-            mkdir -p "android/app/build/outputs/apk/prod/release/"
-            cp "artifacts/app-prod-release.apk/app-prod-release.apk" "android/app/build/outputs/apk/prod/release/"
-            echo "✅ Android main APK ready for E2E tests"
-          else
-            echo "❌ Android main APK not found"
-            ls -la artifacts/
-            exit 1
-          fi
-
-          # Move test APK
-          if [[ -f "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" ]]; then
-            mkdir -p "android/app/build/outputs/apk/androidTest/prod/release/"
-            cp "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/prod/release/"
-            echo "✅ Android test APK ready for E2E tests"
-          else
-            echo "❌ Android test APK not found"
-            ls -la artifacts/
-            exit 1
-          fi
+          # Copy from artifacts to expected locations
+          # Each artifact is uploaded as a folder so we need to cp from inside the folder
+          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/${{ steps.determine-target-paths.outputs.artifact_name }}.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          echo "✅ Android artifacts ready for E2E tests"
 
       - name: Setup iOS artifacts from build job
         if: ${{ inputs.platform == 'ios' }}
