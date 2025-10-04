@@ -8,7 +8,13 @@ import {
 
 import { selectWallets } from '../../../../../selectors/multichainAccounts/wallets';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+import {
+  isBtcAccount,
+  isSolanaAccount,
+  /// BEGIN:ONLY_INCLUDE_IF(tron)
+  isTronAccount,
+  /// END:ONLY_INCLUDE_IF
+} from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -17,7 +23,16 @@ export const useAccounts = (): RecipientType[] => {
   const multichainWallets = useSelector(selectWallets);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const { from } = useSendContext();
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const {
+    isEvmSendType,
+    isSolanaSendType,
+    /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    isBitcoinSendType,
+    /// END:ONLY_INCLUDE_IF
+    /// BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronSendType,
+    /// END:ONLY_INCLUDE_IF
+  } = useSendType();
 
   const isAccountCompatible = useMemo(
     () => (accountId: string) => {
@@ -35,9 +50,30 @@ export const useAccounts = (): RecipientType[] => {
       if (isSolanaSendType) {
         return isSolanaAccount(account);
       }
+      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      if (isBitcoinSendType) {
+        return isBtcAccount(account);
+      }
+      /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      if (isTronSendType) {
+        return isTronAccount(account);
+      }
+      /// END:ONLY_INCLUDE_IF
       return false;
     },
-    [internalAccountsById, isEvmSendType, isSolanaSendType, from],
+    [
+      internalAccountsById,
+      isEvmSendType,
+      isSolanaSendType,
+      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      isBitcoinSendType,
+      /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronSendType,
+      /// END:ONLY_INCLUDE_IF
+      from,
+    ],
   );
 
   const processAccountGroup = useMemo(

@@ -32,8 +32,10 @@ describe('MultichainAccountServiceInit', () => {
   it('initializes with correct messenger and state', () => {
     multichainAccountServiceInit(initRequestMock);
 
-    expect(multichainAccountServiceClassMock).toHaveBeenCalledWith({
-      messenger: initRequestMock.controllerMessenger,
-    });
+    expect(multichainAccountServiceClassMock).toHaveBeenCalledTimes(1);
+    const callArgs = multichainAccountServiceClassMock.mock.calls[0][0];
+
+    expect(callArgs.messenger).toBe(initRequestMock.controllerMessenger);
+    expect(callArgs.providers).toHaveLength(2);
   });
 });

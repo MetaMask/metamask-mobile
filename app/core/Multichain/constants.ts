@@ -4,6 +4,7 @@ import {
   BtcScope,
   SolAccountType,
   SolScope,
+  TrxAccountType,
   TrxScope,
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
@@ -49,17 +50,17 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     transaction: 'https://mutinynet.com/tx/{txId}',
   },
   [SolScope.Mainnet]: {
-    url: 'https://solscan.io',
+    url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}',
     transaction: 'https://solscan.io/tx/{txId}',
   },
   [SolScope.Devnet]: {
-    url: 'https://solscan.io',
+    url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=devnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=devnet',
   },
   [SolScope.Testnet]: {
-    url: 'https://solscan.io',
+    url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=testnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
   },
@@ -86,6 +87,7 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
   [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
+  [TrxAccountType.Eoa]: TrxScope.Mainnet,
 } as const;
 
 export const PRICE_API_CURRENCIES = [

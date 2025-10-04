@@ -36,6 +36,16 @@ describe('useContacts', () => {
     address: 'Sol1234567890123456789012345678901234567890',
   };
 
+  const mockBitcoinContact = {
+    name: 'Bitcoin Contact',
+    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+  };
+
+  const mockTronContact = {
+    name: 'Tron Contact',
+    address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+  };
+
   const mockInvalidContact = {
     name: 'Invalid Contact',
     address: '0xinvalid',
@@ -48,6 +58,12 @@ describe('useContacts', () => {
     },
     '101': {
       contact3: mockSolanaContact,
+    },
+    'bip122:1': {
+      contact6: mockBitcoinContact,
+    },
+    'tron:1': {
+      contact7: mockTronContact,
     },
     '137': {
       contact4: mockInvalidContact,
@@ -71,6 +87,8 @@ describe('useContacts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
   });
 
@@ -82,6 +100,8 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
     });
 
@@ -136,6 +156,8 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
     });
 
@@ -146,6 +168,14 @@ describe('useContacts', () => {
         {
           contactName: 'Solana Contact',
           address: 'Sol1234567890123456789012345678901234567890',
+        },
+        {
+          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+          contactName: 'Bitcoin Contact',
+        },
+        {
+          address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+          contactName: 'Tron Contact',
         },
       ]);
     });
@@ -172,6 +202,100 @@ describe('useContacts', () => {
     });
   });
 
+  describe('when isBitcoinSendType is true', () => {
+    beforeEach(() => {
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: true,
+        isTronSendType: false,
+      });
+    });
+
+    it('returns Bitcoin compatible contacts', () => {
+      const { result } = renderHook(() => useContacts());
+
+      expect(result.current).toEqual([
+        {
+          contactName: 'Bitcoin Contact',
+          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+        },
+      ]);
+    });
+
+    it('filters out non-Bitcoin addresses', () => {
+      const { result } = renderHook(() => useContacts());
+
+      const addresses = result.current.map((contact) => contact.address);
+      expect(addresses).not.toContain(
+        '0x1234567890123456789012345678901234567890',
+      );
+      expect(addresses).not.toContain(
+        'Sol1234567890123456789012345678901234567890',
+      );
+      expect(addresses).not.toContain('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+    });
+
+    it('only includes addresses starting with bc', () => {
+      const { result } = renderHook(() => useContacts());
+
+      result.current.forEach((contact) => {
+        expect(contact.address).toMatch(/^bc/);
+      });
+    });
+  });
+
+  describe('when isTronSendType is true', () => {
+    beforeEach(() => {
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: false,
+        isSolanaSendType: false,
+        isEvmNativeSendType: false,
+        isNonEvmSendType: false,
+        isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: true,
+      });
+    });
+
+    it('returns Tron compatible contacts', () => {
+      const { result } = renderHook(() => useContacts());
+
+      expect(result.current).toEqual([
+        {
+          contactName: 'Tron Contact',
+          address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+        },
+      ]);
+    });
+
+    it('filters out non-Tron addresses', () => {
+      const { result } = renderHook(() => useContacts());
+
+      const addresses = result.current.map((contact) => contact.address);
+      expect(addresses).not.toContain(
+        '0x1234567890123456789012345678901234567890',
+      );
+      expect(addresses).not.toContain(
+        'Sol1234567890123456789012345678901234567890',
+      );
+      expect(addresses).not.toContain(
+        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      );
+    });
+
+    it('only includes addresses starting with T', () => {
+      const { result } = renderHook(() => useContacts());
+
+      result.current.forEach((contact) => {
+        expect(contact.address).toMatch(/^T/);
+      });
+    });
+  });
+
   describe('when neither EVM nor Solana send type is active', () => {
     beforeEach(() => {
       mockUseSendType.mockReturnValue({
@@ -180,13 +304,15 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
     });
 
     it('returns all contacts without filtering', () => {
       const { result } = renderHook(() => useContacts());
 
-      expect(result.current).toHaveLength(4);
+      expect(result.current).toHaveLength(6);
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
@@ -303,6 +429,8 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());
@@ -320,6 +448,8 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());
