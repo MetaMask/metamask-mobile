@@ -1,9 +1,9 @@
 import { createClient, type EntrySkeletonType } from 'contentful';
+import compareVersions from 'compare-versions';
+import { getVersion } from 'react-native-device-info';
 import { isProduction } from '../../../util/environment';
 import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
-import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
-
 export interface ContentfulCarouselSlideFields {
   headline: string;
   teaser: string;
@@ -125,6 +125,7 @@ function mapContentfulEntriesToSlides(
       cardPlacement,
       variableName,
       mobileMinimumVersionNumber,
+      mobileMaximumVersionNumber,
     } = entry.fields;
 
     const slide: CarouselSlide = {
@@ -150,6 +151,10 @@ function mapContentfulEntriesToSlides(
       continue;
     }
 
+    if (!isValidMaximumVersion(mobileMaximumVersionNumber)) {
+      continue;
+    }
+
     if (priorityPlacement) {
       prioritySlides.push(slide);
     } else {
@@ -160,6 +165,18 @@ function mapContentfulEntriesToSlides(
   return { prioritySlides, regularSlides };
 }
 
+const hasMinRequiredVersion = (minRequiredVersion: string) => {
+  if (!minRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, minRequiredVersion, '>');
+};
+
+const hasMaxRequiredVersion = (maxRequiredVersion: string) => {
+  if (!maxRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, maxRequiredVersion, '<');
+};
+
 function isValidMinimumVersion(contentfulMinimumVersionNumber?: string) {
   // Field is not set, show by default
   if (!contentfulMinimumVersionNumber) {
@@ -167,7 +184,21 @@ function isValidMinimumVersion(contentfulMinimumVersionNumber?: string) {
   }
 
   try {
-    return hasMinimumRequiredVersion(contentfulMinimumVersionNumber);
+    return hasMinRequiredVersion(contentfulMinimumVersionNumber);
+  } catch {
+    // Invalid mobile version number, not showing banner
+    return false;
+  }
+}
+
+function isValidMaximumVersion(contentfulMaximumVersionNumber?: string) {
+  // Field is not set, show by default
+  if (!contentfulMaximumVersionNumber) {
+    return true;
+  }
+
+  try {
+    return hasMaxRequiredVersion(contentfulMaximumVersionNumber);
   } catch {
     // Invalid mobile version number, not showing banner
     return false;

@@ -170,7 +170,8 @@ describe('fetchCarouselSlidesFromContentful', () => {
     });
   });
 
-  describe('minimum version number', () => {
+  describe('version number bounds', () => {
+    // current version is 7.56.0
     const minimumVersionSchema = [
       {
         testName: 'shows banner if minimum version number not added',
@@ -183,9 +184,10 @@ describe('fetchCarouselSlidesFromContentful', () => {
         length: 1,
       },
       {
-        testName: 'shows banner if current version matches === version number',
+        testName:
+          'does not show banner if current version matches === version number',
         minimumVersion: '7.56.0',
-        length: 1,
+        length: 0,
       },
       {
         testName:
@@ -201,7 +203,7 @@ describe('fetchCarouselSlidesFromContentful', () => {
     ];
 
     it.each(minimumVersionSchema)(
-      '$testName',
+      'minimum version test - $testName',
       async ({ minimumVersion, length }) => {
         jest.spyOn(DeviceInfoModule, 'getVersion').mockReturnValue('7.56.0');
         const response = arrangeContentfulResponse();
@@ -211,6 +213,132 @@ describe('fetchCarouselSlidesFromContentful', () => {
 
         const result = await fetchCarouselSlidesFromContentful();
 
+        expect(mockContentfulClientGetEntries).toHaveBeenCalled();
+        expect(result.prioritySlides).toHaveLength(length);
+        expect(result.regularSlides).toHaveLength(length);
+      },
+    );
+
+    const maximumVersionSchema = [
+      {
+        testName: 'shows banner if maximum version number not added',
+        maximumVersion: undefined,
+        length: 1,
+      },
+      {
+        testName: 'shows banner if current version matches < version number',
+        maximumVersion: '7.57.0',
+        length: 1,
+      },
+      {
+        testName:
+          'does not shows banner if current version matches === version number',
+        maximumVersion: '7.56.0',
+        length: 0,
+      },
+      {
+        testName:
+          'does not show banner if current version matches < version number ',
+        maximumVersion: '7.55.0',
+        length: 0,
+      },
+      {
+        testName: 'does not show banner if provided a malformed version number',
+        maximumVersion: 'malformed version number',
+        length: 0,
+      },
+    ];
+
+    it.each(maximumVersionSchema)(
+      'maximum version test - $testName',
+      async ({ maximumVersion, length }) => {
+        jest.spyOn(DeviceInfoModule, 'getVersion').mockReturnValue('7.56.0');
+        const response = arrangeContentfulResponse();
+        response.items[0].fields.mobileMaximumVersionNumber = maximumVersion;
+        response.items[1].fields.mobileMaximumVersionNumber = maximumVersion;
+        const { mockContentfulClientGetEntries } = arrangeMocks(response);
+
+        const result = await fetchCarouselSlidesFromContentful();
+
+        expect(mockContentfulClientGetEntries).toHaveBeenCalled();
+        expect(result.prioritySlides).toHaveLength(length);
+        expect(result.regularSlides).toHaveLength(length);
+      },
+    );
+
+    const minMaxVersionSchema = [
+      {
+        testName:
+          'shows banner when version is within both bounds (min < current < max)',
+        minimumVersion: '7.55.0',
+        maximumVersion: '7.57.0',
+        length: 1,
+      },
+      {
+        testName: 'does not show banner if equal to bounds',
+        minimumVersion: '7.56.0',
+        maximumVersion: '7.56.0',
+        length: 0,
+      },
+      {
+        testName: 'does not show banner when version is below minimum bound',
+        minimumVersion: '7.57.0',
+        maximumVersion: '7.58.0',
+        length: 0,
+      },
+      {
+        testName: 'does not show banner when version is above maximum bound',
+        minimumVersion: '7.54.0',
+        maximumVersion: '7.55.0',
+        length: 0,
+      },
+      {
+        testName: 'shows banner when both bounds are undefined',
+        minimumVersion: undefined,
+        maximumVersion: undefined,
+        length: 1,
+      },
+      {
+        testName:
+          'shows banner when only minimum is defined and version is above it',
+        minimumVersion: '7.55.0',
+        maximumVersion: undefined,
+        length: 1,
+      },
+      {
+        testName:
+          'shows banner when only maximum is defined and version is below it',
+        minimumVersion: undefined,
+        maximumVersion: '7.57.0',
+        length: 1,
+      },
+      {
+        testName:
+          'does not show banner when minimum is malformed but maximum is valid and exclusive',
+        minimumVersion: 'malformed',
+        maximumVersion: '7.56.0',
+        length: 0,
+      },
+      {
+        testName:
+          'does not show banner when maximum is malformed but minimum excludes current version',
+        minimumVersion: '7.57.0',
+        maximumVersion: 'malformed',
+        length: 0,
+      },
+    ];
+
+    it.each(minMaxVersionSchema)(
+      'min & max version bounds test - $testName',
+      async ({ minimumVersion, maximumVersion, length }) => {
+        jest.spyOn(DeviceInfoModule, 'getVersion').mockReturnValue('7.56.0');
+        const response = arrangeContentfulResponse();
+        response.items[0].fields.mobileMinimumVersionNumber = minimumVersion;
+        response.items[0].fields.mobileMaximumVersionNumber = maximumVersion;
+        response.items[1].fields.mobileMinimumVersionNumber = minimumVersion;
+        response.items[1].fields.mobileMaximumVersionNumber = maximumVersion;
+        const { mockContentfulClientGetEntries } = arrangeMocks(response);
+        const result = await fetchCarouselSlidesFromContentful();
         expect(mockContentfulClientGetEntries).toHaveBeenCalled();
         expect(result.prioritySlides).toHaveLength(length);
         expect(result.regularSlides).toHaveLength(length);
