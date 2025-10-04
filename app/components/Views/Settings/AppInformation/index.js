@@ -193,6 +193,12 @@ export default class AppInformation extends PureComponent {
                 {`Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
+
+            {process.env.METAMASK_ENVIRONMENT !== 'production' ? (
+              <Text style={styles.branchInfo}>
+                {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
+              </Text>
+            ) : null}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
