@@ -23,6 +23,9 @@ import { areAddressesEqual } from '../../util/address';
  * Builder type for the Snap keyring.
  */
 export interface SnapKeyringBuilder {
+  name: 'SnapKeyringBuilder';
+  state: null;
+
   (): SnapKeyring;
   type: typeof SnapKeyring.type;
 }
