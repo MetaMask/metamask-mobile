@@ -59,7 +59,9 @@ describe('run-e2e-tags-gha (black-box)', () => {
     const args = JSON.parse(fs.readFileSync(logPath, 'utf8')) as string[];
     // First arg is the yarn script name
     expect(args[0]).toBe('test:e2e:ios-gha:main:prod');
-    const files = args.slice(1).sort();
+    // Second arg is the testNamePattern derived from TEST_SUITE_TAG
+    expect(args[1]).toBe('--testNamePattern=^@tag-one');
+    const files = args.slice(2).sort();
     expect(files).toEqual([
       path.join('e2e', 'specs', 'alpha.spec.ts'),
       path.join('e2e', 'specs', 'sub', 'delta.spec.js'),
@@ -96,7 +98,9 @@ describe('run-e2e-tags-gha (black-box)', () => {
       const res = runScript(root, env);
       expect(res.status).toBe(0);
       const args = JSON.parse(fs.readFileSync(logPath, 'utf8')) as string[];
-      return args.slice(1); // drop yarn script name
+      // Expect testNamePattern is the second arg
+      expect(args[1]).toBe('--testNamePattern=^@tag');
+      return args.slice(2); // drop yarn script name and pattern
     };
 
     const files1 = run(1);
@@ -151,7 +155,9 @@ describe('run-e2e-tags-gha (black-box)', () => {
     expect(res.status).toBe(0);
 
     const args = JSON.parse(fs.readFileSync(logPath, 'utf8')) as string[];
-    const files = args.slice(1).sort();
+    // Second arg is the testNamePattern derived from TEST_SUITE_TAG
+    expect(args[1]).toBe('--testNamePattern=^@dup');
+    const files = args.slice(2).sort();
     expect(files).toEqual([
       path.join('e2e', 'specs', 'dupme.spec.ts'),
       path.join('e2e', 'specs', 'dupme-retry-1.spec.ts'),
