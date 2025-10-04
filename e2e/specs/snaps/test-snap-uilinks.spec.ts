@@ -14,7 +14,6 @@ describe(FlaskBuildTests('UI Links Snap Test'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();

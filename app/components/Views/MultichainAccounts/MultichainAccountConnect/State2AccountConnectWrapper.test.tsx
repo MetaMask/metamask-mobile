@@ -318,15 +318,12 @@ describe('State2AccountConnectWrapper', () => {
         },
       };
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <State2AccountConnectWrapper {...mockProps} />,
         { state: mockStateWithoutFlag },
       );
 
-      expect(
-        getByTestId(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
-      ).toBeTruthy();
-      expect(queryByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeNull();
+      expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
     });
 
     it('handles feature flag with version 1 correctly', () => {
@@ -339,11 +336,6 @@ describe('State2AccountConnectWrapper', () => {
                   enabled: true,
                   featureVersion: '1',
                   minimumVersion: '0.0.0',
-                },
-                enableMultichainAccountsState2: {
-                  enabled: false,
-                  featureVersion: null,
-                  minimumVersion: null,
                 },
               },
               cacheTimestamp: 0,
