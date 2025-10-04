@@ -8811,6 +8811,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/transaction-controller@npm:^60.6.0":
+  version: 60.6.0
+  resolution: "@metamask/transaction-controller@npm:60.6.0"
+  dependencies:
+    "@ethereumjs/common": ^4.4.0
+    "@ethereumjs/tx": ^5.4.0
+    "@ethereumjs/util": ^9.1.0
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@ethersproject/providers": ^5.7.0
+    "@ethersproject/wallet": ^5.7.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/eth-query": ^4.0.0
+    "@metamask/metamask-eth-abis": ^3.1.1
+    "@metamask/nonce-tracker": ^6.0.0
+    "@metamask/rpc-errors": ^7.0.2
+    "@metamask/utils": ^11.8.1
+    async-mutex: ^0.5.0
+    bn.js: ^5.2.1
+    eth-method-registry: ^4.0.0
+    fast-json-patch: ^3.1.1
+    lodash: ^4.17.21
+    uuid: ^8.3.2
+  peerDependencies:
+    "@babel/runtime": ^7.0.0
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/approval-controller": ^7.0.0
+    "@metamask/eth-block-tracker": ">=9"
+    "@metamask/gas-fee-controller": ^24.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/remote-feature-flag-controller": ^1.5.0
+  checksum: 3bd28ddbad0ae8b89b0d33eb2c4f2fb83233a10bf3b7141298cabe8c1689501fc8bc3264956ffd5cba981c7aa817a0aca758fd92d9327074a90eb87bd9e6f041
+  languageName: node
+  linkType: hard
+
 "@metamask/tron-wallet-snap@npm:^1.1.0":
   version: 1.1.0
   resolution: "@metamask/tron-wallet-snap@npm:1.1.0"
@@ -34114,7 +34150,7 @@ __metadata:
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
-    "@metamask/transaction-controller": ^60.4.0
+    "@metamask/transaction-controller": ^60.6.0
     "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6

@@ -1,5 +1,5 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
-import { ApprovalType } from '@metamask/controller-utils';
+import { ApprovalType, ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
@@ -19,8 +19,10 @@ const getIsFullScreenConfirmation = (
   }
 
   if (approvalRequest?.type === ApprovalType.Transaction) {
-    return FULL_SCREEN_CONFIRMATIONS.includes(
-      transactionMetadata?.type as TransactionType,
+    return (
+      FULL_SCREEN_CONFIRMATIONS.includes(
+        transactionMetadata?.type as TransactionType,
+      ) || transactionMetadata?.origin === ORIGIN_METAMASK
     );
   }
 
