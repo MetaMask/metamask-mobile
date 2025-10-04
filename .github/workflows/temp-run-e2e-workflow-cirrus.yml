@@ -101,7 +101,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
