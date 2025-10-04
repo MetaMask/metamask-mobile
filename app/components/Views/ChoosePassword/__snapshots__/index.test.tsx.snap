@@ -230,7 +230,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
-                      "paddingVertical": 0,
+                      "paddingVertical": 2,
+                      "textAlignVertical": "center",
                     }
                   }
                   submitBehavior="submit"
@@ -380,7 +381,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
-                      "paddingVertical": 0,
+                      "paddingVertical": 2,
+                      "textAlignVertical": "center",
                     }
                   }
                   testID="create-password-second-input-field"

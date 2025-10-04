@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, Platform } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -21,6 +21,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
   const { theme, vars } = params;
   const { style, textVariant, isDisabled, isStateStylesDisabled, isFocused } =
     vars;
+
   const stateObj = isStateStylesDisabled
     ? {
         opacity: 1,
@@ -31,6 +32,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
           ? theme.colors.primary.default
           : colors.transparent,
       };
+
   return StyleSheet.create({
     base: Object.assign(
       {
@@ -40,11 +42,18 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         backgroundColor: theme.colors.background.default,
         height: 24,
         ...stateObj,
-        paddingVertical: 0,
+        // Fix for placeholder text shifting with custom Geist fonts
+        // Use minimal padding that works cross-platform with preloaded fonts
+        paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+        // Ensure consistent line height for custom font baseline alignment        lineHeight: Platform.OS === 'ios' ? 20 : 22,
         fontFamily: getFontFamily(textVariant),
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
+        // iOS-specific fix for custom font baseline alignment
+        ...(Platform.OS === 'ios' && {
+          textAlignVertical: 'center',
+        }),
       },
       style,
     ) as TextStyle,

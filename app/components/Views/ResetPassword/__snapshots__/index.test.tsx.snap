@@ -198,7 +198,8 @@ exports[`ResetPassword render matches snapshot 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="create-password-first-input-field"
