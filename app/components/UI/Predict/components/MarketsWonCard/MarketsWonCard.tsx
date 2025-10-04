@@ -14,24 +14,35 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 interface MarketsWonCardProps {
   numberOfMarketsWon?: number;
   totalClaimableAmount?: number;
-  unrealizedAmount: number;
-  unrealizedPercent: number;
   onClaimPress?: () => void;
   isLoading?: boolean;
+  address?: string;
+  providerId?: string;
 }
 
 const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
   numberOfMarketsWon,
   totalClaimableAmount,
-  unrealizedAmount,
-  unrealizedPercent,
   onClaimPress,
   isLoading,
+  address,
+  providerId,
 }) => {
+  const { unrealizedPnL, isFetching: isUnrealizedPnLFetching } =
+    useUnrealizedPnL({
+      address,
+      providerId,
+    });
+
+  // Use data from the hook, with fallback values
+  const unrealizedAmount = unrealizedPnL?.cashUpnl ?? 0;
+  const unrealizedPercent = unrealizedPnL?.percentUpnl ?? 0;
   const formatAmount = (amount: number) => {
     const sign = amount >= 0 ? '+' : '-';
     return `${sign}$${Math.abs(amount).toFixed(2)}`;
@@ -127,19 +138,23 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
             {strings('predict.unrealized_pnl_label')}
           </Text>
         </Box>
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName={
-            unrealizedAmount >= 0
-              ? 'text-success-default'
-              : 'text-error-default'
-          }
-        >
-          {strings('predict.unrealized_pnl_value', {
-            amount: formatAmount(unrealizedAmount),
-            percent: formatPercent(unrealizedPercent),
-          })}
-        </Text>
+        {isUnrealizedPnLFetching ? (
+          <Skeleton height={20} width={100} />
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName={
+              unrealizedAmount >= 0
+                ? 'text-success-default'
+                : 'text-error-default'
+            }
+          >
+            {strings('predict.unrealized_pnl_value', {
+              amount: formatAmount(unrealizedAmount),
+              percent: formatPercent(unrealizedPercent),
+            })}
+          </Text>
+        )}
       </Box>
     </Box>
   );

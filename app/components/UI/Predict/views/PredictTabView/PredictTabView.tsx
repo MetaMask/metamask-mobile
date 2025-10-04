@@ -23,6 +23,8 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 interface PredictTabViewProps {}
 
@@ -52,6 +54,9 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
 
   // TODO: remove this once we have a better way to trigger notifications globally
   usePredictNotifications();
@@ -74,21 +79,24 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       0,
     );
 
-    // TODO: replace with actual data
-    const unrealizedAmount = 8.63;
-    const unrealizedPercent = 3.9;
+    const providerIdForCard = wonPositions[0]?.providerId;
 
     return (
       <MarketsWonCard
         numberOfMarketsWon={wonPositions.length}
         totalClaimableAmount={totalClaimableAmount}
-        unrealizedAmount={unrealizedAmount}
-        unrealizedPercent={unrealizedPercent}
         onClaimPress={handleClaimPress}
         isLoading={isClaiming}
+        address={selectedInternalAccountAddress || undefined}
+        providerId={providerIdForCard}
       />
     );
-  }, [claimablePositions, handleClaimPress, isClaiming]);
+  }, [
+    claimablePositions,
+    handleClaimPress,
+    isClaiming,
+    selectedInternalAccountAddress,
+  ]);
 
   const renderItem = useCallback(
     ({ item }: { item: PredictPositionType }) => (

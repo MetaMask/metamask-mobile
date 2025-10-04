@@ -73,6 +73,9 @@ export interface PredictProvider {
     params: Omit<GetPositionsParams, 'address'> & { address: string },
   ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
+  getUnrealizedPnL(params: {
+    address: string;
+  }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
   prepareBuyOrder(params: BuyOrderParams): Promise<PredictOrder>;
