@@ -63,6 +63,8 @@ export class ConnectionRegistry {
     });
 
     await Promise.allSettled(promises);
+
+    this.hostapp.syncConnectionList(Array.from(this.connections.values()));
   }
 
   /**
@@ -163,6 +165,7 @@ export class ConnectionRegistry {
     return {
       id: connReq.sessionRequest.id,
       metadata: connReq.metadata,
+      expiresAt: connReq.sessionRequest.expiresAt,
     };
   }
 

@@ -47,6 +47,7 @@ describe('RPCBridgeAdapter', () => {
         dapp: { name: 'MockDApp', url: 'https://mockdapp.com' },
         sdk: { version: '1.0', platform: 'mobile' },
       },
+      expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
     };
 
     mockMessenger = {
