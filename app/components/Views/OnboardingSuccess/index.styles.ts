@@ -20,11 +20,25 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     contentWrapper: {
       flex: 1,
       paddingHorizontal: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     buttonWrapper: {
       paddingHorizontal: 0,
       marginTop: 4,
       marginBottom: 8,
+    },
+    buttonContainer: {
+      position: 'absolute',
+      bottom: 16,
+      left: 0,
+      right: 0,
+      paddingHorizontal: 16,
+      paddingVertical: 24,
+      paddingBottom: 52,
+      backgroundColor: isDarkMode
+        ? colors.background.default
+        : importedColors.white,
     },
     emoji: {
       textAlign: 'center',
@@ -58,7 +72,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       padding: 16,
     },
     textTitle: {
-      marginBottom: 24,
+      marginBottom: 16,
       marginHorizontal: 60,
       textAlign: 'center',
     },
@@ -66,15 +80,14 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      width: 200,
-      height: 200,
-      padding: 20,
-      marginHorizontal: 'auto',
+      width: '100%',
+      marginTop: 40,
+      marginBottom: 32,
     },
     walletReadyImage: {
+      width: 320,
+      height: 320,
       alignSelf: 'center',
-      width: 200,
-      height: 200,
     },
     description: {
       fontSize: 14,
@@ -96,7 +109,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     },
     footerWrapper: {
       marginTop: 12,
-      marginBottom: 0,
+      marginBottom: 24,
       flexDirection: 'column',
       rowGap: 16,
     },

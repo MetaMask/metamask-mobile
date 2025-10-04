@@ -1,23 +1,11 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { ScrollView, View, TouchableOpacity, Animated } from 'react-native';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
+import { ScrollView, View, Image, TouchableOpacity } from 'react-native';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Text from '../../../component-library/components/Texts/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import {
   CommonActions,
   useNavigation,
@@ -30,11 +18,13 @@ import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboardi
 
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import createStyles from './index.styles';
-import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
-import OnboardingLoaderAnimation from '../../../animations/onboarding_loader.riv';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Logger from '../../../util/Logger';
-import { isE2E } from '../../../util/test/utils';
+import walletReadyImage from '../../../images/wallet_success.png';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -44,30 +34,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
-
-const clearTimers = (timerRefs: {
-  animationId?: React.MutableRefObject<NodeJS.Timeout | null>;
-  dotsIntervalId?: React.MutableRefObject<NodeJS.Timeout | null>;
-  finalTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
-  socialLoginTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
-}) => {
-  if (timerRefs.animationId?.current) {
-    clearTimeout(timerRefs.animationId.current);
-    timerRefs.animationId.current = null;
-  }
-  if (timerRefs.dotsIntervalId?.current) {
-    clearInterval(timerRefs.dotsIntervalId.current);
-    timerRefs.dotsIntervalId.current = null;
-  }
-  if (timerRefs.finalTimeoutId?.current) {
-    clearTimeout(timerRefs.finalTimeoutId.current);
-    timerRefs.finalTimeoutId.current = null;
-  }
-  if (timerRefs.socialLoginTimeoutId?.current) {
-    clearTimeout(timerRefs.socialLoginTimeoutId.current);
-    timerRefs.socialLoginTimeoutId.current = null;
-  }
-};
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -81,7 +47,7 @@ interface OnboardingSuccessProps {
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
-  _successFlow,
+  _successFlow: _,
 }) => {
   const navigation = useNavigation();
 
@@ -94,19 +60,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
-  const riveRef = useRef<RiveRef>(null);
-  const [animationStep, setAnimationStep] = useState(1);
-  const [dotsCount, setDotsCount] = useState(1);
-  const [showButtons, setShowButtons] = useState(false);
-  const hasAnimationStarted = useRef(false);
-  const animationId = useRef<NodeJS.Timeout | null>(null);
-  const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
-  const finalTimeoutId = useRef<NodeJS.Timeout | null>(null);
-  const socialLoginTimeoutId = useRef<NodeJS.Timeout | null>(null);
-
-  const fadeOutOpacity = useRef(new Animated.Value(1)).current;
-  const fadeInOpacity = useRef(new Animated.Value(0)).current;
-
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -117,148 +70,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
       screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     });
-  };
-
-  const getTextColor = useCallback(() => TextColor.Default, []);
-
-  const renderAnimatedDots = useCallback(() => {
-    const count = Math.max(1, Math.min(3, dotsCount));
-    const dots = '.'.repeat(count);
-    return dots;
-  }, [dotsCount]);
-
-  const renderAnimationContent = useCallback(() => {
-    if (animationStep === 3) {
-      return (
-        <>
-          <Animated.View
-            style={[styles.fadeOutContainer, { opacity: fadeOutOpacity }]}
-          >
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.textTitle}
-              color={getTextColor()}
-            >
-              {strings('onboarding_success.setting_up_wallet')}
-            </Text>
-          </Animated.View>
-          <Animated.View
-            style={[styles.fadeInContainer, { opacity: fadeInOpacity }]}
-          >
-            <Text
-              variant={TextVariant.DisplayMD}
-              style={styles.textTitle}
-              color={getTextColor()}
-            >
-              {strings('onboarding_success.wallet_ready')}
-            </Text>
-          </Animated.View>
-        </>
-      );
-    }
-
-    return (
-      <Text
-        variant={TextVariant.HeadingLG}
-        style={styles.textTitle}
-        color={getTextColor()}
-      >
-        {animationStep === 1
-          ? `${strings(
-              'onboarding_success.setting_up_wallet_base',
-            )}${renderAnimatedDots()}`
-          : strings('onboarding_success.setting_up_wallet')}
-      </Text>
-    );
-  }, [
-    animationStep,
-    fadeOutOpacity,
-    fadeInOpacity,
-    getTextColor,
-    renderAnimatedDots,
-    styles.fadeOutContainer,
-    styles.fadeInContainer,
-    styles.textTitle,
-  ]);
-
-  const startRiveAnimation = () => {
-    const currentIsSocialLogin = isSocialLogin;
-    const currentOnDone = onDone;
-    const currentThemeAppearance = themeAppearance;
-
-    if (isE2E) {
-      setAnimationStep(3);
-      setShowButtons(true);
-      return;
-    }
-
-    try {
-      if (
-        hasAnimationStarted.current ||
-        !riveRef.current ||
-        animationId.current
-      ) {
-        return;
-      }
-
-      hasAnimationStarted.current = true;
-
-      const isCurrentlyDarkMode = currentThemeAppearance === 'dark';
-      riveRef.current.setInputState(
-        'OnboardingLoader',
-        'Dark mode',
-        isCurrentlyDarkMode,
-      );
-
-      riveRef.current.fireState('OnboardingLoader', 'Start');
-
-      dotsIntervalId.current = setInterval(() => {
-        setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
-      }, 500);
-
-      animationId.current = setTimeout(() => {
-        clearTimers({ dotsIntervalId });
-        setAnimationStep(2);
-      }, 2000);
-
-      finalTimeoutId.current = setTimeout(() => {
-        setAnimationStep(3);
-        setShowButtons(true);
-        requestAnimationFrame(() => {
-          if (riveRef.current) {
-            riveRef.current.fireState('OnboardingLoader', 'End');
-            if (fadeOutOpacity && fadeInOpacity) {
-              Animated.parallel([
-                Animated.timing(fadeOutOpacity, {
-                  toValue: 0,
-                  duration: 600,
-                  useNativeDriver: true,
-                }),
-                Animated.timing(fadeInOpacity, {
-                  toValue: 1,
-                  duration: 600,
-                  useNativeDriver: true,
-                }),
-              ]).start();
-            }
-          }
-        });
-
-        finalTimeoutId.current = null;
-
-        if (currentIsSocialLogin) {
-          socialLoginTimeoutId.current = setTimeout(
-            () => currentOnDone(),
-            1000,
-          );
-        }
-      }, 3500);
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'Error triggering Rive onboarding animation',
-      );
-    }
   };
 
   const handleOnDone = useCallback(() => {
@@ -277,50 +88,49 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     onDone();
   }, [onDone]);
 
-  useEffect(() => {
-    startRiveAnimation();
-
-    return () => {
-      clearTimers({
-        animationId,
-        dotsIntervalId,
-        finalTimeoutId,
-        socialLoginTimeoutId,
-      });
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const RiveAnimationComponent = useMemo(
-    () => (
-      <Rive
-        ref={riveRef}
-        source={OnboardingLoaderAnimation}
-        fit={Fit.Cover}
-        alignment={Alignment.Center}
-        style={styles.riveAnimation}
-      />
-    ),
-    [styles.riveAnimation],
-  );
-
   const renderContent = useCallback(
     () => (
-      <View style={styles.animationContainer}>
-        {RiveAnimationComponent}
-        <View style={styles.textOverlay}>{renderAnimationContent()}</View>
+      <View style={styles.contentWrapper}>
+        <View style={styles.imageWrapper}>
+          <Image
+            source={walletReadyImage}
+            style={styles.walletReadyImage}
+            resizeMode="contain"
+            testID="wallet-ready-image"
+          />
+        </View>
+        <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
+          {strings('onboarding_success.wallet_ready')}
+        </Text>
       </View>
     ),
     [
-      RiveAnimationComponent,
-      renderAnimationContent,
-      styles.animationContainer,
-      styles.textOverlay,
+      styles.contentWrapper,
+      styles.imageWrapper,
+      styles.walletReadyImage,
+      styles.textTitle,
     ],
   );
 
+  const renderButtons = useCallback(() => {
+    if (isSocialLogin) return null;
+
+    return (
+      <View style={styles.buttonContainer}>
+        <Button
+          testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+          label={strings('onboarding_success.done')}
+          variant={ButtonVariants.Primary}
+          onPress={handleOnDone}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+        />
+      </View>
+    );
+  }, [isSocialLogin, styles.buttonContainer, handleOnDone]);
+
   const renderFooter = () => {
-    if (isSocialLogin || !showButtons) return null;
+    if (isSocialLogin) return null;
 
     return (
       <View style={styles.footerWrapper}>
@@ -343,22 +153,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       <View style={styles.contentContainer}>
-        <View style={styles.contentWrapper}>
-          {renderContent()}
-          {!isSocialLogin && showButtons && (
-            <View style={styles.buttonWrapper}>
-              <Button
-                testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-                label={strings('onboarding_success.done')}
-                variant={ButtonVariants.Primary}
-                onPress={handleOnDone}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-              />
-            </View>
-          )}
-          {renderFooter()}
-        </View>
+        <View style={styles.contentWrapper}>{renderContent()}</View>
+        {renderButtons()}
+        {renderFooter()}
       </View>
     </ScrollView>
   );

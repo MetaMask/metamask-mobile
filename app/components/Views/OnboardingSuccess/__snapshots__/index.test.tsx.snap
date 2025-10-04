@@ -27,7 +27,9 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -38,43 +40,141 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -108,7 +208,9 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -119,43 +221,141 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -189,7 +389,9 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -200,43 +402,141 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -270,7 +570,9 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -281,43 +583,141 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -351,7 +751,9 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -362,43 +764,141 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -432,7 +932,9 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -443,43 +945,141 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -513,7 +1113,9 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -524,43 +1126,141 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -594,7 +1294,9 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <View
         style={
           {
+            "alignItems": "center",
             "flex": 1,
+            "justifyContent": "center",
             "paddingHorizontal": 16,
           }
         }
@@ -605,43 +1307,141 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
-              "marginHorizontal": -16,
-              "paddingVertical": 32,
+              "paddingHorizontal": 16,
             }
           }
         >
           <View
-            testID="mock-rive-animation"
-          />
-          <View
             style={
               {
                 "alignItems": "center",
+                "display": "flex",
                 "justifyContent": "center",
-                "marginTop": 24,
-                "paddingHorizontal": 24,
+                "marginBottom": 32,
+                "marginTop": 40,
+                "width": "100%",
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <Image
+              resizeMode="contain"
+              source={1}
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist Bold",
-                  "fontSize": 24,
-                  "letterSpacing": 0,
-                  "lineHeight": 32,
-                  "marginBottom": 24,
-                  "marginHorizontal": 60,
-                  "textAlign": "center",
+                  "alignSelf": "center",
+                  "height": 320,
+                  "width": 320,
                 }
               }
-            >
-              Setting up your wallet.
-            </Text>
+              testID="wallet-ready-image"
+            />
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
+                "letterSpacing": 0,
+                "lineHeight": 32,
+                "marginBottom": 16,
+                "marginHorizontal": 60,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your wallet is ready!
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#FFFFFF",
+            "bottom": 16,
+            "left": 0,
+            "paddingBottom": 52,
+            "paddingHorizontal": 16,
+            "paddingVertical": 24,
+            "position": "absolute",
+            "right": 0,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="onboarding-success-done-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "column",
+            "marginBottom": 24,
+            "marginTop": 12,
+            "rowGap": 16,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 0,
+            }
+          }
+          testID="onboarding-success-manage-default-settings-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
