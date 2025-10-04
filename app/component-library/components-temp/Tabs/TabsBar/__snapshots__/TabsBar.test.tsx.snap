@@ -8,6 +8,8 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -349,6 +351,8 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -690,6 +694,8 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -1031,6 +1037,8 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -1375,6 +1383,8 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -1717,6 +1727,8 @@ exports[`TabsBar Rendering handles empty tabs array gracefully 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -1748,6 +1760,8 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,
@@ -2089,6 +2103,8 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
       {
         "display": "flex",
         "overflow": "hidden",
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "position": "relative",
       },
       undefined,

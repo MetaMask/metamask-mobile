@@ -196,7 +196,6 @@ const createStyles = ({ colors }: Theme) =>
     walletAccount: { marginTop: 28 },
 
     tabContainer: {
-      paddingHorizontal: 16,
       flex: 1,
     },
     loader: {
