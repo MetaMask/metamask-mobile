@@ -31,6 +31,7 @@ describe('usePredictMarketData', () => {
       outcomes: [
         {
           id: 'outcome-1',
+          providerId: 'polymarket',
           marketId: 'market-1',
           title: 'Yes',
           description: 'Bitcoin will reach $100k',
@@ -48,6 +49,7 @@ describe('usePredictMarketData', () => {
         },
         {
           id: 'outcome-2',
+          providerId: 'polymarket',
           marketId: 'market-1',
           title: 'No',
           description: 'Bitcoin will not reach $100k',
@@ -78,6 +80,7 @@ describe('usePredictMarketData', () => {
       outcomes: [
         {
           id: 'outcome-3',
+          providerId: 'polymarket',
           marketId: 'market-2',
           title: 'Yes',
           description: 'Ethereum will reach $100k',
@@ -95,6 +98,7 @@ describe('usePredictMarketData', () => {
         },
         {
           id: 'outcome-4',
+          providerId: 'polymarket',
           marketId: 'market-2',
           title: 'No',
           description: 'Ethereum will not reach $100k',
