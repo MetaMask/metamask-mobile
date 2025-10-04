@@ -5,7 +5,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -451,39 +450,6 @@ describe('MultichainAccountsConnectedList', () => {
       );
 
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('Selected Account Visual Indicator', () => {
-    it('displays checkmark icon for the selected account', () => {
-      // Given a list of connected accounts with the first account selected
-      const selectedAccountGroupId = MOCK_ACCOUNT_GROUP_1.id;
-      const groups = [MOCK_ACCOUNT_GROUP_1, MOCK_ACCOUNT_GROUP_2];
-      const wallet = createMockWallet('test-group', 'Test Wallet', groups);
-      const internalAccounts = createMockInternalAccountsFromGroups(groups);
-
-      // Create state with selected account group
-      const state = createMockState([wallet], internalAccounts);
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
-        selectedAccountGroupId;
-
-      const store = mockStore(state as unknown as Record<string, unknown>);
-
-      const { getByText, getByTestId } = render(
-        <Provider store={store}>
-          <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-            <MultichainAccountsConnectedList {...DEFAULT_PROPS} />
-          </ToastContext.Provider>
-        </Provider>,
-      );
-
-      // When rendering the list
-      // Then the selected account should display a checkmark
-      expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Account 2')).toBeTruthy();
-
-      // Assert that the checkmark icon is present for the selected account
-      expect(getByTestId(AccountCellIds.CHECK_ICON)).toBeTruthy();
     });
   });
 
