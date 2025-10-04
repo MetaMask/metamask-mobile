@@ -53,9 +53,16 @@ export function useTransactionRequiredTokens({
 
 function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
-  const { txParams } = transactionMetadata;
-  const { data } = txParams;
-  const to = txParams.to as Hex | undefined;
+  const { nestedTransactions, txParams } = transactionMetadata;
+  const { data: singleData } = txParams;
+  const singleTo = txParams.to as Hex | undefined;
+
+  const nestedCall = nestedTransactions?.find((call) =>
+    call.data?.startsWith('0xa9059cbb'),
+  );
+
+  const data = nestedCall?.data ?? singleData;
+  const to = nestedCall?.to ?? singleTo;
   const balanceProperties = useTokenBalance(to ?? '0x0', chainId);
 
   let transferAmount: Hex | undefined;
@@ -86,6 +93,9 @@ function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
 }
 
 function useGasToken(chainId: Hex): TransactionToken | undefined {
+  // Temporarily disable gas bridge
+  return undefined;
+
   const balanceProperties = useTokenBalance(NATIVE_TOKEN_ADDRESS, chainId);
 
   const maxGasCostHex = useTransactionMaxGasCost();

@@ -1,5 +1,4 @@
 import {
-  FeatureId,
   GenericQuoteRequest,
   QuoteMetadata,
   QuoteResponse,
@@ -218,11 +217,7 @@ async function getSingleBridgeQuote(
     walletAddress: from,
   };
 
-  const quotes = await BridgeController.fetchQuotes(
-    quoteRequest,
-    undefined,
-    FeatureId.PERPS,
-  );
+  const quotes = await BridgeController.fetchQuotes(quoteRequest);
 
   if (!quotes.length) {
     throw new Error(ERROR_MESSAGE_NO_QUOTES);
