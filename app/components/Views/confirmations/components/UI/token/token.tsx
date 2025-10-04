@@ -35,6 +35,7 @@ export function Token({ asset, onPress }: TokenProps) {
 
   return (
     <Pressable
+      testID={`asset-${asset.chainId}-${asset.symbol}`}
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2 max-w-full',

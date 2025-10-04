@@ -11,7 +11,7 @@ import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { importSRPFlow, login } from '../../../utils/Flows.js';
 
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
-test.skip('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
+test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
