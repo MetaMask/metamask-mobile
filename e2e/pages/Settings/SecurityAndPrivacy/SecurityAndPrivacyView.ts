@@ -190,6 +190,8 @@ class SecurityAndPrivacy {
   }
 
   async scrollToAutoLockSection(): Promise<void> {
+    // Add delay for slower CI emulators before scrolling
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     await Gestures.scrollToElement(
       this.autoLockSection,
       this.scrollViewIdentifier,
