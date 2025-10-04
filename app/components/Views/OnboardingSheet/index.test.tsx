@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import Device from '../../../util/device';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -86,14 +87,6 @@ describe('OnboardingSheet', () => {
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledTimes(1);
       });
 
-      it('calls onPressContinueWithApple with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
-        const appleButton = getByText(strings('onboarding.sign_in_with_apple'));
-        fireEvent.press(appleButton);
-        expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(false);
-        expect(mockOnPressContinueWithApple).toHaveBeenCalledTimes(1);
-      });
-
       it('calls onPressContinueWithGoogle with createWallet=true when create mode', () => {
         const propsWithCreateWallet = {
           route: {
@@ -113,8 +106,38 @@ describe('OnboardingSheet', () => {
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledWith(true);
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledTimes(1);
       });
+    });
+
+    describe('Apple button interactions', () => {
+      it('does not render Apple button when on iOS', () => {
+        jest.spyOn(Device, 'isAndroid').mockReturnValue(false);
+        const { queryByText } = render(<OnboardingSheet {...defaultProps} />);
+        const appleButton = queryByText(
+          strings('onboarding.sign_in_with_apple'),
+        );
+        expect(appleButton).toBeNull();
+      });
+
+      it('calls onPressContinueWithApple with createWallet=false when import mode', () => {
+        jest.spyOn(Device, 'isAndroid').mockReturnValue(true);
+        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const appleButton = getByText(strings('onboarding.sign_in_with_apple'));
+        fireEvent.press(appleButton);
+        expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(false);
+        expect(mockOnPressContinueWithApple).toHaveBeenCalledTimes(1);
+      });
+
+      it('calls onPressContinueWithApple with createWallet=false when import mode', () => {
+        jest.spyOn(Device, 'isAndroid').mockReturnValue(true);
+        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const appleButton = getByText(strings('onboarding.sign_in_with_apple'));
+        fireEvent.press(appleButton);
+        expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(false);
+        expect(mockOnPressContinueWithApple).toHaveBeenCalledTimes(1);
+      });
 
       it('calls onPressContinueWithApple with createWallet=true when create mode', () => {
+        jest.spyOn(Device, 'isAndroid').mockReturnValue(true);
         const propsWithCreateWallet = {
           route: {
             params: {
