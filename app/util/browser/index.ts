@@ -94,8 +94,9 @@ export const isTLD = (hostname: string, error: any) =>
 /**
  *
  * List of all protocols that our webview load unconditionally
+ *
  */
-export const protocolAllowList = ['about:', 'http:', 'https:'];
+export const protocolAllowList = ['about:', 'http:', 'https:', 'file:'];
 
 /**
  *

@@ -1,3 +1,684 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BrowserTab should render correctly 1`] = `null`;
+exports[`BrowserTab render Browser 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      },
+      false,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 999,
+            "flex": 1,
+            "flexDirection": "row",
+            "marginHorizontal": 16,
+          }
+        }
+        testID="url-input"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardAppearance="light"
+            keyboardType="web-search"
+            numberOfLines={1}
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Search by token, site or address"
+            placeholderTextColor="#b7bbc8"
+            returnKeyType="go"
+            selectTextOnFocus={true}
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 14,
+                  "height": 44,
+                  "margin": 0,
+                  "paddingLeft": 0,
+                  "paddingVertical": 0,
+                },
+                {
+                  "opacity": 0,
+                  "position": "absolute",
+                },
+              ]
+            }
+            testID="browser-modal-url-input"
+          />
+          <Text
+            accessibilityRole="text"
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessible={true}
+            ellipsizeMode="head"
+            focusable={true}
+            numberOfLines={1}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "opacity": 1,
+                "position": "relative",
+              }
+            }
+          />
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "height": 50,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+              "marginBottom": 12,
+              "marginLeft": 0,
+              "marginRight": 16,
+              "marginTop": 12,
+            }
+          }
+          testID="navbar-account-button"
+        >
+          <TextInput
+            style={
+              {
+                "height": 0,
+                "paddingVertical": 0,
+                "width": 0,
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 32,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 32,
+                  "width": 32,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "borderBottomColor": "#b7bbc8",
+            "borderBottomWidth": 1,
+            "height": 3,
+            "width": "100%",
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+          visible={true}
+        >
+          <View
+            animated={true}
+            animationConfig={
+              {
+                "bounciness": 0,
+              }
+            }
+            animationType="spring"
+            indeterminate={false}
+            onLayout={[Function]}
+            progress={0}
+            style={
+              [
+                {
+                  "backgroundColor": undefined,
+                  "borderColor": "#4459ff",
+                  "borderRadius": 0,
+                  "borderWidth": 0,
+                  "overflow": "hidden",
+                  "width": null,
+                },
+                undefined,
+              ]
+            }
+            useNativeDriver={true}
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "#4459ff",
+                  "height": 3,
+                  "transform": [
+                    {
+                      "translateX": -0,
+                    },
+                    {
+                      "translateX": -0,
+                    },
+                    {
+                      "scaleX": 0.0001,
+                    },
+                  ],
+                }
+              }
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <View
+          allowsInlineMediaPlayback={true}
+          applicationNameForUserAgent="WebView MetaMaskMobile"
+          decelerationRate={0.998}
+          injectedJavaScriptBeforeContentLoaded="(function () {
+  var __mmHistory = window.history;
+  var __mmPushState = __mmHistory.pushState;
+  var __mmReplaceState = __mmHistory.replaceState;
+  function __mm__updateUrl(){
+    const siteName = document.querySelector('head > meta[property="og:site_name"]');
+    const title = siteName || document.querySelector('head > meta[name="title"]') || document.title;
+    const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
+
+    window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
+      {
+        type: 'NAV_CHANGE',
+        payload: {
+          url: location.href,
+          title: title,
+        }
+      }
+    ));
+
+    setTimeout(() => {
+      const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
+      window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(
+      {
+        type: 'GET_HEIGHT',
+        payload: {
+          height: height
+        }
+      }))
+    }, 500);
+  }
+
+  __mmHistory.pushState = function(state) {
+    setTimeout(function () {
+      __mm__updateUrl();
+    }, 100);
+    return __mmPushState.apply(history, arguments);
+  };
+
+  __mmHistory.replaceState = function(state) {
+    setTimeout(function () {
+      __mm__updateUrl();
+    }, 100);
+    return __mmReplaceState.apply(history, arguments);
+  };
+
+  window.onpopstate = function(event) {
+    __mm__updateUrl();
+  };
+  })();
+"
+          onFileDownload={[Function]}
+          onLoadEnd={[Function]}
+          onLoadProgress={[Function]}
+          onLoadStart={[Function]}
+          onMessage={[Function]}
+          onNavigationStateChange={[Function]}
+          onShouldStartLoadWithRequest={[Function]}
+          originWhitelist={
+            [
+              "*",
+            ]
+          }
+          renderError={[Function]}
+          source={
+            {
+              "uri": "https://metamask.io",
+            }
+          }
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="browser-webview"
+          webviewDebuggingEnabled={true}
+        />
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "bottom": 0,
+            "display": "none",
+            "left": 0,
+            "paddingTop": 8,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessible={true}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "shadowOffset": {
+              "height": 6.6,
+            },
+            "shadowOpacity": 0.1965,
+            "shadowRadius": 5.94,
+          },
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc866",
+            "borderTopWidth": 0.5,
+            "flex": 0,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        disabled={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "height": 60,
+            "justifyContent": "space-around",
+            "textAlign": "center",
+            "width": 24,
+          }
+        }
+        testID="back-arrow-button"
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 24,
+              },
+              [
+                {
+                  "color": "#121314",
+                  "height": 24,
+                  "textAlign": "center",
+                  "width": 24,
+                },
+                {
+                  "color": "#b7bbc8",
+                },
+              ],
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        disabled={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "height": 60,
+            "justifyContent": "space-around",
+            "textAlign": "center",
+            "width": 24,
+          }
+        }
+        testID="go-forward-button"
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 24,
+              },
+              [
+                {
+                  "color": "#121314",
+                  "height": 24,
+                  "textAlign": "center",
+                  "width": 24,
+                },
+                {
+                  "color": "#b7bbc8",
+                },
+              ],
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "height": 60,
+            "justifyContent": "space-around",
+            "textAlign": "center",
+            "width": 24,
+          }
+        }
+        testID="search-button"
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 24,
+              },
+              {
+                "color": "#121314",
+                "height": 24,
+                "textAlign": "center",
+                "width": 24,
+              },
+              {
+                "fontFamily": "Feather",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "height": 60,
+            "justifyContent": "space-around",
+            "textAlign": "center",
+            "width": 24,
+          }
+        }
+        testID="show-tabs-button"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderColor": "#686e7d",
+                "borderRadius": 6,
+                "borderWidth": 2,
+                "justifyContent": "center",
+              },
+              {
+                "height": 24,
+                "marginTop": 0,
+                "width": 24,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              {
+                "alignSelf": "center",
+                "color": "#686e7d",
+                "flex": 0,
+                "fontFamily": "Geist Regular",
+                "fontSize": 15,
+                "textAlign": "center",
+              }
+            }
+            testID="show-tabs-number"
+          >
+            0
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        disabled={false}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "height": 60,
+            "justifyContent": "space-around",
+            "textAlign": "center",
+            "width": 24,
+          }
+        }
+        testID="home-button"
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 22,
+              },
+              [
+                {
+                  "color": "#121314",
+                  "height": 24,
+                  "textAlign": "center",
+                  "width": 24,
+                },
+                false,
+              ],
+              {
+                "fontFamily": "simple-line-icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        disabled={false}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "height": 60,
+            "justifyContent": "space-around",
+            "textAlign": "center",
+            "width": 24,
+          }
+        }
+        testID="options-button"
+      >
+        <Text
+          allowFontScaling={false}
+          selectable={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 22,
+              },
+              [
+                {
+                  "color": "#121314",
+                  "height": 24,
+                  "textAlign": "center",
+                  "width": 24,
+                },
+                false,
+              ],
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
+`;
