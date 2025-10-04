@@ -2,17 +2,7 @@ import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
-
-interface HandleRewardsUrlParams {
-  rewardsPath: string;
-}
-
-/**
- * Extensible interface for parsed rewards navigation parameters
- */
-interface RewardsNavigationParams {
-  referral?: string;
-}
+import { HandleRewardsUrlParams, RewardsNavigationParams } from '../types/deepLink.types';
 
 /**
  * Parse URL parameters into typed navigation parameters

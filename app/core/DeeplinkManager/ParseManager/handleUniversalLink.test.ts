@@ -9,7 +9,7 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
-import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import { DeepLinkModalLinkType } from '../types/deepLink.types';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -20,7 +20,23 @@ jest.mock('../../../core/NativeModules', () => ({
     goBack: jest.fn(),
   },
 }));
-jest.mock('../Handlers/handleDeepLinkModalDisplay');
+jest.mock('../Handlers/handleDeepLinkModalDisplay', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      })),
+      dispatch: jest.fn(),
+    },
+  },
+}));
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {
@@ -28,6 +44,36 @@ jest.mock('react-native-quick-crypto', () => ({
       verify: jest.fn(),
     },
   },
+}));
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => ({
+      trackEvent: jest.fn(),
+    })),
+  },
+  MetaMetricsEvents: {
+    DEEP_LINK_USED: 'DEEP_LINK_USED',
+  },
+}));
+jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(() => ({})),
+    })),
+  },
+}));
+jest.mock('../../../util/metrics', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({})),
+}));
+jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
+  createDeepLinkUsedEventBuilder: jest.fn(() => Promise.resolve({
+    addProperties: jest.fn().mockReturnThis(),
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({}),
+  })),
+  mapSupportedActionToRoute: jest.fn(() => 'test-route'),
 }));
 
 const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
@@ -83,7 +129,7 @@ describe('handleUniversalLinks', () => {
       typeof handleDeepLinkModalDisplay
     >;
   // Default mock implementation that resolves with true
-  mockHandleDeepLinkModalDisplay.mockImplementation((callbackParams) => {
+  mockHandleDeepLinkModalDisplay.mockImplementation(async (callbackParams) => {
     if (callbackParams.linkType === 'invalid') {
       callbackParams.onBack();
     } else {
@@ -633,6 +679,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -658,6 +712,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -683,6 +745,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -699,12 +769,23 @@ describe('handleUniversalLinks', () => {
         source: 'test-source',
       });
 
-      expect(DevLogger.log).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DeepLinkAnalytics: Tracked consolidated deep link event:',
+        expect.any(Object),
+      );
       expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
         linkType: DeepLinkModalLinkType.PUBLIC,
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -790,6 +871,14 @@ describe('handleUniversalLinks', () => {
         pageTitle: 'Dapp',
         onContinue: expect.any(Function),
         onBack: expect.any(Function),
+      }, {
+        url: expect.any(String),
+        route: 'test-route',
+        urlParams: expect.any(Object),
+        signatureStatus: 'missing',
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
       });
       expect(handled).toHaveBeenCalled();
     });
