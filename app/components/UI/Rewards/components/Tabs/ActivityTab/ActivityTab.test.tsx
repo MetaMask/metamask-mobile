@@ -392,17 +392,24 @@ describe('ActivityTab', () => {
   });
 
   it('passes empty string subscriptionId to usePointsEvents when subscription is missing', () => {
-    // Subscription becomes null
-    mockSelectSubscriptionId.mockReturnValueOnce(null);
+    // Arrange - Reset the mock and set it to consistently return null
+    mockSelectSubscriptionId.mockReset();
+    mockSelectSubscriptionId.mockReturnValue(null);
+
+    // Act
     render(<ActivityTab />);
 
-    // Last call should reflect empty subscription id
+    // Assert - Last call should reflect empty subscription id
     const lastCall =
       mockUsePointsEvents.mock.calls[mockUsePointsEvents.mock.calls.length - 1];
     expect(lastCall[0]).toEqual({
       seasonId: defaultSeasonStatus.season.id,
       subscriptionId: '',
     });
+
+    // Cleanup - Reset back to original mock for subsequent tests
+    mockSelectSubscriptionId.mockReset();
+    mockSelectSubscriptionId.mockReturnValue(mockSubscriptionId);
   });
 
   it('refreshes points events when refresh function is called', () => {
