@@ -14,6 +14,11 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
+jest.mock('../../../store', () => ({
+  store: {
+    dispatch: jest.fn(),
+  },
+}));
 
 // A valid, sample connection request payload for use in tests
 const mockConnectionRequest: ConnectionRequest = {
@@ -50,6 +55,7 @@ const mockConnectionInfo: ConnectionInfo = {
       platform: 'JavaScript',
     },
   },
+  expiresAt: 1757410033264,
 };
 
 // A valid deeplink URL containing the encoded connection request
@@ -65,6 +71,7 @@ const createMockConnection = (id: string, overrides: any = {}) => ({
     dapp: { name: `DApp ${id}`, url: `https://dapp-${id}.com` },
     sdk: { version: '2.0.0', platform: 'JavaScript' },
   },
+  expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
   client: {
     reconnect: jest.fn().mockResolvedValue(undefined),
   },
@@ -82,6 +89,7 @@ const createPersistedConnection = (id: string, overrides: any = {}) => ({
     sdk: { version: '2.0.0', platform: 'JavaScript' },
     ...overrides.metadata,
   },
+  expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
 });
 
 describe('ConnectionRegistry', () => {
@@ -137,7 +145,10 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
       // UI loading state is properly managed
-      expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
 
       // Connection is created and established with correct parameters
       expect(Connection.create).toHaveBeenCalledWith(
@@ -153,13 +164,17 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).toHaveBeenCalledWith({
         id: mockConnection.id,
         metadata: mockConnection.info.metadata,
+        expiresAt: expect.any(Number),
       });
 
       // UI is synchronized with the new connection
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
         mockConnection,
       ]);
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
     });
 
     it('should handle invalid URL gracefully', async () => {
@@ -175,20 +190,17 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(invalidDeeplink);
 
       // Error alert is shown
-      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
 
       // Nothing else happens
-      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
       expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
     });
 
-    it('should call hideLoading and not save anything if the URL is invalid', async () => {
+    it('should show error and not save anything if the URL is invalid', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
         RELAY_URL,
@@ -202,20 +214,17 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(invalidDeeplink);
 
       // Error alert is shown
-      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
 
       // Nothing else happens
-      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
 
       // No data is persisted or UI updates made for invalid requests
       expect(mockConnection.disconnect).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
       expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
     });
 
     it('should attempt to disconnect and hide loading if the connect method fails', async () => {
@@ -235,13 +244,13 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
       // Connection creation is attempted but fails during handshake
-      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
 
       // Nothing else happens
-      expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
       expect(Connection.create).toHaveBeenCalledTimes(1);
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
@@ -250,7 +259,10 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
 
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
 
       disconnectSpy.mockRestore();
     });
@@ -304,7 +316,7 @@ describe('ConnectionRegistry', () => {
   describe('initialize', () => {
     it('should resume connections from store on startup', async () => {
       // Given: some persisted connections in the store
-      const persistedConnections = [
+      const persistedConnections: ConnectionInfo[] = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
       ];
@@ -338,7 +350,7 @@ describe('ConnectionRegistry', () => {
 
     it('should handle errors gracefully when some connections fail to resume', async () => {
       // Given: some connections where one will fail to resume
-      const persistedConnections = [
+      const persistedConnections: ConnectionInfo[] = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
         createPersistedConnection('conn-3'),
@@ -398,7 +410,7 @@ describe('ConnectionRegistry', () => {
       const mockConnection1 = createMockConnection('conn-1');
       const mockConnection2 = createMockConnection('conn-2');
 
-      const persistedConnections = [
+      const persistedConnections: ConnectionInfo[] = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
       ];
@@ -457,7 +469,7 @@ describe('ConnectionRegistry', () => {
       const mockConnection1 = createMockConnection('conn-1');
       const mockConnection2 = createMockConnection('conn-2');
 
-      const persistedConnections = [
+      const persistedConnections: ConnectionInfo[] = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
       ];
@@ -501,7 +513,7 @@ describe('ConnectionRegistry', () => {
       });
       const mockConnection3 = createMockConnection('conn-3');
 
-      const persistedConnections = [
+      const persistedConnections: ConnectionInfo[] = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
         createPersistedConnection('conn-3'),

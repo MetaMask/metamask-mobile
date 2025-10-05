@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Engine from '../../Engine';
-import { whenEngineReady } from './is-engine-ready';
+import { whenEngineReady } from './when-engine-ready';
 
 jest.mock('../../Engine', () => ({
   __esModule: true,
   default: {},
 }));
 
-describe('is-engine-ready', () => {
+describe('when-engine-ready', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();

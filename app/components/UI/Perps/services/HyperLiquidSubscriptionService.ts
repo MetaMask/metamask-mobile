@@ -579,6 +579,13 @@ export class HyperLiquidSubscriptionService {
                 direction: fill.dir,
                 feeToken: fill.feeToken,
                 startPosition: fill.startPosition,
+                liquidation: fill.liquidation
+                  ? {
+                      liquidatedUser: fill.liquidation.liquidatedUser,
+                      markPx: fill.liquidation.markPx,
+                      method: fill.liquidation.method,
+                    }
+                  : undefined,
               }));
 
               callback(orderFills);
