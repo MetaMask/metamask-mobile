@@ -118,7 +118,8 @@ const DeepLinkModal = () => {
   const navigation = useNavigation();
 
   const pageTitle =
-    params.linkType !== DeepLinkModalLinkType.INVALID
+    params.linkType !== DeepLinkModalLinkType.INVALID &&
+    params.linkType !== DeepLinkModalLinkType.UNSUPPORTED
       ? params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
@@ -222,8 +223,11 @@ const DeepLinkModal = () => {
 
   const onPrimaryButtonPressed = useCallback(() => {
     dismissModal(() => {
-      if (linkType === DeepLinkModalLinkType.INVALID) {
-        // Navigate to home page for invalid links
+      if (
+        linkType === DeepLinkModalLinkType.INVALID ||
+        linkType === DeepLinkModalLinkType.UNSUPPORTED
+      ) {
+        // Navigate to home page for invalid/unsupported links
         navigation.navigate(Routes.WALLET.HOME, {
           screen: Routes.WALLET.TAB_STACK_FLOW,
           params: {
