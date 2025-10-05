@@ -6,16 +6,10 @@ on:
       semver-version:
         description: 'A semantic version, eg: x.x.x'
         required: true
-      mobile-build-version:
-        description: 'Mobile build number (integer). Must be provided for mobile releases.'
-        required: true
 
   workflow_call:
     inputs:
       semver-version:
-        required: true
-        type: string
-      mobile-build-version:
         required: true
         type: string
     secrets:
@@ -77,42 +71,17 @@ jobs:
         run: |
           .github/scripts/resolve-previous-ref.sh
 
-  validate-build-number:
-    runs-on: ubuntu-latest
-    steps:
-      # Ensures a manual build number is provided and is numeric (digits only)
-      - name: Validate mobile-build-version
-        shell: bash
-        env:
-          INPUT_BUILD: ${{ inputs.mobile-build-version }}
-        run: |
-          # Validation policy:
-          # - Required (non-empty)
-          # - Digits-only regex: ^[0-9]+$
-          #   Valid: 1, 42, 20251003, 123456
-          #   Invalid: '', '1.2', '+1', '0x10', 'abc', spaces
-          set -euo pipefail
-          if [ -z "${INPUT_BUILD:-}" ]; then
-            echo "Error: mobile-build-version is required and must be provided." >&2
-            exit 1
-          fi
-          if ! [[ "${INPUT_BUILD}" =~ ^[0-9]+$ ]]; then
-            echo "Error: mobile-build-version must be digits only, got: ${INPUT_BUILD}" >&2
-            exit 1
-          fi
-
   create-release-pr:
-    needs: [resolve-bases, resolve-previous-ref, validate-build-number]
+    needs: [resolve-bases, resolve-previous-ref]
     name: Create Release Pull Request using Github Tools
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@76945f3d14e057e13d95e641d6993ea735b089c1
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@6090afa85c94a6b64a79e992d94b11610d02181a
     with:
       platform: mobile
       checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
       release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
       semver-version: ${{ inputs.semver-version }}
       previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
-      mobile-build-version: ${{ inputs.mobile-build-version }}
-      github-tools-version: 76945f3d14e057e13d95e641d6993ea735b089c1
+      github-tools-version: 6090afa85c94a6b64a79e992d94b11610d02181a
     secrets:
       # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
       # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
@@ -122,7 +91,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
 
   add-e2e-label:
     needs: create-release-pr

@@ -6,13 +6,13 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { CaipAccountId, CaipChainId, CaipNamespace } from '@metamask/utils';
 import { useMemo } from 'react';
-import type { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
+import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 import { hasChainIdSupport, hasNamespaceSupport } from './utils';
+import { getCaip25AccountFromAccountGroupAndScope } from '../../../util/multichain/getCaip25AccountFromAccountGroupAndScope';
 import {
   selectAccountGroupWithInternalAccounts,
   selectSelectedAccountGroupId,
 } from '../../../selectors/multichainAccounts/accountTreeController';
-import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope';
 
 /**
  * Checks if an account group has any connected accounts
@@ -135,96 +135,84 @@ export const useAccountGroupsForPermissions = (
       getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
     const requestedNamespaceSet = new Set(requestedNamespacesWithoutWallet);
 
-    let accountGroupsToProcess = accountGroups;
+    const connectedAccountGroups: AccountGroupWithInternalAccounts[] = [];
+    const supportedAccountGroups: AccountGroupWithInternalAccounts[] = [];
+    // Priority groups are groups that fulfill the requested account IDs and should be shown first
+    const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
+    const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
+    const connectedAccountGroupWithRequested: AccountGroupWithInternalAccounts[] =
+      [];
+
+    let accountGroupsWithSelectedAccountGroup: AccountGroupWithInternalAccounts[] =
+      [];
 
     if (selectedAccountGroup) {
-      accountGroupsToProcess = Array.from(
-        new Set([selectedAccountGroup, ...accountGroups]),
-      );
+      accountGroupsWithSelectedAccountGroup = [
+        selectedAccountGroup,
+        ...accountGroups,
+      ];
     }
 
-    const isConnected = (accountGroup: AccountGroupWithInternalAccounts) =>
-      hasConnectedAccounts(accountGroup, connectedAccountIds);
-    const isSupported = (accountGroup: AccountGroupWithInternalAccounts) =>
-      requestedCaipChainIds.length > 0
-        ? supportsChainIds(accountGroup, requestedCaipChainIds)
-        : supportsNamespaces(accountGroup, requestedNamespaceSet);
-    const fulfillsRequestedAccounts = (
-      accountGroup: AccountGroupWithInternalAccounts,
-    ) => hasRequestedAccountIds(accountGroup, requestedCaipAccountIds);
-
-    // Account groups that are currently connected via existing permissions (non-priority)
-    const connectedAccountGroups: AccountGroupWithInternalAccounts[] =
-      accountGroupsToProcess.filter(isConnected);
-    // Account groups that support the requested chains/namespaces (non-priority)
-    const supportedAccountGroups: AccountGroupWithInternalAccounts[] =
-      accountGroupsToProcess.filter(
-        (accountGroup) =>
-          isSupported(accountGroup) && !fulfillsRequestedAccounts(accountGroup),
+    (accountGroupsWithSelectedAccountGroup.length
+      ? accountGroupsWithSelectedAccountGroup
+      : accountGroups
+    ).forEach((accountGroup) => {
+      const isConnected = hasConnectedAccounts(
+        accountGroup,
+        connectedAccountIds,
       );
-    // Priority groups are groups that fulfill the requested account IDs and should be shown first
-    // Connected account groups that contain accounts matching the specifically requested account IDs
-    const priorityConnectedGroups: AccountGroupWithInternalAccounts[] =
-      accountGroupsToProcess.filter(
-        (accountGroup) =>
-          isConnected(accountGroup) && fulfillsRequestedAccounts(accountGroup),
-      );
-    // Supported account groups that contain accounts matching the specifically requested account IDs
-    const prioritySupportedGroups: AccountGroupWithInternalAccounts[] =
-      accountGroupsToProcess.filter(
-        (accountGroup) =>
-          isSupported(accountGroup) && fulfillsRequestedAccounts(accountGroup),
-      );
-    // Account groups that are either connected OR fulfill the requested account IDs (used for scope calculations)
-    const connectedAndRequestedAccountGroups: AccountGroupWithInternalAccounts[] =
-      accountGroupsToProcess.filter(
-        (accountGroup) =>
-          isConnected(accountGroup) || fulfillsRequestedAccounts(accountGroup),
+      const isSupported =
+        requestedCaipChainIds.length > 0
+          ? supportsChainIds(accountGroup, requestedCaipChainIds)
+          : supportsNamespaces(accountGroup, requestedNamespaceSet);
+      const fulfillsRequestedAccounts = hasRequestedAccountIds(
+        accountGroup,
+        requestedCaipAccountIds,
       );
 
-    // These are caip account ids of connected account groups with the requested chains/namespaces
-    const caipAccountIdsOfConnectedAndRequestedAccountGroups = Array.from(
+      if (isConnected) {
+        if (fulfillsRequestedAccounts) {
+          priorityConnectedGroups.push(accountGroup);
+        } else {
+          connectedAccountGroups.push(accountGroup);
+        }
+        connectedAccountGroupWithRequested.push(accountGroup);
+      }
+      if (isSupported || fulfillsRequestedAccounts) {
+        if (fulfillsRequestedAccounts) {
+          prioritySupportedGroups.push(accountGroup);
+          connectedAccountGroupWithRequested.push(accountGroup);
+        } else if (isSupported) {
+          supportedAccountGroups.push(accountGroup);
+        }
+      }
+    });
+
+    // This are caip account ids of connected account groups with the requested chains/namespaces
+    // It would also include newly requested chain requests.
+    const caipAccountIdsOfConnectedAccountGroupWithRequested = Array.from(
       new Set([
-        ...getCaip25AccountIdsFromAccountGroupAndScope(
-          connectedAndRequestedAccountGroups,
+        ...getCaip25AccountFromAccountGroupAndScope(
+          connectedAccountGroupWithRequested,
           requestedCaipChainIds,
         ),
       ]),
     );
 
-    // Determine which account groups to include based on priority and availability
-    const hasPriorityGroups = prioritySupportedGroups.length > 0;
-    const hasSupportedGroups = supportedAccountGroups.length > 0;
-
-    let fallbackAccountGroups: AccountGroupWithInternalAccounts[] = [];
-
-    if (!hasPriorityGroups && hasSupportedGroups) {
-      // Only include fallback groups when there are no priority groups
-      // Use selectedAccountGroup if it supports the request, otherwise use first supported group
-      const selectedSupportsRequest =
-        selectedAccountGroup &&
-        (requestedCaipChainIds.length > 0
-          ? supportsChainIds(selectedAccountGroup, requestedCaipChainIds)
-          : supportsNamespaces(selectedAccountGroup, requestedNamespaceSet));
-
-      const fallbackGroup = selectedSupportsRequest
-        ? selectedAccountGroup
-        : supportedAccountGroups[0];
-      if (fallbackGroup) {
-        fallbackAccountGroups = [fallbackGroup];
-      }
-    }
-
-    // Combine priority groups with fallback groups (if any) and remove duplicates
-    const selectedAndRequestedAccountGroups = new Set([
-      ...prioritySupportedGroups,
-      ...fallbackAccountGroups,
-    ]);
+    // If there are no supported account groups, then return an empty array because the selected account group is not supported
+    const selectedOrFirstSupportedAccountGroup =
+      supportedAccountGroups.length > 0
+        ? [selectedAccountGroup || supportedAccountGroups[0]]
+        : [];
+    const selectedAndRequestedAccountGroups = Array.from(
+      new Set([
+        ...prioritySupportedGroups,
+        ...selectedOrFirstSupportedAccountGroup,
+      ]),
+    );
 
     return {
-      selectedAndRequestedAccountGroups: Array.from(
-        selectedAndRequestedAccountGroups,
-      ),
+      selectedAndRequestedAccountGroups,
       supportedAccountGroups: Array.from(
         new Set([...prioritySupportedGroups, ...supportedAccountGroups]),
       ),
@@ -232,18 +220,16 @@ export const useAccountGroupsForPermissions = (
         new Set([...priorityConnectedGroups, ...connectedAccountGroups]),
       ),
       connectedCaipAccountIds: connectedAccountIds,
-      connectedAccountGroupWithRequested: Array.from(
-        new Set(connectedAndRequestedAccountGroups),
-      ),
-      caipAccountIdsOfConnectedAndRequestedAccountGroups,
+      connectedAccountGroupWithRequested,
+      caipAccountIdsOfConnectedAccountGroupWithRequested,
     };
   }, [
-    accountGroups,
     existingPermission,
-    requestedNamespacesWithoutWallet,
-    requestedCaipChainIds,
-    selectedAccountGroupId,
+    accountGroups,
     requestedCaipAccountIds,
+    requestedCaipChainIds,
+    requestedNamespacesWithoutWallet,
+    selectedAccountGroupId,
   ]);
 
   return {
@@ -257,8 +243,8 @@ export const useAccountGroupsForPermissions = (
     connectedAccountGroupWithRequested:
       result.connectedAccountGroupWithRequested,
     /** CAIP account IDs that should be connected */
-    caipAccountIdsOfConnectedAndRequestedAccountGroups:
-      result.caipAccountIdsOfConnectedAndRequestedAccountGroups,
+    caipAccountIdsOfConnectedAccountGroupWithRequested:
+      result.caipAccountIdsOfConnectedAccountGroupWithRequested,
     /** Account groups that support the requested chains/namespaces incl the selected account group if not already requested */
     selectedAndRequestedAccountGroups: result.selectedAndRequestedAccountGroups,
   };

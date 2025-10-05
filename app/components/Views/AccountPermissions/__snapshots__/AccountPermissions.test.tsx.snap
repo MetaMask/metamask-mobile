@@ -563,7 +563,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                       "width": 28,
                     }
                   }
-                  testID="multichain-account-cell-menu"
+                  testID="main-wallet-account-actions"
                 >
                   <SvgMock
                     color="#121314"

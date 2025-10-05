@@ -121,28 +121,11 @@ jobs:
         id: set-outputs
         run: |
           # Compute outputs using Node script
-          GITHUB_EVENT_NAME="${{ github.event_name }}"
-          SHOULD_SKIP_E2E="${{ steps.skip-tag.outputs.SKIP == 'true' || steps.skip-label.outputs.SKIP == 'true' }}"
-
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            ANDROID=""
-            IOS=""
-            SHARED=""
-            IGNORE_FILES=""
-            CATCH_ALL_FILES=""
-          else
-            ANDROID="${{ steps.filter.outputs.android }}"
-            IOS="${{ steps.filter.outputs.ios }}"
-            SHARED="${{ steps.filter.outputs.shared }}"
-            IGNORE_FILES="${{ steps.filter.outputs.ignore_files }}"
-            CATCH_ALL_FILES="${{ steps.filter.outputs.catch_all_files }}"
-          fi
-
-          GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" \
-          SHOULD_SKIP_E2E="$SHOULD_SKIP_E2E" \
-          ANDROID="$ANDROID" \
-          IOS="$IOS" \
-          SHARED="$SHARED" \
-          IGNORE_FILES="$IGNORE_FILES" \
-          CATCH_ALL_FILES="$CATCH_ALL_FILES" \
+          GITHUB_EVENT_NAME="${{ github.event_name }}" \
+          SHOULD_SKIP_E2E="${{ steps.skip-tag.outputs.SKIP == 'true' || steps.skip-label.outputs.SKIP == 'true' }}" \
+          ANDROID="${{ steps.filter.outputs.android }}" \
+          IOS="${{ steps.filter.outputs.ios }}" \
+          SHARED="${{ steps.filter.outputs.shared }}" \
+          IGNORE_FILES="${{ steps.filter.outputs.ignore_files }}" \
+          CATCH_ALL_FILES="${{ steps.filter.outputs.catch_all_files }}" \
           node .github/scripts/needs-e2e-builds.mjs
