@@ -122,7 +122,7 @@ async function handleUniversalLink({
     }
 
     // Unsupported action with valid signature
-    if (!isActionSupported && true) {
+    if (!isActionSupported && isPrivateLink) {
       return DeepLinkModalLinkType.UNSUPPORTED;
     }
 
