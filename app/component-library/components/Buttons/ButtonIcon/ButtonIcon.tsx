@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types */
 
+/**
+ * @deprecated Please update your code to use `ButtonIcon` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';

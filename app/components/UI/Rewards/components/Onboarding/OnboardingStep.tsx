@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useRef } from 'react';
+import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
 import { PanResponder } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,6 +22,7 @@ import { setOnboardingActiveStep } from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Device from '../../../../../util/device';
 
 interface OnboardingStepProps {
   // Progress indicator props
@@ -65,6 +66,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   const onClose = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
@@ -100,7 +102,9 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
     <KeyboardAwareScrollView
       keyboardShouldPersistTaps="handled"
       testID="onboarding-step-container"
-      contentContainerStyle={tw.style('min-h-full px-4 py-8')}
+      contentContainerStyle={tw.style(
+        `min-h-full px-4 ${isLargeDevice ? 'py-8' : 'py-2'}`,
+      )}
       {...panResponder.panHandlers}
     >
       <Box twClassName="mt-8 justify-center items-center">

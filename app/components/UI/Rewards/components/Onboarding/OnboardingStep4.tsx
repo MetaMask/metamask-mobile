@@ -102,7 +102,7 @@ const OnboardingStep4: React.FC = () => {
         <Image
           source={step4Img}
           testID="step-4-image"
-          style={tw.style('w-30 h-30')}
+          style={tw.style('w-32 h-32')}
         />
       </Box>
 

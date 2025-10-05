@@ -751,6 +751,54 @@ describe('PredictController', () => {
       });
     });
 
+    it('pass signer with signPersonalMessage to prepareBuyOrder', async () => {
+      const mockTxMeta = { id: 'tx-signer-buy' } as any;
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
+          id: 'order-signer',
+          providerId: 'polymarket',
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          isBuy: true,
+          size: 1,
+          price: 1,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: [
+            {
+              data: '0xdeadbeef',
+              to: '0x000000000000000000000000000000000000dead',
+              value: '0x0',
+            },
+          ],
+          offchainTradeParams: {},
+          chainId: 1,
+        } as any);
+
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
+        });
+
+        await controller.buy({
+          market: mockMarket,
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          size: 1,
+        });
+
+        // Verify that signPersonalMessage is included in the signer object
+        expect(mockPolymarketProvider.prepareBuyOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            signer: expect.objectContaining({
+              signPersonalMessage: expect.any(Function),
+              signTypedMessage: expect.any(Function),
+            }),
+          }),
+        );
+      });
+    });
+
     it('throw PLACE_ORDER_FAILED if provider returns no result', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue(
@@ -859,6 +907,58 @@ describe('PredictController', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('Sell order failed');
         expect(result.id).toBeUndefined();
+      });
+    });
+
+    it('pass signer with signPersonalMessage to prepareSellOrder', async () => {
+      const mockTxMeta = { id: 'tx-signer-sell' } as any;
+      await withController(async ({ controller }) => {
+        const mockPosition = {
+          marketId: 'market-1',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+        };
+
+        mockPolymarketProvider.prepareSellOrder.mockResolvedValue({
+          id: 'sell-order-signer',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+          isBuy: false,
+          size: 2,
+          price: 0.8,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: [
+            {
+              data: '0xsell-data',
+              to: '0x000000000000000000000000000000000000sell',
+              value: '0x0',
+            },
+          ],
+          offchainTradeParams: {},
+          chainId: 1,
+        } as any);
+
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
+        });
+
+        await controller.sell({
+          position: mockPosition as any,
+        });
+
+        // Verify that signPersonalMessage is included in the signer object
+        expect(mockPolymarketProvider.prepareSellOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            signer: expect.objectContaining({
+              signPersonalMessage: expect.any(Function),
+              signTypedMessage: expect.any(Function),
+            }),
+          }),
+        );
       });
     });
   });

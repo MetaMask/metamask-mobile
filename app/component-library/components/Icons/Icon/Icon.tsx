@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types, react/jsx-pascal-case */
 
+/**
+ * @deprecated Please update your code to use `Icon` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React from 'react';
 

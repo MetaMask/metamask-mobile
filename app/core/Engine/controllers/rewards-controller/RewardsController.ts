@@ -32,6 +32,7 @@ import {
   storeSubscriptionToken,
   removeSubscriptionToken,
   resetAllSubscriptionTokens,
+  getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -47,7 +48,10 @@ import {
 import { base58 } from 'ethers/lib/utils';
 import { isNonEvmAddress } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
-import { InvalidTimestampError } from './services/rewards-data-service';
+import {
+  AuthorizationFailedError,
+  InvalidTimestampError,
+} from './services/rewards-data-service';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -1094,6 +1098,12 @@ export class RewardsController extends BaseController<
                   state.accounts[caipAccount].subscriptionId = subscriptionId;
                   state.accounts[caipAccount].lastCheckedAuth = Date.now();
                 }
+
+                if (state.activeAccount?.account === caipAccount) {
+                  state.activeAccount.hasOptedIn = hasOptedIn;
+                  state.activeAccount.subscriptionId = subscriptionId;
+                  state.activeAccount.lastCheckedAuth = Date.now();
+                }
               });
             }
           }
@@ -1446,14 +1456,72 @@ export class RewardsController extends BaseController<
           );
           return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
         } catch (error) {
+          if (error instanceof AuthorizationFailedError) {
+            // Attempt to reauth with a valid account.
+            try {
+              if (this.state.activeAccount?.subscriptionId === subscriptionId) {
+                const account = await this.messagingSystem.call(
+                  'AccountsController:getSelectedMultichainAccount',
+                );
+                Logger.log(
+                  'RewardsController: Attempting to reauth with a valid account after 403 error',
+                );
+                await this.#performSilentAuth(account, false, false); // try and auth.
+              } else if (
+                this.state.accounts &&
+                Object.values(this.state.accounts).length > 0
+              ) {
+                const accountForSub = Object.values(this.state.accounts).find(
+                  (acc) => acc.subscriptionId === subscriptionId,
+                );
+                if (accountForSub) {
+                  const accounts = await this.messagingSystem.call(
+                    'AccountsController:listMultichainAccounts',
+                  );
+                  const convertInternalAccountToCaipAccountId =
+                    this.convertInternalAccountToCaipAccountId;
+                  const intAccountForSub = accounts.find((acc) => {
+                    const accCaipId =
+                      convertInternalAccountToCaipAccountId(acc);
+                    return accCaipId === accountForSub.account;
+                  });
+                  if (intAccountForSub) {
+                    Logger.log(
+                      'RewardsController: Attempting to reauth with any valid account after 403 error',
+                    );
+                    await this.#performSilentAuth(
+                      intAccountForSub as InternalAccount,
+                      false,
+                      false,
+                    );
+                  }
+                }
+              }
+              // Fetch season status again
+              const seasonStatus = await this.messagingSystem.call(
+                'RewardsDataService:getSeasonStatus',
+                seasonId,
+                subscriptionId,
+              );
+              Logger.log(
+                'RewardsController: Successfully fetched season status after reauth',
+                seasonStatus,
+              );
+              return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
+            } catch {
+              Logger.log(
+                'RewardsController: Failed to reauth with a valid account after 403 error',
+                error instanceof Error ? error.message : String(error),
+              );
+              this.invalidateSubscriptionCache(subscriptionId);
+              this.invalidateAccountsAndSubscriptions();
+              throw error;
+            }
+          }
           Logger.log(
             'RewardsController: Failed to get season status:',
             error instanceof Error ? error.message : String(error),
           );
-          if (error instanceof Error && error.message.includes('403')) {
-            this.invalidateSubscriptionCache(subscriptionId);
-            this.invalidateAccountsAndSubscriptions();
-          }
           throw error;
         }
       },
@@ -1919,7 +1987,16 @@ export class RewardsController extends BaseController<
           i < optInStatusResponse.sids.length
             ? optInStatusResponse.sids[i]
             : null;
-        if (subscriptionId) return subscriptionId;
+        const sessionToken = subscriptionId
+          ? await getSubscriptionToken(subscriptionId)
+          : undefined;
+        if (
+          subscriptionId &&
+          Boolean(sessionToken?.token) &&
+          Boolean(sessionToken?.success)
+        ) {
+          return subscriptionId;
+        }
         try {
           silentAuthAttempts++;
           subscriptionId = await this.#performSilentAuth(

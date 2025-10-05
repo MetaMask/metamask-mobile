@@ -4,7 +4,6 @@ import {
   TextInput,
   View,
   StyleSheet,
-  InteractionManager,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
@@ -124,6 +123,7 @@ const createStyles = (colors) =>
       position: 'relative',
       width: '100%',
       alignSelf: 'center',
+      marginBottom: 16,
     },
     textWrapper: {
       padding: 0,

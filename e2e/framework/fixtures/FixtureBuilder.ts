@@ -567,6 +567,20 @@ class FixtureBuilder {
               },
             },
             NetworkEnablementController: {},
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
+                enableMultichainAccountsState2: {
+                  enabled: false,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
+              },
+            },
           },
         },
         privacy: {

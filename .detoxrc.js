@@ -67,6 +67,10 @@ module.exports = {
       device: 'android.github_ci.emulator',
       app: 'android.release',
     },
+    'android.github_ci.flask.release': {
+      device: 'android.github_ci.emulator',
+      app: 'android.flask.release',
+    },
     'android.emu.flask.release': {
       device: 'android.bitrise.emulator',
       app: 'android.flask.release',

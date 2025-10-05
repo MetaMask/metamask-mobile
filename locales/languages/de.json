@@ -575,7 +575,8 @@
     "token_contract_warning": "Diese Adresse ist eine Token-Contract-Adresse. Das Senden von Token an diese Adresse führt zu deren Verlust.",
     "invisible_character_error": "Wir haben ein unsichtbares Zeichen im ENS-Namen festgestellt. Überprüfen Sie den ENS-Namen, um möglichen Betrug zu vermeiden.",
     "could_not_resolve_name": "Name konnte nicht aufgelöst werden",
-    "invalid_address": "Ungültige Adresse"
+    "invalid_address": "Ungültige Adresse",
+    "contractAddressError": "Sie senden Tokens an die Kontraktadresse des Tokens. Dies kann zum Verlust dieser Tokens führen."
   },
   "deposit": {
     "title": "Einzahlen",
@@ -877,6 +878,8 @@
     "withdraw": "Auszahlen",
     "refresh_balance": "Guthaben aktualisieren",
     "add_funds": "Gelder hinzufügen",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Ihre Positionen",
     "loading_positions": "Positionen werden geladen ...",
     "refreshing_positions": "Positionen werden aktualisiert ...",
@@ -885,7 +888,7 @@
       "title": "Einzuzahlender Betrag",
       "get_usdc_hyperliquid": "USDC erhalten • Hyperliquid",
       "insufficient_funds": "Unzureichende Gelder",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Keine Gelder verfügbar. Bitte tätigen Sie zuerst eine Einzahlung.",
       "enter_amount": "Betrag eingeben",
       "fetching_quote": "Angebot einholen",
       "submitting": "Übermittlung der Transaktion",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "Unzureichende Gelder",
         "insufficient_balance": "Unzureichender Kontostand. Erforderlich: {{required}} $. Verfügbar: {{available}} $",
         "invalid_leverage": "Hebel muss zwischen {{min}}x und {{max}}x liegen",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "Oder-Größe muss unter {{maxValue}} $ liegen",
         "high_leverage_warning": "Eine hoher Hebel erhöht das Liquidationsrisiko",
         "invalid_take_profit": "Take-Profit muss {{direction}} aktueller Preis für {{positionType}} Positionen sein",
         "invalid_stop_loss": "Stop-Loss muss {{direction}} aktueller Preis für {{positionType}} Positionen sein",
@@ -1332,9 +1335,9 @@
         "error_message": "Marktdaten nicht gefunden. Bitte kehren Sie zurück und versuchen Sie es erneut."
       },
       "statistics": "Übersicht",
-      "24h_high": "24-Std.-Hoch",
-      "24h_low": "24-Std.-Tief",
-      "24h_volume": "24-Std.-Volumen",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Open Interest",
       "funding_rate": "Finanzierungsrate",
       "countdown": "Countdown",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "Laden der Marktdaten fehlgeschlagen",
     "tap_to_retry": "Antippen zum erneuten Versuch",
     "search_by_token_symbol": "Suche nach Token-Symbol",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "Keine Tokens gefunden",
+    "no_tokens_found_description": "Wir konnten keine Tokens mit dem Namen „{{searchQuery}}“ finden. Versuchen Sie eine andere Suche.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "Ausgeführt",
         "metamask_fee": "MetaMask-Gebühr",
         "hyperliquid_fee": "Hyperliquid-Gebühr",
-        "total_fee": "Gesamtgebühr"
+        "total_fee": "Gesamtgebühr",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Datum",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "Ihr Trading-Verlauf wird hier angezeigt"
       }
     },
-    "risk_disclaimer": "Perps-Trading birgt Risiken, wobei Sie plötzlich und ohne Vorankündigung Ihre gesamte Margin verlieren können. Der Handel erfolgt vollständig auf Ihr eigenes Risiko. Marktdaten bereitgestellt von Hyperliquid. Kurschart bereitgestellt von",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Fortfahren",
       "skip": "Überspringen",
@@ -1538,10 +1544,13 @@
         "description": "Zahlen Sie ein beliebiges Token auf Ihr Perps-Konto ein und führen Sie innerhalb von Sekunden Ihren ersten Trade durch.",
         "footer_text": "MetaMask swappt Ihre Gelder auf Arbitrum in USDC und zahlt sie ohne zusätzliche Gebühr auf HyperEVM ein."
       },
-      "got_it": "Verstanden"
+      "got_it": "Verstanden",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Punkte",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Geschätzte Punkte",
     "unable_to_load": "Laden fehlgeschlagen",
     "points_error": "Wir können momentan keine Punkte laden",
     "points_error_content": "Aber keine Sorge, Sie verdienen weiterhin Punkte. Sie werden bald auf Ihrem Konto erscheinen, oder schauen Sie später auf der Registerkarte „Belohnungen“ nach.",
@@ -1864,13 +1873,13 @@
     "agree": "Zustimmen",
     "decline": "Nein Danke",
     "description_title": "Helfen Sie uns dabei, MetaMask zu verbessern",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Wir möchten Sie um diese Genehmigungen bitten. Sie können Ihre Genehmigung jederzeit widerrufen oder Ihre Nutzungsdaten löschen lassen.",
     "description_content_2": "Wenn wir Metriken sammeln, wird es immer wie folgt sein ...",
     "description_content_3": "Erfahren Sie, wie wir Ihre Privatsphäre schützen, während wir Nutzungsdaten für Ihr Profil sammeln.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Grundlegende Nutzungsdaten sammeln",
+    "gather_basic_usage_description": "Wir erfassen grundlegende Produktnutzungsdaten wie den allgemeinen Standort, Klicks und Aufrufe. Weitere Informationen werden nicht gespeichert.",
+    "gather_basic_usage_learn_more": "Mehr erfahren",
+    "checkbox_marketing": "Marketing-Updates",
     "checkbox": "Wir verwenden diese Daten, um zu erfahren, wie Sie mit unserer Marketingkommunikation interagieren. Wir können relevante Neuigkeiten (wie Produktmerkmale) teilen.",
     "action_description_1_prefix": "Privat:",
     "action_description_2_prefix": "Allgemeines:",
@@ -1880,7 +1889,7 @@
     "action_description_3_description": "Sie können jederzeit über die Einstellungen entscheiden, ob Sie Ihre Nutzungsdaten freigeben oder löschen möchten.",
     "cta_no_thanks": "Nein, danke",
     "cta_i_agree": "Ich stimme zu",
-    "continue": "Continue",
+    "continue": "Fortfahren",
     "fine_print_1_legacy": "Diese Daten werden gesammelt und sind daher im Rahmen der Datenschutz-Grundverordnung (EU) 2016/679 anonym.",
     "fine_print_2a_legacy": "*Wenn Sie Infura als Standard-RPC-Anbieter in MetaMask vewenden, speichert Infura Ihre IP-Adresse und Ihre Etherum-Wallet-Adresse, wenn Sie eine Transaktion senden. Wir speichern diese Daten in keinster Weise in unserem System, um sie miteinander in Verbindung zu bringen. Sie können Ihren RPC-Anbieter vor dem Fortfahren",
     "fine_print_2b_legacy": "konfigurieren. Für weitere Informationen darüber, wie MetaMask und Infura in Hinischt auf Datenspeicherung interagieren, lesen Sie bitte unser Update",
@@ -2043,9 +2052,9 @@
       "solana_devnet_account_name": "Solana-Devnet-Konto",
       "solana_testnet_account_name": "Solana-Testnet-Konto",
       "solana_account_name": "Solana-Konto",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tron-Konto",
+      "tron_nile_account_name": "Tron Nile-Konto",
+      "tron_shasta_account_name": "Tron Shasta-Konto"
     },
     "error_messages": {
       "failed_to_create_account": "Erstellung von {{clientType}}-Konto fehlgeschlagen"
@@ -4887,7 +4896,7 @@
     "import_account": "Privater Schlüssel",
     "add_bitcoin_account": "Bitcoin-Konto",
     "add_solana_account": "Solana-Konto",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tron-Konto",
     "switch_to_smart_account": "Zum Smart-Konto wechseln",
     "rename_account": "Konto umbenennen",
     "addresses": "Adressen",
@@ -5600,7 +5609,7 @@
       "section_1_title": "Was sind Multichain-Konten?",
       "section_1_description": "Ein Konto, Adressen auf allen von MetaMask unterstützten Netzwerken. Nun können Sie Ethereum, Solana und mehr nutzen, ohne das Konto wechseln zu müssen.",
       "section_2_title": "Dieselbe Adresse, mehr Netzwerke",
-      "section_2_description": "Wir haben Ihre Konten zusammengeführt, sodass Sie MetaMask wie gewohnt weiter nutzen können. Ihre Gelder sind sicher und unverändert.",
+      "section_2_description": "Wir haben Ihre Konten gruppiert, sodass Sie MetaMask wie gewohnt weiter nutzen können. Ihre Gelder sind sicher und unverändert",
       "view_accounts_button": "Konten anzeigen",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Einrichtung Ihrer Konten"
@@ -5654,6 +5663,7 @@
       "balance": "Kontostand",
       "create_account": "Konto erstellen",
       "creating_account": "Konto wird erstellt ...",
+      "discovering_accounts": "Konten werden entdeckt …",
       "back_up": "Backup",
       "reveal_recovery_phrase_with_index": "Wiederherstellungsphrase {{index}} offenlegen"
     },
@@ -5751,6 +5761,11 @@
       "swap_description": "Token auf Linea in {{symbol}} tauschen",
       "select_method": "Methode wählen"
     },
+    "card_onboarding": {
+      "title": "Willkommen bei Karte",
+      "description": "Um Kartenfunktionen nutzen zu können, müssen Sie Ihr Konto bei unserem Partner verifizieren.",
+      "verify_account_button": "Konto verifizieren"
+    },
     "card_home": {
       "error_title": "Daten können nicht abgerufen werden",
       "error_description": "Es scheint ein Problem zu geben, das Sie an der Anzeige des Inhalts dieser Seite hindert. Bitte überprüfen Sie Ihre Verbindung oder aktualisieren Sie die Seite.",
@@ -5826,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5883,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Belohnungen sind hier",
+      "gtm_description": "Sammeln Sie Punkte für Ihre Aktivität. \nErklimmen Sie Level, um Belohnungen freizuschalten.",
+      "gtm_confirm": "Erste Schritte",
+      "intro_title": "Saison 1 \nist live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5926,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6013,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Gesperrte Belohnungen",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6025,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "verbleibend",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6053,6 +6084,16 @@
       "perps_deposit": "Gelder hinzufügen",
       "swap": "Tokens tauschen",
       "swap_approval": "Tokens genehmigen"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {
