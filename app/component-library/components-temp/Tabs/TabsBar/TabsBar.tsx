@@ -44,12 +44,20 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  // Reset layout data when tabs change structurally
+  // Reset layout data when tabs change structurally (count or content)
   const tabKeys = useMemo(() => tabs.map((tab) => tab.key).join(','), [tabs]);
+  const prevTabKeys = useRef<string>('');
 
   useEffect(() => {
-    // Reset when tabs change
-    if (tabLayouts.current.length !== tabs.length) {
+    // Reset when tabs change (either count or content/keys)
+    const shouldReset =
+      tabLayouts.current.length !== tabs.length ||
+      prevTabKeys.current !== tabKeys;
+
+    if (shouldReset) {
+      // Store current tab keys for next comparison
+      prevTabKeys.current = tabKeys;
+      // Reset all layout state
       tabLayouts.current = new Array(tabs.length);
       setIsInitialized(false);
       setLayoutsReady(false);
@@ -60,6 +68,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
         currentAnimation.current.stop();
         currentAnimation.current = null;
       }
+
+      // Force re-measurement by resetting container width temporarily
+      // This ensures fresh layout measurements for the new tab structure
+      setContainerWidth(0);
     }
   }, [tabKeys, tabs.length]);
 
