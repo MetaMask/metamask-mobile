@@ -311,6 +311,7 @@ const Routes = {
     IMPORT: 'ImportSRPView',
   },
   MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_SELECTOR_LIST_PAGE: 'MultichainAccountSelectorListPage',
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
