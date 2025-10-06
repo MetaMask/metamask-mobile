@@ -17,7 +17,7 @@ jobs:
   android-build:
     name: Test Android Build QA App
     #runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-large
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
@@ -27,6 +27,12 @@ jobs:
       # Get the source code from the repository
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
 
       # Install Android SDK, Node.js, and other Android development dependencies
       - name: Installing Android Environment Setup

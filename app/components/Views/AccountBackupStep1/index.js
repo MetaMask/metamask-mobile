@@ -202,7 +202,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.mainWrapper} edges={['bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}

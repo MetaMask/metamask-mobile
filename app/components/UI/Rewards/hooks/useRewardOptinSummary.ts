@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectInternalAccounts,
@@ -11,6 +11,10 @@ import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-cont
 import Logger from '../../../../util/Logger';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { selectRewardsActiveAccountSubscriptionId } from '../../../../selectors/rewards';
+import { convertInternalAccountToCaipAccountId } from '../utils';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -36,6 +40,11 @@ export const useRewardOptinSummary = (
   const { enabled = true } = options;
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const activeAccountSubscriptionId = useSelector(
+    selectRewardsActiveAccountSubscriptionId,
+  );
+  const { addTraitsToUser } = useMetrics();
+  const hasTrackedLinkedAccountsRef = useRef(false);
 
   const [optedInAccounts, setOptedInAccounts] = useState<
     AccountWithOptInStatus[]
@@ -135,8 +144,58 @@ export const useRewardOptinSummary = (
     return { linkedAccounts: linked, unlinkedAccounts: unlinked };
   }, [optedInAccounts]);
 
+  const coercedLinkedAccounts = useMemo(() => {
+    const firstSubscriptionId = Engine.controllerMessenger.call(
+      'RewardsController:getFirstSubscriptionId',
+    );
+    if (
+      activeAccountSubscriptionId &&
+      firstSubscriptionId &&
+      activeAccountSubscriptionId !== firstSubscriptionId
+    ) {
+      const accountsForSameSubscription = linkedAccounts.filter((account) => {
+        const caipAccount = convertInternalAccountToCaipAccountId(account);
+        if (!caipAccount) {
+          return false;
+        }
+        try {
+          const actualSubscriptionId = Engine.controllerMessenger.call(
+            'RewardsController:getActualSubscriptionId',
+            caipAccount,
+          );
+          return actualSubscriptionId === activeAccountSubscriptionId;
+        } catch (error) {
+          return false;
+        }
+      });
+      return accountsForSameSubscription;
+    }
+    return linkedAccounts;
+  }, [activeAccountSubscriptionId, linkedAccounts]);
+
+  // Update user traits with the count of reward-enabled accounts
+  useEffect(() => {
+    const updateUserTraits = async () => {
+      const traits = {
+        [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]:
+          coercedLinkedAccounts.length,
+      };
+      Logger.log(
+        'Triggering update of user traits for reward-enabled accounts',
+        traits,
+      );
+      await addTraitsToUser(traits);
+    };
+
+    // Only track once per session when we have the data
+    if (!hasTrackedLinkedAccountsRef.current && !isLoading) {
+      hasTrackedLinkedAccountsRef.current = true;
+      updateUserTraits();
+    }
+  }, [coercedLinkedAccounts, addTraitsToUser, isLoading]);
+
   return {
-    linkedAccounts,
+    linkedAccounts: coercedLinkedAccounts,
     unlinkedAccounts,
     isLoading: isLoading && !optedInAccounts.length, // prevent flickering if accounts are being populated via i.e. profile sync
     hasError,
