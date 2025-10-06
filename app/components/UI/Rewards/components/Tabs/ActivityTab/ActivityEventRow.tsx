@@ -26,7 +26,8 @@ import Logger from '../../../../../../util/Logger';
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
   accountName: string | undefined;
-}> = ({ event, accountName }) => {
+  testID?: string;
+}> = ({ event, accountName, testID }) => {
   const eventDetails = React.useMemo(
     () => (event ? getEventDetails(event, accountName) : undefined),
     [event, accountName],
@@ -67,6 +68,7 @@ export const ActivityEventRow: React.FC<{
       justifyContent={BoxJustifyContent.Between}
       twClassName="w-full"
       gap={3}
+      testID={testID}
     >
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
@@ -103,16 +105,21 @@ export const ActivityEventRow: React.FC<{
             alignItems={BoxAlignItems.End}
             gap={1}
           >
-            <Text>{eventDetails.title}</Text>
+            <Text testID={`activity-event-row-title-${testID}`}>
+              {eventDetails.title}
+            </Text>
           </Box>
 
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.End}
           >
-            <Text>{`${event.value > 0 ? '+' : ''}${event.value}`}</Text>
+            <Text testID={`activity-event-row-value-${testID}`}>{`${
+              event.value > 0 ? '+' : ''
+            }${event.value}`}</Text>
             {event.bonus?.bips && (
               <Text
+                testID={`activity-event-row-bonus-${testID}`}
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
                 twClassName="ml-1"
@@ -125,12 +132,14 @@ export const ActivityEventRow: React.FC<{
 
         <Box flexDirection={BoxFlexDirection.Row}>
           <Text
+            testID={`activity-event-row-details-${testID}`}
             variant={TextVariant.BodySm}
             twClassName="text-alternative flex-1 max-w-[60%]"
           >
             {eventDetails.details}
           </Text>
           <Text
+            testID={`activity-event-row-date-${testID}`}
             variant={TextVariant.BodySm}
             twClassName="text-alternative flex-1 text-right"
           >

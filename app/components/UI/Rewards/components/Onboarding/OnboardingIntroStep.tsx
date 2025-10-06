@@ -311,6 +311,7 @@ const OnboardingIntroStep: React.FC<{
         }
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
         onPress={handleNext}
+        testID="rewards-claim-button"
         twClassName="w-full bg-primary-default"
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
@@ -323,6 +324,7 @@ const OnboardingIntroStep: React.FC<{
         isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
+        testID="rewards-skip-button"
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}

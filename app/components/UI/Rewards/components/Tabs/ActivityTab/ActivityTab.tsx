@@ -105,7 +105,13 @@ export const ActivityTab: React.FC = () => {
   const accountNames = useAccountNames(accountNameRequests || []);
 
   const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
-    <ActivityEventRow event={item} accountName={accountNames?.[index]} />
+    <Box>
+      <ActivityEventRow
+        event={item}
+        accountName={accountNames?.[index]}
+        testID={`activity-row-${item.type.toLowerCase()}-${index}`}
+      />
+    </Box>
   );
 
   const renderFooter = () => {

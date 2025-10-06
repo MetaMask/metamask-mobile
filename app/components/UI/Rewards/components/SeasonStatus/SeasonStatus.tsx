@@ -124,10 +124,18 @@ const SeasonStatus: React.FC = () => {
 
           {/* Tier name */}
           <Box flexDirection={BoxFlexDirection.Column}>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-alternative"
+              testID="season-status-level"
+            >
               {strings('rewards.level')} {currentTierOrder}
             </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-default"
+              testID="season-status-tier-name"
+            >
               {tierName}
             </Text>
           </Box>
@@ -204,6 +212,7 @@ const SeasonStatus: React.FC = () => {
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
             <Text
+              testID="season-status-points"
               style={tw.style({
                 fontSize: 22,
                 fontWeight: FontWeight.Bold,
