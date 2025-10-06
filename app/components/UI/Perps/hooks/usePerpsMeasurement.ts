@@ -16,9 +16,6 @@ const allTrue = (conditionArray: boolean[]): boolean =>
 const anyTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.length > 0 && conditionArray.some(Boolean);
 
-// Cache for boolean conversions to avoid repeated map operations
-const toBooleanArray = (arr: unknown[]): boolean[] => arr.map(Boolean);
-
 interface MeasurementOptions {
   traceName: TraceName;
   op?: TraceOperation; // Optional operation type, defaults to PerpsOperation
@@ -32,8 +29,6 @@ interface MeasurementOptions {
   resetConditions?: boolean[];
 
   debugContext?: Record<string, unknown>;
-  // Legacy support for usePerpsScreenTracking pattern
-  dependencies?: unknown[];
 }
 
 /**
@@ -76,13 +71,6 @@ interface MeasurementOptions {
  *   endConditions: [workflowComplete, !hasErrors],
  *   resetConditions: [userCanceled, sessionExpired]
  * });
- *
- * @example
- * // LEGACY: usePerpsScreenTracking compatibility
- * usePerpsMeasurement({
- *   traceName: TraceName.PerpsPositionDetailsView,
- *   dependencies: [market, marketStats, !isLoadingHistory, !isLoadingPosition]
- * });
  */
 export const usePerpsMeasurement = ({
   traceName,
@@ -92,7 +80,6 @@ export const usePerpsMeasurement = ({
   endConditions,
   resetConditions,
   debugContext = {},
-  dependencies, // Legacy support
 }: MeasurementOptions) => {
   const hasCompleted = useRef(false);
   const previousStartState = useRef(false);
@@ -108,15 +95,6 @@ export const usePerpsMeasurement = ({
   // Memoize smart defaults logic to avoid recalculation on every render
   const { actualStartConditions, actualEndConditions, actualResetConditions } =
     useMemo(() => {
-      if (dependencies) {
-        // Legacy usePerpsScreenTracking pattern
-        return {
-          actualStartConditions: [],
-          actualEndConditions: toBooleanArray(dependencies),
-          actualResetConditions: resetConditions || [],
-        };
-      }
-
       if (conditions) {
         // Simple API: start immediately, end when conditions are met
         return {
@@ -128,13 +106,8 @@ export const usePerpsMeasurement = ({
         };
       }
 
-      // NEW: Default case - immediate single measurement
-      if (
-        !startConditions &&
-        !endConditions &&
-        !resetConditions &&
-        !dependencies
-      ) {
+      // Default case - immediate single measurement
+      if (!startConditions && !endConditions && !resetConditions) {
         return {
           actualStartConditions: [],
           actualEndConditions: [true], // Always true = immediate completion
@@ -148,13 +121,7 @@ export const usePerpsMeasurement = ({
         actualEndConditions: endConditions || [],
         actualResetConditions: resetConditions || [],
       };
-    }, [
-      dependencies,
-      conditions,
-      startConditions,
-      endConditions,
-      resetConditions,
-    ]);
+    }, [conditions, startConditions, endConditions, resetConditions]);
 
   // Memoize condition checks to avoid recalculation
   const shouldStart = useMemo(
@@ -222,11 +189,6 @@ export const usePerpsMeasurement = ({
         context: debugContext,
       };
 
-      // Add dependencies length only if needed (avoids conditional spread)
-      if (dependencies) {
-        logData.dependencies = dependencies.length;
-      }
-
       DevLogger.log(
         `${PERFORMANCE_CONFIG.LOGGING_MARKERS.SENTRY_PERFORMANCE} PerpsScreen: ${traceName} completed`,
         logData,
@@ -256,7 +218,6 @@ export const usePerpsMeasurement = ({
     debugContext,
     actualStartConditions,
     actualEndConditions,
-    dependencies,
     traceId,
   ]);
 };

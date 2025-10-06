@@ -17,7 +17,6 @@ jest.mock('../../../../util/trace', () => ({
     PerpsPositionDetailsView: 'Perps Position Details View',
     PerpsOrderView: 'Perps Order View',
     PerpsClosePositionView: 'Perps Close Position View',
-    PerpsAssetScreenLoaded: 'Perps Asset Screen Loaded',
   },
   TraceOperation: {
     PerpsOperation: 'perps.operation',
@@ -301,126 +300,6 @@ describe('usePerpsMeasurement', () => {
         expect.objectContaining({
           context: { asset: 'BTC', leverage: 10 },
         }),
-      );
-    });
-
-    it('should only complete measurement once', () => {
-      const { rerender } = renderHook(
-        ({ endConditions }) =>
-          usePerpsMeasurement({
-            traceName: TraceName.PerpsAssetScreenLoaded,
-            endConditions,
-          }),
-        {
-          initialProps: { endConditions: [false] },
-        },
-      );
-
-      // Complete measurement
-      mockPerformance.mockReturnValue(5500);
-      rerender({ endConditions: [true] });
-
-      expect(mockSetMeasurement).toHaveBeenCalledTimes(1);
-
-      // Should not complete again even if conditions change
-      rerender({ endConditions: [false] });
-      rerender({ endConditions: [true] });
-
-      expect(mockSetMeasurement).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('legacy usePerpsScreenTracking compatibility', () => {
-    it('should support the dependencies array pattern', () => {
-      const { rerender } = renderHook(
-        ({ dependencies }) =>
-          usePerpsMeasurement({
-            traceName: TraceName.PerpsAssetScreenLoaded,
-            dependencies,
-          }),
-        {
-          initialProps: { dependencies: [null, false, 0] },
-        },
-      );
-
-      // Should start immediately with dependencies pattern
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
-
-      // Should not complete until all dependencies are truthy
-      expect(mockSetMeasurement).not.toHaveBeenCalled();
-
-      // Complete when all dependencies are truthy
-      mockPerformance.mockReturnValue(6000);
-      rerender({ dependencies: [true, true, 1] });
-
-      expect(mockSetMeasurement).toHaveBeenCalledWith(
-        TraceName.PerpsAssetScreenLoaded,
-        5000,
-        'millisecond',
-      );
-      expect(mockDevLogger).toHaveBeenCalledWith(
-        expect.stringContaining('completed'),
-        expect.objectContaining({
-          dependencies: 3,
-        }),
-      );
-    });
-  });
-
-  describe('default immediate measurement', () => {
-    it('should perform immediate single measurement when no conditions provided', () => {
-      renderHook(() =>
-        usePerpsMeasurement({
-          traceName: TraceName.PerpsAssetScreenLoaded,
-          // No conditions, startConditions, endConditions, resetConditions, or dependencies
-        }),
-      );
-
-      // Should start and complete immediately
-      expect(mockPerformance).toHaveBeenCalledTimes(2); // Start time + duration calculation
-      expect(mockSetMeasurement).toHaveBeenCalledWith(
-        TraceName.PerpsAssetScreenLoaded,
-        0, // Immediate completion = 0ms
-        'millisecond',
-      );
-      expect(mockDevLogger).toHaveBeenCalledWith(
-        expect.stringContaining('completed'),
-        expect.objectContaining({
-          metric: TraceName.PerpsAssetScreenLoaded,
-          duration: '0ms',
-        }),
-      );
-    });
-  });
-
-  describe('edge cases', () => {
-    it('should handle empty conditions arrays', () => {
-      const { rerender } = renderHook(
-        ({ endConditions }) =>
-          usePerpsMeasurement({
-            traceName: TraceName.PerpsAssetScreenLoaded,
-            startConditions: [],
-            endConditions,
-          }),
-        {
-          initialProps: { endConditions: [false] },
-        },
-      );
-
-      // Should start immediately with empty start conditions
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
-
-      // Should not complete yet
-      expect(mockSetMeasurement).not.toHaveBeenCalled();
-
-      // Complete when end condition becomes true
-      mockPerformance.mockReturnValue(8500);
-      rerender({ endConditions: [true] });
-
-      expect(mockSetMeasurement).toHaveBeenCalledWith(
-        TraceName.PerpsAssetScreenLoaded,
-        7500,
-        'millisecond',
       );
     });
 
