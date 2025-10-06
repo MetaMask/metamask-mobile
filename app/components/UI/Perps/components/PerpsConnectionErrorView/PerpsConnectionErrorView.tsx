@@ -18,6 +18,12 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
@@ -37,6 +43,21 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const { track } = usePerpsEventTracking();
+
+  // Track error display - reuse existing PERPS_SCREEN_VIEWED event
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_NAME]:
+        PerpsEventValues.SCREEN_NAME.CONNECTION_ERROR,
+      [PerpsEventProperties.ERROR_TYPE]:
+        error instanceof Error ? error.constructor.name : 'string',
+      [PerpsEventProperties.RETRY_ATTEMPTS]: retryAttempts,
+      [PerpsEventProperties.SHOW_BACK_BUTTON]:
+        showBackButton || retryAttempts > 0,
+    },
+  });
 
   // Filter debug messages in production - show generic error message
   const shouldShowDebugDetails =
@@ -108,7 +129,15 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               ? strings('perps.connection.retrying_connection')
               : strings('perps.errors.connectionFailed.retry')
           }
-          onPress={onRetry}
+          onPress={() => {
+            // Track retry attempt - reuse existing PERPS_UI_INTERACTION event
+            track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+              [PerpsEventProperties.ACTION]:
+                PerpsEventValues.ACTION.CONNECTION_RETRY,
+              [PerpsEventProperties.ATTEMPT_NUMBER]: retryAttempts + 1,
+            });
+            onRetry();
+          }}
           loading={isRetrying}
           style={styles.retryButton}
         />
