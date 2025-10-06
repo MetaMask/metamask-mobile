@@ -131,22 +131,6 @@ exports[`Login renders matching snapshot 1`] = `
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginBottom": -4,
-              }
-            }
-            testID="label"
-          >
-            Password
-          </Text>
           <View
             accessibilityState={
               {
@@ -493,22 +477,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginBottom": -4,
-              }
-            }
-            testID="label"
-          >
-            Password
-          </Text>
           <View
             accessibilityState={
               {
