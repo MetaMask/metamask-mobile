@@ -495,13 +495,13 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           DevLogger.log(
             `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First position data received`,
             {
-              metric: PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA,
+              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );
 
           setMeasurement(
-            PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA,
+            PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
             firstDataDuration,
             'millisecond',
           );

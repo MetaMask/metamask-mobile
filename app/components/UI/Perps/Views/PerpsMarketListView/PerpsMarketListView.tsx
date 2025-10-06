@@ -37,8 +37,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsMeasurement } from '../../hooks';
+import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -234,7 +234,7 @@ const PerpsMarketListView = ({
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.MARKETS_SCREEN_LOADED,
+    traceName: TraceName.PerpsMarketListView,
     conditions: [filteredMarkets.length > 0],
   });
 

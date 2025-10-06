@@ -134,8 +134,11 @@ export enum TraceName {
   PerpsClosePosition = 'Perps Close Position',
   PerpsDeposit = 'Perps Deposit',
   PerpsWithdraw = 'Perps Withdraw',
-  PerpsOrderExecution = 'Perps Order Execution',
+  PerpsPlaceOrder = 'Perps Place Order',
+  PerpsEditOrder = 'Perps Edit Order',
   PerpsCancelOrder = 'Perps Cancel Order',
+  PerpsUpdateTPSL = 'Perps Update TP/SL',
+  PerpsOrderSubmissionToast = 'Perps Order Submission Toast',
   PerpsMarketDataUpdate = 'Perps Market Data Update',
   PerpsAccountStateUpdate = 'Perps Account State Update',
   PerpsOrderView = 'Perps Order View',
@@ -144,6 +147,9 @@ export enum TraceName {
   PerpsPositionDetailsView = 'Perps Position Details View',
   PerpsWebSocketConnected = 'Perps WebSocket Connected',
   PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
+  PerpsDataLakeReport = 'Perps Data Lake Report',
+  PerpsClosePositionView = 'Perps Close Position View',
+  PerpsWithdrawView = 'Perps Withdraw View',
 }
 
 export enum TraceOperation {

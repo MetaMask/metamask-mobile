@@ -15,6 +15,7 @@ import {
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -633,7 +634,7 @@ export class PerpsController extends BaseController<
 
       // Measure order execution fee discount API call performance
       setMeasurement(
-        PerpsMeasurementName.REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+        PerpsMeasurementName.PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
         orderExecutionFeeDiscountDuration,
         'millisecond',
       );
@@ -757,26 +758,30 @@ export class PerpsController extends BaseController<
    * Place a new order
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-
-    // Start trace for the entire operation
-    trace({
-      name: TraceName.PerpsOrderExecution,
-      op: TraceOperation.PerpsOrderSubmission,
-      tags: {
-        provider: this.state.activeProvider,
-        orderType: params.orderType,
-        market: params.coin,
-        leverage: params.leverage || 1,
-        isTestnet: this.state.isTestnet,
-      },
-      data: {
-        isBuy: params.isBuy,
-        orderPrice: params.price || '',
-      },
-    });
+    let traceData:
+      | { success: boolean; error?: string; orderId?: string }
+      | undefined;
 
     try {
+      // Start trace for the entire operation
+      trace({
+        name: TraceName.PerpsPlaceOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          orderType: params.orderType,
+          market: params.coin,
+          leverage: params.leverage || 1,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          isBuy: params.isBuy,
+          orderPrice: params.price || '',
+        },
+      });
       const provider = this.getActiveProvider();
 
       // Calculate fee discount at execution time (fresh, secure)
@@ -866,14 +871,7 @@ export class PerpsController extends BaseController<
           console.error('Error reporting open order to data lake:', error);
         });
 
-        // End trace with success data
-        endTrace({
-          name: TraceName.PerpsOrderExecution,
-          data: {
-            success: true,
-            orderId: result.orderId || '',
-          },
-        });
+        traceData = { success: true, orderId: result.orderId || '' };
       } else {
         // Track trade transaction failed
         const completionDuration = performance.now() - startTime;
@@ -911,14 +909,7 @@ export class PerpsController extends BaseController<
           );
         });
 
-        // End trace with error data
-        endTrace({
-          name: TraceName.PerpsOrderExecution,
-          data: {
-            success: false,
-            error: result.error || 'Unknown error',
-          },
-        });
+        traceData = { success: false, error: result.error || 'Unknown error' };
       }
 
       return result;
@@ -965,15 +956,18 @@ export class PerpsController extends BaseController<
         });
       }
 
-      // End trace with error data
-      endTrace({
-        name: TraceName.PerpsOrderExecution,
-        data: {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-      });
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
       throw error;
+    } finally {
+      // Always end trace on exit (success or failure)
+      endTrace({
+        name: TraceName.PerpsPlaceOrder,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -981,49 +975,94 @@ export class PerpsController extends BaseController<
    * Edit an existing order
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-    const provider = this.getActiveProvider();
+    let traceData:
+      | { success: boolean; error?: string; orderId?: string }
+      | undefined;
 
-    const result = await provider.editOrder(params);
-    const completionDuration = performance.now() - startTime;
-
-    // Record operation duration as measurement
-    setMeasurement(
-      PerpsMeasurementName.ORDER_EDIT_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
-
-    if (result.success) {
-      this.update((state) => {
-        state.lastUpdateTimestamp = Date.now();
+    try {
+      trace({
+        name: TraceName.PerpsEditOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          orderType: params.newOrder.orderType,
+          market: params.newOrder.coin,
+          leverage: params.newOrder.leverage || 1,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          isBuy: params.newOrder.isBuy,
+          orderPrice: params.newOrder.price || '',
+        },
       });
 
-      // Track order edit executed
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.newOrder.coin,
-            [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            ...(params.newOrder.price && {
-              [PerpsEventProperties.LIMIT_PRICE]: parseFloat(
-                params.newOrder.price,
-              ),
-            }),
-          })
-          .build(),
-      );
-    } else {
-      // Track order edit failed
+      const provider = this.getActiveProvider();
+      const result = await provider.editOrder(params);
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        this.update((state) => {
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Track order edit executed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: params.newOrder.coin,
+              [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+              [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              ...(params.newOrder.price && {
+                [PerpsEventProperties.LIMIT_PRICE]: parseFloat(
+                  params.newOrder.price,
+                ),
+              }),
+            })
+            .build(),
+        );
+
+        traceData = { success: true, orderId: result.orderId || '' };
+      } else {
+        // Track order edit failed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.newOrder.coin,
+              [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
+              [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+            })
+            .build(),
+        );
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
+      }
+
+      return result;
+    } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track order edit exception
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
@@ -1039,51 +1078,97 @@ export class PerpsController extends BaseController<
             [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
-              result.error || 'Unknown error',
+              error instanceof Error ? error.message : 'Unknown error',
           })
           .build(),
       );
-    }
 
-    return result;
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsEditOrder,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Cancel an existing order
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-    const provider = this.getActiveProvider();
+    let traceData:
+      | { success: boolean; error?: string; orderId?: string }
+      | undefined;
 
-    const result = await provider.cancelOrder(params);
-    const completionDuration = performance.now() - startTime;
-
-    // Record operation duration as measurement
-    setMeasurement(
-      PerpsMeasurementName.ORDER_CANCEL_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
-
-    if (result.success) {
-      this.update((state) => {
-        state.lastUpdateTimestamp = Date.now();
+    try {
+      trace({
+        name: TraceName.PerpsCancelOrder,
+        id: traceId,
+        op: TraceOperation.PerpsOrderSubmission,
+        tags: {
+          provider: this.state.activeProvider,
+          market: params.coin,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          orderId: params.orderId,
+        },
       });
 
-      // Track order cancel executed
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          })
-          .build(),
-      );
-    } else {
-      // Track order cancel failed
+      const provider = this.getActiveProvider();
+      const result = await provider.cancelOrder(params);
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        this.update((state) => {
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Track order cancel executed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+            })
+            .build(),
+        );
+
+        traceData = { success: true, orderId: params.orderId };
+      } else {
+        // Track order cancel failed
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+            })
+            .build(),
+        );
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
+      }
+
+      return result;
+    } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track order cancel exception
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_ORDER_CANCEL_TRANSACTION,
@@ -1093,45 +1178,69 @@ export class PerpsController extends BaseController<
             [PerpsEventProperties.ASSET]: params.coin,
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
-              result.error || 'Unknown error',
+              error instanceof Error ? error.message : 'Unknown error',
           })
           .build(),
       );
-    }
 
-    return result;
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsCancelOrder,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Close a position (partial or full)
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-
-    trace({
-      name: TraceName.PerpsClosePosition,
-      op: TraceOperation.PerpsPositionManagement,
-      tags: {
-        provider: this.state.activeProvider,
-        coin: params.coin,
-        closeSize: params.size || 'full',
-        isTestnet: this.state.isTestnet,
-      },
-    });
-
     // Get position data for event tracking
     let position: Position | undefined;
-    try {
-      const positions = await this.getPositions();
-      position = positions.find((p) => p.coin === params.coin);
-    } catch (err) {
-      DevLogger.log(
-        'PerpsController: Could not get position data for tracking',
-        err,
-      );
-    }
+    let traceData:
+      | { success: boolean; error?: string; filledSize?: string }
+      | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsClosePosition,
+        id: traceId,
+        op: TraceOperation.PerpsPositionManagement,
+        startTime: Date.now(),
+        parentContext: null,
+        tags: {
+          provider: this.state.activeProvider,
+          coin: params.coin,
+          closeSize: params.size || 'full',
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      // Measure position loading time
+      const positionLoadStart = performance.now();
+      try {
+        const positions = await this.getPositions();
+        position = positions.find((p) => p.coin === params.coin);
+        setMeasurement(
+          PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+          performance.now() - positionLoadStart,
+          'millisecond',
+        );
+      } catch (err) {
+        DevLogger.log(
+          'PerpsController: Could not get position data for tracking',
+          err,
+        );
+      }
+
       const provider = this.getActiveProvider();
       const result = await provider.closePosition(params);
       const completionDuration = performance.now() - startTime;
@@ -1202,14 +1311,6 @@ export class PerpsController extends BaseController<
             ? PerpsEventValues.CLOSE_TYPE.FULL
             : PerpsEventValues.CLOSE_TYPE.PARTIAL;
 
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: true,
-            filledSize: result.filledSize || '',
-          },
-        });
-
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
@@ -1253,6 +1354,8 @@ export class PerpsController extends BaseController<
             })
             .build(),
         );
+
+        traceData = { success: true, filledSize: result.filledSize || '' };
       } else if (!result.success && position) {
         // Track position close failed event
         const direction =
@@ -1260,13 +1363,7 @@ export class PerpsController extends BaseController<
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT;
 
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: false,
-            error: result.error || 'Unknown error',
-          },
-        });
+        traceData = { success: false, error: result.error || 'Unknown error' };
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
@@ -1322,20 +1419,17 @@ export class PerpsController extends BaseController<
     } catch (error) {
       const completionDuration = performance.now() - startTime;
 
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
       if (position) {
         // Track position close failed event for exceptions
         const direction =
           parseFloat(position.size) > 0
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT;
-
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          },
-        });
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
@@ -1377,16 +1471,16 @@ export class PerpsController extends BaseController<
             })
             .build(),
         );
-      } else {
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          },
-        });
       }
       throw error;
+    } finally {
+      // Always end trace on exit (success or failure)
+      endTrace({
+        name: TraceName.PerpsClosePosition,
+        id: traceId,
+        timestamp: Date.now(),
+        data: traceData,
+      });
     }
   }
 
@@ -1396,65 +1490,111 @@ export class PerpsController extends BaseController<
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-    const provider = this.getActiveProvider();
+    let traceData: { success: boolean; error?: string } | undefined;
 
-    // Get fee discount from rewards
-    const feeDiscountBips = await this.calculateUserFeeDiscount();
-
-    // Set discount context in provider for this operation
-    if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
-      provider.setUserFeeDiscount(feeDiscountBips);
-    }
-
-    let result: OrderResult;
     try {
-      result = await provider.updatePositionTPSL(params);
-    } finally {
-      // Always clear discount context, even on exception
-      if (provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(undefined);
-      }
-    }
-
-    const completionDuration = performance.now() - startTime;
-
-    // Record operation duration as measurement
-    setMeasurement(
-      PerpsMeasurementName.POSITION_TPSL_UPDATE_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
-
-    if (result.success) {
-      this.update((state) => {
-        state.lastUpdateTimestamp = Date.now();
+      trace({
+        name: TraceName.PerpsUpdateTPSL,
+        id: traceId,
+        op: TraceOperation.PerpsPositionManagement,
+        tags: {
+          provider: this.state.activeProvider,
+          market: params.coin,
+          isTestnet: this.state.isTestnet,
+        },
+        data: {
+          takeProfitPrice: params.takeProfitPrice || '',
+          stopLossPrice: params.stopLossPrice || '',
+        },
       });
 
-      // Track TP/SL update executed - ONE event with both properties
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            ...(params.takeProfitPrice && {
-              [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-                params.takeProfitPrice,
-              ),
-            }),
-            ...(params.stopLossPrice && {
-              [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-                params.stopLossPrice,
-              ),
-            }),
-          })
-          .build(),
-      );
-    } else {
-      // Track TP/SL update failed - ONE event with both properties
+      const provider = this.getActiveProvider();
+
+      // Get fee discount from rewards
+      const feeDiscountBips = await this.calculateUserFeeDiscount();
+
+      // Set discount context in provider for this operation
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
+      let result: OrderResult;
+      try {
+        result = await provider.updatePositionTPSL(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      }
+
+      const completionDuration = performance.now() - startTime;
+
+      if (result.success) {
+        this.update((state) => {
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Track TP/SL update executed - ONE event with both properties
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              ...(params.takeProfitPrice && {
+                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                  params.takeProfitPrice,
+                ),
+              }),
+              ...(params.stopLossPrice && {
+                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                  params.stopLossPrice,
+                ),
+              }),
+            })
+            .build(),
+        );
+
+        traceData = { success: true };
+      } else {
+        // Track TP/SL update failed - ONE event with both properties
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
+          )
+            .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.ASSET]: params.coin,
+              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+              ...(params.takeProfitPrice && {
+                [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+                  params.takeProfitPrice,
+                ),
+              }),
+              ...(params.stopLossPrice && {
+                [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+                  params.stopLossPrice,
+                ),
+              }),
+            })
+            .build(),
+        );
+
+        traceData = { success: false, error: result.error || 'Unknown error' };
+      }
+
+      return result;
+    } catch (error) {
+      const completionDuration = performance.now() - startTime;
+
+      // Track TP/SL update exception
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PERPS_RISK_MANAGEMENT,
@@ -1464,7 +1604,7 @@ export class PerpsController extends BaseController<
             [PerpsEventProperties.ASSET]: params.coin,
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
-              result.error || 'Unknown error',
+              error instanceof Error ? error.message : 'Unknown error',
             ...(params.takeProfitPrice && {
               [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
                 params.takeProfitPrice,
@@ -1478,9 +1618,19 @@ export class PerpsController extends BaseController<
           })
           .build(),
       );
-    }
 
-    return result;
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsUpdateTPSL,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
@@ -1868,7 +2018,7 @@ export class PerpsController extends BaseController<
 
       // Record operation duration as measurement
       setMeasurement(
-        PerpsMeasurementName.GET_POSITIONS_OPERATION,
+        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -1885,7 +2035,7 @@ export class PerpsController extends BaseController<
 
       // Record operation duration as measurement even on failure
       setMeasurement(
-        PerpsMeasurementName.GET_POSITIONS_OPERATION,
+        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -1916,7 +2066,7 @@ export class PerpsController extends BaseController<
 
     const completionDuration = performance.now() - startTime;
     setMeasurement(
-      PerpsMeasurementName.GET_ORDER_FILLS_OPERATION,
+      PerpsMeasurementName.PERPS_GET_ORDER_FILLS_OPERATION,
       completionDuration,
       'millisecond',
     );
@@ -1934,7 +2084,7 @@ export class PerpsController extends BaseController<
 
     const completionDuration = performance.now() - startTime;
     setMeasurement(
-      PerpsMeasurementName.GET_ORDERS_OPERATION,
+      PerpsMeasurementName.PERPS_GET_ORDERS_OPERATION,
       completionDuration,
       'millisecond',
     );
@@ -1952,7 +2102,7 @@ export class PerpsController extends BaseController<
 
     const completionDuration = performance.now() - startTime;
     setMeasurement(
-      PerpsMeasurementName.GET_OPEN_ORDERS_OPERATION,
+      PerpsMeasurementName.PERPS_GET_OPEN_ORDERS_OPERATION,
       completionDuration,
       'millisecond',
     );
@@ -1970,7 +2120,7 @@ export class PerpsController extends BaseController<
 
     const completionDuration = performance.now() - startTime;
     setMeasurement(
-      PerpsMeasurementName.GET_FUNDING_OPERATION,
+      PerpsMeasurementName.PERPS_GET_FUNDING_OPERATION,
       completionDuration,
       'millisecond',
     );
@@ -2004,7 +2154,7 @@ export class PerpsController extends BaseController<
 
       // Record operation duration as measurement
       setMeasurement(
-        PerpsMeasurementName.GET_ACCOUNT_STATE_OPERATION,
+        PerpsMeasurementName.PERPS_GET_ACCOUNT_STATE_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -2052,7 +2202,7 @@ export class PerpsController extends BaseController<
 
       // Record operation duration as measurement even on failure
       setMeasurement(
-        PerpsMeasurementName.GET_ACCOUNT_STATE_OPERATION,
+        PerpsMeasurementName.PERPS_GET_ACCOUNT_STATE_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -2087,7 +2237,7 @@ export class PerpsController extends BaseController<
 
       const completionDuration = performance.now() - startTime;
       setMeasurement(
-        PerpsMeasurementName.GET_HISTORICAL_PORTFOLIO_OPERATION,
+        PerpsMeasurementName.PERPS_GET_HISTORICAL_PORTFOLIO_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -2099,7 +2249,7 @@ export class PerpsController extends BaseController<
     } catch (error) {
       const completionDuration = performance.now() - startTime;
       setMeasurement(
-        PerpsMeasurementName.GET_HISTORICAL_PORTFOLIO_OPERATION,
+        PerpsMeasurementName.PERPS_GET_HISTORICAL_PORTFOLIO_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -2134,7 +2284,7 @@ export class PerpsController extends BaseController<
 
       // Record operation duration as measurement
       setMeasurement(
-        PerpsMeasurementName.GET_MARKETS_OPERATION,
+        PerpsMeasurementName.PERPS_GET_MARKETS_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -2162,7 +2312,7 @@ export class PerpsController extends BaseController<
 
       // Record operation duration as measurement even on failure
       setMeasurement(
-        PerpsMeasurementName.GET_MARKETS_OPERATION,
+        PerpsMeasurementName.PERPS_GET_MARKETS_OPERATION,
         completionDuration,
         'millisecond',
       );
@@ -2804,6 +2954,7 @@ export class PerpsController extends BaseController<
     sl_price?: number;
     tp_price?: number;
     retryCount?: number;
+    _traceId?: string;
   }): Promise<{ success: boolean; error?: string }> {
     // Skip data lake reporting for testnet as the API doesn't handle testnet data
     const isTestnet = this.state.isTestnet;
@@ -2818,10 +2969,32 @@ export class PerpsController extends BaseController<
 
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 1000;
-    const { action, coin, sl_price, tp_price, retryCount = 0 } = params;
+    const {
+      action,
+      coin,
+      sl_price,
+      tp_price,
+      retryCount = 0,
+      _traceId,
+    } = params;
 
-    // Start performance measurement for initial call or log retry
-    const startTime = performance.now();
+    // Generate trace ID once on first call
+    const traceId = _traceId || uuidv4();
+
+    // Start trace only on first attempt
+    if (retryCount === 0) {
+      trace({
+        name: TraceName.PerpsDataLakeReport,
+        op: TraceOperation.PerpsOperation,
+        id: traceId,
+        startTime: Date.now(),
+        parentContext: null,
+        tags: {
+          action,
+          coin,
+        },
+      });
+    }
 
     // Log the attempt
     DevLogger.log('DataLake API: Starting order report', {
@@ -2864,8 +3037,6 @@ export class PerpsController extends BaseController<
         }),
       });
 
-      const duration = performance.now() - startTime;
-
       if (!response.ok) {
         throw new Error(`DataLake API error: ${response.status}`);
       }
@@ -2873,34 +3044,33 @@ export class PerpsController extends BaseController<
       // Consume response body (might be empty for 201, but good to check)
       const responseBody = await response.text();
 
-      // Success logging and metrics
+      // Success logging
       DevLogger.log('DataLake API: Order reported successfully', {
         action,
         coin,
-        duration: `${duration.toFixed(0)}ms`,
         status: response.status,
         attempt: retryCount + 1,
         responseBody: responseBody || 'empty',
       });
 
-      // Report performance metric to Sentry (only on success)
-      if (retryCount === 0) {
-        setMeasurement(
-          PerpsMeasurementName.DATA_LAKE_API_CALL,
-          duration,
-          'millisecond',
-        );
-      }
+      // End trace on success
+      endTrace({
+        name: TraceName.PerpsDataLakeReport,
+        id: traceId,
+        timestamp: Date.now(),
+        data: {
+          success: true,
+          retries: retryCount,
+        },
+      });
 
       return { success: true };
     } catch (error) {
-      const duration = performance.now() - startTime;
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
       DevLogger.log('DataLake API: Request failed', {
         error: errorMessage,
-        duration: `${duration.toFixed(0)}ms`,
         retryCount,
         action,
         coin,
@@ -2924,36 +3094,32 @@ export class PerpsController extends BaseController<
             sl_price,
             tp_price,
             retryCount: retryCount + 1,
+            _traceId: traceId,
           }).catch((err) => {
             console.error('Error reporting retry order to data lake:', err);
           });
         }, retryDelay);
-      } else {
-        // Final failure - report to Sentry with performance metric
-        DevLogger.log('DataLake API: All retries exhausted', {
-          action,
-          coin,
-          totalAttempts: retryCount + 1,
-          finalError: errorMessage,
-        });
 
-        // Report total retry duration as a metric
-        const totalRetryDuration =
-          duration + RETRY_DELAY_MS * (Math.pow(2, retryCount) - 1); // Include retry delays
-        setMeasurement(
-          PerpsMeasurementName.DATA_LAKE_API_RETRY,
-          totalRetryDuration,
-          'millisecond',
-        );
-
-        Logger.error(error as Error, {
-          message: 'Failed to report perps order to data lake after retries',
-          action,
-          coin,
-          retryCount,
-          totalDuration: `${totalRetryDuration.toFixed(0)}ms`,
-        });
+        return { success: false, error: errorMessage };
       }
+
+      endTrace({
+        name: TraceName.PerpsDataLakeReport,
+        id: traceId,
+        timestamp: Date.now(),
+        data: {
+          success: false,
+          error: errorMessage,
+          totalRetries: retryCount,
+        },
+      });
+
+      Logger.error(error as Error, {
+        message: 'Failed to report perps order to data lake after retries',
+        action,
+        coin,
+        retryCount,
+      });
 
       return { success: false, error: errorMessage };
     }

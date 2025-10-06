@@ -41,8 +41,8 @@ import {
   transformOrdersToTransactions,
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 import Button, {
   ButtonSize,
@@ -63,7 +63,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   // Track screen load performance with new unified hook
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
+    traceName: TraceName.PerpsAccountStateUpdate,
     conditions: [flatListData.length > 0],
   });
 

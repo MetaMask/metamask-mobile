@@ -1,31 +1,33 @@
-import { setMeasurement } from '@sentry/react-native';
 import { renderHook } from '@testing-library/react-native';
-import performance from 'react-native-performance';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 
 // Mock dependencies
-jest.mock('react-native-performance', () => ({
-  now: jest.fn(),
-}));
-
-jest.mock('@sentry/react-native', () => ({
-  setMeasurement: jest.fn(),
-}));
-
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
 }));
 
-const mockPerformance = performance.now as jest.MockedFunction<
-  typeof performance.now
->;
-const mockSetMeasurement = setMeasurement as jest.MockedFunction<
-  typeof setMeasurement
->;
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsPositionDetailsView: 'Perps Position Details View',
+    PerpsOrderView: 'Perps Order View',
+    PerpsClosePositionView: 'Perps Close Position View',
+  },
+  TraceOperation: {
+    PerpsOperation: 'perps.operation',
+    PerpsOrderSubmission: 'perps.order_submission',
+  },
+}));
+
+// Get mock functions
+const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
+  '../../../../util/trace',
+);
 const mockDevLogger = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
 >;
@@ -33,7 +35,6 @@ const mockDevLogger = DevLogger.log as jest.MockedFunction<
 describe('usePerpsMeasurement', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPerformance.mockReturnValue(1000); // Mock initial time
   });
 
   describe('simple API with conditions', () => {
@@ -41,7 +42,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ conditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+            traceName: TraceName.PerpsPositionDetailsView,
             conditions,
           }),
         {
@@ -49,28 +50,32 @@ describe('usePerpsMeasurement', () => {
         },
       );
 
-      // Should start immediately with simple API
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      // Should start trace immediately with simple API
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsPositionDetailsView,
+          op: TraceOperation.PerpsOperation, // Default op
+        }),
+      );
 
       // Complete when all conditions are true
-      mockPerformance.mockReturnValue(1750);
       rerender({ conditions: [true, true] });
 
-      expect(mockSetMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.ASSET_SCREEN_LOADED,
-        750,
-        'millisecond',
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsPositionDetailsView,
+          data: { success: true },
+        }),
       );
     });
 
     it('should auto-reset when first condition becomes false', () => {
       jest.clearAllMocks();
-      mockPerformance.mockReturnValue(1000);
 
       const { rerender } = renderHook(
         ({ conditions, resetConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+            traceName: TraceName.PerpsOrderView,
             conditions,
             resetConditions, // Explicitly control reset for this test
             debugContext: { asset: 'BTC' },
@@ -83,25 +88,34 @@ describe('usePerpsMeasurement', () => {
         },
       );
 
-      // Should start immediately
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      // Should start trace immediately
+      expect(mockTrace).toHaveBeenCalledTimes(1);
 
       // Complete measurement
-      mockPerformance.mockReturnValue(1500);
       rerender({ conditions: [true, true], resetConditions: [false] });
 
-      expect(mockSetMeasurement).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: true },
+        }),
+      );
 
       // Manually trigger reset
       rerender({ conditions: [false, true], resetConditions: [true] });
 
+      // Should end trace with reset reason
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'reset' },
+        }),
+      );
+
       // Should be able to start again after reset
-      mockPerformance.mockReturnValue(2000);
       rerender({ conditions: [true, false], resetConditions: [false] });
 
-      // We should have called performance.now 3 times:
-      // 1. Initial start, 2. Duration calculation for completion, 3. Second start after reset
-      expect(mockPerformance).toHaveBeenCalledTimes(3);
+      // Trace should have been started twice (initial + after reset)
+      expect(mockTrace).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -110,7 +124,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ endConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+            traceName: TraceName.PerpsPositionDetailsView,
             endConditions,
           }),
         {
@@ -118,23 +132,26 @@ describe('usePerpsMeasurement', () => {
         },
       );
 
-      // Should start immediately
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      // Should start trace immediately
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsPositionDetailsView,
+        }),
+      );
 
       // Complete measurement when all end conditions are true
-      mockPerformance.mockReturnValue(1500); // 500ms later
       rerender({ endConditions: [true, true] });
 
-      expect(mockSetMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.ASSET_SCREEN_LOADED,
-        500,
-        'millisecond',
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsPositionDetailsView,
+          data: { success: true },
+        }),
       );
       expect(mockDevLogger).toHaveBeenCalledWith(
         expect.stringContaining('completed'),
         expect.objectContaining({
-          metric: PerpsMeasurementName.ASSET_SCREEN_LOADED,
-          duration: '500ms',
+          metric: TraceName.PerpsPositionDetailsView,
         }),
       );
     });
@@ -143,7 +160,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ startConditions, endConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+            traceName: TraceName.PerpsOrderView,
             startConditions,
             endConditions,
           }),
@@ -172,7 +189,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ startConditions, endConditions, resetConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+            traceName: TraceName.PerpsOrderView,
             startConditions,
             endConditions,
             resetConditions,
@@ -218,7 +235,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ startConditions, endConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+            traceName: TraceName.PerpsOrderView,
             startConditions,
             endConditions,
             debugContext: { asset: 'BTC', leverage: 10 },
@@ -261,7 +278,7 @@ describe('usePerpsMeasurement', () => {
       });
 
       expect(mockSetMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+        TraceName.PerpsOrderView,
         750,
         'millisecond',
       );
@@ -277,7 +294,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ endConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+            traceName: PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
             endConditions,
           }),
         {
@@ -304,7 +321,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ dependencies }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+            traceName: PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
             dependencies,
           }),
         {
@@ -323,7 +340,7 @@ describe('usePerpsMeasurement', () => {
       rerender({ dependencies: [true, true, 1] });
 
       expect(mockSetMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.ASSET_SCREEN_LOADED,
+        PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
         5000,
         'millisecond',
       );
@@ -340,7 +357,7 @@ describe('usePerpsMeasurement', () => {
     it('should perform immediate single measurement when no conditions provided', () => {
       renderHook(() =>
         usePerpsMeasurement({
-          measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+          traceName: PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
           // No conditions, startConditions, endConditions, resetConditions, or dependencies
         }),
       );
@@ -348,14 +365,14 @@ describe('usePerpsMeasurement', () => {
       // Should start and complete immediately
       expect(mockPerformance).toHaveBeenCalledTimes(2); // Start time + duration calculation
       expect(mockSetMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.ASSET_SCREEN_LOADED,
+        PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
         0, // Immediate completion = 0ms
         'millisecond',
       );
       expect(mockDevLogger).toHaveBeenCalledWith(
         expect.stringContaining('completed'),
         expect.objectContaining({
-          metric: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+          metric: PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
           duration: '0ms',
         }),
       );
@@ -367,7 +384,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ endConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+            traceName: PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
             startConditions: [],
             endConditions,
           }),
@@ -387,7 +404,7 @@ describe('usePerpsMeasurement', () => {
       rerender({ endConditions: [true] });
 
       expect(mockSetMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.ASSET_SCREEN_LOADED,
+        PerpsMeasurementName.PERPS_ASSET_SCREEN_LOADED,
         7500,
         'millisecond',
       );
@@ -397,7 +414,7 @@ describe('usePerpsMeasurement', () => {
       const { rerender } = renderHook(
         ({ startConditions, endConditions }) =>
           usePerpsMeasurement({
-            measurementName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+            traceName: TraceName.PerpsOrderView,
             startConditions,
             endConditions,
           }),

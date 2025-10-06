@@ -57,12 +57,12 @@ import {
   validateCloseAmountLimits,
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import RewardPointsDisplay from '../../components/RewardPointsDisplay';
@@ -86,7 +86,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Track screen load performance with unified hook (immediate measurement)
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+    traceName: TraceName.PerpsClosePositionView,
   });
 
   // State for order type and bottom sheets

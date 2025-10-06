@@ -426,13 +426,14 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection established`,
           {
-            metric: PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT,
+            metric:
+              PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
             duration: `${connectionDuration.toFixed(0)}ms`,
           },
         );
 
         setMeasurement(
-          PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT,
+          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
           connectionDuration,
           'millisecond',
         );
@@ -449,13 +450,14 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection with preload completed`,
           {
-            metric: PerpsMeasurementName.WEBSOCKET_CONNECTION_WITH_PRELOAD,
+            metric:
+              PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
             duration: `${totalConnectionDuration.toFixed(0)}ms`,
           },
         );
 
         setMeasurement(
-          PerpsMeasurementName.WEBSOCKET_CONNECTION_WITH_PRELOAD,
+          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
           totalConnectionDuration,
           'millisecond',
         );
@@ -600,13 +602,14 @@ class PerpsConnectionManagerClass {
       DevLogger.log(
         `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Account switch reconnection completed`,
         {
-          metric: PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+          metric:
+            PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
           duration: `${reconnectionDuration.toFixed(0)}ms`,
         },
       );
 
       setMeasurement(
-        PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+        PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
         reconnectionDuration,
         'millisecond',
       );
