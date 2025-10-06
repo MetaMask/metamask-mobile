@@ -89,6 +89,7 @@ const BuildQuote = () => {
     isFetching: isFetchingRegions,
     error: regionsError,
     retryFetchRegions,
+    userRegionLocked,
   } = useRegions();
 
   const {
@@ -173,14 +174,14 @@ const BuildQuote = () => {
   }, []);
 
   const handleRegionPress = useCallback(() => {
-    if (regionsError || !regions || regions.length === 0) {
+    if (regionsError || !regions || regions.length === 0 || userRegionLocked) {
       return;
     }
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({ regions }),
     );
-  }, [navigation, regions, regionsError]);
+  }, [navigation, regions, regionsError, userRegionLocked]);
 
   useFocusEffect(
     useCallback(() => {

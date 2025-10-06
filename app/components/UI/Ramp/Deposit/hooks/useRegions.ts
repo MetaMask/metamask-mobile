@@ -2,11 +2,13 @@ import {
   DepositSdkMethodQuery,
   useDepositSdkMethod,
 } from './useDepositSdkMethod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDepositSDK } from '../sdk';
 import { DepositRegion } from '@consensys/native-ramps-sdk';
+import { useDepositUser } from './useDepositUser';
 
 export interface UseRegionsResult {
+  userRegionLocked: boolean;
   regions: DepositRegion[] | null;
   isFetching: boolean;
   error: string | null;
@@ -14,34 +16,65 @@ export interface UseRegionsResult {
 }
 
 export function useRegions(): UseRegionsResult {
-  const { selectedRegion, setSelectedRegion } = useDepositSDK();
+  const { selectedRegion, setSelectedRegion, isAuthenticated } =
+    useDepositSDK();
   const [{ data: regions, error, isFetching }, retryFetchRegions] =
     useDepositSdkMethod('getCountries');
 
+  const { userDetails } = useDepositUser();
+  const [userRegionLocked, setUserRegionLocked] = useState<boolean>(false);
+
   useEffect(() => {
-    if (regions && regions.length > 0) {
-      let newSelectedRegion: DepositRegion | null = null;
+    const fetchRegionsAndSetDefault = async () => {
+      if (regions && regions.length > 0) {
+        // Reset lock state first
+        setUserRegionLocked(false);
 
-      if (selectedRegion) {
-        newSelectedRegion =
-          regions.find((region) => region.isoCode === selectedRegion.isoCode) ||
-          null;
-      }
+        // Only lock region if user is authenticated AND has user details with a country
+        if (isAuthenticated && userDetails?.address?.countryCode) {
+          const userRegion =
+            regions.find(
+              (region) => region.isoCode === userDetails.address.countryCode,
+            ) || null;
 
-      if (!newSelectedRegion) {
-        newSelectedRegion =
-          regions.find((region) => region.geolocated) ||
-          regions.find((region) => region.isoCode === 'US') ||
-          regions[0];
-      }
+          if (userRegion) {
+            setSelectedRegion(userRegion);
+            setUserRegionLocked(true);
+            return;
+          }
+        }
 
-      if (newSelectedRegion) {
-        setSelectedRegion(newSelectedRegion);
+        let newSelectedRegion: DepositRegion | null = null;
+        if (selectedRegion) {
+          newSelectedRegion =
+            regions.find(
+              (region) => region.isoCode === selectedRegion.isoCode,
+            ) || null;
+        }
+
+        if (!newSelectedRegion) {
+          newSelectedRegion =
+            regions.find((region) => region.geolocated) ||
+            regions.find((region) => region.isoCode === 'US') ||
+            regions[0];
+        }
+
+        if (newSelectedRegion) {
+          setSelectedRegion(newSelectedRegion);
+        }
       }
-    }
-  }, [regions, selectedRegion, setSelectedRegion]);
+    };
+    fetchRegionsAndSetDefault();
+  }, [
+    regions,
+    selectedRegion,
+    setSelectedRegion,
+    isAuthenticated,
+    userDetails,
+  ]);
 
   return {
+    userRegionLocked,
     regions,
     isFetching,
     error,

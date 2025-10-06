@@ -19,6 +19,11 @@ jest.mock('../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
 
+const mockUseDepositUser = jest.fn();
+jest.mock('./useDepositUser', () => ({
+  useDepositUser: () => mockUseDepositUser(),
+}));
+
 describe('useRegions', () => {
   const mockSetSelectedRegion = jest.fn();
   const mockRetryFetchRegions = jest.fn();
@@ -31,6 +36,7 @@ describe('useRegions', () => {
       createMockSDKReturn({
         selectedRegion: null,
         setSelectedRegion: mockSetSelectedRegion,
+        isAuthenticated: false,
       }),
     );
 
@@ -39,6 +45,14 @@ describe('useRegions', () => {
       { data: MOCK_REGIONS, error: null, isFetching: false },
       mockRetryFetchRegions,
     ]);
+
+    // Default useDepositUser state
+    mockUseDepositUser.mockReturnValue({
+      userDetails: null,
+      error: null,
+      isFetching: false,
+      fetchUserDetails: jest.fn(),
+    });
   });
 
   describe('basic functionality', () => {
@@ -51,6 +65,7 @@ describe('useRegions', () => {
       expect(result.current.error).toBeNull();
       expect(result.current.isFetching).toBe(false);
       expect(result.current.retryFetchRegions).toBe(mockRetryFetchRegions);
+      expect(result.current.userRegionLocked).toBe(false);
     });
 
     it('calls useDepositSdkMethod with correct parameters', () => {
@@ -404,6 +419,188 @@ describe('useRegions', () => {
 
       // Now should select geolocated
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(geolocatedEUR);
+    });
+  });
+
+  describe('user region locking', () => {
+    const mockUserDetails = {
+      firstName: 'John',
+      lastName: 'Doe',
+      mobileNumber: '+1234567890',
+      dob: '1990-01-01',
+      address: {
+        addressLine1: '123 Main St',
+        addressLine2: 'Apt 1',
+        city: 'New York',
+        state: 'NY',
+        postCode: '10001',
+        countryCode: 'US',
+      },
+    };
+
+    it('locks region when user is authenticated with matching country code', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: true,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: mockUserDetails,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(true);
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION);
+    });
+
+    it('does not lock region when user is not authenticated', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: false,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: mockUserDetails,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(false);
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION);
+    });
+
+    it('does not lock region when user details are null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: true,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: null,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(false);
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION);
+    });
+
+    it('does not lock region when user country code does not match any available region', () => {
+      const userDetailsWithUnknownCountry = {
+        ...mockUserDetails,
+        address: {
+          ...mockUserDetails.address,
+          countryCode: 'XX',
+        },
+      };
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: true,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: userDetailsWithUnknownCountry,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(false);
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION); // Should use normal selection logic
+    });
+
+    it('unlocks region when user logs out', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: true,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: mockUserDetails,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      const { result, rerender } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(true);
+
+      mockSetSelectedRegion.mockClear();
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: false,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: null,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      rerender({});
+
+      expect(result.current.userRegionLocked).toBe(false);
+    });
+
+    it('handles missing address in user details gracefully', () => {
+      const userDetailsWithoutAddress = {
+        ...mockUserDetails,
+        address: undefined,
+      };
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: true,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: userDetailsWithoutAddress,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(false);
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION);
     });
   });
 });

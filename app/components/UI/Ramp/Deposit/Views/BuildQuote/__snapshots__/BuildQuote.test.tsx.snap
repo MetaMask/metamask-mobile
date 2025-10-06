@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={23}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2335,7 +2335,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={24}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4223,7 +4223,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={27}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6111,7 +6111,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={15}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7926,7 +7926,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={15}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -9741,7 +9741,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={10}
+              handlerTag={11}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11556,7 +11556,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={9}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -20817,7 +20817,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -22630,7 +22630,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={12}
+              handlerTag={13}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
