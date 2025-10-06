@@ -1291,6 +1291,13 @@ export class RewardsController extends BaseController<
         const oldMostRecentId = old?.results?.[0]?.id || '';
         const freshMostRecentId = fresh?.results?.[0]?.id || '';
         if (oldMostRecentId !== freshMostRecentId) {
+          Logger.log(
+            'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+            {
+              seasonId: params.seasonId,
+              subscriptionId: params.subscriptionId,
+            },
+          );
           // Let UI know first page cache has been refreshed so it can re-query
           this.messagingSystem.publish(
             'RewardsController:pointsEventsUpdated',

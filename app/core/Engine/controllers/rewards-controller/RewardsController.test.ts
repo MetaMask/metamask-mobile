@@ -1674,6 +1674,74 @@ describe('RewardsController', () => {
           expect.any(Object),
         );
       });
+
+      it('should emit pointsEventsUpdated event', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'new-event-2',
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'),
+              value: 150,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with undefined results (oldMostRecentId will be empty string)
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: [
+              {
+                id: 'new-event-1',
+                type: 'SWAP' as const,
+                timestamp: new Date('2024-01-01T11:00:00Z'),
+                value: 150,
+                bonus: { bips: 0, bonuses: [] },
+                accountAddress: '0x123',
+                updatedAt: new Date('2024-01-01T11:00:00Z'),
+                payload: null,
+              },
+            ] as any,
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now() - 90000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data and last updated timestamp
+        mockMessenger.call
+          .mockResolvedValueOnce(new Date()) // Second call for getPointsEventsLastUpdated
+          .mockResolvedValueOnce(freshPointsEvents); // First call for getPointsEvents
+
+        // Act
+        await testableController.getPointsEvents(mockRequest);
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Verify that the pointsEventsUpdated event was emitted
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+      });
     });
   });
 
