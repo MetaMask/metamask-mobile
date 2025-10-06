@@ -44,23 +44,35 @@ describe(SmokeRewards('Rewards Feature Test'), () => {
           },
         );
         await RewardsView.tapRewardActivityTabButton();
-        await Assertions.expectTextDisplayed('Sign up bonus');
-        await Assertions.expectTextDisplayed('+250');
-        await Assertions.expectElementToContainText(
+        await Assertions.expectElementToHaveText(
+          RewardsActivityTabView.signUpBonusTitle,
+          'Sign up bonus',
+          {
+            description: 'Sign up bonus title should have correct text',
+          },
+        );
+        await Assertions.expectElementToHaveText(
+          RewardsActivityTabView.signUpBonusValue,
+          '+250',
+          {
+            description: 'Sign up bonus value should have correct text',
+          },
+        );
+        await Assertions.expectElementToHaveText(
           RewardsView.seasonStatusLevel,
           'Level 1',
           {
             description: 'Season status level should have correct text',
           },
         );
-        await Assertions.expectElementToContainText(
+        await Assertions.expectElementToHaveText(
           RewardsView.seasonStatusTierName,
           'Origin',
           {
             description: 'Season status tier name should have correct text',
           },
         );
-        await Assertions.expectElementToContainText(
+        await Assertions.expectElementToHaveText(
           RewardsView.seasonStatusPoints,
           '250',
           {
