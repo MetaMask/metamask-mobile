@@ -172,7 +172,6 @@ export interface GetPointsEventsLastUpdatedDto {
 export interface PaginatedPointsEventsDto {
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
   results: PointsEventDto[];
 }
 
@@ -584,7 +583,6 @@ export type PointsEventsDtoState = {
   }[];
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
   lastFetched: number;
 };
 
