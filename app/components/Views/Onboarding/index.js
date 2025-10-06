@@ -15,11 +15,7 @@ import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
