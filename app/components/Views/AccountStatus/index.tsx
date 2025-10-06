@@ -144,7 +144,7 @@ const AccountStatus = ({
 
   const descriptionForFoundTypeAccountStatus = useCallback(() => {
     if (Platform.OS === 'ios') {
-      return 'account_status.account_already_exists_ios_new_userd_escription';
+      return 'account_status.account_already_exists_ios_new_user_description';
     }
     return 'account_status.account_already_exists_description';
   }, []);

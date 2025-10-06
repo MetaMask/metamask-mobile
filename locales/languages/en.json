@@ -5515,7 +5515,7 @@
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
     "use_different_login_method": "Use a different login method",
-    "account_already_exists_ios_new_userd_escription": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
     "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
