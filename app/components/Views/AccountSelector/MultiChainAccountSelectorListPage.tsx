@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import Engine from '../../../core/Engine';
@@ -30,7 +30,10 @@ import {
   JustifyContent,
 } from '../../UI/Box/box.types';
 import Text from '../../../component-library/components/Texts/Text';
-// import MultichainAddWalletActions from '../../../component-library/components-temp/MultichainAccounts/MultichainAddWalletActions/MultichainAddWalletActions';
+import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 
 export const createMultichainAccountSelectorListPageNavigationDetails =
   createNavigationDetails(
@@ -42,6 +45,8 @@ const MultiChainAccountSelectorListPage = () => {
   const navigation = useNavigation();
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const { styles } = useStyles(styleSheet, {});
+  const [showAddWalletActions, setShowAddWalletActions] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const {
     isAccountSyncingInProgress,
@@ -55,15 +60,17 @@ const MultiChainAccountSelectorListPage = () => {
     return strings('multichain_accounts.add_wallet');
   }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
 
-  const handleAddAccount = () => {
-    // eslint-disable-next-line no-console
-    console.log('handleAddAccount');
-  };
+  const handleAddAccount = useCallback(() => {
+    setShowAddWalletActions(true);
+  }, []);
 
-  // const renderMultichainAddWalletActions = useCallback(
-  //   () => <MultichainAddWalletActions onBack={} />,
-  //   [],
-  // );
+  const handleCloseAddWalletActions = useCallback(() => {
+    setShowAddWalletActions(false);
+  }, []);
+
+  const handleBackFromAddWalletActions = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const _onSelectMultichainAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
@@ -82,46 +89,59 @@ const MultiChainAccountSelectorListPage = () => {
     [],
   );
   return selectedAccountGroup ? (
-    <SafeAreaView style={styles.container}>
-      <HeaderBase
-        style={styles.header}
-        startAccessory={
-          <ButtonLink
-            // testID={WalletDetailsIds.BACK_BUTTON}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-          />
-        }
-      >
-        {strings('accounts.accounts_title')}
-      </HeaderBase>
-      <MultichainAccountSelectorList
-        onSelectAccount={_onSelectMultichainAccount}
-        selectedAccountGroups={[selectedAccountGroup]}
-        // testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-        // setKeyboardAvoidingViewEnabled={}
-      />
-      <View style={styles.footer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          isDisabled={isAccountSyncingInProgress}
-          style={styles.button}
-          label={
-            <Box
-              alignItems={AlignItems.center}
-              justifyContent={JustifyContent.center}
-              flexDirection={FlexDirection.Row}
-              gap={8}
-            >
-              {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
-              <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
-            </Box>
+    <>
+      <SafeAreaView style={styles.container}>
+        <HeaderBase
+          style={styles.header}
+          startAccessory={
+            <ButtonLink
+              // testID={WalletDetailsIds.BACK_BUTTON}
+              labelTextVariant={TextVariant.BodyMDMedium}
+              label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+              onPress={() => navigation.goBack()}
+            />
           }
-          onPress={handleAddAccount}
+        >
+          {strings('accounts.accounts_title')}
+        </HeaderBase>
+        <MultichainAccountSelectorList
+          onSelectAccount={_onSelectMultichainAccount}
+          selectedAccountGroups={[selectedAccountGroup]}
+          // testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+          // setKeyboardAvoidingViewEnabled={}
         />
-      </View>
-    </SafeAreaView>
+        <View style={styles.footer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            isDisabled={isAccountSyncingInProgress}
+            style={styles.button}
+            label={
+              <Box
+                alignItems={AlignItems.center}
+                justifyContent={JustifyContent.center}
+                flexDirection={FlexDirection.Row}
+                gap={8}
+              >
+                {isAccountSyncingInProgress && (
+                  <ActivityIndicator size="small" />
+                )}
+                <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
+              </Box>
+            }
+            onPress={handleAddAccount}
+          />
+        </View>
+      </SafeAreaView>
+      {showAddWalletActions ? (
+        <BottomSheet
+          ref={bottomSheetRef}
+          onClose={handleCloseAddWalletActions}
+          shouldNavigateBack={false}
+        >
+          <MultichainAddWalletActions onBack={handleBackFromAddWalletActions} />
+        </BottomSheet>
+      ) : null}
+    </>
   ) : null;
 };
 
