@@ -86,6 +86,8 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
+  public rehydrateLogs: string[] = [];
+
   private async dispatchLogin(
     options: {
       clearAccountTreeState: boolean;
@@ -811,7 +813,7 @@ class AuthenticationService {
             secret.data,
             wordlist,
           );
-          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+          const mnemonicToRestore = encodedSrp.toString('utf8');
 
           // import the new mnemonic to the current vault
           const keyringMetadata = await this.importSeedlessMnemonicToVault(
@@ -838,9 +840,8 @@ class AuthenticationService {
   importSeedlessMnemonicToVault = async (
     mnemonic: string,
   ): Promise<KeyringMetadata> => {
-    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
-    );
+    const isSeedlessOnboardingFlow =
+      Engine.context.SeedlessOnboardingController.state.vault != null;
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
@@ -1016,6 +1017,9 @@ class AuthenticationService {
         });
       }
 
+      this.rehydrateLogs.push(
+        `rehydrateSeedPhrase: ${JSON.stringify(allSRPs)}`,
+      );
       if (allSRPs.length > 0) {
         const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
         if (!firstSeedPhrase?.data) {
@@ -1030,18 +1034,36 @@ class AuthenticationService {
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
+              this.rehydrateLogs.push(
+                `rehydrateSeedPhrase: ${JSON.stringify(item.data)}`,
+              );
+              this.rehydrateLogs.push(
+                `rehydrateSeedPhrase: ${JSON.stringify(item.type)}`,
+              );
+              this.rehydrateLogs.push(
+                `rehydrateSeedPhrase: ${JSON.stringify(item.version)}`,
+              );
               // add new private key
               if (item.type === SecretType.PrivateKey) {
+                this.rehydrateLogs.push(
+                  `rehydrateSeedPhrase: pushed private key}`,
+                );
                 await this.importAccountFromPrivateKey(bytesToHex(item.data), {
                   shouldCreateSocialBackup: false,
                   shouldSelectAccount: false,
                 });
               } else if (item.type === SecretType.Mnemonic) {
+                this.rehydrateLogs.push(
+                  `rehydrateSeedPhrase: pushed mnemonic}`,
+                );
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
                 const keyringMetadata =
                   await this.importSeedlessMnemonicToVault(mnemonic);
                 keyringMetadataList.push(keyringMetadata);
               } else {
+                this.rehydrateLogs.push(
+                  `rehydrateSeedPhrase: pushed unknown secret type}`,
+                );
                 Logger.error(
                   new Error(
                     'SeedlessOnboardingController : Unknown secret type',
@@ -1050,6 +1072,11 @@ class AuthenticationService {
                 );
               }
             } catch (error) {
+              this.rehydrateLogs.push(
+                `rehydrateSeedPhrase ERROR: ${JSON.stringify(
+                  (error as Error).message,
+                )}`,
+              );
               // catch error to prevent unable to login
               Logger.error(
                 error as Error,
@@ -1077,6 +1104,7 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
+      this.rehydrateLogs.push(`rehydrateSeedPhrase: ${JSON.stringify(error)}`);
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
       throw error;
