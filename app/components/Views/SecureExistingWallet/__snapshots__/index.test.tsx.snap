@@ -140,7 +140,7 @@ exports[`SecureExistingWallet renders match snapshot 1`] = `
             }
           }
         >
-          Unlock your wallet
+          Unlock wallet
         </Text>
       </TouchableOpacity>
     </View>
@@ -172,7 +172,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
         "flexDirection": "column",
         "justifyContent": "space-between",
         "paddingHorizontal": 20,
-        "rowGap": 16,
+        "rowGap": 24,
         "width": "100%",
       }
     }
@@ -184,7 +184,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
           "flex": 1,
           "flexDirection": "column",
           "justifyContent": "center",
-          "rowGap": 24,
+          "rowGap": 32,
           "width": "100%",
         }
       }
@@ -194,12 +194,12 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
           {
             "alignItems": "center",
             "display": "flex",
-            "height": 180,
+            "height": 240,
             "justifyContent": "center",
             "marginHorizontal": "auto",
             "marginTop": 16,
-            "padding": 30,
-            "width": 180,
+            "padding": 40,
+            "width": 240,
           }
         }
       >
@@ -219,8 +219,8 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
           style={
             {
               "alignSelf": "center",
-              "height": 180,
-              "width": 180,
+              "height": 240,
+              "width": 240,
             }
           }
           textFiltersAndroid={[]}
@@ -249,7 +249,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
         {
           "flexDirection": "column",
           "marginBottom": 16,
-          "rowGap": 12,
+          "rowGap": 16,
           "width": "100%",
         }
       }
@@ -288,7 +288,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
             }
           }
         >
-          Unlock your wallet
+          Unlock wallet
         </Text>
       </TouchableOpacity>
     </View>
