@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import Engine from '../../../core/Engine';
@@ -18,6 +18,19 @@ import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
+import { ActivityIndicator, View } from 'react-native';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
+import { Box } from '../../UI/Box/Box';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../UI/Box/box.types';
+import Text from '../../../component-library/components/Texts/Text';
+// import MultichainAddWalletActions from '../../../component-library/components-temp/MultichainAccounts/MultichainAddWalletActions/MultichainAddWalletActions';
 
 export const createMultichainAccountSelectorListPageNavigationDetails =
   createNavigationDetails(
@@ -29,6 +42,28 @@ const MultiChainAccountSelectorListPage = () => {
   const navigation = useNavigation();
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const { styles } = useStyles(styleSheet, {});
+
+  const {
+    isAccountSyncingInProgress,
+    loadingMessage: accountOperationLoadingMessage,
+  } = useAccountsOperationsLoadingStates();
+
+  const buttonLabel = useMemo(() => {
+    if (isAccountSyncingInProgress) {
+      return accountOperationLoadingMessage;
+    }
+    return strings('multichain_accounts.add_wallet');
+  }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
+
+  const handleAddAccount = () => {
+    // eslint-disable-next-line no-console
+    console.log('handleAddAccount');
+  };
+
+  // const renderMultichainAddWalletActions = useCallback(
+  //   () => <MultichainAddWalletActions onBack={} />,
+  //   [],
+  // );
 
   const _onSelectMultichainAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
@@ -67,6 +102,25 @@ const MultiChainAccountSelectorListPage = () => {
         // testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         // setKeyboardAvoidingViewEnabled={}
       />
+      <View style={styles.footer}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          isDisabled={isAccountSyncingInProgress}
+          style={styles.button}
+          label={
+            <Box
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.center}
+              flexDirection={FlexDirection.Row}
+              gap={8}
+            >
+              {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
+              <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
+            </Box>
+          }
+          onPress={handleAddAccount}
+        />
+      </View>
     </SafeAreaView>
   ) : null;
 };

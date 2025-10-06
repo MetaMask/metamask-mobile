@@ -17,6 +17,15 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       margin: 16,
     },
+    footer: {
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      marginVertical: 16,
+      marginHorizontal: 16,
+    },
+    button: { flex: 1 },
   });
 };
 
