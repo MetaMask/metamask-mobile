@@ -142,7 +142,7 @@ export enum TraceName {
   PerpsMarketDataUpdate = 'Perps Market Data Update',
   PerpsAccountStateUpdate = 'Perps Account State Update',
   PerpsOrderView = 'Perps Order View',
-  PerpsPositionsView = 'Perps Positions View',
+  PerpsTabView = 'Perps Tab View',
   PerpsMarketListView = 'Perps Market List View',
   PerpsPositionDetailsView = 'Perps Position Details View',
   PerpsWebSocketConnected = 'Perps WebSocket Connected',

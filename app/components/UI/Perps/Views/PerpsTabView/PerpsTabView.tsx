@@ -63,7 +63,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   // Track Perps tab load performance - measures time from tab mount to data ready
   usePerpsMeasurement({
-    traceName: TraceName.PerpsPositionsView,
+    traceName: TraceName.PerpsTabView,
     conditions: [
       !isInitialLoading,
       !!positions,
