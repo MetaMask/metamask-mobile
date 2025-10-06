@@ -1861,19 +1861,28 @@ export class PerpsController extends BaseController<
    * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-
-    trace({
-      name: TraceName.PerpsWithdraw,
-      op: TraceOperation.PerpsOperation,
-      tags: {
-        assetId: params.assetId || '',
-        provider: this.state.activeProvider,
-        isTestnet: this.state.isTestnet,
-      },
-    });
+    let traceData:
+      | {
+          success: boolean;
+          error?: string;
+          txHash?: string;
+          withdrawalId?: string;
+        }
+      | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsWithdraw,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          assetId: params.assetId || '',
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
       DevLogger.log('PerpsController: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
@@ -1951,14 +1960,11 @@ export class PerpsController extends BaseController<
           });
         });
 
-        endTrace({
-          name: TraceName.PerpsWithdraw,
-          data: {
-            success: true,
-            txHash: result.txHash || '',
-            withdrawalId: result.withdrawalId || '',
-          },
-        });
+        traceData = {
+          success: true,
+          txHash: result.txHash || '',
+          withdrawalId: result.withdrawalId || '',
+        };
 
         return result;
       }
@@ -1994,13 +2000,10 @@ export class PerpsController extends BaseController<
           .build(),
       );
 
-      endTrace({
-        name: TraceName.PerpsWithdraw,
-        data: {
-          success: false,
-          error: result.error || 'Unknown error',
-        },
-      });
+      traceData = {
+        success: false,
+        error: result.error || 'Unknown error',
+      };
 
       return result;
     } catch (error) {
@@ -2042,15 +2045,18 @@ export class PerpsController extends BaseController<
           .build(),
       );
 
-      endTrace({
-        name: TraceName.PerpsWithdraw,
-        data: {
-          success: false,
-          error: errorMessage,
-        },
-      });
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
 
       return { success: false, error: errorMessage };
+    } finally {
+      endTrace({
+        name: TraceName.PerpsWithdraw,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -2058,20 +2064,22 @@ export class PerpsController extends BaseController<
    * Get current positions
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
-    const startTime = performance.now();
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetPositions,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
       const positions = await provider.getPositions(params);
-
-      const completionDuration = performance.now() - startTime;
-
-      // Record operation duration as measurement
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
 
       // Only update state if the provider call succeeded
       this.update((state) => {
@@ -2079,17 +2087,9 @@ export class PerpsController extends BaseController<
         state.lastError = null; // Clear any previous errors
       });
 
+      traceData = { success: true };
       return positions;
     } catch (error) {
-      const completionDuration = performance.now() - startTime;
-
-      // Record operation duration as measurement even on failure
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
-
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -2101,8 +2101,19 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetPositions,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -2110,36 +2121,76 @@ export class PerpsController extends BaseController<
    * Get historical user fills (trade executions)
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
-    const startTime = performance.now();
-    const provider = this.getActiveProvider();
-    const result = await provider.getOrderFills(params);
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
-    const completionDuration = performance.now() - startTime;
-    setMeasurement(
-      PerpsMeasurementName.PERPS_GET_ORDER_FILLS_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
+    try {
+      trace({
+        name: TraceName.PerpsOrderFillsFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
 
-    return result;
+      const provider = this.getActiveProvider();
+      const result = await provider.getOrderFills(params);
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsOrderFillsFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Get historical user orders (order lifecycle)
    */
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
-    const startTime = performance.now();
-    const provider = this.getActiveProvider();
-    const result = await provider.getOrders(params);
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
-    const completionDuration = performance.now() - startTime;
-    setMeasurement(
-      PerpsMeasurementName.PERPS_GET_ORDERS_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
+    try {
+      trace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
 
-    return result;
+      const provider = this.getActiveProvider();
+      const result = await provider.getOrders(params);
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
@@ -2164,27 +2215,58 @@ export class PerpsController extends BaseController<
    * Get historical user funding history (funding payments)
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
-    const startTime = performance.now();
-    const provider = this.getActiveProvider();
-    const result = await provider.getFunding(params);
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
-    const completionDuration = performance.now() - startTime;
-    setMeasurement(
-      PerpsMeasurementName.PERPS_GET_FUNDING_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
+    try {
+      trace({
+        name: TraceName.PerpsFundingFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
 
-    return result;
+      const provider = this.getActiveProvider();
+      const result = await provider.getFunding(params);
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsFundingFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
    * Get account state (balances, etc.)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
-    const startTime = performance.now();
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetAccountState,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
 
       // Get both current account state and historical portfolio data
@@ -2199,15 +2281,6 @@ export class PerpsController extends BaseController<
           return;
         }),
       ]);
-
-      const completionDuration = performance.now() - startTime;
-
-      // Record operation duration as measurement
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_ACCOUNT_STATE_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
 
       // Add safety check for accountState to prevent TypeError
       if (!accountState) {
@@ -2246,17 +2319,9 @@ export class PerpsController extends BaseController<
       });
       DevLogger.log('PerpsController: Redux store updated successfully');
 
+      traceData = { success: true };
       return accountState;
     } catch (error) {
-      const completionDuration = performance.now() - startTime;
-
-      // Record operation duration as measurement even on failure
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_ACCOUNT_STATE_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
-
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -2268,8 +2333,19 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetAccountState,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -2279,31 +2355,29 @@ export class PerpsController extends BaseController<
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {
-    const startTime = performance.now();
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetHistoricalPortfolio,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
       const result = await provider.getHistoricalPortfolio(params);
-
-      const completionDuration = performance.now() - startTime;
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_HISTORICAL_PORTFOLIO_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
 
       // Return the result without storing it in state
       // Historical data can be fetched when needed
 
+      traceData = { success: true };
       return result;
     } catch (error) {
-      const completionDuration = performance.now() - startTime;
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_HISTORICAL_PORTFOLIO_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
-
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -2315,8 +2389,19 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetHistoricalPortfolio,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -2324,20 +2409,22 @@ export class PerpsController extends BaseController<
    * Get available markets with optional filtering
    */
   async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
-    const startTime = performance.now();
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      trace({
+        name: TraceName.PerpsGetMarkets,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       const provider = this.getActiveProvider();
       const allMarkets = await provider.getMarkets();
-
-      const completionDuration = performance.now() - startTime;
-
-      // Record operation duration as measurement
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_MARKETS_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -2353,20 +2440,13 @@ export class PerpsController extends BaseController<
           ),
         );
 
+        traceData = { success: true };
         return filtered;
       }
 
+      traceData = { success: true };
       return allMarkets;
     } catch (error) {
-      const completionDuration = performance.now() - startTime;
-
-      // Record operation duration as measurement even on failure
-      setMeasurement(
-        PerpsMeasurementName.PERPS_GET_MARKETS_OPERATION,
-        completionDuration,
-        'millisecond',
-      );
-
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -2378,8 +2458,19 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsGetMarkets,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 
@@ -2391,7 +2482,22 @@ export class PerpsController extends BaseController<
     interval: CandlePeriod,
     limit: number = 100,
   ): Promise<CandleData> {
+    const traceId = uuidv4();
+    let traceData: { success: boolean; error?: string } | undefined;
+
     try {
+      trace({
+        name: TraceName.PerpsFetchHistoricalCandles,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+          coin,
+          interval,
+        },
+      });
+
       const provider = this.getActiveProvider() as IPerpsProvider & {
         clientService?: {
           fetchHistoricalCandles: (
@@ -2404,11 +2510,14 @@ export class PerpsController extends BaseController<
 
       // Check if provider has a client service with fetchHistoricalCandles
       if (provider.clientService?.fetchHistoricalCandles) {
-        return await provider.clientService.fetchHistoricalCandles(
+        const result = await provider.clientService.fetchHistoricalCandles(
           coin,
           interval,
           limit,
         );
+
+        traceData = { success: true };
+        return result;
       }
 
       // Fallback: throw error if method not available
@@ -2425,8 +2534,19 @@ export class PerpsController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      traceData = {
+        success: false,
+        error: errorMessage,
+      };
+
       // Re-throw the error so components can handle it appropriately
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsFetchHistoricalCandles,
+        id: traceId,
+        data: traceData,
+      });
     }
   }
 

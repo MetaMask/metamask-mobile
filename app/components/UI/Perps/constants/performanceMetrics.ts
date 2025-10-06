@@ -43,13 +43,7 @@ export enum PerpsMeasurementName {
 
   // Data Fetch Operation Metrics (milliseconds)
   PERPS_GET_POSITIONS_OPERATION = 'perps_get_positions_operation',
-  PERPS_GET_ACCOUNT_STATE_OPERATION = 'perps_get_account_state_operation',
-  PERPS_GET_MARKETS_OPERATION = 'perps_get_markets_operation',
-  PERPS_GET_ORDER_FILLS_OPERATION = 'perps_get_order_fills_operation',
-  PERPS_GET_ORDERS_OPERATION = 'perps_get_orders_operation',
   PERPS_GET_OPEN_ORDERS_OPERATION = 'perps_get_open_orders_operation',
-  PERPS_GET_FUNDING_OPERATION = 'perps_get_funding_operation',
-  PERPS_GET_HISTORICAL_PORTFOLIO_OPERATION = 'perps_get_historical_portfolio_operation',
 
   // Connection Sub-Stage Metrics (milliseconds)
   PERPS_PROVIDER_INIT = 'perps_provider_init',

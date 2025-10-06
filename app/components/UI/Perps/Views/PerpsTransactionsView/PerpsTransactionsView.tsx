@@ -61,12 +61,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
 
-  // Track screen load performance with new unified hook
-  usePerpsMeasurement({
-    traceName: TraceName.PerpsAccountStateUpdate,
-    conditions: [flatListData.length > 0],
-  });
-
   const { isConnected, isConnecting } = usePerpsConnection();
 
   // Use new hooks for data fetching
@@ -401,6 +395,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       isConnecting || fillsLoading || ordersLoading || fundingLoading,
     [isConnecting, fillsLoading, ordersLoading, fundingLoading],
   );
+
+  // Track screen load performance - measures time until all data is loaded and UI is interactive
+  // Only measures once per session (no reset on refresh/tab switch)
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsTransactionsView,
+    conditions: [!isInitialLoading],
+    resetConditions: [], // Prevent automatic reset on subsequent loads
+  });
 
   // Determine if we should show empty state (only after loading is complete and no data)
   const shouldShowEmptyState = useMemo(() => {
