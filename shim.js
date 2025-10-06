@@ -1,6 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
-import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
@@ -46,14 +45,6 @@ if (isTest) {
     : FIXTURE_SERVER_PORT;
 }
 
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
-}
-
 // Fix for https://github.com/facebook/react-native/issues/5667
 if (typeof global.self === 'undefined') {
   global.self = global;
@@ -74,6 +65,9 @@ if (typeof process === 'undefined') {
   }
 }
 
+// Use faster Buffer implementation for React Native
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+
 // Polyfill crypto after process is polyfilled
 const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
 
@@ -86,7 +80,6 @@ global.crypto = {
 };
 
 process.browser = false;
-if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
 if (

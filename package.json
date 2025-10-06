@@ -340,7 +340,6 @@
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.8.2",
-    "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "bitcoin-address-validation": "2.2.3",
     "bnjs4": "npm:bn.js@^4.12.0",

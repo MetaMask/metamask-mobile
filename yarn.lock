@@ -21574,13 +21574,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-64@npm:1.0.0":
-  version: 1.0.0
-  resolution: "base-64@npm:1.0.0"
-  checksum: d10b64a1fc9b2c5a5f39f1ce1e6c9d1c5b249222bbfa3a0604c592d90623caf74419983feadd8a170f27dc0c3389704f72faafa3e645aeb56bfc030c93ff074a
-  languageName: node
-  linkType: hard
-
 "base-x@npm:^1.1.0, base-x@npm:^3.0.2, base-x@npm:^3.0.8":
   version: 3.0.11
   resolution: "base-x@npm:3.0.11"
@@ -34243,7 +34236,6 @@ __metadata:
     babel-plugin-react-compiler: ^19.1.0-rc.2
     babel-plugin-transform-inline-environment-variables: ^0.4.4
     babel-plugin-transform-remove-console: 6.9.4
-    base-64: 1.0.0
     base64-js: ^1.5.1
     bignumber.js: ^9.0.1
     bitcoin-address-validation: 2.2.3
