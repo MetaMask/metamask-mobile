@@ -27,9 +27,11 @@ import {
 // Mock the static image component
 jest.mock('./OnboardingSuccessAnimation', () => {
   const MockReact = jest.requireActual('react');
-  return MockReact.forwardRef(() => MockReact.createElement('View', {
+  return MockReact.forwardRef(() =>
+    MockReact.createElement('View', {
       testID: 'onboarding-success-static-image-mock',
-    }));
+    }),
+  );
 });
 
 let mockIsE2EValue = false;
@@ -407,26 +409,6 @@ describe('OnboardingSuccess', () => {
       expect(
         getByText(strings('onboarding_success.wallet_ready')),
       ).toBeOnTheScreen();
-    });
-
-    it('hides buttons for social login even when showButtons is true', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { queryByTestId } = renderWithProvider(
-        <OnboardingSuccessComponent
-          onDone={jest.fn()}
-          _successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
-        />,
-      );
-
-      expect(
-        queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeNull();
-      expect(
-        queryByTestId(
-          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
-        ),
-      ).toBeNull();
     });
   });
 

@@ -29,8 +29,7 @@ import Text, {
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
@@ -57,8 +56,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     () => createStyles(colors, isDarkMode),
     [colors, isDarkMode],
   );
-
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -112,10 +109,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     ],
   );
 
-  const renderButtons = useCallback(() => {
-    if (isSocialLogin) return null;
-
-    return (
+  const renderButtons = useCallback(() => (
       <View style={styles.buttonContainer}>
         <Button
           testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
@@ -126,13 +120,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           width={ButtonWidthTypes.Full}
         />
       </View>
-    );
-  }, [isSocialLogin, styles.buttonContainer, handleOnDone]);
+    ), [styles.buttonContainer, handleOnDone]);
 
-  const renderFooter = () => {
-    if (isSocialLogin) return null;
-
-    return (
+  const renderFooter = () => (
       <View style={styles.footerWrapper}>
         <TouchableOpacity
           style={styles.footerLink}
@@ -145,7 +135,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         </TouchableOpacity>
       </View>
     );
-  };
 
   return (
     <ScrollView

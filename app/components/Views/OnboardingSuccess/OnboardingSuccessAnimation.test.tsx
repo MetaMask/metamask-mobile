@@ -58,7 +58,6 @@ jest.mock('./OnboardingSuccessAnimation.styles', () =>
   })),
 );
 
-// Import the component after all mocks are set up
 import OnboardingSuccessAnimation from './OnboardingSuccessAnimation';
 
 describe('OnboardingSuccessAnimation', () => {
@@ -117,7 +116,7 @@ describe('OnboardingSuccessAnimation', () => {
       />,
     );
 
-    // Assert - Component should render without crashing
+    // Assert - Component render without crashing
     expect(mockOnAnimationComplete).not.toHaveBeenCalled();
   });
 
@@ -136,7 +135,7 @@ describe('OnboardingSuccessAnimation', () => {
     // Assert - Advance timer to trigger dots animation
     jest.advanceTimersByTime(500);
 
-    // Component should still be running (not crashed)
+    // Component should still be running
     expect(mockOnAnimationComplete).not.toHaveBeenCalled();
   });
 
@@ -152,13 +151,13 @@ describe('OnboardingSuccessAnimation', () => {
       />,
     );
 
-    // Assert - Test dots cycling: . -> .. -> ... -> .
-    jest.advanceTimersByTime(500); // dotsCount: 1 -> 2
-    jest.advanceTimersByTime(500); // dotsCount: 2 -> 3
-    jest.advanceTimersByTime(500); // dotsCount: 3 -> 1
-    jest.advanceTimersByTime(500); // dotsCount: 1 -> 2
+    // Assert - Test dots cycling
+    jest.advanceTimersByTime(500);
+    jest.advanceTimersByTime(500);
+    jest.advanceTimersByTime(500);
+    jest.advanceTimersByTime(500);
 
-    // Animation should continue running
+    // Animation continue running
     expect(mockOnAnimationComplete).not.toHaveBeenCalled();
   });
 
@@ -174,12 +173,8 @@ describe('OnboardingSuccessAnimation', () => {
       />,
     );
 
-    // Advance timer to trigger Rive animation start (100ms delay)
     jest.advanceTimersByTime(100);
 
-    // Assert - Component should render and start animation without crashing
-    // We can't easily test the internal Rive calls due to mocking complexity,
-    // but we can verify the component doesn't crash and behaves correctly
     expect(mockOnAnimationComplete).not.toHaveBeenCalled();
 
     // Verify dots animation is working
@@ -210,7 +205,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Assert - Component should render with dark theme
     expect(toJSON()).not.toBeNull();
 
-    // Advance timers to ensure component works correctly
     jest.advanceTimersByTime(100);
     jest.advanceTimersByTime(500);
 
@@ -229,9 +223,8 @@ describe('OnboardingSuccessAnimation', () => {
       />,
     );
 
-    // Advance timers to simulate normal operation
-    jest.advanceTimersByTime(100); // Rive animation start delay
-    jest.advanceTimersByTime(500); // First dots animation cycle
+    jest.advanceTimersByTime(100);
+    jest.advanceTimersByTime(500);
 
     // Assert - Component should handle all operations without errors
     expect(toJSON()).not.toBeNull();
@@ -256,7 +249,6 @@ describe('OnboardingSuccessAnimation', () => {
 
     unmount();
 
-    // Assert - Should not crash when running timers after unmount
     jest.runAllTimers();
     expect(mockOnAnimationComplete).not.toHaveBeenCalled();
   });
@@ -283,7 +275,7 @@ describe('OnboardingSuccessAnimation', () => {
       />,
     );
 
-    // Assert - Component should render with themed colors
+    // Assert - Component render with themed colors
     expect(toJSON()).not.toBeNull();
   });
 
@@ -302,5 +294,56 @@ describe('OnboardingSuccessAnimation', () => {
     // Assert - Should have the expected component structure
     const tree = toJSON();
     expect(tree).toMatchSnapshot();
+  });
+
+  it('calculates responsive dimensions correctly', () => {
+    // Arrange
+    const mockDimensions = {
+      width: 400,
+      height: 800,
+    };
+
+    const mockGet = jest.fn().mockReturnValue(mockDimensions);
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    require('react-native').Dimensions.get = mockGet;
+
+    const mockOnAnimationComplete = jest.fn();
+
+    // Act
+    render(
+      <OnboardingSuccessAnimation
+        startAnimation
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
+    );
+
+    // Assert
+    expect(mockGet).toHaveBeenCalledWith('window');
+  });
+
+  it('handles dots count edge cases correctly', () => {
+    // Arrange
+    const mockOnAnimationComplete = jest.fn();
+
+    // Act
+    render(
+      <OnboardingSuccessAnimation
+        startAnimation
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
+    );
+
+    jest.advanceTimersByTime(0);
+
+    jest.advanceTimersByTime(500);
+
+    jest.advanceTimersByTime(500);
+
+    jest.advanceTimersByTime(500);
+
+    jest.advanceTimersByTime(500);
+
+    // Assert - Component should handle the cycling without crashing
+    expect(mockOnAnimationComplete).not.toHaveBeenCalled();
   });
 });

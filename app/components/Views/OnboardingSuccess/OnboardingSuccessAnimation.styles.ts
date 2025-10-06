@@ -1,28 +1,38 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const createStyles = (colors: Theme['colors']) =>
+interface ScreenDimensions {
+  screenWidth: number;
+  screenHeight: number;
+  animationHeight: number;
+}
+
+const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
   StyleSheet.create({
     animationContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colors.background.default,
-      paddingTop: 80,
-      paddingBottom: 140,
     },
     animationWrapper: {
-      flex: 1,
+      width: dimensions.screenWidth,
+      height: dimensions.animationHeight,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: colors.background.default,
     },
     textWrapper: {
       justifyContent: 'flex-end',
+      marginTop: 40,
+      width: dimensions.screenWidth,
+      paddingHorizontal: 20,
     },
     riveAnimation: {
-      width: 360,
-      height: 360,
+      width: dimensions.screenWidth,
+      height: dimensions.animationHeight,
       alignSelf: 'center',
+      backgroundColor: colors.background.default,
     },
     textOverlay: {
       position: 'absolute',

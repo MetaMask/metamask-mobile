@@ -5,7 +5,7 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { View } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import Rive, { RiveRef, Fit, Alignment } from 'rive-react-native';
 import { useTheme } from '../../../util/theme';
 import createStyles from './OnboardingSuccessAnimation.styles.ts';
@@ -27,7 +27,20 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 }) => {
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
-  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const screenDimensions = useMemo(() => {
+    const { width, height } = Dimensions.get('window');
+    return {
+      screenWidth: width,
+      screenHeight: height,
+      animationHeight: height * 0.6,
+    };
+  }, []);
+
+  const styles = useMemo(
+    () => createStyles(colors, screenDimensions),
+    [colors, screenDimensions],
+  );
 
   const riveRef = useRef<RiveRef>(null);
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
@@ -49,7 +62,6 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 
   const startRiveAnimation = useCallback(() => {
     if (riveRef.current) {
-      // Add a small delay to ensure Rive is loaded
       setTimeout(() => {
         if (riveRef.current) {
           try {
@@ -74,7 +86,6 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, []);
 
   useEffect(() => {
-    // Always start the animation and dots when component mounts
     startRiveAnimation();
     startDotsAnimation();
 
@@ -91,14 +102,14 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
           source={onboardingRiveFile}
           style={styles.riveAnimation}
           autoplay
-          fit={Fit.FitWidth}
+          fit={Fit.Cover}
           alignment={Alignment.Center}
         />
       </View>
       <View style={styles.textWrapper}>
         <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
           {`${strings(
-            'onboarding_success.setting_up_wallet',
+            'onboarding_success.setting_up_wallet_base',
           )}${renderAnimatedDots()}`}
         </Text>
       </View>
