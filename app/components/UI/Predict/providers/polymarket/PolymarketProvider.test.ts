@@ -4,6 +4,7 @@ import {
   Side,
   Recurrence,
   PredictPositionStatus,
+  PredictPriceHistoryInterval,
 } from '../../types';
 import {
   buildMarketOrderCreationArgs,
@@ -14,11 +15,13 @@ import {
   encodeErc1155Approve,
   getContractConfig,
   getL2Headers,
+  getMarketDetailsFromGammaApi,
   getMarketsFromPolymarketApi,
   getParsedMarketsFromPolymarketApi,
   getOrderTypedData,
   getPolymarketEndpoints,
   getTickSize,
+  parsePolymarketEvents,
   parsePolymarketPositions,
   priceValid,
   submitClobOrder,
@@ -26,15 +29,18 @@ import {
 import { SellOrderParams, type BuyOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import { OrderType } from './types';
+import { computeSafeAddress, createSafeFeeAuthorization } from './safe/utils';
 
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
+      getNetworkClientById: jest.fn(),
     },
     KeyringController: {
       signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
     },
   },
 }));
@@ -51,7 +57,7 @@ jest.mock('./utils', () => {
     })),
     getParsedMarketsFromPolymarketApi: jest.fn(),
     getMarketsFromPolymarketApi: jest.fn(),
-    getMarketFromPolymarketApi: jest.fn(),
+    getMarketDetailsFromGammaApi: jest.fn(),
     getTickSize: jest.fn(),
     calculateMarketPrice: jest.fn(),
     buildMarketOrderCreationArgs: jest.fn(),
@@ -61,6 +67,7 @@ jest.mock('./utils', () => {
     getContractConfig: jest.fn(),
     getL2Headers: jest.fn(),
     getOrderTypedData: jest.fn(),
+    parsePolymarketEvents: jest.fn(),
     parsePolymarketPositions: jest.fn(),
     priceValid: jest.fn(),
     createApiKey: jest.fn(),
@@ -69,13 +76,24 @@ jest.mock('./utils', () => {
   };
 });
 
+jest.mock('./safe/utils', () => ({
+  computeSafeAddress: jest.fn(),
+  createSafeFeeAuthorization: jest.fn(),
+}));
+
 const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.Mock;
+const mockGetNetworkClientById = Engine.context.NetworkController
+  .getNetworkClientById as jest.Mock;
 const mockSignTypedMessage = Engine.context.KeyringController
   .signTypedMessage as jest.Mock;
+const mockSignPersonalMessage = Engine.context.KeyringController
+  .signPersonalMessage as jest.Mock;
 const mockGetMarketsFromPolymarketApi =
   getParsedMarketsFromPolymarketApi as jest.Mock;
 const mockGetMarketFromPolymarketApi = getMarketsFromPolymarketApi as jest.Mock;
+const mockGetMarketDetailsFromGammaApi =
+  getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetTickSize = getTickSize as jest.Mock;
 const mockCalculateMarketPrice = calculateMarketPrice as jest.Mock;
 const mockBuildMarketOrderCreationArgs =
@@ -84,12 +102,15 @@ const mockEncodeApprove = encodeApprove as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
 const mockGetL2Headers = getL2Headers as jest.Mock;
 const mockGetOrderTypedData = getOrderTypedData as jest.Mock;
+const mockParsePolymarketEvents = parsePolymarketEvents as jest.Mock;
 const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
 const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockEncodeErc1155Approve = encodeErc1155Approve as jest.Mock;
+const mockComputeSafeAddress = computeSafeAddress as jest.Mock;
+const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const createProvider = () => new PolymarketProvider();
@@ -359,6 +380,7 @@ describe('PolymarketProvider', () => {
     const mockSigner = {
       address: mockAddress,
       signTypedMessage: mockSignTypedMessage,
+      signPersonalMessage: mockSignPersonalMessage,
     };
 
     const mockMarket = {
@@ -403,11 +425,30 @@ describe('PolymarketProvider', () => {
 
     // Setup default mocks
     mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+    mockGetNetworkClientById.mockReturnValue({
+      provider: {},
+    });
     mockSignTypedMessage.mockResolvedValue('0xsignature');
+    mockSignPersonalMessage.mockResolvedValue('0xpersonalsignature');
     mockCreateApiKey.mockResolvedValue({
       apiKey: 'test-api-key',
       secret: 'test-secret',
       passphrase: 'test-passphrase',
+    });
+    mockComputeSafeAddress.mockResolvedValue(
+      '0x9999999999999999999999999999999999999999',
+    );
+    mockCreateSafeFeeAuthorization.mockResolvedValue({
+      type: 'safe-transaction',
+      authorization: {
+        tx: {
+          to: '0xCollateralAddress',
+          operation: 0,
+          data: '0xdata',
+          value: '0',
+        },
+        sig: '0xsig',
+      },
     });
 
     mockGetTickSize.mockResolvedValue({
@@ -590,13 +631,223 @@ describe('PolymarketProvider', () => {
     });
   });
 
-  describe('getMarketDetails', () => {
-    it('throws error when method is not implemented', () => {
-      const provider = createProvider();
+  describe('prepareBuyOrder with Safe fee authorization', () => {
+    it('computes Safe address before creating order', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
 
-      expect(() =>
-        provider.getMarketDetails({ marketId: 'market-123' }),
-      ).toThrow('Method not implemented.');
+      await provider.prepareBuyOrder(orderParams);
+
+      expect(mockComputeSafeAddress).toHaveBeenCalledWith(mockSigner);
+    });
+
+    it('calculates 4% fee from maker amount', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      const expectedFeeAmount = (BigInt(1000000) * BigInt(4)) / BigInt(100);
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: expectedFeeAmount,
+        }),
+      );
+    });
+
+    it('creates fee authorization with correct parameters', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith({
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        signer: mockSigner,
+        amount: expect.any(BigInt),
+        to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+      });
+    });
+
+    it('includes feeAuthorization in offchainTradeParams', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      const result = await provider.prepareBuyOrder(orderParams);
+
+      expect(result.offchainTradeParams).toBeDefined();
+      expect(result.offchainTradeParams).toHaveProperty('feeAuthorization');
+      expect(result.offchainTradeParams?.feeAuthorization).toEqual({
+        type: 'safe-transaction',
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      });
+    });
+
+    it('uses FEE_COLLECTOR_ADDRESS as recipient', async () => {
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
+      const orderParams: BuyOrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        size: 1,
+      };
+
+      await provider.prepareBuyOrder(orderParams);
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+        }),
+      );
+    });
+  });
+
+  describe('submitOffchainTrade with fee authorization', () => {
+    it('passes feeAuthorization to submitClobOrder when provided', async () => {
+      const provider = createProvider();
+      jest.clearAllMocks();
+      mockSubmitClobOrder.mockResolvedValue({
+        success: true,
+        errorMsg: '',
+        makingAmount: '1000000',
+        orderID: 'order-123',
+        status: 'success',
+        takingAmount: '0',
+        transactionsHashes: [],
+      });
+
+      const feeAuth = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      const offchainTradeParams: OffchainTradeParams = {
+        clobOrder: {
+          order: {
+            maker: '0x123',
+            taker: '0x000',
+            tokenId: '0',
+            makerAmount: '1000000',
+            takerAmount: '0',
+            side: Side.BUY,
+            feeRateBps: '0',
+            nonce: '123',
+            expiration: '0',
+            signatureType: 0,
+            salt: 12345,
+            signature: '0xsignature',
+          },
+          owner: 'test-owner',
+          orderType: OrderType.FOK,
+        },
+        headers: {
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        },
+        feeAuthorization: feeAuth,
+      };
+
+      await provider.submitOffchainTrade(offchainTradeParams);
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
+        headers: offchainTradeParams.headers,
+        clobOrder: offchainTradeParams.clobOrder,
+        feeAuthorization: feeAuth,
+      });
+    });
+
+    it('handles undefined feeAuthorization', async () => {
+      const provider = createProvider();
+      jest.clearAllMocks();
+      mockSubmitClobOrder.mockResolvedValue({
+        success: true,
+        errorMsg: '',
+        makingAmount: '1000000',
+        orderID: 'order-123',
+        status: 'success',
+        takingAmount: '0',
+        transactionsHashes: [],
+      });
+
+      const offchainTradeParams: OffchainTradeParams = {
+        clobOrder: {
+          order: {
+            maker: '0x123',
+            taker: '0x000',
+            tokenId: '0',
+            makerAmount: '1000000',
+            takerAmount: '0',
+            side: Side.BUY,
+            feeRateBps: '0',
+            nonce: '123',
+            expiration: '0',
+            signatureType: 0,
+            salt: 12345,
+            signature: '0xsignature',
+          },
+          owner: 'test-owner',
+          orderType: OrderType.FOK,
+        },
+        headers: {
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        },
+      };
+
+      await provider.submitOffchainTrade(offchainTradeParams);
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith({
+        headers: offchainTradeParams.headers,
+        clobOrder: offchainTradeParams.clobOrder,
+        feeAuthorization: undefined,
+      });
     });
   });
 
@@ -674,6 +925,7 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).toHaveBeenCalledWith({
         headers: offchainTradeParams.headers,
         clobOrder: offchainTradeParams.clobOrder,
+        feeAuthorization: undefined,
       });
     });
 
@@ -989,6 +1241,358 @@ describe('PolymarketProvider', () => {
       const result = await provider.isEligible();
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('getMarketDetails', () => {
+    const mockEvent = {
+      id: 'market-1',
+      question: 'Will it rain tomorrow?',
+      markets: [
+        { outcome: 'YES', price: 0.6 },
+        { outcome: 'NO', price: 0.4 },
+      ],
+    };
+
+    const mockParsedMarket = {
+      id: 'market-1',
+      question: 'Will it rain tomorrow?',
+      outcomes: ['YES', 'NO'],
+      status: 'open',
+      providerId: 'polymarket',
+    };
+
+    it('get market details successfully', async () => {
+      const provider = createProvider();
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+      mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
+
+      const result = await provider.getMarketDetails({ marketId: 'market-1' });
+
+      expect(result).toEqual(mockParsedMarket);
+      expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+        marketId: 'market-1',
+      });
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [mockEvent],
+        'trending',
+      );
+    });
+
+    it('throw error when marketId is missing', async () => {
+      const provider = createProvider();
+
+      await expect(provider.getMarketDetails({ marketId: '' })).rejects.toThrow(
+        'marketId is required',
+      );
+
+      await expect(
+        provider.getMarketDetails({ marketId: null as unknown as string }),
+      ).rejects.toThrow('marketId is required');
+    });
+
+    it('throw error when getMarketDetailsFromGammaApi fails', async () => {
+      const provider = createProvider();
+      const errorMessage = 'API request failed';
+      mockGetMarketDetailsFromGammaApi.mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      await expect(
+        provider.getMarketDetails({ marketId: 'market-1' }),
+      ).rejects.toThrow(errorMessage);
+    });
+
+    it('throw error when parsePolymarketEvents returns empty array', async () => {
+      const provider = createProvider();
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await expect(
+        provider.getMarketDetails({ marketId: 'market-1' }),
+      ).rejects.toThrow('Failed to parse market details');
+    });
+
+    it('throw error when parsed market is undefined', async () => {
+      const provider = createProvider();
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+      mockParsePolymarketEvents.mockReturnValue([undefined]);
+
+      await expect(
+        provider.getMarketDetails({ marketId: 'market-1' }),
+      ).rejects.toThrow('Failed to parse market details');
+    });
+  });
+
+  describe('getPriceHistory', () => {
+    const mockHistoryData = {
+      history: [
+        { t: 1234567890, p: 0.45 },
+        { t: 1234567900, p: 0.47 },
+        { t: 1234567910, p: 0.49 },
+      ],
+    };
+
+    beforeEach(() => {
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('get price history successfully', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockHistoryData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([
+        { timestamp: 1234567890, price: 0.45 },
+        { timestamp: 1234567900, price: 0.47 },
+        { timestamp: 1234567910, price: 0.49 },
+      ]);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/prices-history?market=market-1',
+        { method: 'GET' },
+      );
+    });
+
+    it('include fidelity parameter in request', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockHistoryData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await provider.getPriceHistory({
+        marketId: 'market-1',
+        fidelity: 100,
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/prices-history?market=market-1&fidelity=100',
+        { method: 'GET' },
+      );
+    });
+
+    it('include interval parameter in request', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockHistoryData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await provider.getPriceHistory({
+        marketId: 'market-1',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/prices-history?market=market-1&interval=1h',
+        { method: 'GET' },
+      );
+    });
+
+    it('include both fidelity and interval parameters', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockHistoryData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      await provider.getPriceHistory({
+        marketId: 'market-1',
+        fidelity: 50,
+        interval: PredictPriceHistoryInterval.ONE_DAY,
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/prices-history?market=market-1&fidelity=50&interval=1d',
+        { method: 'GET' },
+      );
+    });
+
+    it('throw error when marketId is missing', async () => {
+      const provider = createProvider();
+
+      await expect(provider.getPriceHistory({ marketId: '' })).rejects.toThrow(
+        'marketId parameter is required',
+      );
+
+      await expect(
+        provider.getPriceHistory({ marketId: null as unknown as string }),
+      ).rejects.toThrow('marketId parameter is required');
+    });
+
+    it('return empty array when response is not ok', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('return empty array when fetch throws error', async () => {
+      const provider = createProvider();
+      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('return empty array when response has no history array', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('return empty array when history is not an array', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ history: 'not-an-array' }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('filter out entries with missing timestamp', async () => {
+      const provider = createProvider();
+      const mockData = {
+        history: [
+          { t: 1234567890, p: 0.45 },
+          { p: 0.47 }, // Missing timestamp
+          { t: 1234567910, p: 0.49 },
+        ],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([
+        { timestamp: 1234567890, price: 0.45 },
+        { timestamp: 1234567910, price: 0.49 },
+      ]);
+    });
+
+    it('filter out entries with missing price', async () => {
+      const provider = createProvider();
+      const mockData = {
+        history: [
+          { t: 1234567890, p: 0.45 },
+          { t: 1234567900 }, // Missing price
+          { t: 1234567910, p: 0.49 },
+        ],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([
+        { timestamp: 1234567890, price: 0.45 },
+        { timestamp: 1234567910, price: 0.49 },
+      ]);
+    });
+
+    it('filter out entries with non-numeric timestamp or price', async () => {
+      const provider = createProvider();
+      const mockData = {
+        history: [
+          { t: 1234567890, p: 0.45 },
+          { t: 'invalid', p: 0.47 },
+          { t: 1234567900, p: 'invalid' },
+          { t: null, p: 0.48 },
+          { t: 1234567910, p: null },
+          { t: 1234567920, p: 0.49 },
+        ],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([
+        { timestamp: 1234567890, price: 0.45 },
+        { timestamp: 1234567920, price: 0.49 },
+      ]);
+    });
+
+    it('return empty array when history has no valid entries', async () => {
+      const provider = createProvider();
+      const mockData = {
+        history: [{ t: 'invalid', p: 'invalid' }, { t: null, p: null }, {}],
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('handle JSON parsing error', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('handle empty history array', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ history: [] }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPriceHistory({ marketId: 'market-1' });
+
+      expect(result).toEqual([]);
     });
   });
 });
