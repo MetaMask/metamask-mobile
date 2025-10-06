@@ -1,19 +1,28 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../util/theme/models';
 
-const createStyles = () =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     animationContainer: {
       flex: 1,
-      alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 32,
-      marginHorizontal: -16,
-      minHeight: 400,
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+      paddingTop: 80,
+      paddingBottom: 140,
+    },
+    animationWrapper: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    textWrapper: {
+      justifyContent: 'flex-end',
     },
     riveAnimation: {
-      width: '100%',
-      height: '100%',
-      alignSelf: 'stretch',
+      width: 360,
+      height: 360,
+      alignSelf: 'center',
     },
     textOverlay: {
       position: 'absolute',
@@ -27,7 +36,11 @@ const createStyles = () =>
     },
     textTitle: {
       textAlign: 'center',
-      marginBottom: 12,
+      fontSize: 28,
+      fontWeight: '600',
+      color: colors.text.default,
+      lineHeight: 36,
+      paddingHorizontal: 40,
     },
     fadeOutContainer: {
       position: 'absolute',

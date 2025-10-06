@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1`] = `
+<View
+  style={
+    {
+      "testID": "animation-container",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "testID": "animation-wrapper",
+      }
+    }
+  >
+    <RiveView
+      alignment="Center"
+      autoplay={true}
+      fit="FitWidth"
+      source="mock-rive-file"
+      style={
+        {
+          "testID": "rive-animation",
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "testID": "text-wrapper",
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "testID": "text-title",
+        }
+      }
+      variant="HeadingLG"
+    >
+      Setting up your wallet.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`OnboardingSuccessAnimation renders animation and text in correct layout structure 1`] = `
+<View
+  style={
+    {
+      "testID": "animation-container",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "testID": "animation-wrapper",
+      }
+    }
+  >
+    <RiveView
+      alignment="Center"
+      autoplay={true}
+      fit="FitWidth"
+      source="mock-rive-file"
+      style={
+        {
+          "testID": "rive-animation",
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "testID": "text-wrapper",
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "testID": "text-title",
+        }
+      }
+      variant="HeadingLG"
+    >
+      Setting up your wallet.
+    </Text>
+  </View>
+</View>
+`;
