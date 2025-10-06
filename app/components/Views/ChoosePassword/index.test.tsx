@@ -395,7 +395,6 @@ describe('ChoosePassword', () => {
     );
     expect(animationComponent.parent).toBeTruthy();
 
-    // Verify normal form content is not rendered during loading
     expect(() =>
       component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
     ).toThrow();
@@ -453,7 +452,6 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Should now show loading state with animation
     expect(component.getByTestId('onboarding-success-animation')).toBeTruthy();
     expect(() =>
       component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
