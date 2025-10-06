@@ -83,9 +83,8 @@ describe('useRewardsIntroModal', () => {
 
     await waitFor(() => {
       expect(result.current.hasSeenRewardsIntroModal).toBe(true);
+      expect(navigate).not.toHaveBeenCalled();
     });
-
-    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('does not navigate when rewards feature is disabled', async () => {
@@ -185,7 +184,7 @@ describe('useRewardsIntroModal', () => {
     });
 
     // Rerender to trigger the effect
-    rerender();
+    rerender(undefined);
 
     await waitFor(() => {
       expect(result.current.hasSeenRewardsIntroModal).toBe(false);
