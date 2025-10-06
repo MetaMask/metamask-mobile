@@ -35,8 +35,6 @@ import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useAssetsUpdateAllAccountBalances } from '../../../../components/UI/Assets/hooks';
 
-const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE = 2000; // About 30 items to pre-render - cell size is about 65px
-
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -163,6 +161,11 @@ const MultichainAccountSelectorList = ({
 
     return items;
   }, [filteredWalletSections]);
+
+  const cellHeight = 68; // AccountListCell height in pixels
+
+  const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE =
+    cellHeight * accountSections.length;
 
   // Compute first selected account index for initial positioning only
   const initialSelectedIndex = useMemo(() => {
