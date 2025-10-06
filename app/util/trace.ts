@@ -147,9 +147,15 @@ export enum TraceName {
   PerpsPositionDetailsView = 'Perps Position Details View',
   PerpsWebSocketConnected = 'Perps WebSocket Connected',
   PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
+  PerpsWebSocketFirstPositions = 'Perps WebSocket First Positions',
+  PerpsWebSocketFirstOrders = 'Perps WebSocket First Orders',
+  PerpsWebSocketFirstAccount = 'Perps WebSocket First Account',
   PerpsDataLakeReport = 'Perps Data Lake Report',
+  PerpsRewardsAPICall = 'Perps Rewards API Call',
   PerpsClosePositionView = 'Perps Close Position View',
   PerpsWithdrawView = 'Perps Withdraw View',
+  PerpsConnectionEstablishment = 'Perps Connection Establishment',
+  PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
 }
 
 export enum TraceOperation {

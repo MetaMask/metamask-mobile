@@ -15,6 +15,7 @@ import {
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import type { Span } from '@sentry/core';
 import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -539,7 +540,7 @@ export class PerpsController extends BaseController<
     }
 
     this.refreshEligibility().catch((error) => {
-      console.error('Error refreshing eligibility:', error);
+      Logger.error(error as Error, 'Error refreshing eligibility');
     });
   }
 
@@ -568,11 +569,34 @@ export class PerpsController extends BaseController<
   /**
    * Calculate user fee discount from RewardsController
    * Used to apply MetaMask reward discounts to trading fees
+   * @param parentSpan - Optional parent span to attach measurement to (for order traces)
    * @returns Fee discount in basis points (e.g., 550 for 5.5% off) or undefined if no discount
    * @private
    */
-  private async calculateUserFeeDiscount(): Promise<number | undefined> {
+  private async calculateUserFeeDiscount(
+    parentSpan?: Span,
+  ): Promise<number | undefined> {
+    // Only create standalone trace if no parent span provided
+    const traceId = parentSpan ? undefined : uuidv4();
+    let traceData: Record<string, string | number | boolean> | undefined;
+
     try {
+      // Start standalone trace only if no parent span
+      const traceSpan =
+        parentSpan ||
+        (traceId
+          ? (trace({
+              name: TraceName.PerpsRewardsAPICall,
+              id: traceId,
+              op: TraceOperation.PerpsOperation,
+            }) as Span)
+          : undefined);
+
+      if (!traceSpan) {
+        // Should never happen, but guard against it
+        return undefined;
+      }
+
       const { RewardsController, NetworkController } = Engine.context;
       const evmAccount = getEvmAccountFromSelectedAccountGroup();
 
@@ -632,11 +656,12 @@ export class PerpsController extends BaseController<
       const orderExecutionFeeDiscountDuration =
         performance.now() - orderExecutionFeeDiscountStartTime;
 
-      // Measure order execution fee discount API call performance
+      // Attach measurement once to the appropriate span
       setMeasurement(
         PerpsMeasurementName.PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
         orderExecutionFeeDiscountDuration,
         'millisecond',
+        traceSpan,
       );
 
       DevLogger.log('PerpsController: Fee discount calculated', {
@@ -647,13 +672,33 @@ export class PerpsController extends BaseController<
         duration: `${orderExecutionFeeDiscountDuration.toFixed(0)}ms`,
       });
 
+      traceData = {
+        success: true,
+        discountBips,
+      };
+
       return discountBips;
     } catch (error) {
       Logger.error(error as Error, {
         message: 'PerpsController: Fee discount calculation failed',
         context: 'PerpsController.calculateUserFeeDiscount',
       });
+
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+
       return undefined;
+    } finally {
+      // Only end trace if we created one (no parent span)
+      if (!parentSpan && traceId) {
+        endTrace({
+          name: TraceName.PerpsRewardsAPICall,
+          id: traceId,
+          data: traceData,
+        });
+      }
     }
   }
 
@@ -766,7 +811,7 @@ export class PerpsController extends BaseController<
 
     try {
       // Start trace for the entire operation
-      trace({
+      const traceSpan = trace({
         name: TraceName.PerpsPlaceOrder,
         id: traceId,
         op: TraceOperation.PerpsOrderSubmission,
@@ -781,11 +826,11 @@ export class PerpsController extends BaseController<
           isBuy: params.isBuy,
           orderPrice: params.price || '',
         },
-      });
+      }) as Span;
       const provider = this.getActiveProvider();
 
       // Calculate fee discount at execution time (fresh, secure)
-      const feeDiscountBips = await this.calculateUserFeeDiscount();
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
 
       // Set discount context in provider for this order
       if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
@@ -868,7 +913,10 @@ export class PerpsController extends BaseController<
             ? parseFloat(params.takeProfitPrice)
             : undefined,
         }).catch((error) => {
-          console.error('Error reporting open order to data lake:', error);
+          Logger.error(
+            error as Error,
+            'Error reporting open order to data lake',
+          );
         });
 
         traceData = { success: true, orderId: result.orderId || '' };
@@ -1255,7 +1303,10 @@ export class PerpsController extends BaseController<
           action: 'close',
           coin: params.coin,
         }).catch((error) => {
-          console.error('Error reporting close order to data lake:', error);
+          Logger.error(
+            error as Error,
+            'Error reporting close order to data lake',
+          );
         });
 
         // Determine direction from position size
@@ -1495,7 +1546,7 @@ export class PerpsController extends BaseController<
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
+      const traceSpan = trace({
         name: TraceName.PerpsUpdateTPSL,
         id: traceId,
         op: TraceOperation.PerpsPositionManagement,
@@ -1508,12 +1559,12 @@ export class PerpsController extends BaseController<
           takeProfitPrice: params.takeProfitPrice || '',
           stopLossPrice: params.stopLossPrice || '',
         },
-      });
+      }) as Span;
 
       const provider = this.getActiveProvider();
 
       // Get fee discount from rewards
-      const feeDiscountBips = await this.calculateUserFeeDiscount();
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
 
       // Set discount context in provider for this operation
       if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
@@ -1958,13 +2009,12 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      DevLogger.log('PerpsController: WITHDRAWAL EXCEPTION', {
-        error: errorMessage,
+      Logger.error(error as Error, {
+        message: 'PerpsController: WITHDRAWAL EXCEPTION',
+        errorMessage,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
-        stack: error instanceof Error ? error.stack : undefined,
         params,
-        timestamp: new Date().toISOString(),
       });
 
       this.update((state) => {
@@ -2982,8 +3032,9 @@ export class PerpsController extends BaseController<
     const traceId = _traceId || uuidv4();
 
     // Start trace only on first attempt
+    let traceSpan: Span | undefined;
     if (retryCount === 0) {
-      trace({
+      traceSpan = trace({
         name: TraceName.PerpsDataLakeReport,
         op: TraceOperation.PerpsOperation,
         id: traceId,
@@ -2993,7 +3044,7 @@ export class PerpsController extends BaseController<
           action,
           coin,
         },
-      });
+      }) as Span;
     }
 
     // Log the attempt
@@ -3006,6 +3057,8 @@ export class PerpsController extends BaseController<
       hasTakeProfit: !!tp_price,
       timestamp: new Date().toISOString(),
     });
+
+    const apiCallStartTime = performance.now();
 
     try {
       const token = await this.messagingSystem.call(
@@ -3044,6 +3097,18 @@ export class PerpsController extends BaseController<
       // Consume response body (might be empty for 201, but good to check)
       const responseBody = await response.text();
 
+      const apiCallDuration = performance.now() - apiCallStartTime;
+
+      // Add measurement to trace if span exists
+      if (traceSpan) {
+        setMeasurement(
+          PerpsMeasurementName.PERPS_DATA_LAKE_API_CALL,
+          apiCallDuration,
+          'millisecond',
+          traceSpan,
+        );
+      }
+
       // Success logging
       DevLogger.log('DataLake API: Order reported successfully', {
         action,
@@ -3051,6 +3116,7 @@ export class PerpsController extends BaseController<
         status: response.status,
         attempt: retryCount + 1,
         responseBody: responseBody || 'empty',
+        duration: `${apiCallDuration.toFixed(0)}ms`,
       });
 
       // End trace on success
@@ -3069,8 +3135,9 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      DevLogger.log('DataLake API: Request failed', {
-        error: errorMessage,
+      Logger.error(error as Error, {
+        message: 'DataLake API: Request failed',
+        errorMessage,
         retryCount,
         action,
         coin,
@@ -3096,7 +3163,10 @@ export class PerpsController extends BaseController<
             retryCount: retryCount + 1,
             _traceId: traceId,
           }).catch((err) => {
-            console.error('Error reporting retry order to data lake:', err);
+            Logger.error(
+              err as Error,
+              'Error reporting retry order to data lake',
+            );
           });
         }, retryDelay);
 
