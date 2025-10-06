@@ -9,6 +9,15 @@ import MultichainAccountSelectorList from '../../../component-library/components
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './MultiChainAccountSelectorListPage.styles';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
+import { useNavigation } from '@react-navigation/native';
+import HeaderBase from '../../../component-library/components/HeaderBase';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../locales/i18n';
 
 export const createMultichainAccountSelectorListPageNavigationDetails =
   createNavigationDetails(
@@ -17,6 +26,7 @@ export const createMultichainAccountSelectorListPageNavigationDetails =
 
 const MultiChainAccountSelectorListPage = () => {
   // const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation();
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const { styles } = useStyles(styleSheet, {});
 
@@ -38,6 +48,19 @@ const MultiChainAccountSelectorListPage = () => {
   );
   return selectedAccountGroup ? (
     <SafeAreaView style={styles.container}>
+      <HeaderBase
+        style={styles.header}
+        startAccessory={
+          <ButtonLink
+            // testID={WalletDetailsIds.BACK_BUTTON}
+            labelTextVariant={TextVariant.BodyMDMedium}
+            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+            onPress={() => navigation.goBack()}
+          />
+        }
+      >
+        {strings('accounts.accounts_title')}
+      </HeaderBase>
       <MultichainAccountSelectorList
         onSelectAccount={_onSelectMultichainAccount}
         selectedAccountGroups={[selectedAccountGroup]}
