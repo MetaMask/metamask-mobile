@@ -156,5 +156,69 @@ describe('useRewardsIntroModal', () => {
     });
   });
 
+  it('does not navigate when BIP-44 modal was seen in current session', async () => {
+    jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('false');
+
+    // Mock BIP-44 modal as not seen initially
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return false; // Initially not seen
+      return undefined;
+    });
+
+    const { result, rerender } = renderHook(() => useRewardsIntroModal());
+
+    await waitFor(() => {
+      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
+    });
+
+    // Should not navigate initially because BIP-44 modal hasn't been seen
+    expect(navigate).not.toHaveBeenCalled();
+
+    // Now simulate BIP-44 modal being seen in current session
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return true; // Now seen
+      return undefined;
+    });
+
+    // Rerender to trigger the effect
+    rerender();
+
+    await waitFor(() => {
+      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
+    });
+
+    // Should still not navigate because BIP-44 modal was seen in current session
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates when BIP-44 modal was seen in previous session', async () => {
+    jest.spyOn(StorageWrapper, 'getItem').mockResolvedValueOnce('false');
+
+    // Mock BIP-44 modal as already seen (from previous session)
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return true; // Seen in previous session
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useRewardsIntroModal());
+
+    await waitFor(() => {
+      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        screen: Routes.REWARDS_ONBOARDING_FLOW,
+        params: { screen: Routes.MODAL.REWARDS_INTRO_MODAL },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setOnboardingActiveStep(OnboardingStep.INTRO_MODAL),
+      );
+    });
+  });
+
   // Skipping explicit E2E environment navigation suppression here due to React module registry constraints.
 });
