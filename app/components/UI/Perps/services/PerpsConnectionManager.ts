@@ -338,7 +338,9 @@ class PerpsConnectionManagerClass {
     if (this.isConnected) {
       try {
         // Quick check to see if connection is actually alive
-        await Engine.context.PerpsController.getAccountState();
+        await Engine.context.PerpsController.getAccountState({
+          source: 'health_check',
+        });
         DevLogger.log(
           'PerpsConnectionManager: Connection is already active and healthy',
         );
@@ -417,7 +419,9 @@ class PerpsConnectionManagerClass {
         // Stage 2: Get account state - may fail if still initializing
         const accountStart = performance.now();
         try {
-          await Engine.context.PerpsController.getAccountState();
+          await Engine.context.PerpsController.getAccountState({
+            source: 'initial_connection',
+          });
         } catch (error) {
           // If it's a CLIENT_REINITIALIZING error, wait and retry once
           if (
@@ -431,7 +435,9 @@ class PerpsConnectionManagerClass {
               },
             );
             await new Promise((resolve) => setTimeout(resolve, 500));
-            await Engine.context.PerpsController.getAccountState();
+            await Engine.context.PerpsController.getAccountState({
+              source: 'initial_connection_retry',
+            });
           } else {
             throw error;
           }
@@ -638,7 +644,9 @@ class PerpsConnectionManagerClass {
       // Stage 3: Trigger connection with new account - wrap in try/catch to handle initialization errors
       const accountStart = performance.now();
       try {
-        await Engine.context.PerpsController.getAccountState();
+        await Engine.context.PerpsController.getAccountState({
+          source: 'account_switch',
+        });
       } catch (error) {
         // If it's a CLIENT_NOT_INITIALIZED or CLIENT_REINITIALIZING error, wait and retry once
         if (
@@ -653,7 +661,9 @@ class PerpsConnectionManagerClass {
             },
           );
           await new Promise((resolve) => setTimeout(resolve, 500));
-          await Engine.context.PerpsController.getAccountState();
+          await Engine.context.PerpsController.getAccountState({
+            source: 'account_switch_retry',
+          });
         } else {
           throw error;
         }

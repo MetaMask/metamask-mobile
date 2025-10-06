@@ -1953,7 +1953,7 @@ export class PerpsController extends BaseController<
         // after showing the appropriate toast messages
 
         // Trigger account state refresh after withdrawal
-        this.getAccountState().catch((error) => {
+        this.getAccountState({ source: 'post_withdrawal' }).catch((error) => {
           Logger.error(error as Error, {
             message: '⚠️ PerpsController: Failed to refresh after withdrawal',
             context: 'PerpsController.withdraw',
@@ -2264,6 +2264,7 @@ export class PerpsController extends BaseController<
         tags: {
           provider: this.state.activeProvider,
           isTestnet: this.state.isTestnet,
+          source: params?.source || 'unknown',
         },
       });
 

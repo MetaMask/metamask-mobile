@@ -358,6 +358,7 @@ export interface GetPositionsParams {
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
+  source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
 }
 
 export interface GetOrderFillsParams {
