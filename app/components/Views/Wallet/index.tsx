@@ -183,8 +183,6 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
 import NftGrid from '../../UI/NftGrid';
-import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
-import { Authentication } from '../../../core';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -760,17 +758,6 @@ const Wallet = ({
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
-    const params: SuccessErrorSheetParams = {
-      title: 'Test',
-      description: Authentication.rehydrateLogs.join('\n'),
-      primaryButtonLabel: 'Test',
-      type: 'success',
-    };
-
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params,
-    });
     // do not prompt for social login flow
     if (
       !isSocialLogin &&
