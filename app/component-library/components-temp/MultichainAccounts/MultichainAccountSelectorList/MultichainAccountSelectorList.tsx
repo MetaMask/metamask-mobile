@@ -5,8 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View, ScrollViewProps } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View } from 'react-native';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -340,9 +339,6 @@ const MultichainAccountSelectorList = ({
             getItemType={getItemType}
             keyExtractor={keyExtractor}
             initialScrollIndex={initialSelectedIndex}
-            renderScrollComponent={
-              ScrollView as React.ComponentType<ScrollViewProps>
-            }
             // Performance optimizations
             removeClippedSubviews
             drawDistance={MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE}
