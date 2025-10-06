@@ -270,6 +270,7 @@ export const createMockSDKReturn = (overrides = {}) => ({
 });
 
 export const MOCK_USE_REGIONS_RETURN = {
+  userRegionLocked: false,
   regions: MOCK_REGIONS,
   error: null,
   isFetching: false,
@@ -345,6 +346,7 @@ export const TEST_ORDER_ID = 'test-order-id';
 export const TEST_PROVIDER = 'test-provider';
 
 export const MOCK_USE_REGIONS_ERROR = {
+  userRegionLocked: false,
   regions: null,
   error: 'Failed to fetch regions',
   isFetching: false,
@@ -366,6 +368,7 @@ export const MOCK_USE_PAYMENT_METHODS_ERROR = {
 };
 
 export const MOCK_USE_REGIONS_LOADING = {
+  userRegionLocked: false,
   regions: null,
   error: null,
   isFetching: true,
@@ -387,6 +390,7 @@ export const MOCK_USE_PAYMENT_METHODS_LOADING = {
 };
 
 export const MOCK_USE_REGIONS_EMPTY = {
+  userRegionLocked: false,
   regions: [],
   error: null,
   isFetching: false,
