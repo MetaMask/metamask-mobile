@@ -197,5 +197,35 @@ describe('useRewardsIntroModal', () => {
     });
   });
 
-  // Skipping explicit E2E environment navigation suppression here due to React module registry constraints.
+  it('does not set bip44SeenInCurrentSession when BIP-44 modal was already seen initially', async () => {
+    // Mock app version to simulate an update (not fresh install)
+    jest
+      .spyOn(StorageWrapper, 'getItem')
+      .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
+      .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
+      .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION
+
+    // Start with BIP-44 modal already seen (from previous session)
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return true; // Already seen
+      if (selector === selectMultichainAccountsState2Enabled) return true;
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useRewardsIntroModal());
+
+    // The rewards modal SHOULD be shown because BIP-44 was seen in previous session
+    await waitFor(() => {
+      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        screen: Routes.REWARDS_ONBOARDING_FLOW,
+        params: { screen: Routes.MODAL.REWARDS_INTRO_MODAL },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setOnboardingActiveStep(OnboardingStep.INTRO_MODAL),
+      );
+    });
+  });
 });
