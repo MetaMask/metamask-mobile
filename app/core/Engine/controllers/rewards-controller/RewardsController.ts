@@ -31,6 +31,8 @@ import type { RewardsControllerMessenger } from '../../messengers/rewards-contro
 import {
   storeSubscriptionToken,
   removeSubscriptionToken,
+  resetAllSubscriptionTokens,
+  getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -46,7 +48,10 @@ import {
 import { base58 } from 'ethers/lib/utils';
 import { isNonEvmAddress } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
-import { InvalidTimestampError } from './services/rewards-data-service';
+import {
+  AuthorizationFailedError,
+  InvalidTimestampError,
+} from './services/rewards-data-service';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -56,7 +61,7 @@ export const DEFAULT_BLOCKED_REGIONS = ['UK'];
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
-const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
+const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 60 * 24; // 24 hours
 
 // Perps discount refresh threshold
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
@@ -74,7 +79,7 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
-const POINTS_EVENTS_CACHE_THRESHOLD_MS = 0; // 0 seconds cache, enable SWR background refresh
+const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 /**
  * State metadata for the RewardsController
@@ -165,7 +170,7 @@ interface CacheOptions<T> {
   readCache: CacheReader<T>;
   fetchFresh: () => Promise<T>;
   writeCache: CacheWriter<T>;
-  swrCallback?: (fresh: T) => void; // Callback triggered after SWR refresh, to invalidate cache
+  swrCallback?: (old: T, fresh: T) => void; // Callback triggered after SWR refresh, to invalidate cache
 }
 
 /**
@@ -196,7 +201,7 @@ export async function wrapWithCache<T>({
           try {
             const fresh = await fetchFresh();
             writeCache(key, fresh);
-            swrCallback(fresh);
+            swrCallback(cached.payload, fresh);
           } catch (err) {
             Logger.log(
               'SWR revalidation failed:',
@@ -334,7 +339,7 @@ export class RewardsController extends BaseController<
       })),
       has_more: pointsEvents.has_more,
       cursor: pointsEvents.cursor,
-      total_results: pointsEvents.total_results,
+      lastFetched: Date.now(),
     };
   }
 
@@ -348,7 +353,6 @@ export class RewardsController extends BaseController<
         timestamp: new Date(r.timestamp),
         updatedAt: new Date(r.updatedAt),
       })),
-      total_results: state.total_results,
       cursor: state.cursor,
       has_more: state.has_more,
     };
@@ -462,6 +466,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getFirstSubscriptionId',
       this.getFirstSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:resetAll',
+      this.resetAll.bind(this),
     );
   }
 
@@ -1088,6 +1096,12 @@ export class RewardsController extends BaseController<
                   state.accounts[caipAccount].subscriptionId = subscriptionId;
                   state.accounts[caipAccount].lastCheckedAuth = Date.now();
                 }
+
+                if (state.activeAccount?.account === caipAccount) {
+                  state.activeAccount.hasOptedIn = hasOptedIn;
+                  state.activeAccount.subscriptionId = subscriptionId;
+                  state.activeAccount.lastCheckedAuth = Date.now();
+                }
               });
             }
           }
@@ -1179,13 +1193,6 @@ export class RewardsController extends BaseController<
     // Add 500ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
     const cacheBalanceUpdatedAt =
       (cachedSeasonStatus.balance.updatedAt || 0) + 500;
-    Logger.log(
-      'RewardsController: Comparing cache timestamps with latest updatedAt',
-      {
-        cacheBalanceUpdatedAt,
-        latestUpdatedAt,
-      },
-    );
 
     // If cache timestamp is older than the latest event update, emit balance updated event
     if (latestUpdatedAt > cacheBalanceUpdatedAt) {
@@ -1217,8 +1224,7 @@ export class RewardsController extends BaseController<
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    if (!rewardsEnabled)
-      return { has_more: false, cursor: null, total_results: 0, results: [] };
+    if (!rewardsEnabled) return { has_more: false, cursor: null, results: [] };
 
     // If cursor is provided, always fetch fresh and do not touch cache
     if (params.cursor) {
@@ -1248,7 +1254,10 @@ export class RewardsController extends BaseController<
       readCache: (key) => {
         const cached = this.state.pointsEvents[key];
         return cached
-          ? { payload: this.#convertPointsEventsStateToDto(cached) }
+          ? {
+              payload: this.#convertPointsEventsStateToDto(cached),
+              lastFetched: cached.lastFetched,
+            }
           : undefined;
       },
       fetchFresh: async () => {
@@ -1278,12 +1287,26 @@ export class RewardsController extends BaseController<
             this.#convertPointsEventsToState(pointsEventsDto);
         });
       },
-      swrCallback: () => {
-        // Let UI know first page cache has been refreshed so it can re-query
-        this.messagingSystem.publish('RewardsController:pointsEventsUpdated', {
-          seasonId: params.seasonId,
-          subscriptionId: params.subscriptionId,
-        });
+      swrCallback: (old, fresh) => {
+        const oldMostRecentId = old?.results?.[0]?.id || '';
+        const freshMostRecentId = fresh?.results?.[0]?.id || '';
+        if (oldMostRecentId !== freshMostRecentId) {
+          Logger.log(
+            'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+            {
+              seasonId: params.seasonId,
+              subscriptionId: params.subscriptionId,
+            },
+          );
+          // Let UI know first page cache has been refreshed so it can re-query
+          this.messagingSystem.publish(
+            'RewardsController:pointsEventsUpdated',
+            {
+              seasonId: params.seasonId,
+              subscriptionId: params.subscriptionId,
+            },
+          );
+        }
       },
     });
 
@@ -1307,7 +1330,6 @@ export class RewardsController extends BaseController<
         : {
             has_more: false,
             cursor: null,
-            total_results: 0,
             results: [],
           };
     }
@@ -1328,6 +1350,10 @@ export class RewardsController extends BaseController<
   ): Promise<Date | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return null;
+    Logger.log(
+      'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
+      params,
+    );
     const result = await this.messagingSystem.call(
       'RewardsDataService:getPointsEventsLastUpdated',
       params,
@@ -1440,14 +1466,72 @@ export class RewardsController extends BaseController<
           );
           return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
         } catch (error) {
+          if (error instanceof AuthorizationFailedError) {
+            // Attempt to reauth with a valid account.
+            try {
+              if (this.state.activeAccount?.subscriptionId === subscriptionId) {
+                const account = await this.messagingSystem.call(
+                  'AccountsController:getSelectedMultichainAccount',
+                );
+                Logger.log(
+                  'RewardsController: Attempting to reauth with a valid account after 403 error',
+                );
+                await this.#performSilentAuth(account, false, false); // try and auth.
+              } else if (
+                this.state.accounts &&
+                Object.values(this.state.accounts).length > 0
+              ) {
+                const accountForSub = Object.values(this.state.accounts).find(
+                  (acc) => acc.subscriptionId === subscriptionId,
+                );
+                if (accountForSub) {
+                  const accounts = await this.messagingSystem.call(
+                    'AccountsController:listMultichainAccounts',
+                  );
+                  const convertInternalAccountToCaipAccountId =
+                    this.convertInternalAccountToCaipAccountId;
+                  const intAccountForSub = accounts.find((acc) => {
+                    const accCaipId =
+                      convertInternalAccountToCaipAccountId(acc);
+                    return accCaipId === accountForSub.account;
+                  });
+                  if (intAccountForSub) {
+                    Logger.log(
+                      'RewardsController: Attempting to reauth with any valid account after 403 error',
+                    );
+                    await this.#performSilentAuth(
+                      intAccountForSub as InternalAccount,
+                      false,
+                      false,
+                    );
+                  }
+                }
+              }
+              // Fetch season status again
+              const seasonStatus = await this.messagingSystem.call(
+                'RewardsDataService:getSeasonStatus',
+                seasonId,
+                subscriptionId,
+              );
+              Logger.log(
+                'RewardsController: Successfully fetched season status after reauth',
+                seasonStatus,
+              );
+              return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
+            } catch {
+              Logger.log(
+                'RewardsController: Failed to reauth with a valid account after 403 error',
+                error instanceof Error ? error.message : String(error),
+              );
+              this.invalidateSubscriptionCache(subscriptionId);
+              this.invalidateAccountsAndSubscriptions();
+              throw error;
+            }
+          }
           Logger.log(
             'RewardsController: Failed to get season status:',
             error instanceof Error ? error.message : String(error),
           );
-          if (error instanceof Error && error.message.includes('403')) {
-            this.invalidateSubscriptionCache(subscriptionId);
-            this.invalidateAccountsAndSubscriptions();
-          }
           throw error;
         }
       },
@@ -1662,6 +1746,48 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Reset rewards account state and clear all access tokens
+   */
+  async resetAll(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping reset',
+      );
+      return;
+    }
+
+    try {
+      const currentActiveAccount = this.state.activeAccount?.account;
+      this.resetState();
+      this.update((state: RewardsControllerState) => {
+        if (currentActiveAccount) {
+          state.activeAccount = {
+            account: currentActiveAccount,
+            hasOptedIn: false,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          };
+        }
+      });
+
+      // Remove all tokens from secure storage
+      await resetAllSubscriptionTokens();
+
+      Logger.log('RewardsController: Reset completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Reset failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Logout user from rewards and clear associated data
    * @param subscriptionId - Optional subscription ID to logout from
    */
@@ -1816,11 +1942,6 @@ export class RewardsController extends BaseController<
       return this.state.activeAccount.subscriptionId;
     }
 
-    Logger.log(
-      'RewardsController: Subscriptions map',
-      this.state.subscriptions?.length,
-    );
-
     // Fallback to the first subscription ID from the subscriptions map
     const subscriptionIds = Object.keys(this.state.subscriptions);
     if (subscriptionIds.length > 0) {
@@ -1876,7 +1997,16 @@ export class RewardsController extends BaseController<
           i < optInStatusResponse.sids.length
             ? optInStatusResponse.sids[i]
             : null;
-        if (subscriptionId) return subscriptionId;
+        const sessionToken = subscriptionId
+          ? await getSubscriptionToken(subscriptionId)
+          : undefined;
+        if (
+          subscriptionId &&
+          Boolean(sessionToken?.token) &&
+          Boolean(sessionToken?.success)
+        ) {
+          return subscriptionId;
+        }
         try {
           silentAuthAttempts++;
           subscriptionId = await this.#performSilentAuth(
@@ -2076,7 +2206,6 @@ export class RewardsController extends BaseController<
         const currentActiveAccount = this.state.activeAccount?.account;
         this.resetState();
         this.update((state: RewardsControllerState) => {
-          // Set activeAccount with optIn: false if there was an active account
           if (currentActiveAccount) {
             state.activeAccount = {
               account: currentActiveAccount,

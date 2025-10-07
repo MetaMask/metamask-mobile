@@ -113,6 +113,15 @@ const DestinationAccountSelector = () => {
     handleSelectAccount(undefined);
   }, [handleSelectAccount]);
 
+  // Clear destination address when component unmounts (i.e. for a same-chain swap)
+  // In the same-chain swap case, destination address is already handled in useBridgeQuoteRequest
+  useEffect(
+    () => () => {
+      dispatch(setDestAddress(undefined));
+    },
+    [dispatch],
+  );
+
   useEffect(() => {
     if (filteredAccounts.length === 0) {
       return;
