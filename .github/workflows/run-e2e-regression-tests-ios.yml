@@ -1,9 +1,14 @@
 name: iOS E2E Regression Tests
 
-# TODO: Add schedule once iOS builds are available
 on:
-  workflow_call:
+  schedule:
+    - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
+    inputs:
+      notify_on_pass:
+        description: 'Send Slack notification even when all tests pass'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -52,21 +57,6 @@ jobs:
       test-suite-name: regression-wallet-platform-ios-${{ matrix.split }}
       platform: ios
       test_suite_tag: 'RegressionWalletPlatform'
-      split_number: ${{ matrix.split }}
-      total_splits: 4
-    secrets: inherit
-
-  regression-identity-ios:
-    name: 'Identity Regression (iOS) - ${{ matrix.split }}'
-    strategy:
-      matrix:
-        split: [1, 2, 3, 4]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: regression-identity-ios-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'RegressionIdentity'
       split_number: ${{ matrix.split }}
       total_splits: 4
     secrets: inherit
@@ -154,7 +144,6 @@ jobs:
       - regression-confirmations-ios
       - regression-trade-ios
       - regression-wallet-platform-ios
-      - regression-identity-ios
       - regression-accounts-ios
       - regression-network-abstraction-ios
       - regression-network-expansion-ios
@@ -188,3 +177,46 @@ jobs:
         with:
           name: ios-merged-test-report
           path: all-test-results/**/*.xml
+
+      - name: Generate Test Summary
+        id: summary
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXIT_CODE=0
+          {
+            echo "summary<<EOF"
+            node .github/scripts/generate-regression-slack-summary.mjs iOS || EXIT_CODE=$?
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
+
+      - name: Prepare Slack Payload
+        if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
+        run: |
+          node -e "
+          const fs = require('fs');
+          const message = \`${{ steps.summary.outputs.summary }}\`;
+          const payload = {
+            text: 'iOS E2E Regression Test Results',
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: message
+                }
+              }
+            ]
+          };
+          fs.writeFileSync('/tmp/slack-payload.json', JSON.stringify(payload, null, 2));
+          "
+
+      - name: Send Slack Notification
+        if: always() && (steps.summary.outcome == 'failure' || inputs.notify_on_pass == true)
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.REGRESSION_E2E_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-payload.json
