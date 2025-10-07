@@ -16,6 +16,8 @@ describe('BrowserBottomBar', () => {
         showTabs={fn}
         toggleOptions={fn}
         showUrlModal={fn}
+        toggleFullscreen={fn}
+        isFullscreen={false}
         goBack={fn}
         goForward={fn}
         goHome={fn}
@@ -41,6 +43,10 @@ describe('BrowserBottomBar', () => {
     expect(
       screen.getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON).props.disabled,
     ).toBe(true);
+    expect(
+      screen.getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON).props
+        .disabled,
+    ).toBe(true);
   });
 
   it('should call the callbacks when buttons are pressed', () => {
@@ -50,6 +56,7 @@ describe('BrowserBottomBar', () => {
     const showTabs = jest.fn();
     const toggleOptions = jest.fn();
     const showUrlModal = jest.fn();
+    const toggleFullscreen = jest.fn();
 
     const { getByTestId } = renderWithProvider(
       <BrowserBottomBar
@@ -61,6 +68,8 @@ describe('BrowserBottomBar', () => {
         goBack={goBack}
         goForward={goForward}
         goHome={goHome}
+        toggleFullscreen={toggleFullscreen}
+        isFullscreen={false}
       />,
     );
 
@@ -81,5 +90,10 @@ describe('BrowserBottomBar', () => {
 
     fireEvent.press(getByTestId(BrowserViewSelectorsIDs.SEARCH_BUTTON));
     expect(showUrlModal).toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON),
+    );
+    expect(toggleFullscreen).toHaveBeenCalled();
   });
 });
