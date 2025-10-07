@@ -44,9 +44,16 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <PredictMarket key={item.id} market={item} testID={getPredictMarketListSelector.marketCard(index + 1)} />
+      <PredictMarket
+        key={item.id}
+        market={item}
+        testID={getPredictMarketListSelector.marketCardByCategory(
+          category,
+          index + 1,
+        )}
+      />
     ),
-    [],
+    [category],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -142,7 +149,10 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   if (!marketData || marketData.length === 0) {
     return (
-      <Box testID={getPredictMarketListSelector.emptyState()} style={styles.emptyContainer}>
+      <Box
+        testID={getPredictMarketListSelector.emptyState()}
+        style={styles.emptyContainer}
+      >
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           No {category} markets available
         </Text>

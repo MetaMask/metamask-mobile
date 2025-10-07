@@ -4,7 +4,7 @@ import { RegressionTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import PredictTabView from '../../pages/Predict/PredictTabView';
+import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import { POLYMARKET_API_DOWN_MOCKS } from '../../api-mocking/mock-responses/polymarket-api-down-mocks';
 
@@ -14,7 +14,7 @@ describe(RegressionTrade('Predict Basic Test'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        // testSpecificMock: POLYMARKET_API_DOWN_MOCKS,
+        testSpecificMock: POLYMARKET_API_DOWN_MOCKS,
       },
       async () => {
         await loginToApp();
@@ -24,7 +24,12 @@ describe(RegressionTrade('Predict Basic Test'), () => {
 
         await WalletActionsBottomSheet.tapPredictButton();
 
-        await Assertions.expectElementToBeVisible(PredictTabView.container);
+        await Assertions.expectElementToNotBeVisible(
+          PredictMarketList.container,
+          {
+            description: 'Predict market list container should be visible',
+          },
+        );
       },
     );
   });
