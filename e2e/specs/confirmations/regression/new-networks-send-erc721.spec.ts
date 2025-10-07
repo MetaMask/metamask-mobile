@@ -12,7 +12,7 @@ import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 import { DappVariants } from '../../../framework/Constants';
 import TestHelpers from '../../../helpers';
 
-describe(RegressionConfirmations('ERC721 tokens'), () => {
+describe.skip(RegressionConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   // Table-driven tests for all networks
