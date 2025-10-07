@@ -217,10 +217,27 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   );
 
   // Transform withdrawal requests to transactions
-  const withdrawalTransactions = useMemo(
-    () => transformWithdrawalRequestsToTransactions(withdrawalRequests),
-    [withdrawalRequests],
-  );
+  const withdrawalTransactions = useMemo(() => {
+    const transformed =
+      transformWithdrawalRequestsToTransactions(withdrawalRequests);
+    console.log('Withdrawal transactions for UI:', {
+      rawCount: withdrawalRequests.length,
+      transformedCount: transformed.length,
+      raw: withdrawalRequests.map((w) => ({
+        id: w.id,
+        status: w.status,
+        amount: w.amount,
+        timestamp: new Date(w.timestamp).toISOString(),
+      })),
+      transformed: transformed.map((t) => ({
+        id: t.id,
+        title: t.title,
+        subtitle: t.subtitle,
+        timestamp: new Date(t.timestamp).toISOString(),
+      })),
+    });
+    return transformed;
+  }, [withdrawalRequests]);
 
   // Separate deposits and withdrawals - for now showing empty states
   const depositTransactions = useMemo(
@@ -229,23 +246,57 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   );
 
   // Memoized grouped transactions to avoid recalculation on every filter change
-  const allGroupedTransactions = useMemo(
-    () => ({
+  const allGroupedTransactions = useMemo(() => {
+    const grouped = {
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
       Funding: groupTransactionsByDate(fundingTransactions),
       Withdraw: groupTransactionsByDate(withdrawalTransactions),
       Deposit: groupTransactionsByDate(depositTransactions),
-    }),
-    [
-      fillTransactions,
-      orderTransactions,
-      fundingTransactions,
-      withdrawalTransactions,
-      depositTransactions,
-      groupTransactionsByDate,
-    ],
-  );
+    };
+
+    console.log('Grouped transactions for Withdraw tab:', {
+      withdrawalTransactionsCount: withdrawalTransactions.length,
+      groupedWithdrawCount: grouped.Withdraw.length,
+      groupedWithdraw: grouped.Withdraw.map((group) => ({
+        title: group.title,
+        dataCount: group.data.length,
+        data: group.data.map((item) => ({
+          id: item.id,
+          title: item.title,
+          subtitle: item.subtitle,
+          timestamp: new Date(item.timestamp).toISOString(),
+        })),
+      })),
+    });
+
+    // Log each transaction individually to see the actual data
+    grouped.Withdraw.forEach((group, groupIndex) => {
+      console.log(
+        `Group ${groupIndex} (${group.title}):`,
+        group.data.length,
+        'transactions',
+      );
+      group.data.forEach((transaction, index) => {
+        console.log(`  Transaction ${index}:`, {
+          id: transaction.id,
+          title: transaction.title,
+          subtitle: transaction.subtitle,
+          timestamp: new Date(transaction.timestamp).toISOString(),
+          status: transaction.depositWithdrawal?.status,
+        });
+      });
+    });
+
+    return grouped;
+  }, [
+    fillTransactions,
+    orderTransactions,
+    fundingTransactions,
+    withdrawalTransactions,
+    depositTransactions,
+    groupTransactionsByDate,
+  ]);
 
   // Memoized flat data for current filter - prevents re-flattening on every change
   const currentFlatListData = useMemo(() => {

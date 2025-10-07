@@ -17,7 +17,7 @@ export interface WithdrawalRequest {
   amount: string;
   asset: string;
   txHash?: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: 'pending' | 'bridging' | 'completed' | 'failed';
   destination?: string;
   withdrawalId?: string;
 }
@@ -346,6 +346,10 @@ export function transformWithdrawalRequestsToTransactions(
         statusText = 'Completed';
         isPositive = true; // Completed withdrawals are shown as positive (green)
         break;
+      case 'bridging':
+        statusText = 'Bridging to Arbitrum USDC';
+        isPositive = false;
+        break;
       case 'failed':
         statusText = 'Failed';
         isPositive = false;
@@ -360,6 +364,9 @@ export function transformWithdrawalRequestsToTransactions(
     let subtitle = `${statusText}`;
     if (txHash) {
       subtitle += ` • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`;
+    } else if (status === 'pending' || status === 'bridging') {
+      // Add estimated time for pending and bridging states
+      subtitle += ` • Est. time 5 minutes`;
     }
 
     return {

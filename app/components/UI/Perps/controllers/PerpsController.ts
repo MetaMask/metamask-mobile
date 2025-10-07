@@ -173,7 +173,7 @@ export type PerpsControllerState = {
     amount: string;
     asset: string;
     txHash?: string;
-    status: 'pending' | 'completed' | 'failed';
+    status: 'pending' | 'bridging' | 'completed' | 'failed';
     destination?: string;
     withdrawalId?: string;
   }[];
@@ -1680,13 +1680,18 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.withdrawInProgress = true;
 
+        // Calculate net amount after fees (same logic as completed withdrawals)
+        const grossAmount = parseFloat(params.amount);
+        const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
+        const netAmount = Math.max(0, grossAmount - feeAmount);
+
         // Add withdrawal request to tracking
         const withdrawalRequest = {
           id: `withdraw-${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}`,
           timestamp: Date.now(),
-          amount: params.amount,
+          amount: netAmount.toString(), // Use net amount (after fees)
           asset: 'USDC', // Default to USDC for now
           txHash: undefined,
           status: 'pending' as const,
@@ -1729,9 +1734,33 @@ export class PerpsController extends BaseController<
           // Update the most recent withdrawal request
           if (state.withdrawalRequests.length > 0) {
             const latestRequest = state.withdrawalRequests[0];
-            latestRequest.status = 'completed';
-            latestRequest.txHash = result.txHash;
-            latestRequest.withdrawalId = result.withdrawalId;
+            console.log('Updating withdrawal request:', {
+              id: latestRequest.id,
+              currentStatus: latestRequest.status,
+              resultSuccess: result.success,
+              resultTxHash: result.txHash,
+              resultWithdrawalId: result.withdrawalId,
+            });
+
+            // Set status based on success and txHash availability
+            if (result.txHash) {
+              latestRequest.status = 'completed';
+              latestRequest.txHash = result.txHash;
+            } else {
+              // Success but no txHash means it's bridging
+              latestRequest.status = 'bridging';
+            }
+            // Always update withdrawal ID if available
+            if (result.withdrawalId) {
+              latestRequest.withdrawalId = result.withdrawalId;
+            }
+
+            console.log('Updated withdrawal request:', {
+              id: latestRequest.id,
+              newStatus: latestRequest.status,
+              txHash: latestRequest.txHash,
+              withdrawalId: latestRequest.withdrawalId,
+            });
           }
         });
 
