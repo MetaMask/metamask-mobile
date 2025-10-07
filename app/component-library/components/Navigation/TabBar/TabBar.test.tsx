@@ -29,7 +29,7 @@ const mockInitialState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           rewardsEnabled: {
-            enabled: 'true',
+            enabled: true,
             minimumVersion: '0.0.1',
           },
         },
