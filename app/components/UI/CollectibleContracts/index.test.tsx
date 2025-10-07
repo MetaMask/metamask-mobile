@@ -26,6 +26,7 @@ import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { SpinnerTestId } from './constants';
 
 // eslint-disable-next-line import/no-namespace
 import * as assetUtils from '../../../util/assets';
@@ -636,7 +637,7 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    const spinner = queryByTestId('spinner');
+    const spinner = queryByTestId(SpinnerTestId);
     expect(spinner).not.toBeNull();
   });
 
@@ -698,7 +699,7 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    const spinner = queryByTestId('spinner');
+    const spinner = queryByTestId(SpinnerTestId);
     expect(spinner).toBeNull();
   });
 
@@ -749,7 +750,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': 'true',
+              '0x1': true,
             },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -855,7 +856,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': 'true',
+              '0x1': true,
             },
           },
 
@@ -971,7 +972,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': 'true',
+              '0x1': true,
             },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -1159,7 +1160,7 @@ describe('CollectibleContracts', () => {
       },
     );
 
-    const filterControlersButton = getByTestId('token-network-filter');
+    const filterControlersButton = getByTestId('collectibles-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
@@ -1195,7 +1196,7 @@ describe('CollectibleContracts', () => {
             displayNftMedia: false,
             isIpfsGatewayEnabled: false,
             tokenNetworkFilter: {
-              '0x1': 'true',
+              '0x1': true,
             },
           } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -1225,7 +1226,7 @@ describe('CollectibleContracts', () => {
       },
     );
 
-    const filterControlersButton = getByTestId('token-network-filter');
+    const filterControlersButton = getByTestId('collectibles-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -1286,7 +1287,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': 'true',
+              '0x1': true,
             },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -1359,8 +1360,8 @@ describe('CollectibleContracts', () => {
             displayNftMedia: false,
             isIpfsGatewayEnabled: false,
             tokenNetworkFilter: {
-              '0x1': 'true',
-              '0x89': 'true', // Polygon network enabled
+              '0x1': true,
+              '0x89': true, // Polygon network enabled
             },
           } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -1384,7 +1385,6 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    // Should show "All Networks" text when multiple networks are enabled
-    expect(getByText('All Networks')).toBeDefined();
+    expect(getByText('Popular networks')).toBeDefined();
   });
 });

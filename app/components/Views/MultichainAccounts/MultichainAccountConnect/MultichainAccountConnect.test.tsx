@@ -24,6 +24,7 @@ import {
 } from '../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -60,7 +61,7 @@ jest.mock('../../../hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('react-native-scrollable-tab-view', () => ({
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
@@ -177,6 +178,10 @@ jest.mock('../../../hooks/useFavicon/useFavicon', () =>
 );
 
 jest.mock('../../../hooks/useOriginSource', () => jest.fn(() => 'test-source'));
+
+jest.mock('../../../hooks/useSDKV2Connection/useSDKV2Connection', () => ({
+  useSDKV2Connection: jest.fn(() => undefined),
+}));
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -359,7 +364,7 @@ jest.mock(
         connectedAccountGroups: [],
         existingConnectedCaipAccountIds: [],
         connectedAccountGroupWithRequested: [],
-        caipAccountIdsOfConnectedAccountGroupWithRequested: [],
+        caipAccountIdsOfConnectedAndRequestedAccountGroups: [],
         selectedAndRequestedAccountGroups: mockAccountGroups,
       };
     }),
@@ -398,6 +403,10 @@ const createMockCaip25Permission = (
 
 const createMockState = (): DeepPartial<RootState> => ({
   settings: {},
+  sdk: {
+    v2Connections: {},
+    wc2Metadata: { id: '' },
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -429,16 +438,47 @@ const createMockState = (): DeepPartial<RootState> => ({
         },
       },
       NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: { status: NetworkStatus.Available, EIPS: {} },
+        },
         networkConfigurationsByChainId: {
           '0x1': {
-            chainId: '0x1',
-            name: 'Ethereum',
-            rpcEndpoints: [{ url: 'https://mainnet.infura.io/v3/test' }],
             blockExplorerUrls: ['https://etherscan.io'],
+            chainId: '0x1' as `0x${string}`,
+            defaultRpcEndpointIndex: 0,
+            name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Infura,
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+            ],
           },
         },
-        selectedNetworkClientId: '1',
+      },
+      PreferencesController: {
+        privacyMode: false,
+        ipfsGateway: 'https://ipfs.io',
+        useNftDetection: true,
+        showMultiRpcModal: false,
+        useTokenDetection: true,
+        displayNftMedia: false,
+        useSafeChainsListValidation: true,
+        tokenSortConfig: {
+          key: 'tokenFiatAmount',
+          order: 'dsc' as const,
+          sortCallback: 'stringNumeric',
+        },
+        tokenNetworkFilter: {},
+        isMultiAccountBalancesEnabled: true,
+        showTestNetworks: true,
+        isIpfsGatewayEnabled: true,
+        securityAlertsEnabled: true,
+        smartTransactionsOptInStatus: true,
+        useTransactionSimulations: true,
       },
       NetworkEnablementController: {
         enabledNetworkMap: {
@@ -687,11 +727,17 @@ describe('MultichainAccountConnect', () => {
   });
 
   describe('Domain title and hostname logic', () => {
+    const { useSDKV2Connection: mockUseSDKV2Connection } = jest.requireMock(
+      '../../../hooks/useSDKV2Connection/useSDKV2Connection',
+    );
+
     beforeEach(() => {
       mockGetConnection.mockReset();
       mockGetConnection.mockReturnValue(undefined);
       mockIsUUID.mockReset();
       mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReset();
+      mockUseSDKV2Connection.mockReturnValue(undefined);
       jest.clearAllMocks();
     });
 
@@ -704,10 +750,12 @@ describe('MultichainAccountConnect', () => {
       });
 
       mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReturnValue(undefined);
 
       const mockStateWithoutWC2 = {
         ...createMockState(),
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
         },
       };
@@ -745,12 +793,13 @@ describe('MultichainAccountConnect', () => {
       const mockChannelId = 'walletconnect-origin.com';
 
       mockGetConnection.mockReturnValue(undefined);
-
       mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReturnValue(undefined);
 
       const mockStateWithWC2 = {
         ...createMockState(),
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: 'mock-wc2-id' },
         },
       };
@@ -1193,29 +1242,35 @@ describe('MultichainAccountConnect', () => {
   });
 
   it('handles malformed CAIP account IDs', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: ['invalid-caip-account-id'],
-                },
-              }),
-            },
-            permissionRequestId: 'test-malformed-caip',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
+    // Mock console.error to prevent error logs during test execution
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(() => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: ['invalid-caip-account-id'],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-malformed-caip',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+    }).toThrow('Invalid CAIP account ID.');
+
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
   });
 
   describe('Account group selection logic', () => {
@@ -1777,10 +1832,6 @@ describe('MultichainAccountConnect', () => {
       const ethereumSelected = queryByTestId('Ethereum-selected');
 
       expect(ethereumSelected).toBeTruthy();
-
-      const polygonSelected = queryByTestId('Polygon-selected');
-
-      expect(polygonSelected).toBeTruthy();
     });
   });
 

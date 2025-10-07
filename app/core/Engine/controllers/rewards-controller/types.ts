@@ -17,26 +17,6 @@ export type SubscriptionDto = {
   }[];
 };
 
-export interface GenerateChallengeDto {
-  address: string;
-}
-
-export interface ChallengeResponseDto {
-  id: string;
-  message: string;
-  domain?: string;
-  address?: string;
-  issuedAt?: string;
-  expirationTime?: string;
-  nonce?: string;
-}
-
-export interface LoginDto {
-  challengeId: string;
-  signature: string;
-  referralCode?: string;
-}
-
 export interface MobileLoginDto {
   /**
    * The account of the user
@@ -55,6 +35,32 @@ export interface MobileLoginDto {
    * @example '0x...'
    */
   signature: `0x${string}`;
+}
+
+export interface MobileOptinDto {
+  /**
+   * The account of the user
+   * @example '0x... or solana address.'
+   */
+  account: string;
+
+  /**
+   * The timestamp (epoch seconds) used in the signature.
+   * @example 1
+   */
+  timestamp: number;
+
+  /**
+   * The signature of the login (hex encoded)
+   * @example '0x...'
+   */
+  signature: `0x${string}`;
+
+  /**
+   * The referral code of the user
+   * @example '123456'
+   */
+  referralCode?: string;
 }
 
 export interface EstimateAssetDto {
@@ -152,6 +158,12 @@ export interface GetPointsEventsDto {
   seasonId: string;
   subscriptionId: string;
   cursor: string | null;
+  forceFresh?: boolean;
+}
+
+export interface GetPointsEventsLastUpdatedDto {
+  seasonId: string;
+  subscriptionId: string;
 }
 
 /**
@@ -160,7 +172,6 @@ export interface GetPointsEventsDto {
 export interface PaginatedPointsEventsDto {
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
   results: PointsEventDto[];
 }
 
@@ -240,6 +251,12 @@ export interface PerpsEventPayload {
    * Asset information
    */
   asset: EventAssetDto;
+
+  /**
+   * PNL of the position
+   * @example 10.0464
+   */
+  pnl?: string;
 }
 
 /**
@@ -552,12 +569,28 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PointsEventsDtoState = {
+  results: {
+    id: string;
+    timestamp: number;
+    value: number;
+    bonus: { bips?: number | null; bonuses?: string[] | null } | null;
+    accountAddress: string | null;
+    type: string;
+    updatedAt: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: any;
+  }[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
   subscriptionId: string | null;
-  lastCheckedAuth: number;
-  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };
@@ -574,6 +607,7 @@ export type RewardsControllerState = {
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
+  pointsEvents: { [compositeId: string]: PointsEventsDtoState };
 };
 
 /**
@@ -616,6 +650,19 @@ export interface RewardsControllerBalanceUpdatedEvent {
 }
 
 /**
+ * Event emitted when points events should be invalidated
+ */
+export interface RewardsControllerPointsEventsUpdatedEvent {
+  type: 'RewardsController:pointsEventsUpdated';
+  payload: [
+    {
+      seasonId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -625,7 +672,8 @@ export type RewardsControllerEvents =
     }
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
-  | RewardsControllerBalanceUpdatedEvent;
+  | RewardsControllerBalanceUpdatedEvent
+  | RewardsControllerPointsEventsUpdatedEvent;
 
 /**
  * Patch type for state changes
@@ -781,6 +829,30 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for checking if an account supports opt-in
+ */
+export interface RewardsControllerIsOptInSupportedAction {
+  type: 'RewardsController:isOptInSupported';
+  handler: (account: InternalAccount) => boolean;
+}
+
+/**
+ * Action for getting the actual subscription ID for a CAIP account ID
+ */
+export interface RewardsControllerGetActualSubscriptionIdAction {
+  type: 'RewardsController:getActualSubscriptionId';
+  handler: (account: CaipAccountId) => string | null;
+}
+
+/**
+ * Action for getting the first subscription ID from the subscriptions map
+ */
+export interface RewardsControllerGetFirstSubscriptionIdAction {
+  type: 'RewardsController:getFirstSubscriptionId';
+  handler: () => string | null;
+}
+
+/**
  * Action for linking an account to a subscription
  */
 export interface RewardsControllerLinkAccountToSubscriptionAction {
@@ -836,6 +908,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for resetting controller state
+ */
+export interface RewardsControllerResetAllAction {
+  type: 'RewardsController:resetAll';
+  handler: () => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -852,12 +932,16 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerIsOptInSupportedAction
+  | RewardsControllerGetActualSubscriptionIdAction
+  | RewardsControllerGetFirstSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerClaimRewardAction;
+  | RewardsControllerClaimRewardAction
+  | RewardsControllerResetAllAction;
 
 export const CURRENT_SEASON_ID = 'current';
 
@@ -885,6 +969,12 @@ export interface OptInStatusDto {
    * @example [true, true, false]
    */
   ois: boolean[];
+
+  /**
+   * The subscription IDs of the addresses in the same order as the input
+   * @example ['sub_123', 'sub_456', null]
+   */
+  sids: (string | null)[];
 }
 
 /**

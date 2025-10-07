@@ -1,13 +1,13 @@
-import { useCallback, useState, useContext } from 'react';
+import { useCallback, useState } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { IconColor } from '../../../../component-library/components/Icons/Icon/Icon.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button/Button.types';
+import useRewardsToast from './useRewardsToast';
+import { formatAddress } from '../../../../util/address';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { deriveAccountMetricProps } from '../utils';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
 interface UseLinkAccountResult {
   linkAccount: (account: InternalAccount) => Promise<boolean>;
@@ -20,13 +20,29 @@ export const useLinkAccount = (): UseLinkAccountResult => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toastRef } = useContext(ToastContext);
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const triggerAccountLinkingEvent = useCallback(
+    (event: IMetaMetricsEvent, account: InternalAccount) => {
+      const accountMetricProps = deriveAccountMetricProps(account);
+      trackEvent(
+        createEventBuilder(event).addProperties(accountMetricProps).build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
 
   const linkAccount = useCallback(
     async (account: InternalAccount): Promise<boolean> => {
       setIsLoading(true);
       setIsError(false);
       setError(null);
+
+      triggerAccountLinkingEvent(
+        MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_STARTED,
+        account,
+      );
 
       try {
         const success = await Engine.controllerMessenger.call(
@@ -35,88 +51,55 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         );
 
         if (success) {
-          if (toastRef?.current) {
-            toastRef.current.showToast({
-              variant: ToastVariants.Icon,
-              iconName: IconName.Check,
-              iconColor: IconColor.Success,
-              labelOptions: [
-                {
-                  label: strings(
-                    'rewards.settings.link_account_success_title',
-                    {
-                      accountName: account.metadata.name,
-                    },
-                  ),
-                },
-              ],
-              hasNoTimeout: false,
-              closeButtonOptions: {
-                variant: ButtonVariants.Primary,
-                endIconName: IconName.CircleX,
-                label: strings('rewards.toast_dismiss'),
-                onPress: () => {
-                  toastRef.current?.closeToast();
-                },
-              },
-            });
-          }
+          triggerAccountLinkingEvent(
+            MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_COMPLETED,
+            account,
+          );
+          showToast(
+            RewardsToastOptions.success(
+              strings('rewards.settings.link_account_success_title', {
+                accountName: formatAddress(account.address, 'short'),
+              }),
+            ),
+          );
           return true;
         }
 
-        if (toastRef?.current) {
-          toastRef.current.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.CircleX,
-            iconColor: IconColor.Error,
-            labelOptions: [
-              { label: strings('rewards.settings.link_account_error_title') },
-            ],
-            hasNoTimeout: false,
-            closeButtonOptions: {
-              variant: ButtonVariants.Primary,
-              endIconName: IconName.CircleX,
-              label: strings('rewards.toast_dismiss'),
-              onPress: () => {
-                toastRef.current?.closeToast();
-              },
-            },
-          });
-        }
-
+        showToast(
+          RewardsToastOptions.error(
+            strings('rewards.settings.link_account_error_title'),
+          ),
+        );
+        triggerAccountLinkingEvent(
+          MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_FAILED,
+          account,
+        );
         setIsError(true);
-        setError('Failed to link account');
+        setError(strings('rewards.settings.link_account_failed_error'));
         return false;
       } catch (err) {
-        if (toastRef?.current) {
-          toastRef.current.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.CircleX,
-            iconColor: IconColor.Error,
-            labelOptions: [
-              { label: strings('rewards.settings.link_account_error_title') },
-            ],
-            hasNoTimeout: false,
-            closeButtonOptions: {
-              variant: ButtonVariants.Primary,
-              endIconName: IconName.CircleX,
-              label: strings('rewards.toast_dismiss'),
-              onPress: () => {
-                toastRef.current?.closeToast();
-              },
-            },
-          });
-        }
-
+        showToast(
+          RewardsToastOptions.error(
+            strings('rewards.settings.link_account_error_title'),
+          ),
+        );
+        triggerAccountLinkingEvent(
+          MetaMetricsEvents.REWARDS_ACCOUNT_LINKING_FAILED,
+          account,
+        );
         Logger.log('useLinkAccount: Failed to link account', err);
         setIsError(true);
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        setError(
+          err instanceof Error
+            ? err.message
+            : strings('rewards.settings.link_account_unknown_error'),
+        );
         return false;
       } finally {
         setIsLoading(false);
       }
     },
-    [toastRef],
+    [RewardsToastOptions, showToast, triggerAccountLinkingEvent],
   );
 
   return {

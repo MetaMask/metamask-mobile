@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { TouchableOpacity, Animated } from 'react-native';
+import { TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -8,12 +8,16 @@ import {
   Icon,
   IconName,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
 import {
   selectSeasonTiers,
   selectCurrentTier,
+  selectSeasonStatusLoading,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 import {
   SeasonTierDto,
@@ -25,6 +29,8 @@ import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from './RewardItem';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -96,6 +102,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             twClassName="text-text-default"
             testID={REWARDS_VIEW_SELECTORS.TIER_NAME}
           >
@@ -112,6 +119,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.upcoming_rewards.points_needed', {
@@ -161,9 +169,34 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
   );
 };
 
+const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
+  count,
+  isLoading,
+}) => (
+  <Box>
+    <Box twClassName="flex-row items-center gap-2 items-center">
+      <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+        {strings('rewards.upcoming_rewards.title')}
+      </Text>
+      {isLoading && <ActivityIndicator size="small" />}
+      {count !== null && !isLoading && (
+        <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
+          <Text variant={TextVariant.BodySm} twClassName="text-default">
+            {count}
+          </Text>
+        </Box>
+      )}
+    </Box>
+  </Box>
+);
+
 const UpcomingRewards: React.FC = () => {
+  const tw = useTailwind();
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
   const currentTier = useSelector(selectCurrentTier);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
+  const isLoading = useSelector(selectSeasonStatusLoading);
+  const hasError = useSelector(selectSeasonStatusError);
 
   // Filter tiers to show only those above current tier
   const upcomingTiers = useMemo(() => {
@@ -195,30 +228,71 @@ const UpcomingRewards: React.FC = () => {
     });
   };
 
-  if (!upcomingTiers.length) {
+  const totalUpcomingRewardsCount = useMemo(
+    () =>
+      seasonStartDate != null
+        ? upcomingTiers.reduce((acc, tier) => acc + tier.rewards.length, 0)
+        : null,
+    [upcomingTiers, seasonStartDate],
+  );
+
+  if (
+    seasonStartDate != null &&
+    !upcomingTiers?.length &&
+    !hasError &&
+    !isLoading
+  ) {
+    // Not pending and empty, shouldn't happen but in this case nothing is returned.
     return null;
   }
 
-  return (
-    <Box twClassName="py-4">
-      {/* Section Title */}
-      <Box twClassName="mb-4">
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.upcoming_rewards.title')}
-        </Text>
-      </Box>
+  const renderMainContent = () => {
+    const shouldShowSkeleton =
+      (isLoading || seasonStartDate === null) &&
+      !upcomingTiers?.length &&
+      !hasError;
 
-      {/* Tier Accordions */}
-      <Box twClassName="rounded-xl overflow-hidden">
-        {upcomingTiers.map((tier) => (
-          <TierAccordion
-            key={tier.id}
-            tier={tier}
-            isExpanded={expandedTiers.has(tier.id)}
-            onToggle={() => handleTierToggle(tier.id)}
-          />
-        ))}
-      </Box>
+    if (shouldShowSkeleton) {
+      return <Skeleton style={tw.style('h-32 bg-rounded')} />;
+    }
+
+    if (upcomingTiers?.length) {
+      return (
+        <Box twClassName="rounded-xl overflow-hidden">
+          {upcomingTiers.map((tier) => (
+            <TierAccordion
+              key={tier.id}
+              tier={tier}
+              isExpanded={expandedTiers.has(tier.id)}
+              onToggle={() => handleTierToggle(tier.id)}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return <></>;
+  };
+
+  return (
+    <Box twClassName="py-4 gap-4">
+      {/* Always show section header */}
+      <SectionHeader
+        count={totalUpcomingRewardsCount}
+        isLoading={isLoading && !hasError}
+      />
+
+      {/* Show error banner if there's an error */}
+      {hasError && !seasonStartDate && !isLoading && (
+        <RewardsErrorBanner
+          title={strings('rewards.upcoming_rewards_error.error_fetching_title')}
+          description={strings(
+            'rewards.upcoming_rewards_error.error_fetching_description',
+          )}
+        />
+      )}
+
+      {renderMainContent()}
     </Box>
   );
 };

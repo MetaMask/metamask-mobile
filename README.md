@@ -18,7 +18,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
-- [Testing](./docs/readme/testing.md)
+- [E2E Testing](./docs/readme/e2e-testing.md)
 - [Debugging](./docs/readme/debugging.md)
 - [Performance](./docs/readme/performance.md)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
@@ -35,7 +35,7 @@ Expo is the fastest way to start developing. With the Expo framework, developers
 
 #### Expo Environment Setup
 
-[Install node, yarn and watchman.](./docs/readme/expo-environment.md)
+[Install node, yarn v3 and watchman.](./docs/readme/expo-environment.md)
 
 #### Clone the project
 

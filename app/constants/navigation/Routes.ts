@@ -13,9 +13,6 @@ const Routes = {
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
-    REGION: 'Region',
-    REGION_HAS_STARTED: 'RegionHasStarted',
-    NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
@@ -23,6 +20,11 @@ const Routes = {
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
+      FIAT_SELECTOR: 'RampFiatSelectorModal',
+      INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
+      REGION_SELECTOR: 'RampRegionSelectorModal',
+      UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
     },
   },
   DEPOSIT: {
@@ -52,6 +54,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
       SSN_INFO: 'SsnInfoModal',
       CONFIGURATION: 'DepositConfigurationModal',
+      ERROR_DETAILS: 'DepositErrorDetailsModal',
     },
   },
   HW: {
@@ -100,6 +103,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
+    REWARDS_INTRO_MODAL: 'RewardsIntroModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -162,7 +166,6 @@ const Routes = {
     CONNECTION_DETAILS: 'ConnectionDetails',
     PERMITTED_NETWORKS_INFO_SHEET: 'PermittedNetworksInfoSheet',
     NETWORK_SELECTOR: 'NetworkSelector',
-    RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -334,12 +337,16 @@ const Routes = {
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    WELCOME: 'CardWelcome',
   },
   SEND: {
     RECIPIENT: 'Recipient',
     ASSET: 'Asset',
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
+  },
+  SDK: {
+    RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
 };
 

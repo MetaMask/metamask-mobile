@@ -15,14 +15,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -30,7 +23,7 @@ import SensitiveText, {
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import createStyles, { headerStyle } from './CardHome.styles';
+import createStyles from './CardHome.styles';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -55,19 +48,8 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import {
-  Skeleton,
-  SkeletonProps,
-} from '../../../../../component-library/components/Skeleton';
-import { isE2E } from '../../../../../util/test/utils';
-import useSupportedTokens from '../../../Ramp/Deposit/hooks/useSupportedTokens';
-import { LINEA_MAINNET } from '../../../Ramp/Deposit/constants/networks';
-
-const SkeletonLoading = (props: SkeletonProps) => {
-  if (isE2E) return null;
-
-  return <Skeleton {...props} />;
-};
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 
 /**
  * CardHome Component
@@ -101,12 +83,12 @@ const CardHome = () => {
     isLoading: isLoadingPriorityToken,
     error,
   } = useGetPriorityCardToken();
-  const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
+  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance } =
+    useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
   });
-  const depositSupportedTokens = useSupportedTokens();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -130,14 +112,11 @@ const CardHome = () => {
 
   const isPriorityTokenSupportedDeposit = useMemo(() => {
     if (priorityToken?.symbol) {
-      return depositSupportedTokens.find(
-        (token) =>
-          token.symbol.toLowerCase() === priorityToken.symbol?.toLowerCase() &&
-          // Card feature only supports Linea for now
-          token.chainId === LINEA_MAINNET.chainId,
+      return DEPOSIT_SUPPORTED_TOKENS.find(
+        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
       );
     }
-  }, [priorityToken, depositSupportedTokens]);
+  }, [priorityToken]);
 
   const renderAddFundsBottomSheet = useCallback(
     () => (
@@ -181,14 +160,28 @@ const CardHome = () => {
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
             token_symbol_priority: priorityToken?.symbol,
-            token_raw_balance_priority: mainBalance,
-            token_fiat_balance_priority: balanceFiat,
+            token_raw_balance_priority:
+              rawTokenBalance !== undefined && isNaN(rawTokenBalance)
+                ? 0
+                : rawTokenBalance,
+            token_fiat_balance_priority:
+              rawFiatNumber !== undefined && isNaN(rawFiatNumber)
+                ? 0
+                : rawFiatNumber,
           })
           .build(),
       );
       hasTrackedCardHomeView.current = true;
     }
-  }, [trackEvent, createEventBuilder, priorityToken, mainBalance, balanceFiat]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    priorityToken,
+    mainBalance,
+    balanceFiat,
+    rawFiatNumber,
+    rawTokenBalance,
+  ]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
@@ -269,7 +262,7 @@ const CardHome = () => {
             {isLoadingPriorityToken ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-              <SkeletonLoading
+              <Skeleton
                 height={28}
                 width={'50%'}
                 style={styles.skeletonRounded}
@@ -333,7 +326,7 @@ const CardHome = () => {
           ]}
         >
           {isLoadingPriorityToken || !priorityToken ? (
-            <SkeletonLoading
+            <Skeleton
               height={50}
               width={'100%'}
               style={styles.skeletonRounded}
@@ -351,7 +344,7 @@ const CardHome = () => {
           ]}
         >
           {isLoadingPriorityToken ? (
-            <SkeletonLoading
+            <Skeleton
               height={28}
               width={'100%'}
               style={styles.skeletonRounded}
@@ -361,7 +354,7 @@ const CardHome = () => {
             <Button
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.add_funds')}
-              size={ButtonSize.Sm}
+              size={ButtonSize.Lg}
               onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
               loading={isLoadingPriorityToken}
@@ -385,36 +378,5 @@ const CardHome = () => {
     </ScrollView>
   );
 };
-
-CardHome.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
-    />
-  ),
-});
 
 export default CardHome;

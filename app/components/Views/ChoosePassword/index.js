@@ -4,11 +4,12 @@ import {
   ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -724,7 +725,7 @@ class ChoosePassword extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
@@ -882,7 +883,7 @@ class ChoosePassword extends PureComponent {
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
                     autoComplete="new-password"
-                    onSubmitEditing={this.onPressCreate}
+                    onSubmitEditing={Keyboard.dismiss}
                     returnKeyType={'done'}
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}

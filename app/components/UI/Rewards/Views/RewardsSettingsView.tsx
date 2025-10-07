@@ -1,42 +1,34 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
-import { useSelector } from 'react-redux';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import Banner, {
-  BannerVariant,
-} from '../../../../component-library/components/Banners/Banner';
-import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
-
-interface RewardsSettingsViewRouteParams {
-  focusUnlinkedTab?: boolean;
-}
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../utils';
 
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const route = useRoute();
-  const routeParams = route.params as
-    | RewardsSettingsViewRouteParams
-    | undefined;
   const { colors } = useTheme();
-  const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
-  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout(toastRef);
+  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedSettingsViewed = useRef(false);
+
+  useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
   // Set navigation title with back button
   useEffect(() => {
@@ -51,19 +43,14 @@ const RewardsSettingsView: React.FC = () => {
     });
   }, [colors, navigation]);
 
-  // Determine initial tab based on route params or current account opt-in status
-  const initialTabIndex = useMemo(() => {
-    // If route specifies to focus unlinked tab, use that
-    if (routeParams?.focusUnlinkedTab) {
-      return 1;
+  useEffect(() => {
+    if (!hasTrackedSettingsViewed.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_SETTINGS_VIEWED).build(),
+      );
+      hasTrackedSettingsViewed.current = true;
     }
-    // If current account is not opted in, start with unlinked tab (index 1)
-    if (hasAccountOptedIn === false) {
-      return 1;
-    }
-    // Otherwise, start with linked tab (index 0)
-    return 0;
-  }, [hasAccountOptedIn, routeParams?.focusUnlinkedTab]);
+  }, [trackEvent, createEventBuilder]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
@@ -86,22 +73,8 @@ const RewardsSettingsView: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Current Account Not Opted In Banner */}
-          {hasAccountOptedIn === false && (
-            <Box twClassName="-mx-4">
-              <Banner
-                variant={BannerVariant.Alert}
-                severity={BannerAlertSeverity.Info}
-                title={strings('rewards.unlinked_account_info.title')}
-                description={strings(
-                  'rewards.unlinked_account_info.description',
-                )}
-              />
-            </Box>
-          )}
-
           {/* Section 2: Account Tabs */}
-          <RewardSettingsTabs initialTabIndex={initialTabIndex} />
+          <RewardSettingsTabs initialTabIndex={0} />
 
           {/* Section 3: Opt Out */}
           <Box twClassName="gap-4 flex-col">
@@ -120,9 +93,18 @@ const RewardsSettingsView: React.FC = () => {
               isDisabled={isOptingOut}
               isDanger
               width={null as unknown as number}
-              onPress={() =>
-                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW)
-              }
+              onPress={() => {
+                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW);
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                  )
+                    .addProperties({
+                      button_type: RewardsMetricsButtons.OPT_OUT,
+                    })
+                    .build(),
+                );
+              }}
             />
           </Box>
         </Box>

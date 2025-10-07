@@ -1847,8 +1847,6 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  const leftAction = () => navigation.pop();
-
   return {
     headerTitle: () => (
       <NavbarTitle
@@ -1858,20 +1856,14 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
+    headerLeft: null,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => navigation.dangerouslyGetParent()?.pop()}
         style={styles.closeButton}
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
+        <Icon name={IconName.Close} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
@@ -2048,7 +2040,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title = '', showBack = true, showCancel = true, showNetwork = true } = {},
+  { title = '', showBack = true, showCancel = true, showNetwork = false } = {},
   themeColors,
   onCancel,
 ) {

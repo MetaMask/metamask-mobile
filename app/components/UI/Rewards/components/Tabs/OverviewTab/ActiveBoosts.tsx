@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { Dimensions, TouchableOpacity, Platform } from 'react-native';
+import {
+  Dimensions,
+  TouchableOpacity,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -19,6 +24,7 @@ import {
   selectActiveBoosts,
   selectActiveBoostsLoading,
   selectActiveBoostsError,
+  selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -30,6 +36,8 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -42,6 +50,7 @@ interface BoostCardProps {
 
 const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -60,6 +69,44 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   // TODO: coordinate backend changes to support other default assets, or go to perps
   const handleBoostTap = () => {
     goToSwaps();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_ACTIVE_BOOST_CLICKED)
+        .addProperties({
+          boost_id: boost.id,
+          boost_name: boost.name,
+        })
+        .build(),
+    );
+  };
+
+  const renderBoostBadge = () => {
+    if (boost.seasonLong) {
+      return (
+        <Box twClassName="flex-row items-center gap-2">
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            twClassName="text-white"
+          />
+          <Text variant={TextVariant.BodySm} twClassName="text-white">
+            {strings('rewards.season_1')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (boost.endDate) {
+      return (
+        <Box twClassName="flex-row items-center gap-2">
+          <Icon name={IconName.Clock} size={IconSize.Sm} />
+          <Text variant={TextVariant.BodySm} twClassName="text-white">
+            {timeRemaining}
+          </Text>
+        </Box>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -89,29 +136,7 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
             twClassName="mt-auto"
             testID={REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_TIME_REMAINING}
           >
-            {/* Season Long Badge */}
-            {boost.seasonLong ? (
-              <Box twClassName="flex-row items-center gap-2">
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Sm}
-                  twClassName="text-white"
-                />
-                <Text variant={TextVariant.BodySm} twClassName="text-white">
-                  {strings('rewards.season_1')}
-                </Text>
-              </Box>
-            ) : boost.endDate ? (
-              <>
-                {/* Time-limited Badge */}
-                <Box twClassName="flex-row items-center gap-2">
-                  <Icon name={IconName.Clock} size={IconSize.Sm} />
-                  <Text variant={TextVariant.BodySm} twClassName="text-white">
-                    {timeRemaining}
-                  </Text>
-                </Box>
-              </>
-            ) : null}
+            {renderBoostBadge()}
           </Box>
         </Box>
         {/* Boost Icon */}
@@ -131,13 +156,17 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   );
 };
 
-const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
-  <Box twClassName="mb-4">
-    <Box twClassName="flex-row items-center gap-2 mb-1">
+const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
+  count,
+  isLoading,
+}) => (
+  <Box>
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-        {strings('rewards.active_boosts.title')}
+        {strings('rewards.active_boosts_title')}
       </Text>
-      {count !== null && (
+      {isLoading && <ActivityIndicator size="small" />}
+      {count !== null && !isLoading && (
         <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
           <Text variant={TextVariant.BodySm} twClassName="text-default">
             {count}
@@ -148,28 +177,16 @@ const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
   </Box>
 );
 
-const ErrorBanner: React.FC = () => (
-  <Box twClassName="bg-error-muted rounded-lg p-4 mb-4">
-    <Box twClassName="flex-row items-center gap-2">
-      <Icon
-        name={IconName.Danger}
-        size={IconSize.Sm}
-        twClassName="text-error-default"
-      />
-      <Text variant={TextVariant.BodyMd} twClassName="text-error-default">
-        {strings('rewards.active_boosts.error')}
-      </Text>
-    </Box>
-  </Box>
-);
-
-const ActiveBoosts: React.FC = () => {
+const ActiveBoosts: React.FC<{
+  fetchActivePointsBoosts: () => Promise<void>;
+}> = ({ fetchActivePointsBoosts }) => {
   const tw = useTailwind();
   const activeBoosts = useSelector(selectActiveBoosts) as
     | PointsBoostDto[]
     | null;
   const isLoading = useSelector(selectActiveBoostsLoading);
   const hasError = useSelector(selectActiveBoostsError);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
 
   const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
 
@@ -192,22 +209,21 @@ const ActiveBoosts: React.FC = () => {
     [scrollNativeGesture, panSink],
   );
 
-  if (!isLoading && !hasError && numBoosts === 0) {
-    return null;
-  }
-
-  return (
-    <Box twClassName="py-4">
-      {/* Always show section header */}
-      <SectionHeader count={isLoading ? 0 : numBoosts} />
-
-      {/* Show error banner if there's an error */}
-      {hasError && <ErrorBanner />}
-
-      {/* Show loading state */}
-      {isLoading || !activeBoosts ? (
+  const renderBoostContent = () => {
+    // Show loading state
+    if (
+      (isLoading || activeBoosts === null) &&
+      !activeBoosts?.length &&
+      !hasError
+    ) {
+      return (
         <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
-      ) : hasError ? null /* Show active boosts */ : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
+      );
+    }
+
+    // Show boost cards if we have data
+    if (activeBoosts?.length) {
+      return (
         <GestureDetector gesture={combinedGesture}>
           <ScrollView
             horizontal
@@ -221,9 +237,43 @@ const ActiveBoosts: React.FC = () => {
             ))}
           </ScrollView>
         </GestureDetector>
-      ) : (
-        <></>
+      );
+    }
+
+    // Show nothing if there's an error (just the banner will be shown)
+    return <></>;
+  };
+
+  if (!isLoading && !hasError && activeBoosts && numBoosts === 0) {
+    return null;
+  }
+
+  return (
+    <Box twClassName="py-4 gap-4">
+      {/* Always show section header */}
+      <SectionHeader
+        count={activeBoosts?.length || null}
+        isLoading={
+          isLoading || (activeBoosts === null && !hasError && !!seasonStartDate)
+        }
+      />
+
+      {/* Show error banner if there's an error */}
+      {hasError && !activeBoosts?.length && !isLoading && (
+        <RewardsErrorBanner
+          title={strings('rewards.active_boosts_error.error_fetching_title')}
+          description={strings(
+            'rewards.active_boosts_error.error_fetching_description',
+          )}
+          onConfirm={fetchActivePointsBoosts}
+          confirmButtonLabel={strings(
+            'rewards.active_boosts_error.retry_button',
+          )}
+        />
       )}
+
+      {/* Render boost content based on current state */}
+      {renderBoostContent()}
     </Box>
   );
 };

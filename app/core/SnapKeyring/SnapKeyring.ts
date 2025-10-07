@@ -23,6 +23,9 @@ import { areAddressesEqual } from '../../util/address';
  * Builder type for the Snap keyring.
  */
 export interface SnapKeyringBuilder {
+  name: 'SnapKeyringBuilder';
+  state: null;
+
   (): SnapKeyring;
   type: typeof SnapKeyring.type;
 }
@@ -118,12 +121,21 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput,
     accountNameSuggestion,
     skipAccountNameSuggestionDialog,
+    skipApprovalFlow,
   }: {
     snapId: SnapId;
     accountNameSuggestion: string;
     handleUserInput: (accepted: boolean) => Promise<void>;
     skipAccountNameSuggestionDialog: boolean;
+    skipApprovalFlow: boolean;
   }): Promise<{ accountName?: string }> {
+    if (skipApprovalFlow) {
+      const { accountName } = await this.getAccountNameFromSuggestion(
+        accountNameSuggestion,
+      );
+      await handleUserInput(true);
+      return { accountName };
+    }
     return await this.withApprovalFlow(async (_) => {
       const { success, accountName } = skipAccountNameSuggestionDialog
         ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
@@ -144,16 +156,18 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     address: _address,
     snapId,
     skipSetSelectedAccountStep,
-    accountName,
+    skipApprovalFlow,
     onceSaved,
+    accountName,
   }: {
     address: string;
     snapId: SnapId;
     skipSetSelectedAccountStep: boolean;
+    skipApprovalFlow: boolean;
     onceSaved: Promise<string>;
     accountName?: string;
   }) {
-    await this.withApprovalFlow(async (_) => {
+    const finalizeFn = async () => {
       try {
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
@@ -203,7 +217,11 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         // This part of the flow is not awaited, so we just log the error for now:
         Logger.error(error, 'Error occurred while creating snap account');
       }
-    });
+    };
+    if (skipApprovalFlow) {
+      return finalizeFn();
+    }
+    await this.withApprovalFlow(finalizeFn);
   }
 
   async addAccount(
@@ -213,6 +231,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     onceSaved: Promise<string>,
     accountNameSuggestion: string = '',
     {
+      displayConfirmation,
       displayAccountNameSuggestion,
       setSelectedAccount,
     }: SnapKeyringInternalOptions = getDefaultInternalOptions(),
@@ -222,6 +241,10 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     // Only pre-installed Snaps can skip the account name suggestion dialog.
     const skipAccountNameSuggestionDialog =
       isSnapPreinstalled(snapId) && !displayAccountNameSuggestion;
+    const skipApprovalFlow =
+      isSnapPreinstalled(snapId) &&
+      skipAccountNameSuggestionDialog &&
+      !displayConfirmation;
 
     // First part of the flow, which includes confirmation dialogs (if not skipped).
     // Once confirmed, we resume the Snap execution.
@@ -230,6 +253,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       accountNameSuggestion,
       handleUserInput,
       skipAccountNameSuggestionDialog,
+      skipApprovalFlow,
     });
 
     // Only pre-installed Snaps can skip the account from being selected.
@@ -244,6 +268,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       address,
       snapId,
       skipSetSelectedAccountStep,
+      skipApprovalFlow,
       onceSaved,
       accountName,
     });

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { memo } from 'react';
-import { Image, ImageStyle } from 'react-native';
+import { Image, ImageStyle, StyleProp } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 import { useTheme } from '../../../util/theme';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,10 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import { selectAvatarAccountType } from '../../../selectors/settings';
 
 interface IdenticonProps {
+  /**
+   * Optional size of the avatar
+   */
+  avatarSize?: AvatarSize;
   /**
    * Diameter that represents the size of the identicon
    */
@@ -20,7 +24,7 @@ interface IdenticonProps {
   /**
    * Custom style to apply to image
    */
-  customStyle?: ImageStyle;
+  customStyle?: StyleProp<ImageStyle>;
   /**
    * True if render is happening without fade in
    */
@@ -38,6 +42,7 @@ interface IdenticonProps {
  * but we could add more types in the future
  */
 const Identicon: React.FC<IdenticonProps> = ({
+  avatarSize = AvatarSize.Md,
   diameter = 46,
   address,
   customStyle,
@@ -76,7 +81,7 @@ const Identicon: React.FC<IdenticonProps> = ({
     <AvatarAccount
       type={avatarAccountType}
       accountAddress={address}
-      size={AvatarSize.Md}
+      size={avatarSize}
     />
   );
 

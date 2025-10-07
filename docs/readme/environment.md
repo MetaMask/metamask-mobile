@@ -28,13 +28,14 @@ Install ruby version defined in the file `.ruby-version`
 <details>
   <summary>Troubleshooting</summary>
 
-  ```bash
-    # Inspect that ruby is in path
-    which ruby
+```bash
+  # Inspect that ruby is in path
+  which ruby
 
-    # Ensure you are using the correct ruby version
-    ruby --version
-  ```
+  # Ensure you are using the correct ruby version
+  ruby --version
+```
+
 </details>
 
 ### Gems
@@ -59,36 +60,58 @@ To install a simulator, open Xcode > Settings... (or Preferences...) and select 
 
 If you are using Xcode version 14.0 or greater than to install a simulator, open Xcode > Settings > Platforms tab, then click "+" icon and select iOS… option.
 
+You might need to install `applesimutils` as well if is not installed by default with Xcode:
+
+```bash
+brew tap wix/brew
+brew install applesimutils
+```
+
 ### Node
 
 It is recommended to install a Node version manager such as [nodenv](https://github.com/nodenv/nodenv?tab=readme-ov-file#installation), [nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating), [asdf](https://asdf-vm.com/guide/getting-started.html#_3-install-asdf)
 
 Install node version defined in the file `.nvmrc`
 
-### Yarn v1
+### Yarn v3
 
-Ensure you are using the correct yarn version (yarn v1) as noted in the `package.json`.
+Ensure you are using the correct yarn version (yarn v3.8.7) as noted in the `package.json`.
 
 <details>
-  <summary>Install Yarn using corepack (recommended)</summary>
+  <summary>Install Yarn v3 using corepack (recommended)</summary>
 
-  ```bash
-  corepack enable
+```bash
+corepack enable
+corepack prepare yarn@3.8.7 --activate
 
-  # check yarn version
-  yarn --version
-  ```
+# check yarn version (should show 3.8.7)
+yarn --version
+```
+
 </details>
 
 <details>
-  <summary>Install Yarn V1 with NPM</summary>
+  <summary>Install Yarn v3 with NPM</summary>
 
-  ```bash
-  npm install -g yarn
+```bash
+npm install -g yarn@3.8.7
 
-  # check yarn version
-  yarn --version
-  ```
+# check yarn version (should show 3.8.7)
+yarn --version
+```
+
+</details>
+
+<details>
+  <summary>Use project's bundled Yarn (no global install needed)</summary>
+
+The project includes its own Yarn v3.8.7 binary at `.yarn/releases/yarn-3.8.7.cjs`. If you have any version of Yarn installed, the project will automatically use the correct version thanks to the `.yarnrc.yml` configuration.
+
+```bash
+# check yarn version (should show 3.8.7 when run from project directory)
+yarn --version
+```
+
 </details>
 
 ## Android

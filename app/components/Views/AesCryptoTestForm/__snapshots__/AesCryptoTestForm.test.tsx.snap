@@ -1,53 +1,58 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AesCryptoTestForm renders correctly 1`] = `
-<RCTScrollView
-  testID="aes-crypto-form-scroll"
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
 >
-  <View>
-    <RCTSafeAreaView
-      style={
-        {
-          "paddingHorizontal": 15,
-        }
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "padding": 16,
       }
-    >
-      <View
+    }
+    testID="aes-crypto-form-scroll"
+  >
+    <View>
+      <Text
+        accessibilityRole="text"
         style={
           {
-            "paddingHorizontal": 15,
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "paddingVertical": 5,
           }
         }
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
+        Current selected address
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
-        >
-          Current selected address
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-          testID="account-address"
-        />
-      </View>
+        }
+        testID="account-address"
+      />
       <RCTSafeAreaView
         style={
           {
@@ -639,7 +644,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           </Text>
         </TouchableOpacity>
       </RCTSafeAreaView>
-    </RCTSafeAreaView>
-  </View>
-</RCTScrollView>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
 `;

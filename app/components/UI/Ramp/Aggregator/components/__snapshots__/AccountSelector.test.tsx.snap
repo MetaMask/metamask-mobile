@@ -1,0 +1,93 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountSelector renders correctly with selected address 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={
+    {
+      "flexShrink": 1,
+    }
+  }
+  testID="ramps-account-picker"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 100,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "paddingHorizontal": 10,
+        "paddingVertical": 8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderRadius": 4,
+          "height": 16,
+          "overflow": "hidden",
+          "width": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+      />
+    </View>
+    <Text
+      accessibilityRole="text"
+      ellipsizeMode="middle"
+      numberOfLines={1}
+      style={
+        {
+          "color": "#121314",
+          "flexShrink": 1,
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginHorizontal": 5,
+          "marginVertical": 3,
+        }
+      }
+    >
+      Test Account
+    </Text>
+    <Text
+      allowFontScaling={false}
+      selectable={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 18,
+          },
+          {
+            "color": "#686e7d",
+            "marginLeft": 10,
+            "marginRight": 5,
+            "textAlign": "right",
+          },
+          {
+            "fontFamily": "FontAwesome",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      
+    </Text>
+  </View>
+</TouchableOpacity>
+`;

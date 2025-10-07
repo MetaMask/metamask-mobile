@@ -82,8 +82,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.liquidation_price': 'Liquidation price',
       'perps.order.fees': 'Fees',
       'perps.order.off': 'off',
+      'perps.order.tp': 'TP',
+      'perps.order.sl': 'SL',
       'perps.order.button.long': 'Long {{asset}}',
       'perps.order.button.short': 'Short {{asset}}',
+      'perps.market.long': 'Long',
+      'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
@@ -215,12 +219,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsRewards: jest.fn(() => ({
     shouldShowRewardsRow: false,
     isLoading: false,
@@ -336,7 +334,7 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
     PERPS_ORDER_TYPE_VIEWED: 'PERPS_ORDER_TYPE_VIEWED',
     PERPS_TRADE_TRANSACTION_INITIATED: 'PERPS_TRADE_TRANSACTION_INITIATED',
     PERPS_TRADE_TRANSACTION_SUBMITTED: 'PERPS_TRADE_TRANSACTION_SUBMITTED',
-    PERPS_ERROR_ENCOUNTERED: 'PERPS_ERROR_ENCOUNTERED',
+    PERPS_ERROR: 'PERPS_ERROR',
   },
 }));
 
@@ -1826,7 +1824,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
     });
 
@@ -1854,7 +1852,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.queryByText('Points')).toBeFalsy();
+        expect(screen.queryByText('perps.estimated_points')).toBeFalsy();
       });
     });
 
@@ -1881,11 +1879,11 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
 
       // Assert - Points text and tooltip should be present
-      expect(screen.getByText('Points')).toBeTruthy();
+      expect(screen.getByText('perps.estimated_points')).toBeTruthy();
     });
   });
 
@@ -2084,7 +2082,7 @@ describe('PerpsOrderView', () => {
 
       // Verify points section is displayed
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The points tooltip is handled by the handleTooltipPress('points') function
@@ -2116,7 +2114,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The RewardPointsDisplay component is rendered with the correct props
@@ -2327,10 +2325,241 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
         expect(screen.getByText('Fees')).toBeDefined();
         // Should render both points and fees with discount integration (targets lines 1081, 214-229)
       });
+    });
+  });
+
+  describe('Leverage from existing position', () => {
+    interface MockPosition {
+      coin: string;
+      size: string;
+      entryPrice: string;
+      positionValue: string;
+      unrealizedPnl: string;
+      marginUsed: string;
+      leverage: {
+        type: string;
+        value: number;
+      };
+      liquidationPrice: string;
+      maxLeverage: number;
+      returnOnEquity: string;
+      cumulativeFunding: {
+        allTime: string;
+        sinceOpen: string;
+        sinceChange: string;
+      };
+      takeProfitCount: number;
+      stopLossCount: number;
+    }
+
+    interface SubscribeParams {
+      callback: (positions: MockPosition[]) => void;
+    }
+
+    it('should use existing position leverage as default when no leverage is provided via route params', async () => {
+      // Create a custom test wrapper that provides position data
+      const TestWrapperWithPositions = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const mockStreamManager = createMockStreamManager();
+
+        // Override positions.subscribe to provide position data
+        mockStreamManager.positions.subscribe = jest.fn(
+          (params: SubscribeParams) => {
+            const { callback } = params;
+            // Simulate position data for BTC with leverage 15
+            callback([
+              {
+                coin: 'BTC',
+                size: '0.1',
+                entryPrice: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '333.33',
+                leverage: {
+                  type: 'isolated',
+                  value: 15,
+                },
+                liquidationPrice: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '30',
+                cumulativeFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
+                takeProfitCount: 0,
+                stopLossCount: 0,
+              },
+            ]);
+            return jest.fn(); // unsubscribe function
+          },
+        ) as jest.Mock;
+
+        return (
+          <PerpsStreamProvider
+            testStreamManager={
+              mockStreamManager as unknown as PerpsStreamManager
+            }
+          >
+            {children}
+          </PerpsStreamProvider>
+        );
+      };
+
+      // Mock route params with BTC asset but no leverage
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'BTC',
+          direction: 'long',
+          // No leverage provided - should use position's leverage
+        },
+      });
+
+      // Mock the order context to verify leverage is set correctly
+      const mockSetLeverage = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'BTC',
+          amount: '11',
+          leverage: 3, // Initially the default leverage
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: mockSetLeverage,
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '11',
+          positionSize: '0.0037',
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapperWithPositions });
+
+      await waitFor(() => {
+        // Verify setLeverage was called with the position's leverage (15x)
+        expect(mockSetLeverage).toHaveBeenCalledWith(15);
+      });
+    });
+
+    it('should not sync leverage from position when route param leverage is provided', async () => {
+      // Create a custom test wrapper that provides position data
+      const TestWrapperWithPositions = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const mockStreamManager = createMockStreamManager();
+
+        // Override positions.subscribe to provide position data
+        mockStreamManager.positions.subscribe = jest.fn(
+          (params: SubscribeParams) => {
+            const { callback } = params;
+            // Simulate position data for ETH with leverage 15
+            callback([
+              {
+                coin: 'ETH',
+                size: '0.5',
+                entryPrice: '3000',
+                positionValue: '1500',
+                unrealizedPnl: '50',
+                marginUsed: '100',
+                leverage: {
+                  type: 'isolated',
+                  value: 15,
+                },
+                liquidationPrice: '2700',
+                maxLeverage: 50,
+                returnOnEquity: '50',
+                cumulativeFunding: {
+                  allTime: '3',
+                  sinceOpen: '1',
+                  sinceChange: '0.5',
+                },
+                takeProfitCount: 0,
+                stopLossCount: 0,
+              },
+            ]);
+            return jest.fn(); // unsubscribe function
+          },
+        ) as jest.Mock;
+
+        return (
+          <PerpsStreamProvider
+            testStreamManager={
+              mockStreamManager as unknown as PerpsStreamManager
+            }
+          >
+            {children}
+          </PerpsStreamProvider>
+        );
+      };
+
+      // Mock route params with ETH asset and explicit leverage
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+          leverage: 5, // Explicit leverage should take precedence
+        },
+      });
+
+      // Mock the order context with the explicit leverage from route
+      const mockSetLeverage = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '11',
+          leverage: 5, // Already set from route params
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: mockSetLeverage,
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '11',
+          positionSize: '0.0037',
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapperWithPositions });
+
+      // Wait a bit to ensure the effect runs
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify setLeverage was NOT called because leverage was already set from route params
+      expect(mockSetLeverage).not.toHaveBeenCalled();
+
+      // Verify the leverage displayed is from route params
+      expect(screen.getByText('5x')).toBeDefined();
     });
   });
 });

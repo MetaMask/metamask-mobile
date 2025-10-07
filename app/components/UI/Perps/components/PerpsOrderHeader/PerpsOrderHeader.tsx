@@ -78,6 +78,17 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     }
   }, [price]);
 
+  const formattedChange = useMemo(() => {
+    if (!price || price <= 0 || !Number.isFinite(price)) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+    try {
+      return formatPercentage(priceChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+  }, [priceChange, price]);
+
   return (
     <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
@@ -92,7 +103,12 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           style={styles.headerTitle}
           testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
         >
-          {title || `${direction === 'long' ? 'Long' : 'Short'} ${asset}`}
+          {title ||
+            `${
+              direction === 'long'
+                ? strings('perps.market.long')
+                : strings('perps.market.short')
+            } ${asset}`}
         </Text>
         <View style={styles.priceRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -103,7 +119,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
               variant={TextVariant.BodyMD}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
             >
-              {formatPercentage(priceChange)}
+              {formattedChange}
             </Text>
           )}
         </View>

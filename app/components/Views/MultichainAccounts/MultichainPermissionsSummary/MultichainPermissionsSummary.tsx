@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -231,7 +231,6 @@ const MultichainPermissionsSummary = ({
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
-              size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
               onPress={onBack}
               iconName={IconName.ArrowLeft}

@@ -9,18 +9,18 @@ import React, {
 import { useDispatch, useSelector } from 'react-redux';
 import {
   OnRampSdk,
-  Environment,
   Context,
   RegionsService,
   CryptoCurrency,
   Payment,
+  Environment,
 } from '@consensys/on-ramp-sdk';
+import { getSdkEnvironment } from './getSdkEnvironment';
+import { getCaipChainIdFromCryptoCurrency } from '../utils';
 
 import Logger from '../../../../../util/Logger';
 
 import {
-  selectedAddressSelector,
-  chainIdSelector,
   fiatOrdersGetStartedAgg,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
@@ -36,20 +36,18 @@ import { RampIntent, RampType, Region } from '../types';
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import useActivationKeys from '../hooks/useActivationKeys';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { selectNickname } from '../../../../../selectors/networkController';
+
+const environment = getSdkEnvironment();
 
 const isDevelopment =
   process.env.NODE_ENV !== 'production' ||
   process.env.RAMP_DEV_BUILD === 'true';
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
-const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
-
-let environment = Environment.Production;
-if (isInternalBuild) {
-  environment = Environment.Staging;
-} else if (isDevelopment) {
-  environment = Environment.Development;
-}
+const isProduction = environment === Environment.Production;
+const isDevelopmentOrInternalBuild =
+  isDevelopment || isInternalBuild || !isProduction;
 
 let context = Context.Mobile;
 if (Device.isAndroid()) {
@@ -91,9 +89,6 @@ export interface RampSDK {
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
 
-  unsupportedRegion?: Region;
-  setUnsupportedRegion: (region?: Region) => void;
-
   selectedPaymentMethodId: string | null;
   setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
 
@@ -106,8 +101,7 @@ export interface RampSDK {
   getStarted: boolean;
   setGetStarted: (getStartedFlag: boolean) => void;
 
-  selectedAddress: string;
-  selectedChainId: string;
+  selectedAddress: string | null;
   selectedNetworkName?: string;
 
   isBuy: boolean;
@@ -124,9 +118,9 @@ interface ProviderProps<T> {
   children?: React.ReactNode;
 }
 
-export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback'
-  : 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
+export const callbackBaseUrl = isProduction
+  ? 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback'
+  : 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';
 
@@ -171,8 +165,6 @@ export const RampSDKProvider = ({
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
   const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
-  const selectedAddress = useSelector(selectedAddressSelector);
-  const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
@@ -186,13 +178,16 @@ export const RampSDKProvider = ({
   const [rampType, setRampType] = useState(providerRampType ?? RampType.BUY);
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
-  const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
 
   const [intent, setIntent] = useState<RampIntent>();
 
   const [selectedAsset, setSelectedAsset] = useState<CryptoCurrency | null>(
     INITIAL_SELECTED_ASSET,
   );
+
+  const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
+  const selectedAddress = useRampAccountAddress(caipChainId);
+
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
   );
@@ -266,9 +261,6 @@ export const RampSDKProvider = ({
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
 
-      unsupportedRegion,
-      setUnsupportedRegion,
-
       selectedPaymentMethodId,
       setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
@@ -280,10 +272,8 @@ export const RampSDKProvider = ({
 
       getStarted,
       setGetStarted: setGetStartedCallback,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error - Ramps team ownership"
+
       selectedAddress,
-      selectedChainId,
       selectedNetworkName,
 
       isBuy,
@@ -304,7 +294,6 @@ export const RampSDKProvider = ({
       sdkError,
       selectedAddress,
       selectedAsset,
-      selectedChainId,
       selectedFiatCurrencyId,
       selectedNetworkName,
       selectedPaymentMethodId,
@@ -314,7 +303,6 @@ export const RampSDKProvider = ({
       setSelectedFiatCurrencyIdCallback,
       setSelectedPaymentMethodIdCallback,
       setSelectedRegionCallback,
-      unsupportedRegion,
     ],
   );
 

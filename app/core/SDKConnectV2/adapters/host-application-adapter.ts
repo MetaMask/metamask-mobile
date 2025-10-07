@@ -5,63 +5,84 @@ import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
 import {
-  getPermittedAccounts,
-  removePermittedAccounts,
-} from '../../../core/Permissions';
+  hideNotificationById,
+  showSimpleNotification,
+} from '../../../actions/notification';
+import { strings } from '../../../../locales/i18n';
+import { ConnectionInfo } from '../types/connection-info';
+import Engine from '../../Engine';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import logger from '../services/logger';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
-  showLoading(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showLoading called but is not yet implemented.',
+  showConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo.id,
+        autodismiss: 8000,
+        title: strings('sdk_connect_v2.show_loading.title'),
+        description: strings('sdk_connect_v2.show_loading.description', {
+          dappName: conninfo.metadata.dapp.name,
+        }),
+        status: 'pending',
+      }),
     );
   }
 
-  hideLoading(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.hideLoading called but is not yet implemented.',
+  hideConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(hideNotificationById(conninfo.id));
+  }
+
+  showConnectionError(): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_error.title'),
+        description: strings('sdk_connect_v2.show_error.description'),
+        status: 'error',
+      }),
     );
   }
 
-  showAlert(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showAlert called but is not yet implemented.',
-    );
-  }
-
-  showOTPModal(): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showOTPModal called but is not yet implemented.',
-    );
-    return Promise.resolve();
-  }
-
-  syncConnectionList(connections: Connection[]): void {
-    const v2Sessions: SDKSessions = connections.reduce((acc, connection) => {
-      const connectionProps: ConnectionProps & { isV2: boolean } = {
-        id: connection.id,
+  syncConnectionList(conns: Connection[]): void {
+    const v2Sessions: SDKSessions = conns.reduce((acc, conn) => {
+      const props: ConnectionProps & { isV2: boolean } = {
+        id: conn.id,
         otherPublicKey: '',
-        origin: connection.metadata.dapp.url,
+        origin: conn.info.metadata.dapp.url,
         originatorInfo: {
-          title: connection.metadata.dapp.name,
-          url: connection.metadata.dapp.url,
-          icon: connection.metadata.dapp.icon,
-          dappId: connection.metadata.dapp.name,
-          apiVersion: connection.metadata.sdk.version,
-          platform: connection.metadata.sdk.platform,
+          title: conn.info.metadata.dapp.name,
+          url: conn.info.metadata.dapp.url,
+          icon: conn.info.metadata.dapp.icon,
+          dappId: conn.info.metadata.dapp.name,
+          apiVersion: conn.info.metadata.sdk.version,
+          platform: conn.info.metadata.sdk.platform,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };
-      acc[connection.id] = connectionProps;
+      acc[conn.id] = props;
       return acc;
     }, {} as SDKSessions);
 
     store.dispatch(setSdkV2Connections(v2Sessions));
   }
 
-  revokePermissions(connectionId: string): void {
-    const allAccountsForOrigin = getPermittedAccounts(connectionId);
-    if (allAccountsForOrigin.length > 0) {
-      removePermittedAccounts(connectionId, allAccountsForOrigin);
+  /**
+   * Revokes {@link Caip25EndowmentPermissionName} permission from a connection / origin.
+   * @param connId - The origin of the connection.
+   */
+  revokePermissions(connId: string): void {
+    try {
+      Engine.context.PermissionController.revokePermission(
+        connId,
+        Caip25EndowmentPermissionName,
+      );
+    } catch {
+      logger.error(
+        `Failed to revoke ${Caip25EndowmentPermissionName} permission for connection`,
+        connId,
+      );
     }
   }
 }
