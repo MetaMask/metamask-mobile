@@ -416,7 +416,6 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
           DevLogger.log(
             `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First order data received`,
             {
-              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );
@@ -720,7 +719,6 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
           DevLogger.log(
             `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First account data received`,
             {
-              metric: PerpsMeasurementName.PERPS_WEBSOCKET_FIRST_POSITION_DATA,
               duration: `${firstDataDuration.toFixed(0)}ms`,
             },
           );

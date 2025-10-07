@@ -85,7 +85,7 @@ export const usePerpsMeasurement = ({
   const previousStartState = useRef(false);
   const previousEndState = useRef(false);
   const traceStarted = useRef(false);
-  const traceId = useRef(uuidv4()).current; // Unique ID per hook instance
+  const traceId = useRef<string>(uuidv4()); // Generate new ID on each trace start
 
   // Note: debugContext is used directly rather than memoized since:
   // 1. It's typically used sparingly for debugging/logging
@@ -146,7 +146,7 @@ export const usePerpsMeasurement = ({
       if (traceStarted.current) {
         endTrace({
           name: traceName,
-          id: traceId,
+          id: traceId.current,
           data: {
             success: false,
             reason: 'reset',
@@ -162,13 +162,16 @@ export const usePerpsMeasurement = ({
 
     // Handle start conditions
     if (shouldStart && !previousStartState.current && !traceStarted.current) {
+      // Generate a new trace ID for this measurement cycle
+      traceId.current = uuidv4();
+
       // Start a Sentry trace using the provided trace name
       // Use unique traceId to prevent conflicts when multiple
       // usePerpsMeasurement hooks are used simultaneously
       trace({
         name: traceName,
         op,
-        id: traceId,
+        id: traceId.current,
         startTime: Date.now(),
         data: debugContext as Record<string, string | number | boolean>,
       });
@@ -197,7 +200,7 @@ export const usePerpsMeasurement = ({
       // End the trace - Sentry calculates duration from timestamps automatically
       endTrace({
         name: traceName,
-        id: traceId,
+        id: traceId.current,
         timestamp: Date.now(),
         data: { success: true },
       });
@@ -218,6 +221,5 @@ export const usePerpsMeasurement = ({
     debugContext,
     actualStartConditions,
     actualEndConditions,
-    traceId,
   ]);
 };
