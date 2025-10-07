@@ -1,4 +1,4 @@
-import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { RootState } from '../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import {
   selectTransactions,

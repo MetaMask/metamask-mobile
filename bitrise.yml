@@ -947,11 +947,6 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionPerformance'
     after_run:
       - ios_e2e_test
-  ios_run_regression_identity_tests:
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
-    after_run:
-      - ios_e2e_test
   ios_run_regression_accounts_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionAccounts'
@@ -1026,15 +1021,6 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: 'RegressionPerformance'
-    after_run:
-      - android_e2e_test
-  android_run_regression_identity_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
     after_run:
       - android_e2e_test
   android_run_regression_accounts_tests:
@@ -3726,10 +3712,10 @@ app:
       MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
         is_expand: false
-      MM_PERPS_ENABLED: true
+      MM_PERPS_ENABLED: false
     - opts:
         is_expand: false
-      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB"
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB,BE"
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -3762,13 +3748,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.57.0
+      VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 2563
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.57.0
+      FLASK_VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2563

@@ -575,7 +575,8 @@
     "token_contract_warning": "此地址为代币合约地址。若向该地址发送代币，将导致代币丢失。",
     "invisible_character_error": "我们检测到 ENS 名称中包含不可见字符。请仔细检查该 ENS 名称，谨防潜在欺诈风险。",
     "could_not_resolve_name": "无法解析名称",
-    "invalid_address": "地址无效"
+    "invalid_address": "地址无效",
+    "contractAddressError": "您正在向代币的合约地址发送代币。这可能导致这些代币丢失。"
   },
   "deposit": {
     "title": "保证金",
@@ -877,6 +878,8 @@
     "withdraw": "提取",
     "refresh_balance": "刷新余额",
     "add_funds": "充值",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "您的仓位",
     "loading_positions": "正在加载头寸……",
     "refreshing_positions": "正在刷新仓位...",
@@ -885,7 +888,7 @@
       "title": "要存入的金额",
       "get_usdc_hyperliquid": "获取 USDC • Hyperliquid",
       "insufficient_funds": "资金不足",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "无可用资金。请先充值。",
       "enter_amount": "输入金额",
       "fetching_quote": "正在获取报价",
       "submitting": "正在提交交易",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "资金不足",
         "insufficient_balance": "余额不足。需要：${{required}}，可用：${{available}}",
         "invalid_leverage": "杠杆必须介于 {{min}} 倍和 {{max}} 倍之间",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "订单规模必须少于 ${{maxValue}}",
         "high_leverage_warning": "高杠杆会增加清算风险",
         "invalid_take_profit": "对于 {{positionType}} 头寸，止盈必须设置为 {{direction}} 的当前价格",
         "invalid_stop_loss": "对于 {{positionType}} 头寸，止损必须设置为 {{direction}} 的当前价格",
@@ -1332,9 +1335,9 @@
         "error_message": "未找到市场数据。请返回并重试。"
       },
       "statistics": "概览",
-      "24hr_high": "24 小时最高价",
-      "24hr_low": "24 小时最低价",
-      "24h_volume": "24 小时成交量",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "未平仓合约量",
       "funding_rate": "资金费率",
       "countdown": "倒计时",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "市场数据加载失败",
     "tap_to_retry": "点击重试",
     "search_by_token_symbol": "按代币符号搜索",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "找不到代币",
+    "no_tokens_found_description": "未找到名为 “{{searchQuery}}” 的代币。请尝试其他搜索词。",
     "testnet": "测试网",
     "mainnet": "主网",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "已成交",
         "metamask_fee": "MetaMask 费用",
         "hyperliquid_fee": "Hyperliquid 费用",
-        "total_fee": "总费用"
+        "total_fee": "总费用",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "日期",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "您的交易历史将在此处显示"
       }
     },
-    "risk_disclaimer": "永续合约交易存在风险，您可能会在毫无预警的情况下瞬间损失全部保证金。交易风险完全由您自行承担。市场数据由 Hyperliquid 提供。价格图表技术支持来自",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "继续",
       "skip": "跳过",
@@ -1538,10 +1544,13 @@
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
         "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。"
       },
-      "got_it": "知道了"
+      "got_it": "知道了",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "积分",
-    "estimated_points": "Est. Points",
+    "estimated_points": "预估积分",
     "unable_to_load": "无法加载",
     "points_error": "当前无法加载积分",
     "points_error_content": "请放心，您的积分仍在累计。稍后将在账户中显示或可在奖励标签页查看。",
@@ -1614,8 +1623,7 @@
     "accept": "接受"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "扫描二维码",
-    "receive_tab": "您的二维码"
+    "scanner_tab": "扫描二维码"
   },
   "banner": {
     "bridge": {
@@ -1865,13 +1873,13 @@
     "agree": "我同意",
     "decline": "不，谢谢",
     "description_title": "帮助我们改进 MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "我们希望能获得这些许可。您随时可以选择退出或删除您的使用数据。",
     "description_content_2": "当我们收集指标时，总是...",
     "description_content_3": "了解我们如何在收集您的个人资料使用数据的同时保护您的隐私。",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "收集基本使用数据",
+    "gather_basic_usage_description": "我们将收集基本的产品使用数据，例如大致位置、点击次数和浏览次数。不会存储其他任何信息。",
+    "gather_basic_usage_learn_more": "了解详情",
+    "checkbox_marketing": "营销更新",
     "checkbox": "我们将使用此数据来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点）。",
     "action_description_1_prefix": "私密：",
     "action_description_2_prefix": "综合:",
@@ -1881,7 +1889,7 @@
     "action_description_3_description": "您可以随时决定是否通过设置共享或删除您的使用数据。",
     "cta_no_thanks": "不，谢谢",
     "cta_i_agree": "我同意",
-    "continue": "Continue",
+    "continue": "继续",
     "fine_print_1_legacy": "此数据是汇总数据，因而可以保持匿名，以遵守《通用数据保护条例》（欧盟）2016/679。",
     "fine_print_2a_legacy": "* 如果您在MetaMask中使用Infura作为默认的RPC提供商，在您发送交易时，Infura会收集您的IP地址和以太坊钱包地址。我们不会以允许系统将这两项数据关联起来的方式来存储此信息。您可以先配置RPC提供商，然后才继续。",
     "fine_print_2b_legacy": "要进一步了解MetaMask和Infura在数据收集方面如何交互，请参阅我们的更新。",
@@ -2044,9 +2052,9 @@
       "solana_devnet_account_name": "Solana 开发网账户",
       "solana_testnet_account_name": "Solana 测试网账户",
       "solana_account_name": "Solana 账户",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tron 账户",
+      "tron_nile_account_name": "Tron Nile 账户",
+      "tron_shasta_account_name": "Tron Shasta 账户"
     },
     "error_messages": {
       "failed_to_create_account": "创建 {{clientType}} 账户失败"
@@ -3445,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " 不正确或拼写错误。",
     "error_invalid_srp": "私钥助记词无效",
     "error_duplicate_srp": "此私钥助记词已导入。",
-    "success_1": "Wallet",
+    "success_1": "钱包",
     "success_2": "已导入"
   },
   "first_incoming_transaction": {
@@ -4888,7 +4896,7 @@
     "import_account": "私钥",
     "add_bitcoin_account": "比特币账户",
     "add_solana_account": "Solana 账户",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tron 账户",
     "switch_to_smart_account": "切换到智能账户",
     "rename_account": "重命名账户",
     "addresses": "地址",
@@ -5601,7 +5609,7 @@
       "section_1_title": "什么是多链账户？",
       "section_1_description": "单一账户即可应对 MetaMask 支持的所有网络的地址。现在您无需切换账户即可顺畅使用以太坊、Solana 等。",
       "section_2_title": "相同地址，更多网络",
-      "section_2_description": "我们已合并您的账户，您仍可照常使用 MetaMask。您的资金安全无虞且未变动。",
+      "section_2_description": "我们已对您的账户进行了分组，您仍可照常使用 MetaMask。您的资金安全无虞且未变动。",
       "view_accounts_button": "查看账户",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "设置您的账户"
@@ -5655,6 +5663,7 @@
       "balance": "余额",
       "create_account": "创建账户",
       "creating_account": "正在创建账户......",
+      "discovering_accounts": "正在发现账户……",
       "back_up": "备份",
       "reveal_recovery_phrase_with_index": "显示私钥助记词 {{index}}"
     },
@@ -5752,6 +5761,11 @@
       "swap_description": "在 Linea 网络上将代币兑换成 {{symbol}}",
       "select_method": "选择方式"
     },
+    "card_onboarding": {
+      "title": "欢迎使用卡片功能",
+      "description": "要使用卡片功能，您需要通过我们的合作伙伴完成账户验证。",
+      "verify_account_button": "验证账户"
+    },
     "card_home": {
       "error_title": "无法获取数据",
       "error_description": "似乎存在一个问题，导致您无法查看此页面上的内容。请检查网络连接或尝试刷新页面。",
@@ -5827,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5884,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "奖励已到",
+      "gtm_description": "通过活动赚取积分。 \n提升等级即可解锁奖励。",
+      "gtm_confirm": "开始",
+      "intro_title": "第 1 季\n已上线",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5927,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6014,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "锁定的奖励",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "剩余时间",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6054,6 +6084,16 @@
       "perps_deposit": "充值",
       "swap": "兑换代币",
       "swap_approval": "批准代币"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

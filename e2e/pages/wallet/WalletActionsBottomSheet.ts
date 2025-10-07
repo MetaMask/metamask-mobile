@@ -44,6 +44,11 @@ class WalletActionsBottomSheet {
       WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
     );
   }
+  get predictButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+    );
+  }
 
   async tapSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.sendButton);
@@ -75,6 +80,10 @@ class WalletActionsBottomSheet {
 
   async tapPerpsButton(): Promise<void> {
     await Gestures.waitAndTap(this.perpsButton);
+  }
+
+  async tapPredictButton(): Promise<void> {
+    await Gestures.waitAndTap(this.predictButton);
   }
 
   async swipeDownActionsBottomSheet(): Promise<void> {

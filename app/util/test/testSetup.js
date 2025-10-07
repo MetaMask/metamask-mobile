@@ -59,7 +59,7 @@ jest.mock('react-native-quick-crypto', () => ({
     }),
   },
   randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9),
+    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
   ),
 }));
 
@@ -203,6 +203,16 @@ jest.mock('../../store', () => ({
   },
   _updateMockState: (state) => {
     mockState = state;
+  },
+}));
+
+// Mock SDKConnectV2 singleton to prevent auto-initialization during test setup.
+jest.mock('../../core/SDKConnectV2', () => ({
+  __esModule: true,
+  default: {
+    isConnectDeeplink: jest.fn(() => false),
+    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
+    disconnect: jest.fn().mockResolvedValue(undefined),
   },
 }));
 

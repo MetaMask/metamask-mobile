@@ -50,6 +50,11 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    availableBalanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     titleText: {},
     valueText: {
       marginRight: 8,
@@ -79,6 +84,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     arrowContainer: {
       marginLeft: 12,
+    },
+    activityIndicator: {
+      color: colors.icon.default,
     },
   });
 };
