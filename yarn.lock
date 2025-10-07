@@ -7017,16 +7017,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^7.0.1":
-  version: 7.1.1
-  resolution: "@metamask/base-controller@npm:7.1.1"
-  dependencies:
-    "@metamask/utils": ^11.0.1
-    immer: ^9.0.6
-  checksum: 0d89bb27f579f6a0fd7b9d05dc80ce79fd7d18dd631088a661b1cfc6c1a915ca7f1eeb54d2554a80defba4b1be0325f5e23e0e8fb146f54c04dbed9c1cf8ed17
-  languageName: node
-  linkType: hard
-
 "@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
   version: 8.4.0
   resolution: "@metamask/base-controller@npm:8.4.0"
@@ -8002,6 +7992,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/native-utils@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@metamask/native-utils@npm:0.5.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: ^0.26.3
+  checksum: a67d5e23e59029ec6970c50626bbf44e9d64023b2162e2b6b20cc53fc97e00e911107eb9803679fd2c5a160fb817c67a48aed29157d57281d470d93dad3d0d90
+  languageName: node
+  linkType: hard
+
 "@metamask/network-controller@npm:^24.1.0, @metamask/network-controller@npm:^24.2.0":
   version: 24.2.0
   resolution: "@metamask/network-controller@npm:24.2.0"
@@ -8141,22 +8142,6 @@ __metadata:
     fastest-levenshtein: ^1.0.16
     punycode: ^2.1.1
   checksum: a3239c76cec3821808deeb55bfe53d550d6018b64ae6318af19d973cc2cf3453223d94aadb3d91d28bf7c7afb7f24d9a0664e420f28bece904566d974371f2d2
-  languageName: node
-  linkType: hard
-
-"@metamask/polling-controller@npm:^12.0.0":
-  version: 12.0.3
-  resolution: "@metamask/polling-controller@npm:12.0.3"
-  dependencies:
-    "@metamask/base-controller": ^8.0.0
-    "@metamask/controller-utils": ^11.5.0
-    "@metamask/utils": ^11.1.0
-    "@types/uuid": ^8.3.0
-    fast-json-stable-stringify: ^2.1.0
-    uuid: ^8.3.2
-  peerDependencies:
-    "@metamask/network-controller": ^22.0.0
-  checksum: c32710c7b653923c9f2d7d849c85898cb5b81af84d05b7b00604d2d41382d1e7dc149c2b0c9d4374cf274c0353773c5ec47ee2c6641c62345cd8cc1a4e36ceee
   languageName: node
   linkType: hard
 
@@ -8486,9 +8471,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:^18.1.0":
-  version: 18.1.0
-  resolution: "@metamask/smart-transactions-controller@npm:18.1.0"
+"@metamask/smart-transactions-controller@npm:^19.2.1":
+  version: 19.2.1
+  resolution: "@metamask/smart-transactions-controller@npm:19.2.1"
   dependencies:
     "@babel/runtime": ^7.24.1
     "@ethereumjs/tx": ^5.2.1
@@ -8496,23 +8481,29 @@ __metadata:
     "@ethersproject/bytes": ^5.7.0
     "@ethersproject/keccak256": ^5.8.0
     "@ethersproject/transactions": ^5.7.0
-    "@metamask/base-controller": ^7.0.1
+    "@metamask/base-controller": ^8.3.0
     "@metamask/controller-utils": ^11.0.0
     "@metamask/eth-json-rpc-provider": ^4.1.6
     "@metamask/eth-query": ^4.0.0
-    "@metamask/polling-controller": ^12.0.0
+    "@metamask/polling-controller": ^14.0.0
     bignumber.js: ^9.0.1
     fast-json-patch: ^3.1.0
     lodash: ^4.17.21
   peerDependencies:
     "@metamask/network-controller": ^24.0.0
-    "@metamask/transaction-controller": ^42.0.0
+    "@metamask/transaction-controller": ^60.4.0
   peerDependenciesMeta:
     "@metamask/accounts-controller":
       optional: true
     "@metamask/approval-controller":
       optional: true
-  checksum: fe6338df3612e39383225b6ce43f1d29bf323cfe00e1b621c7412bb6a046de1344ec646ab1e8d1d680675d19d17a7a8ac7535e1221a1f3bd7886a7f1cb773f49
+    "@metamask/eth-block-tracker":
+      optional: true
+    "@metamask/gas-fee-controller":
+      optional: true
+    "@metamask/remote-feature-flag-controller":
+      optional: true
+  checksum: 0d198cb4cd942974f4c78f1c3ed393d6e960375b8ff895933c7e35b85ee8f652123d4ddfd9f4cf4fb2e8536879f58512318eaf474ffc6ac4e115ff77f26082c3
   languageName: node
   linkType: hard
 
@@ -8773,7 +8764,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.3.0, @metamask/transaction-controller@npm:^60.4.0":
+"@metamask/transaction-controller@npm:^60.4.0":
   version: 60.4.0
   resolution: "@metamask/transaction-controller@npm:60.4.0"
   dependencies:
@@ -8970,7 +8961,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:1.4.2, @noble/curves@npm:~1.4.0":
+"@noble/curves@npm:1.4.2":
   version: 1.4.2
   resolution: "@noble/curves@npm:1.4.2"
   dependencies:
@@ -9015,21 +9006,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:^1.0.0, @noble/curves@npm:^1.2.0, @noble/curves@npm:^1.4.2, @noble/curves@npm:^1.6.0, @noble/curves@npm:^1.8.0, @noble/curves@npm:^1.8.1, @noble/curves@npm:^1.9.1, @noble/curves@npm:^1.9.2, @noble/curves@npm:~1.9.0":
+"@noble/curves@npm:1.9.6, @noble/curves@npm:^1.0.0, @noble/curves@npm:^1.2.0, @noble/curves@npm:^1.4.2, @noble/curves@npm:^1.6.0, @noble/curves@npm:^1.8.0, @noble/curves@npm:^1.8.1, @noble/curves@npm:^1.9.1, @noble/curves@npm:^1.9.2, @noble/curves@npm:~1.9.0":
   version: 1.9.6
   resolution: "@noble/curves@npm:1.9.6"
   dependencies:
     "@noble/hashes": 1.8.0
   checksum: 0944cb0fd0f521ee2004df22013e997c85d3a10b529e98cb2d5b552343fd62cd3edb65a3373dcb255bda18cb7651b0399e58a3f50b5307db2b3ef0c2bdb35248
-  languageName: node
-  linkType: hard
-
-"@noble/curves@npm:~1.8.1":
-  version: 1.8.2
-  resolution: "@noble/curves@npm:1.8.2"
-  dependencies:
-    "@noble/hashes": 1.7.2
-  checksum: f26fd77b4d78fe26dba2754cbcaddee5da23a711a0c9778ee57764eb0084282d97659d9b0a760718f42493adf68665dbffdca9d6213950f03f079d09c465c096
   languageName: node
   linkType: hard
 
@@ -9054,13 +9036,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:1.7.2, @noble/hashes@npm:~1.7.1":
-  version: 1.7.2
-  resolution: "@noble/hashes@npm:1.7.2"
-  checksum: f9e3c2e62c2850073f8d6ac30cc33b03a25cae859eb2209b33ae90ed3d1e003cb2a1ddacd2aacd6b7c98a5ad70795a234ccce04b0526657cd8020ce4ffdb491f
-  languageName: node
-  linkType: hard
-
 "@noble/hashes@npm:1.8.0, @noble/hashes@npm:^1.0.0, @noble/hashes@npm:^1.1.2, @noble/hashes@npm:^1.2.0, @noble/hashes@npm:^1.3.1, @noble/hashes@npm:^1.3.2, @noble/hashes@npm:^1.4.0, @noble/hashes@npm:^1.5.0, @noble/hashes@npm:^1.6.1, @noble/hashes@npm:^1.7.1, @noble/hashes@npm:^1.8.0, @noble/hashes@npm:~1.8.0":
   version: 1.8.0
   resolution: "@noble/hashes@npm:1.8.0"
@@ -9072,6 +9047,13 @@ __metadata:
   version: 1.3.3
   resolution: "@noble/hashes@npm:1.3.3"
   checksum: 8a6496d1c0c64797339bc694ad06cdfaa0f9e56cd0c3f68ae3666cfb153a791a55deb0af9c653c7ed2db64d537aa3e3054629740d2f2338bb1dcb7ab60cd205b
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:~1.7.1":
+  version: 1.7.2
+  resolution: "@noble/hashes@npm:1.7.2"
+  checksum: f9e3c2e62c2850073f8d6ac30cc33b03a25cae859eb2209b33ae90ed3d1e003cb2a1ddacd2aacd6b7c98a5ad70795a234ccce04b0526657cd8020ce4ffdb491f
   languageName: node
   linkType: hard
 
@@ -11422,7 +11404,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@scure/base@npm:^1.0.0, @scure/base@npm:^1.1.1, @scure/base@npm:^1.1.3, @scure/base@npm:~1.2.2, @scure/base@npm:~1.2.4, @scure/base@npm:~1.2.5":
+"@scure/base@npm:^1.0.0, @scure/base@npm:^1.1.1, @scure/base@npm:^1.1.3, @scure/base@npm:~1.2.4, @scure/base@npm:~1.2.5":
   version: 1.2.6
   resolution: "@scure/base@npm:1.2.6"
   checksum: 1058cb26d5e4c1c46c9cc0ae0b67cc66d306733baf35d6ebdd8ddaba242b80c3807b726e3b48cb0411bb95ec10d37764969063ea62188f86ae9315df8ea6b325
@@ -11436,29 +11418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@scure/bip32@npm:1.4.0":
-  version: 1.4.0
-  resolution: "@scure/bip32@npm:1.4.0"
-  dependencies:
-    "@noble/curves": ~1.4.0
-    "@noble/hashes": ~1.4.0
-    "@scure/base": ~1.1.6
-  checksum: eff491651cbf2bea8784936de75af5fc020fc1bbb9bcb26b2cfeefbd1fb2440ebfaf30c0733ca11c0ae1e272a2ef4c3c34ba5c9fb3e1091c3285a4272045b0c6
-  languageName: node
-  linkType: hard
-
-"@scure/bip32@npm:1.6.2":
-  version: 1.6.2
-  resolution: "@scure/bip32@npm:1.6.2"
-  dependencies:
-    "@noble/curves": ~1.8.1
-    "@noble/hashes": ~1.7.1
-    "@scure/base": ~1.2.2
-  checksum: e7586619f8a669e522267ce71a90b2d00c3a91da658f1f50e54072cf9f432ba26d2bb4d3d91a5d06932ab96612b8bd038bc31d885bbc048cebfb6509c4a790fc
-  languageName: node
-  linkType: hard
-
-"@scure/bip32@npm:1.7.0, @scure/bip32@npm:^1.3.1, @scure/bip32@npm:^1.5.0, @scure/bip32@npm:^1.7.0":
+"@scure/bip32@npm:1.7.0":
   version: 1.7.0
   resolution: "@scure/bip32@npm:1.7.0"
   dependencies:
@@ -34071,6 +34031,7 @@ __metadata:
     "@metamask/multichain-api-middleware": 1.1.0
     "@metamask/multichain-network-controller": ^1.0.0
     "@metamask/multichain-transactions-controller": ^5.0.0
+    "@metamask/native-utils": ^0.5.0
     "@metamask/network-controller": ^24.1.0
     "@metamask/network-enablement-controller": ^2.1.0
     "@metamask/notification-services-controller": ^18.2.0
@@ -34098,7 +34059,7 @@ __metadata:
     "@metamask/selected-network-controller": ^24.0.0
     "@metamask/signature-controller": ^33.0.0
     "@metamask/slip44": ^4.2.0
-    "@metamask/smart-transactions-controller": ^18.1.0
+    "@metamask/smart-transactions-controller": ^19.2.1
     "@metamask/snaps-controllers": ^15.0.1
     "@metamask/snaps-execution-environments": ^10.2.2
     "@metamask/snaps-rpc-methods": ^13.5.2
@@ -34113,10 +34074,11 @@ __metadata:
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
-    "@metamask/transaction-controller": ^60.3.0
+    "@metamask/transaction-controller": ^60.4.0
     "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
+    "@noble/curves": 1.9.6
     "@notifee/react-native": ^9.0.0
     "@octokit/rest": ^21.0.0
     "@open-rpc/mock-server": ^1.7.5
@@ -34356,6 +34318,7 @@ __metadata:
     react-native-material-textfield: 0.16.1
     react-native-mmkv: ^3.2.0
     react-native-modal: ^14.0.0-rc.1
+    react-native-nitro-modules: ^0.29.6
     react-native-os: ^1.2.6
     react-native-pager-view: ^6.7.0
     react-native-performance: ^5.1.2
@@ -39000,6 +38963,16 @@ __metadata:
     react: "*"
     react-native: ">=0.70.0"
   checksum: 19bca96dde148c14ed4cc0e52fedd0a12ca952815e4dcbea31d0a98962d75dc3c011c677f5f9cd15f2b88f78ccd03134647b280724bc6de148c25e28eea1a7e4
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-modules@npm:^0.29.6":
+  version: 0.29.6
+  resolution: "react-native-nitro-modules@npm:0.29.6"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 3a11d79aca124fb03462b90a6b75056d423fcbcc51312e62196143e71c259c7cb56692bca35b5d22c8a7d7dbb769843698c3b1e0727f58a1daf90114351368b1
   languageName: node
   linkType: hard
 
