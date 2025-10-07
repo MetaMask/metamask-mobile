@@ -575,7 +575,8 @@
     "token_contract_warning": "Αυτή η διεύθυνση είναι διεύθυνση συμβολαίου token. Αν στείλετε tokens σε αυτήν τη διεύθυνση, θα τα χάσετε.",
     "invisible_character_error": "Εντοπίσαμε έναν αόρατο χαρακτήρα στο όνομα ENS. Ελέγξτε το όνομα ENS για να αποφύγετε πιθανή απάτη.",
     "could_not_resolve_name": "Δεν ήταν δυνατή η επίλυση του ονόματος",
-    "invalid_address": "Μη έγκυρη διεύθυνση"
+    "invalid_address": "Μη έγκυρη διεύθυνση",
+    "contractAddressError": "Πρόκειται να στείλετε tokens στη διεύθυνση συμβολαίου του token. Αυτό μπορεί να οδηγήσει σε απώλεια των token."
   },
   "deposit": {
     "title": "Κατάθεση",
@@ -877,6 +878,8 @@
     "withdraw": "Ανάληψη",
     "refresh_balance": "Ανανέωση υπολοίπου",
     "add_funds": "Προσθήκη κεφαλαίων",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Οι θέσεις σας",
     "loading_positions": "Φόρτωση θέσεων...",
     "refreshing_positions": "Ανανέωση θέσεων...",
@@ -885,7 +888,7 @@
       "title": "Ποσό προς κατάθεση",
       "get_usdc_hyperliquid": "Αποκτήστε USDC • Hyperliquid",
       "insufficient_funds": "Ανεπαρκές ποσό",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Δεν υπάρχουν διαθέσιμα κεφάλαια. Παρακαλούμε καταθέστε πρώτα.",
       "enter_amount": "Εισαγωγή ποσού",
       "fetching_quote": "Λήψη προσφοράς",
       "submitting": "Υποβολή συναλλαγής",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "Ανεπαρκή κεφάλαια",
         "insufficient_balance": "Ανεπαρκές υπόλοιπο. Απαιτείται: ${{required}}, Διαθέσιμο: ${{available}}",
         "invalid_leverage": "Η μόχλευση πρέπει να είναι μεταξύ {{min}}x και {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "Το μέγεθος της εντολής πρέπει να είναι κάτω από ${{maxValue}}",
         "high_leverage_warning": "Η υψηλή μόχλευση αυξάνει τον κίνδυνο ρευστοποίησης",
         "invalid_take_profit": "Η λήψη κέρδους πρέπει να είναι {{direction}} από την τρέχουσα τιμή για θέσεις {{positionType}}",
         "invalid_stop_loss": "Ο περιορισμός ζημίας πρέπει να είναι {{direction}} από την τρέχουσα τιμή για θέσεις {{positionType}}",
@@ -1332,9 +1335,9 @@
         "error_message": "Δεν βρέθηκαν δεδομένα αγοράς. Παρακαλώ επιστρέψτε και προσπαθήστε ξανά."
       },
       "statistics": "Επισκόπηση",
-      "24hr_high": "Υψηλό 24ώρου",
-      "24hr_low": "Χαμηλό 24ώρου",
-      "24h_volume": "Όγκος 24ώρου",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Ανοιχτό ενδιαφέρον",
       "funding_rate": "Χρέωση χρηματοδότησης",
       "countdown": "Χρονόμετρο αντίστροφης μέτρησης",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "Αποτυχία φόρτωσης δεδομένων αγοράς",
     "tap_to_retry": "Πατήστε για επανάληψη",
     "search_by_token_symbol": "Αναζήτηση με βάση το σύμβολο του token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "Δεν βρέθηκαν token",
+    "no_tokens_found_description": "Δεν βρέθηκαν token με το όνομα “{{searchQuery}}”. Δοκιμάστε άλλη αναζήτηση.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "Εκτελέστηκε",
         "metamask_fee": "Χρεώσεις στο MetaMask",
         "hyperliquid_fee": "Χρεώσεις στο Hyperliquid",
-        "total_fee": "Συνολικά τέλη"
+        "total_fee": "Συνολικά τέλη",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Ημερομηνία",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "Το ιστορικό συναλλαγών σας θα εμφανιστεί εδώ"
       }
     },
-    "risk_disclaimer": "Οι συναλλαγές με συμβόλαια αορίστου διάρκειας (perps) είναι επικίνδυνες και μπορεί ξαφνικά, χωρίς προειδοποίηση, να χάσετε ολόκληρο το περιθώριό σας. Κάνετε συναλλαγές αποκλειστικά με δική σας ευθύνη. Τα στοιχεία αγοράς παρέχονται από την Hyperliquid. Το γράφημα τιμών υποστηρίζεται από",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Συνέχεια",
       "skip": "Παράλειψη",
@@ -1538,10 +1544,13 @@
         "description": "Χρηματοδοτήστε τον λογαριασμό σας για συμβόλαια αορίστου διάρκειας με οποιοδήποτε token και ξεκινήστε τις πρώτες σας συναλλαγές μέσα σε δευτερόλεπτα.",
         "footer_text": "Το MetaMask θα μετατρέψει τα κεφάλαιά σας σε USDC στο δίκτυο Arbitrum και θα τα καταθέσει στο HyperEVM χωρίς επιπλέον χρέωση."
       },
-      "got_it": "Κατανοητό"
+      "got_it": "Κατανοητό",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Πόντοι",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Εκτ. Πόντοι",
     "unable_to_load": "Δεν ήταν δυνατή η φόρτωση",
     "points_error": "Δεν μπορούμε να φορτώσουμε τους πόντους αυτή τη στιγμή",
     "points_error_content": "Μην ανησυχείτε, εξακολουθείτε να κερδίζετε πόντους. Θα εμφανιστούν σύντομα στον λογαριασμό σας ή μπορείτε να ελέγξετε την καρτέλα Ανταμοιβές αργότερα.",
@@ -1864,13 +1873,13 @@
     "agree": "Συμφωνώ",
     "decline": "Όχι, ευχαριστώ",
     "description_title": "Βοηθήστε μας να βελτιώσουμε το MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Θα θέλαμε να ζητήσουμε αυτές τις άδειες. Μπορείτε να εξαιρεθείτε ή να διαγράψετε τα δεδομένα χρήσης σας οποιαδήποτε στιγμή.",
     "description_content_2": "Όταν συγκεντρώνουμε μετρήσεις, θα είναι πάντα...",
     "description_content_3": "Μάθετε πώς προστατεύουμε το απόρρητό σας ενώ συλλέγουμε δεδομένα χρήσης από το προφίλ σας.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Συλλογή βασικών δεδομένων χρήσης",
+    "gather_basic_usage_description": "Θα συλλέξουμε βασικά δεδομένα χρήσης προϊόντος, όπως γενική τοποθεσία, κλικ και προβολές. Δεν θα αποθηκευτούν άλλες πληροφορίες.",
+    "gather_basic_usage_learn_more": "Μάθετε περισσότερα",
+    "checkbox_marketing": "Ενημερώσεις μάρκετινγκ",
     "checkbox": "Θα χρησιμοποιήσουμε αυτά τα δεδομένα για να μάθουμε πώς αλληλεπιδράτε με τις διαφημιστικές επικοινωνίες μας. Ενδέχεται να κοινοποιήσουμε σχετικές ειδήσεις (όπως χαρακτηριστικά προϊόντων).",
     "action_description_1_prefix": "Ιδιωτικές:",
     "action_description_2_prefix": "Γενικά:",
@@ -1880,7 +1889,7 @@
     "action_description_3_description": "Εσείς αποφασίζετε αν θέλετε να κοινοποιήσετε ή να διαγράψετε τα δεδομένα χρήσης σας οποιαδήποτε στιγμή μέσω των ρυθμίσεων.",
     "cta_no_thanks": "Όχι, ευχαριστώ",
     "cta_i_agree": "Συμφωνώ",
-    "continue": "Continue",
+    "continue": "Συνέχεια",
     "fine_print_1_legacy": "Τα δεδομένα αυτά είναι συγκεντρωτικά και συνεπώς ανώνυμα για τους σκοπούς του Γενικού Κανονισμού για την Προστασία Δεδομένων (ΕΕ) 2016/679.",
     "fine_print_2a_legacy": "*Όταν χρησιμοποιείτε την Infura ως τον προεπιλεγμένο πάροχο RPC στο MetaMask, η Infura θα συλλέγει τη διεύθυνση IP σας και τη διεύθυνση του πορτοφολιού σας στο Ethereum όταν αποστέλλετε μια συναλλαγή. Δεν αποθηκεύουμε αυτές τις πληροφορίες με τρόπο που να επιτρέπει στα συστήματά μας να συσχετίζουν αυτά τα δύο δεδομένα. Μπορείτε να ρυθμίσετε τον πάροχο RPC σας",
     "fine_print_2b_legacy": "πριν προχωρήσετε.\nΓια περισσότερες πληροφορίες σχετικά με τον τρόπο με τον οποίο αλληλεπιδρούν το MetaMask και η Infura από την άποψη της συλλογής δεδομένων, ανατρέξτε στην ενημέρωσή μας",
@@ -2043,9 +2052,9 @@
       "solana_devnet_account_name": "Λογαριασμός στο Solana Devnet",
       "solana_testnet_account_name": "Λογαριασμός στο Solana Testnet",
       "solana_account_name": "Λογαριασμός στο Solana",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Λογαριασμός Tron",
+      "tron_nile_account_name": "Λογαριασμός Tron Nile",
+      "tron_shasta_account_name": "Λογαριασμός Tron Shasta"
     },
     "error_messages": {
       "failed_to_create_account": "Απέτυχε η δημιουργία λογαριασμού στο {{clientType}}"
@@ -3444,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " είναι λανθασμένα ή ανορθόγραφα.",
     "error_invalid_srp": "Μη έγκυρη Μυστική Φράση Ανάκτησης",
     "error_duplicate_srp": "Έχει ήδη γίνει εισαγωγή αυτής της Μυστικής Φράσης Ανάκτησης.",
-    "success_1": "Wallet",
+    "success_1": "Πορτοφόλι",
     "success_2": "έγινε εισαγωγή"
   },
   "first_incoming_transaction": {
@@ -4887,7 +4896,7 @@
     "import_account": "Ιδιωτικό κλειδί",
     "add_bitcoin_account": "Λογαριασμός στο Bitcoin",
     "add_solana_account": "Λογαριασμός στο Solana",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Λογαριασμός Tron",
     "switch_to_smart_account": "Αλλαγή σε Έξυπνο λογαριασμό",
     "rename_account": "Μετονομασία λογαριασμού",
     "addresses": "Διευθύνσεις",
@@ -5600,7 +5609,7 @@
       "section_1_title": "Τι είναι οι λογαριασμοί πολλαπλών αλυσίδων (multichain accounts);",
       "section_1_description": "Ένας λογαριασμός, διευθύνσεις σε όλα τα δίκτυα που υποστηρίζει το MetaMask. Έτσι, τώρα μπορείτε να χρησιμοποιείτε το Ethereum, το Solana και άλλα δίκτυα χωρίς να αλλάζετε λογαριασμούς.",
       "section_2_title": "Ίδια διεύθυνση, περισσότερα δίκτυα",
-      "section_2_description": "Συγχωνεύσαμε τους λογαριασμούς σας, οπότε συνεχίστε να χρησιμοποιείτε το MetaMask όπως πάντα. Τα κεφάλαιά σας είναι ασφαλή και αμετάβλητα.",
+      "section_2_description": "Ομαδοποιήσαμε τους λογαριασμούς σας, όποτε συνεχίστε να χρησιμοποιείτε το MetaMask όπως πριν. Τα κεφάλαιά σας είναι ασφαλή και αμετάβλητα.",
       "view_accounts_button": "Προβολή λογαριασμών",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Διαμόρφωση λογαριασμών"
@@ -5654,6 +5663,7 @@
       "balance": "Υπόλοιπο",
       "create_account": "Δημιουργία λογαριασμού",
       "creating_account": "Δημιουργία λογαριασμού...",
+      "discovering_accounts": "Αναζήτηση λογαριασμών...",
       "back_up": "Δημιουργία αντιγράφων ασφαλείας",
       "reveal_recovery_phrase_with_index": "Εμφάνιση Μυστικής Φράσης Ανάκτησης {{index}}"
     },
@@ -5751,6 +5761,11 @@
       "swap_description": "Ανταλλάξτε tokens με {{symbol}} στο δίκτυο Linea",
       "select_method": "Επιλέξτε μέθοδο"
     },
+    "card_onboarding": {
+      "title": "Καλώς ήρθατε στις Κάρτες",
+      "description": "Για να χρησιμοποιήσετε τις λειτουργίες καρτών, θα χρειαστεί να επαληθεύσετε τον λογαριασμό σας μέσω του συνεργάτη μας.",
+      "verify_account_button": "Επαλήθευση λογαριασμού"
+    },
     "card_home": {
       "error_title": "Δεν είναι δυνατή η ανάκτηση δεδομένων",
       "error_description": "Φαίνεται πως υπάρχει κάποιο πρόβλημα που εμποδίζει την προβολή του περιεχομένου αυτής της σελίδας. Ελέγξτε τη σύνδεσή σας ή δοκιμάστε να ανανεώσετε τη σελίδα.",
@@ -5826,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5883,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Οι ανταμοιβές είναι εδώ",
+      "gtm_description": "Κερδίστε πόντους με τη δραστηριότητά σας. \nΑνεβείτε επίπεδα για να ξεκλειδώσετε ανταμοιβές.",
+      "gtm_confirm": "Ξεκινήστε",
+      "intro_title": "Η Σεζόν 1 \nξεκίνησε",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5926,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6013,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Κλειδωμένες ανταμοιβές",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6025,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "απομένει",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6053,6 +6084,16 @@
       "perps_deposit": "Προσθήκη κεφαλαίων",
       "swap": "Ανταλλαγή tokens",
       "swap_approval": "Έγκριση token"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

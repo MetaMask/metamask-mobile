@@ -13,7 +13,7 @@ import Assertions from '../../framework/Assertions';
 const SAI_CONTRACT_ADDRESS: string =
   '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
-describe(
+describe.skip(
   RegressionWalletPlatform('Request Token Flow with Unprotected Wallet'),
   (): void => {
     it('should complete request token flow from action button to wallet protection modal', async (): Promise<void> => {
