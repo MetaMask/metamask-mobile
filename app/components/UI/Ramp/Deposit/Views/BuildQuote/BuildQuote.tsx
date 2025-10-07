@@ -184,14 +184,21 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedRegion && !selectedRegion.supported) {
+      if (
+        !isFetchingRegions &&
+        selectedRegion &&
+        !selectedRegion.supported &&
+        regions
+      ) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails(),
+            ...createUnsupportedRegionModalNavigationDetails({
+              regions,
+            }),
           );
         });
       }
-    }, [selectedRegion, navigation]),
+    }, [isFetchingRegions, selectedRegion, regions, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
