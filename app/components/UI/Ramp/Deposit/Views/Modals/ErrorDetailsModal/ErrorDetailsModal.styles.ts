@@ -1,23 +1,34 @@
+import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
-  StyleSheet.create({
+interface ErrorDetailsModalStyleSheetVars {
+  screenHeight: number;
+}
+
+const styleSheet = (params: {
+  theme: Theme;
+  vars: ErrorDetailsModalStyleSheetVars;
+}) => {
+  const { vars } = params;
+  const { screenHeight } = vars;
+
+  return StyleSheet.create({
     headerContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
     },
     scrollView: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingBottom: 16,
+      maxHeight: screenHeight * 0.8,
     },
     contentContainer: {
-      paddingBottom: 32,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
     },
     errorText: {
       lineHeight: 24,
     },
   });
+};
 
 export default styleSheet;

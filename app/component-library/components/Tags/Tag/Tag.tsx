@@ -17,7 +17,9 @@ const Tag = ({ label, style, ...props }: TagProps) => {
 
   return (
     <View style={styles.base} {...props}>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>{label}</Text>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {label}
+      </Text>
     </View>
   );
 };

@@ -99,8 +99,10 @@ const selectStakedAssets = createDeepEqualSelector(
     currencyRates,
     currentCurrency,
   ) => {
-    const stakedAssets = Object.entries(accountsByChainId).flatMap(
-      ([chainId, chainAccounts]) =>
+    const stakedAssets = Object.entries(accountsByChainId)
+      // Only include mainnet and hoodi
+      .filter(([chainId, _]) => chainId === '0x1' || chainId === '0x88bb0')
+      .flatMap(([chainId, chainAccounts]) =>
         Object.entries(chainAccounts)
           .filter(
             ([_, accountInformation]) =>
@@ -162,7 +164,7 @@ const selectStakedAssets = createDeepEqualSelector(
               stakedAsset,
             };
           }),
-    );
+      );
 
     return stakedAssets;
   },
