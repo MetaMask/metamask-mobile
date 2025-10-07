@@ -7027,7 +7027,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.2.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
   version: 8.4.0
   resolution: "@metamask/base-controller@npm:8.4.0"
   dependencies:
@@ -7267,21 +7267,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/earn-controller@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@metamask/earn-controller@npm:7.0.0"
+"@metamask/earn-controller@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@metamask/earn-controller@npm:8.0.0"
   dependencies:
     "@ethersproject/bignumber": ^5.7.0
     "@ethersproject/providers": ^5.7.0
-    "@metamask/base-controller": ^8.2.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/keyring-api": ^20.1.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/keyring-api": ^21.0.0
     "@metamask/stake-sdk": ^3.2.1
     reselect: ^5.1.1
   peerDependencies:
-    "@metamask/account-tree-controller": ^0.12.1
+    "@metamask/account-tree-controller": ^1.0.0
     "@metamask/network-controller": ^24.0.0
-  checksum: 7b5e02f6a41dd1509cb192249b07ef04df6dace9c8c7100877ac158d83d8848de639ca75a23a678530f05fe8f10676aedf8469fa831b6d19e01ea86327eaa4c0
+  checksum: db88ce2d7672fd7f77c700fe84559324d8b6c8c0606380e74f457f5bbb7be1e9047ff837915f47deb9ad8fa415fce8053dcecfd484800c0f4a425a2ee51eb8ed
   languageName: node
   linkType: hard
 
@@ -8081,22 +8081,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:^18.1.0":
-  version: 18.1.0
-  resolution: "@metamask/notification-services-controller@npm:18.1.0"
+"@metamask/notification-services-controller@npm:^18.2.0":
+  version: 18.2.0
+  resolution: "@metamask/notification-services-controller@npm:18.2.0"
   dependencies:
     "@contentful/rich-text-html-renderer": ^16.5.2
-    "@metamask/base-controller": ^8.3.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/utils": ^11.4.2
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/utils": ^11.8.1
     bignumber.js: ^9.1.2
     firebase: ^11.2.0
     loglevel: ^1.8.1
+    semver: ^7.6.3
     uuid: ^8.3.2
   peerDependencies:
     "@metamask/keyring-controller": ^23.0.0
     "@metamask/profile-sync-controller": ^25.0.0
-  checksum: 6dd8ad2b5eeb690b1683537391dd594cc83feea8e590ff595641ca8ee11749d40f39189282ebb33453c375a1879c465484aad5a05d7914365e8bc2f05270868a
+  checksum: 1c1d988de821d1cb76790a5d9a0557a9eff9c778a72b7df09647919adb4dcd9e4011b70dbdd52b1d16919473bfd8942cf0d7799fd1109bdf15f70e5cc0455276
   languageName: node
   linkType: hard
 
@@ -9752,13 +9753,13 @@ __metadata:
   linkType: hard
 
 "@playwright/test@npm:^1.47.1":
-  version: 1.55.0
-  resolution: "@playwright/test@npm:1.55.0"
+  version: 1.55.1
+  resolution: "@playwright/test@npm:1.55.1"
   dependencies:
-    playwright: 1.55.0
+    playwright: 1.55.1
   bin:
     playwright: cli.js
-  checksum: efa2e6febf1fea8dd9ba1aff45b58bc6e8604a831c21c5e5c49718f07065670ddeec5487d288cc1b044c834b40ab586035ea23c89e78991a19d2daf93fab993e
+  checksum: 8df3bd1dde94c94c172e0f727ebbeee8ba7c35d7438e3b487ab598dbef221a8bc0685546c5e10624ffd5d0caec52c79ef6f4d13187dee353d47f14e70a408bee
   languageName: node
   linkType: hard
 
@@ -17294,11 +17295,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^18.0.0, @types/node@npm:^18.11.18":
-  version: 18.19.125
-  resolution: "@types/node@npm:18.19.125"
+  version: 18.19.127
+  resolution: "@types/node@npm:18.19.127"
   dependencies:
     undici-types: ~5.26.4
-  checksum: b05252814da510f2d520569f7296a78a7beec6fc2d4dae4779b6596d70e3138cfaac79c6854a5f845a13a9cfb4374c3445ba3dda70ca6b46ef270a0ac7d70b36
+  checksum: aefbe13a03a40749bafd45f70bccd1f9816f7a79a25f06f23e87786f90b0cc2b865a6779993b1b5e2333c689c612e2579dc4c683ef7d5b6f16255a8c759ea564
   languageName: node
   linkType: hard
 
@@ -17312,11 +17313,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^22.2.0":
-  version: 22.17.2
-  resolution: "@types/node@npm:22.17.2"
+  version: 22.18.6
+  resolution: "@types/node@npm:22.18.6"
   dependencies:
     undici-types: ~6.21.0
-  checksum: 2a82f96abcf25104efa6e9b8231616e039e5e0854f07e9ce4fdf821d30eaac30a80ec3cafefb36d2af8bd7c9594cfda337887bd85bb5c2031ba0f7e23a3d588d
+  checksum: c200df1bc9abcfe79d4002f65cb96582dcd45ea10201e3bf070590a521ba50db0c3412e73aef425db7f395490f14f999e7cd5fbc1c3620a57d3d21ad67482c4d
   languageName: node
   linkType: hard
 
@@ -19586,9 +19587,9 @@ __metadata:
   linkType: hard
 
 "@zip.js/zip.js@npm:^2.7.48":
-  version: 2.7.72
-  resolution: "@zip.js/zip.js@npm:2.7.72"
-  checksum: bab3a9788dd0f147471d9a826a742e92e32eaa7847f7f4166370c35b0dced79ddb04d5efc5b9e0c9a343f3f973030ac2ea8016ec6faf9141add8bb374c417b84
+  version: 2.8.2
+  resolution: "@zip.js/zip.js@npm:2.8.2"
+  checksum: bc4b7a48e9bb96facec9553994d489e11e4cab141bb706211bbaf4d16ff365d17341919e1bfb148facbf8f91a2a197d1bc7e2b274a5687a0efabc7dbf5cc47b4
   languageName: node
   linkType: hard
 
@@ -22843,9 +22844,9 @@ __metadata:
   linkType: hard
 
 "chalk@npm:^5.1.2, chalk@npm:^5.3.0, chalk@npm:^5.4.1":
-  version: 5.6.0
-  resolution: "chalk@npm:5.6.0"
-  checksum: 245d4b53c29c88da9e291f318c86b6b3ee65aa81568f9e10fafc984a6ef520412dee513057d07cc0f4614ab5a46cb07a0394fab3794d88d48c89c17b2d8fbf7f
+  version: 5.6.2
+  resolution: "chalk@npm:5.6.2"
+  checksum: 4ee2d47a626d79ca27cb5299ecdcce840ef5755e287412536522344db0fc51ca0f6d6433202332c29e2288c6a90a2b31f3bd626bc8c14743b6b6ee28abd3b796
   languageName: node
   linkType: hard
 
@@ -25022,9 +25023,9 @@ __metadata:
   linkType: hard
 
 "detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.2, detect-libc@npm:^2.0.3, detect-libc@npm:^2.0.4":
-  version: 2.1.0
-  resolution: "detect-libc@npm:2.1.0"
-  checksum: a6430901d590bacc622e4304b9510fa99f5f8e71be7b5272d5dd03e07f361b9b5452da3416a8215125575946ec3c97c82bd6c51937a3923ab33405481a70e9ae
+  version: 2.1.1
+  resolution: "detect-libc@npm:2.1.1"
+  checksum: fcda34a75f08a7f7857f469999b2cd76a2cb7bd591be4d069c63c4c6c2928c9bae2c82d4bfe8676920ce1acecf2cc1a6ef699b57a9456051e1eb0c770b19bb0d
   languageName: node
   linkType: hard
 
@@ -30454,9 +30455,9 @@ __metadata:
   linkType: hard
 
 "import-meta-resolve@npm:^4.0.0":
-  version: 4.1.0
-  resolution: "import-meta-resolve@npm:4.1.0"
-  checksum: 6497af27bf3ee384ad4efd4e0ec3facf9a114863f35a7b35f248659f32faa5e1ae07baa74d603069f35734ae3718a78b3f66926f98dc9a62e261e7df37854a62
+  version: 4.2.0
+  resolution: "import-meta-resolve@npm:4.2.0"
+  checksum: fe5ca3258f22dc3dd4e2f2e8f6b54324c1cf0261216c7d9aae801b2eadf664bbd61e26cfb907a1238761285a3e9c8c23403321d52ca0e579c341b8d90c97fa52
   languageName: node
   linkType: hard
 
@@ -34052,7 +34053,7 @@ __metadata:
     "@metamask/design-system-react-native": ^0.4.0
     "@metamask/design-system-twrnc-preset": ^0.2.1
     "@metamask/design-tokens": ^8.1.1
-    "@metamask/earn-controller": ^7.0.0
+    "@metamask/earn-controller": ^8.0.0
     "@metamask/eip-5792-middleware": ^1.2.0
     "@metamask/eip1193-permission-middleware": ^1.0.0
     "@metamask/ens-resolver-snap": ^0.1.4
@@ -34094,7 +34095,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
     "@metamask/network-enablement-controller": ^2.1.0
-    "@metamask/notification-services-controller": ^18.1.0
+    "@metamask/notification-services-controller": ^18.2.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
     "@metamask/phishing-controller": ^13.1.0
@@ -36011,9 +36012,9 @@ __metadata:
   linkType: hard
 
 "normalize-url@npm:^8.0.0":
-  version: 8.0.2
-  resolution: "normalize-url@npm:8.0.2"
-  checksum: 66a0d42ae9e360654d8547a73f8c94fc8a39a975c7d3ae0b95e5927bd3bffc6dc4e20282afd6797c4a7ce6cf3847c37ce47125fde7b1a9e83d802c0e74830dee
+  version: 8.1.0
+  resolution: "normalize-url@npm:8.1.0"
+  checksum: 3800983919a973ab127c59c63706dee60b4b46649fdfb277aa571951795fecffab43e05893f621764adb15a0ed85d3fb880fdeb179e605d1afffc8d7f48d21d2
   languageName: node
   linkType: hard
 
@@ -37384,27 +37385,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.55.0":
-  version: 1.55.0
-  resolution: "playwright-core@npm:1.55.0"
+"playwright-core@npm:1.55.1":
+  version: 1.55.1
+  resolution: "playwright-core@npm:1.55.1"
   bin:
     playwright-core: cli.js
-  checksum: 689955388fa1d46cdbc93d4957688d48c0033ccdcb852f97f9f5e8aa6482a928c885cf06b02eb5acde9426aa1222720456127a8f7793792fef3f7bdb159bd8b2
+  checksum: a2b981223fd8f5c50a4e0b6cc36a3ce40b41919d418b564561f085bcd6c8ce9df2354e687fbc76e662fddb9f2b28d0bc1f0124c085958406fcab6c6cf3b8228f
   languageName: node
   linkType: hard
 
-"playwright@npm:1.55.0":
-  version: 1.55.0
-  resolution: "playwright@npm:1.55.0"
+"playwright@npm:1.55.1":
+  version: 1.55.1
+  resolution: "playwright@npm:1.55.1"
   dependencies:
     fsevents: 2.3.2
-    playwright-core: 1.55.0
+    playwright-core: 1.55.1
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 6165c649a4923651305957d54203ee9f6c80fb5b7d237848c13a98c168c599041eefb6af493f1dbe5e793aa2e24956a1a7205cb1864a64a97f01c7c7189885b7
+  checksum: 4935122ed687cd14861d64e6fdc79613d36d45f1363e911213a338da9993525d3872d7379300471f70209e1ad68ec91c0d65f0136e6c09c0775477943aaf7fb3
   languageName: node
   linkType: hard
 
