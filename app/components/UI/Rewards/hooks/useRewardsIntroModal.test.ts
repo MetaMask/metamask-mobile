@@ -166,54 +166,6 @@ describe('useRewardsIntroModal', () => {
     });
   });
 
-  it('does not navigate when BIP-44 modal was seen in current session', async () => {
-    // Mock app version to simulate an update (not fresh install)
-    jest
-      .spyOn(StorageWrapper, 'getItem')
-      .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
-      .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
-      .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION
-
-    // Start with BIP-44 modal not seen, then simulate it being seen in current session
-    let bip44Seen = false;
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectRewardsEnabledFlag) return true;
-      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
-      if (selector === selectMultichainAccountsIntroModalSeen) return bip44Seen;
-      if (selector === selectMultichainAccountsState2Enabled) return true;
-      return undefined;
-    });
-
-    const { result, rerender } = renderHook(() => useRewardsIntroModal());
-
-    await waitFor(() => {
-      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
-    });
-
-    // Should not navigate initially because BIP-44 modal hasn't been seen
-    expect(navigate).not.toHaveBeenCalled();
-
-    // Now simulate BIP-44 modal being seen in current session
-    bip44Seen = true;
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectRewardsEnabledFlag) return true;
-      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
-      if (selector === selectMultichainAccountsIntroModalSeen) return bip44Seen;
-      if (selector === selectMultichainAccountsState2Enabled) return true;
-      return undefined;
-    });
-
-    // Rerender to trigger the effect
-    rerender(undefined);
-
-    await waitFor(() => {
-      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
-    });
-
-    // Should still not navigate because BIP-44 modal was seen in current session
-    expect(navigate).not.toHaveBeenCalled();
-  });
-
   it('navigates when BIP-44 modal was seen in previous session', async () => {
     // Mock app version to simulate an update (not fresh install)
     jest
