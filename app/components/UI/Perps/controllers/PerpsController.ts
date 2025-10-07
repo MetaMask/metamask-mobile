@@ -1258,11 +1258,10 @@ export class PerpsController extends BaseController<
       | undefined;
 
     try {
-      trace({
+      const traceSpan = trace({
         name: TraceName.PerpsClosePosition,
         id: traceId,
         op: TraceOperation.PerpsPositionManagement,
-        startTime: Date.now(),
         parentContext: null,
         tags: {
           provider: this.state.activeProvider,
@@ -1270,7 +1269,7 @@ export class PerpsController extends BaseController<
           closeSize: params.size || 'full',
           isTestnet: this.state.isTestnet,
         },
-      });
+      }) as Span;
 
       // Measure position loading time
       const positionLoadStart = performance.now();
@@ -1281,6 +1280,7 @@ export class PerpsController extends BaseController<
           PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
           performance.now() - positionLoadStart,
           'millisecond',
+          traceSpan,
         );
       } catch (err) {
         DevLogger.log(
@@ -1529,7 +1529,6 @@ export class PerpsController extends BaseController<
       endTrace({
         name: TraceName.PerpsClosePosition,
         id: traceId,
-        timestamp: Date.now(),
         data: traceData,
       });
     }
@@ -2197,18 +2196,47 @@ export class PerpsController extends BaseController<
    * Get currently open orders (real-time status)
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    const traceId = uuidv4();
     const startTime = performance.now();
-    const provider = this.getActiveProvider();
-    const result = await provider.getOpenOrders(params);
+    let traceData: { success: boolean; error?: string } | undefined;
 
-    const completionDuration = performance.now() - startTime;
-    setMeasurement(
-      PerpsMeasurementName.PERPS_GET_OPEN_ORDERS_OPERATION,
-      completionDuration,
-      'millisecond',
-    );
+    try {
+      const traceSpan = trace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      }) as Span;
 
-    return result;
+      const provider = this.getActiveProvider();
+      const result = await provider.getOpenOrders(params);
+
+      const completionDuration = performance.now() - startTime;
+      setMeasurement(
+        PerpsMeasurementName.PERPS_GET_OPEN_ORDERS_OPERATION,
+        completionDuration,
+        'millisecond',
+        traceSpan,
+      );
+
+      traceData = { success: true };
+      return result;
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.PerpsOrdersFetch,
+        id: traceId,
+        data: traceData,
+      });
+    }
   }
 
   /**
@@ -3159,7 +3187,6 @@ export class PerpsController extends BaseController<
         name: TraceName.PerpsDataLakeReport,
         op: TraceOperation.PerpsOperation,
         id: traceId,
-        startTime: Date.now(),
         parentContext: null,
         tags: {
           action,
@@ -3244,7 +3271,6 @@ export class PerpsController extends BaseController<
       endTrace({
         name: TraceName.PerpsDataLakeReport,
         id: traceId,
-        timestamp: Date.now(),
         data: {
           success: true,
           retries: retryCount,
@@ -3297,7 +3323,6 @@ export class PerpsController extends BaseController<
       endTrace({
         name: TraceName.PerpsDataLakeReport,
         id: traceId,
-        timestamp: Date.now(),
         data: {
           success: false,
           error: errorMessage,
