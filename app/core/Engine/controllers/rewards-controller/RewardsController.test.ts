@@ -816,7 +816,6 @@ describe('RewardsController', () => {
       expect(result).toEqual({
         has_more: false,
         cursor: null,
-        total_results: 0,
         results: [],
       });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -835,7 +834,6 @@ describe('RewardsController', () => {
       const mockResponse = {
         has_more: true,
         cursor: 'next-cursor',
-        total_results: 50,
         results: [
           {
             id: 'event-123',
@@ -886,7 +884,6 @@ describe('RewardsController', () => {
       const mockResponse = {
         has_more: false,
         cursor: null,
-        total_results: 25,
         results: [
           {
             id: 'event-456',
@@ -974,7 +971,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1044,7 +1040,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1084,7 +1079,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1123,7 +1117,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 0,
           results: [],
         };
 
@@ -1174,7 +1167,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 3,
           results: [
             {
               id: 'event-1',
@@ -1257,7 +1249,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1322,7 +1313,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1384,7 +1374,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1445,7 +1434,6 @@ describe('RewardsController', () => {
         const mockResponse = {
           has_more: false,
           cursor: null,
-          total_results: 1,
           results: [
             {
               id: 'event-1',
@@ -1475,6 +1463,274 @@ describe('RewardsController', () => {
 
         expect(mockMessenger.publish).toHaveBeenCalledWith(
           'RewardsController:balanceUpdated',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+      });
+    });
+
+    describe('SWR callback behavior', () => {
+      let testableController: TestableRewardsController;
+
+      beforeEach(() => {
+        testableController = new TestableRewardsController({
+          messenger: mockMessenger,
+        });
+        // Clear any previous mock calls
+        mockMessenger.publish.mockClear();
+      });
+
+      it('should emit pointsEventsUpdated event when oldMostRecentId differs from freshMostRecentId', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const oldPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'old-event-1',
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T10:00:00Z'),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T10:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'new-event-1', // Different ID from old
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'),
+              value: 150,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with stale data
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: oldPointsEvents.results.map((result) => ({
+              ...result,
+              timestamp: result.timestamp.getTime(),
+              updatedAt: result.updatedAt.getTime(),
+            })),
+            has_more: oldPointsEvents.has_more,
+            cursor: oldPointsEvents.cursor,
+            lastFetched: Date.now() - 10000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data
+        mockMessenger.call.mockResolvedValue(freshPointsEvents);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(oldPointsEvents); // Should return stale data immediately
+      });
+
+      it('should not emit pointsEventsUpdated event when oldMostRecentId equals freshMostRecentId', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const sameEventId = 'same-event-1';
+        const oldPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: sameEventId,
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T10:00:00Z'),
+              value: 100,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T10:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: sameEventId, // Same ID as old
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'), // Different timestamp but same ID
+              value: 150, // Different value but same ID
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with stale data
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: oldPointsEvents.results.map((result) => ({
+              ...result,
+              timestamp: result.timestamp.getTime(),
+              updatedAt: result.updatedAt.getTime(),
+            })),
+            has_more: oldPointsEvents.has_more,
+            cursor: oldPointsEvents.cursor,
+            lastFetched: Date.now() - 10000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data
+        mockMessenger.call.mockResolvedValue(freshPointsEvents);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(oldPointsEvents); // Should return stale data immediately
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the pointsEventsUpdated event was NOT emitted
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:pointsEventsUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should not emit pointsEventsUpdated event when both old and fresh results are empty', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const emptyPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [],
+        };
+
+        // Set up cached points events with empty stale data
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: [],
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now() - 10000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return empty fresh data
+        mockMessenger.call.mockResolvedValue(emptyPointsEvents);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(emptyPointsEvents); // Should return stale data immediately
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the pointsEventsUpdated event was NOT emitted
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:pointsEventsUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should emit pointsEventsUpdated event', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+          forceFresh: false,
+        };
+
+        const freshPointsEvents = {
+          has_more: false,
+          cursor: null,
+          results: [
+            {
+              id: 'new-event-2',
+              type: 'SWAP' as const,
+              timestamp: new Date('2024-01-01T11:00:00Z'),
+              value: 150,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date('2024-01-01T11:00:00Z'),
+              payload: null,
+            },
+          ],
+        };
+
+        // Set up cached points events with undefined results (oldMostRecentId will be empty string)
+        testableController.testUpdate((state) => {
+          state.pointsEvents['current:sub-123'] = {
+            results: [
+              {
+                id: 'new-event-1',
+                type: 'SWAP' as const,
+                timestamp: new Date('2024-01-01T11:00:00Z'),
+                value: 150,
+                bonus: { bips: 0, bonuses: [] },
+                accountAddress: '0x123',
+                updatedAt: new Date('2024-01-01T11:00:00Z'),
+                payload: null,
+              },
+            ] as any,
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now() - 90000, // Stale data
+          };
+        });
+
+        // Mock the messenger to return fresh data and last updated timestamp
+        mockMessenger.call
+          .mockResolvedValueOnce(new Date()) // Second call for getPointsEventsLastUpdated
+          .mockResolvedValueOnce(freshPointsEvents); // First call for getPointsEvents
+
+        // Act
+        await testableController.getPointsEvents(mockRequest);
+
+        // Wait for SWR background refresh
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Verify that the pointsEventsUpdated event was emitted
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Emitting pointsEventsUpdated event due to new points events',
           {
             seasonId: 'current',
             subscriptionId: 'sub-123',
@@ -10576,7 +10832,10 @@ describe('RewardsController', () => {
 
         expect(mockFetchFresh).toHaveBeenCalled();
         expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
-        expect(mockSwrCallback).toHaveBeenCalledWith('fresh-value');
+        expect(mockSwrCallback).toHaveBeenCalledWith(
+          'stale-value',
+          'fresh-value',
+        );
       });
     });
 

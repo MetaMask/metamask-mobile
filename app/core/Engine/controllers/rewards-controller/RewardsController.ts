@@ -167,7 +167,7 @@ interface CacheOptions<T> {
   readCache: CacheReader<T>;
   fetchFresh: () => Promise<T>;
   writeCache: CacheWriter<T>;
-  swrCallback?: (fresh: T) => void; // Callback triggered after SWR refresh, to invalidate cache
+  swrCallback?: (old: T, fresh: T) => void; // Callback triggered after SWR refresh, to invalidate cache
 }
 
 /**
@@ -198,7 +198,7 @@ export async function wrapWithCache<T>({
           try {
             const fresh = await fetchFresh();
             writeCache(key, fresh);
-            swrCallback(fresh);
+            swrCallback(cached.payload, fresh);
           } catch (err) {
             Logger.log(
               'SWR revalidation failed:',
@@ -336,7 +336,6 @@ export class RewardsController extends BaseController<
       })),
       has_more: pointsEvents.has_more,
       cursor: pointsEvents.cursor,
-      total_results: pointsEvents.total_results,
       lastFetched: Date.now(),
     };
   }
@@ -351,7 +350,6 @@ export class RewardsController extends BaseController<
         timestamp: new Date(r.timestamp),
         updatedAt: new Date(r.updatedAt),
       })),
-      total_results: state.total_results,
       cursor: state.cursor,
       has_more: state.has_more,
     };
@@ -1232,8 +1230,7 @@ export class RewardsController extends BaseController<
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    if (!rewardsEnabled)
-      return { has_more: false, cursor: null, total_results: 0, results: [] };
+    if (!rewardsEnabled) return { has_more: false, cursor: null, results: [] };
 
     // If cursor is provided, always fetch fresh and do not touch cache
     if (params.cursor) {
@@ -1296,12 +1293,26 @@ export class RewardsController extends BaseController<
             this.#convertPointsEventsToState(pointsEventsDto);
         });
       },
-      swrCallback: () => {
-        // Let UI know first page cache has been refreshed so it can re-query
-        this.messagingSystem.publish('RewardsController:pointsEventsUpdated', {
-          seasonId: params.seasonId,
-          subscriptionId: params.subscriptionId,
-        });
+      swrCallback: (old, fresh) => {
+        const oldMostRecentId = old?.results?.[0]?.id || '';
+        const freshMostRecentId = fresh?.results?.[0]?.id || '';
+        if (oldMostRecentId !== freshMostRecentId) {
+          Logger.log(
+            'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+            {
+              seasonId: params.seasonId,
+              subscriptionId: params.subscriptionId,
+            },
+          );
+          // Let UI know first page cache has been refreshed so it can re-query
+          this.messagingSystem.publish(
+            'RewardsController:pointsEventsUpdated',
+            {
+              seasonId: params.seasonId,
+              subscriptionId: params.subscriptionId,
+            },
+          );
+        }
       },
     });
 
@@ -1325,7 +1336,6 @@ export class RewardsController extends BaseController<
         : {
             has_more: false,
             cursor: null,
-            total_results: 0,
             results: [],
           };
     }
