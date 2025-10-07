@@ -184,21 +184,14 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (
-        !isFetchingRegions &&
-        selectedRegion &&
-        !selectedRegion.supported &&
-        regions
-      ) {
+      if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
-              regions,
-            }),
+            ...createUnsupportedRegionModalNavigationDetails(),
           );
         });
       }
-    }, [isFetchingRegions, selectedRegion, regions, navigation]),
+    }, [selectedRegion, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
@@ -385,7 +378,6 @@ const BuildQuote = () => {
       return;
     }
 
-    setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
@@ -396,7 +388,6 @@ const BuildQuote = () => {
       return;
     }
 
-    setError(null);
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,

@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { DepositRegion } from '@consensys/native-ramps-sdk';
 
 import Text, {
   TextVariant,
@@ -19,10 +18,7 @@ import Button, {
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
@@ -30,9 +26,6 @@ import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorMod
 import { useDepositSDK } from '../../../sdk';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
-export interface UnsupportedRegionModalParams {
-  regions: DepositRegion[];
-}
 export const createUnsupportedRegionModalNavigationDetails =
   createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
@@ -43,7 +36,6 @@ function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { selectedRegion } = useDepositSDK();
-  const { regions } = useParams<UnsupportedRegionModalParams>();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -57,13 +49,9 @@ function UnsupportedRegionModal() {
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
-          regions,
-        }),
-      );
+      navigation.navigate(...createRegionSelectorModalNavigationDetails());
     });
-  }, [navigation, regions]);
+  }, [navigation]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {

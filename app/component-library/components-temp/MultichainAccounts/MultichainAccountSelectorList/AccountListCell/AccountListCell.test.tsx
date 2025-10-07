@@ -10,7 +10,6 @@ import {
 } from '../../test-utils';
 import { AvatarAccountType } from '../../../../components/Avatars/Avatar';
 import { RootState } from '../../../../../reducers';
-import { CHECKBOX_ICON_TESTID } from '../../../../components/Checkbox/Checkbox.constants';
 
 const mockNavigate = jest.fn();
 
@@ -169,7 +168,7 @@ describe('AccountListCell', () => {
       expect(
         getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
-      expect(getByTestId(CHECKBOX_ICON_TESTID)).toBeTruthy();
+      expect(getByTestId('checkbox-icon-component')).toBeTruthy();
     });
 
     it('renders unchecked checkbox when isSelected is false', () => {
@@ -188,7 +187,7 @@ describe('AccountListCell', () => {
       expect(
         getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
-      expect(queryByTestId(CHECKBOX_ICON_TESTID)).toBeFalsy();
+      expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
     });
 
     it('calls onSelectAccount when checkbox is pressed', () => {
@@ -246,7 +245,7 @@ describe('AccountListCell', () => {
       expect(
         getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
-      expect(getByTestId(CHECKBOX_ICON_TESTID)).toBeTruthy();
+      expect(getByTestId('checkbox-icon-component')).toBeTruthy();
       expect(getByText('Test Account')).toBeTruthy();
     });
   });

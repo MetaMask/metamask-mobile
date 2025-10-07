@@ -87,7 +87,7 @@ describe('SDKDisconnectModal', () => {
         <SDKDisconnectModal
           route={{
             params: {
-              account: '0x123',
+              account: '123',
               accountName: 'Test Account',
               channelId: 'channel1',
               dapp: 'Test DApp',
@@ -137,7 +137,7 @@ describe('SDKDisconnectModal', () => {
         <SDKDisconnectModal
           route={{
             params: {
-              account: '0x123',
+              account: '123',
               channelId: 'channel1',
               accountsLength: 2,
             },
@@ -224,7 +224,7 @@ describe('SDKDisconnectModal', () => {
         <SDKDisconnectModal
           route={{
             params: {
-              account: '0x123',
+              account: '123',
               channelId: 'channel1',
               accountsLength: 1,
             },
@@ -310,7 +310,7 @@ describe('SDKDisconnectModal', () => {
         <SDKDisconnectModal
           route={{
             params: {
-              account: '0x123',
+              account: '123',
               channelId: 'channel1',
               accountsLength: 1,
               isV2: true,
@@ -334,7 +334,7 @@ describe('SDKDisconnectModal', () => {
         <SDKDisconnectModal
           route={{
             params: {
-              account: '0x123',
+              account: '123',
               channelId: 'channel1',
               accountsLength: 3, // More than 1 account
               isV2: true,

@@ -14,7 +14,6 @@ describe(FlaskBuildTests('Image Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -30,7 +29,6 @@ describe(FlaskBuildTests('Image Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
-        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('showSVGImage');
@@ -47,7 +45,6 @@ describe(FlaskBuildTests('Image Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
-        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('showPNGImage');

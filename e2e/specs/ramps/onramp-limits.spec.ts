@@ -13,7 +13,7 @@ import { Mockttp } from 'mockttp';
 
 describe(SmokeTrade('On-Ramp Limits'), () => {
   const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
-  it.skip('should check order min and maxlimits', async () => {
+  it('should check order min and maxlimits', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()

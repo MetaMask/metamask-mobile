@@ -26,7 +26,7 @@ export const WalletViewSelectorsIDs = {
   TOKENS_CONTAINER: 'tokens',
   TOKENS_CONTAINER_LIST: 'token-list',
   ACCOUNT_OVERVIEW: 'account-overview',
-  ACCOUNT_ACTIONS: 'multichain-account-cell-menu',
+  ACCOUNT_ACTIONS: 'main-wallet-account-actions',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
   EYE_SLASH_ICON: 'balance-container',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',

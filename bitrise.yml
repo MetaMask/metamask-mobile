@@ -413,6 +413,7 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -423,6 +424,7 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
+      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
@@ -432,6 +434,7 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -442,6 +445,7 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
+      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
@@ -943,6 +947,11 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionPerformance'
     after_run:
       - ios_e2e_test
+  ios_run_regression_identity_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - ios_e2e_test
   ios_run_regression_accounts_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionAccounts'
@@ -1017,6 +1026,15 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - android_e2e_test
+  android_run_regression_identity_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
     after_run:
       - android_e2e_test
   android_run_regression_accounts_tests:
@@ -1170,6 +1188,10 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
+        machine_type_id: g2.mac.large
     after_run:
       - wdio_ios_e2e_test
 
@@ -3290,10 +3312,6 @@ workflows:
           inputs:
             - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
             - paths: /tmp/last-build-commit
-    meta:
-      bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
     after_run:
@@ -3708,10 +3726,10 @@ app:
       MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
         is_expand: false
-      MM_PERPS_ENABLED: false
+      MM_PERPS_ENABLED: true
     - opts:
         is_expand: false
-      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB,BE"
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB"
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -3744,16 +3762,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.58.0
+      VERSION_NAME: 7.57.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2349
+      VERSION_NUMBER: 2666
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.58.0
+      FLASK_VERSION_NAME: 7.57.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2349
+      FLASK_VERSION_NUMBER: 2666
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3786,7 +3804,7 @@ app:
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
 meta:
   bitrise.io:
-    stack: osx-xcode-16.3.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.4large
 trigger_map:
   - push_branch: release/*

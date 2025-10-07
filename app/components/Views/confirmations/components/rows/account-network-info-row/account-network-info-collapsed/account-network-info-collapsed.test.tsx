@@ -15,13 +15,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
 }));
 
-jest.mock(
-  '../../../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 jest.mock('../../../../hooks/useAccountInfo');
 
 describe('AccountNetworkInfoCollapsed', () => {

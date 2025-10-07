@@ -14,11 +14,6 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
-jest.mock('../../../store', () => ({
-  store: {
-    dispatch: jest.fn(),
-  },
-}));
 
 // A valid, sample connection request payload for use in tests
 const mockConnectionRequest: ConnectionRequest = {
@@ -55,7 +50,6 @@ const mockConnectionInfo: ConnectionInfo = {
       platform: 'JavaScript',
     },
   },
-  expiresAt: 1757410033264,
 };
 
 // A valid deeplink URL containing the encoded connection request
@@ -71,7 +65,6 @@ const createMockConnection = (id: string, overrides: any = {}) => ({
     dapp: { name: `DApp ${id}`, url: `https://dapp-${id}.com` },
     sdk: { version: '2.0.0', platform: 'JavaScript' },
   },
-  expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
   client: {
     reconnect: jest.fn().mockResolvedValue(undefined),
   },
@@ -89,7 +82,6 @@ const createPersistedConnection = (id: string, overrides: any = {}) => ({
     sdk: { version: '2.0.0', platform: 'JavaScript' },
     ...overrides.metadata,
   },
-  expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
 });
 
 describe('ConnectionRegistry', () => {
@@ -164,7 +156,6 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).toHaveBeenCalledWith({
         id: mockConnection.id,
         metadata: mockConnection.info.metadata,
-        expiresAt: expect.any(Number),
       });
 
       // UI is synchronized with the new connection
@@ -316,7 +307,7 @@ describe('ConnectionRegistry', () => {
   describe('initialize', () => {
     it('should resume connections from store on startup', async () => {
       // Given: some persisted connections in the store
-      const persistedConnections: ConnectionInfo[] = [
+      const persistedConnections = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
       ];
@@ -350,7 +341,7 @@ describe('ConnectionRegistry', () => {
 
     it('should handle errors gracefully when some connections fail to resume', async () => {
       // Given: some connections where one will fail to resume
-      const persistedConnections: ConnectionInfo[] = [
+      const persistedConnections = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
         createPersistedConnection('conn-3'),
@@ -410,7 +401,7 @@ describe('ConnectionRegistry', () => {
       const mockConnection1 = createMockConnection('conn-1');
       const mockConnection2 = createMockConnection('conn-2');
 
-      const persistedConnections: ConnectionInfo[] = [
+      const persistedConnections = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
       ];
@@ -469,7 +460,7 @@ describe('ConnectionRegistry', () => {
       const mockConnection1 = createMockConnection('conn-1');
       const mockConnection2 = createMockConnection('conn-2');
 
-      const persistedConnections: ConnectionInfo[] = [
+      const persistedConnections = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
       ];
@@ -513,7 +504,7 @@ describe('ConnectionRegistry', () => {
       });
       const mockConnection3 = createMockConnection('conn-3');
 
-      const persistedConnections: ConnectionInfo[] = [
+      const persistedConnections = [
         createPersistedConnection('conn-1'),
         createPersistedConnection('conn-2'),
         createPersistedConnection('conn-3'),

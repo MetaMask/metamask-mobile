@@ -83,21 +83,4 @@ describe('SecretRecoveryPhrase', () => {
       keyringId: 'mock-entropy-source',
     });
   });
-
-  it('navigates to manual backup flow when backup button is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <SecretRecoveryPhrase account={mockAccount} />,
-      { state: mockInitialState },
-    );
-
-    const backupButton = getByText(
-      strings('multichain_accounts.export_credentials.backup'),
-    );
-    fireEvent.press(backupButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', {
-      screen: 'ManualBackupStep1',
-      params: { backupFlow: true },
-    });
-  });
 });

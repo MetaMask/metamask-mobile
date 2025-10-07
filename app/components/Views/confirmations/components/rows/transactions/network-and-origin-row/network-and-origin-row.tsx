@@ -6,7 +6,6 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
-import { useSDKV2Connection } from '../../../../../../hooks/useSDKV2Connection';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import Text, {
   TextVariant,
@@ -34,15 +33,11 @@ export const NetworkAndOriginRow = () => {
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
-  const sdkV2Connection = useSDKV2Connection(origin);
-  const isMMDSDKV2Origin = Boolean(sdkV2Connection?.isV2);
 
   const networkConfiguration = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
-
   const isDappOrigin = origin !== MMM_ORIGIN;
-
   const networkImage = getNetworkImageSource({ chainId: chainId as Hex });
 
   if (!transactionMetadata && !signatureRequest) {
@@ -73,9 +68,7 @@ export const NetworkAndOriginRow = () => {
           label={strings('transactions.request_from')}
           style={styles.infoRowOverride}
         >
-          <Text variant={TextVariant.BodyMD}>
-            {isMMDSDKV2Origin ? sdkV2Connection?.origin : origin}
-          </Text>
+          <Text variant={TextVariant.BodyMD}>{origin}</Text>
         </AlertRow>
       )}
       {signatureRequest && isSIWEMessage && (

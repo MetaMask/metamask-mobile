@@ -73,13 +73,6 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 describe('SecuritySettings', () => {
   beforeEach(() => {
     mockUseParamsValues = {

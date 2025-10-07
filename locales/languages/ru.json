@@ -575,8 +575,7 @@
     "token_contract_warning": "Этот адрес — адрес контракта токенов. Если вы отправите токены на этот адрес, вы их потеряете.",
     "invisible_character_error": "Мы обнаружили невидимый символ в имени ENS. Проверьте имя ENS, чтобы избежать возможного мошенничества.",
     "could_not_resolve_name": "Не удалось разрешить имя",
-    "invalid_address": "Недействительный адрес",
-    "contractAddressError": "Вы отправляете токены на адрес контракта токена. Это может привести к потере этих токенов."
+    "invalid_address": "Недействительный адрес"
   },
   "deposit": {
     "title": "Депозит",
@@ -878,8 +877,6 @@
     "withdraw": "Вывести средства",
     "refresh_balance": "Обновить баланс",
     "add_funds": "Внести средства",
-    "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Ваши позиции",
     "loading_positions": "Загрузка позиций...",
     "refreshing_positions": "Обновление позиций...",
@@ -888,7 +885,7 @@
       "title": "Сумма депозита",
       "get_usdc_hyperliquid": "Получить USDC • Hyperliquid",
       "insufficient_funds": "Недостаточно средств",
-      "no_funds_available": "Нет доступных средств. Сначала внесите депозит.",
+      "no_funds_available": "No funds available. Please deposit first.",
       "enter_amount": "Укажите сумму",
       "fetching_quote": "Получение котировки",
       "submitting": "Отправка транзакции",
@@ -1040,7 +1037,7 @@
         "insufficient_funds": "Недостаточно средств",
         "insufficient_balance": "Недостаточно средств. Требуется: {{required}} $, доступно: {{available}} $",
         "invalid_leverage": "Кредитное плечо должно быть между {{min}}x и {{max}}x",
-        "max_order_value": "Сумма ордера должна быть менее {{maxValue}} $",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "Высокое кредитное плечо увеличивает риск ликвидации",
         "invalid_take_profit": "Тейк-профит должен быть равен текущей цене {{direction}} для позиций {{positionType}}",
         "invalid_stop_loss": "Стоп-лосс должен быть равен текущей цене {{direction}} для позиций {{positionType}}",
@@ -1335,9 +1332,9 @@
         "error_message": "Рыночные данные не найдены. Вернитесь и повторите попытку."
       },
       "statistics": "Обзор",
-      "24h_high": "24h high",
-      "24h_low": "24h low",
-      "24h_volume": "24h volume",
+      "24h_high": "Максимум за 24 ч",
+      "24h_low": "Минимум за 24 часа",
+      "24h_volume": "Объем за 24 ч",
       "open_interest": "Открытый процент",
       "funding_rate": "Ставка финансирования",
       "countdown": "Обратный отсчет",
@@ -1463,8 +1460,8 @@
     "failed_to_load_market_data": "Не удалось загрузить рыночные данные",
     "tap_to_retry": "Нажмите для повторения попытки",
     "search_by_token_symbol": "Поиск по символу токена",
-    "no_tokens_found": "Токены не найдены",
-    "no_tokens_found_description": "Не удалось найти токены с именем «{{searchQuery}}». Попробуйте другой поисковый запрос.",
+    "no_tokens_found": "No tokens found",
+    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Тестнет",
     "mainnet": "Мейн-нет",
     "developer_options": {
@@ -1496,10 +1493,7 @@
         "filled": "Выполнен",
         "metamask_fee": "Комиссия MetaMask",
         "hyperliquid_fee": "Комиссия Hyperliquid",
-        "total_fee": "Итого комиссий",
-        "liquidated": "Liquidated",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss"
+        "total_fee": "Итого комиссий"
       },
       "funding": {
         "date": "Дата",
@@ -1512,7 +1506,7 @@
         "history_will_appear": "Ваша история торговли отобразится здесь"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
+    "risk_disclaimer": "Торговля на бирже рискованна, и вы можете внезапно и без предупреждения потерять всю маржу. Вы торгуете исключительно на свой страх и риск. Рыночные данные предоставлены Hyperliquid. График цен основан на",
     "tutorial": {
       "continue": "Продолжить",
       "skip": "Пропустить",
@@ -1544,13 +1538,10 @@
         "description": "Пополните свой счет бессрочных фьючерсов любыми токенами и совершите первую сделку за считанные секунды.",
         "footer_text": "MetaMask обменяет ваши средства на USDC на Arbitrum и внесет их на HyperEVM без дополнительной комиссии."
       },
-      "got_it": "Понятно",
-      "card": {
-        "title": "Learn the basics of perps"
-      }
+      "got_it": "Понятно"
     },
     "points": "Баллы",
-    "estimated_points": "Прим. баллов",
+    "estimated_points": "Est. Points",
     "unable_to_load": "Ошибка загрузки",
     "points_error": "Мы не можем загрузить баллы сейчас",
     "points_error_content": "Не волнуйтесь, вы продолжаете зарабатывать баллы. Скоро они появятся в вашем счете, или вы можете посмотреть их на вкладке «Вознаграждения» позже.",
@@ -1873,13 +1864,13 @@
     "agree": "Я согласен(-на)",
     "decline": "Нет, спасибо",
     "description_title": "Помогите нам улучшить Metamask",
-    "description_content_1": "Мы хотели бы запросить эти разрешения. Вы можете отказать или удалить данные об использовании в любое время.",
+    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "Когда мы собираем показатели, они всегда будут...",
     "description_content_3": "Узнайте, как мы защищаем вашу конфиденциальность при сборе данных об использовании вашего профиля.",
-    "gather_basic_usage_title": "Собирать основные данные об использовании",
-    "gather_basic_usage_description": "Мы будем собирать основные данные об использовании продукта, такие как общее местоположение, клики и просмотры. Никакая другая информация не будет сохраняться.",
-    "gather_basic_usage_learn_more": "Подробнее",
-    "checkbox_marketing": "Рекламные новости",
+    "gather_basic_usage_title": "Gather basic usage data",
+    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
+    "gather_basic_usage_learn_more": "Learn more",
+    "checkbox_marketing": "Marketing updates",
     "checkbox": "Мы будем использовать эти данные, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем отправлять соответствующие новости (например, о функциях продукта).",
     "action_description_1_prefix": "Приватными:",
     "action_description_2_prefix": "Общие:",
@@ -1889,7 +1880,7 @@
     "action_description_3_description": "Вы в любое время решаете, хотите ли вы поделиться своими данными об использовании или удалить их в настройках.",
     "cta_no_thanks": "Нет, спасибо",
     "cta_i_agree": "Я согласен(-на)",
-    "continue": "Продолжить",
+    "continue": "Continue",
     "fine_print_1_legacy": "Эти данные агрегированы и, следовательно, являются анонимными для целей Общего регламента по защите данных (ЕС) 2016/679.",
     "fine_print_2a_legacy": "*Когда вы используете Infura в качестве поставщика RPC по умолчанию в MetaMask, Infura будет собирать ваш IP-адрес и адрес вашего кошелька Ethereum при отправке транзакции. Мы не храним эту информацию таким образом, чтобы наши системы могли связать эти две части данных. Вы можете настроить своего поставщика RPC",
     "fine_print_2b_legacy": "перед тем, как продолжить.\nДля получения дополнительной информации о том, как MetaMask и Infura взаимодействуют с точки зрения сбора данных, смотрите нашу обновленную",
@@ -2052,9 +2043,9 @@
       "solana_devnet_account_name": "Счет девнета Solana",
       "solana_testnet_account_name": "Счет тестнета Solana",
       "solana_account_name": "Счет Solana",
-      "tron_account_name": "Счет Tron",
-      "tron_nile_account_name": "Счет Tron Nile",
-      "tron_shasta_account_name": "Счет Tron Shasta"
+      "tron_account_name": "Tron Account",
+      "tron_nile_account_name": "Tron Nile Account",
+      "tron_shasta_account_name": "Tron Shasta Account"
     },
     "error_messages": {
       "failed_to_create_account": "Не удалось создать счет {{clientType}}"
@@ -3453,7 +3444,7 @@
     "error_multiple_srp_word_error_3": " неверные или содержат орфографические ошибки.",
     "error_invalid_srp": "Недействительная секретная фраза для восстановления",
     "error_duplicate_srp": "Эта секретная фраза для восстановления уже импортирована.",
-    "success_1": "Кошелек",
+    "success_1": "Wallet",
     "success_2": "импортирован"
   },
   "first_incoming_transaction": {
@@ -4896,7 +4887,7 @@
     "import_account": "Закрытый ключ",
     "add_bitcoin_account": "Счет Биткойн",
     "add_solana_account": "Счет Solana",
-    "add_tron_account": "Счет Tron",
+    "add_tron_account": "Tron account",
     "switch_to_smart_account": "Перейти на смарт-счет",
     "rename_account": "Переименовать счет",
     "addresses": "Адреса",
@@ -5609,7 +5600,7 @@
       "section_1_title": "Что такое мультичейновые счета?",
       "section_1_description": "Один счет, адреса во всех сетях, поддерживаемых MetaMask. Теперь вы можете использовать Ethereum, Solana и другие криптовалюты, не переключая счета.",
       "section_2_title": "Тот же адрес, больше сетей",
-      "section_2_description": "Мы сгруппировали ваши счета, так что продолжайте использовать MetaMask, как и раньше. Ваши средства в безопасности, и их сумма не изменилась",
+      "section_2_description": "Мы объединили ваши счета, так что продолжайте использовать MetaMask, как и раньше. Ваши средства в безопасности, и их сумма не изменилась.",
       "view_accounts_button": "Просомтр счетов",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Настройка ваших счетов"
@@ -5663,7 +5654,6 @@
       "balance": "Баланс",
       "create_account": "Создать счет",
       "creating_account": "Создание счета...",
-      "discovering_accounts": "Поиск счетов...",
       "back_up": "Создать резервную копию",
       "reveal_recovery_phrase_with_index": "Показать фразу для восстановления {{index}}"
     },
@@ -5761,11 +5751,6 @@
       "swap_description": "Обменяйте токены на {{symbol}} на Linea",
       "select_method": "Выбрать способ"
     },
-    "card_onboarding": {
-      "title": "Добро пожаловать в Карту",
-      "description": "Чтобы воспользоваться функциями карты, необходимо подтвердить свой счет у нашего партнера.",
-      "verify_account_button": "Подтвердить счет"
-    },
     "card_home": {
       "error_title": "Невозможно получить данные",
       "error_description": "Похоже, возникла проблема, препятствующая просмотру содержимого этой страницы. Проверьте подключение к Интернету или попробуйте обновить страницу.",
@@ -5841,15 +5826,6 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
-    "error_messages": {
-      "unknown_error": "Unknown error occurred",
-      "something_went_wrong": "Something went wrong. Please try again shortly.",
-      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
-      "request_rejected": "You rejected the request.",
-      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly."
-    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5907,10 +5883,8 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "gtm_title": "Награды здесь",
-      "gtm_description": "Зарабатывайте баллы за активность.\nПроходите уровни, чтобы разблокировать награды.",
-      "gtm_confirm": "С чего начать",
-      "intro_title": "Сезон 1\nуже идет",
+      "intro_title_1": "Season 1",
+      "intro_title_2": "is Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5952,9 +5926,7 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add",
-      "link_account_failed_error": "Failed to link account",
-      "link_account_unknown_error": "Unknown error occurred"
+      "link_account_button": "Add"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6041,7 +6013,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Заблокированные награды",
+      "title": "Locked rewards",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6053,11 +6025,8 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "осталось",
+      "time_left": "left",
       "expired": "Expired"
-    },
-    "animation": {
-      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6084,16 +6053,6 @@
       "perps_deposit": "Внести средства",
       "swap": "Обменять токены",
       "swap_approval": "Одобрить токены"
-    }
-  },
-  "sdk_connect_v2": {
-    "show_loading": {
-      "title": "Connecting to dApp",
-      "description": "Establishing connection with {{dappName}}..."
-    },
-    "show_error": {
-      "title": "Connection Error",
-      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

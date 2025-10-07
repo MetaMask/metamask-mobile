@@ -27,19 +27,19 @@ import { createAccountGroupDetailsNavigationDetails } from '../../../../componen
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
+  isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
-  onSelectAccount?: () => void;
 }
 
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
+  isSelected,
   hideMenu = false,
   startAccessory,
-  onSelectAccount,
 }: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
@@ -78,36 +78,44 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
-        {startAccessory}
+      {startAccessory}
+      <View style={styles.avatarWrapper}>
         <AvatarAccount
           accountAddress={evmAddress}
           type={avatarAccountType}
           size={AvatarSize.Md}
+          style={styles.avatar}
           testID={AccountCellIds.AVATAR}
         />
-        <View style={styles.accountName}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            style={styles.accountNameText}
-            testID={AccountCellIds.ADDRESS}
-          >
-            {accountGroup.metadata.name}
-          </Text>
-        </View>
-      </TouchableOpacity>
+      </View>
+      <View style={styles.accountName}>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          numberOfLines={1}
+          style={styles.accountNameText}
+          testID={AccountCellIds.ADDRESS}
+        >
+          {accountGroup.metadata.name}
+        </Text>
+        {!startAccessory && isSelected && (
+          <Icon
+            name={IconName.CheckBold}
+            size={IconSize.Md}
+            style={styles.checkIcon}
+            color={TextColor.Primary}
+            testID={AccountCellIds.CHECK_ICON}
+          />
+        )}
+      </View>
       <View style={styles.endContainer}>
-        <TouchableOpacity onPress={onSelectAccount}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            testID={AccountCellIds.BALANCE}
-          >
-            {displayBalance}
-          </Text>
-        </TouchableOpacity>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          testID={AccountCellIds.BALANCE}
+        >
+          {displayBalance}
+        </Text>
         {!hideMenu && (
           <TouchableOpacity
             testID={AccountCellIds.MENU}
