@@ -117,6 +117,19 @@ describe('Browser utils :: onUrlSubmit', () => {
       `https://www.google.com/search?q=${encodeURIComponent(rtlDomain)}`,
     );
   });
+
+  it('should detect URLs with URL-encoded characters in query parameters', () => {
+    const input =
+      'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile%2F&metricsEnabled=true';
+    const url = processUrlForBrowser(input, 'Google');
+    expect(url).toBe(input);
+  });
+
+  it('should detect URLs with URL-encoded characters in the path', () => {
+    const input = 'https://example.com/path%2Fto%2Fresource';
+    const url = processUrlForBrowser(input, 'Google');
+    expect(url).toBe(input);
+  });
 });
 
 describe('Browser utils :: isTLD', () => {

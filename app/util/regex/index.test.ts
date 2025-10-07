@@ -430,8 +430,58 @@ describe('REGEX :: regex.url', () => {
     expect(regex.url.test('http://www.example.com')).toEqual(true);
   });
 
+  it('should match a valid URL starting with "https://"', () => {
+    expect(regex.url.test('https://www.example.com')).toEqual(true);
+  });
+
+  it('should match a URL with query parameters', () => {
+    expect(regex.url.test('https://example.com/search?q=test')).toEqual(true);
+  });
+
+  it('should match a URL with URL-encoded characters in query parameters', () => {
+    expect(
+      regex.url.test(
+        'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile%2F&metricsEnabled=true',
+      ),
+    ).toEqual(true);
+  });
+
+  it('should match a URL with multiple URL-encoded characters', () => {
+    expect(
+      regex.url.test(
+        'https://example.com/path?param1=value%20with%20spaces&param2=test%2Fpath',
+      ),
+    ).toEqual(true);
+  });
+
+  it('should match a URL with URL-encoded characters in the path', () => {
+    expect(regex.url.test('https://example.com/path%2Fto%2Fresource')).toEqual(
+      true,
+    );
+  });
+
+  it('should match a URL with mixed encoded and non-encoded characters', () => {
+    expect(
+      regex.url.test('https://example.com/search?q=hello%20world&sort=date'),
+    ).toEqual(true);
+  });
+
+  it('should match a URL with fragment identifier and encoded characters', () => {
+    expect(
+      regex.url.test('https://example.com/page#section%2Fsubsection'),
+    ).toEqual(true);
+  });
+
   it('should not match an invalid URL', () => {
     expect(regex.url.test('invalid-url')).toEqual(false);
+  });
+
+  it('should not match a string without a domain', () => {
+    expect(regex.url.test('just-a-string')).toEqual(false);
+  });
+
+  it('should not match a malformed URL with invalid encoding', () => {
+    expect(regex.url.test('https://example.com/path%GG')).toEqual(false);
   });
 });
 
