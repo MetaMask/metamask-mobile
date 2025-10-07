@@ -7,6 +7,7 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictMarketList from '../views/PredictMarketList';
 import PredictTabView from '../views/PredictTabView';
+import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import { PredictNavigationParamList } from '../types/navigation';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
@@ -25,6 +26,10 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.CASH_OUT}
       component={PredictCashOut}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.UNAVAILABLE}
+      component={PredictUnavailableModal}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MARKET_DETAILS}

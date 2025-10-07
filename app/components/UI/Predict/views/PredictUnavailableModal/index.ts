@@ -1,1 +1,1 @@
-export { default as PredictUnavailableModal } from './PredictUnavailableModal';
+export { default } from './PredictUnavailableModal';
