@@ -7,6 +7,8 @@ import {
   type DepositCryptoCurrency,
   type DepositPaymentMethod,
   DepositPaymentMethodDuration,
+  NativeTransakUserDetails,
+  NativeTransakUserDetailsKycDetails,
 } from '@consensys/native-ramps-sdk';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
@@ -409,4 +411,69 @@ export const MOCK_USE_PAYMENT_METHODS_EMPTY = {
   error: null,
   isFetching: false,
   retryFetchPaymentMethods: jest.fn(),
+};
+
+export const MOCK_USER_DETAILS_US = {
+  id: 'user-id-us',
+  firstName: 'Test',
+  lastName: 'User',
+  email: 'test@example.com',
+  mobileNumber: '1234567890',
+  status: 'active',
+  dob: '1990-01-01',
+  kyc: {
+    l1: {
+      status: 'APPROVED',
+      type: 'BASIC',
+      updatedAt: '2023-01-01',
+      kycSubmittedAt: '2023-01-01',
+    },
+  } as unknown as NativeTransakUserDetailsKycDetails,
+  address: {
+    addressLine1: '123 Main St',
+    addressLine2: '',
+    state: 'NY',
+    city: 'New York',
+    postCode: '10001',
+    country: 'United States',
+    countryCode: 'US',
+  },
+  createdAt: '2023-01-01',
+  isKycApproved: jest.fn().mockReturnValue(true),
+} as NativeTransakUserDetails;
+
+export const MOCK_USER_DETAILS_FR = {
+  id: 'user-id-fr',
+  firstName: 'Test',
+  lastName: 'User',
+  email: 'test@example.com',
+  mobileNumber: '0123456789',
+  status: 'active',
+  dob: '1990-01-01',
+  kyc: {
+    l1: {
+      status: 'APPROVED',
+      type: 'BASIC',
+      updatedAt: '2023-01-01',
+      kycSubmittedAt: '2023-01-01',
+    },
+  } as unknown as NativeTransakUserDetailsKycDetails,
+  address: {
+    addressLine1: '123 Rue de la Paix',
+    addressLine2: '',
+    state: 'Île-de-France',
+    city: 'Paris',
+    postCode: '75001',
+    country: 'France',
+    countryCode: 'FR',
+  },
+  createdAt: '2023-01-01',
+  isKycApproved: jest.fn().mockReturnValue(true),
+} as NativeTransakUserDetails;
+
+export const MOCK_USE_DEPOSIT_USER_RETURN = {
+  userDetails: null,
+  error: null,
+  isFetching: false,
+  fetchUserDetails: jest.fn(),
 };

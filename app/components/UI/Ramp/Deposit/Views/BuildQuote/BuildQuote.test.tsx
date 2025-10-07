@@ -5,11 +5,15 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import {
+  BuyQuote,
+  NativeTransakUserDetails,
+} from '@consensys/native-ramps-sdk';
 import { trace, endTrace } from '../../../../../../util/trace';
 import { useRegions } from '../../hooks/useRegions';
 import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
 import { usePaymentMethods } from '../../hooks/usePaymentMethods';
+import { useDepositUser } from '../../hooks/useDepositUser';
 import {
   createMockSDKReturn,
   MOCK_USE_REGIONS_ERROR,
@@ -30,6 +34,9 @@ import {
   MOCK_USE_PAYMENT_METHODS_RETURN,
   MOCK_CRYPTOCURRENCIES,
   MOCK_PAYMENT_METHODS,
+  MOCK_USER_DETAILS_US,
+  MOCK_USER_DETAILS_FR,
+  MOCK_USE_DEPOSIT_USER_RETURN,
 } from '../../testUtils';
 
 const createMockInteractionManager = () => ({
@@ -114,6 +121,10 @@ jest.mock('../../hooks/useCryptoCurrencies', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../hooks/useDepositUser', () => ({
+  useDepositUser: jest.fn(),
+}));
+
 jest.mock('../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../util/trace'),
   trace: jest.fn(),
@@ -162,6 +173,7 @@ describe('BuildQuote Component', () => {
     jest
       .mocked(usePaymentMethods)
       .mockReturnValue(MOCK_USE_PAYMENT_METHODS_RETURN);
+    jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_RETURN);
 
     mockTrackEvent.mockClear();
     (trace as jest.MockedFunction<typeof trace>).mockClear();
@@ -688,6 +700,132 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('does not call handleOnPressContinue when shouldRouteImmediately is true but user region does not match selected region', async () => {
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: MOCK_USER_DETAILS_FR,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+      });
+
+      expect(mockGetQuote).not.toHaveBeenCalled();
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user region matches selected region', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: MOCK_USER_DETAILS_US,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user details are not available', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: null,
+      });
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('calls handleOnPressContinue when shouldRouteImmediately is true and user details do not have address', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      const userDetailsWithoutAddress = {
+        id: 'user-id-no-address',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        mobileNumber: '1234567890',
+        status: 'active',
+        dob: '1990-01-01',
+        kyc: {
+          l1: {
+            status: 'APPROVED',
+            type: 'BASIC',
+            updatedAt: '2023-01-01',
+            kycSubmittedAt: '2023-01-01',
+          },
+        },
+        createdAt: '2023-01-01',
+        isKycApproved: jest.fn().mockReturnValue(true),
+      } as unknown as NativeTransakUserDetails;
+
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: userDetailsWithoutAddress,
+      });
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).toHaveBeenCalledWith({
+          shouldRouteImmediately: false,
+        });
         expect(mockGetQuote).toHaveBeenCalled();
       });
     });

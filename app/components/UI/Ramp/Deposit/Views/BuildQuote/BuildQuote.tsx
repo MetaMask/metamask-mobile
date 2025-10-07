@@ -69,6 +69,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
+import { useDepositUser } from '../../hooks/useDepositUser';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -91,6 +92,8 @@ const BuildQuote = () => {
     retryFetchRegions,
     userRegionLocked,
   } = useRegions();
+
+  const { userDetails } = useDepositUser();
 
   const {
     cryptoCurrencies,
@@ -411,6 +414,14 @@ const BuildQuote = () => {
         shouldRouteImmediately: false,
       });
 
+      if (
+        userDetails?.address?.countryCode &&
+        selectedRegion?.isoCode !== userDetails?.address?.countryCode
+      ) {
+        setIsLoading(false);
+        return;
+      }
+
       handleOnPressContinue();
     }
   }, [
@@ -418,6 +429,7 @@ const BuildQuote = () => {
     handleOnPressContinue,
     navigation,
     selectedRegion?.isoCode,
+    userDetails?.address?.countryCode,
   ]);
 
   return (
