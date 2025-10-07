@@ -8516,9 +8516,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^15.0.0":
-  version: 15.0.0
-  resolution: "@metamask/snaps-controllers@npm:15.0.0"
+"@metamask/snaps-controllers@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "@metamask/snaps-controllers@npm:15.0.1"
   dependencies:
     "@metamask/approval-controller": ^7.1.3
     "@metamask/base-controller": ^8.4.0
@@ -8553,7 +8553,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: e5ac758e3ea54578a741b48cf5d4ee86d323892beec35ebe632db3bbb23c2e5a870244364bf034112baf1b3b551d62adffdb51f00b3af85bc7a55249d1d1608c
+  checksum: 6cd80f70a2acaa181dd0c2b5501c9ef7feed7bb0196baa7c45d0af86b5b9ed1e1175dbba307c3407ac0bdff089e3e33874e973af923ee32cf0ff2db3440b00e3
   languageName: node
   linkType: hard
 
@@ -34099,7 +34099,7 @@ __metadata:
     "@metamask/signature-controller": ^33.0.0
     "@metamask/slip44": ^4.2.0
     "@metamask/smart-transactions-controller": ^18.1.0
-    "@metamask/snaps-controllers": ^15.0.0
+    "@metamask/snaps-controllers": ^15.0.1
     "@metamask/snaps-execution-environments": ^10.2.2
     "@metamask/snaps-rpc-methods": ^13.5.2
     "@metamask/snaps-sdk": ^10.0.0
