@@ -34,6 +34,7 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { selectExistingUser } from '../../reducers/user';
+import handleFastOnboarding from '../../core/DeeplinkManager/Handlers/handleFastOnboarding';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -176,39 +177,12 @@ export function* handleDeeplinkSaga() {
     const existingUser: boolean = yield select(selectExistingUser);
     if (!existingUser) {
       const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
+      // try handle fast onboarding if existingUser is false and 'onboarding' present in deeplink
       if (onboardingDeeplink?.includes('onboarding')) {
-        const url = new URL(onboardingDeeplink);
-        if (url.pathname.startsWith('/onboarding')) {
-          let onboardingType;
-          url.search
-            .slice(1)
-            .split('&')
-            .forEach((param) => {
-              const [paramKey, paramValue] = param.split('=');
-              if (paramKey === 'type') {
-                onboardingType = paramValue;
-              }
-            });
+        const handled = handleFastOnboarding(onboardingDeeplink);
 
-          if (onboardingType) {
-            const resetRoute = {
-              routes: [
-                {
-                  name: Routes.ONBOARDING.ROOT_NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.NAV,
-                    params: {
-                      screen: Routes.ONBOARDING.ONBOARDING,
-                      params: {
-                        onboardingType,
-                      },
-                    },
-                  },
-                },
-              ],
-            };
-            NavigationService.navigation?.navigate(resetRoute.routes[0]);
-          }
+        // if handled, clear pending deeplink and continue
+        if (handled) {
           AppStateEventProcessor.clearPendingDeeplink();
           continue;
         }

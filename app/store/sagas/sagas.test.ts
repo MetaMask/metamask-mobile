@@ -26,6 +26,7 @@ import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
 import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
+import handleFastOnboarding from '../../core/DeeplinkManager/Handlers/handleFastOnboarding';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
@@ -118,6 +119,11 @@ jest.mock('../../core/DeeplinkManager/Handlers/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 
+jest.mock('../../core/DeeplinkManager/Handlers/handleFastOnboarding', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue(true),
+}));
+
 // (AppStateEventListener mock defined above)
 
 jest.mock('../../core/SDKConnect/SDKConnect', () => ({
@@ -141,6 +147,22 @@ jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
     getInstance: jest.fn().mockReturnValue({}),
   },
 }));
+
+const defaultMockState = {
+  onboarding: { completedOnboarding: false },
+  user: { existingUser: false },
+  engine: { backgroundState: {} },
+  confirmation: {},
+  navigation: {},
+  security: {},
+  sdk: {},
+  inpageProvider: {},
+  confirmationMetrics: {},
+  originThrottling: {},
+  notifications: {},
+  bridge: {},
+  banners: {},
+};
 
 describe('authStateMachine', () => {
   beforeEach(() => {
@@ -319,6 +341,7 @@ describe('initializeSDKServices', () => {
 describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (handleFastOnboarding as jest.Mock).mockReturnValue(true);
   });
 
   describe('without deeplink', () => {
@@ -472,6 +495,88 @@ describe('handleDeeplinkSaga', () => {
           ).toHaveBeenCalled();
           expect(WC2Manager.init).toHaveBeenCalledWith({});
           expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+        });
+      });
+    });
+    describe('onboarding deeplink', () => {
+      describe('when existing user is true', () => {
+        it('skip onboarding deeplink handling and continue to normal deeplink flow', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/onboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+              user: { existingUser: true }, // existing user = true
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Should not call handleFastOnboarding for existing users
+          expect(handleFastOnboarding).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+        });
+      });
+
+      describe('when existing user is false', () => {
+        it('handle onboarding deeplink with google type', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/onboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Should call handleFastOnboarding with the deeplink
+          expect(handleFastOnboarding).toHaveBeenCalledWith(
+            'https://metamask.io/onboarding?type=google',
+          );
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+          // Should not call normal deeplink parsing since handleFastOnboarding handled it
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        });
+
+        it('handle URL with onboarding in path and valid type parameter', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/some/onboarding/page?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Should call handleFastOnboarding since URL contains 'onboarding' and has valid type parameter
+          expect(handleFastOnboarding).toHaveBeenCalledWith(
+            'https://metamask.io/some/onboarding/page?type=google',
+          );
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+          // Should not call normal deeplink parsing since handleFastOnboarding handled it
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
     });
