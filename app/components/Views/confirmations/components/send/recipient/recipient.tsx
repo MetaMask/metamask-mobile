@@ -35,11 +35,7 @@ export const Recipient = () => {
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
-  const {
-    captureRecipientSelected,
-    setRecipientInputMethodSelectAccount,
-    setRecipientInputMethodSelectContact,
-  } = useRecipientSelectionMetrics();
+  const { captureRecipientSelected } = useRecipientSelectionMetrics();
   const styles = styleSheet();
   const {
     toAddressError,
@@ -63,29 +59,34 @@ export const Recipient = () => {
     }, [setIsSubmittingTransaction, setIsRecipientSelectedFromList]),
   );
 
-  const handleReview = useCallback(async () => {
-    if (toAddressError || isSubmittingTransaction) {
-      return;
-    }
-    // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
-    if (!asset || !chainId) {
-      return;
-    }
-    setIsSubmittingTransaction(true);
-    setPastedRecipient(undefined);
-    handleSubmitPress(resolvedAddress || to);
-    captureRecipientSelected();
-  }, [
-    to,
-    toAddressError,
-    handleSubmitPress,
-    captureRecipientSelected,
-    resolvedAddress,
-    setPastedRecipient,
-    isSubmittingTransaction,
-    asset,
-    chainId,
-  ]);
+  const handleReview = useCallback(
+    async (isPasted?: boolean) => {
+      if (toAddressError || isSubmittingTransaction) {
+        return;
+      }
+      // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
+      if (!asset || !chainId) {
+        return;
+      }
+      setIsSubmittingTransaction(true);
+      setPastedRecipient(undefined);
+      handleSubmitPress(resolvedAddress || to);
+      captureRecipientSelected(
+        isPasted ? RecipientInputMethod.Pasted : RecipientInputMethod.Manual,
+      );
+    },
+    [
+      to,
+      toAddressError,
+      handleSubmitPress,
+      captureRecipientSelected,
+      resolvedAddress,
+      setPastedRecipient,
+      isSubmittingTransaction,
+      asset,
+      chainId,
+    ],
+  );
 
   useEffect(() => {
     if (
@@ -95,7 +96,7 @@ export const Recipient = () => {
       !toAddressWarning &&
       !loading
     ) {
-      handleReview();
+      handleReview(true);
     }
   }, [
     handleReview,
@@ -108,7 +109,7 @@ export const Recipient = () => {
 
   const onRecipientSelected = useCallback(
     (
-        recipientType:
+        recipientInputMethod:
           | typeof RecipientInputMethod.SelectAccount
           | typeof RecipientInputMethod.SelectContact,
       ) =>
@@ -124,20 +125,13 @@ export const Recipient = () => {
         const selectedAddress = recipient.address;
         setIsRecipientSelectedFromList(true);
         updateTo(selectedAddress);
-        if (recipientType === RecipientInputMethod.SelectAccount) {
-          setRecipientInputMethodSelectAccount();
-        } else {
-          setRecipientInputMethodSelectContact();
-        }
         handleSubmitPress(selectedAddress);
-        captureRecipientSelected();
+        captureRecipientSelected(recipientInputMethod);
       },
     [
       updateTo,
       handleSubmitPress,
       captureRecipientSelected,
-      setRecipientInputMethodSelectAccount,
-      setRecipientInputMethodSelectContact,
       isSubmittingTransaction,
       asset,
       chainId,
@@ -148,6 +142,10 @@ export const Recipient = () => {
     setIsRecipientSelectedFromList(false);
     setIsSubmittingTransaction(false);
   }, [setIsRecipientSelectedFromList, setIsSubmittingTransaction]);
+
+  const handleSubmitPressLocal = useCallback(() => {
+    handleReview(false);
+  }, [handleReview]);
 
   useRecipientPageReset(resetStateOnInput);
 
@@ -205,7 +203,7 @@ export const Recipient = () => {
                 testID="review-button-send"
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
-                onPress={handleReview}
+                onPress={handleSubmitPressLocal}
                 twClassName="w-full"
                 isDanger={!loading && Boolean(toAddressError)}
                 disabled={

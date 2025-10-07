@@ -1,7 +1,6 @@
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { evmSendStateMock } from '../../../__mocks__/send.mock';
-import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { useSendType } from '../useSendType';
 import { useRecipientSelectionMetrics } from './useRecipientSelectionMetrics';
 
@@ -23,14 +22,12 @@ jest.mock('../../../../../hooks/useMetrics', () => ({
   }),
 }));
 
-const mockSetRecipientInputMethod = jest.fn();
-
 jest.mock('../../../context/send-context/send-metrics-context', () => ({
   ...jest.requireActual('../../../context/send-context/send-metrics-context'),
   useSendMetricsContext: () => ({
     accountType: 'EOA',
-    recipientInputMethod: 'manual',
-    setRecipientInputMethod: mockSetRecipientInputMethod,
+    chainId: '0x1',
+    chainIdCaip: 'eip155:1',
   }),
 }));
 
@@ -59,60 +56,6 @@ describe('useRecipientSelectionMetrics', () => {
     mockUseSendType.mockReturnValue({ isEvmSendType: true } as any);
   });
 
-  describe('setRecipientInputMethod functions', () => {
-    it('sets recipient input method to Manual when setRecipientInputMethodManual is called', () => {
-      const { result } = renderHookWithProvider(
-        () => useRecipientSelectionMetrics(),
-        mockState,
-      );
-
-      result.current.setRecipientInputMethodManual();
-
-      expect(mockSetRecipientInputMethod).toHaveBeenCalledWith(
-        RecipientInputMethod.Manual,
-      );
-    });
-
-    it('sets recipient input method to Pasted when setRecipientInputMethodPasted is called', () => {
-      const { result } = renderHookWithProvider(
-        () => useRecipientSelectionMetrics(),
-        mockState,
-      );
-
-      result.current.setRecipientInputMethodPasted();
-
-      expect(mockSetRecipientInputMethod).toHaveBeenCalledWith(
-        RecipientInputMethod.Pasted,
-      );
-    });
-
-    it('sets recipient input method to SelectAccount when setRecipientInputMethodSelectAccount is called', () => {
-      const { result } = renderHookWithProvider(
-        () => useRecipientSelectionMetrics(),
-        mockState,
-      );
-
-      result.current.setRecipientInputMethodSelectAccount();
-
-      expect(mockSetRecipientInputMethod).toHaveBeenCalledWith(
-        RecipientInputMethod.SelectAccount,
-      );
-    });
-
-    it('sets recipient input method to SelectContact when setRecipientInputMethodSelectContact is called', () => {
-      const { result } = renderHookWithProvider(
-        () => useRecipientSelectionMetrics(),
-        mockState,
-      );
-
-      result.current.setRecipientInputMethodSelectContact();
-
-      expect(mockSetRecipientInputMethod).toHaveBeenCalledWith(
-        RecipientInputMethod.SelectContact,
-      );
-    });
-  });
-
   describe('captureRecipientSelected', () => {
     it('tracks recipient selected event with EVM properties when called for EVM chain', async () => {
       const { result } = renderHookWithProvider(
@@ -127,7 +70,7 @@ describe('useRecipientSelectionMetrics', () => {
       };
       mockCreateEventBuilder.mockReturnValue(expectedEventBuilder);
 
-      await result.current.captureRecipientSelected();
+      await result.current.captureRecipientSelected('manual');
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SEND_RECIPIENT_SELECTED,
@@ -136,7 +79,7 @@ describe('useRecipientSelectionMetrics', () => {
         account_type: 'EOA',
         input_method: 'manual',
         chain_id: '0x1',
-        chain_id_caip: undefined,
+        chain_id_caip: 'eip155:1',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'test_event' });
     });
@@ -157,38 +100,15 @@ describe('useRecipientSelectionMetrics', () => {
       };
       mockCreateEventBuilder.mockReturnValue(expectedEventBuilder);
 
-      await result.current.captureRecipientSelected();
+      await result.current.captureRecipientSelected('manual');
 
       expect(expectedEventBuilder.addProperties).toHaveBeenCalledWith({
         account_type: 'EOA',
         input_method: 'manual',
-        chain_id: undefined,
-        chain_id_caip: '0x1',
+        chain_id: '0x1',
+        chain_id_caip: 'eip155:1',
       });
     });
-  });
-
-  describe('parameterized input method tests', () => {
-    it.each([
-      ['Manual', 'setRecipientInputMethodManual'],
-      ['Pasted', 'setRecipientInputMethodPasted'],
-      ['SelectAccount', 'setRecipientInputMethodSelectAccount'],
-      ['SelectContact', 'setRecipientInputMethodSelectContact'],
-    ] as const)(
-      'calls setRecipientInputMethod with %s when %s is called',
-      (inputMethod, methodName) => {
-        const { result } = renderHookWithProvider(
-          () => useRecipientSelectionMetrics(),
-          mockState,
-        );
-
-        result.current[methodName]();
-
-        expect(mockSetRecipientInputMethod).toHaveBeenCalledWith(
-          RecipientInputMethod[inputMethod],
-        );
-      },
-    );
   });
 
   describe('hook return values', () => {
@@ -199,18 +119,6 @@ describe('useRecipientSelectionMetrics', () => {
       );
 
       expect(typeof result.current.captureRecipientSelected).toBe('function');
-      expect(typeof result.current.setRecipientInputMethodManual).toBe(
-        'function',
-      );
-      expect(typeof result.current.setRecipientInputMethodPasted).toBe(
-        'function',
-      );
-      expect(typeof result.current.setRecipientInputMethodSelectAccount).toBe(
-        'function',
-      );
-      expect(typeof result.current.setRecipientInputMethodSelectContact).toBe(
-        'function',
-      );
     });
   });
 });
