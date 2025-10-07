@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useMemo } from 'react';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 
 /**
  * Hook to get account IDs for non-EVM accounts
@@ -10,7 +11,8 @@ import { selectEnabledSourceChains } from '../../../../../core/redux/slices/brid
 export const useNonEvmAccountIds = (): string[] => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledSourceChainIds = useMemo(
-    () => enabledSourceChains.map((chain) => chain.chainId),
+    () =>
+      enabledSourceChains.map((chain) => chain.chainId).filter(isNonEvmChainId),
     [enabledSourceChains],
   );
 

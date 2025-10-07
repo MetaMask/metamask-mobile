@@ -285,6 +285,9 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
       : undefined,
 );
 
+/**
+ * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
+ */
 export const selectEnabledSourceChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
