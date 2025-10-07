@@ -462,12 +462,15 @@ export class PolymarketProvider implements PredictProvider {
 
     let quantity = 0;
     let sum = 0;
+    let lastPrice = 0;
 
     for (let i = positions.length - 1; i >= 0; i--) {
       const p = positions[i];
       const positionSize = parseFloat(p.size);
       const positionPrice = parseFloat(p.price);
       const positionValue = positionSize * positionPrice;
+
+      lastPrice = positionPrice;
 
       if (sum + positionValue <= userBetAmount) {
         // If the entire position fits within remaining amount, add all of it
@@ -484,6 +487,15 @@ export class PolymarketProvider implements PredictProvider {
         };
       }
     }
+
+    // If we consumed all available liquidity exactly matching the bet amount, return success
+    if (sum === userBetAmount) {
+      return {
+        toWin: quantity,
+        sharePrice: lastPrice,
+      };
+    }
+
     throw new Error('not enough shares to match user bet amount');
   }
 

@@ -1155,7 +1155,7 @@ describe('PolymarketProvider', () => {
       expect(result.sharePrice).toBe(0.55);
     });
 
-    it('throws error when BUY amount exactly matches total available liquidity', async () => {
+    it('returns result when BUY amount exactly matches total available liquidity', async () => {
       // Arrange
       const provider = createProvider();
       const mockOrderBook = {
@@ -1167,15 +1167,16 @@ describe('PolymarketProvider', () => {
       };
       mockGetOrderBook.mockResolvedValue(mockOrderBook);
 
-      // Act & Assert - Buy exactly $130 worth of shares (all available liquidity)
-      // The algorithm exhausts all positions but doesn't return early since no position exceeded the amount
-      await expect(
-        provider.calculateBetAmounts({
-          providerId: 'polymarket',
-          outcomeTokenId: 'token-123',
-          userBetAmount: 130, // USD amount to spend
-        }),
-      ).rejects.toThrow('not enough shares to match user bet amount');
+      // Act - Buy exactly $130 worth of shares (all available liquidity)
+      const result = await provider.calculateBetAmounts({
+        providerId: 'polymarket',
+        outcomeTokenId: 'token-123',
+        userBetAmount: 130, // USD amount to spend
+      });
+
+      // Assert - Should return all available shares, sharePrice is the last price processed
+      expect(result.toWin).toBe(300); // 200 + 100 shares
+      expect(result.sharePrice).toBe(0.45); // Price of the last position processed
     });
 
     it('throws error when order book is not available', async () => {
