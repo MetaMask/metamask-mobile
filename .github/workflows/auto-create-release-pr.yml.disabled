@@ -3,6 +3,11 @@ name: Auto Create Release PR
 on:
   create:
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   extract:
     if: ${{ github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/release/') }}
@@ -30,3 +35,5 @@ jobs:
       google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
     with:
       semver-version: ${{ needs.extract.outputs.semver }}
+      # mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+      # https://github.com/MetaMask/metamask-mobile/blob/main/.github/workflows/update-latest-build-version.yml
