@@ -161,7 +161,6 @@ export const MultichainAddressSelectedRow = {
     <AccountCell
       accountGroup={args.accountGroup}
       avatarAccountType={args.avatarAccountType}
-      isSelected
     />
   ),
 };
@@ -171,7 +170,6 @@ export const MultichainAddressRow = {
     <AccountCell
       accountGroup={args.accountGroup}
       avatarAccountType={args.avatarAccountType}
-      isSelected={args.isSelected}
     />
   ),
 };
