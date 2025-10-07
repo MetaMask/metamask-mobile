@@ -1224,7 +1224,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/networks\?.*$/,
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/networks\/[^\/].*$/,
       responseCode: 200,
       response: { is: [] },
     },
