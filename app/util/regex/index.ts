@@ -48,7 +48,7 @@ export const regex: RegexTypes = {
   trailingZero: /\.?0+$/,
   transactionNonce: /^#/,
   url: new RegExp(
-    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',,=.+]+$/g,
+    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',,=.+%0-9A-Fa-f]+$/g,
   ),
   urlHttpToHttps: /^http:\/\//,
   validChainId: /^[0-9]+$/u,
