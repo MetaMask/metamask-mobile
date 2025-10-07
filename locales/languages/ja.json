@@ -576,7 +576,7 @@
     "invisible_character_error": "ENS名に表示されない文字が検出されました。詐欺防止のため、ENS名を確認してください。",
     "could_not_resolve_name": "名前の解決ができませんでした",
     "invalid_address": "無効なアドレス",
-    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
+    "contractAddressError": "トークンのコントラクトアドレスにトークンを送金しようとしています。これにより、当該トークンが失われる可能性があります。"
   },
   "deposit": {
     "title": "入金",
@@ -888,7 +888,7 @@
       "title": "入金額",
       "get_usdc_hyperliquid": "USDCを入手 • Hyperliquid",
       "insufficient_funds": "資金不足",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "利用可能な資金がありません。はじめにデポジットを行ってください。",
       "enter_amount": "金額を入力してください",
       "fetching_quote": "クォートを取得中",
       "submitting": "トランザクションを送信中",
@@ -1040,7 +1040,7 @@
         "insufficient_funds": "資金不足",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "注文サイズは{{maxValue}}未満でなければなりません",
         "high_leverage_warning": "レバレッジが高くなると清算リスクが高まります",
         "invalid_take_profit": "{{positionType}}ポジションの利益確定ラインは、現在の価格より{{direction}}である必要があります",
         "invalid_stop_loss": "{{positionType}}ポジションの損切りラインは、現在の価格より{{direction}}である必要があります",
@@ -1463,8 +1463,8 @@
     "failed_to_load_market_data": "市場データを読み込めませんでした",
     "tap_to_retry": "タップして再試行",
     "search_by_token_symbol": "トークンシンボルで検索",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "トークンが見つかりませんでした",
+    "no_tokens_found_description": "「{{searchQuery}}」という名前のトークンが見つかりませんでした。別の検索をお試しください。",
     "testnet": "テストネット",
     "mainnet": "メインネット",
     "developer_options": {
@@ -1550,7 +1550,7 @@
       }
     },
     "points": "ポイント",
-    "estimated_points": "Est. Points",
+    "estimated_points": "推定ポイント数",
     "unable_to_load": "読み込ませんでした",
     "points_error": "現在、ポイントを読み込めません",
     "points_error_content": "ポイントは獲得できていますのでご心配なく。ポイントはすぐにアカウントに表示されます。または、後ほど「リワード」タブでご確認ください。",
@@ -1873,13 +1873,13 @@
     "agree": "同意する",
     "decline": "同意しない",
     "description_title": "MetaMaskの改善にご協力ください",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "これらのアクセス許可を付与してください。使用状況データはいつでもオプトアウトまたは削除できます。",
     "description_content_2": "指標を収集する際、常に次の条件が適用されます...",
     "description_content_3": "当社がプロファイル用に使用状況データを収集しつつ、どのようにユーザーのプライバシーを守るのかご覧ください。",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "基本的な使用状況データの収集",
+    "gather_basic_usage_description": "当社は、おおまかな位置情報、クリック、閲覧内容など、製品の基本的な使用状況データを収集します。他の情報は一切保管されません。",
+    "gather_basic_usage_learn_more": "詳細",
+    "checkbox_marketing": "マーケティング関連の最新情報",
     "checkbox": "このデータは、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握するために使用されます。また、関連ニュースをお伝えする場合もあります (製品の機能など)。",
     "action_description_1_prefix": "非公開:",
     "action_description_2_prefix": "一般:",
@@ -1889,7 +1889,7 @@
     "action_description_3_description": "使用状況データを共有するか削除するかは、設定でいつでも指定できます。",
     "cta_no_thanks": "いいえ、結構です",
     "cta_i_agree": "同意する",
-    "continue": "Continue",
+    "continue": "続行",
     "fine_print_1_legacy": "一般データ保護規則 (EU) 2016/679の目的に従い、このデータは集約され匿名化されます。",
     "fine_print_2a_legacy": "*MetaMaskでInfuraをデフォルトのRPCプロバイダーとして使用する場合、Infuraはトランザクションの送信時にユーザーのIPアドレスおよびイーサリアムウォレットアドレスを収集します。当社がこれらの情報を、システムによりこれら2つのデータが関連付けられる形で保管することはありません。続行する前に、RPCプロバイダーを構成できます。",
     "fine_print_2b_legacy": "データ収集の観点におけるMetaMaskとInfuraのやり取りに関する詳細は、最新情報をご覧ください。",
@@ -2052,9 +2052,9 @@
       "solana_devnet_account_name": "Solana Devnetアカウント",
       "solana_testnet_account_name": "Solanaテストネットアカウント",
       "solana_account_name": "Solanaアカウント",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tronアカウント",
+      "tron_nile_account_name": "Tron Nileアカウント",
+      "tron_shasta_account_name": "Tron Shastaアカウント"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}}アカウントを作成できませんでした"
@@ -3453,7 +3453,7 @@
     "error_multiple_srp_word_error_3": "が正しくないか、スペルが間違っています。",
     "error_invalid_srp": "無効なシークレットリカバリーフレーズ",
     "error_duplicate_srp": "このシークレットリカバリーフレーズはすでにインポートされています。",
-    "success_1": "Wallet",
+    "success_1": "ウォレット",
     "success_2": "インポートされました"
   },
   "first_incoming_transaction": {
@@ -4896,7 +4896,7 @@
     "import_account": "秘密鍵",
     "add_bitcoin_account": "ビットコインアカウント",
     "add_solana_account": "Solanaアカウント",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tronアカウント",
     "switch_to_smart_account": "スマートアカウントに切り替える",
     "rename_account": "アカウント名を変更",
     "addresses": "アドレス",
@@ -5609,7 +5609,7 @@
       "section_1_title": "マルチチェーンアカウントとは",
       "section_1_description": "1つのアカウントで、MetaMaskがサポートするすべてのネットワークのアドレスを利用できます。そのため、アカウントを切り替えることなく、イーサリアムやSolanaなどをご利用いただけます。",
       "section_2_title": "同じアドレスで複数のネットワーク",
-      "section_2_description": "We’ve grouped your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged",
+      "section_2_description": "アカウントをグループ化しましたので、これまでどおりMetaMaskをご利用ください。資金は安全に保護され、変更はありません",
       "view_accounts_button": "アカウントを表示",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "アカウントの設定"
@@ -5663,7 +5663,7 @@
       "balance": "残高",
       "create_account": "アカウントを作成",
       "creating_account": "アカウントを作成中...",
-      "discovering_accounts": "Discovering accounts...",
+      "discovering_accounts": "アカウントを検出しています...",
       "back_up": "バックアップ",
       "reveal_recovery_phrase_with_index": "リカバリーフレーズ{{index}}を確認"
     },
@@ -5762,9 +5762,9 @@
       "select_method": "方法を選択"
     },
     "card_onboarding": {
-      "title": "Welcome to Card",
-      "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account"
+      "title": "カードへようこそ",
+      "description": "カードの機能を使用するには、当社のパートナーとアカウントを検証する必要があります。",
+      "verify_account_button": "アカウントを検証"
     },
     "card_home": {
       "error_title": "データを取得できません",
@@ -5889,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "利益確定",
-        "stop_loss": "ストップロス",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5907,10 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "gtm_title": "Rewards are here",
-      "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "gtm_confirm": "Get started",
-      "intro_title": "Season 1 \nis Live",
+      "gtm_title": "リワードのご紹介",
+      "gtm_description": "アクティビティに対してポイントを獲得できます。\nレベルを上げてリワードのロックを解除しましょう。",
+      "gtm_confirm": "開始",
+      "intro_title": "シーズン1\n開催中",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -6041,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "ロックされているリワード",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6053,7 +6053,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "残り",
       "expired": "Expired"
     },
     "animation": {
