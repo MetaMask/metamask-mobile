@@ -1071,7 +1071,7 @@ export class Engine {
           ],
         }),
         // TODO: This is long, can we decrease it?
-        interval: 5000,
+        interval: 180000,
         state: initialState.TokenBalancesController,
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
