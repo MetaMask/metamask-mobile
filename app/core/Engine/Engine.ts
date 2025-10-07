@@ -660,9 +660,10 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
-      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: initialState },
-      }) as `0x${string}`[],
+      accountsApiChainIds: () =>
+        selectAssetsAccountApiBalancesEnabled({
+          engine: { backgroundState: initialState },
+        }) as `0x${string}`[],
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
 
@@ -1140,6 +1141,7 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:getState',
             'AccountTrackerController:updateNativeBalances',
             'AccountTrackerController:updateStakedBalances',
           ],
@@ -1156,9 +1158,10 @@ export class Engine {
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
+        accountsApiChainIds: () =>
+          selectAssetsAccountApiBalancesEnabled({
+            engine: { backgroundState: initialState },
+          }) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
