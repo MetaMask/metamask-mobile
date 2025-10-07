@@ -155,6 +155,7 @@ describe('ConnectionRegistry', () => {
         mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
+        mockHostApp,
       );
       expect(mockConnection.connect).toHaveBeenCalledWith(
         mockConnectionRequest.sessionRequest,
