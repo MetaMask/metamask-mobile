@@ -138,6 +138,7 @@ jest.mock('../controllers/subject-metadata-controller-init');
 jest.mock('../controllers/preferences-controller-init');
 jest.mock('../controllers/keyring-controller-init');
 jest.mock('../controllers/snap-keyring-builder-init');
+jest.mock('../controllers/network-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
