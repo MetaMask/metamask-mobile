@@ -115,6 +115,7 @@ jest.mock('../Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
+      state: { vault: null },
     },
 
     MultichainAccountService: {
@@ -1110,6 +1111,7 @@ describe('Authentication', () => {
         submitGlobalPassword: jest.fn(),
         checkIsPasswordOutdated: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
+        state: { vault: 'seedless onboarding vault' },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
         setLocked: jest.fn(),
@@ -1208,6 +1210,8 @@ describe('Authentication', () => {
       ).mockResolvedValueOnce({
         id: 'new-keyring-id',
       });
+      Engine.context.SeedlessOnboardingController.state.vault =
+        'seedless onboarding vault';
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
@@ -2025,6 +2029,7 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
+        state: { vault: 'seedless onboarding vault' },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       // Mock Engine.setSelectedAddress
@@ -2048,6 +2053,10 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('throw when call import seedless mnemonic and return account details without seedless flow', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
@@ -2065,6 +2074,7 @@ describe('Authentication', () => {
           },
         }),
       } as unknown as ReduxStore);
+      Engine.context.SeedlessOnboardingController.state.vault = undefined;
 
       // Act
       await expect(
@@ -2122,6 +2132,8 @@ describe('Authentication', () => {
       const error = new Error('Failed to add new keyring');
       Engine.context.KeyringController.addNewKeyring.mockRejectedValue(error);
 
+      Engine.context.SeedlessOnboardingController.state.vault =
+        'seedless onboarding vault';
       // Act & Assert
       await expect(
         Authentication.importSeedlessMnemonicToVault(mnemonic),
@@ -2133,6 +2145,8 @@ describe('Authentication', () => {
       const mnemonic = 'test mnemonic phrase for wallet';
       const error = new Error('Failed to get accounts');
       mockKeyring.getAccounts.mockRejectedValue(error);
+      Engine.context.SeedlessOnboardingController.state.vault =
+        'seedless onboarding vault';
 
       // Act & Assert
       await expect(
