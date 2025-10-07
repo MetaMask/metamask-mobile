@@ -18,7 +18,7 @@ export const usePredictBetAmounts = ({
 }: UsePredictBetAmountsParams) => {
   const [betAmounts, setBetAmounts] = useState<CalculateBetAmountsResponse>({
     toWin: 0,
-    sharePrice: outcomeToken.price,
+    sharePrice: outcomeToken?.price ?? 0,
   });
   const [error, setError] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
@@ -41,7 +41,7 @@ export const usePredictBetAmounts = ({
       setBetAmounts(expectedAmountResponse);
     } catch (err) {
       console.error('Failed to calculate to win amount:', err);
-      setError(err as string);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsCalculating(false);
     }
