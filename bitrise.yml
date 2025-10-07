@@ -3726,10 +3726,10 @@ app:
       MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
         is_expand: false
-      MM_PERPS_ENABLED: true
+      MM_PERPS_ENABLED: false
     - opts:
         is_expand: false
-      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB"
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB,BE"
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -3762,13 +3762,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.57.0
+      VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 2614
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.57.0
+      FLASK_VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2614

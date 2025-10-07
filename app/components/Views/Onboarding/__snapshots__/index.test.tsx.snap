@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Onboarding should render correctly 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     [
       {
@@ -33,7 +41,7 @@ exports[`Onboarding should render correctly 1`] = `
             "alignItems": "center",
             "flex": 1,
             "justifyContent": "center",
-            "paddingVertical": 30,
+            "paddingVertical": 16,
           }
         }
       >
@@ -186,11 +194,19 @@ exports[`Onboarding should render correctly 1`] = `
     testID="fox-animation"
   />
   <View />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding should render correctly with android 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     [
       {
@@ -375,11 +391,19 @@ exports[`Onboarding should render correctly with android 1`] = `
     testID="fox-animation"
   />
   <View />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding should render correctly with large device and iphoneX 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     [
       {
@@ -411,7 +435,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
             "alignItems": "center",
             "flex": 1,
             "justifyContent": "center",
-            "paddingVertical": 30,
+            "paddingVertical": 16,
           }
         }
       >
@@ -564,11 +588,19 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
     testID="fox-animation"
   />
   <View />
-</View>
+</RNCSafeAreaView>
 `;
 
 exports[`Onboarding should render correctly with medium device and android 1`] = `
-<View
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     [
       {
@@ -753,5 +785,5 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
     testID="fox-animation"
   />
   <View />
-</View>
+</RNCSafeAreaView>
 `;

@@ -63,6 +63,7 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FoxAnimation from './FoxAnimation';
 import OnboardingAnimation from './OnboardingAnimation';
@@ -76,7 +77,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: Device.isMediumDevice() ? 16 : 30,
+      paddingVertical: 16,
     },
     loaderWrapper: {
       flex: 1,
@@ -151,18 +152,6 @@ const createStyles = (colors) =>
       marginBottom: 40,
       marginTop: -40,
     },
-    login: {
-      fontSize: 18,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    buttonDescription: {
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    importWrapper: {
-      marginVertical: 16,
-    },
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
@@ -192,6 +181,7 @@ const createStyles = (colors) =>
     loadingText: {
       marginTop: 30,
       textAlign: 'center',
+      color: colors.text.default,
     },
     modalTypeView: {
       position: 'absolute',
@@ -206,34 +196,8 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    bottomSheetContainer: {
-      padding: 16,
-      flexDirection: 'column',
-      rowGap: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    socialBtn: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      color: colors.text.default,
-    },
     blackButton: {
       backgroundColor: importedColors.white,
-    },
-    blackButtonText: {
-      color: importedColors.btnBlackText,
     },
     inverseBlackButton: {
       backgroundColor: importedColors.applePayBlack,
@@ -745,9 +709,7 @@ class Onboarding extends PureComponent {
       <View style={styles.loaderWrapper}>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText} color={colors.text.default}>
-            {this.props.loadingMsg}
-          </Text>
+          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
         </View>
       </View>
     );
@@ -852,7 +814,7 @@ class Onboarding extends PureComponent {
         }
       >
         <ThrowErrorIfNeeded />
-        <View
+        <SafeAreaView
           style={[
             baseStyles.flexGrow,
             {
@@ -909,7 +871,7 @@ class Onboarding extends PureComponent {
           />
 
           <View>{this.handleSimpleNotification()}</View>
-        </View>
+        </SafeAreaView>
       </ErrorBoundary>
     );
   }
