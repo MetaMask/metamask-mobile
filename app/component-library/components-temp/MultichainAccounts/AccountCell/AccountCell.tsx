@@ -30,15 +30,13 @@ interface AccountCellProps {
   isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
+  endContainer?: React.ReactNode;
 }
 
-const AccountCell = ({
-  accountGroup,
-  avatarAccountType,
-  isSelected,
-  hideMenu = false,
-  startAccessory,
-}: AccountCellProps) => {
+const BalanceEndContainer = (
+  props: Pick<AccountCellProps, 'accountGroup' | 'hideMenu' | 'isSelected'>,
+) => {
+  const { accountGroup, hideMenu, isSelected } = props;
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
@@ -54,12 +52,6 @@ const AccountCell = ({
   const totalBalance = groupBalance?.totalBalanceInUserCurrency;
   const userCurrency = groupBalance?.userCurrency;
 
-  const selectEvmAddress = useMemo(
-    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
-    [accountGroup.id],
-  );
-  const evmAddress = useSelector(selectEvmAddress);
-
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
       return undefined;
@@ -69,6 +61,48 @@ const AccountCell = ({
       currency: userCurrency.toUpperCase(),
     });
   }, [totalBalance, userCurrency]);
+
+  return (
+    <>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Default}
+        testID={AccountCellIds.BALANCE}
+      >
+        {displayBalance}
+      </Text>
+      {!hideMenu && (
+        <TouchableOpacity
+          testID={AccountCellIds.MENU}
+          style={styles.menuButton}
+          onPress={handleMenuPress}
+        >
+          <Icon
+            name={IconName.MoreVertical}
+            size={IconSize.Md}
+            color={TextColor.Alternative}
+          />
+        </TouchableOpacity>
+      )}
+    </>
+  );
+};
+
+const AccountCell = ({
+  accountGroup,
+  avatarAccountType,
+  isSelected,
+  hideMenu = false,
+  startAccessory,
+  endContainer,
+}: AccountCellProps) => {
+  const { styles } = useStyles(styleSheet, { isSelected });
+
+  const selectEvmAddress = useMemo(
+    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
+    [accountGroup.id],
+  );
+  const evmAddress = useSelector(selectEvmAddress);
 
   return (
     <Box
@@ -109,25 +143,12 @@ const AccountCell = ({
         )}
       </View>
       <View style={styles.endContainer}>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={AccountCellIds.BALANCE}
-        >
-          {displayBalance}
-        </Text>
-        {!hideMenu && (
-          <TouchableOpacity
-            testID={AccountCellIds.MENU}
-            style={styles.menuButton}
-            onPress={handleMenuPress}
-          >
-            <Icon
-              name={IconName.MoreVertical}
-              size={IconSize.Md}
-              color={TextColor.Alternative}
-            />
-          </TouchableOpacity>
+        {endContainer || (
+          <BalanceEndContainer
+            accountGroup={accountGroup}
+            isSelected={isSelected}
+            hideMenu={hideMenu}
+          />
         )}
       </View>
     </Box>

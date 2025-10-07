@@ -1,141 +1,149 @@
-import { act } from '@testing-library/react-hooks';
-import { waitFor } from '@testing-library/react-native';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-// eslint-disable-next-line import/no-namespace
-import * as UseSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useNavigation } from '@react-navigation/native';
+import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
+import Routes from '../../../../constants/navigation/Routes';
+import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { useAccounts } from '../../../hooks/useAccounts';
-import {
-  useAccountProps,
-  useNotificationAccountListProps,
-} from './AccountsList.hooks';
+import { EVENT_NAME } from '../../../../core/Analytics';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MockVar = any;
+// Mock dependencies
+jest.mock('@react-navigation/native');
+jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');
+jest.mock('../../../hooks/useMetrics');
 
-describe('useNotificationAccountListProps', () => {
-  const arrangeMocks = () => {
-    const mockUpdate = jest.fn();
-    const createMockUseFetchAccountNotificationsReturn = () => ({
-      accountsBeingUpdated: [],
-      data: {},
-      error: null,
-      initialLoading: false,
-      update: mockUpdate,
-    });
-    const mockUseFetchAccountNotifications = jest
-      .spyOn(UseSwitchNotificationsModule, 'useFetchAccountNotifications')
-      .mockReturnValue(createMockUseFetchAccountNotificationsReturn());
+const mockUseNavigation = jest.mocked(useNavigation);
+const mockUseNotificationsToggle = jest.mocked(useNotificationsToggle);
+const mockUseMetrics = jest.mocked(useMetrics);
 
-    return {
-      mockUpdate,
-      mockUseFetchAccountNotifications,
-      createMockUseFetchAccountNotificationsReturn,
-    };
-  };
+describe('useMainNotificationToggle', () => {
+  beforeEach(() => jest.clearAllMocks());
 
-  type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrange = (addresses: string[], mutateMocks?: (m: Mocks) => void) => {
-    // Arrange
-    const mocks = arrangeMocks();
-    mutateMocks?.(mocks);
-    const hook = renderHookWithProvider(() =>
-      useNotificationAccountListProps(addresses),
-    );
-
-    return { mocks, hook };
-  };
-
-  it('returns correct loading state', async () => {
-    const addresses = ['0x123', '0x456'];
-    const { hook } = arrange(addresses);
-    expect(hook.result.current.isAnyAccountLoading).toBe(false);
-  });
-
-  it('returns correct account loading state', async () => {
-    const addresses = ['0x123', '0x456'];
-    const { hook } = arrange(addresses, (m) => {
-      m.mockUseFetchAccountNotifications.mockReturnValue({
-        ...m.createMockUseFetchAccountNotificationsReturn(),
-        accountsBeingUpdated: ['0x123'],
-      });
-    });
-    expect(hook.result.current.isAccountLoading('0x123')).toBe(true);
-    expect(hook.result.current.isAccountLoading('0x456')).toBe(false);
-  });
-
-  it('returns correct account enabled state', async () => {
-    const addresses = ['0x123', '0x456'];
-    const { hook } = arrange(addresses, (m) => {
-      m.mockUseFetchAccountNotifications.mockReturnValue({
-        ...m.createMockUseFetchAccountNotificationsReturn(),
-        data: { '0x123': true, '0x456': false },
-      });
-    });
-    expect(hook.result.current.isAccountEnabled('0x123')).toBe(true);
-    expect(hook.result.current.isAccountEnabled('0x456')).toBe(false);
-  });
-
-  it('refetches account settings', async () => {
-    const addresses = ['0x123', '0x456'];
-    const { mocks, hook } = await arrange(addresses);
-
-    // Act
-    await act(async () => {
-      await hook.result.current.refetchAccountSettings();
-    });
-
-    await waitFor(() => {
-      expect(mocks.mockUpdate).toHaveBeenCalledWith(addresses);
-    });
-  });
-});
-
-jest.mock('../../../hooks/useAccounts', () => ({
-  useAccounts: jest.fn(),
-}));
-
-const arrangeUseAccounts = () => {
-  const createMockAccounts = (addresses: string[]) =>
-    addresses.map((address) => ({ address }));
-
-  const mockUseAccounts = jest.mocked(useAccounts).mockReturnValue({
-    accounts: createMockAccounts(['0x123', '0x456']),
-  } as MockVar);
-
-  return {
-    createMockAccounts,
-    mockUseAccounts,
-  };
-};
-
-describe('useAccountProps', () => {
-  const arrangeMocks = () => {
-    const mockStore = jest.fn().mockReturnValue({
+  const arrangeState = () => {
+    const mockState = {
+      settings: {
+        basicFunctionalityEnabled: true,
+      },
       engine: {
         backgroundState: {
-          NotificationServicesController: {
-            subscriptionAccountsSeen: ['0x123', '0x456'],
+          UserStorageController: {
+            isBackupAndSyncEnabled: true,
           },
         },
       },
-      settings: { avatarAccountType: AvatarAccountType.Maskicon },
+    };
+    return { mockState };
+  };
+
+  const arrangeMocks = () => {
+    const navigate = jest.fn();
+    const switchNotifications = jest.fn();
+    const trackEvent = jest.fn();
+
+    mockUseNavigation.mockReturnValue({
+      navigate,
+    } as never);
+
+    mockUseNotificationsToggle.mockReturnValue({
+      data: true,
+      loading: false,
+      error: null,
+      switchNotifications,
     });
 
+    mockUseMetrics.mockReturnValue({
+      trackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    } as never);
+
     return {
-      ...arrangeUseAccounts(),
-      mockStore,
+      navigate,
+      switchNotifications,
+      trackEvent,
+      ...arrangeState(),
     };
   };
 
-  it('returns correct account props', () => {
+  const arrangeTest = (
+    overridesMocks?: (m: ReturnType<typeof arrangeMocks>) => void,
+  ) => {
     const mocks = arrangeMocks();
-    const { result } = renderHookWithProvider(() => useAccountProps(), {
-      state: mocks.mockStore(),
+    overridesMocks?.(mocks);
+
+    const { result } = renderHookWithProvider(
+      () => useMainNotificationToggle(),
+      { state: mocks.mockState },
+    );
+
+    return {
+      mocks,
+      result,
+    };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('toggles notifications from false to true', () => {
+    const { mocks, result } = arrangeTest();
+
+    result.current.onToggle();
+
+    expect(mocks.switchNotifications).toHaveBeenCalledWith(false);
+    expect(mocks.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
+        properties: expect.objectContaining({
+          settings_type: 'notifications',
+          old_value: true,
+          new_value: false,
+          was_profile_syncing_on: true,
+        }),
+      }),
+    );
+  });
+
+  it('toggles from false to true', () => {
+    const { mocks, result } = arrangeTest((m) => {
+      mockUseNotificationsToggle.mockReturnValue({
+        data: false,
+        loading: false,
+        error: null,
+        switchNotifications: m.switchNotifications,
+      });
     });
 
-    expect(result.current.accounts).toHaveLength(2);
-    expect(result.current.accountAvatarType).toBe(AvatarAccountType.Maskicon);
-    expect(result.current.accountAddresses).toEqual(['0x123', '0x456']);
+    result.current.onToggle();
+
+    expect(mocks.switchNotifications).toHaveBeenCalledWith(true);
+    expect(mocks.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
+        properties: expect.objectContaining({
+          settings_type: 'notifications',
+          old_value: false,
+          new_value: true,
+          was_profile_syncing_on: true,
+        }),
+      }),
+    );
+  });
+
+  it('navigate to basic functionality screen when basicFunctionalityEnabled is false', () => {
+    const { mocks, result } = arrangeTest((m) => {
+      m.mockState.settings.basicFunctionalityEnabled = false;
+    });
+
+    result.current.onToggle();
+
+    expect(mocks.navigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+      params: {
+        caller: Routes.SETTINGS.NOTIFICATIONS,
+      },
+    });
+    expect(mocks.switchNotifications).not.toHaveBeenCalled();
+    expect(mocks.trackEvent).not.toHaveBeenCalled();
   });
 });
