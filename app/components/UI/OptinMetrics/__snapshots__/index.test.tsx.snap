@@ -200,7 +200,15 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -253,11 +261,31 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             >
                               Help us improve MetaMask
                             </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "marginVertical": 12,
+                                }
+                              }
+                            >
+                              <Image
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 150,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -266,302 +294,234 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
-                              We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
+                              We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Private: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Clicks and views on the app are stored, but other details (like your public address) are not.
-                                </Text>
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  General: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
-                                </Text>
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Optional: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  You decide if you want to share or delete your usage data via settings any time.
-                                </Text>
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "display": "flex",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "marginRight": 25,
-                                }
-                              }
-                            >
+                            <View>
                               <TouchableOpacity
-                                accessibilityRole="checkbox"
-                                accessible={true}
+                                activeOpacity={0.7}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "backgroundColor": "#f3f5f9",
+                                    "borderRadius": 12,
+                                    "marginBottom": 16,
+                                    "padding": 16,
+                                  }
+                                }
+                                testID="optin-metrics-metrics-checkbox"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "flex-start",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "marginRight": 25,
+                                    }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 24,
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="checkbox"
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#4459ff",
+                                          "borderColor": "#4459ff",
+                                          "borderRadius": 4,
+                                          "borderWidth": 2,
+                                          "height": 20,
+                                          "justifyContent": "center",
+                                          "width": 20,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        color="#ffffff"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="CheckBold"
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        testID="checkbox-icon-component"
+                                        width={20}
+                                      />
+                                    </View>
+                                  </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Gather basic usage data
+                                    </Text>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginLeft": 0,
+                                      "marginTop": 4,
+                                    }
+                                  }
+                                >
+                                  We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                  <Text
+                                    accessibilityRole="text"
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 14,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Learn more
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                activeOpacity={0.7}
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "height": 24,
-                                    "opacity": 1,
-                                  }
+                                  [
+                                    {
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 12,
+                                      "marginBottom": 16,
+                                      "padding": 16,
+                                    },
+                                    false,
+                                  ]
                                 }
                               >
                                 <View
-                                  accessibilityRole="checkbox"
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#121314",
-                                      "borderRadius": 4,
-                                      "borderWidth": 2,
-                                      "height": 20,
-                                      "justifyContent": "center",
-                                      "width": 20,
+                                      "alignItems": "flex-start",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "marginRight": 25,
                                     }
                                   }
-                                />
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 24,
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="checkbox"
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#121314",
+                                          "borderRadius": 4,
+                                          "borderWidth": 2,
+                                          "height": 20,
+                                          "justifyContent": "center",
+                                          "width": 20,
+                                        }
+                                      }
+                                    />
+                                  </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Marketing updates
+                                    </Text>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginLeft": 0,
+                                      "marginTop": 4,
+                                    }
+                                  }
+                                >
+                                  We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
+                                </Text>
                               </TouchableOpacity>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
-                              </Text>
-                            </TouchableOpacity>
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "height": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 14,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                }
-                              }
-                            >
-                              We’ll let you know if we decide to use this data for other purposes. You can review our 
-                              <Text
-                                accessibilityRole="text"
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Privacy Policy
-                              </Text>
-                               for more information. Remember, you can go to settings and opt out at any time.
-                            </Text>
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -584,53 +544,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#3c4d9d0f",
-                              "borderColor": "transparent",
-                              "borderRadius": 12,
-                              "borderWidth": 1,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="optin-metrics-no-thanks-button-id"
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            No thanks
-                          </Text>
-                        </TouchableOpacity>
-                        <View
-                          style={
-                            {
-                              "width": 16,
-                            }
-                          }
-                        />
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
                               "backgroundColor": "#121314",
                               "borderRadius": 12,
                               "flex": 1,
@@ -641,7 +554,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="optin-metrics-i-agree-button-id"
+                          testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
@@ -655,11 +568,11 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               }
                             }
                           >
-                            I agree
+                            Continue
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                   <View
                     collapsable={false}
@@ -978,7 +891,15 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1031,11 +952,31 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             >
                               Help us improve MetaMask
                             </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "marginVertical": 12,
+                                }
+                              }
+                            >
+                              <Image
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 150,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1044,302 +985,234 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
-                              We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
+                              We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Private: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Clicks and views on the app are stored, but other details (like your public address) are not.
-                                </Text>
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  General: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
-                                </Text>
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Optional: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  You decide if you want to share or delete your usage data via settings any time.
-                                </Text>
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "display": "flex",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "marginRight": 25,
-                                }
-                              }
-                            >
+                            <View>
                               <TouchableOpacity
-                                accessibilityRole="checkbox"
-                                accessible={true}
+                                activeOpacity={0.7}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "backgroundColor": "#f3f5f9",
+                                    "borderRadius": 12,
+                                    "marginBottom": 16,
+                                    "padding": 16,
+                                  }
+                                }
+                                testID="optin-metrics-metrics-checkbox"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "flex-start",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "marginRight": 25,
+                                    }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 24,
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="checkbox"
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#4459ff",
+                                          "borderColor": "#4459ff",
+                                          "borderRadius": 4,
+                                          "borderWidth": 2,
+                                          "height": 20,
+                                          "justifyContent": "center",
+                                          "width": 20,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        color="#ffffff"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="CheckBold"
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        testID="checkbox-icon-component"
+                                        width={20}
+                                      />
+                                    </View>
+                                  </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Gather basic usage data
+                                    </Text>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginLeft": 0,
+                                      "marginTop": 4,
+                                    }
+                                  }
+                                >
+                                  We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                  <Text
+                                    accessibilityRole="text"
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 14,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Learn more
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                activeOpacity={0.7}
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "height": 24,
-                                    "opacity": 1,
-                                  }
+                                  [
+                                    {
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 12,
+                                      "marginBottom": 16,
+                                      "padding": 16,
+                                    },
+                                    false,
+                                  ]
                                 }
                               >
                                 <View
-                                  accessibilityRole="checkbox"
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#121314",
-                                      "borderRadius": 4,
-                                      "borderWidth": 2,
-                                      "height": 20,
-                                      "justifyContent": "center",
-                                      "width": 20,
+                                      "alignItems": "flex-start",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "marginRight": 25,
                                     }
                                   }
-                                />
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 24,
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="checkbox"
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#121314",
+                                          "borderRadius": 4,
+                                          "borderWidth": 2,
+                                          "height": 20,
+                                          "justifyContent": "center",
+                                          "width": 20,
+                                        }
+                                      }
+                                    />
+                                  </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Marketing updates
+                                    </Text>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginLeft": 0,
+                                      "marginTop": 4,
+                                    }
+                                  }
+                                >
+                                  We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
+                                </Text>
                               </TouchableOpacity>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
-                              </Text>
-                            </TouchableOpacity>
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "height": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 14,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                }
-                              }
-                            >
-                              We’ll let you know if we decide to use this data for other purposes. You can review our 
-                              <Text
-                                accessibilityRole="text"
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Privacy Policy
-                              </Text>
-                               for more information. Remember, you can go to settings and opt out at any time.
-                            </Text>
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1362,53 +1235,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#3c4d9d0f",
-                              "borderColor": "transparent",
-                              "borderRadius": 12,
-                              "borderWidth": 1,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="optin-metrics-no-thanks-button-id"
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            No thanks
-                          </Text>
-                        </TouchableOpacity>
-                        <View
-                          style={
-                            {
-                              "width": 16,
-                            }
-                          }
-                        />
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
                               "backgroundColor": "#121314",
                               "borderRadius": 12,
                               "flex": 1,
@@ -1419,7 +1245,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="optin-metrics-i-agree-button-id"
+                          testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
@@ -1433,11 +1259,11 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               }
                             }
                           >
-                            I agree
+                            Continue
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                   <View
                     collapsable={false}
@@ -1868,7 +1694,15 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1921,11 +1755,31 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             >
                               Help us improve MetaMask
                             </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "marginVertical": 12,
+                                }
+                              }
+                            >
+                              <Image
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 150,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                            </View>
                             <Text
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1934,302 +1788,234 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
-                              We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
+                              We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Private: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Clicks and views on the app are stored, but other details (like your public address) are not.
-                                </Text>
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  General: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
-                                </Text>
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "flex": 0,
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#457a39"
-                                fill="currentColor"
-                                height={24}
-                                name="CheckBold"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "flex": 1,
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Optional: 
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  You decide if you want to share or delete your usage data via settings any time.
-                                </Text>
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "alignItems": "flex-start",
-                                  "display": "flex",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "marginRight": 25,
-                                }
-                              }
-                            >
+                            <View>
                               <TouchableOpacity
-                                accessibilityRole="checkbox"
-                                accessible={true}
+                                activeOpacity={0.7}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "backgroundColor": "#f3f5f9",
+                                    "borderRadius": 12,
+                                    "marginBottom": 16,
+                                    "padding": 16,
+                                  }
+                                }
+                                testID="optin-metrics-metrics-checkbox"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "flex-start",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "marginRight": 25,
+                                    }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 24,
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="checkbox"
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#4459ff",
+                                          "borderColor": "#4459ff",
+                                          "borderRadius": 4,
+                                          "borderWidth": 2,
+                                          "height": 20,
+                                          "justifyContent": "center",
+                                          "width": 20,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        color="#ffffff"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="CheckBold"
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        testID="checkbox-icon-component"
+                                        width={20}
+                                      />
+                                    </View>
+                                  </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Gather basic usage data
+                                    </Text>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginLeft": 0,
+                                      "marginTop": 4,
+                                    }
+                                  }
+                                >
+                                  We'll collect basic product usage data like general location, clicks, and views. No other information will be stored. 
+                                  <Text
+                                    accessibilityRole="text"
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 14,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Learn more
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                activeOpacity={0.7}
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "height": 24,
-                                    "opacity": 1,
-                                  }
+                                  [
+                                    {
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 12,
+                                      "marginBottom": 16,
+                                      "padding": 16,
+                                    },
+                                    false,
+                                  ]
                                 }
                               >
                                 <View
-                                  accessibilityRole="checkbox"
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#121314",
-                                      "borderRadius": 4,
-                                      "borderWidth": 2,
-                                      "height": 20,
-                                      "justifyContent": "center",
-                                      "width": 20,
+                                      "alignItems": "flex-start",
+                                      "display": "flex",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "marginRight": 25,
                                     }
                                   }
-                                />
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 24,
+                                        "opacity": 1,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="checkbox"
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#121314",
+                                          "borderRadius": 4,
+                                          "borderWidth": 2,
+                                          "height": 20,
+                                          "justifyContent": "center",
+                                          "width": 20,
+                                        }
+                                      }
+                                    />
+                                  </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 14,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      Marketing updates
+                                    </Text>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginLeft": 0,
+                                      "marginTop": 4,
+                                    }
+                                  }
+                                >
+                                  We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
+                                </Text>
                               </TouchableOpacity>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
-                              </Text>
-                            </TouchableOpacity>
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "height": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#686e7d",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 14,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
-                                }
-                              }
-                            >
-                              We’ll let you know if we decide to use this data for other purposes. You can review our 
-                              <Text
-                                accessibilityRole="text"
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                Privacy Policy
-                              </Text>
-                               for more information. Remember, you can go to settings and opt out at any time.
-                            </Text>
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2252,53 +2038,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#3c4d9d0f",
-                              "borderColor": "transparent",
-                              "borderRadius": 12,
-                              "borderWidth": 1,
-                              "flex": 1,
-                              "flexDirection": "row",
-                              "height": 48,
-                              "justifyContent": "center",
-                              "overflow": "hidden",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="optin-metrics-no-thanks-button-id"
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            No thanks
-                          </Text>
-                        </TouchableOpacity>
-                        <View
-                          style={
-                            {
-                              "width": 16,
-                            }
-                          }
-                        />
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
                               "backgroundColor": "#121314",
                               "borderRadius": 12,
                               "flex": 1,
@@ -2309,7 +2048,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="optin-metrics-i-agree-button-id"
+                          testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
@@ -2323,11 +2062,11 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               }
                             }
                           >
-                            I agree
+                            Continue
                           </Text>
                         </TouchableOpacity>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
