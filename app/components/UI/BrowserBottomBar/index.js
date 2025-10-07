@@ -190,7 +190,7 @@ const BrowserBottomBar = ({
       <TouchableOpacity
         onPress={onToggleFullscreenPress}
         style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.FULLSCREEN_BUTTON}
+        testID={BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON}
         disabled={!toggleFullscreen}
       >
         <MaterialIcon
