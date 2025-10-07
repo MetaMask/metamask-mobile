@@ -1,11 +1,11 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
 import { screen, waitFor } from '@testing-library/react-native';
+import { PhishingDetectorResultType } from '@metamask/phishing-controller';
+import AppConstants from '../../../core/AppConstants';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
-import AppConstants from '../../../core/AppConstants';
-import { PhishingDetectorResultType } from '@metamask/phishing-controller';
 
 const mockNavigation = {
   goBack: jest.fn(),
