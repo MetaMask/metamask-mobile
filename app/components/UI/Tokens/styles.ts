@@ -111,6 +111,7 @@ const createStyles = (colors: Colors) =>
     },
     assetName: {
       flexDirection: 'row',
+      gap: 8,
     },
     percentageChange: {
       flexDirection: 'row',
