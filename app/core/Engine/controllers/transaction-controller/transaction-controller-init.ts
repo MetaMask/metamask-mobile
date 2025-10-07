@@ -159,9 +159,15 @@ async function publishHook({
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
-  await new PayHook({
+  const result = await new PayHook({
     messenger: initMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
+
+  if (result.transactionHash) {
+    return {
+      transactionHash: result.transactionHash,
+    };
+  }
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({

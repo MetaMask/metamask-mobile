@@ -3,7 +3,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
-import { TransactionBridgeQuote } from '../../../../components/Views/confirmations/utils/bridge';
+import { PayQuote } from '../../../../util/transactions/pay-method/relay';
 
 export interface ConfirmationMetrics {
   properties?: Record<string, unknown>;
@@ -18,10 +18,7 @@ export interface TransactionPayToken {
 export interface ConfirmationMetricsState {
   metricsById: Record<string, ConfirmationMetrics>;
   transactionPayTokenById: Record<string, TransactionPayToken>;
-  transactionBridgeQuotesById: Record<
-    string,
-    TransactionBridgeQuote[] | undefined
-  >;
+  transactionBridgeQuotesById: Record<string, PayQuote<unknown>[] | undefined>;
   isTransactionBridgeQuotesLoadingById: Record<string, boolean>;
 }
 
@@ -72,7 +69,7 @@ const slice = createSlice({
       state,
       action: PayloadAction<{
         transactionId: string;
-        quotes: TransactionBridgeQuote[] | undefined;
+        quotes: PayQuote<unknown>[] | undefined;
       }>,
     ) => {
       const { transactionId, quotes } = action.payload;

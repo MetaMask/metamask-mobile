@@ -11247,6 +11247,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@relayprotocol/relay-sdk@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@relayprotocol/relay-sdk@npm:3.0.0"
+  dependencies:
+    axios: ^1.6.5
+  peerDependencies:
+    viem: ">=2.26.0"
+  checksum: 4ebd5d94e3739cbedba033c28144684f8e4ac3b0e6feb95b1349960ecdd3b6ef361c24283bd70d5e831f975044d23abb694a1a359e99745ed27faedad08e7d26
+  languageName: node
+  linkType: hard
+
 "@reown/appkit-common@npm:1.7.2":
   version: 1.7.2
   resolution: "@reown/appkit-common@npm:1.7.2"
@@ -34129,6 +34140,7 @@ __metadata:
     "@react-navigation/native": ^5.9.4
     "@react-navigation/stack": ^5.14.5
     "@reduxjs/toolkit": ^1.9.7
+    "@relayprotocol/relay-sdk": ^3.0.0
     "@reown/walletkit": ^1.2.3
     "@rpii/wdio-html-reporter": ^7.7.1
     "@segment/analytics-react-native": ^2.20.3

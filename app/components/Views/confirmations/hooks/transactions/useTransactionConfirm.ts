@@ -52,12 +52,10 @@ export function useTransactionConfirm() {
 
   const waitForResult = !shouldUseSmartTransaction && !quotes?.length;
 
-  const hasSameChainQuote =
-    quotes?.length &&
-    quotes[0].quote.srcChainId === quotes[0].quote.destChainId;
+  const hasSameChainQuote = false;
 
   const batchTransactions = useMemo(
-    () => (hasSameChainQuote ? getQuoteBatchTransactions(quotes) : undefined),
+    () => (hasSameChainQuote ? getQuoteBatchTransactions([]) : undefined),
     [hasSameChainQuote, quotes],
   );
 

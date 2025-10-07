@@ -12,14 +12,12 @@ import {
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { store } from '../../../store';
 import { ExtractEventHandler } from '@metamask/base-controller';
-import {
-  TransactionBridgeQuote,
-  refreshQuote,
-} from '../../../components/Views/confirmations/utils/bridge';
+import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
 import { cloneDeep } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { toHex } from '@metamask/controller-utils';
 import { updateRequiredTransactionIds } from '../../transaction-controller';
+import { PAY_METHODS } from '../pay-method';
 
 const log = createProjectLogger('pay-publish-hook');
 
@@ -57,10 +55,7 @@ export class PayHook {
     transactionMeta: TransactionMeta,
     _signedTx: string,
   ): Promise<PublishHookResult> {
-    const {
-      id: transactionId,
-      txParams: { from },
-    } = transactionMeta;
+    const { id: transactionId } = transactionMeta;
     const state = store.getState();
 
     const quotes =
@@ -71,35 +66,15 @@ export class PayHook {
       return EMPTY_RESULT;
     }
 
-    // Currently we only support a single source meaning we only check the first quote.
-    const isSameChain =
-      quotes[0].quote.srcChainId === quotes[0].quote.destChainId;
+    const payMethod = PAY_METHODS[quotes[0].method];
 
-    if (isSameChain) {
-      log(
-        'Ignoring quotes as source is same chain',
-        quotes[0].quote.srcChainId,
-      );
-      return EMPTY_RESULT;
+    try {
+      const transactionHash = await payMethod.execute(quotes, transactionId);
+      return { transactionHash };
+    } catch (error) {
+      log('Error executing quotes', error);
+      throw error;
     }
-
-    let index = 0;
-
-    for (const quote of quotes) {
-      log('Submitting bridge', index, quote);
-
-      const finalQuote = index > 0 ? await refreshQuote(quote) : quote;
-
-      await this.#submitBridgeTransaction(
-        transactionId,
-        from as Hex,
-        finalQuote,
-      );
-
-      index += 1;
-    }
-
-    return EMPTY_RESULT;
   }
 
   async #submitBridgeTransaction(

@@ -39,6 +39,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForFees && balanceValue.isLessThan(tokenAmount);
 
   return useMemo(() => {
+    return [];
     if (!isInsufficientForFees && !isInsufficientForAmount) {
       return [];
     }
