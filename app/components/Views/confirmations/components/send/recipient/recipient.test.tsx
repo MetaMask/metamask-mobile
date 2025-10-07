@@ -170,9 +170,6 @@ describe('Recipient', () => {
   const mockUpdateTo = jest.fn();
   const mockHandleSubmitPress = jest.fn();
   const mockCaptureRecipientSelected = jest.fn();
-  const mockSetRecipientInputMethodManual = jest.fn();
-  const mockSetRecipientInputMethodSelectAccount = jest.fn();
-  const mockSetRecipientInputMethodSelectContact = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -205,12 +202,6 @@ describe('Recipient', () => {
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: mockCaptureRecipientSelected,
-      setRecipientInputMethodManual: mockSetRecipientInputMethodManual,
-      setRecipientInputMethodPasted: jest.fn(),
-      setRecipientInputMethodSelectAccount:
-        mockSetRecipientInputMethodSelectAccount,
-      setRecipientInputMethodSelectContact:
-        mockSetRecipientInputMethodSelectContact,
     });
 
     mockUseSendActions.mockReturnValue({
@@ -287,7 +278,6 @@ describe('Recipient', () => {
 
     expect(mockUpdateTo).toHaveBeenCalledWith(selectedAccount.address);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedAccount.address);
-    expect(mockSetRecipientInputMethodSelectAccount).toHaveBeenCalledTimes(1);
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
@@ -299,7 +289,6 @@ describe('Recipient', () => {
 
     expect(mockUpdateTo).toHaveBeenCalledWith(selectedContact.address);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedContact.address);
-    expect(mockSetRecipientInputMethodSelectContact).toHaveBeenCalledTimes(1);
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
@@ -530,10 +519,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: jest.fn(),
-      setRecipientInputMethodManual: jest.fn(),
-      setRecipientInputMethodPasted: jest.fn(),
-      setRecipientInputMethodSelectAccount: jest.fn(),
-      setRecipientInputMethodSelectContact: jest.fn(),
     });
   });
 
