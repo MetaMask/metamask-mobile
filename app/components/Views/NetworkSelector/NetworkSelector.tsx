@@ -106,6 +106,7 @@ import {
   NETWORK_SELECTOR_SOURCES,
   NetworkSelectorSource,
 } from '../../../constants/networkSelector';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
 
 interface infuraNetwork {
   name: string;
@@ -148,6 +149,9 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -555,6 +559,11 @@ const NetworkSelector = () => {
               isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu
             }
             title={name}
+            tagLabel={
+              isGasFeesSponsoredNetworkEnabled(chainId)
+                ? strings('networks.no_network_fee')
+                : undefined
+            }
             avatarProps={{
               variant: AvatarVariant.Network,
               name,

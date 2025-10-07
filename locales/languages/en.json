@@ -3732,7 +3732,8 @@
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Edit networks",
+    "no_network_fee": "No network fee"
   },
   "permissions": {
     "title_this_site_wants_to": "This site wants to:",
@@ -4834,6 +4835,7 @@
     "quote_details_max_slippage": "Max slippage",
     "source": "Source",
     "estimated_network_fees": "Estimated gas fees",
+    "gas_fees_sponsored": "Paid by MetaMask",
     "guaranteed_amount": "Guaranteed amount",
     "quote_source_dex": {
       "1": "This quote comes directly from a",
