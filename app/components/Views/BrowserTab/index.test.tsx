@@ -178,8 +178,6 @@ describe('BrowserTab', () => {
       const onShouldStartLoadWithRequest =
         webView.props.onShouldStartLoadWithRequest;
 
-      screen.debug();
-
       expect(
         onShouldStartLoadWithRequest({
           url: 'https://google.com',
