@@ -21,11 +21,7 @@ describe(RegressionTrade('Predict API Down Test'), () => {
         // Navigate to actions
         await TabBarComponent.tapActions();
 
-        // Navigate to Predict tab
         await WalletActionsBottomSheet.tapPredictButton();
-
-        // Verify that the Predict tab loads even when API is down
-        // The app should handle the error gracefully
         await PredictTabView.isContainerVisible();
       },
     );
