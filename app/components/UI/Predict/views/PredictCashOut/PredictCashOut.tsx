@@ -63,7 +63,7 @@ const PredictCashOut = () => {
     autoRefreshTimeout: 5000,
   });
 
-  const signal = useMemo(() => (cashPnl > 0 ? '+' : '-'), [cashPnl]);
+  const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
   const onCashOut = () => {
     // Implement cash out action here

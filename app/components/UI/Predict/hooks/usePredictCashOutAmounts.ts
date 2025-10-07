@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CalculateCashOutAmountsResponse } from '../providers/types';
 import { usePredictTrading } from './usePredictTrading';
 import { PredictPosition } from '../types';
@@ -37,11 +37,19 @@ export const usePredictCashOutAmounts = ({
     selectSelectedInternalAccountAddress,
   );
 
+  // Track the current operation to prevent race conditions
+  const currentOperationRef = useRef<number>(0);
+
   const calculateCashOutAmounts = useCallback(async () => {
+    const operationId = ++currentOperationRef.current;
     setIsCalculating(true);
     try {
       if (!selectedInternalAccountAddress) {
-        setError('No selected internal account address');
+        // Only update error state if this is still the current operation
+        if (operationId === currentOperationRef.current) {
+          setError('No selected internal account address');
+          setIsCalculating(false);
+        }
         return;
       }
       const expectedAmountResponse = await controllerCalculateCashOutAmounts({
@@ -50,13 +58,22 @@ export const usePredictCashOutAmounts = ({
         outcomeTokenId,
         marketId,
       });
-      setCashOutAmounts(expectedAmountResponse);
-      setError(null); // Clear any previous errors on success
+      // Only update state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setCashOutAmounts(expectedAmountResponse);
+        setError(null); // Clear any previous errors on success
+      }
     } catch (err) {
       console.error('Failed to calculate cash out amount:', err);
-      setError(err instanceof Error ? err.message : String(err));
+      // Only update error state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
-      setIsCalculating(false);
+      // Only update loading state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setIsCalculating(false);
+      }
     }
   }, [
     selectedInternalAccountAddress,
@@ -66,13 +83,16 @@ export const usePredictCashOutAmounts = ({
     marketId,
   ]);
 
+  const calculateCashOutAmountsRef = useRef(calculateCashOutAmounts);
+  calculateCashOutAmountsRef.current = calculateCashOutAmounts;
+
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      calculateCashOutAmounts();
+      calculateCashOutAmountsRef.current();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [calculateCashOutAmounts]);
+  }, [selectedInternalAccountAddress, providerId, outcomeTokenId, marketId]);
 
   // Auto-refresh functionality
   useEffect(() => {
@@ -81,13 +101,19 @@ export const usePredictCashOutAmounts = ({
     }
 
     const refreshTimer = setInterval(() => {
-      calculateCashOutAmounts();
+      calculateCashOutAmountsRef.current();
     }, autoRefreshTimeout);
 
     return () => {
       clearInterval(refreshTimer);
     };
-  }, [calculateCashOutAmounts, autoRefreshTimeout]);
+  }, [
+    selectedInternalAccountAddress,
+    providerId,
+    outcomeTokenId,
+    marketId,
+    autoRefreshTimeout,
+  ]);
 
   return {
     cashOutAmounts,

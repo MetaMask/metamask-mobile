@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CalculateBetAmountsResponse } from '../providers/types';
 import { usePredictTrading } from './usePredictTrading';
 import { PredictOutcomeToken } from '../types';
@@ -25,9 +25,17 @@ export const usePredictBetAmounts = ({
   const { calculateBetAmounts: controllerCalculateBetAmounts } =
     usePredictTrading();
 
+  // Track the current operation to prevent race conditions
+  const currentOperationRef = useRef<number>(0);
+
   const calculateBetAmounts = useCallback(async () => {
+    const operationId = ++currentOperationRef.current;
     if (!outcomeToken || userBetAmount <= 0) {
-      setBetAmounts({ toWin: 0, sharePrice: outcomeToken?.price || 0 });
+      // Only update state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setBetAmounts({ toWin: 0, sharePrice: outcomeToken?.price || 0 });
+        setIsCalculating(false);
+      }
       return;
     }
 
@@ -38,22 +46,34 @@ export const usePredictBetAmounts = ({
         outcomeTokenId: outcomeToken.id,
         userBetAmount,
       });
-      setBetAmounts(expectedAmountResponse);
+      // Only update state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setBetAmounts(expectedAmountResponse);
+      }
     } catch (err) {
       console.error('Failed to calculate to win amount:', err);
-      setError(err instanceof Error ? err.message : String(err));
+      // Only update error state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
-      setIsCalculating(false);
+      // Only update loading state if this is still the current operation
+      if (operationId === currentOperationRef.current) {
+        setIsCalculating(false);
+      }
     }
   }, [outcomeToken, userBetAmount, controllerCalculateBetAmounts, providerId]);
 
+  const calculateBetAmountsRef = useRef(calculateBetAmounts);
+  calculateBetAmountsRef.current = calculateBetAmounts;
+
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      calculateBetAmounts();
+      calculateBetAmountsRef.current();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [calculateBetAmounts]);
+  }, [outcomeToken, userBetAmount, providerId]);
 
   // Auto-refresh functionality
   useEffect(() => {
@@ -62,13 +82,13 @@ export const usePredictBetAmounts = ({
     }
 
     const refreshTimer = setInterval(() => {
-      calculateBetAmounts();
+      calculateBetAmountsRef.current();
     }, autoRefreshTimeout);
 
     return () => {
       clearInterval(refreshTimer);
     };
-  }, [calculateBetAmounts, autoRefreshTimeout]);
+  }, [outcomeToken, userBetAmount, providerId, autoRefreshTimeout]);
 
   return {
     betAmounts,

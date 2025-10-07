@@ -99,6 +99,7 @@ jest.mock('../../../../../component-library/hooks/useStyles', () => ({
 // Mock SafeArea hooks
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
   useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));
