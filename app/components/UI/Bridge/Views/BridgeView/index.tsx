@@ -78,7 +78,7 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE, RequestStatus } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 
 export interface BridgeRouteParams {
@@ -167,6 +167,7 @@ const BridgeView = () => {
     destTokenAmount,
     quoteFetchError,
     isNoQuotesAvailable,
+    quotesLoadingStatus,
     isExpired,
     willRefresh,
     blockaidError,
@@ -174,7 +175,7 @@ const BridgeView = () => {
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const hasQuoteDetails = activeQuote && !isLoading;
+  const hasQuoteDetails = activeQuote;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -199,7 +200,10 @@ const BridgeView = () => {
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
-  const isError = isNoQuotesAvailable || quoteFetchError;
+  const isError =
+    quotesLoadingStatus === RequestStatus.ERROR ||
+    isNoQuotesAvailable ||
+    quoteFetchError;
 
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =

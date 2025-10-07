@@ -5,7 +5,9 @@
  *
  * @type {import('metro-config').MetroConfig}
  */
+const { ReadableStream } = require('web-streams-polyfill');
 
+global.ReadableStream = ReadableStream;
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
@@ -61,7 +63,10 @@ module.exports = function (baseConfig) {
           ...defaultConfig.resolver.extraNodeModules,
           'node:crypto': require.resolve('react-native-crypto'),
           crypto: require.resolve('react-native-crypto'),
-          stream: require.resolve('stream-browserify'),
+          stream: require.resolve('web-streams-polyfill'),
+          ReadableStream: require.resolve('web-streams-polyfill')
+            .ReadableStream,
+          // ReadableStream: 'web-streams-polyfill',
           _stream_transform: require.resolve('readable-stream/transform'),
           _stream_readable: require.resolve('readable-stream/readable'),
           _stream_writable: require.resolve('readable-stream/writable'),
@@ -99,6 +104,9 @@ module.exports = function (baseConfig) {
             experimentalImportSupport: true,
             inlineRequires: true,
           },
+          // customGlobals: {
+          //   ReadableStream: ReadableStream
+          // }
         }),
       },
       serializer: lockdownSerializer(
