@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/fetch.cjs b/node_modules/@metamask/bridge-controller/dist/utils/fetch.cjs
+index e1dd630..8f7329c 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/fetch.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/utils/fetch.cjs
+@@ -82,6 +82,8 @@ async function fetchBridgeQuotes(request, signal, clientId, fetchFn, bridgeApiBa
+     Object.entries(normalizedRequest).forEach(([key, value]) => {
+         queryParams.append(key, value.toString());
+     });
++    queryParams.append('intent', true);
++    queryParams.append('onlyIntent', true);
+     const url = `${bridgeApiBaseUrl}/getQuote?${queryParams}`;
+     const quotes = await fetchFn(url, {
+         headers: (0, exports.getClientIdHeader)(clientId),

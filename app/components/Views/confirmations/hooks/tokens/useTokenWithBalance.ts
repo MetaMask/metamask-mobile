@@ -84,6 +84,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
       decimals,
       symbol,
       tokenFiatAmount,
+      aggregators: token?.aggregators ?? [],
     };
   }, [
     chainId,

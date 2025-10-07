@@ -51,6 +51,7 @@ const formatCachedTokenListControllerTokens = (
       image: token.iconUrl || '',
       decimals: token.decimals,
       chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
+      aggregators: token.aggregators,
     };
   });
 
@@ -171,6 +172,7 @@ export const useTopTokens = ({
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
         chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
+        aggregators: bridgeAsset.aggregators,
       };
     });
 
