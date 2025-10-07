@@ -11,9 +11,49 @@ import {
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
+import { MetaMetrics } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
 
 // Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
+
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
+
+// Create a shared mock for MetaMetrics instance
+const mockTrackEvent = jest.fn();
+const mockMetaMetricsInstance = {
+  trackEvent: mockTrackEvent,
+};
+
+// Mock MetaMetrics
+jest.mock('../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => mockMetaMetricsInstance),
+  },
+  MetaMetricsEvents: {
+    PERPS_TRADE_TRANSACTION: 'PERPS_TRADE_TRANSACTION',
+    PERPS_ORDER_CANCEL_TRANSACTION: 'PERPS_ORDER_CANCEL_TRANSACTION',
+    PERPS_RISK_MANAGEMENT: 'PERPS_RISK_MANAGEMENT',
+  },
+}));
+
+// Mock MetricsEventBuilder
+jest.mock('../../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      addSensitiveProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  },
+}));
 
 describe('PerpsController', () => {
   let controller: PerpsController;
@@ -1050,6 +1090,139 @@ describe('PerpsController', () => {
 
       expect(result).toEqual(mockFees);
       expect(mockProvider.calculateFees).toHaveBeenCalledWith(feeParams);
+    });
+  });
+
+  describe('reportOrderToDataLake', () => {
+    beforeEach(() => {
+      // Mock fetch globally
+      global.fetch = jest.fn();
+      // Initialize controller
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should skip data lake reporting for testnet', async () => {
+      // Arrange - create a new controller with testnet state
+      const testnetController = new PerpsController({
+        messenger: {
+          call: jest.fn(),
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+          getRestricted: jest.fn().mockReturnValue({
+            call: jest.fn(),
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            registerActionHandler: jest.fn(),
+            registerEventHandler: jest.fn(),
+            registerInitialEventPayload: jest.fn(),
+          }),
+        } as unknown as any,
+        state: { ...getDefaultPerpsControllerState(), isTestnet: true },
+      });
+
+      // Initialize providers for testnet controller
+      (testnetController as any).isInitialized = true;
+      (testnetController as any).providers = new Map([
+        ['hyperliquid', mockProvider],
+      ]);
+
+      // Clear any fetch calls from controller initialization
+      (global.fetch as jest.Mock).mockClear();
+
+      // Act
+      const result = await (testnetController as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+      });
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.error).toBe('Skipped for testnet');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('placeOrder data lake error handling', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(controller, 'getActiveProvider').mockReturnValue(mockProvider);
+    });
+
+    it('handles data lake reporting errors gracefully', async () => {
+      mockProvider.placeOrder.mockResolvedValue({
+        success: true,
+        orderId: 'order123',
+      });
+
+      // Mock fetch to reject for data lake reporting
+      global.fetch = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Network error'));
+
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        orderType: 'market' as const,
+        size: '1',
+      };
+
+      const result = await controller.placeOrder(orderParams);
+
+      // Wait for async data lake reporting to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert: Order should still succeed even if data lake reporting fails
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBe('order123');
+
+      // Verify that Logger.error was called for the data lake failure
+      const errorCalls = (Logger.error as jest.Mock).mock.calls;
+      const hasDataLakeError = errorCalls.some((call) => {
+        const secondArg = call[1];
+        return (
+          typeof secondArg === 'object' &&
+          secondArg.message === 'DataLake API: Request failed'
+        );
+      });
+      expect(hasDataLakeError).toBe(true);
+    });
+  });
+
+  describe('editOrder failure tracking', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(controller, 'getActiveProvider').mockReturnValue(mockProvider);
+    });
+
+    it('tracks failed order edit via MetaMetrics', async () => {
+      mockProvider.editOrder.mockResolvedValue({
+        success: false,
+        error: 'Order not found',
+      });
+
+      const editParams = {
+        orderId: 'order123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          orderType: 'limit' as const,
+          size: '1',
+          price: '50000',
+        },
+      };
+
+      await controller.editOrder(editParams);
+
+      // Check that MetaMetrics was called (the mock might be called with empty object)
+      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalled();
     });
   });
 });

@@ -1,5 +1,6 @@
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -67,6 +68,17 @@ jest.mock('react-native-background-timer', () => ({
   start: jest.fn(),
   stop: jest.fn(),
 }));
+
+jest.mock('../../../../util/Logger', () => {
+  const mockError = jest.fn();
+  return {
+    default: {
+      error: mockError,
+    },
+    error: mockError,
+    __esModule: true,
+  };
+});
 
 // Import non-singleton modules first
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -731,6 +743,25 @@ describe('PerpsConnectionManager', () => {
         expect.stringContaining('Reconnection with new context failed'),
         error,
       );
+    });
+  });
+
+  describe('retry logic for account state', () => {
+    it('should retry getAccountState on initial connection when provider is reinitializing', async () => {
+      const reInitError = new Error('CLIENT_REINITIALIZING');
+      reInitError.message = 'CLIENT_REINITIALIZING';
+
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState
+        .mockRejectedValueOnce(reInitError)
+        .mockResolvedValueOnce({});
+
+      await PerpsConnectionManager.connect();
+
+      expect(mockPerpsController.getAccountState).toHaveBeenCalledTimes(2);
+      expect(mockPerpsController.getAccountState).toHaveBeenNthCalledWith(2, {
+        source: 'initial_connection_retry',
+      });
     });
   });
 });
