@@ -9,20 +9,12 @@ class SendView {
     return Matchers.getElementByText('Ethereum');
   }
 
-  get solanaTokenButton(): DetoxElement {
-    return Matchers.getElementByText('SOL');
-  }
-
   get erc20TokenButton(): DetoxElement {
     return Matchers.getElementByText('USD Coin');
   }
 
-  get dotButton(): DetoxElement {
-    return Matchers.getElementByText('.');
-  }
-
   get zeroButton(): DetoxElement {
-    return Matchers.getElementByText('0');
+    return Matchers.getElementByText('0', 1);
   }
 
   get amountFiveButton(): DetoxElement {
@@ -59,36 +51,15 @@ class SendView {
     });
   }
 
-  async selectSolanaToken(): Promise<void> {
-    await Gestures.waitAndTap(this.solanaTokenButton, {
-      elemDescription: 'Select ethereum token',
-    });
-  }
-
   async selectERC20Token(): Promise<void> {
     await Gestures.waitAndTap(this.erc20TokenButton, {
       elemDescription: 'Select ERC20 token',
     });
   }
 
-  async enterSmallAmount(): Promise<void> {
+  async enterZeroAmount(): Promise<void> {
     await Gestures.waitAndTap(this.zeroButton, {
       elemDescription: '0 button',
-    });
-    await Gestures.waitAndTap(this.dotButton, {
-      elemDescription: '. button',
-    });
-    await Gestures.waitAndTap(this.zeroButton, {
-      elemDescription: '0 button',
-    });
-    await Gestures.waitAndTap(this.zeroButton, {
-      elemDescription: '0 button',
-    });
-    await Gestures.waitAndTap(this.zeroButton, {
-      elemDescription: '0 button',
-    });
-    await Gestures.waitAndTap(this.amountFiveButton, {
-      elemDescription: '5 button',
     });
   }
 
