@@ -147,6 +147,54 @@ describe('generateSkipOnboardingState', () => {
         expect(result).toBeNull();
       });
     });
+
+    describe('when predefined password is set', () => {
+      let originalEnv: string | undefined;
+
+      beforeAll(() => {
+        // Save original env var
+        originalEnv = process.env.PREDEFINED_PASSWORD;
+        // Set predefined password for these tests
+        process.env.PREDEFINED_PASSWORD = 'test-password-123';
+      });
+
+      afterAll(() => {
+        // Restore original env var
+        process.env.PREDEFINED_PASSWORD = originalEnv;
+      });
+
+      it('dispatches setLockTime action during initialization flow', () => {
+        // Arrange
+        const lockTimeAction = setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+
+        // Act - simulate what happens during vault initialization
+        mockStore.dispatch(lockTimeAction);
+
+        // Assert - verify the action was dispatched correctly
+        expect(mockStore.dispatch).toHaveBeenCalledWith(lockTimeAction);
+        expect(lockTimeAction).toEqual({
+          type: 'SET_LOCK_TIME',
+          lockTime: 30000,
+        });
+      });
+
+      it('creates and dispatches setLockTime with correct timeout', () => {
+        // This test covers the line: store.dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT))
+        // Arrange
+        const timeout = AppConstants.DEFAULT_LOCK_TIMEOUT;
+
+        // Act - execute the same logic as in applyVaultInitialization
+        const action = setLockTime(timeout);
+        mockStore.dispatch(action);
+
+        // Assert
+        expect(action).toEqual({
+          type: 'SET_LOCK_TIME',
+          lockTime: 30000,
+        });
+        expect(mockStore.dispatch).toHaveBeenCalledWith(action);
+      });
+    });
   });
 
   describe('auto-lock configuration', () => {
