@@ -325,7 +325,7 @@ export const asyncifyMigrations = (
           onMigrationsComplete(migratedState);
         }
 
-        if (Number(migrationNumber) === lastVersion && lastVersion >= 102) {
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 104) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
