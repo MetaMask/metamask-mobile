@@ -799,6 +799,8 @@ class AuthenticationService {
       'syncSeedPhrases: otherSecrets len: ' + otherSecrets.length,
     );
 
+    // record all errors
+    const allErrors: Error[] = [];
     for (const secret of otherSecrets) {
       // import SRP secret
       // Get the SRP hash, and find the hash in the local state
@@ -837,7 +839,17 @@ class AuthenticationService {
           // import the new mnemonic to the current vault
           const keyringMetadata = await this.importSeedlessMnemonicToVault(
             mnemonicToRestore,
-          );
+          ).catch((e) => {
+            if (e.message.includes('duplicate')) return undefined;
+            allErrors.push(e);
+            Logger.error(
+              e,
+              'syncSeedPhrases: importSeedlessMnemonicToVault error',
+            );
+          });
+          if (!keyringMetadata) {
+            continue;
+          }
 
           // discover multichain accounts from imported srp
           if (isMultichainAccountsState2Enabled()) {
@@ -854,6 +866,10 @@ class AuthenticationService {
           );
         }
       }
+    }
+    if (allErrors.length > 0) {
+      // throw first error
+      throw allErrors[0];
     }
   };
 
