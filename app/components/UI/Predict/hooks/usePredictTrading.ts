@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import { BuyParams, GetPositionsParams, SellParams } from '../types';
+import { BuyParams, ClaimParams, SellParams } from '../types';
+import { GetPositionsParams } from '../providers/types';
 
 export function usePredictTrading() {
   const getPositions = useCallback(async (params: GetPositionsParams) => {
@@ -18,9 +19,15 @@ export function usePredictTrading() {
     return controller.sell(orderParams);
   }, []);
 
+  const claim = useCallback(async (claimParams: ClaimParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.claim(claimParams);
+  }, []);
+
   return {
     getPositions,
     buy,
     sell,
+    claim,
   };
 }

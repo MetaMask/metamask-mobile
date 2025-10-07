@@ -5,8 +5,9 @@ import Engine, { BaseControllerMessenger } from '../../Engine';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { ImageSourcePropType } from 'react-native';
-import { whenEngineReady } from '../utils/is-engine-ready';
 import { ConnectionInfo } from '../types/connection-info';
+import { whenEngineReady } from '../utils/when-engine-ready';
+import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
 
 export class RPCBridgeAdapter
   extends EventEmitter
@@ -48,14 +49,14 @@ export class RPCBridgeAdapter
 
   /**
    * Lazily initializes the adapter. On the first call, it waits for the engine,
-   * creates the background bridge client, and subscribes to wallet events.
+   * and onboarding to complete, creates the background bridge client, and subscribes to wallet events.
    * This method is idempotent.
    */
   private ensureInitialized(): Promise<void> {
     if (this.initialized) return this.initialized;
 
     this.initialized = (async () => {
-      await whenEngineReady();
+      await Promise.all([whenEngineReady(), whenOnboardingComplete()]);
       this.messenger = Engine.controllerMessenger;
       this.messenger.subscribe('KeyringController:unlock', this.processQueue);
       this.client = this.createClient();
@@ -75,7 +76,12 @@ export class RPCBridgeAdapter
   private async processQueue(): Promise<void> {
     await this.ensureInitialized();
 
-    if (this.processing || this.queue.length === 0 || !this.isUnlocked()) {
+    if (
+      this.processing ||
+      this.queue.length === 0 ||
+      !this.isUnlocked() ||
+      !this.client
+    ) {
       return;
     }
 
@@ -83,7 +89,7 @@ export class RPCBridgeAdapter
 
     while (this.queue.length > 0) {
       const request = this.queue.shift();
-      this.client?.onMessage({
+      this.client.onMessage({
         name: 'metamask-multichain-provider',
         data: request,
       });

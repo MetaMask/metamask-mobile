@@ -4,7 +4,6 @@ import {
   selectRewardsSubscriptionId,
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
-  selectHideUnlinkedAccountsBanner,
 } from './index';
 
 // Mock rewards controller state
@@ -348,8 +347,6 @@ describe('Rewards Selectors', () => {
           account: 'eip155:1:0x123',
           hasOptedIn: true,
           subscriptionId,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         },
@@ -369,8 +366,6 @@ describe('Rewards Selectors', () => {
           account: 'eip155:1:0x123',
           hasOptedIn: false,
           subscriptionId: null,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         },
@@ -394,36 +389,6 @@ describe('Rewards Selectors', () => {
 
       // Assert
       expect(result).toBeNull();
-    });
-  });
-
-  describe('selectHideUnlinkedAccountsBanner', () => {
-    it('returns true when hideUnlinkedAccountsBanner is true', () => {
-      // Arrange
-      const state = createMockRootState(
-        {},
-        { hideUnlinkedAccountsBanner: true },
-      );
-
-      // Act
-      const result = selectHideUnlinkedAccountsBanner(state);
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('returns false when hideUnlinkedAccountsBanner is false', () => {
-      // Arrange
-      const state = createMockRootState(
-        {},
-        { hideUnlinkedAccountsBanner: false },
-      );
-
-      // Act
-      const result = selectHideUnlinkedAccountsBanner(state);
-
-      // Assert
-      expect(result).toBe(false);
     });
   });
 });

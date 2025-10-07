@@ -78,6 +78,9 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
+    isLiquidation: false,
+    isTakeProfit: false,
+    isStopLoss: false,
   },
 };
 

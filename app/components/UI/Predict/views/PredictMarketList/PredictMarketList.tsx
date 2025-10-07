@@ -20,6 +20,7 @@ import { useTheme } from '../../../../../util/theme';
 import TabBar from '../../../../Base/TabBar';
 import MarketListContent from '../../components/MarketListContent';
 import SearchBox from '../../components/SearchBox';
+import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface PredictMarketListProps {}
 
@@ -44,6 +45,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
 
   return (
     <SafeAreaView
+      testID={PredictMarketListSelectorsIDs.CONTAINER}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
       <View
@@ -99,6 +101,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
               key="trending"
               {...{ tabLabel: strings('predict.category.trending') }}
               style={tw.style('flex-1 pt-4 w-full')}
+              testID={PredictMarketListSelectorsIDs.TRENDING_TAB}
             >
               <MarketListContent category="trending" />
             </View>
@@ -107,6 +110,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
               key="new"
               {...{ tabLabel: strings('predict.category.new') }}
               style={tw.style('flex-1 pt-4 w-full')}
+              testID={PredictMarketListSelectorsIDs.NEW_TAB}
             >
               <MarketListContent category="new" />
             </View>
@@ -115,6 +119,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
               key="sports"
               {...{ tabLabel: strings('predict.category.sports') }}
               style={tw.style('flex-1 pt-4 w-full')}
+              testID={PredictMarketListSelectorsIDs.SPORTS_TAB}
             >
               <MarketListContent category="sports" />
             </View>
@@ -123,6 +128,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
               key="crypto"
               {...{ tabLabel: strings('predict.category.crypto') }}
               style={tw.style('flex-1 pt-4 w-full')}
+              testID={PredictMarketListSelectorsIDs.CRYPTO_TAB}
             >
               <MarketListContent category="crypto" />
             </View>
@@ -131,6 +137,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
               key="politics"
               {...{ tabLabel: strings('predict.category.politics') }}
               style={tw.style('flex-1 pt-4 w-full')}
+              testID={PredictMarketListSelectorsIDs.POLITICS_TAB}
             >
               <MarketListContent category="politics" />
             </View>

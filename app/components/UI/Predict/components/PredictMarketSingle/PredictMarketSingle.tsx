@@ -5,8 +5,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
-import { Alert, Image, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Alert, Image, View, TouchableOpacity } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -25,15 +25,19 @@ import { PredictMarket as PredictMarketType } from '../../types';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-
+import { PredictNavigationParamList } from '../../types/navigation';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
+  testID?: string;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
+  testID,
 }) => {
   const outcome = market.outcomes[0];
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
@@ -42,7 +46,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
       reset();
     },
   });
-  const navigation = useNavigation();
   const { isEligible } = usePredictEligibility({
     providerId: market.providerId,
   });
@@ -74,7 +77,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const handleYes = () => {
     if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
       return;
     }
 
@@ -88,7 +93,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const handleNo = () => {
     if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.UNAVAILABLE);
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
       return;
     }
 
@@ -189,72 +196,84 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   return (
-    <View style={styles.marketContainer}>
-      <View style={styles.marketHeader}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 gap-3"
-        >
-          <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
-            {getImageUrl() ? (
-              <Image
-                source={{ uri: getImageUrl() }}
-                style={tw.style('w-full h-full')}
-                resizeMode="cover"
-              />
-            ) : (
-              <Box twClassName="w-full h-full bg-muted" />
-            )}
-          </Box>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={tw.style('flex-1 font-medium')}
+    <TouchableOpacity
+      testID={testID}
+      onPress={() => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: {
+            marketId: market.id,
+          },
+        });
+      }}
+    >
+      <View style={styles.marketContainer}>
+        <View style={styles.marketHeader}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-1 gap-3"
           >
-            {getTitle()}
+            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+              {getImageUrl() ? (
+                <Image
+                  source={{ uri: getImageUrl() }}
+                  style={tw.style('w-full h-full')}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Box twClassName="w-full h-full bg-muted" />
+              )}
+            </Box>
+            <Text
+              variant={TextVariant.HeadingMD}
+              color={TextColor.Default}
+              style={tw.style('flex-1 font-medium')}
+            >
+              {getTitle()}
+            </Text>
+            <View style={styles.yesPercentageContainer}>
+              <SemiCircleYesPercentage percentage={yesPercentage} size={78} />
+            </View>
+          </Box>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Full}
+            label={
+              <Text style={tw.style('font-medium')} color={TextColor.Success}>
+                {strings('predict.buy_yes')}
+              </Text>
+            }
+            onPress={handleYes}
+            style={styles.buttonYes}
+            disabled={loading}
+            loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Full}
+            label={
+              <Text style={tw.style('font-medium')} color={TextColor.Error}>
+                {strings('predict.buy_no')}
+              </Text>
+            }
+            onPress={handleNo}
+            style={styles.buttonNo}
+            disabled={loading}
+            loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
+          />
+        </View>
+        <View style={styles.marketFooter}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
           </Text>
-          <View style={styles.yesPercentageContainer}>
-            <SemiCircleYesPercentage percentage={yesPercentage} size={78} />
-          </View>
-        </Box>
+        </View>
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Full}
-          label={
-            <Text style={tw.style('font-medium')} color={TextColor.Success}>
-              {strings('predict.buy_yes')}
-            </Text>
-          }
-          onPress={handleYes}
-          style={styles.buttonYes}
-          disabled={loading}
-          loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Full}
-          label={
-            <Text style={tw.style('font-medium')} color={TextColor.Error}>
-              {strings('predict.buy_no')}
-            </Text>
-          }
-          onPress={handleNo}
-          style={styles.buttonNo}
-          disabled={loading}
-          loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
-        />
-      </View>
-      <View style={styles.marketFooter}>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
-        </Text>
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
