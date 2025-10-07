@@ -838,9 +838,9 @@ class AuthenticationService {
   importSeedlessMnemonicToVault = async (
     mnemonic: string,
   ): Promise<KeyringMetadata> => {
-    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
-    );
+    const isSeedlessOnboardingFlow =
+      Engine.context.SeedlessOnboardingController.state.vault != null;
+
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
