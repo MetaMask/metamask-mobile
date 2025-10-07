@@ -76,6 +76,13 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
 jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
 jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
