@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.56.3]
 
 ### Fixed
+* fix: remove unintended metrics from transaction finalised event ([#20733](https://github.com/MetaMask/metamask-mobile/pull/20733))							
+* fix: force rendering on token list when order changes ([#20771](https://github.com/MetaMask/metamask-mobile/pull/20771)) 									
+* fix: add contentful max version number segmentation ([#20769](https://github.com/MetaMask/metamask-mobile/pull/20769))									
 
 ## [7.56.2]
 
