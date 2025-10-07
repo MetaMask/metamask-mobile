@@ -41,7 +41,8 @@ export const usePredictCashOutAmounts = ({
     setIsCalculating(true);
     try {
       if (!selectedInternalAccountAddress) {
-        throw new Error('No selected internal account address');
+        setError('No selected internal account address');
+        return;
       }
       const expectedAmountResponse = await controllerCalculateCashOutAmounts({
         address: selectedInternalAccountAddress,
@@ -50,6 +51,7 @@ export const usePredictCashOutAmounts = ({
         marketId,
       });
       setCashOutAmounts(expectedAmountResponse);
+      setError(null); // Clear any previous errors on success
     } catch (err) {
       console.error('Failed to calculate cash out amount:', err);
       setError(err instanceof Error ? err.message : String(err));

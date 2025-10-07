@@ -184,7 +184,7 @@ describe('usePredictCashOutAmounts', () => {
     expect(mockCalculateCashOutAmounts).toHaveBeenCalled();
   });
 
-  it('throws error when no selected internal account address', async () => {
+  it('sets error when no selected internal account address', async () => {
     mockUseSelector.mockImplementation(() => null);
 
     const { result } = renderHook(() =>
