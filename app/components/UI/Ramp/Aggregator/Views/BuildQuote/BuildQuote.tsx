@@ -38,7 +38,7 @@ import Row from '../../components/Row';
 import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import AmountInput from '../../components/AmountInput';
-import Keypad from '../../../../../Base/Keypad';
+import Keypad, { Keys } from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
@@ -124,6 +124,7 @@ const BuildQuote = () => {
   const [amountNumber, setAmountNumber] = useState(0);
   const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
+  const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const nativeSymbol = useSelector(selectTicker);
@@ -469,6 +470,7 @@ const BuildQuote = () => {
       () => {
         if (amountFocused) {
           setAmountFocused(false);
+          setIsKeyboardFreshlyOpened(false);
           return true;
         }
       },
@@ -477,20 +479,56 @@ const BuildQuote = () => {
     return () => backHandler.remove();
   }, [amountFocused]);
 
-  const handleKeypadDone = useCallback(() => setAmountFocused(false), []);
-  const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
+  const handleKeypadDone = useCallback(() => {
+    setAmountFocused(false);
+    setIsKeyboardFreshlyOpened(false);
+  }, []);
+  const onAmountInputPress = useCallback(() => {
+    setAmountFocused(true);
+    setIsKeyboardFreshlyOpened(true);
+  }, []);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: { value: string; valueAsNumber: number }) => {
-      setAmount(`${value}`);
-      setAmountNumber(valueAsNumber);
-      if (isSell) {
-        setAmountBNMinimalUnit(
-          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
-        );
+    ({
+      value,
+      valueAsNumber,
+      pressedKey,
+    }: {
+      value: string;
+      valueAsNumber: number;
+      pressedKey: Keys;
+    }) => {
+      // If keyboard is freshly opened and a digit key is pressed, clear the existing amount first
+      if (
+        isKeyboardFreshlyOpened &&
+        pressedKey >= Keys.Digit0 &&
+        pressedKey <= Keys.Digit9
+      ) {
+        // Clear the amount and start fresh with just the pressed digit
+        setAmount(pressedKey);
+        setAmountNumber(Number(pressedKey));
+        if (isSell) {
+          setAmountBNMinimalUnit(
+            toTokenMinimalUnit(pressedKey, selectedAsset?.decimals ?? 0) as BN4,
+          );
+        }
+        setIsKeyboardFreshlyOpened(false);
+      } else {
+        // Normal behavior - use the calculated value
+        setAmount(`${value}`);
+        setAmountNumber(valueAsNumber);
+        if (isSell) {
+          setAmountBNMinimalUnit(
+            toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
+          );
+        }
+        // Reset fresh keyboard flag after any input
+        if (isKeyboardFreshlyOpened) {
+          setIsKeyboardFreshlyOpened(false);
+        }
       }
     },
-    [isSell, selectedAsset?.decimals],
+    [isSell, selectedAsset?.decimals, isKeyboardFreshlyOpened],
   );
 
   const handleQuickAmountPress = useCallback(

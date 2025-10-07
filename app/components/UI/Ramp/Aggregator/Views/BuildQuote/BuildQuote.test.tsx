@@ -715,6 +715,30 @@ describe('BuildQuote View', () => {
         screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
       ).toBeTruthy();
     });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      // Arrange - render component and set initial amount
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      // Set an existing amount first
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      // Verify the amount is set
+      expect(getByRoleButton(`${denomSymbol}100`)).toBeTruthy();
+
+      // Act - open keyboard and press a digit
+      fireEvent.press(getByRoleButton(`${denomSymbol}100`));
+      fireEvent.press(getByRoleButton('2'));
+
+      // Assert - amount should be cleared and show only the new digit
+      expect(getByRoleButton(`${denomSymbol}2`)).toBeTruthy();
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -884,6 +908,29 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      // Arrange - render component and set initial amount
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      // Set an existing amount first
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      // Verify the amount is set
+      expect(getByRoleButton(`100 ${symbol}`)).toBeTruthy();
+
+      // Act - open keyboard and press a digit
+      fireEvent.press(getByRoleButton(`100 ${symbol}`));
+      fireEvent.press(getByRoleButton('2'));
+
+      // Assert - amount should be cleared and show only the new digit
+      expect(getByRoleButton(`2 ${symbol}`)).toBeTruthy();
     });
   });
 
