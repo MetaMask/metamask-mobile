@@ -533,14 +533,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params.grouping ||
         (params.takeProfitPrice || params.stopLossPrice ? 'normalTpsl' : 'na');
 
-      // 5. Submit via SDK exchange client instead of direct fetch
+      // 5. Calculate discounted builder fee if reward discount is active
+      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      if (this.userFeeDiscountBips !== undefined) {
+        builderFee = Math.floor(
+          builderFee * (1 - this.userFeeDiscountBips / 10000),
+        );
+        DevLogger.log('HyperLiquid: Applying builder fee discount', {
+          originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          discountBips: this.userFeeDiscountBips,
+          discountedFee: builderFee,
+        });
+      }
+
+      // 6. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
       const result = await exchangeClient.order({
         orders,
         grouping,
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          f: builderFee,
         },
       });
 
@@ -940,13 +953,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
+      // Calculate discounted builder fee if reward discount is active
+      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      if (this.userFeeDiscountBips !== undefined) {
+        builderFee = Math.floor(
+          builderFee * (1 - this.userFeeDiscountBips / 10000),
+        );
+        DevLogger.log('HyperLiquid: Applying builder fee discount to TP/SL', {
+          originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          discountBips: this.userFeeDiscountBips,
+          discountedFee: builderFee,
+        });
+      }
+
       // Submit via SDK exchange client with positionTpsl grouping
       const result = await exchangeClient.order({
         orders,
         grouping: 'positionTpsl',
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+          f: builderFee,
         },
       });
 
