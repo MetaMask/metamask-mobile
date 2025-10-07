@@ -78,16 +78,43 @@ describe('Rewards Feature Flag Selectors', () => {
   });
 
   describe('selectRewardsAnnouncementModalEnabledFlag', () => {
-    it('returns true when remote flag is true', () => {
+    it('returns true when remote flag is valid and enabled', () => {
       const result = selectRewardsAnnouncementModalEnabledFlag.resultFunc({
-        rewardsAnnouncementModal: true,
+        rewardsAnnouncementModalEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
       });
       expect(result).toBe(true);
     });
 
-    it('returns false when remote flag is false', () => {
+    it('returns false when remote flag is valid but disabled', () => {
       const result = selectRewardsAnnouncementModalEnabledFlag.resultFunc({
-        rewardsAnnouncementModal: false,
+        rewardsAnnouncementModalEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const result = selectRewardsAnnouncementModalEnabledFlag.resultFunc({
+        rewardsAnnouncementModalEnabled: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is invalid', () => {
+      const result = selectRewardsAnnouncementModalEnabledFlag.resultFunc({
+        rewardsAnnouncementModalEnabled: {
+          enabled: 'invalid',
+          minimumVersion: 123,
+        },
       });
       expect(result).toBe(false);
     });
