@@ -710,7 +710,7 @@ describe('Onboarding', () => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
-    it('should call Google OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccess', async () => {
+    it('should call Google OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccessNewUser', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -799,7 +799,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
       );
-      // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccess
+      // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
         'ChoosePassword',
         expect.objectContaining({
@@ -813,7 +813,7 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
-    it('should call Apple OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccess', async () => {
+    it('should call Apple OAuth login for create wallet flow on iOS and navigate to SocialLoginSuccessNewUser', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -852,7 +852,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
       );
-      // On iOS with Apple login, should navigate to SocialLoginSuccess
+      // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
         expect.objectContaining({

@@ -16,7 +16,7 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
-import SocialLoginSuccess from '../../Views/SocialLoginSuccess';
+import SocialLoginSuccessNewUser from '../../Views/SocialLoginSuccessNewUser';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -210,7 +210,7 @@ const OnboardingNav = () => (
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen
       name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS}
-      component={SocialLoginSuccess}
+      component={SocialLoginSuccessNewUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
