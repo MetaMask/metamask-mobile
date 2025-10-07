@@ -13,7 +13,7 @@ import { execSync } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 import { tags } from '../../e2e/tags';
 
-const smokeTags = Object.values(tags).filter(tag => tag.includes('Smoke'));
+const smokeTags = Object.values(tags).filter((tag): tag is string => typeof tag === 'string' && tag.includes('Smoke'));
 
 interface AIAnalysis {
   riskLevel: 'low' | 'medium' | 'high';
@@ -58,9 +58,9 @@ export class AIE2ETagsSelector {
     'SmokeWalletPlatform'
   ];
 
-  private readonly availableTags = Object.values(smokeTags)
-    .map(tag => tag.replace(':', '').trim())
-    .filter(tag => tag.length > 0);
+  private readonly availableTags = smokeTags
+    .map((tag: string) => tag.replace(':', '').trim())
+    .filter((tag: string) => tag.length > 0);
 
   private isQuietMode = false;
   private conversationHistory: Anthropic.MessageParam[] = [];
@@ -99,7 +99,7 @@ export class AIE2ETagsSelector {
     for (let iteration = 0; iteration < maxIterations; iteration++) {
       this.log(`🔄 Iteration ${iteration + 1}/${maxIterations}...`);
 
-      const response = await this.anthropic.messages.create({
+      const response: Anthropic.Message = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 16000,
         thinking: {
@@ -115,13 +115,13 @@ export class AIE2ETagsSelector {
       });
 
 
-      const thinking = response.content.find(block => block.type === 'thinking');
+      const thinking = response.content.find((block: Anthropic.ContentBlock) => block.type === 'thinking');
       if (thinking && 'thinking' in thinking && this.isQuietMode === false) {
         this.log(`💭 ${thinking.thinking.substring(0, 200)}...`);
       }
 
 
-      const toolUse = response.content.find(block => block.type === 'tool_use');
+      const toolUse = response.content.find((block: Anthropic.ContentBlock) => block.type === 'tool_use');
 
       if (toolUse && toolUse.type === 'tool_use') {
         this.log(`🔧 Tool: ${toolUse.name}`);
@@ -174,7 +174,7 @@ export class AIE2ETagsSelector {
       }
 
 
-      const textContent = response.content.find(block => block.type === 'text');
+      const textContent = response.content.find((block: Anthropic.ContentBlock) => block.type === 'text');
 
       if (textContent && textContent.type === 'text') {
         const analysis = this.parseAgentDecision(textContent.text);
