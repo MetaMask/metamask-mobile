@@ -19,19 +19,17 @@ export const getIsSwapsAssetAllowed = ({
   searchDiscoverySwapsTokens: string[];
   swapsTokens: Record<string, unknown>;
 }) => {
-  // EVM Swaps
-  let isEvmSwapsAssetAllowed;
+  let isSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
     const isChainAllowed = isSwapsAllowed(asset.chainId);
-    isEvmSwapsAssetAllowed = isChainAllowed;
+    isSwapsAssetAllowed = isChainAllowed;
   } else if (isAssetFromSearch(asset)) {
-    isEvmSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
+    isSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
       asset.address?.toLowerCase(),
     );
   } else {
-    isEvmSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
+    isSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
   }
-  let isSwapsAssetAllowed = isEvmSwapsAssetAllowed;
 
   // Solana Swaps
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
