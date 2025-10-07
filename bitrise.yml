@@ -3789,8 +3789,9 @@ meta:
     stack: osx-xcode-16.3.x
     machine_type_id: g2.mac.4large
 trigger_map:
-  - push_branch: release/*
-    pipeline: pr_rc_rwy_pipeline
+  # Disable auto RC generation 
+  # - push_branch: release/*
+  #   pipeline: pr_rc_rwy_pipeline
   - push_branch: main
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
