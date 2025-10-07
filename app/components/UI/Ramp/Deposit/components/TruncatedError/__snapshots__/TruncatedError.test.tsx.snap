@@ -214,6 +214,7 @@ exports[`TruncatedError Long error text renders "See more" button for long error
       <Text
         accessibilityRole="link"
         accessible={true}
+        labelTextVariant="sBodySM"
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -234,10 +235,10 @@ exports[`TruncatedError Long error text renders "See more" button for long error
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "Geist Regular",
-              "fontSize": 14,
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

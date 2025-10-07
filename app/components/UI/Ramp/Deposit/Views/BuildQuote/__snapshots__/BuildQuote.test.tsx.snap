@@ -12025,6 +12025,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     accessibilityRole="link"
                                     accessible={true}
                                     isDisabled={false}
+                                    labelTextVariant="sBodySM"
                                     loading={false}
                                     onPress={[MockFunction]}
                                     onPressIn={[Function]}
@@ -12046,10 +12047,10 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -19378,6 +19379,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     accessibilityRole="link"
                                     accessible={true}
                                     isDisabled={false}
+                                    labelTextVariant="sBodySM"
                                     loading={false}
                                     onPress={[MockFunction]}
                                     onPressIn={[Function]}
@@ -19399,10 +19401,10 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -23097,6 +23099,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     accessibilityRole="link"
                                     accessible={true}
                                     isDisabled={false}
+                                    labelTextVariant="sBodySM"
                                     loading={false}
                                     onPress={[MockFunction]}
                                     onPressIn={[Function]}
@@ -23118,10 +23121,10 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
