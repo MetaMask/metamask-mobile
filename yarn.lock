@@ -7017,16 +7017,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^7.0.1":
-  version: 7.1.1
-  resolution: "@metamask/base-controller@npm:7.1.1"
-  dependencies:
-    "@metamask/utils": ^11.0.1
-    immer: ^9.0.6
-  checksum: 0d89bb27f579f6a0fd7b9d05dc80ce79fd7d18dd631088a661b1cfc6c1a915ca7f1eeb54d2554a80defba4b1be0325f5e23e0e8fb146f54c04dbed9c1cf8ed17
-  languageName: node
-  linkType: hard
-
 "@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
   version: 8.4.0
   resolution: "@metamask/base-controller@npm:8.4.0"
@@ -8166,22 +8156,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/polling-controller@npm:^12.0.0":
-  version: 12.0.3
-  resolution: "@metamask/polling-controller@npm:12.0.3"
-  dependencies:
-    "@metamask/base-controller": ^8.0.0
-    "@metamask/controller-utils": ^11.5.0
-    "@metamask/utils": ^11.1.0
-    "@types/uuid": ^8.3.0
-    fast-json-stable-stringify: ^2.1.0
-    uuid: ^8.3.2
-  peerDependencies:
-    "@metamask/network-controller": ^22.0.0
-  checksum: c32710c7b653923c9f2d7d849c85898cb5b81af84d05b7b00604d2d41382d1e7dc149c2b0c9d4374cf274c0353773c5ec47ee2c6641c62345cd8cc1a4e36ceee
-  languageName: node
-  linkType: hard
-
 "@metamask/polling-controller@npm:^14.0.0":
   version: 14.0.0
   resolution: "@metamask/polling-controller@npm:14.0.0"
@@ -8508,9 +8482,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:^18.1.0":
-  version: 18.1.0
-  resolution: "@metamask/smart-transactions-controller@npm:18.1.0"
+"@metamask/smart-transactions-controller@npm:^19.2.1":
+  version: 19.2.1
+  resolution: "@metamask/smart-transactions-controller@npm:19.2.1"
   dependencies:
     "@babel/runtime": ^7.24.1
     "@ethereumjs/tx": ^5.2.1
@@ -8518,29 +8492,35 @@ __metadata:
     "@ethersproject/bytes": ^5.7.0
     "@ethersproject/keccak256": ^5.8.0
     "@ethersproject/transactions": ^5.7.0
-    "@metamask/base-controller": ^7.0.1
+    "@metamask/base-controller": ^8.3.0
     "@metamask/controller-utils": ^11.0.0
     "@metamask/eth-json-rpc-provider": ^4.1.6
     "@metamask/eth-query": ^4.0.0
-    "@metamask/polling-controller": ^12.0.0
+    "@metamask/polling-controller": ^14.0.0
     bignumber.js: ^9.0.1
     fast-json-patch: ^3.1.0
     lodash: ^4.17.21
   peerDependencies:
     "@metamask/network-controller": ^24.0.0
-    "@metamask/transaction-controller": ^42.0.0
+    "@metamask/transaction-controller": ^60.4.0
   peerDependenciesMeta:
     "@metamask/accounts-controller":
       optional: true
     "@metamask/approval-controller":
       optional: true
-  checksum: fe6338df3612e39383225b6ce43f1d29bf323cfe00e1b621c7412bb6a046de1344ec646ab1e8d1d680675d19d17a7a8ac7535e1221a1f3bd7886a7f1cb773f49
+    "@metamask/eth-block-tracker":
+      optional: true
+    "@metamask/gas-fee-controller":
+      optional: true
+    "@metamask/remote-feature-flag-controller":
+      optional: true
+  checksum: 0d198cb4cd942974f4c78f1c3ed393d6e960375b8ff895933c7e35b85ee8f652123d4ddfd9f4cf4fb2e8536879f58512318eaf474ffc6ac4e115ff77f26082c3
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^15.0.0":
-  version: 15.0.0
-  resolution: "@metamask/snaps-controllers@npm:15.0.0"
+"@metamask/snaps-controllers@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "@metamask/snaps-controllers@npm:15.0.1"
   dependencies:
     "@metamask/approval-controller": ^7.1.3
     "@metamask/base-controller": ^8.4.0
@@ -8575,7 +8555,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: e5ac758e3ea54578a741b48cf5d4ee86d323892beec35ebe632db3bbb23c2e5a870244364bf034112baf1b3b551d62adffdb51f00b3af85bc7a55249d1d1608c
+  checksum: 6cd80f70a2acaa181dd0c2b5501c9ef7feed7bb0196baa7c45d0af86b5b9ed1e1175dbba307c3407ac0bdff089e3e33874e973af923ee32cf0ff2db3440b00e3
   languageName: node
   linkType: hard
 
@@ -8795,7 +8775,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.3.0, @metamask/transaction-controller@npm:^60.4.0":
+"@metamask/transaction-controller@npm:^60.4.0":
   version: 60.4.0
   resolution: "@metamask/transaction-controller@npm:60.4.0"
   dependencies:
@@ -34120,8 +34100,8 @@ __metadata:
     "@metamask/selected-network-controller": ^24.0.0
     "@metamask/signature-controller": ^33.0.0
     "@metamask/slip44": ^4.2.0
-    "@metamask/smart-transactions-controller": ^18.1.0
-    "@metamask/snaps-controllers": ^15.0.0
+    "@metamask/smart-transactions-controller": ^19.2.1
+    "@metamask/snaps-controllers": ^15.0.1
     "@metamask/snaps-execution-environments": ^10.2.2
     "@metamask/snaps-rpc-methods": ^13.5.2
     "@metamask/snaps-sdk": ^10.0.0
@@ -34135,7 +34115,7 @@ __metadata:
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
-    "@metamask/transaction-controller": ^60.3.0
+    "@metamask/transaction-controller": ^60.4.0
     "@metamask/tron-wallet-snap": ^1.1.0
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
