@@ -413,7 +413,6 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
-      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -424,7 +423,6 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
-      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
@@ -434,7 +432,6 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
-      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -445,7 +442,6 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
-      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
