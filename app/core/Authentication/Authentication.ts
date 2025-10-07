@@ -811,7 +811,7 @@ class AuthenticationService {
             secret.data,
             wordlist,
           );
-          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+          const mnemonicToRestore = encodedSrp.toString('utf8');
 
           // import the new mnemonic to the current vault
           const keyringMetadata = await this.importSeedlessMnemonicToVault(
