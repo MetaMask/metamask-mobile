@@ -14,6 +14,8 @@ const AccountListCell = memo(
     isSelected,
     onSelectAccount,
     showCheckbox = false,
+    chainId,
+    hideMenu = false,
   }: AccountListCellProps) => {
     const { styles } = useStyles(createStyles, {});
 
@@ -38,6 +40,8 @@ const AccountListCell = memo(
           accountGroup={accountGroup}
           avatarAccountType={avatarAccountType}
           isSelected={isSelected}
+          chainId={chainId}
+          hideMenu={hideMenu}
         />
       </TouchableOpacity>
     );

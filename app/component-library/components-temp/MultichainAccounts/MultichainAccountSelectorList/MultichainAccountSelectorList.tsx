@@ -46,13 +46,17 @@ const MultichainAccountSelectorList = ({
   showCheckbox = false,
   showFooter = true,
   setKeyboardAvoidingViewEnabled,
+  accountSections: accountSectionsProp,
+  chainId,
+  hideAccountCellMenu = false,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
   const isMultichainAccountsEnabled = useSelector(
     selectMultichainAccountsState1Enabled,
   );
-  const accountSections = useSelector(selectAccountGroupsByWallet);
+  const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
+  const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const [searchText, setSearchText] = useState('');
@@ -250,6 +254,8 @@ const MultichainAccountSelectorList = ({
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
                 showCheckbox={showCheckbox}
+                chainId={chainId}
+                hideMenu={hideAccountCellMenu}
               />
             );
           }
@@ -275,6 +281,8 @@ const MultichainAccountSelectorList = ({
         avatarAccountType,
         showCheckbox,
         showFooter,
+        chainId,
+        hideAccountCellMenu,
       ],
     );
 

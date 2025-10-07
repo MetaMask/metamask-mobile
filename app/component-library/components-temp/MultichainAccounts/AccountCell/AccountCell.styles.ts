@@ -35,15 +35,34 @@ const styleSheet = (params: {
     },
     accountName: {
       display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      flex: 1,
+      minWidth: 0,
+      gap: 4,
+    },
+    accountNameRow: {
+      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'flex-start',
       alignItems: 'center',
-      flex: 1,
       minWidth: 0,
     },
     accountNameText: {
       minWidth: 0,
       flex: 1,
+    },
+    accountSubRow: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    accountSubText: {
+      flex: 0,
+    },
+    networkBadge: {
+      marginTop: 1,
     },
     checkIcon: {
       marginLeft: 8,
@@ -55,6 +74,12 @@ const styleSheet = (params: {
       alignItems: 'center',
       gap: 8,
       flexShrink: 0,
+    },
+    balanceContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: 4,
     },
     balance: {
       verticalAlign: 'middle',
