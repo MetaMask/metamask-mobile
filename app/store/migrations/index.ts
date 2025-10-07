@@ -249,14 +249,13 @@ export const asyncifyMigrations = (
     try {
       const fsState = (await ControllerStorage.getKey()) as
         | {
-            backgroundState?: Record<string, unknown>;
-          }
+          backgroundState?: Record<string, unknown>;
+        }
         | undefined;
 
       const s = state as StateWithEngine;
       const fsControllers = fsState?.backgroundState || {};
 
-      // Only inflate from filesystem for post-096 flow
       if (Object.keys(fsControllers).length === 0) {
         return state;
       }
@@ -299,7 +298,6 @@ export const asyncifyMigrations = (
       const { engine: _engine, ...rest } = s;
       return rest as unknown;
     } catch {
-      // If anything goes wrong, return original state as-is
       return state;
     }
   };
@@ -329,7 +327,7 @@ export const asyncifyMigrations = (
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
-              Object.keys(s2.engine.backgroundState).length > 0,
+            Object.keys(s2.engine.backgroundState).length > 0,
           );
           if (hasControllers) {
             return await deflateToControllersAndStrip(migratedState);

@@ -262,7 +262,7 @@ const persistConfig = {
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
-    Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
+    Logger.error(error, { message: 'Error persisting data' }),
 };
 
 export default persistConfig;

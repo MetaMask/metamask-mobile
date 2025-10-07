@@ -10,7 +10,7 @@ const mockFilesystemStorage = FilesystemStorage as jest.Mocked<
 jest.mock('../../util/device');
 const mockDevice = Device as jest.Mocked<typeof Device>;
 
-describe('Migration 103', () => {
+describe('Migration 104', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDevice.isIos.mockReturnValue(true);

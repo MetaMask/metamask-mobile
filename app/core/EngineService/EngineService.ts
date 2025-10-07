@@ -149,11 +149,9 @@ export class EngineService {
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const vaultBackupResult = await getVaultFromBackup();
-    // Use the new ControllerStorage.getKey() method instead of Redux state
     const persistedState = await ControllerStorage.getKey();
     const state = persistedState?.backgroundState ?? {};
     const Engine = UntypedEngine;
-    // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
     if (vaultBackupResult.success) {
