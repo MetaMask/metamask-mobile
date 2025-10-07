@@ -25,9 +25,9 @@ export function useRegions(): UseRegionsResult {
   const [userRegionLocked, setUserRegionLocked] = useState<boolean>(false);
 
   useEffect(() => {
-    if (regions && regions.length > 0) {
-      setUserRegionLocked(false);
+    setUserRegionLocked(false);
 
+    if (regions && regions.length > 0) {
       if (isAuthenticated && userDetails?.address?.countryCode) {
         const userRegion =
           regions.find(

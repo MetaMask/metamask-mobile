@@ -601,5 +601,38 @@ describe('useRegions', () => {
       expect(result.current.userRegionLocked).toBe(false);
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION);
     });
+
+    it('resets userRegionLocked when regions become unavailable', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: MOCK_US_REGION,
+          setSelectedRegion: mockSetSelectedRegion,
+          isAuthenticated: true,
+        }),
+      );
+
+      mockUseDepositUser.mockReturnValue({
+        userDetails: mockUserDetails,
+        error: null,
+        isFetching: false,
+        fetchUserDetails: jest.fn(),
+      });
+
+      mockUseDepositSdkMethod.mockReturnValue([
+        { data: MOCK_REGIONS, error: null, isFetching: false },
+        mockRetryFetchRegions,
+      ]);
+
+      const { result, rerender } = renderHook(() => useRegions());
+
+      expect(result.current.userRegionLocked).toBe(true);
+
+      mockUseDepositSdkMethod.mockReturnValue([
+        { data: null, error: 'Network error', isFetching: false },
+        mockRetryFetchRegions,
+      ]);
+      rerender({});
+      expect(result.current.userRegionLocked).toBe(false);
+    });
   });
 });
