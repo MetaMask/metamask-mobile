@@ -1,6 +1,5 @@
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../util/Logger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -68,17 +67,6 @@ jest.mock('react-native-background-timer', () => ({
   start: jest.fn(),
   stop: jest.fn(),
 }));
-
-jest.mock('../../../../util/Logger', () => {
-  const mockError = jest.fn();
-  return {
-    default: {
-      error: mockError,
-    },
-    error: mockError,
-    __esModule: true,
-  };
-});
 
 // Import non-singleton modules first
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
