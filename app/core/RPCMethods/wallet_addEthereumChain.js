@@ -241,7 +241,6 @@ export const wallet_addEthereumChain = async ({
       PermissionController,
       SelectedNetworkController,
     },
-    requestUserApproval,
     analytics,
     origin,
     autoApprove: shouldAddOrUpdateNetwork,

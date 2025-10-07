@@ -15,7 +15,6 @@ import { isSnapId } from '@metamask/snaps-utils';
  *
  * @param params.req - The JsonRpcEngine request.
  * @param params.res - The JsonRpcEngine result object.
- * @param params.requestUserApproval - The callback to trigger user approval flow.
  * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param params.hooks - Method hooks passed to the method implementation.
  * @returns {void}.
@@ -23,7 +22,6 @@ import { isSnapId } from '@metamask/snaps-utils';
 export const wallet_switchEthereumChain = async ({
   req,
   res,
-  requestUserApproval,
   analytics,
   hooks,
 }) => {
@@ -118,7 +116,6 @@ export const switchEthereumChainHandler = {
   hookNames: {
     getNetworkConfigurationByChainId: true,
     setActiveNetwork: true,
-    requestUserApproval: true,
     getCaveat: true,
     getCurrentChainIdForDomain: true,
     requestPermittedChainsPermissionIncrementalForOrigin: true,
