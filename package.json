@@ -149,6 +149,8 @@
     ]
   },
   "resolutions": {
+    "@metamask/network-controller@^24.1.0": "npm:@metamask-previews/network-controller@24.2.0-preview-622f3f09",
+    "@metamask/selected-network-controller@^24.0.0": "npm:@metamask-previews/selected-network-controller@24.0.0-preview-622f3f09",
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
     "xml2js": ">=0.5.0",
