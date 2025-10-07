@@ -1179,6 +1179,8 @@ describe('polymarket utils', () => {
           negRisk: true,
           orderPriceMinTickSize: 0.01,
           status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
         },
       ],
     };
@@ -1518,6 +1520,8 @@ describe('polymarket utils', () => {
           negRisk: true,
           orderPriceMinTickSize: 0.01,
           status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
         },
       ],
     };
@@ -1627,6 +1631,8 @@ describe('polymarket utils', () => {
       negRisk: true,
       orderPriceMinTickSize: 0.01,
       status: 'open',
+      active: true,
+      resolvedBy: '0x0000000000000000000000000000000000000000',
     };
 
     it('fetch single market successfully', async () => {

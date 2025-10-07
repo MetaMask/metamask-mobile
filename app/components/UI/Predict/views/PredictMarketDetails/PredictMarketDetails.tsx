@@ -24,7 +24,7 @@ import Text, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPrice, formatVolume } from '../../utils/format';
+import { formatPrice, formatVolume, formatAddress } from '../../utils/format';
 import {
   Box,
   BoxFlexDirection,
@@ -57,8 +57,12 @@ const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
 const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
   Record<PredictPriceHistoryInterval, number>
 > = {
-  [PredictPriceHistoryInterval.ONE_WEEK]: 30, // 30-minute resolution for 7-day window
-  [PredictPriceHistoryInterval.ONE_MONTH]: 120, // 2-hour resolution for month-long window
+  [PredictPriceHistoryInterval.ONE_HOUR]: 5, // 5-minute resolution for 1-hour window
+  [PredictPriceHistoryInterval.SIX_HOUR]: 15, // 15-minute resolution for 6-hour window
+  [PredictPriceHistoryInterval.ONE_DAY]: 60, // 1-hour resolution for 1-day window
+  [PredictPriceHistoryInterval.ONE_WEEK]: 240, // 4-hour resolution for 7-day window
+  [PredictPriceHistoryInterval.ONE_MONTH]: 720, // 12-hour resolution for month-long window
+  [PredictPriceHistoryInterval.MAX]: 1440, // 24-hour resolution for max window
 };
 
 const MULTI_CHART_COLORS = ['#4459FF', '#CA3542', '#F0B034'] as const;
@@ -423,7 +427,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         >
           <Pressable>
             <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              0x157...672
+              {isMarketFetching || !market?.outcomes[0]?.resolvedBy
+                ? 'Loading...'
+                : formatAddress(market.outcomes[0].resolvedBy)}
             </Text>
           </Pressable>
           <Icon
