@@ -40,10 +40,6 @@ const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
 const mockDevLogger = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
 >;
-const { setMeasurement: mockSetMeasurement } = jest.requireMock(
-  '@sentry/react-native',
-);
-const { now: mockPerformance } = jest.requireMock('react-native-performance');
 
 describe('usePerpsMeasurement', () => {
   beforeEach(() => {
@@ -104,20 +100,11 @@ describe('usePerpsMeasurement', () => {
       // Should start trace immediately
       expect(mockTrace).toHaveBeenCalledTimes(1);
 
-      // Complete measurement
-      rerender({ conditions: [true, true], resetConditions: [false] });
-
-      expect(mockEndTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { success: true },
-        }),
-      );
-
-      // Manually trigger reset
-      rerender({ conditions: [false, true], resetConditions: [true] });
+      // Trigger reset before completion
+      rerender({ conditions: [true, false], resetConditions: [true] });
 
       // Should end trace with reset reason
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { success: false, reason: 'reset' },
@@ -129,6 +116,16 @@ describe('usePerpsMeasurement', () => {
 
       // Trace should have been started twice (initial + after reset)
       expect(mockTrace).toHaveBeenCalledTimes(2);
+
+      // Complete measurement after restart
+      rerender({ conditions: [true, true], resetConditions: [false] });
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(2);
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          data: { success: true },
+        }),
+      );
     });
   });
 
@@ -170,6 +167,8 @@ describe('usePerpsMeasurement', () => {
     });
 
     it('should wait for start conditions before beginning measurement', () => {
+      jest.clearAllMocks();
+
       const { rerender } = renderHook(
         ({ startConditions, endConditions }) =>
           usePerpsMeasurement({
@@ -186,16 +185,15 @@ describe('usePerpsMeasurement', () => {
       );
 
       // Should not start yet
-      expect(mockPerformance).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
 
       // Start when start conditions are met
-      mockPerformance.mockReturnValue(2000);
       rerender({
         startConditions: [true],
         endConditions: [false, false],
       });
 
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      expect(mockTrace).toHaveBeenCalledTimes(1);
     });
 
     it('should handle reset conditions', () => {
@@ -217,7 +215,7 @@ describe('usePerpsMeasurement', () => {
       );
 
       // Should start
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      expect(mockTrace).toHaveBeenCalledTimes(1);
 
       // Reset measurement
       rerender({
@@ -226,8 +224,15 @@ describe('usePerpsMeasurement', () => {
         resetConditions: [true],
       });
 
+      // Should end with reset
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'reset' },
+        }),
+      );
+
       // Should be able to start again after reset
-      mockPerformance.mockReturnValue(3000);
       rerender({
         startConditions: [false],
         endConditions: [false],
@@ -239,12 +244,14 @@ describe('usePerpsMeasurement', () => {
         resetConditions: [false],
       });
 
-      expect(mockPerformance).toHaveBeenCalledTimes(2);
+      expect(mockTrace).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('complex scenarios', () => {
     it('should handle multiple start and end conditions', () => {
+      jest.clearAllMocks();
+
       const { rerender } = renderHook(
         ({ startConditions, endConditions }) =>
           usePerpsMeasurement({
@@ -266,34 +273,33 @@ describe('usePerpsMeasurement', () => {
         startConditions: [true, false],
         endConditions: [false, false, false],
       });
-      expect(mockPerformance).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
 
       // Start when ALL start conditions are true
-      mockPerformance.mockReturnValue(4000);
       rerender({
         startConditions: [true, true],
         endConditions: [false, false, false],
       });
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      expect(mockTrace).toHaveBeenCalledTimes(1);
 
       // Should not end with partial end conditions
       rerender({
         startConditions: [true, true],
         endConditions: [true, true, false],
       });
-      expect(mockSetMeasurement).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
 
       // End when ALL end conditions are true
-      mockPerformance.mockReturnValue(4750);
       rerender({
         startConditions: [true, true],
         endConditions: [true, true, true],
       });
 
-      expect(mockSetMeasurement).toHaveBeenCalledWith(
-        TraceName.PerpsOrderView,
-        750,
-        'millisecond',
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsOrderView,
+          data: { success: true },
+        }),
       );
       expect(mockDevLogger).toHaveBeenCalledWith(
         expect.stringContaining('completed'),
@@ -304,6 +310,8 @@ describe('usePerpsMeasurement', () => {
     });
 
     it('should handle rapid condition changes', () => {
+      jest.clearAllMocks();
+
       const { rerender } = renderHook(
         ({ startConditions, endConditions }) =>
           usePerpsMeasurement({
@@ -320,13 +328,12 @@ describe('usePerpsMeasurement', () => {
       );
 
       // Rapid start/stop/start should work correctly
-      mockPerformance.mockReturnValue(8000);
       rerender({ startConditions: [true], endConditions: [false] });
       rerender({ startConditions: [false], endConditions: [false] });
       rerender({ startConditions: [true], endConditions: [false] });
 
-      // Should only call performance.now once (no restart without reset)
-      expect(mockPerformance).toHaveBeenCalledTimes(1);
+      // Should only call trace once (no restart without reset)
+      expect(mockTrace).toHaveBeenCalledTimes(1);
     });
   });
 });
