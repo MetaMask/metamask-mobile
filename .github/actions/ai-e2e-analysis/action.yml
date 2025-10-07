@@ -70,6 +70,15 @@ runs:
         cp -r /tmp/ai-deps/node_modules/* node_modules/
         echo "✅ AI dependencies available in workspace"
 
+    - name: Verify gh CLI availability
+      shell: bash
+      run: |
+        if ! command -v gh &> /dev/null; then
+          echo "❌ gh CLI not found - required for fetching PR diffs"
+          exit 1
+        fi
+        echo "✅ gh CLI available: $(gh --version | head -1)"
+
     - name: Test Selection AI Analysis
       id: ai-analysis
       shell: bash
@@ -77,13 +86,16 @@ runs:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         CHANGED_FILES: ${{ inputs.changed-files }}
         EVENT_NAME: ${{ inputs.event-name }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         # Only run AI analysis for pull_request events with changed files
         if [[ "$EVENT_NAME" == "pull_request" ]] && [[ -n "$CHANGED_FILES" ]]; then
           echo "✅ Running AI analysis for PR with changed files"
           node .github/scripts/ai-e2e-analysis.mjs \
             "$EVENT_NAME" \
-            "$CHANGED_FILES"
+            "$CHANGED_FILES" \
+            "$PR_NUMBER"
         else
           echo "⏭️ Skipping AI analysis - only runs on PRs with changed files (event: $EVENT_NAME, has files: $([ -n "$CHANGED_FILES" ] && echo 'yes' || echo 'no'))"
           echo "test_matrix=[]" >> "$GITHUB_OUTPUT"
