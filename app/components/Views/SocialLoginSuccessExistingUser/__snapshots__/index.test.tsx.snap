@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SecureExistingWallet renders match snapshot 1`] = `
+exports[`SocialLoginSuccessExistingUser renders match snapshot 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -91,7 +91,7 @@ exports[`SecureExistingWallet renders match snapshot 1`] = `
             "lineHeight": 40,
           }
         }
-        testID="secure-existing-wallet-screen-title-id"
+        testID="social-login-success-existing-user-title-id"
       >
         You’re logged in!
       </Text>
@@ -126,7 +126,7 @@ exports[`SecureExistingWallet renders match snapshot 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        testID="secure-existing-wallet-screen-button-id"
+        testID="social-login-success-existing-user-button-id"
       >
         <Text
           accessibilityRole="text"
@@ -148,7 +148,7 @@ exports[`SecureExistingWallet renders match snapshot 1`] = `
 </RNCSafeAreaView>
 `;
 
-exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
+exports[`SocialLoginSuccessExistingUser renders match snapshot with medium device 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -239,7 +239,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
             "lineHeight": 40,
           }
         }
-        testID="secure-existing-wallet-screen-title-id"
+        testID="social-login-success-existing-user-title-id"
       >
         You’re logged in!
       </Text>
@@ -274,7 +274,7 @@ exports[`SecureExistingWallet renders match snapshot with medium device 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        testID="secure-existing-wallet-screen-button-id"
+        testID="social-login-success-existing-user-button-id"
       >
         <Text
           accessibilityRole="text"

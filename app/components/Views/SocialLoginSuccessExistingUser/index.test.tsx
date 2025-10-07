@@ -1,6 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import SecureExistingWallet from '.';
+import SocialLoginSuccessExistingUser from '.';
 import Device from '../../../util/device';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import { fireEvent } from '@testing-library/react-native';
@@ -28,32 +28,36 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-describe('SecureExistingWallet', () => {
+describe('SocialLoginSuccessExistingUser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
   });
 
   it('renders match snapshot', () => {
-    const { toJSON } = renderWithProvider(<SecureExistingWallet />);
+    const { toJSON } = renderWithProvider(<SocialLoginSuccessExistingUser />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders match snapshot with medium device', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-    const { toJSON } = renderWithProvider(<SecureExistingWallet />);
+    const { toJSON } = renderWithProvider(<SocialLoginSuccessExistingUser />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders title with correct text', () => {
-    const { getByText } = renderWithProvider(<SecureExistingWallet />);
+    const { getByText } = renderWithProvider(
+      <SocialLoginSuccessExistingUser />,
+    );
     expect(getByText(strings('onboarding.you_are_logged_in'))).toBeTruthy();
   });
 
   it('navigate to rehydrate screen on click of secure wallet button', () => {
-    const { getByTestId } = renderWithProvider(<SecureExistingWallet />);
+    const { getByTestId } = renderWithProvider(
+      <SocialLoginSuccessExistingUser />,
+    );
     const secureWalletButton = getByTestId(
-      OnboardingSelectorIDs.SECURE_EXISTING_WALLET_BUTTON,
+      OnboardingSelectorIDs.SOCIAL_LOGIN_SUCCESS_EXISTING_USER_BUTTON,
     );
     fireEvent.press(secureWalletButton);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Rehydrate', {

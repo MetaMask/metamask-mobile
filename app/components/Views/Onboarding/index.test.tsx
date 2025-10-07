@@ -799,7 +799,7 @@ describe('Onboarding', () => {
         'mockAppleHandler',
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SECURE_EXISTING_WALLET,
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,

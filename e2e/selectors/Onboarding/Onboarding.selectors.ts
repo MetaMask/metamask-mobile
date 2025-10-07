@@ -11,8 +11,10 @@ export const OnboardingSelectorIDs = {
   */
   SCREEN_TITLE: 'wallet-setup-screen-title-id',
   SCREEN_DESCRIPTION: 'wallet-setup-screen-description-id',
-  SECURE_EXISTING_WALLET_TITLE: 'secure-existing-wallet-screen-title-id',
-  SECURE_EXISTING_WALLET_BUTTON: 'secure-existing-wallet-screen-button-id',
+  SOCIAL_LOGIN_SUCCESS_EXISTING_USER_TITLE:
+    'social-login-success-existing-user-title-id',
+  SOCIAL_LOGIN_SUCCESS_EXISTING_USER_BUTTON:
+    'social-login-success-existing-user-button-id',
 };
 
 export const OnboardingSelectorText = {

@@ -125,7 +125,7 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
-    SECURE_EXISTING_WALLET: 'SecureExistingWallet',
+    SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

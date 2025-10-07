@@ -450,7 +450,7 @@ class Onboarding extends PureComponent {
                 onboardingTraceCtx: this.onboardingTraceCtx,
               })
             : this.props.navigation.navigate(
-                Routes.ONBOARDING.SECURE_EXISTING_WALLET,
+                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
                 {
                   [PREVIOUS_SCREEN]: ONBOARDING,
                   oauthLoginSuccess: true,

@@ -155,7 +155,7 @@ import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
-import SecureExistingWallet from '../../Views/SecureExistingWallet';
+import SocialLoginSuccessExistingUser from '../../Views/SocialLoginSuccessExistingUser';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -246,8 +246,8 @@ const OnboardingNav = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.ONBOARDING.SECURE_EXISTING_WALLET}
-      component={SecureExistingWallet}
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+      component={SocialLoginSuccessExistingUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen

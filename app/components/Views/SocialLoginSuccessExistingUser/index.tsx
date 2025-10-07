@@ -19,7 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import styles from './index.styles';
 
-const SecureExistingWallet = () => {
+const SocialLoginSuccessExistingUser = () => {
   const navigation = useNavigation();
 
   const handleSecureWallet = () => {
@@ -46,7 +46,9 @@ const SecureExistingWallet = () => {
           <Text
             variant={TextVariant.DisplayMD}
             color={TextColor.Default}
-            testID={OnboardingSelectorIDs.SECURE_EXISTING_WALLET_TITLE}
+            testID={
+              OnboardingSelectorIDs.SOCIAL_LOGIN_SUCCESS_EXISTING_USER_TITLE
+            }
           >
             {strings('onboarding.you_are_logged_in')}
           </Text>
@@ -55,7 +57,9 @@ const SecureExistingWallet = () => {
         <View style={styles.ctaContainer}>
           <Button
             variant={ButtonVariants.Primary}
-            testID={OnboardingSelectorIDs.SECURE_EXISTING_WALLET_BUTTON}
+            testID={
+              OnboardingSelectorIDs.SOCIAL_LOGIN_SUCCESS_EXISTING_USER_BUTTON
+            }
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={strings('onboarding.unlock_wallet')}
@@ -67,4 +71,4 @@ const SecureExistingWallet = () => {
   );
 };
 
-export default SecureExistingWallet;
+export default SocialLoginSuccessExistingUser;
