@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { BuyQuote, DepositRegion } from '@consensys/native-ramps-sdk';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 import styleSheet from './BuildQuote.styles';
 
@@ -114,8 +114,6 @@ const BuildQuote = () => {
     selectedCryptoCurrency,
     selectedWalletAddress,
   } = useDepositSDK();
-
-  const previousSelectedRegion = useRef<DepositRegion | null>(selectedRegion);
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
@@ -413,9 +411,7 @@ const BuildQuote = () => {
         shouldRouteImmediately: false,
       });
 
-      if (previousSelectedRegion.current?.isoCode === selectedRegion?.isoCode) {
-        handleOnPressContinue();
-      }
+      handleOnPressContinue();
     }
   }, [
     shouldRouteImmediately,
