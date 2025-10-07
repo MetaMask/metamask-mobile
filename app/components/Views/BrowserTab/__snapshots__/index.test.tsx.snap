@@ -327,6 +327,7 @@ exports[`BrowserTab render Browser 1`] = `
               "*",
             ]
           }
+          paymentRequestEnabled={true}
           renderError={[Function]}
           source={
             {
