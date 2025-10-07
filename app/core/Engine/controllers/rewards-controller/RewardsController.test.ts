@@ -10655,4 +10655,465 @@ describe('RewardsController', () => {
       });
     });
   });
+
+  describe('checkOptInStatusAgainstCache', () => {
+    const ADDRESS_1 = '0x1234567890123456789012345678901234567890';
+    const ADDRESS_2 = '0x2345678901234567890123456789012345678901';
+    const ADDRESS_3 = '0x3456789012345678901234567890123456789012';
+    const CAIP_ACCOUNT_1 =
+      'eip155:1:0x1234567890123456789012345678901234567890';
+    const CAIP_ACCOUNT_2 =
+      'eip155:1:0x2345678901234567890123456789012345678901';
+    const CAIP_ACCOUNT_3 =
+      'eip155:1:0x3456789012345678901234567890123456789012';
+
+    const mockInternalAccount1: InternalAccount = {
+      id: 'account-1',
+      address: ADDRESS_1,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 1',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    const mockInternalAccount2: InternalAccount = {
+      id: 'account-2',
+      address: ADDRESS_2,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 2',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    const mockInternalAccount3: InternalAccount = {
+      id: 'account-3',
+      address: ADDRESS_3,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 3',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    beforeEach(() => {
+      // Mock convertInternalAccountToCaipAccountId to return predictable CAIP IDs
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return CAIP_ACCOUNT_1;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          if (account.address === ADDRESS_3) return CAIP_ACCOUNT_3;
+          return null;
+        });
+    });
+
+    it('should return all cached results when all addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState3: RewardsAccountState = {
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: true,
+        subscriptionId: 'sub-3',
+        perpsFeeDiscount: 1000,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, false, true]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, 'sub-3']);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should return no cached results when no addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual([null, null, null]);
+      expect(result.addressesNeedingFresh).toEqual([
+        ADDRESS_1,
+        ADDRESS_2,
+        ADDRESS_3,
+      ]);
+    });
+
+    it('should return mixed results when some addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      // Only ADDRESS_1 has cached data, ADDRESS_2 and ADDRESS_3 don't
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+    });
+
+    it('should handle addresses with undefined hasOptedIn status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: undefined as any, // Explicitly undefined
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, false]);
+      expect(result.cachedSubscriptionIds).toEqual([null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+    });
+
+    it('should handle addresses not found in addressToAccountMap', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        // ADDRESS_2 and ADDRESS_3 are missing from the map
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+    });
+
+    it('should handle empty addresses array', () => {
+      // Arrange
+      const addresses: string[] = [];
+      const addressToAccountMap = new Map();
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([]);
+      expect(result.cachedSubscriptionIds).toEqual([]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should handle case-insensitive address matching', () => {
+      // Arrange
+      const addresses = [ADDRESS_1.toUpperCase(), ADDRESS_2.toLowerCase()];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, false]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should handle convertInternalAccountToCaipAccountId returning null', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      // Mock convertInternalAccountToCaipAccountId to return null for ADDRESS_1
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return null;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          return null;
+        });
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: true,
+        subscriptionId: 'sub-2',
+        perpsFeeDiscount: 750,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, true]);
+      expect(result.cachedSubscriptionIds).toEqual([null, 'sub-2']);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+    });
+
+    it('should preserve order of results matching input addresses order', () => {
+      // Arrange
+      const addresses = [ADDRESS_3, ADDRESS_1, ADDRESS_2]; // Different order
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState3: RewardsAccountState = {
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: true,
+        subscriptionId: 'sub-3',
+        perpsFeeDiscount: 1000,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      // Results should be in the same order as input addresses
+      expect(result.cachedOptInResults).toEqual([true, true, false]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-3', 'sub-1', null]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+  });
 });

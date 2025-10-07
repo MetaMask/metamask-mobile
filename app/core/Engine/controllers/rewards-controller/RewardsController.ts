@@ -971,6 +971,53 @@ export class RewardsController extends BaseController<
     return !!perpsDiscountData?.hasOptedIn;
   }
 
+  checkOptInStatusAgainstCache(
+    addresses: string[],
+    addressToAccountMap: Map<string, InternalAccount>,
+  ): {
+    cachedOptInResults: (boolean | null)[];
+    cachedSubscriptionIds: (string | null)[];
+    addressesNeedingFresh: string[];
+  } {
+    // Arrays to track cached vs fresh data needed
+    const cachedOptInResults: (boolean | null)[] = new Array(
+      addresses.length,
+    ).fill(null);
+    const cachedSubscriptionIds: (string | null)[] = new Array(
+      addresses.length,
+    ).fill(null);
+    const addressesNeedingFresh: string[] = [];
+
+    // Check storage state for each address
+    for (let i = 0; i < addresses.length; i++) {
+      const address = addresses[i];
+      const internalAccount = addressToAccountMap.get(address.toLowerCase());
+
+      if (internalAccount) {
+        const caipAccount =
+          this.convertInternalAccountToCaipAccountId(internalAccount);
+        if (caipAccount) {
+          const accountState = this.#getAccountState(caipAccount);
+          if (accountState?.hasOptedIn !== undefined) {
+            // Use cached data
+            cachedOptInResults[i] = accountState.hasOptedIn;
+            cachedSubscriptionIds[i] = accountState.subscriptionId || null;
+            continue;
+          }
+        }
+      }
+
+      // No cached data found, need fresh API call
+      addressesNeedingFresh.push(address);
+    }
+
+    return {
+      cachedOptInResults,
+      cachedSubscriptionIds,
+      addressesNeedingFresh,
+    };
+  }
+
   /**
    * Get opt-in status for multiple addresses with feature flag check
    * @param params - The request parameters containing addresses
@@ -998,37 +1045,14 @@ export class RewardsController extends BaseController<
         addressToAccountMap.set(account.address.toLowerCase(), account);
       }
 
-      // Arrays to track cached vs fresh data needed
-      const cachedOptInResults: (boolean | null)[] = new Array(
-        params.addresses.length,
-      ).fill(null);
-      const cachedSubscriptionIds: (string | null)[] = new Array(
-        params.addresses.length,
-      ).fill(null);
-      const addressesNeedingFresh: string[] = [];
-
-      // Check storage state for each address
-      for (let i = 0; i < params.addresses.length; i++) {
-        const address = params.addresses[i];
-        const internalAccount = addressToAccountMap.get(address.toLowerCase());
-
-        if (internalAccount) {
-          const caipAccount =
-            this.convertInternalAccountToCaipAccountId(internalAccount);
-          if (caipAccount) {
-            const accountState = this.#getAccountState(caipAccount);
-            if (accountState?.hasOptedIn !== undefined) {
-              // Use cached data
-              cachedOptInResults[i] = accountState.hasOptedIn;
-              cachedSubscriptionIds[i] = accountState.subscriptionId || null;
-              continue;
-            }
-          }
-        }
-
-        // No cached data found, need fresh API call
-        addressesNeedingFresh.push(address);
-      }
+      const {
+        cachedOptInResults,
+        cachedSubscriptionIds,
+        addressesNeedingFresh,
+      } = this.checkOptInStatusAgainstCache(
+        params.addresses,
+        addressToAccountMap,
+      );
 
       // Make fresh API call only for addresses without cached data
       let freshOptInResults: boolean[] = [];
