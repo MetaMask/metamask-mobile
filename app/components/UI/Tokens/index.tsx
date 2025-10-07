@@ -133,7 +133,14 @@ const Tokens = memo(() => {
                 setTimeout(processChunk, 0);
               } else {
                 // All chunks processed
-                setRenderedTokenKeys(accumulatedTokens);
+                const tokenMap = new Map();
+                accumulatedTokens.forEach((item) => {
+                  const staked = item.isStaked ? 'staked' : 'unstaked';
+                  const key = `${item.address}-${item.chainId}-${staked}`;
+                  tokenMap.set(key, item);
+                });
+                const deduped = Array.from(tokenMap.values());
+                setRenderedTokenKeys(deduped);
                 setIsTokensLoading(false);
               }
             });
