@@ -46,7 +46,6 @@ describe('useRegions', () => {
       mockRetryFetchRegions,
     ]);
 
-    // Default useDepositUser state
     mockUseDepositUser.mockReturnValue({
       userDetails: null,
       error: null,
@@ -531,7 +530,7 @@ describe('useRegions', () => {
       const { result } = renderHook(() => useRegions());
 
       expect(result.current.userRegionLocked).toBe(false);
-      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION); // Should use normal selection logic
+      expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_US_REGION);
     });
 
     it('unlocks region when user logs out', () => {

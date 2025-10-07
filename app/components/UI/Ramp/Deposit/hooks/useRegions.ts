@@ -25,46 +25,40 @@ export function useRegions(): UseRegionsResult {
   const [userRegionLocked, setUserRegionLocked] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchRegionsAndSetDefault = async () => {
-      if (regions && regions.length > 0) {
-        // Reset lock state first
-        setUserRegionLocked(false);
+    if (regions && regions.length > 0) {
+      setUserRegionLocked(false);
 
-        // Only lock region if user is authenticated AND has user details with a country
-        if (isAuthenticated && userDetails?.address?.countryCode) {
-          const userRegion =
-            regions.find(
-              (region) => region.isoCode === userDetails.address.countryCode,
-            ) || null;
+      if (isAuthenticated && userDetails?.address?.countryCode) {
+        const userRegion =
+          regions.find(
+            (region) => region.isoCode === userDetails.address.countryCode,
+          ) || null;
 
-          if (userRegion) {
-            setSelectedRegion(userRegion);
-            setUserRegionLocked(true);
-            return;
-          }
-        }
-
-        let newSelectedRegion: DepositRegion | null = null;
-        if (selectedRegion) {
-          newSelectedRegion =
-            regions.find(
-              (region) => region.isoCode === selectedRegion.isoCode,
-            ) || null;
-        }
-
-        if (!newSelectedRegion) {
-          newSelectedRegion =
-            regions.find((region) => region.geolocated) ||
-            regions.find((region) => region.isoCode === 'US') ||
-            regions[0];
-        }
-
-        if (newSelectedRegion) {
-          setSelectedRegion(newSelectedRegion);
+        if (userRegion) {
+          setSelectedRegion(userRegion);
+          setUserRegionLocked(true);
+          return;
         }
       }
-    };
-    fetchRegionsAndSetDefault();
+
+      let newSelectedRegion: DepositRegion | null = null;
+      if (selectedRegion) {
+        newSelectedRegion =
+          regions.find((region) => region.isoCode === selectedRegion.isoCode) ||
+          null;
+      }
+
+      if (!newSelectedRegion) {
+        newSelectedRegion =
+          regions.find((region) => region.geolocated) ||
+          regions.find((region) => region.isoCode === 'US') ||
+          regions[0];
+      }
+
+      if (newSelectedRegion) {
+        setSelectedRegion(newSelectedRegion);
+      }
+    }
   }, [
     regions,
     selectedRegion,

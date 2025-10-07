@@ -260,7 +260,6 @@ describe('BuildQuote Component', () => {
     });
 
     it('does not open region modal when user region is locked', () => {
-      // Arrange
       jest.mocked(useRegions).mockReturnValue({
         ...MOCK_USE_REGIONS_RETURN,
         userRegionLocked: true,
@@ -268,11 +267,9 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      // Act
       const regionButton = screen.getByText('US');
       fireEvent.press(regionButton);
 
-      // Assert
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: expect.any(Object),
