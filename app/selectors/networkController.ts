@@ -431,3 +431,9 @@ export const checkNetworkAndAccountSupports1559 = createSelector(
     );
   },
 );
+
+export const getSelectedMultichainNetwork = createSelector(
+  selectChainId,
+  selectNetworkConfigurations,
+  (chainId, networkConfigurations) => networkConfigurations[chainId],
+);
