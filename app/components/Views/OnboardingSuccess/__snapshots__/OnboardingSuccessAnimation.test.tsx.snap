@@ -2,9 +2,15 @@
 
 exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1`] = `
 <View
+  collapsable={false}
   style={
     {
       "testID": "animation-container",
+      "transform": [
+        {
+          "translateX": 0,
+        },
+      ],
     }
   }
 >
@@ -49,9 +55,15 @@ exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1
 
 exports[`OnboardingSuccessAnimation renders animation and text in correct layout structure 1`] = `
 <View
+  collapsable={false}
   style={
     {
       "testID": "animation-container",
+      "transform": [
+        {
+          "translateX": 0,
+        },
+      ],
     }
   }
 >

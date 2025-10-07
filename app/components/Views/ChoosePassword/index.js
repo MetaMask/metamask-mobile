@@ -238,6 +238,9 @@ class ChoosePassword extends PureComponent {
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
+    // Data for slide out completion
+    navigationData: null,
+    shouldSlideOut: false,
   };
 
   mounted = true;
@@ -254,6 +257,21 @@ class ChoosePassword extends PureComponent {
   };
 
   getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
+
+  handleAnimationComplete = () => {
+    // Navigate after fade out animation completes
+    const { navigationData } = this.state;
+    if (navigationData) {
+      if (navigationData.type === 'reset') {
+        this.props.navigation.reset(navigationData.params);
+      } else if (navigationData.type === 'replace') {
+        this.props.navigation.replace(
+          navigationData.screen,
+          navigationData.params,
+        );
+      }
+    }
+  };
 
   headerLeft = () => {
     const { navigation } = this.props;
@@ -485,19 +503,32 @@ class ChoosePassword extends PureComponent {
           Logger.error(error);
         });
 
-        this.props.navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
+        // Store navigation data and trigger slide out
+        this.setState({
+          navigationData: {
+            type: 'reset',
+            params: {
+              index: 0,
+              routes: [
+                {
+                  name: Routes.ONBOARDING.SUCCESS,
+                  params: { showPasswordHint: true },
+                },
+              ],
             },
-          ],
+          },
+          shouldSlideOut: true,
         });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
-        this.props.navigation.replace('AccountBackupStep1', {
-          seedPhrase,
+        // Store navigation data and trigger slide out
+        this.setState({
+          navigationData: {
+            type: 'replace',
+            screen: 'AccountBackupStep1',
+            params: { seedPhrase },
+          },
+          shouldSlideOut: true,
         });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
@@ -708,7 +739,8 @@ class ChoosePassword extends PureComponent {
   };
 
   renderContent = () => {
-    const { isSelected, password, confirmPassword, loading } = this.state;
+    const { isSelected, password, confirmPassword, loading, shouldSlideOut } =
+      this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     let canSubmit;
     if (this.getOauth2LoginSuccess()) {
@@ -728,9 +760,8 @@ class ChoosePassword extends PureComponent {
           <View style={styles.loadingWrapper}>
             <OnboardingSuccessAnimation
               startAnimation
-              onAnimationComplete={() => {
-                // Animation complete callback - no action needed
-              }}
+              slideOut={shouldSlideOut}
+              onAnimationComplete={this.handleAnimationComplete}
             />
           </View>
         ) : (

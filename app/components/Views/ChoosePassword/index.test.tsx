@@ -62,45 +62,59 @@ jest.mock('../OnboardingSuccess/OnboardingSuccessAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const { strings: mockStrings } = require('../../../../locales/i18n');
 
-  return MockReact.forwardRef((_props: unknown, _ref: unknown) => {
-    // Ensure we don't throw any errors that could trigger ErrorBoundary
-    try {
-      return MockReact.createElement(
-        View,
-        {
-          testID: 'onboarding-success-animation',
-          style: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-        },
-        [
-          MockReact.createElement(
-            Text,
-            {
-              key: 'animation-text',
-              testID: 'animation-text',
-            },
-            mockStrings('onboarding_success.setting_up_wallet_base') + '...',
-          ),
-        ],
-      );
-    } catch (error) {
-      // Fallback to prevent ErrorBoundary triggers in tests
-      return MockReact.createElement(
-        View,
-        {
-          testID: 'onboarding-success-animation-fallback',
-        },
-        [
-          MockReact.createElement(
-            Text,
-            {
-              key: 'fallback-text',
-            },
-            'Loading...',
-          ),
-        ],
-      );
-    }
-  });
+  return MockReact.forwardRef(
+    (
+      props: { slideOut?: boolean; onAnimationComplete?: () => void },
+      _ref: unknown,
+    ) => {
+      // Call onAnimationComplete immediately when slideOut becomes true
+      MockReact.useEffect(() => {
+        if (props.slideOut && props.onAnimationComplete) {
+          setTimeout(() => {
+            props.onAnimationComplete?.();
+          }, 0);
+        }
+      }, [props.slideOut, props.onAnimationComplete]);
+
+      // Ensure not to throw any errors that could trigger ErrorBoundary
+      try {
+        return MockReact.createElement(
+          View,
+          {
+            testID: 'onboarding-success-animation',
+            style: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+          },
+          [
+            MockReact.createElement(
+              Text,
+              {
+                key: 'animation-text',
+                testID: 'animation-text',
+              },
+              mockStrings('onboarding_success.setting_up_wallet_base') + '...',
+            ),
+          ],
+        );
+      } catch (error) {
+        // Fallback to prevent ErrorBoundary triggers
+        return MockReact.createElement(
+          View,
+          {
+            testID: 'onboarding-success-animation-fallback',
+          },
+          [
+            MockReact.createElement(
+              Text,
+              {
+                key: 'fallback-text',
+              },
+              'Loading...',
+            ),
+          ],
+        );
+      }
+    },
+  );
 });
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -705,13 +719,19 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
     });
 
-    // Wait a moment for the loading state to be set and componentDidUpdate to be called
+    // Wait for loading state to be set and animation to complete
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1', {
-      seedPhrase: expect.any(Array),
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        'AccountBackupStep1',
+        {
+          seedPhrase: expect.any(Array),
+        },
+      );
     });
 
     // // Clean up mock
@@ -1037,14 +1057,17 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(mockNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        {
-          name: 'OnboardingSuccess',
-          params: { showPasswordHint: true },
-        },
-      ],
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingSuccess',
+            params: { showPasswordHint: true },
+          },
+        ],
+      });
     });
 
     mockNewWalletAndKeychain.mockRestore();
@@ -1106,14 +1129,17 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(mockNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        {
-          name: 'OnboardingSuccess',
-          params: { showPasswordHint: true },
-        },
-      ],
+    // Wait for the animation callback to trigger navigation
+    await waitFor(() => {
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingSuccess',
+            params: { showPasswordHint: true },
+          },
+        ],
+      });
     });
 
     mockNewWalletAndKeychain.mockRestore();

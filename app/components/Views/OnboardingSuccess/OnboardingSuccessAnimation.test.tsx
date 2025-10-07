@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { Animated } from 'react-native';
 
 // Mock useTheme hook
 const mockUseTheme = jest.fn().mockReturnValue({
@@ -291,7 +292,7 @@ describe('OnboardingSuccessAnimation', () => {
       />,
     );
 
-    // Assert - Should have the expected component structure
+    // Assert
     const tree = toJSON();
     expect(tree).toMatchSnapshot();
   });
@@ -343,7 +344,78 @@ describe('OnboardingSuccessAnimation', () => {
 
     jest.advanceTimersByTime(500);
 
-    // Assert - Component should handle the cycling without crashing
+    // Assert
     expect(mockOnAnimationComplete).not.toHaveBeenCalled();
+  });
+
+  it('triggers slide out animation when slideOut prop is true', () => {
+    // Arrange
+    const mockOnAnimationComplete = jest.fn();
+    const mockAnimatedTiming = jest.spyOn(Animated, 'timing');
+    const mockStart = jest.fn();
+    const mockStop = jest.fn();
+    const mockReset = jest.fn();
+    mockAnimatedTiming.mockReturnValue({
+      start: mockStart,
+      stop: mockStop,
+      reset: mockReset,
+    } as unknown as Animated.CompositeAnimation);
+
+    // Act
+    render(
+      <OnboardingSuccessAnimation
+        startAnimation
+        slideOut
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
+    );
+
+    // Assert
+    expect(mockAnimatedTiming).toHaveBeenCalledWith(
+      expect.any(Object), // slideAnim
+      expect.objectContaining({
+        toValue: expect.any(Number),
+        duration: 800,
+        easing: expect.any(Function),
+        useNativeDriver: true,
+      }),
+    );
+    expect(mockStart).toHaveBeenCalled();
+
+    // Cleanup
+    mockAnimatedTiming.mockRestore();
+  });
+
+  it('calls onAnimationComplete when slide animation finishes', () => {
+    // Arrange
+    const mockOnAnimationComplete = jest.fn();
+    const mockAnimatedTiming = jest.spyOn(Animated, 'timing');
+    const mockStart = jest.fn((callback?: Animated.EndCallback) => {
+      if (callback) {
+        callback({ finished: true });
+      }
+    });
+    const mockStop = jest.fn();
+    const mockReset = jest.fn();
+    mockAnimatedTiming.mockReturnValue({
+      start: mockStart,
+      stop: mockStop,
+      reset: mockReset,
+    } as unknown as Animated.CompositeAnimation);
+
+    // Act
+    render(
+      <OnboardingSuccessAnimation
+        startAnimation
+        slideOut
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
+    );
+
+    // Assert
+    expect(mockOnAnimationComplete).toHaveBeenCalledTimes(1);
+
+    // Cleanup
+    mockAnimatedTiming.mockRestore();
   });
 });

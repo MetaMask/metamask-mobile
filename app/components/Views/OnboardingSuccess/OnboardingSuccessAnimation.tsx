@@ -5,7 +5,7 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, Animated, Easing } from 'react-native';
 import Rive, { RiveRef, Fit, Alignment } from 'rive-react-native';
 import { useTheme } from '../../../util/theme';
 import createStyles from './OnboardingSuccessAnimation.styles.ts';
@@ -19,11 +19,13 @@ import onboardingRiveFile from '../../../animations/onboarding_loader.riv';
 interface OnboardingSuccessAnimationProps {
   startAnimation: boolean;
   onAnimationComplete: () => void;
+  slideOut?: boolean;
 }
 
 const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   startAnimation: _startAnimation,
   onAnimationComplete: _onAnimationComplete,
+  slideOut = false,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
@@ -44,8 +46,10 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 
   const riveRef = useRef<RiveRef>(null);
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   const [dotsCount, setDotsCount] = useState(1);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const clearTimers = useCallback(() => {
     if (dotsIntervalId.current) {
@@ -85,6 +89,25 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
     }, 500);
   }, []);
 
+  const startSlideOutAnimation = useCallback(() => {
+    if (!isCompleted) {
+      Animated.timing(slideAnim, {
+        toValue: -screenDimensions.screenWidth,
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
+        setIsCompleted(true);
+        _onAnimationComplete();
+      });
+    }
+  }, [
+    slideAnim,
+    screenDimensions.screenWidth,
+    isCompleted,
+    _onAnimationComplete,
+  ]);
+
   useEffect(() => {
     startRiveAnimation();
     startDotsAnimation();
@@ -94,8 +117,21 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
     };
   }, [startRiveAnimation, startDotsAnimation, clearTimers]);
 
+  useEffect(() => {
+    if (slideOut) {
+      startSlideOutAnimation();
+    }
+  }, [slideOut, startSlideOutAnimation]);
+
   return (
-    <View style={styles.animationContainer}>
+    <Animated.View
+      style={[
+        styles.animationContainer,
+        {
+          transform: [{ translateX: slideAnim }],
+        },
+      ]}
+    >
       <View style={styles.animationWrapper}>
         <Rive
           ref={riveRef}
@@ -113,7 +149,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
           )}${renderAnimatedDots()}`}
         </Text>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
