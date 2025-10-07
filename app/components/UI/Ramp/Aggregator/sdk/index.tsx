@@ -118,10 +118,9 @@ interface ProviderProps<T> {
   children?: React.ReactNode;
 }
 
-export const callbackBaseUrl =
-  isDevelopment || !isProduction
-    ? 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback'
-    : 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
+export const callbackBaseUrl = isProduction
+  ? 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback'
+  : 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';
 
