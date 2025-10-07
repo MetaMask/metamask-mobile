@@ -58,6 +58,7 @@ export const NETWORKS_CHAIN_ID = {
   SEI: toHex('1329'),
   MONAD_TESTNET: toHex('10143'),
   HYPER_EVM: toHex('999'),
+  LUKSO: toHex('42'),
 };
 
 // To add a deprecation warning to a network, add it to the array
@@ -90,6 +91,7 @@ export const CHAINLIST_CURRENCY_SYMBOLS_MAP = {
   MEGAETH_MAINNET: 'ETH',
   SEI: 'SEI',
   MONAD_TESTNET: 'MON',
+  LUKSO: 'LYX',
 };
 
 export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
@@ -118,6 +120,7 @@ export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
   [NETWORKS_CHAIN_ID.SEI]: CHAINLIST_CURRENCY_SYMBOLS_MAP.SEI,
   [NETWORKS_CHAIN_ID.MONAD_TESTNET]:
     CHAINLIST_CURRENCY_SYMBOLS_MAP.MONAD_TESTNET,
+  [NETWORKS_CHAIN_ID.LUKSO]: CHAINLIST_CURRENCY_SYMBOLS_MAP.LUKSO,
 };
 
 export const TEST_NETWORK_IDS = [

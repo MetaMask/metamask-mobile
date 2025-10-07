@@ -49,6 +49,7 @@ import AAVE from './aave-token-round.png';
 import TRON from './tron-logo.png';
 ///: END:ONLY_INCLUDE_IF
 import HEMI from './hemi.png';
+import LUKSO from './lukso.png';
 
 export default {
   PALM,
@@ -104,4 +105,5 @@ export default {
   XDC,
   'MEGAETH-MAINNET': MEGAETH_MAINNET,
   HEMI,
+  LYX: LUKSO,
 };
