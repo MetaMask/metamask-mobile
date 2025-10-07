@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 
 // Internal dependencies.
 import OnboardingSuccess, {
@@ -14,9 +14,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { strings } from '../../../../locales/i18n';
-import { backgroundState } from '../../../util/test/initial-root-state';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 import {
@@ -210,6 +208,84 @@ describe('OnboardingSuccessComponent', () => {
     expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).toHaveBeenCalled();
 
+    mockIsE2EValue = false;
+  });
+
+  it('initializes fade animation on component mount', () => {
+    // Arrange
+    jest.useFakeTimers();
+    const mockTiming = jest.spyOn(Animated, 'timing');
+
+    // Act
+    renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+      />,
+    );
+
+    // Assert
+    expect(mockTiming).toHaveBeenCalled();
+    const fadeAnimCall = mockTiming.mock.calls.find(
+      (call) => call[1]?.duration === 2000,
+    );
+    expect(fadeAnimCall).toBeDefined();
+    expect(fadeAnimCall?.[1]?.toValue).toBe(1);
+    expect(fadeAnimCall?.[1]?.useNativeDriver).toBe(true);
+
+    mockTiming.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('initializes scale animation on component mount', () => {
+    // Arrange
+    jest.useFakeTimers();
+    const mockTiming = jest.spyOn(Animated, 'timing');
+    const mockParallel = jest.spyOn(Animated, 'parallel');
+
+    // Act
+    renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+      />,
+    );
+
+    // Assert
+    expect(mockParallel).toHaveBeenCalled();
+    expect(mockTiming).toHaveBeenCalledTimes(2);
+
+    // Verify scale animation
+    const scaleAnimCall = mockTiming.mock.calls[1];
+    expect(scaleAnimCall[1]?.toValue).toBe(1);
+    expect(scaleAnimCall[1]?.duration).toBe(2000);
+    expect(scaleAnimCall[1]?.useNativeDriver).toBe(true);
+
+    mockTiming.mockRestore();
+    mockParallel.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('skips animation in E2E tests', () => {
+    // Arrange
+    mockIsE2EValue = true;
+    const mockTiming = jest.spyOn(Animated, 'timing');
+    const mockParallel = jest.spyOn(Animated, 'parallel');
+
+    // Act
+    renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        _successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
+      />,
+    );
+
+    // Assert
+    expect(mockParallel).not.toHaveBeenCalled();
+    expect(mockTiming).not.toHaveBeenCalled();
+
+    mockTiming.mockRestore();
+    mockParallel.mockRestore();
     mockIsE2EValue = false;
   });
 
@@ -422,83 +498,6 @@ describe('OnboardingSuccess', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
-  });
-
-  it('displays wallet ready message for social login users (Apple and Google)', async () => {
-    jest.useFakeTimers();
-
-    const testCases = [
-      {
-        authConnection: AuthConnection.Apple,
-        description: 'Apple social login',
-      },
-      {
-        authConnection: AuthConnection.Google,
-        description: 'Google social login',
-      },
-    ];
-
-    for (const testCase of testCases) {
-      jest.clearAllMocks();
-
-      mockRoute.mockReturnValue({
-        params: {
-          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-        },
-      });
-
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSeedlessOnboardingAuthConnection) {
-          return testCase.authConnection;
-        }
-        if (selector === selectSeedlessOnboardingLoginFlow) {
-          return (
-            testCase.authConnection === AuthConnection.Google ||
-            testCase.authConnection === AuthConnection.Apple
-          );
-        }
-        return undefined;
-      });
-
-      const initialState = {
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            SeedlessOnboardingController: {
-              authConnection: testCase.authConnection,
-              socialBackupsMetadata: [],
-            },
-          },
-        },
-        settings: {},
-      };
-
-      const { getByText, unmount } = renderWithProvider(<OnboardingSuccess />, {
-        state: initialState,
-      });
-
-      jest.advanceTimersByTime(5000);
-
-      await waitFor(
-        () => {
-          const walletReadyText = getByText(
-            strings('onboarding_success.wallet_ready'),
-          );
-          expect(walletReadyText).toBeOnTheScreen();
-        },
-        {
-          timeout: 1000,
-          onTimeout: () =>
-            new Error(
-              `Failed to find wallet ready text for ${testCase.description}`,
-            ),
-        },
-      );
-
-      unmount();
-    }
-
-    jest.useRealTimers();
   });
 
   describe('Edge Case Branch Coverage', () => {

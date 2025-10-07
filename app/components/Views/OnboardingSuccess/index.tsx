@@ -1,5 +1,18 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import { ScrollView, View, Image, TouchableOpacity } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  ScrollView,
+  View,
+  Image,
+  TouchableOpacity,
+  Animated,
+  Easing,
+} from 'react-native';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -33,6 +46,7 @@ import { useDispatch } from 'react-redux';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import { isE2E } from '../../../util/test/utils';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -50,6 +64,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 }) => {
   const navigation = useNavigation();
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
   const styles = useMemo(
@@ -62,6 +79,29 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       headerShown: false,
     });
   }, [navigation]);
+
+  useEffect(() => {
+    if (isE2E) {
+      fadeAnim.setValue(1);
+      scaleAnim.setValue(1);
+      return;
+    }
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.out(Easing.back(1.2)),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, scaleAnim]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
@@ -109,7 +149,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     ],
   );
 
-  const renderButtons = useCallback(() => (
+  const renderButtons = useCallback(
+    () => (
       <View style={styles.buttonContainer}>
         <Button
           testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
@@ -120,32 +161,42 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           width={ButtonWidthTypes.Full}
         />
       </View>
-    ), [styles.buttonContainer, handleOnDone]);
+    ),
+    [styles.buttonContainer, handleOnDone],
+  );
 
   const renderFooter = () => (
-      <View style={styles.footerWrapper}>
-        <TouchableOpacity
-          style={styles.footerLink}
-          onPress={goToDefaultSettings}
-          testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        >
-          <Text color={TextColor.Primary} variant={TextVariant.BodyMD}>
-            {strings('onboarding_success.manage_default_settings')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
+    <View style={styles.footerWrapper}>
+      <TouchableOpacity
+        style={styles.footerLink}
+        onPress={goToDefaultSettings}
+        testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
+      >
+        <Text color={TextColor.Primary} variant={TextVariant.BodyMD}>
+          {strings('onboarding_success.manage_default_settings')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <ScrollView
       contentContainerStyle={[styles.root]}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
-      <View style={styles.contentContainer}>
+      <Animated.View
+        style={[
+          styles.contentContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
         <View style={styles.contentWrapper}>{renderContent()}</View>
         {renderButtons()}
         {renderFooter()}
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 };
