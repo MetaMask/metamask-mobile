@@ -2,6 +2,7 @@
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
 
 export const getIsSwapsAssetAllowed = ({
   asset,
@@ -21,7 +22,8 @@ export const getIsSwapsAssetAllowed = ({
   // EVM Swaps
   let isEvmSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
-    isEvmSwapsAssetAllowed = true;
+    const isChainAllowed = isSwapsAllowed(asset.chainId);
+    isEvmSwapsAssetAllowed = isChainAllowed;
   } else if (isAssetFromSearch(asset)) {
     isEvmSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
       asset.address?.toLowerCase(),
