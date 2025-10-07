@@ -22,6 +22,17 @@ export interface WithdrawalRequest {
   withdrawalId?: string;
 }
 
+export interface DepositRequest {
+  id: string;
+  timestamp: number;
+  amount: string;
+  asset: string;
+  txHash?: string;
+  status: 'pending' | 'bridging' | 'completed' | 'failed';
+  source?: string;
+  depositId?: string;
+}
+
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format
  * @param fills - Array of abstract OrderFill objects
@@ -385,6 +396,75 @@ export function transformWithdrawalRequestsToTransactions(
         txHash: txHash || '',
         status,
         type: 'withdrawal',
+      },
+    };
+  });
+}
+
+/**
+ * Transform DepositRequest objects to PerpsTransaction format
+ * @param depositRequests - Array of DepositRequest objects
+ * @returns Array of PerpsTransaction objects
+ */
+export function transformDepositRequestsToTransactions(
+  depositRequests: DepositRequest[],
+): PerpsTransaction[] {
+  return depositRequests.map((request) => {
+    const { id, timestamp, amount, asset, txHash, status, source } = request;
+
+    // Format amount with positive sign for deposits
+    const amountBN = BigNumber(amount);
+    const displayAmount = `+$${amountBN.toFixed(2)}`;
+
+    // Determine status text and styling
+    let statusText = '';
+    let isPositive = true; // Deposits are always positive
+
+    switch (status) {
+      case 'completed':
+        statusText = 'Completed';
+        break;
+      case 'bridging':
+        // For deposits, bridging state should not be shown - treat as pending
+        statusText = 'Pending';
+        break;
+      case 'failed':
+        statusText = 'Failed';
+        isPositive = false;
+        break;
+      case 'pending':
+        statusText = 'Pending';
+        break;
+    }
+
+    // Create subtitle with status and transaction hash if available
+    let subtitle = `${statusText}`;
+    if (txHash) {
+      subtitle += ` • ${txHash.slice(0, 8)}...${txHash.slice(-6)}`;
+    }
+
+    // Create title based on whether we have the actual amount
+    const title =
+      amount === '0' || amount === '0.00'
+        ? 'Deposit'
+        : `Deposited ${amount} ${asset}`;
+
+    return {
+      id: `deposit-${id}`,
+      type: 'deposit',
+      category: 'deposit',
+      title,
+      subtitle,
+      timestamp,
+      asset,
+      depositWithdrawal: {
+        amount: displayAmount,
+        amountNumber: amountBN.toNumber(),
+        isPositive,
+        asset,
+        txHash: txHash || '',
+        status,
+        type: 'deposit',
       },
     };
   });

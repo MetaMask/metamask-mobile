@@ -27,6 +27,7 @@ import {
   usePerpsOrderFills,
   usePerpsOrders,
   useWithdrawalRequests,
+  useDepositRequests,
 } from '../../hooks';
 import {
   FilterTab,
@@ -41,6 +42,7 @@ import {
   transformFundingToTransactions,
   transformOrdersToTransactions,
   transformWithdrawalRequestsToTransactions,
+  transformDepositRequestsToTransactions,
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
@@ -125,6 +127,13 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { withdrawalRequests, refetch: refreshWithdrawalRequests } =
     useWithdrawalRequests({
       startTime: withdrawalParams.startTime,
+      skipInitialFetch: !isConnected,
+    });
+
+  // Get deposit requests
+  const { depositRequests, refetch: refreshDepositRequests } =
+    useDepositRequests({
+      startTime: withdrawalParams.startTime, // Use same time range as withdrawals
       skipInitialFetch: !isConnected,
     });
 
@@ -239,11 +248,27 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return transformed;
   }, [withdrawalRequests]);
 
-  // Separate deposits and withdrawals - for now showing empty states
-  const depositTransactions = useMemo(
-    () => [], // Empty array for now
-    [],
-  );
+  // Transform deposit requests to transactions
+  const depositTransactions = useMemo(() => {
+    const transformed = transformDepositRequestsToTransactions(depositRequests);
+    console.log('Deposit transactions for UI:', {
+      rawCount: depositRequests.length,
+      transformedCount: transformed.length,
+      raw: depositRequests.map((d) => ({
+        id: d.id,
+        status: d.status,
+        amount: d.amount,
+        timestamp: new Date(d.timestamp).toISOString(),
+      })),
+      transformed: transformed.map((t) => ({
+        id: t.id,
+        title: t.title,
+        subtitle: t.subtitle,
+        timestamp: new Date(t.timestamp).toISOString(),
+      })),
+    });
+    return transformed;
+  }, [depositRequests]);
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(() => {
@@ -323,6 +348,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         refreshOrders(),
         refreshFunding(),
         refreshWithdrawalRequests(),
+        refreshDepositRequests(),
       ]);
     } catch (error) {
       console.warn('Failed to refresh transaction data:', error);
@@ -335,6 +361,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     refreshOrders,
     refreshFunding,
     refreshWithdrawalRequests,
+    refreshDepositRequests,
   ]);
 
   // Initial loading is handled by the hooks themselves

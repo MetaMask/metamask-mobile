@@ -56,6 +56,7 @@ export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';
+export { useDepositRequests } from './useDepositRequests';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
