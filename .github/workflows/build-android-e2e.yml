@@ -12,20 +12,36 @@ on:
       aab-uploaded:
         description: 'Whether the AAB was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.aab-uploaded }}
-      sourcemap-uploaded:
-        description: 'Whether the sourcemap was successfully uploaded'
-        value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
+    inputs:
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        default: 'qa'
+        type: string
+      keystore_target:
+        description: 'The target to use for the keystore'
+        required: false
+        default: 'qa'
+        type: string
 
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+      apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+      test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
+      artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
 
     steps:
       - name: Checkout repo
@@ -37,7 +53,7 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          target: qa
+          target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -60,17 +76,61 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Generate current fingerprint
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
+      - name: Determine target paths and Artifact Names
+        id: determine-target-paths
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
+              echo "artifact_name=app-flask-release"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
+              echo "artifact_name=app-prod-release"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
+
+      - name: Check and restore cached APKs if Fingerprint is found
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
+          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          restore-keys: |
+            android-apk-${{ inputs.build_type }}-
+            android-apk-
+
       - name: Build Android E2E APKs
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:main:e2e
+          yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -89,26 +149,98 @@ jobs:
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
           SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
           MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
           MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
           MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
           MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      - name: Repack APK with JS updates using @expo/repack-app
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn build:repack:android
+          echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" | cut -f1)"
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Cache build artifacts with the pre-build fingerprint
+      - name: Cache build artifacts
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
+          key: android-apk-${{ inputs.build_type }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.apk
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -116,8 +248,8 @@ jobs:
         id: upload-test-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -125,18 +257,8 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.aab
-          path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
-
-      - name: Upload Android Source Map
-        id: upload-sourcemap
-        uses: actions/upload-artifact@v4
-        with:
-          name: index.android.bundle.map
-          path: sourcemaps/android/index.android.bundle.map
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
+          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true

@@ -1,15 +1,9 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useContext } from 'react';
 import { useLinkAccount } from './useLinkAccount';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-
-// Mock dependencies
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn(),
-}));
+import { formatAddress } from '../../../../util/address';
 
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -19,6 +13,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  formatAddress: jest.fn(),
 }));
 
 // Mock useRewardsToast
@@ -39,32 +37,34 @@ jest.mock('./useRewardsToast', () => ({
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    const mockStrings: Record<string, string> = {
-      'rewards.settings.link_account_success_title': `${params?.accountName} linked successfully`,
-      'rewards.settings.link_account_error_title': 'Failed to link account',
-    };
-    return mockStrings[key] || key;
+    if (
+      key === 'rewards.settings.link_account_success_title' &&
+      params?.accountName
+    ) {
+      return `${params.accountName} linked successfully`;
+    }
+    if (key === 'rewards.settings.link_account_error_title') {
+      return 'Failed to link account';
+    }
+    if (key === 'rewards.settings.link_account_failed_error') {
+      return 'Failed to link account';
+    }
+    if (key === 'rewards.settings.link_account_unknown_error') {
+      return 'Unknown error occurred';
+    }
+    return key;
   }),
 }));
 
 describe('useLinkAccount', () => {
-  // Set up mocks for the old toast system (for backward compatibility in tests)
-  const mockCloseToast = jest.fn();
-  const mockToastRef = {
-    current: {
-      showToast: jest.fn(),
-      closeToast: mockCloseToast,
-    },
-  };
-
   // Get references to the mocked functions
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
   const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
-  const mockUseContext = useContext as jest.MockedFunction<typeof useContext>;
-
-  // Mock account data
+  const mockFormatAddress = formatAddress as jest.MockedFunction<
+    typeof formatAddress
+  >;
   const mockAccount: InternalAccount = {
     id: 'test-account-id',
     address: '0x123456789abcdef',
@@ -83,8 +83,8 @@ describe('useLinkAccount', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseContext.mockReturnValue(mockToastRef);
     mockEngineCall.mockResolvedValue(true);
+    mockFormatAddress.mockReturnValue('0x12345...bcdef');
   });
 
   it('should initialize with default values', () => {
@@ -122,9 +122,13 @@ describe('useLinkAccount', () => {
         mockAccount,
       );
 
-      // Verify success toast was shown
+      // Verify formatAddress was called and success toast was shown
+      expect(mockFormatAddress).toHaveBeenCalledWith(
+        mockAccount.address,
+        'short',
+      );
       expect(mockSuccessToast).toHaveBeenCalledWith(
-        'Test Account linked successfully',
+        '0x12345...bcdef linked successfully',
       );
       expect(mockShowToast).toHaveBeenCalled();
     });

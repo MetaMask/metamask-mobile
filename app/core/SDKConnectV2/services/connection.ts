@@ -7,55 +7,61 @@ import {
   SessionStore,
   WebSocketTransport,
 } from '@metamask/mobile-wallet-protocol-core';
-import { ConnectionRequest } from '../types/connection-request';
-import { PersistedConnection } from '../types/persisted-connection';
 import { KVStore } from '../store/kv-store';
-import { Metadata } from '../types/metadata';
+import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
+import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
+import { ConnectionInfo } from '../types/connection-info';
+import logger from './logger';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
  */
 export class Connection {
   public readonly id: string;
-  public readonly metadata: Metadata;
+  public readonly info: ConnectionInfo;
   public readonly client: WalletClient;
+  public readonly bridge: IRPCBridgeAdapter;
 
-  private constructor(id: string, metadata: Metadata, client: WalletClient) {
-    this.id = id;
-    this.metadata = metadata;
+  private constructor(connInfo: ConnectionInfo, client: WalletClient) {
+    this.id = connInfo.id;
+    this.info = connInfo;
     this.client = client;
+    this.bridge = new RPCBridgeAdapter(this.info);
 
     this.client.on('message', (payload) => {
-      console.warn(`[Connection:${this.id}] Received message:`, payload); // To be implemented in a future PR.
+      logger.debug('Received message:', this.id, payload);
+      this.bridge.send(payload);
+    });
+
+    this.bridge.on('response', (payload) => {
+      logger.debug('Sending message:', this.id, payload);
+      this.client.sendResponse(payload);
     });
   }
 
   /**
    * Creates a new connection from either a new request or persisted data.
    *
-   * @param data - The data for the connection, either a `ConnectionRequest` or a `PersistedConnection`.
+   * @param connInfo - The connection information.
    * @param keymanager - The key manager instance.
    * @param relayURL - The URL of the relay server.
    * @returns The created connection.
    */
   public static async create(
-    data: ConnectionRequest | PersistedConnection,
+    connInfo: ConnectionInfo,
     keymanager: IKeyManager,
     relayURL: string,
   ): Promise<Connection> {
-    const id = 'sessionRequest' in data ? data.sessionRequest.id : data.id;
-    const metadata = data.metadata;
-
     const transport = await WebSocketTransport.create({
       url: relayURL,
-      kvstore: new KVStore(`mwp/transport/${id}`),
+      kvstore: new KVStore(`mwp/transport/${connInfo.id}`),
     });
     const sessionstore = new SessionStore(
-      new KVStore(`mwp/session-store/${id}`),
+      new KVStore(`mwp/session-store/${connInfo.id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
 
-    return new Connection(id, metadata, client);
+    return new Connection(connInfo, client);
   }
 
   /**
@@ -64,7 +70,6 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
-    console.warn(`[Connection:${this.id}] Connected to dApp.`);
   }
 
   /**
@@ -72,14 +77,13 @@ export class Connection {
    */
   public async resume(): Promise<void> {
     await this.client.resume(this.id);
-    console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
   }
 
   /**
    * Disconnects the connection from the dApp.
    */
   public async disconnect(): Promise<void> {
+    this.bridge.dispose();
     await this.client.disconnect();
-    console.warn(`[Connection:${this.id}] Disconnected.`);
   }
 }
