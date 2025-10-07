@@ -1072,7 +1072,6 @@ export const getRpcMethodMiddleware = ({
         return RPCMethods.wallet_switchEthereumChain({
           req,
           res,
-          requestUserApproval,
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
