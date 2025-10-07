@@ -5,6 +5,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import AppConstants from '../../../core/AppConstants';
+import { PhishingDetectorResultType } from '@metamask/phishing-controller';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -70,7 +71,6 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
   get: () => '',
 }));
 
-// // Mock phishing detection utilities
 jest.mock('../../../util/phishingDetection', () => ({
   getPhishingTestResult: jest.fn(() => ({ result: false, name: '' })),
   getPhishingTestResultAsync: jest.fn(() =>
@@ -200,18 +200,20 @@ describe('BrowserTab', () => {
 
       expect(
         onShouldStartLoadWithRequest({
+          // eslint-disable-next-line no-script-url
           url: 'javascript://example.com',
         }),
       ).toBe(false);
     });
 
     it('stops webview from loading a phishing website', async () => {
-      const {
-        getPhishingTestResult,
-      } = require('../../../util/phishingDetection');
+      const { getPhishingTestResult } = jest.requireMock(
+        '../../../util/phishingDetection',
+      );
       getPhishingTestResult.mockReturnValue({
         result: true,
         name: 'phishing-site',
+        type: PhishingDetectorResultType.Blocklist,
       });
 
       renderWithProvider(<BrowserTab {...mockProps} />, {
