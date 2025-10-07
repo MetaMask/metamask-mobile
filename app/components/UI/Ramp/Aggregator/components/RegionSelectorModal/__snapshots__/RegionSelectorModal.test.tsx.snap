@@ -498,25 +498,25 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -1360,25 +1360,25 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -2560,25 +2560,25 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -3422,25 +3422,25 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -4152,25 +4152,25 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -4848,10 +4848,10 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                   testID="back-button"
@@ -4859,15 +4859,15 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="ArrowLeft"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -4916,25 +4916,25 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -5734,25 +5734,25 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -6934,25 +6934,25 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -8134,25 +8134,25 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
                                     color="#121314"
                                     fill="currentColor"
-                                    height={16}
+                                    height={20}
                                     name="Close"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>

@@ -575,7 +575,8 @@
     "token_contract_warning": "Alamat ini merupakan alamat kontrak token. Jika mengirim token ke alamat ini, Anda akan kehilangan token tersebut.",
     "invisible_character_error": "Kami mendeteksi karakter tak terlihat pada nama ENS. Periksa nama ENS untuk menghindari potensi penipuan.",
     "could_not_resolve_name": "Tidak dapat menyelesaikan nama",
-    "invalid_address": "Alamat tidak valid"
+    "invalid_address": "Alamat tidak valid",
+    "contractAddressError": "Anda mengirimkan token ke alamat kontrak token. Hal ini dapat mengakibatkan hilangnya token tersebut."
   },
   "deposit": {
     "title": "Deposit",
@@ -877,6 +878,8 @@
     "withdraw": "Tarik",
     "refresh_balance": "Segarkan Saldo",
     "add_funds": "Tambahkan dana",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Posisi Anda",
     "loading_positions": "Memuat posisi...",
     "refreshing_positions": "Menyegarkan posisi...",
@@ -885,7 +888,7 @@
       "title": "Jumlah yang akan dideposit",
       "get_usdc_hyperliquid": "Dapatkan USDC • Hyperliquid",
       "insufficient_funds": "Dana tidak cukup",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Tidak ada dana yang tersedia. Silakan deposit terlebih dahulu.",
       "enter_amount": "Masukkan jumlah",
       "fetching_quote": "Mengambil kuotasi",
       "submitting": "Mengirimkan transaksi",
@@ -1037,6 +1040,7 @@
         "insufficient_funds": "Dana tidak cukup",
         "insufficient_balance": "Saldo tidak mencukupi. Diperlukan: ${{required}}, Tersedia: ${{available}}",
         "invalid_leverage": "Leverage harus berada di antara {{min}}x dan {{max}}x",
+        "max_order_value": "Ukuran order harus di bawah ${{maxValue}}",
         "high_leverage_warning": "Leverage yang tinggi meningkatkan risiko likuidasi",
         "invalid_take_profit": "Ambil profit harus {{direction}} harga saat ini untuk posisi {{positionType}}",
         "invalid_stop_loss": "Stop loss harus {{direction}} harga saat ini untuk posisi {{positionType}}",
@@ -1331,9 +1335,9 @@
         "error_message": "Data pasar tidak ditemukan. Kembali dan coba lagi."
       },
       "statistics": "Ikhtisar",
-      "24hr_high": "Tinggi 24 jam",
-      "24hr_low": "Rendah 24 jam",
-      "24h_volume": "Volume 24 jam",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Kontrak terbuka",
       "funding_rate": "Tingkat pendanaan",
       "countdown": "Hitung mundur",
@@ -1459,6 +1463,8 @@
     "failed_to_load_market_data": "Gagal memuat data pasar",
     "tap_to_retry": "Ketuk untuk mencoba lagi",
     "search_by_token_symbol": "Cari berdasarkan simbol token",
+    "no_tokens_found": "Tidak ada token yang ditemukan",
+    "no_tokens_found_description": "Kami tidak dapat menemukan token dengan nama \"{{searchQuery}}\". Coba pencarian lain.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1490,7 +1496,10 @@
         "filled": "Terpenuhi",
         "metamask_fee": "Biaya MetaMask",
         "hyperliquid_fee": "Biaya Hyperliquid",
-        "total_fee": "Total biaya"
+        "total_fee": "Total biaya",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Tanggal",
@@ -1503,7 +1512,7 @@
         "history_will_appear": "Riwayat perdagangan Anda akan muncul di sini"
       }
     },
-    "risk_disclaimer": "Perdagangan perp berisiko dan Anda bisa tiba-tiba kehilangan seluruh margin tanpa pemberitahuan. Anda berdagang dengan risiko yang sepenuhnya ditanggung sendiri. Data pasar disediakan oleh Hyperliquid. Grafik harga didukung oleh",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Lanjutkan",
       "skip": "Lewati",
@@ -1535,10 +1544,13 @@
         "description": "Danai akun perp Anda dengan token apa pun dan lakukan perdagangan pertama dalam hitungan detik.",
         "footer_text": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperEVM tanpa biaya tambahan."
       },
-      "got_it": "Mengerti"
+      "got_it": "Mengerti",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Poin",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Estimasi Poin",
     "unable_to_load": "Tidak dapat memuat",
     "points_error": "Kami tidak dapat memuat poin saat ini",
     "points_error_content": "Jangan khawatir, Anda tetap mendapatkan poin. Poin akan segera muncul di akun Anda atau periksa tab Reward nanti.",
@@ -1611,8 +1623,7 @@
     "accept": "Terima"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Pindai kode QR",
-    "receive_tab": "Kode QR Anda"
+    "scanner_tab": "Pindai kode QR"
   },
   "banner": {
     "bridge": {
@@ -1862,13 +1873,13 @@
     "agree": "Saya Setuju",
     "decline": "Tidak, terima kasih",
     "description_title": "Bantu kami meningkatkan MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Kami ingin meminta izin ini. Anda dapat memilih keluar atau menghapus data penggunaan setiap saat.",
     "description_content_2": "Saat kami mengumpulkan metrik, maka akan selalu...",
     "description_content_3": "Pelajari cara kami melindungi privasi Anda saat mengumpulkan data penggunaan untuk profil Anda.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Kumpulkan data penggunaan dasar",
+    "gather_basic_usage_description": "Kami akan mengumpulkan data penggunaan produk dasar seperti lokasi umum, klik, dan lihat. Tidak ada informasi lain yang akan disimpan.",
+    "gather_basic_usage_learn_more": "Selengkapnya",
+    "checkbox_marketing": "Pembaruan pemasaran",
     "checkbox": "Kami akan menggunakan data ini untuk mempelajari cara Anda berinteraksi dengan komunikasi pemasaran kami. Kami mungkin akan membagikan berita terkait (seperti fitur produk).",
     "action_description_1_prefix": "Pribadi:",
     "action_description_2_prefix": "Umum:",
@@ -1878,7 +1889,7 @@
     "action_description_3_description": "Anda memutuskan jika ingin membagikan atau menghapus data penggunaan melalui pengaturan setiap saat.",
     "cta_no_thanks": "Tidak, terima kasih",
     "cta_i_agree": "Saya setuju",
-    "continue": "Continue",
+    "continue": "Lanjutkan",
     "fine_print_1_legacy": "Data ini dikumpulkan sehingga bersifat anonim untuk tujuan Peraturan Perlindungan Data Umum (UE) 2016/679.",
     "fine_print_2a_legacy": "*Saat Anda menggunakan Infura sebagai penyedia RPC default di MetaMask, Infura akan mengumpulkan alamat IP dan alamat dompet Ethereum Anda saat mengirim transaksi. Kami tidak menyimpan informasi ini dengan cara yang memungkinkan sistem kami menghubungkan kedua bagian data tersebut. Anda bisa mengonfigurasi penyedia RPC",
     "fine_print_2b_legacy": "sebelum melanjutkan.\nUntuk informasi selengkapnya seputar cara MetaMask dan Infura berinteraksi dari perspektif pengumpulan data, lihat pembaruan kami",
@@ -2041,9 +2052,9 @@
       "solana_devnet_account_name": "Akun Devnet Solana",
       "solana_testnet_account_name": "Akun Testnet Solana",
       "solana_account_name": "Akun Solana",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Akun Tron",
+      "tron_nile_account_name": "Akun Tron Nile",
+      "tron_shasta_account_name": "Akun Tron Shasta"
     },
     "error_messages": {
       "failed_to_create_account": "Gagal membuat akun {{clientType}}"
@@ -3442,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " salah atau salah eja.",
     "error_invalid_srp": "Frasa Pemulihan Rahasia Tidak Valid",
     "error_duplicate_srp": "Frasa Pemulihan Rahasia ini telah diimpor.",
-    "success_1": "Wallet",
+    "success_1": "Dompet",
     "success_2": "diimpor"
   },
   "first_incoming_transaction": {
@@ -4885,7 +4896,7 @@
     "import_account": "Kunci pribadi",
     "add_bitcoin_account": "Akun Bitcoin",
     "add_solana_account": "Akun Solana",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Akun Tron",
     "switch_to_smart_account": "Beralih ke Akun Cerdas",
     "rename_account": "Ganti nama akun",
     "addresses": "Alamat",
@@ -5598,7 +5609,7 @@
       "section_1_title": "Apa itu akun multichain?",
       "section_1_description": "Satu akun, alamat di semua jaringan yang didukung MetaMask. Jadi, sekarang Anda bisa menggunakan Ethereum, Solana, dan lainnya tanpa perlu berganti akun.",
       "section_2_title": "Alamat sama, lebih banyak jaringan",
-      "section_2_description": "Kami telah menggabungkan akun Anda, jadi, tetap gunakan MetaMask seperti sebelumnya. Dana Anda aman dan tidak berubah.",
+      "section_2_description": "Kami telah mengelompokkan akun Anda, jadi, tetap gunakan MetaMask seperti sebelumnya. Dana Anda aman dan tidak berubah",
       "view_accounts_button": "Lihat akun",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Mengatur akun Anda"
@@ -5652,6 +5663,7 @@
       "balance": "Saldo",
       "create_account": "Buat akun",
       "creating_account": "Membuat akun...",
+      "discovering_accounts": "Menemukan akun...",
       "back_up": "Cadangkan",
       "reveal_recovery_phrase_with_index": "Tampilkan Frasa Pemulihan {{index}}"
     },
@@ -5749,6 +5761,11 @@
       "swap_description": "Tukar token menjadi {{symbol}} di Linea",
       "select_method": "Pilih metode"
     },
+    "card_onboarding": {
+      "title": "Selamat datang di Card",
+      "description": "Untuk menggunakan fitur card, Anda perlu memverifikasi akun dengan mitra kami.",
+      "verify_account_button": "Verifikasikan akun"
+    },
     "card_home": {
       "error_title": "Tidak dapat mengambil data",
       "error_description": "Tampaknya ada masalah yang mencegah Anda melihat konten di halaman ini. Periksa koneksi Anda atau coba segarkan halaman.",
@@ -5824,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5881,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Reward ada di sini",
+      "gtm_description": "Dapatkan poin untuk aktivitas Anda. \nLewati level untuk membuka reward.",
+      "gtm_confirm": "Mulai",
+      "intro_title": "Musim 1 \nTayang",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5924,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6011,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Reward terkunci",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,7 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "tersisa",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6050,6 +6084,16 @@
       "perps_deposit": "Tambahkan dana",
       "swap": "Tukar token",
       "swap_approval": "Setujui token"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

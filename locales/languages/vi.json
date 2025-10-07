@@ -575,7 +575,8 @@
     "token_contract_warning": "Đây là địa chỉ hợp đồng token. Nếu bạn gửi token đến địa chỉ này, bạn sẽ bị mất chúng.",
     "invisible_character_error": "Chúng tôi đã phát hiện một ký tự vô hình trong tên ENS. Hãy kiểm tra tên ENS để tránh nguy cơ bị lừa đảo.",
     "could_not_resolve_name": "Không thể giải mã tên",
-    "invalid_address": "Địa chỉ không hợp lệ"
+    "invalid_address": "Địa chỉ không hợp lệ",
+    "contractAddressError": "Bạn đang gửi token đến địa chỉ hợp đồng của token. Điều này có thể dẫn đến việc mất token đó."
   },
   "deposit": {
     "title": "Nạp",
@@ -877,6 +878,8 @@
     "withdraw": "Rút tiền",
     "refresh_balance": "Làm mới số dư",
     "add_funds": "Thêm tiền",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Vị thế của bạn",
     "loading_positions": "Đang tải vị thế...",
     "refreshing_positions": "Đang làm mới vị thế...",
@@ -885,7 +888,7 @@
       "title": "Số tiền cần nạp",
       "get_usdc_hyperliquid": "Nhận USDC • Hyperliquid",
       "insufficient_funds": "Không đủ tiền",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Không có sẵn tiền. Vui lòng nạp tiền trước.",
       "enter_amount": "Nhập số tiền",
       "fetching_quote": "Tìm nạp báo giá",
       "submitting": "Đang gửi giao dịch",
@@ -1037,6 +1040,7 @@
         "insufficient_funds": "Không đủ tiền",
         "insufficient_balance": "Số dư không đủ. Yêu cầu: ${{required}}, Khả dụng: ${{available}}",
         "invalid_leverage": "Đòn bẩy phải nằm trong khoảng từ x{{min}} đến x{{max}}",
+        "max_order_value": "Kích thước lệnh phải dưới ${{maxValue}}",
         "high_leverage_warning": "Đòn bẩy cao làm tăng rủi ro bị thanh lý",
         "invalid_take_profit": "Điểm Chốt lời phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
         "invalid_stop_loss": "Điểm Cắt lỗ phải {{direction}} giá hiện tại đối với vị thế {{positionType}}",
@@ -1331,9 +1335,9 @@
         "error_message": "Không tìm thấy dữ liệu thị trường. Vui lòng quay lại và thử lại."
       },
       "statistics": "Tổng quan",
-      "24hr_high": "Đỉnh 24 giờ",
-      "24hr_low": "Đáy 24 giờ",
-      "24h_volume": "Khối lượng 24 giờ",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Lãi suất mở",
       "funding_rate": "Tỷ lệ tài trợ",
       "countdown": "Đếm ngược",
@@ -1459,6 +1463,8 @@
     "failed_to_load_market_data": "Không thể tải dữ liệu thị trường",
     "tap_to_retry": "Nhấn để thử lại",
     "search_by_token_symbol": "Tìm kiếm theo biểu tượng token",
+    "no_tokens_found": "Không tìm thấy token",
+    "no_tokens_found_description": "Chúng tôi không tìm thấy token nào với tên \"{{searchQuery}}\". Hãy thử từ khóa tìm kiếm khác.",
     "testnet": "Mạng thử nghiệm",
     "mainnet": "Mạng chính thức",
     "developer_options": {
@@ -1490,7 +1496,10 @@
         "filled": "Đã khớp",
         "metamask_fee": "Phí MetaMask",
         "hyperliquid_fee": "Phí Hyperliquid",
-        "total_fee": "Tổng phí"
+        "total_fee": "Tổng phí",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Ngày",
@@ -1503,7 +1512,7 @@
         "history_will_appear": "Lịch sử giao dịch của bạn sẽ hiển thị tại đây"
       }
     },
-    "risk_disclaimer": "Giao dịch hợp đồng vĩnh cửu tiềm ẩn nhiều rủi ro và bạn có thể đột ngột mất toàn bộ số tiền ký quỹ mà không được báo trước. Bạn tự chịu hoàn toàn cho rủi ro khi giao dịch. Dữ liệu thị trường được cung cấp bởi Hyperliquid. Biểu đồ giá được hỗ trợ bởi",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Tiếp tục",
       "skip": "Bỏ qua",
@@ -1535,10 +1544,13 @@
         "description": "Nạp tiền vào tài khoản hợp đồng vĩnh cửu bằng bất kỳ token nào và thực hiện giao dịch đầu tiên trong vài giây.",
         "footer_text": "MetaMask sẽ hoán đổi tiền của bạn sang USDC trên Arbitrum và nạp vào HyperEVM mà không tính thêm phí."
       },
-      "got_it": "Đã hiểu"
+      "got_it": "Đã hiểu",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Điểm",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Điểm ước tính",
     "unable_to_load": "Không thể tải",
     "points_error": "Chúng tôi không thể tải điểm ngay bây giờ",
     "points_error_content": "Đừng lo, bạn vẫn đang tích lũy điểm. Điểm sẽ sớm hiển thị trong tài khoản hoặc bạn có thể kiểm tra sau trong tab Phần thưởng.",
@@ -1611,8 +1623,7 @@
     "accept": "Chấp nhận"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Quét mã QR",
-    "receive_tab": "Mã QR của bạn"
+    "scanner_tab": "Quét mã QR"
   },
   "banner": {
     "bridge": {
@@ -1862,13 +1873,13 @@
     "agree": "Tôi đồng ý",
     "decline": "Không, cảm ơn",
     "description_title": "Giúp chúng tôi cải thiện MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Chúng tôi muốn yêu cầu các quyền sau. Bạn có thể từ chối hoặc xóa dữ liệu sử dụng của mình bất cứ lúc nào.",
     "description_content_2": "Khi thu thập số liệu, chúng tôi sẽ luôn cam kết điều này...",
     "description_content_3": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi thu thập dữ liệu sử dụng cho hồ sơ của bạn.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Thu thập dữ liệu sử dụng cơ bản",
+    "gather_basic_usage_description": "Chúng tôi sẽ thu thập dữ liệu sử dụng sản phẩm cơ bản như vị trí chung, lượt nhấp và lượt xem. Chúng tôi không lưu trữ thông tin nào khác.",
+    "gather_basic_usage_learn_more": "Tìm hiểu thêm",
+    "checkbox_marketing": "Cập nhật hoạt động tiếp thị",
     "checkbox": "Chúng tôi sẽ sử dụng dữ liệu này để tìm hiểu cách bạn tương tác với các thông tin tiếp thị. Chúng tôi có thể chia sẻ tin tức liên quan (chẳng hạn như tính năng sản phẩm).",
     "action_description_1_prefix": "Riêng tư:",
     "action_description_2_prefix": "Chung:",
@@ -1878,7 +1889,7 @@
     "action_description_3_description": "Bạn có thể chọn chia sẻ hoặc xóa dữ liệu sử dụng của mình trong phần cài đặt bất kỳ lúc nào.",
     "cta_no_thanks": "Không, cảm ơn",
     "cta_i_agree": "Tôi đồng ý",
-    "continue": "Continue",
+    "continue": "Tiếp tục",
     "fine_print_1_legacy": "Do đó, dữ liệu này được tổng hợp và ẩn danh theo các mục đích của Quy định bảo vệ dữ liệu chung (EU) 2016/679.",
     "fine_print_2a_legacy": "*Khi bạn sử dụng Infura làm nhà cung cấp RPC mặc định trong MetaMask, Infura sẽ thu thập địa chỉ IP và địa chỉ ví Ethereum của bạn khi bạn gửi giao dịch. Chúng tôi không lưu trữ thông tin này để cho phép hệ thống của chúng tôi liên kết hai loại dữ liệu đó. Bạn có thể cấu hình nhà cung cấp RPC",
     "fine_print_2b_legacy": "trước khi tiếp tục.\nĐể biết thêm thông tin về cách MetaMask và Infura tương tác trong việc thu thập dữ liệu, hãy xem bản cập nhật",
@@ -2041,9 +2052,9 @@
       "solana_devnet_account_name": "Tài khoản Solana Devnet",
       "solana_testnet_account_name": "Tài khoản Mạng thử nghiệm Solana",
       "solana_account_name": "Tài khoản Solana",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tài khoản Tron",
+      "tron_nile_account_name": "Tài khoản Tron Nile",
+      "tron_shasta_account_name": "Tài khoản Tron Shasta"
     },
     "error_messages": {
       "failed_to_create_account": "Tạo tài khoản {{clientType}} thất bại"
@@ -3442,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " không đúng hoặc sai chính tả.",
     "error_invalid_srp": "Cụm từ khôi phục bí mật không hợp lệ",
     "error_duplicate_srp": "Cụm từ khôi phục bí mật này đã được nhập rồi.",
-    "success_1": "Wallet",
+    "success_1": "Ví",
     "success_2": "đã nhập"
   },
   "first_incoming_transaction": {
@@ -4885,7 +4896,7 @@
     "import_account": "Khóa riêng tư",
     "add_bitcoin_account": "Tài khoản Bitcoin",
     "add_solana_account": "Tài khoản Solana",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tài khoản Tron",
     "switch_to_smart_account": "Chuyển sang Tài khoản Thông minh",
     "rename_account": "Đổi tên tài khoản",
     "addresses": "Địa chỉ",
@@ -5598,7 +5609,7 @@
       "section_1_title": "Tài khoản đa chuỗi là gì?",
       "section_1_description": "Một tài khoản, nhiều địa chỉ trên tất cả các mạng mà MetaMask hỗ trợ. Giờ đây bạn có thể sử dụng Ethereum, Solana và nhiều mạng khác mà không cần chuyển tài khoản.",
       "section_2_title": "Cùng một địa chỉ, nhiều mạng hơn",
-      "section_2_description": "Chúng tôi đã gộp các tài khoản của bạn, vì vậy bạn có thể tiếp tục sử dụng MetaMask như trước đây. Tiền của bạn vẫn an toàn và không thay đổi.",
+      "section_2_description": "Chúng tôi đã nhóm các tài khoản của bạn, vì vậy bạn có thể tiếp tục sử dụng MetaMask như trước đây. Tiền của bạn vẫn an toàn và không thay đổi",
       "view_accounts_button": "Xem tài khoản",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Thiết lập tài khoản của bạn"
@@ -5652,6 +5663,7 @@
       "balance": "Số dư",
       "create_account": "Tạo tài khoản",
       "creating_account": "Đang tạo tài khoản...",
+      "discovering_accounts": "Đang tìm tài khoản...",
       "back_up": "Sao lưu",
       "reveal_recovery_phrase_with_index": "Hiển thị Cụm từ khôi phục {{index}}"
     },
@@ -5749,6 +5761,11 @@
       "swap_description": "Hoán đổi token sang {{symbol}} trên Linea",
       "select_method": "Chọn phương thức"
     },
+    "card_onboarding": {
+      "title": "Chào mừng đến với Thẻ",
+      "description": "Để sử dụng các tính năng của thẻ, bạn cần xác minh tài khoản với đối tác của chúng tôi.",
+      "verify_account_button": "Xác minh tài khoản"
+    },
     "card_home": {
       "error_title": "Không thể tìm nạp dữ liệu",
       "error_description": "Dường như đang có sự cố khiến bạn không thể xem nội dung trên trang này. Vui lòng kiểm tra kết nối hoặc thử làm mới trang.",
@@ -5824,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5881,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Phần thưởng đã sẵn sàng",
+      "gtm_description": "Nhận điểm cho các hoạt động của bạn. \nThăng cấp để mở khóa phần thưởng.",
+      "gtm_confirm": "Bắt đầu",
+      "intro_title": "Mùa 1 \nđã bắt đầu",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5924,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6011,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Upcoming rewards",
+      "title": "Phần thưởng bị khóa",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6023,7 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
+      "time_left": "còn lại",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6050,6 +6084,16 @@
       "perps_deposit": "Nạp tiền",
       "swap": "Hoán đổi token",
       "swap_approval": "Phê duyệt token"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

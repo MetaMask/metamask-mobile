@@ -1,4 +1,5 @@
 import { Side } from '../../types';
+import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
@@ -113,6 +114,7 @@ export type ClobHeaders = {
 export interface PolymarketOffchainTradeParams {
   clobOrder: ClobOrderObject;
   headers: ClobHeaders;
+  feeAuthorization?: SafeFeeAuthorization;
 }
 
 export interface OrderArtifactsParams {
@@ -164,6 +166,7 @@ export interface PolymarketApiEvent {
   title: string;
   description: string;
   icon: string;
+  endDate?: string;
   closed: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
