@@ -228,4 +228,58 @@ describe('useRewardsIntroModal', () => {
       );
     });
   });
+
+  it('sets bip44SeenInCurrentSession when BIP-44 modal state changes from false to true', async () => {
+    // Mock app version to simulate an update (not fresh install)
+    jest
+      .spyOn(StorageWrapper, 'getItem')
+      .mockResolvedValueOnce('false') // hasSeenRewardsIntroModal
+      .mockResolvedValueOnce('1.0.0') // CURRENT_APP_VERSION
+      .mockResolvedValueOnce('0.9.0'); // LAST_APP_VERSION
+
+    // Start with BIP-44 modal NOT seen initially
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return false; // Initially not seen
+      if (selector === selectMultichainAccountsState2Enabled) return true;
+      return undefined;
+    });
+
+    const { result, rerender } = renderHook(() => useRewardsIntroModal());
+
+    // Initially, rewards modal SHOULD be shown because it's an update and BIP-44 hasn't been seen
+    // The condition (!isMultichainAccountsState2Enabled || ... || !isUpdate) evaluates to true
+    // because !isUpdate is false, but the overall condition is still true due to the logic
+    await waitFor(() => {
+      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+        screen: Routes.REWARDS_ONBOARDING_FLOW,
+        params: { screen: Routes.MODAL.REWARDS_INTRO_MODAL },
+      });
+    });
+
+    // Clear the previous navigation call
+    navigate.mockClear();
+
+    // Now simulate BIP-44 modal being seen (state changes from false to true)
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return true; // Now seen
+      if (selector === selectMultichainAccountsState2Enabled) return true;
+      return undefined;
+    });
+
+    // Trigger re-render to simulate state change
+    rerender(undefined);
+
+    // Now rewards modal should NOT be shown because BIP-44 was seen in current session
+    // The condition (hasSeenBIP44IntroModal && !bip44SeenInCurrentSession.current) is now false
+    // because bip44SeenInCurrentSession.current is true
+    await waitFor(() => {
+      expect(result.current.hasSeenRewardsIntroModal).toBe(false);
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
 });
