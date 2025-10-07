@@ -244,9 +244,10 @@ export const useBridgeQuoteData = ({
   return {
     bestQuote,
     quoteFetchError,
-    activeQuote,
+    activeQuote: bestQuote,
+    quotesLoadingStatus,
     destTokenAmount: formattedDestTokenAmount,
-    isLoading: quotesLoadingStatus === RequestStatus.LOADING,
+    isLoading,
     formattedQuoteData,
     isNoQuotesAvailable,
     willRefresh,
