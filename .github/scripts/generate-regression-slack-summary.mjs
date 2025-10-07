@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { parseStringPromise } from 'xml2js';
 
 const platform = process.argv[2] || 'Android';
 const resultsPath = process.argv[3] || path.join(process.cwd(), 'all-test-results');
@@ -14,64 +15,87 @@ const resultsPath = process.argv[3] || path.join(process.cwd(), 'all-test-result
 /**
  * Parse all testsuites from JUnit XML and return them grouped by category
  */
-function parseJUnitXML(xmlContent) {
+async function parseJUnitXML(xmlContent) {
   const suiteResults = {};
 
-  // Extract all <testsuite> elements (not <testsuites>)
-  // Match the opening tag and content separately since attributes can be in any order
-  const testsuiteRegex = /<testsuite\s([^>]*)>([\s\S]*?)<\/testsuite>/g;
+  try {
+    const result = await parseStringPromise(xmlContent, {
+      explicitArray: false,
+      mergeAttrs: true,
+    });
 
-  let match;
-  while ((match = testsuiteRegex.exec(xmlContent)) !== null) {
-    const attributes = match[1];
-    const suiteContent = match[2];
-
-    // Extract attributes from the testsuite tag
-    const nameMatch = attributes.match(/name="([^"]*)"/);
-    const testsMatch = attributes.match(/tests="(\d+)"/);
-    const failuresMatch = attributes.match(/failures="(\d+)"/);
-    const errorsMatch = attributes.match(/errors="(\d+)"/);
-    const skippedMatch = attributes.match(/skipped="(\d+)"/);
-
-    if (!nameMatch || !testsMatch) continue;
-
-    const suiteName = nameMatch[1];
-    const tests = parseInt(testsMatch[1], 10);
-    const failures = parseInt(failuresMatch ? failuresMatch[1] : '0', 10);
-    const errors = parseInt(errorsMatch ? errorsMatch[1] : '0', 10);
-    const skipped = parseInt(skippedMatch ? skippedMatch[1] : '0', 10);
-
-    // Extract category from suite name
-    const category = extractCategory(suiteName);
-
-    if (!suiteResults[category]) {
-      suiteResults[category] = {
-        tests: 0,
-        failures: 0,
-        skipped: 0,
-        errors: 0,
-        failedTests: [],
-      };
+    // Handle both single testsuite and multiple testsuites wrapped in <testsuites>
+    let testsuites = [];
+    if (result.testsuites?.testsuite) {
+      // Multiple testsuites wrapped in <testsuites>
+      testsuites = Array.isArray(result.testsuites.testsuite)
+        ? result.testsuites.testsuite
+        : [result.testsuites.testsuite];
+    } else if (result.testsuite) {
+      // Single testsuite at root level
+      testsuites = Array.isArray(result.testsuite)
+        ? result.testsuite
+        : [result.testsuite];
     }
 
-    suiteResults[category].tests += tests;
-    suiteResults[category].failures += failures + errors;
-    suiteResults[category].skipped += skipped;
+    for (const testsuite of testsuites) {
+      const suiteName = testsuite.name;
+      const tests = parseInt(testsuite.tests || '0', 10);
+      const failures = parseInt(testsuite.failures || '0', 10);
+      const errors = parseInt(testsuite.errors || '0', 10);
+      const skipped = parseInt(testsuite.skipped || '0', 10);
 
-    // Extract failed test cases from this testsuite
-    const testcaseRegex = /<testcase[^>]*name="([^"]*)"[^>]*>[\s\S]*?<failure[^>]*>([\s\S]*?)<\/failure>/g;
-    let testMatch;
-    while ((testMatch = testcaseRegex.exec(suiteContent)) !== null) {
-      const testName = testMatch[1];
-      const failureMessage = testMatch[2]
-        .replace(/<!\[CDATA\[/g, '')
-        .replace(/\]\]>/g, '')
-        .trim()
-        .split('\n')[0]
-        .substring(0, 200);
+      if (!suiteName) continue;
 
-      suiteResults[category].failedTests.push({ name: testName, message: failureMessage });
+      // Extract category from suite name
+      const category = extractCategory(suiteName);
+
+      if (!suiteResults[category]) {
+        suiteResults[category] = {
+          tests: 0,
+          failures: 0,
+          skipped: 0,
+          errors: 0,
+          failedTests: [],
+        };
+      }
+
+      suiteResults[category].tests += tests;
+      suiteResults[category].failures += failures + errors;
+      suiteResults[category].skipped += skipped;
+
+      // Extract failed test cases from this testsuite
+      if (testsuite.testcase) {
+        const testcases = Array.isArray(testsuite.testcase)
+          ? testsuite.testcase
+          : [testsuite.testcase];
+
+        for (const testcase of testcases) {
+          if (testcase.failure) {
+            const testName = testcase.name || 'Unknown Test';
+            let failureMessage = '';
+
+            if (typeof testcase.failure === 'string') {
+              failureMessage = testcase.failure;
+            } else if (testcase.failure._) {
+              failureMessage = testcase.failure._;
+            } else if (testcase.failure.message) {
+              failureMessage = testcase.failure.message;
+            }
+
+            // Clean up and truncate failure message
+            failureMessage = failureMessage
+              .trim()
+              .split('\n')[0]
+              .substring(0, 200);
+
+            suiteResults[category].failedTests.push({ name: testName, message: failureMessage });
+          }
+        }
+      }
     }
+  } catch (error) {
+    console.error('Error parsing XML:', error.message);
   }
 
   return suiteResults;
@@ -80,12 +104,14 @@ function parseJUnitXML(xmlContent) {
 /**
  * Read and parse all XML files in a directory
  */
-function parseAllXMLFiles(dirPath) {
+async function parseAllXMLFiles(dirPath) {
   const allResults = {};
 
   if (!fs.existsSync(dirPath)) {
     return allResults;
   }
+
+  const xmlFiles = [];
 
   function walkDir(dir) {
     const files = fs.readdirSync(dir);
@@ -97,41 +123,47 @@ function parseAllXMLFiles(dirPath) {
       if (stat.isDirectory()) {
         walkDir(filePath);
       } else if (file.endsWith('.xml')) {
-        try {
-          const content = fs.readFileSync(filePath, 'utf-8');
-          const results = parseJUnitXML(content);
-
-          // Merge results from this file into allResults
-          Object.entries(results).forEach(([category, data]) => {
-            if (!allResults[category]) {
-              allResults[category] = {
-                tests: 0,
-                failures: 0,
-                skipped: 0,
-                errors: 0,
-                failedTests: [],
-              };
-            }
-
-            allResults[category].tests += data.tests;
-            allResults[category].failures += data.failures;
-            allResults[category].skipped += data.skipped;
-            allResults[category].errors += data.errors;
-            allResults[category].failedTests.push(...data.failedTests);
-          });
-        } catch (error) {
-          console.error(`Error parsing ${filePath}:`, error.message);
-        }
+        xmlFiles.push(filePath);
       }
     });
   }
 
   walkDir(dirPath);
+
+  // Parse all XML files
+  for (const filePath of xmlFiles) {
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const results = await parseJUnitXML(content);
+
+      // Merge results from this file into allResults
+      Object.entries(results).forEach(([category, data]) => {
+        if (!allResults[category]) {
+          allResults[category] = {
+            tests: 0,
+            failures: 0,
+            skipped: 0,
+            errors: 0,
+            failedTests: [],
+          };
+        }
+
+        allResults[category].tests += data.tests;
+        allResults[category].failures += data.failures;
+        allResults[category].skipped += data.skipped;
+        allResults[category].errors += data.errors;
+        allResults[category].failedTests.push(...data.failedTests);
+      });
+    } catch (error) {
+      console.error(`Error parsing ${filePath}:`, error.message);
+    }
+  }
+
   return allResults;
 }
 
 /**
- * Fetch job information from GitHub API
+ * Fetch job information from GitHub API with pagination support
  */
 async function getJobInfo() {
   const { GITHUB_TOKEN, GITHUB_RUN_ID, GITHUB_REPOSITORY } = process.env;
@@ -141,21 +173,34 @@ async function getJobInfo() {
   }
 
   try {
-    const response = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs`,
-      {
-        headers: {
-          Authorization: `token ${GITHUB_TOKEN}`,
-          'User-Agent': 'MetaMask-Mobile-CI',
-        },
-      }
-    );
+    const allJobs = [];
+    let page = 1;
+    let hasMorePages = true;
 
-    if (!response.ok) {
-      return null;
+    while (hasMorePages) {
+      const response = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100&page=${page}`,
+        {
+          headers: {
+            Authorization: `token ${GITHUB_TOKEN}`,
+            'User-Agent': 'MetaMask-Mobile-CI',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      allJobs.push(...data.jobs);
+
+      // Check if there are more pages
+      hasMorePages = data.jobs.length === 100;
+      page++;
     }
 
-    return await response.json();
+    return { jobs: allJobs };
   } catch (error) {
     console.error('Error fetching job info:', error);
     return null;
@@ -194,7 +239,7 @@ function getJobLinks(category, jobInfo) {
         job.name.includes(baseName) &&
         job.name.includes('Regression') &&
         job.name.includes(platform) &&
-        job.conclusion === 'failure'
+        (job.conclusion === 'failure' || job.conclusion === 'cancelled')
     );
 
     matchingJobs.forEach((job) => {
@@ -269,12 +314,10 @@ function categoryHasFailedJob(category, failedJobs) {
  * Generate the Slack summary message
  */
 async function generateSummary() {
-  const categoryResults = parseAllXMLFiles(resultsPath);
+  const categoryResults = await parseAllXMLFiles(resultsPath);
   const jobInfo = await getJobInfo();
 
   const {
-    GITHUB_SHA,
-    GITHUB_REF_NAME,
     GITHUB_SERVER_URL,
     GITHUB_REPOSITORY,
     GITHUB_RUN_ID,
@@ -308,17 +351,37 @@ async function generateSummary() {
     hasFailures = true;
   }
 
-  // Check if we have no test results and no failed jobs detected
+  // Check if we have no test results
   // This could indicate an infrastructure issue (e.g., runner problems, artifact upload failures)
   const hasTestResults = Object.keys(categoryResults).length > 0;
-  if (!hasTestResults && failedJobs.length === 0) {
+  if (!hasTestResults) {
     hasFailures = true;
     summary += `:warning: *Infrastructure Issue Detected* :warning:\n`;
-    summary += `No test results were found and no failed jobs were detected.\n`;
+
+    if (failedJobs.length === 0) {
+      summary += `No test results were found and no failed jobs were detected.\n`;
+    } else {
+      summary += `Jobs failed but no test results were found.\n`;
+      summary += `Failed jobs detected: ${failedJobs.length}\n`;
+    }
+
     summary += `This may indicate:\n`;
     summary += `• Runner communication issues\n`;
     summary += `• Test result artifact upload failures\n`;
     summary += `• Other infrastructure problems\n\n`;
+
+    // Show failed job links if available
+    if (failedJobs.length > 0) {
+      summary += `*Failed Jobs:*\n`;
+      failedJobs.slice(0, 5).forEach((job) => {
+        summary += `:x: <${job.jobUrl}|${job.category}>\n`;
+      });
+      if (failedJobs.length > 5) {
+        summary += `_...and ${failedJobs.length - 5} more failed jobs_\n`;
+      }
+      summary += `\n`;
+    }
+
     summary += `<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|:point_right: View Full Run>\n\n`;
     summary += `:information_source: *Next Steps:*\n`;
     summary += `• Check the workflow run logs for errors\n`;
@@ -398,18 +461,31 @@ async function generateSummary() {
   // Add failed test details if there are test failures in XML (limit to 5 for readability)
   if (totalFailures > 0) {
     const allFailedTests = Object.values(categoryResults).flatMap((r) => r.failedTests);
-    const uniqueFailures = [...new Set(allFailedTests.map((t) => t.name))].slice(0, 5);
+
+    // Deduplicate by test name + failure message to capture different failure modes
+    const uniqueFailuresMap = new Map();
+    allFailedTests.forEach((test) => {
+      const key = `${test.name}::${test.message}`;
+      if (!uniqueFailuresMap.has(key)) {
+        uniqueFailuresMap.set(key, test);
+      }
+    });
+
+    const uniqueFailures = Array.from(uniqueFailuresMap.values()).slice(0, 5);
 
     if (uniqueFailures.length > 0) {
       summary += `\n*Top Failed Tests*\n`;
-      uniqueFailures.forEach((testName) => {
+      uniqueFailures.forEach((test) => {
         // Truncate long test names
-        const truncated = testName.length > 100 ? testName.substring(0, 100) + '...' : testName;
+        const truncated = test.name.length > 80 ? test.name.substring(0, 80) + '...' : test.name;
         summary += `:small_red_triangle: ${truncated}\n`;
+        if (test.message) {
+          summary += `   _${test.message}_\n`;
+        }
       });
 
-      if (allFailedTests.length > 5) {
-        summary += `_...and ${allFailedTests.length - 5} more failures_\n`;
+      if (uniqueFailuresMap.size > 5) {
+        summary += `_...and ${uniqueFailuresMap.size - 5} more failures_\n`;
       }
     }
   }
