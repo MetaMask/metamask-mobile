@@ -37,7 +37,6 @@ const styleSheet = (params: {
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         maxHeight: maxSheetHeight,
-        overflow: 'hidden',
         paddingBottom: Platform.select({
           ios: screenBottomPadding,
           macos: screenBottomPadding,
@@ -50,6 +49,11 @@ const styleSheet = (params: {
       },
       style,
     ) as ViewStyle,
+    innerSheet: {
+      overflow: 'hidden',
+      borderTopLeftRadius: 23,
+      borderTopRightRadius: 23,
+    },
     notchWrapper: {
       alignSelf: 'stretch',
       padding: 4,

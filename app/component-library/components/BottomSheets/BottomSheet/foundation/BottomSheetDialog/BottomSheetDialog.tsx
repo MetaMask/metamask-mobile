@@ -249,7 +249,7 @@ const BottomSheetDialog = forwardRef<
                 <View style={styles.notch} />
               </View>
             )}
-            {children}
+            <View style={styles.innerSheet}>{children}</View>
           </Animated.View>
         </PanGestureHandler>
       </KeyboardAvoidingView>
