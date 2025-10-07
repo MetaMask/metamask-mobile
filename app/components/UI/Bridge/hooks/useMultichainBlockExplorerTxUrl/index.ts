@@ -43,7 +43,7 @@ export const useMultichainBlockExplorerTxUrl = ({
     selectNonEvmNetworkConfigurationsByChainId,
   );
 
-  // Format chainId based on whether it's Solana or not
+  // Format chainId based on whether it's EVM or not
   const isNonEvm = chainId ? isNonEvmChainId(chainId) : false;
   let formattedChainId: string | undefined;
   if (chainId) {
