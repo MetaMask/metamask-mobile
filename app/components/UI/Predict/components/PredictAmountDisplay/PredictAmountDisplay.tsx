@@ -1,13 +1,17 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, TouchableOpacity } from 'react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
 import { formatPrice, formatPositionSize } from '../../utils/format';
-import createStyles from './PredictAmountDisplay.styles';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
 
 interface PredictAmountDisplayProps {
   amount: string;
@@ -36,8 +40,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   showMaxAmount = true,
   hasError = false,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -64,30 +67,33 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   }, [isActive, fadeAnim]);
 
   const content = (
-    <View
-      style={styles.container}
+    <Box
+      alignItems={BoxAlignItems.Center}
+      twClassName="pt-12 px-6"
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
       {label && (
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
-          style={styles.label}
+          style={tw.style('mb-2')}
         >
           {label}
         </Text>
       )}
-      <View style={styles.amountRow}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
         {/* Text only takes 1 arg */}
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           color={hasError ? TextColor.Error : TextColor.Default}
           variant={TextVariant.BodyMDBold}
-          style={
-            Platform.OS === 'android'
-              ? styles.amountValueTokenAndroid
-              : styles.amountValueToken
-          }
+          style={tw.style(
+            'text-[54px] tracking-tight leading-[74px]',
+            Platform.OS === 'android' ? 'font-medium' : 'font-black',
+          )}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
@@ -99,20 +105,20 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           <Animated.View
             testID="cursor"
             style={[
-              styles.cursor,
+              tw.style('w-0.5 h-[54px] ml-1 bg-default'),
               {
                 opacity: fadeAnim,
               },
             ]}
           />
         )}
-      </View>
+      </Box>
       {/* Display token amount equivalent for current input */}
       {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
-          style={styles.maxAmount}
+          style={tw.style('mt-1')}
           testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
           {formatPositionSize(tokenAmount)} {tokenSymbol}
@@ -122,12 +128,12 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
         <Text
           variant={TextVariant.BodySM}
           color={TextColor.Warning}
-          style={styles.warning}
+          style={tw.style('mt-3')}
         >
           {warningMessage}
         </Text>
       )}
-    </View>
+    </Box>
   );
 
   if (onPress) {

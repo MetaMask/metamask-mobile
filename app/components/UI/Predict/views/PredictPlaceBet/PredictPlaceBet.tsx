@@ -117,7 +117,7 @@ const PredictPlaceBet = () => {
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Box flexDirection={BoxFlexDirection.Row}>
-              {outcomeGroupTitle && (
+              {!!outcomeGroupTitle && (
                 <Text
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Alternative}
