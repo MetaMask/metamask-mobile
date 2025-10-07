@@ -54,8 +54,8 @@ export function processUrlForBrowser(input: string, searchEngine = 'Google') {
   if (!decodedInput.match(regex.url)) {
     // Add exception for localhost
     if (
-      !input.startsWith('http://localhost') &&
-      !input.startsWith('localhost')
+      !decodedInput.startsWith('http://localhost') &&
+      !decodedInput.startsWith('localhost')
     ) {
       // In case of keywords we default to google search
       let searchUrl =
