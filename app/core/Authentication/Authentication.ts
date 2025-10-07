@@ -777,9 +777,17 @@ class AuthenticationService {
 
   syncSeedPhrases = async (): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
+    this.rehydrateLogs.push('syncSeedPhrases: start');
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      this.rehydrateLogs.push(
+        'syncSeedPhrases: not in seedless onboarding flow',
+      );
       return;
     }
+
+    this.rehydrateLogs.push(
+      'syncSeedPhrases: selectSeedlessOnboardingLoginFlow',
+    );
 
     // 1. fetch all seed phrases
     const [rootSecret, ...otherSecrets] =
@@ -787,6 +795,9 @@ class AuthenticationService {
     if (!rootSecret) {
       throw new Error('No root SRP found');
     }
+    this.rehydrateLogs.push(
+      'syncSeedPhrases: otherSecrets len: ' + otherSecrets.length,
+    );
 
     for (const secret of otherSecrets) {
       // import SRP secret
@@ -797,9 +808,14 @@ class AuthenticationService {
           secret.type,
         );
 
+      this.rehydrateLogs.push(
+        'syncSeedPhrases: secretDataHash: ' + secretDataHash,
+      );
+
       if (!secretDataHash) {
         // If SRP is not in the local state, import it to the vault
-
+        this.rehydrateLogs.push('syncSeedPhrases: new secret');
+        this.rehydrateLogs.push('syncSeedPhrases: secret.type: ' + secret.type);
         // import private key secret
         if (secret.type === SecretType.PrivateKey) {
           await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
@@ -815,6 +831,9 @@ class AuthenticationService {
           );
           const mnemonicToRestore = encodedSrp.toString('utf8');
 
+          this.rehydrateLogs.push(
+            'syncSeedPhrases: secret.data: ' + mnemonicToRestore,
+          );
           // import the new mnemonic to the current vault
           const keyringMetadata = await this.importSeedlessMnemonicToVault(
             mnemonicToRestore,
@@ -828,6 +847,7 @@ class AuthenticationService {
             this.addMultichainAccounts([keyringMetadata]);
           }
         } else {
+          this.rehydrateLogs.push('syncSeedPhrases: unknown secret type');
           Logger.error(
             new Error('SeedlessOnboardingController: Unknown secret type'),
             secret.type,

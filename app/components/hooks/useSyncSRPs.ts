@@ -9,6 +9,10 @@ export const useSyncSRPs = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    Authentication.rehydrateLogs.push(
+      'useSyncSRPs isSocialLoginEnabled: ' + isSocialLoginEnabled.toString(),
+    );
+
     if (!isSocialLoginEnabled) {
       return;
     }
@@ -18,6 +22,9 @@ export const useSyncSRPs = () => {
         setLoading(true);
         await Authentication.syncSeedPhrases();
       } catch (error) {
+        Authentication.rehydrateLogs.push(
+          'useSyncSRPs error: ' + (error as Error).message,
+        );
         Logger.error(error as Error, '[useSyncSRPs] error');
       } finally {
         setLoading(false);

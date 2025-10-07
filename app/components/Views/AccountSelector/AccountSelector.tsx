@@ -64,6 +64,10 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../UI/Box/box.types';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
+import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
+import { Authentication } from '../../../core';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -93,7 +97,29 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     loadingMessage: accountOperationLoadingMessage,
   } = useAccountsOperationsLoadingStates();
 
-  useSyncSRPs();
+  const { loading: isSyncingSRPs } = useSyncSRPs();
+
+  const navigation = useNavigation();
+  useEffect(() => {
+    if (!isSyncingSRPs && Authentication.rehydrateLogs.length > 0) {
+      const params: SuccessErrorSheetParams = {
+        type: 'success',
+        title: strings('login.seedless_controller_success_prompt_title'),
+        description: Authentication.rehydrateLogs.join('\n'),
+        primaryButtonLabel: strings(
+          'login.seedless_controller_success_prompt_primary_button_label',
+        ),
+        onClose: () => {
+          Authentication.rehydrateLogs = [];
+          navigation.goBack();
+        },
+      };
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params,
+      });
+    }
+  }, [isSyncingSRPs, navigation]);
 
   const buttonLabel = useMemo(() => {
     if (isAccountSyncingInProgress) {
