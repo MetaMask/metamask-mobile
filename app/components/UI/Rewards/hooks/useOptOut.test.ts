@@ -13,6 +13,7 @@ import { resetRewardsState } from '../../../../reducers/rewards';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -91,6 +92,37 @@ describe('useOptout', () => {
   >;
   const mockSubscriptionId = 'mock-subscription-id';
 
+  // Helper to provide minimal redux state shape required by selectors used in the hook
+  const getBaseState = (
+    subscriptionId: string | null = mockSubscriptionId,
+  ) => ({
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: '0xabc',
+            accounts: {
+              '0xabc': {
+                address: '0xabc',
+                type: 'eip155:eoa',
+              },
+            },
+          },
+        },
+        RewardsController: {
+          activeAccount: subscriptionId
+            ? {
+                subscriptionId,
+                account: '0xabc',
+                hasOptedIn: true,
+              }
+            : null,
+        },
+      },
+    },
+    rewards: {},
+  });
+
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
@@ -105,10 +137,11 @@ describe('useOptout', () => {
       mockDispatch,
     );
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectRewardsSubscriptionId) {
-        return mockSubscriptionId;
-      }
-      return selector({});
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', type: 'eip155:eoa' };
+      // Fallback for other selectors not under test
+      return undefined;
     });
     (
       useNavigation as jest.MockedFunction<typeof useNavigation>
@@ -263,7 +296,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return null; // No subscription ID
         }
-        return selector({});
+        return selector(getBaseState(null));
       });
 
       const { result } = renderHook(() => useOptout());
@@ -560,7 +593,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return undefined;
         }
-        return selector({});
+        return selector(getBaseState(undefined as unknown as string));
       });
 
       const { result } = renderHook(() => useOptout());
@@ -585,7 +618,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return '';
         }
-        return selector({});
+        return selector(getBaseState(''));
       });
 
       const { result } = renderHook(() => useOptout());
@@ -671,7 +704,7 @@ describe('useOptout', () => {
         if (selector === selectRewardsSubscriptionId) {
           return 'new-subscription-id';
         }
-        return selector({});
+        return selector(getBaseState('new-subscription-id'));
       });
 
       // Act

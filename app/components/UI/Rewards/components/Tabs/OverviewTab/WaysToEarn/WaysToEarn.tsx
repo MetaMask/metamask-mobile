@@ -13,6 +13,7 @@ import {
   IconSize,
   IconColor,
   ButtonVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -26,6 +27,11 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../../../utils';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -152,6 +158,7 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -175,6 +182,13 @@ export const WaysToEarn = () => {
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED)
+        .addProperties({
+          ways_to_earn_type: type,
+        })
+        .build(),
+    );
     navigation.goBack(); // Close the modal first
     switch (type) {
       case WayToEarnType.SWAPS:
@@ -190,6 +204,14 @@ export const WaysToEarn = () => {
   };
 
   const handleEarningWayPress = (wayToEarn: WayToEarn) => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+          ways_to_earn_type: wayToEarn.type,
+        })
+        .build(),
+    );
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
@@ -251,19 +273,21 @@ export const WaysToEarn = () => {
                 </Box>
 
                 <Box>
-                  <Text variant={TextVariant.SectionHeading}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
                     {wayToEarn.title}
                   </Text>
                   <Text
                     variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                   >
                     {wayToEarn.description}
                   </Text>
                 </Box>
               </Box>
-
-              <Icon name={IconName.ArrowRight} size={IconSize.Md} />
             </ButtonBase>
           )}
         />

@@ -143,7 +143,10 @@ jest.mock('./useDepositSdkMethod', () => ({
 
 const mockLogoutFromProvider = jest.fn();
 const mockSelectedRegion = { isoCode: 'US' };
-let mockSelectedPaymentMethod = { isManualBankTransfer: false };
+let mockSelectedPaymentMethod = {
+  isManualBankTransfer: false,
+  id: 'credit_debit_card',
+};
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
@@ -203,7 +206,10 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockSelectedPaymentMethod = { isManualBankTransfer: false };
+    mockSelectedPaymentMethod = {
+      isManualBankTransfer: false,
+      id: 'credit_debit_card',
+    };
 
     mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
     mockGetAdditionalRequirements = jest
@@ -264,7 +270,10 @@ describe('useDepositRouting', () => {
     it('should navigate to BankDetails when manual bank transfer payment method is used and KYC is approved', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      mockSelectedPaymentMethod = { isManualBankTransfer: true };
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
 
       const { result } = renderHook(() => useDepositRouting());
 
@@ -274,7 +283,11 @@ describe('useDepositRouting', () => {
 
       expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
       expect(mockFetchUserDetails).toHaveBeenCalled();
-      expect(mockCreateOrder).toHaveBeenCalledWith(mockQuote, '0x123');
+      expect(mockCreateOrder).toHaveBeenCalledWith(
+        mockQuote,
+        '0x123',
+        'sepa_bank_transfer',
+      );
 
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
@@ -290,7 +303,10 @@ describe('useDepositRouting', () => {
     it('should throw error when manual bank transfer createOrder fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      mockSelectedPaymentMethod = { isManualBankTransfer: true };
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
       const { result } = renderHook(() => useDepositRouting());
@@ -675,7 +691,10 @@ describe('useDepositRouting', () => {
     it('should throw error when createOrder fails for manual bank transfer flow', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      mockSelectedPaymentMethod = { isManualBankTransfer: true };
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
       const { result } = renderHook(() => useDepositRouting());
@@ -688,7 +707,10 @@ describe('useDepositRouting', () => {
     it('should throw error when createOrder throws for manual bank transfer flow', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      mockSelectedPaymentMethod = { isManualBankTransfer: true };
+      mockSelectedPaymentMethod = {
+        isManualBankTransfer: true,
+        id: 'sepa_bank_transfer',
+      };
       mockCreateOrder = jest
         .fn()
         .mockRejectedValue(new Error('Order creation failed'));

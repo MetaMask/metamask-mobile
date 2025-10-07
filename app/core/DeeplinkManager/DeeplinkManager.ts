@@ -23,6 +23,7 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
+import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -101,6 +102,12 @@ class DeeplinkManager {
     handleDepositCashUrl({
       depositPath: depositCashPath,
       navigation: this.navigation,
+    });
+  }
+
+  _handleRewards(rewardsPath: string) {
+    handleRewardsUrl({
+      rewardsPath,
     });
   }
 

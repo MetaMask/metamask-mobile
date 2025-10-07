@@ -16,6 +16,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { useOptout } from '../hooks/useOptout';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../utils';
 
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
@@ -23,6 +25,8 @@ const RewardsSettingsView: React.FC = () => {
   const { colors } = useTheme();
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedSettingsViewed = useRef(false);
 
   useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
@@ -38,6 +42,15 @@ const RewardsSettingsView: React.FC = () => {
       headerTitleAlign: 'center',
     });
   }, [colors, navigation]);
+
+  useEffect(() => {
+    if (!hasTrackedSettingsViewed.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_SETTINGS_VIEWED).build(),
+      );
+      hasTrackedSettingsViewed.current = true;
+    }
+  }, [trackEvent, createEventBuilder]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
@@ -80,9 +93,18 @@ const RewardsSettingsView: React.FC = () => {
               isDisabled={isOptingOut}
               isDanger
               width={null as unknown as number}
-              onPress={() =>
-                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW)
-              }
+              onPress={() => {
+                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW);
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+                  )
+                    .addProperties({
+                      button_type: RewardsMetricsButtons.OPT_OUT,
+                    })
+                    .build(),
+                );
+              }}
             />
           </Box>
         </Box>
