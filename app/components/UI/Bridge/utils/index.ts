@@ -14,7 +14,7 @@ import {
   SEI_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -48,7 +48,7 @@ export const wipeBridgeStatus = (
     ignoreNetwork: false,
   });
   // Solana addresses are case-sensitive, so we can only do this for EVM
-  if (!isSolanaChainId(chainId)) {
+  if (!isNonEvmChainId(chainId)) {
     Engine.context.BridgeStatusController.wipeBridgeStatus({
       address: address.toLowerCase(),
       ignoreNetwork: false,
