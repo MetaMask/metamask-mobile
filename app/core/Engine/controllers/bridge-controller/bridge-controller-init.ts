@@ -4,6 +4,7 @@ import {
   BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
 
+import { fetch as expoFetch } from 'expo/fetch';
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import { MetaMetrics } from '../../../Analytics';
 import { TransactionParams } from '@metamask/transaction-controller';
@@ -46,8 +47,13 @@ export const bridgeControllerInit: ControllerInitFunction<
           chainId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any,
-
-      fetchFn: handleFetch,
+      fetchFn: (url, options) => {
+        if (url.toString().includes('Stream')) {
+          // @ts-expect-error types are different
+          return expoFetch(url.toString(), options);
+        }
+        return handleFetch(url, options);
+      },
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
