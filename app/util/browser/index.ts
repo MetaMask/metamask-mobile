@@ -114,7 +114,7 @@ export const protocolAllowList = [
 export const trustedProtocolToDeeplink = [
   'market:',
   // app store deeplink
-  'itms-apps',
+  'itms-apps:',
 ];
 
 /**
