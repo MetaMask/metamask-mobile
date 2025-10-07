@@ -1,6 +1,10 @@
 import React, { useLayoutEffect } from 'react';
 import { View, ScrollView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  ParamListBase,
+} from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import LottieView, { AnimationObject } from 'lottie-react-native';
 
@@ -21,7 +25,7 @@ import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import createStyles from './index.styles';
 
 const SocialLoginSuccessNewUser: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -40,9 +44,7 @@ const SocialLoginSuccessNewUser: React.FC = () => {
   }, [navigation, colors]);
 
   const handleSetMetaMaskPin = () => {
-    (
-      navigation as StackNavigationProp<Record<string, object | undefined>>
-    ).replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+    navigation.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
       [PREVIOUS_SCREEN]: ONBOARDING,
       oauthLoginSuccess,
       onboardingTraceCtx,
