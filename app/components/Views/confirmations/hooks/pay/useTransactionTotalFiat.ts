@@ -61,7 +61,12 @@ function getTotal(
   estimatedGasFeeFiat: string | null,
   format: (value: BigNumber) => string,
 ) {
-  const total = new BigNumber(0)
+  const balanceTotal = quotes.reduce(
+    (acc, quote) => acc.plus(quote.amount),
+    new BigNumber(0),
+  );
+
+  const total = balanceTotal
     .plus(
       getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
         .totalNativeEstimated,
@@ -97,7 +102,7 @@ function getBridgeFeeTotal(
   format: (value: BigNumber) => string,
 ) {
   const total = quotes.reduce(
-    (acc, quote) => acc.plus(new BigNumber(quote.fee || '0')),
+    (acc, quote) => acc.plus(quote.fee),
     new BigNumber(0),
   );
 
@@ -109,12 +114,12 @@ function getBridgeFeeTotal(
 
 function getEstimatedNativeTotal(
   quotes: PayQuote<unknown>[],
-  estimatedGasFeeFiat: string | null,
+  _estimatedGasFeeFiat: string | null,
   format: (value: BigNumber) => string,
 ) {
   const total = new BigNumber(
     getEstimatedNetworkFeeTotal(quotes, format).totalNetworkFeeEstimated,
-  ).plus(estimatedGasFeeFiat ?? '0');
+  );
 
   return {
     totalNativeEstimated: total.toString(10),
@@ -123,10 +128,13 @@ function getEstimatedNativeTotal(
 }
 
 function getEstimatedNetworkFeeTotal(
-  _quotes: PayQuote<unknown>[],
+  quotes: PayQuote<unknown>[],
   format: (value: BigNumber) => string,
 ) {
-  const total = new BigNumber(0);
+  const total = quotes.reduce(
+    (acc, quote) => acc.plus(quote.networkFee),
+    new BigNumber(0),
+  );
 
   return {
     totalNetworkFeeEstimated: total.toString(10),
@@ -135,10 +143,13 @@ function getEstimatedNetworkFeeTotal(
 }
 
 function getMaxNetworkFeeTotal(
-  _quotes: PayQuote<unknown>[],
+  quotes: PayQuote<unknown>[],
   format: (value: BigNumber) => string,
 ) {
-  const total = new BigNumber(0);
+  const total = quotes.reduce(
+    (acc, quote) => acc.plus(quote.networkFee),
+    new BigNumber(0),
+  );
 
   return {
     totalNetworkFeeMax: total.toString(10),

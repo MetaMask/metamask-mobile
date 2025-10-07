@@ -17,7 +17,6 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionReceipt } from 'viem';
 import { ARBITRUM_USDC_ADDRESS } from '../../../components/Views/confirmations/constants/perps';
-import { NATIVE_TOKEN_ADDRESS } from '../../../components/Views/confirmations/constants/tokens';
 import { BigNumber } from 'bignumber.js';
 
 const log = createProjectLogger('relay-pay-method');
@@ -28,7 +27,10 @@ export enum PayMethodType {
 }
 
 export interface PayQuote<OriginalQuote> {
+  amount: string;
+  estimatedTime: number;
   fee: string;
+  networkFee: string;
   method: PayMethodType;
   original: OriginalQuote;
   request: BridgeQuoteRequest;
@@ -231,8 +233,11 @@ export class RelayPayMethod implements PayMethod<Execute> {
 
   #parseQuote(quote: Execute, request: BridgeQuoteRequest): PayQuote<Execute> {
     return {
-      fee: '0',
+      amount: quote?.details?.currencyOut?.amountFormatted ?? '0',
+      estimatedTime: quote.details?.timeEstimate ?? 0,
+      fee: quote.fees?.relayer?.amountUsd ?? '0',
       method: PayMethodType.Relay,
+      networkFee: quote.fees?.gas?.amountUsd ?? '0',
       original: quote,
       request,
     };

@@ -25,7 +25,7 @@ export function BridgeTimeRow() {
   const showEstimate = isQuotesLoading || Boolean(quotes?.length);
 
   const estimatedTimeSeconds = quotes?.reduce(
-    (acc, quote) => acc + quote.estimatedProcessingTimeInSeconds,
+    (acc, quote) => acc + quote.estimatedTime,
     0,
   );
 
