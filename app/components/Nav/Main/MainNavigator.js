@@ -74,6 +74,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectBrowserFullscreen } from '../../../selectors/browser';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
@@ -511,6 +512,8 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
+  const isBrowserFullscreen = useSelector(selectBrowserFullscreen);
+
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -609,6 +612,14 @@ const HomeTabs = () => {
       currentRoute.name?.startsWith('Rewards') &&
       isRewardsEnabled &&
       !rewardsSubscription
+    ) {
+      return null;
+    }
+
+    // Hide tab bar when browser is in fullscreen mode
+    if (
+      isBrowserFullscreen &&
+      currentRoute.name?.startsWith(Routes.BROWSER.HOME)
     ) {
       return null;
     }

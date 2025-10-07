@@ -32,7 +32,11 @@ import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
 import WebviewErrorComponent from '../../UI/WebviewError';
-import { addToHistory, addToWhitelist } from '../../../actions/browser';
+import {
+  addToHistory,
+  addToWhitelist,
+  toggleFullscreen,
+} from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -116,6 +120,7 @@ import {
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
+import { selectBrowserFullscreen } from '../../../selectors/browser';
 
 /**
  * Tab component for the in-app browser
@@ -125,6 +130,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     id: tabId,
     isIpfsGatewayEnabled,
     addToWhitelist: triggerAddToWhitelist,
+    isFullscreen,
+    toggleFullscreen,
     showTabs,
     linkType,
     isInTabsView,
@@ -1297,6 +1304,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           showUrlModal={toggleUrlModal}
           toggleOptions={toggleOptions}
           goHome={goToHomepage}
+          toggleFullscreen={toggleFullscreen}
+          isFullscreen={isFullscreen}
         />
       ) : null;
 
@@ -1575,12 +1584,14 @@ const mapStateToProps = (state: RootState) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   activeChainId: selectEvmChainId(state),
+  isFullscreen: selectBrowserFullscreen(state),
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   addToBrowserHistory: ({ url, name }: { name: string; url: string }) =>
     dispatch(addToHistory({ url, name })),
   addToWhitelist: (url: string) => dispatch(addToWhitelist(url)),
+  toggleFullscreen: () => dispatch(toggleFullscreen()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(BrowserTab);

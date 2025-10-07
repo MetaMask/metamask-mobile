@@ -106,6 +106,15 @@ export type BrowserTabProps = SharedTabProps & {
    * Home page url that is appended with metricsEnabled and marketingEnabled
    */
   homePageUrl: string;
+
+  /**
+   * Boolean indicating if browser is in fullscreen mode
+   */
+  isFullscreen: boolean;
+  /**
+   * Function to toggle fullscreen mode
+   */
+  toggleFullscreen: () => void;
 };
 // This event should be exported from the webview package
 export interface WebViewErrorEvent {

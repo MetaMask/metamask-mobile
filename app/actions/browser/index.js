@@ -3,6 +3,7 @@
  */
 export const BrowserActionTypes = {
   ADD_TO_VIEWED_DAPP: 'ADD_TO_VIEWED_DAPP',
+  TOGGLE_FULLSCREEN_BUTTON: 'TOGGLE_FULLSCREEN_BUTTON',
 };
 
 /**
@@ -131,5 +132,15 @@ export function storeFavicon({ origin, url }) {
     type: 'STORE_FAVICON_URL',
     origin,
     url,
+  };
+}
+
+/**
+ * Toggles fullscreen mode for the browser
+ * @returns {{type: string}}
+ */
+export function toggleFullscreen() {
+  return {
+    type: BrowserActionTypes.TOGGLE_FULLSCREEN_BUTTON,
   };
 }
