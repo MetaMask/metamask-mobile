@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+/// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+import { validate as isValidBitcoinAddress } from 'bitcoin-address-validation';
+/// END:ONLY_INCLUDE_IF
 
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
@@ -43,18 +47,16 @@ export const useContacts = () => {
         );
       }
       if (isSolanaSendType) {
-        return (
-          !contact.address.startsWith('0x') && contact.address.length >= 32
-        );
+        return isSolanaAddress(contact.address);
       }
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       if (isBitcoinSendType) {
-        return contact.address.startsWith('bc');
+        return isValidBitcoinAddress(contact.address);
       }
       /// END:ONLY_INCLUDE_IF
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       if (isTronSendType) {
-        return contact.address.startsWith('T');
+        return contact.address.startsWith('T') && contact.address.length === 34;
       }
       /// END:ONLY_INCLUDE_IF
       return true;

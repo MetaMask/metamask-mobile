@@ -33,7 +33,7 @@ describe('useContacts', () => {
 
   const mockSolanaContact = {
     name: 'Solana Contact',
-    address: 'Sol1234567890123456789012345678901234567890',
+    address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
   };
 
   const mockBitcoinContact = {
@@ -167,15 +167,7 @@ describe('useContacts', () => {
       expect(result.current).toEqual([
         {
           contactName: 'Solana Contact',
-          address: 'Sol1234567890123456789012345678901234567890',
-        },
-        {
-          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-          contactName: 'Bitcoin Contact',
-        },
-        {
-          address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-          contactName: 'Tron Contact',
+          address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
         },
       ]);
     });
@@ -192,12 +184,21 @@ describe('useContacts', () => {
       );
     });
 
-    it('only includes addresses not starting with 0x and at least 32 characters', () => {
+    it('filters out Bitcoin and Tron addresses', () => {
+      const { result } = renderHook(() => useContacts());
+
+      const addresses = result.current.map((contact) => contact.address);
+      expect(addresses).not.toContain(
+        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      );
+      expect(addresses).not.toContain('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+    });
+
+    it('only includes valid Solana addresses', () => {
       const { result } = renderHook(() => useContacts());
 
       result.current.forEach((contact) => {
-        expect(contact.address).not.toMatch(/^0x/);
-        expect(contact.address.length).toBeGreaterThanOrEqual(32);
+        expect(contact.address).toMatch(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/);
       });
     });
   });
@@ -325,7 +326,7 @@ describe('useContacts', () => {
           },
           {
             contactName: 'Solana Contact',
-            address: 'Sol1234567890123456789012345678901234567890',
+            address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
           },
           {
             contactName: 'Invalid Contact',
@@ -404,7 +405,7 @@ describe('useContacts', () => {
         },
         validSolana: {
           contactName: 'Valid Solana',
-          address: 'Sol12345678901234567890123456789012345678901234567890',
+          address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
         },
         invalidSolanaShort: {
           contactName: 'Invalid Solana Short',
@@ -456,7 +457,7 @@ describe('useContacts', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].address).toBe(
-        'Sol12345678901234567890123456789012345678901234567890',
+        'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
       );
     });
   });
