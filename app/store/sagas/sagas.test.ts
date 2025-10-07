@@ -253,7 +253,7 @@ describe('startAppServices', () => {
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },
-        user: {},
+        user: { existingUser: false },
       })
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
@@ -327,7 +327,7 @@ describe('handleDeeplinkSaga', () => {
       await expectSaga(handleDeeplinkSaga)
         .withState({
           onboarding: { completedOnboarding: false },
-          user: {},
+          user: { existingUser: false },
           engine: { backgroundState: {} },
           confirmation: {},
           navigation: {},
@@ -361,7 +361,7 @@ describe('handleDeeplinkSaga', () => {
         await expectSaga(handleDeeplinkSaga)
           .withState({
             onboarding: { completedOnboarding: false },
-            user: {},
+            user: { existingUser: false },
             engine: { backgroundState: {} },
             confirmation: {},
             navigation: {},
@@ -393,6 +393,9 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: false },
+            })
             .dispatch(setCompletedOnboarding(false))
             .silentRun();
 
@@ -416,6 +419,9 @@ describe('handleDeeplinkSaga', () => {
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: false },
+            })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
 
@@ -441,7 +447,7 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               onboarding: { completedOnboarding: true },
-              user: {},
+              user: { existingUser: false },
               engine: { backgroundState: {} },
               confirmation: {},
               navigation: {},
