@@ -438,7 +438,7 @@ RISK ASSESSMENT:
 - Medium: UI changes, new components, utilities
 - High: Core modules, controllers, Engine
 - Critical: Dependencies, critical paths, security
-- Still consider tests for low/medium changes if they affect user flows
+- Still consider tests for low/medium changes if they affect user flows or testing infrastructure
 
 SPECIAL CASES:
 - CI/CD changes (workflows, bitrise, actions): Examine what's being added/removed
