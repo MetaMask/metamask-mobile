@@ -945,6 +945,7 @@ exports[`AssetOverview should render correctly 1`] = `
         {
           "flex": 1,
           "paddingHorizontal": 16,
+          "paddingTop": 24,
         }
       }
     >
@@ -2130,6 +2131,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         {
           "flex": 1,
           "paddingHorizontal": 16,
+          "paddingTop": 24,
         }
       }
     >
@@ -3349,6 +3351,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         {
           "flex": 1,
           "paddingHorizontal": 16,
+          "paddingTop": 24,
         }
       }
     >
