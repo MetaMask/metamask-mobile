@@ -158,6 +158,8 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
+  BROWSER_OPENED_FULLSCREEN = 'Opened Fullscreen Browser Mode',
+  BROWSER_CLOSED_FULLSCREEN = 'Exited Fullscreen Browser Mode',
   DAPP_VIEWED = 'Dapp Viewed',
 
   // Security & Privacy Settings
