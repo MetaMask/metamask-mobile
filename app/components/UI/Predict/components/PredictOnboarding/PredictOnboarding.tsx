@@ -19,7 +19,10 @@ import { usePredictOnboarding } from '../../hooks/usePredictOnboarding';
 const PredictOnboarding: React.FC = () => {
   const { isOnboarded, isLoading, enablePredict } = usePredictOnboarding();
   return (
-    <Box twClassName="bg-muted rounded-xl py-4" testID="markets-won-card">
+    <Box
+      twClassName="bg-muted rounded-xl py-4"
+      testID="predict-onboarding-card"
+    >
       {!isOnboarded && (
         <>
           <Box

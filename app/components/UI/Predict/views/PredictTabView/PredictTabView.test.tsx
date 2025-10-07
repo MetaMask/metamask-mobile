@@ -11,6 +11,32 @@ const store = mockStore({
       PreferencesController: {
         selectedAddress: '0x123',
       },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            'account-id-1': {
+              address: '0x123',
+              id: 'account-id-1',
+              metadata: {
+                name: 'Test Account',
+                importTime: 1684232000456,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              options: {},
+              methods: ['eth_signTransaction', 'eth_signTypedData_v4'],
+              type: 'eoa',
+            },
+          },
+          selectedAccount: 'account-id-1',
+        },
+      },
+      PredictController: {
+        isOnboarded: {
+          '0x123': true,
+        },
+      },
     },
   },
 });
@@ -48,10 +74,6 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictClaim', () => ({
   usePredictClaim: () => mockUsePredictClaim(),
-}));
-
-jest.mock('../../hooks/usePredictNotifications', () => ({
-  usePredictNotifications: jest.fn(() => ({})),
 }));
 
 // Mock components
