@@ -77,8 +77,9 @@ const NftGridList = () => {
         renderItem={({ item }) => (
           <NftGridItem item={item} onLongPress={setLongPressedCollectible} />
         )}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item, index) => `nft-${item.address}-${index}`}
         testID={RefreshTestId}
+        decelerationRate="fast"
         refreshControl={<NftGridListRefreshControl />}
         ListEmptyComponent={
           !isNftFetchingProgress ? (

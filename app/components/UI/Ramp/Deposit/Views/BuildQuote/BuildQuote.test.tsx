@@ -241,6 +241,9 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
           screen: 'DepositUnsupportedRegionModal',
+          params: {
+            regions: MOCK_REGIONS,
+          },
         });
       });
     });
