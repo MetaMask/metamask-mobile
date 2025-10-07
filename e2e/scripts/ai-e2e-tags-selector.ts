@@ -450,6 +450,7 @@ SELECTION GUIDANCE:
 - Use your judgment on whether tests are needed - 0 tags is perfectly acceptable for genuine non-functional changes
 - Critical files (package.json, controllers, Engine) should almost always trigger tests
 - Reading actual diffs (get_git_diff) provides better context than filenames alone
+- If a CI file is changed, consider how far reaching the impact might be
 
 Be thorough but efficient. Use your judgment.
 
