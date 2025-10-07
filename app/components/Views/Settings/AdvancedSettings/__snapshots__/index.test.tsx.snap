@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AdvancedSettings should render correctly 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -855,5 +863,5 @@ exports[`AdvancedSettings should render correctly 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

@@ -878,6 +878,8 @@
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
@@ -5907,8 +5909,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -6114,6 +6116,16 @@
       "perps_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

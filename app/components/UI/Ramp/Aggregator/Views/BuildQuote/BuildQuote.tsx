@@ -214,13 +214,15 @@ const BuildQuote = () => {
     setAmountNumber(0);
   }, [selectedRegion]);
 
-  const shouldShowUnsupportedModal = useMemo(() => (
+  const shouldShowUnsupportedModal = useMemo(
+    () =>
       regions &&
       selectedRegion &&
       (selectedRegion.unsupported ||
         (isBuy && !selectedRegion.support?.buy) ||
-        (isSell && !selectedRegion.support?.sell))
-    ), [regions, selectedRegion, isBuy, isSell]);
+        (isSell && !selectedRegion.support?.sell)),
+    [regions, selectedRegion, isBuy, isSell],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -771,7 +773,7 @@ const BuildQuote = () => {
   }
 
   // If the current view is for Sell the amount (crypto) is displayed as is
-  let displayAmount = `${amount} ${selectedAsset?.symbol}`;
+  let displayAmount = `${amount} ${selectedAsset?.symbol ?? ''}`;
 
   // If the current ivew is for Buy we will format the amount
   if (isBuy) {
@@ -929,7 +931,11 @@ const BuildQuote = () => {
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
-              loading={isFetchingRegions || isFetchingFiatCurrency}
+              loading={
+                isFetchingRegions ||
+                isFetchingFiatCurrency ||
+                isFetchingCryptoCurrencies
+              }
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
             {amountNumber > 0 &&

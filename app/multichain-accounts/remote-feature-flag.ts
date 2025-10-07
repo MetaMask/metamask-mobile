@@ -63,22 +63,40 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     return override === 'true';
   }
 
-  return featureVersionsToCheck.some(({ version, featureKey }) => {
+  const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
+  const enableMultichainAccountsState2 =
+    remoteFeatureFlags.enableMultichainAccountsState2;
+
+  const isState1Undefined =
+    !enableMultichainAccounts ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts);
+  const isState2Undefined =
+    !enableMultichainAccountsState2 ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccountsState2);
+  if (isState1Undefined && isState2Undefined) {
+    return true;
+  }
+
+  for (const { version, featureKey } of featureVersionsToCheck) {
     const featureFlag = remoteFeatureFlags[featureKey];
 
     if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
-      return false;
+      continue;
     }
 
     const { enabled, featureVersion, minimumVersion } = featureFlag;
 
-    return (
+    if (
       enabled &&
       minimumVersion !== null &&
       featureVersion === version &&
       compareVersions.compare(minimumVersion, APP_VERSION, '<=')
-    );
-  });
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 /**
