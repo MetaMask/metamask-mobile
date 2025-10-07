@@ -49,7 +49,7 @@ describe('PredictOnboarding', () => {
       );
 
       expect(getByText('Enable Predict')).toBeOnTheScreen();
-      expect(getByTestId('markets-won-card')).toBeOnTheScreen();
+      expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
     });
 
     it('calls enablePredict when button is pressed', () => {
@@ -101,7 +101,7 @@ describe('PredictOnboarding', () => {
       );
 
       // When onboarded, the component renders the container but no content
-      expect(getByTestId('markets-won-card')).toBeOnTheScreen();
+      expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
       expect(queryByText('Enable Predict')).not.toBeOnTheScreen();
     });
 
@@ -126,7 +126,7 @@ describe('PredictOnboarding', () => {
         state: initialState,
       });
 
-      expect(getByTestId('markets-won-card')).toBeOnTheScreen();
+      expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
     });
   });
 });
