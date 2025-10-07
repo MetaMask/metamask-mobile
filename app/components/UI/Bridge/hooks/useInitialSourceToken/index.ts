@@ -17,7 +17,6 @@ import {
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
-import { SolScope } from '@metamask/keyring-api';
 import usePrevious from '../../../../hooks/usePrevious';
 import {
   selectIsEvmNetworkSelected,
@@ -119,8 +118,8 @@ export const useInitialSourceToken = (
       const currentCaipChainId = formatChainIdToCaip(chainId);
 
       if (sourceCaipChainId !== currentCaipChainId) {
-        if (sourceCaipChainId === SolScope.Mainnet) {
-          onNonEvmNetworkChange(SolScope.Mainnet);
+        if (isNonEvmChainId(sourceCaipChainId)) {
+          onNonEvmNetworkChange(sourceCaipChainId);
           return;
         }
 
