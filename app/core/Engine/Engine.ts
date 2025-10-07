@@ -30,12 +30,7 @@ import {
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
-import {
-  getDefaultNetworkControllerState,
-  NetworkController,
-  NetworkState,
-  NetworkStatus,
-} from '@metamask/network-controller';
+import { NetworkState, NetworkStatus } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import {
   TransactionController,
@@ -110,7 +105,6 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { zeroAddress } from 'ethereumjs-util';
 import {
-  ChainId,
   type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
@@ -172,14 +166,6 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
-import {
-  onRpcEndpointDegraded,
-  onRpcEndpointUnavailable,
-} from './controllers/network-controller/messenger-action-handlers';
-import { INFURA_PROJECT_ID } from '../../constants/network';
-import { SECOND } from '../../constants/time';
-import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import {
   MultichainRouter,
   MultichainRouterMessenger,
@@ -210,9 +196,8 @@ import { preferencesControllerInit } from './controllers/preferences-controller-
 import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { keyringControllerInit } from './controllers/keyring-controller-init';
+import { networkControllerInit } from './controllers/network-controller-init';
 ///: END:ONLY_INCLUDE_IF
-
-const NON_EMPTY = 'NON_EMPTY';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -316,135 +301,213 @@ export class Engine {
       captureException,
     });
 
-    const networkControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'NetworkController',
-      allowedEvents: [],
-      allowedActions: ['ErrorReportingService:captureException'],
+    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
+    const smartTransactionsControllerTrackMetaMetricsEvent = (
+      params: {
+        event: MetaMetricsEventName;
+        category: MetaMetricsEventCategory;
+        properties?: ReturnType<
+          typeof getSmartTransactionMetricsPropertiesType
+        >;
+        sensitiveProperties?: ReturnType<
+          typeof getSmartTransactionMetricsSensitivePropertiesType
+        >;
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      options?: {
+        metaMetricsId?: string;
+      },
+    ) => {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder({
+          category: params.event,
+        })
+          .addProperties(params.properties || {})
+          .addSensitiveProperties(params.sensitiveProperties || {})
+          .build(),
+      );
+    };
+
+    this.smartTransactionsController = new SmartTransactionsController({
+      // @ts-expect-error TODO: resolve types
+      supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      clientId: ClientId.Mobile,
+      trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
+      state: initialState.SmartTransactionsController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SmartTransactionsController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+          'TransactionController:getNonceLock',
+          `TransactionController:confirmExternalTransaction`,
+          `TransactionController:getTransactions`,
+          `TransactionController:updateTransaction`,
+        ],
+        allowedEvents: ['NetworkController:stateChange'],
+      }),
+      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
+      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+      trace: trace as TraceCallback,
     });
 
-    const additionalDefaultNetworks = [
-      ChainId['megaeth-testnet'],
-      ChainId['monad-testnet'],
-    ];
+    const tokenSearchDiscoveryDataController =
+      new TokenSearchDiscoveryDataController({
+        tokenPricesService: codefiTokenApiV2,
+        swapsSupportedChainIds,
+        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTokens: swapsUtils.fetchTokens,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryDataController',
+          allowedActions: ['CurrencyRateController:getState'],
+          allowedEvents: [],
+        }),
+      });
 
-    let initialNetworkControllerState = initialState.NetworkController;
-    if (!initialNetworkControllerState) {
-      initialNetworkControllerState = getDefaultNetworkControllerState(
-        additionalDefaultNetworks,
-      );
-
-      // Add failovers for default Infura RPC endpoints
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('linea-mainnet');
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['base-mainnet']
-      ].rpcEndpoints[0].failoverUrls =
-        getFailoverUrlsForInfuraNetwork('base-mainnet');
-
-      // Update default popular network names
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId.mainnet
-      ].name = 'Ethereum';
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['linea-mainnet']
-      ].name = 'Linea';
-      initialNetworkControllerState.networkConfigurationsByChainId[
-        ChainId['base-mainnet']
-      ].name = 'Base';
-    }
-
-    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
-    const networkControllerOptions = {
-      infuraProjectId,
-      state: initialNetworkControllerState,
-      messenger: networkControllerMessenger,
-      getBlockTrackerOptions: () =>
-        process.env.IN_TEST
-          ? {}
-          : {
-              pollingInterval: 20 * SECOND,
-              // The retry timeout is pretty short by default, and if the endpoint is
-              // down, it will end up exhausting the max number of consecutive
-              // failures quickly.
-              retryTimeout: 20 * SECOND,
-            },
-      getRpcServiceOptions: (rpcEndpointUrl: string) => {
-        const maxRetries = 4;
-        const commonOptions = {
-          fetch: globalThis.fetch.bind(globalThis),
-          btoa: globalThis.btoa.bind(globalThis),
-        };
-
-        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
-          return {
-            ...commonOptions,
-            policyOptions: {
-              maxRetries,
-              // When we fail over to Quicknode, we expect it to be down at
-              // first while it is being automatically activated. If an endpoint
-              // is down, the failover logic enters a "cooldown period" of 30
-              // minutes. We'd really rather not enter that for Quicknode, so
-              // keep retrying longer.
-              maxConsecutiveFailures: (maxRetries + 1) * 14,
-            },
-          };
-        }
-
-        return {
-          ...commonOptions,
-          policyOptions: {
-            maxRetries,
-            // Ensure that the circuit does not break too quickly.
-            maxConsecutiveFailures: (maxRetries + 1) * 7,
-          },
-        };
-      },
-      additionalDefaultNetworks,
+    const existingControllersByName = {
+      SmartTransactionsController: this.smartTransactionsController,
     };
-    const networkController = new NetworkController(networkControllerOptions);
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointUnavailable({
-          chainId,
-          endpointUrl,
-          infuraProjectId,
-          error,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
-        });
+
+    const initRequest = {
+      getState: () => store.getState(),
+      getGlobalChainId: () => currentChainId,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      removeAccount: this.removeAccount.bind(this),
+      ///: END:ONLY_INCLUDE_IF
+      initialKeyringState,
+      qrKeyringScanner: this.qrKeyringScanner,
+    };
+
+    const { controllersByName } = initModularizedControllers({
+      controllerInitFunctions: {
+        PreferencesController: preferencesControllerInit,
+        NetworkController: networkControllerInit,
+        AccountsController: accountsControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        SnapKeyringBuilder: snapKeyringBuilderInit,
+        ///: END:ONLY_INCLUDE_IF
+        KeyringController: keyringControllerInit,
+        PermissionController: permissionControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        SubjectMetadataController: subjectMetadataControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+        AccountTreeController: accountTreeControllerInit,
+        AppMetadataController: appMetadataControllerInit,
+        SelectedNetworkController: selectedNetworkControllerInit,
+        ApprovalController: ApprovalControllerInit,
+        GasFeeController: GasFeeControllerInit,
+        GatorPermissionsController: GatorPermissionsControllerInit,
+        TransactionController: TransactionControllerInit,
+        SignatureController: SignatureControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
+        BridgeController: bridgeControllerInit,
+        BridgeStatusController: bridgeStatusControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ExecutionService: executionServiceInit,
+        CronjobController: cronjobControllerInit,
+        SnapController: snapControllerInit,
+        SnapInterfaceController: snapInterfaceControllerInit,
+        SnapsRegistry: snapsRegistryInit,
+        NotificationServicesController: notificationServicesControllerInit,
+        NotificationServicesPushController:
+          notificationServicesPushControllerInit,
+        WebSocketService: WebSocketServiceInit,
+        ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        MultichainAssetsController: multichainAssetsControllerInit,
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        MultichainBalancesController: multichainBalancesControllerInit,
+        MultichainTransactionsController: multichainTransactionsControllerInit,
+        MultichainAccountService: multichainAccountServiceInit,
+        ///: END:ONLY_INCLUDE_IF
+        SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
+        PerpsController: perpsControllerInit,
+        PredictController: predictControllerInit,
+        RewardsController: rewardsControllerInit,
       },
-    );
-    networkControllerMessenger.subscribe(
-      'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointDegraded({
-          chainId,
-          endpointUrl,
-          error,
-          infuraProjectId,
-          trackEvent: ({ event, properties }) => {
-            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-              .addProperties(properties)
-              .build();
-            MetaMetrics.getInstance().trackEvent(metricsEvent);
-          },
-          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
-        });
-      },
-    );
-    networkController.initializeProvider();
+      persistedState: initialState as EngineState,
+      existingControllersByName,
+      baseControllerMessenger: this.controllerMessenger,
+      ...initRequest,
+    });
+
+    const accountsController = controllersByName.AccountsController;
+    const accountTreeController = controllersByName.AccountTreeController;
+    const approvalController = controllersByName.ApprovalController;
+    const gasFeeController = controllersByName.GasFeeController;
+    const signatureController = controllersByName.SignatureController;
+    const transactionController = controllersByName.TransactionController;
+    const seedlessOnboardingController =
+      controllersByName.SeedlessOnboardingController;
+    const perpsController = controllersByName.PerpsController;
+    const predictController = controllersByName.PredictController;
+    const rewardsController = controllersByName.RewardsController;
+    const gatorPermissionsController =
+      controllersByName.GatorPermissionsController;
+    const selectedNetworkController =
+      controllersByName.SelectedNetworkController;
+    const preferencesController = controllersByName.PreferencesController;
+
+    // Initialize and store RewardsDataService
+    this.rewardsDataService = new RewardsDataService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RewardsDataService',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      fetch,
+      locale: I18n.locale,
+    });
+
+    // Backwards compatibility for existing references
+    this.accountsController = accountsController;
+    this.gasFeeController = gasFeeController;
+    this.gatorPermissionsController = gatorPermissionsController;
+    this.transactionController = transactionController;
+    this.permissionController = controllersByName.PermissionController;
+    this.preferencesController = preferencesController;
+    this.keyringController = controllersByName.KeyringController;
+
+    const multichainNetworkController =
+      controllersByName.MultichainNetworkController;
+    const currencyRateController = controllersByName.CurrencyRateController;
+    const bridgeController = controllersByName.BridgeController;
+    const networkController = controllersByName.NetworkController;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const cronjobController = controllersByName.CronjobController;
+    const executionService = controllersByName.ExecutionService;
+    const snapController = controllersByName.SnapController;
+    const snapInterfaceController = controllersByName.SnapInterfaceController;
+    const snapsRegistry = controllersByName.SnapsRegistry;
+    const webSocketService = controllersByName.WebSocketService;
+    const notificationServicesController =
+      controllersByName.NotificationServicesController;
+    const notificationServicesPushController =
+      controllersByName.NotificationServicesPushController;
+    this.subjectMetadataController =
+      controllersByName.SubjectMetadataController;
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsController =
+      controllersByName.MultichainAssetsController;
+    const multichainAssetsRatesController =
+      controllersByName.MultichainAssetsRatesController;
+    const multichainBalancesController =
+      controllersByName.MultichainBalancesController;
+    const multichainTransactionsController =
+      controllersByName.MultichainTransactionsController;
+    const multichainAccountService = controllersByName.MultichainAccountService;
+    ///: END:ONLY_INCLUDE_IF
+
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
 
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
@@ -572,213 +635,6 @@ export class Engine {
       }) as `0x${string}`[],
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
-
-    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-
-    const smartTransactionsControllerTrackMetaMetricsEvent = (
-      params: {
-        event: MetaMetricsEventName;
-        category: MetaMetricsEventCategory;
-        properties?: ReturnType<
-          typeof getSmartTransactionMetricsPropertiesType
-        >;
-        sensitiveProperties?: ReturnType<
-          typeof getSmartTransactionMetricsSensitivePropertiesType
-        >;
-      },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      options?: {
-        metaMetricsId?: string;
-      },
-    ) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: params.event,
-        })
-          .addProperties(params.properties || {})
-          .addSensitiveProperties(params.sensitiveProperties || {})
-          .build(),
-      );
-    };
-
-    this.smartTransactionsController = new SmartTransactionsController({
-      // @ts-expect-error TODO: resolve types
-      supportedChainIds: getAllowedSmartTransactionsChainIds(),
-      clientId: ClientId.Mobile,
-      trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
-      state: initialState.SmartTransactionsController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'SmartTransactionsController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-          'TransactionController:getNonceLock',
-          `TransactionController:confirmExternalTransaction`,
-          `TransactionController:getTransactions`,
-          `TransactionController:updateTransaction`,
-        ],
-        allowedEvents: ['NetworkController:stateChange'],
-      }),
-      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
-      getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
-      trace: trace as TraceCallback,
-    });
-
-    const tokenSearchDiscoveryDataController =
-      new TokenSearchDiscoveryDataController({
-        tokenPricesService: codefiTokenApiV2,
-        swapsSupportedChainIds,
-        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-        fetchTokens: swapsUtils.fetchTokens,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenSearchDiscoveryDataController',
-          allowedActions: ['CurrencyRateController:getState'],
-          allowedEvents: [],
-        }),
-      });
-
-    const existingControllersByName = {
-      NetworkController: networkController,
-      SmartTransactionsController: this.smartTransactionsController,
-    };
-
-    const initRequest = {
-      getState: () => store.getState(),
-      getGlobalChainId: () => currentChainId,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      removeAccount: this.removeAccount.bind(this),
-      ///: END:ONLY_INCLUDE_IF
-      initialKeyringState,
-      qrKeyringScanner: this.qrKeyringScanner,
-    };
-
-    const { controllersByName } = initModularizedControllers({
-      controllerInitFunctions: {
-        PreferencesController: preferencesControllerInit,
-        AccountsController: accountsControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        SnapKeyringBuilder: snapKeyringBuilderInit,
-        ///: END:ONLY_INCLUDE_IF
-        KeyringController: keyringControllerInit,
-        PermissionController: permissionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        SubjectMetadataController: subjectMetadataControllerInit,
-        ///: END:ONLY_INCLUDE_IF
-        AccountTreeController: accountTreeControllerInit,
-        AppMetadataController: appMetadataControllerInit,
-        SelectedNetworkController: selectedNetworkControllerInit,
-        ApprovalController: ApprovalControllerInit,
-        GasFeeController: GasFeeControllerInit,
-        GatorPermissionsController: GatorPermissionsControllerInit,
-        TransactionController: TransactionControllerInit,
-        SignatureController: SignatureControllerInit,
-        CurrencyRateController: currencyRateControllerInit,
-        MultichainNetworkController: multichainNetworkControllerInit,
-        DeFiPositionsController: defiPositionsControllerInit,
-        BridgeController: bridgeControllerInit,
-        BridgeStatusController: bridgeStatusControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        ExecutionService: executionServiceInit,
-        CronjobController: cronjobControllerInit,
-        SnapController: snapControllerInit,
-        SnapInterfaceController: snapInterfaceControllerInit,
-        SnapsRegistry: snapsRegistryInit,
-        NotificationServicesController: notificationServicesControllerInit,
-        NotificationServicesPushController:
-          notificationServicesPushControllerInit,
-        WebSocketService: WebSocketServiceInit,
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        MultichainAssetsController: multichainAssetsControllerInit,
-        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
-        MultichainBalancesController: multichainBalancesControllerInit,
-        MultichainTransactionsController: multichainTransactionsControllerInit,
-        MultichainAccountService: multichainAccountServiceInit,
-        ///: END:ONLY_INCLUDE_IF
-        SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
-        PerpsController: perpsControllerInit,
-        PredictController: predictControllerInit,
-        RewardsController: rewardsControllerInit,
-      },
-      persistedState: initialState as EngineState,
-      existingControllersByName,
-      baseControllerMessenger: this.controllerMessenger,
-      ...initRequest,
-    });
-
-    const accountsController = controllersByName.AccountsController;
-    const accountTreeController = controllersByName.AccountTreeController;
-    const approvalController = controllersByName.ApprovalController;
-    const gasFeeController = controllersByName.GasFeeController;
-    const signatureController = controllersByName.SignatureController;
-    const transactionController = controllersByName.TransactionController;
-    const seedlessOnboardingController =
-      controllersByName.SeedlessOnboardingController;
-    const perpsController = controllersByName.PerpsController;
-    const predictController = controllersByName.PredictController;
-    const rewardsController = controllersByName.RewardsController;
-    const gatorPermissionsController =
-      controllersByName.GatorPermissionsController;
-    const selectedNetworkController =
-      controllersByName.SelectedNetworkController;
-    const preferencesController = controllersByName.PreferencesController;
-
-    // Initialize and store RewardsDataService
-    this.rewardsDataService = new RewardsDataService({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'RewardsDataService',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      fetch,
-      locale: I18n.locale,
-    });
-
-    // Backwards compatibility for existing references
-    this.accountsController = accountsController;
-    this.gasFeeController = gasFeeController;
-    this.gatorPermissionsController = gatorPermissionsController;
-    this.transactionController = transactionController;
-    this.permissionController = controllersByName.PermissionController;
-    this.preferencesController = preferencesController;
-    this.keyringController = controllersByName.KeyringController;
-
-    const multichainNetworkController =
-      controllersByName.MultichainNetworkController;
-    const currencyRateController = controllersByName.CurrencyRateController;
-    const bridgeController = controllersByName.BridgeController;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const cronjobController = controllersByName.CronjobController;
-    const executionService = controllersByName.ExecutionService;
-    const snapController = controllersByName.SnapController;
-    const snapInterfaceController = controllersByName.SnapInterfaceController;
-    const snapsRegistry = controllersByName.SnapsRegistry;
-    const webSocketService = controllersByName.WebSocketService;
-    const notificationServicesController =
-      controllersByName.NotificationServicesController;
-    const notificationServicesPushController =
-      controllersByName.NotificationServicesPushController;
-    this.subjectMetadataController =
-      controllersByName.SubjectMetadataController;
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsController =
-      controllersByName.MultichainAssetsController;
-    const multichainAssetsRatesController =
-      controllersByName.MultichainAssetsRatesController;
-    const multichainBalancesController =
-      controllersByName.MultichainBalancesController;
-    const multichainTransactionsController =
-      controllersByName.MultichainTransactionsController;
-    const multichainAccountService = controllersByName.MultichainAccountService;
-    ///: END:ONLY_INCLUDE_IF
-
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
-    networkEnablementController.init();
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const authenticationControllerMessenger =

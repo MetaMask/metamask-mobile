@@ -694,6 +694,7 @@ export type ControllersToInitialize =
   | 'MultichainAccountService'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
   | 'ApprovalController'
