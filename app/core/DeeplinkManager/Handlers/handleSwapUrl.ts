@@ -14,7 +14,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
 import { fetchAssetMetadata } from '../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 import Engine from '../../Engine';
 import { isHex } from 'viem';
@@ -39,7 +39,7 @@ const validateAndLookupToken = async (
 
     // Create the token with metadata (balance will be fetched by Bridge view)
     const token: BridgeToken = {
-      address: isSolanaChainId(matchingToken.chainId)
+      address: isNonEvmChainId(matchingToken.chainId)
         ? matchingToken.assetId
         : matchingToken.address,
       symbol: matchingToken.symbol,
