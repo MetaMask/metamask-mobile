@@ -16,7 +16,6 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
-import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
@@ -613,40 +612,8 @@ class PerpsConnectionManagerClass {
         : PERPS_CONSTANTS.RECONNECTION_DELAY_IOS_MS;
       await wait(reconnectionDelay);
 
-      // Stage 3: Trigger connection with new account - wrap in try/catch to handle initialization errors
-      const accountStart = performance.now();
-      try {
-        await Engine.context.PerpsController.getAccountState({
-          source: 'account_switch',
-        });
-      } catch (error) {
-        // If it's a CLIENT_NOT_INITIALIZED or CLIENT_REINITIALIZING error, wait and retry once
-        if (
-          error instanceof Error &&
-          (error.message === PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED ||
-            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING)
-        ) {
-          DevLogger.log(
-            'PerpsConnectionManager: Waiting for initialization to complete',
-            {
-              error: error.message,
-            },
-          );
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          await Engine.context.PerpsController.getAccountState({
-            source: 'account_switch_retry',
-          });
-        } else {
-          throw error;
-        }
-      }
-      setMeasurement(
-        PerpsMeasurementName.PERPS_NEW_ACCOUNT_FETCH,
-        performance.now() - accountStart,
-        'millisecond',
-        traceSpan,
-      );
-
+      // Mark as connected - account data will be fetched via WebSocket subscriptions during preload
+      // No need to explicitly call getAccountState() - preloadSubscriptions() handles account data
       this.isConnected = true;
       this.isInitialized = true;
       // Clear errors on successful reconnection

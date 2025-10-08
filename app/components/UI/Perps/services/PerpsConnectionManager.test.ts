@@ -674,13 +674,12 @@ describe('PerpsConnectionManager', () => {
   describe('reconnectWithNewContext', () => {
     beforeEach(() => {
       mockPerpsController.reconnectWithNewContext.mockResolvedValue();
-      mockPerpsController.getAccountState.mockResolvedValue({});
+      // getAccountState is no longer called during reconnection - account data fetched via WebSocket subscriptions
     });
 
     it('should clear StreamManager caches', async () => {
       // Setup connected state first
       mockPerpsController.initializeProviders.mockResolvedValue();
-      mockPerpsController.getAccountState.mockResolvedValue({});
       await PerpsConnectionManager.connect();
 
       // Now call reconnectWithNewContext through the private method
@@ -701,7 +700,6 @@ describe('PerpsConnectionManager', () => {
 
     it('should reinitialize controller with new context', async () => {
       mockPerpsController.initializeProviders.mockResolvedValue();
-      mockPerpsController.getAccountState.mockResolvedValue({});
 
       await (
         PerpsConnectionManager as unknown as {
@@ -710,8 +708,8 @@ describe('PerpsConnectionManager', () => {
       ).reconnectWithNewContext();
 
       // Manager now calls initializeProviders directly (Controller.reconnectWithNewContext was removed as redundant)
+      // Account data will be fetched via WebSocket subscriptions during preload, no explicit getAccountState() call
       expect(mockPerpsController.initializeProviders).toHaveBeenCalled();
-      expect(mockPerpsController.getAccountState).toHaveBeenCalled();
     });
 
     it('should handle reconnection errors gracefully', async () => {
