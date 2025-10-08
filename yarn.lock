@@ -17280,6 +17280,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/pako@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "@types/pako@npm:2.0.4"
+  checksum: 7e7b090c27cdbed4a8c21f7dfa466ad1c6b5c29afbcaaa24b35e83803d2b6b6cd552060060d8832058cf3809787baaab47a6a974b69d75a2a2dc59d21b607ee8
+  languageName: node
+  linkType: hard
+
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.0
   resolution: "@types/parse-json@npm:4.0.0"
@@ -34139,6 +34146,7 @@ __metadata:
     "@types/lodash": ^4.14.184
     "@types/luxon": ^3.4.2
     "@types/node": ^20.12.8
+    "@types/pako": ^2.0.4
     "@types/qs": ^6.9.15
     "@types/react": ^18.2.6
     "@types/react-native-background-timer": ^2.0.0
@@ -34268,6 +34276,7 @@ __metadata:
     nock: ^13.3.1
     number-to-bn: 1.7.0
     nyc: ^15.1.0
+    pako: ^2.1.0
     patch-package: ^6.2.2
     path: 0.12.7
     pbkdf2: 3.1.3
@@ -36758,6 +36767,13 @@ __metadata:
   dependencies:
     repeat-string: ^1.5.2
   checksum: 090fe065f979e04b251e4b33706caf5817c973f1106e445ffaee3a742e1495b0892db858ee25383f97dd048262ba969559d43f31beb385d780c9a0a24f3063d0
+  languageName: node
+  linkType: hard
+
+"pako@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "pako@npm:2.1.0"
+  checksum: 71666548644c9a4d056bcaba849ca6fd7242c6cf1af0646d3346f3079a1c7f4a66ffec6f7369ee0dc88f61926c10d6ab05da3e1fca44b83551839e89edd75a3e
   languageName: node
   linkType: hard
 
