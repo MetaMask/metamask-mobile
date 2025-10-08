@@ -58,7 +58,7 @@ describe('run-e2e-tags-gha (black-box)', () => {
 
     const args = JSON.parse(fs.readFileSync(logPath, 'utf8')) as string[];
     // First arg is the yarn script name
-    expect(args[0]).toBe('test:e2e:ios-gha:main:prod');
+    expect(args[0]).toBe('test:e2e:ios:github:main:release');
     // Second arg is the testNamePattern derived from TEST_SUITE_TAG
     expect(args[1]).toBe('--testNamePattern=^@tag-one');
     const files = args.slice(2).sort();
