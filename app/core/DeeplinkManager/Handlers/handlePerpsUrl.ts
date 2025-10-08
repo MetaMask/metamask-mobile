@@ -155,11 +155,8 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       DevLogger.log(
         '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
       );
-      NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-        params: {
-          isFromDeeplink: true,
-        },
+      NavigationService.navigation.navigate(Routes.PERPS.TUTORIAL, {
+        isFromDeeplink: true,
       });
       return;
     }

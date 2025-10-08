@@ -94,6 +94,7 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
   PerpsModalStack,
+  PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import {
@@ -997,6 +998,13 @@ const MainNavigator = () => {
             component={PerpsScreenStack}
             options={{
               animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.TUTORIAL}
+            component={PerpsTutorialCarousel}
+            options={{
+              headerShown: false,
             }}
           />
           <Stack.Screen
