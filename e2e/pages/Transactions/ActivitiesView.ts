@@ -136,9 +136,15 @@ class ActivitiesView {
 
   // Navigate to Perps tab inside Activity by swiping to the last tab
   async goToPerpsTab(): Promise<void> {
-    const tradesTab = Matchers.getElementByText(/Trades/i) as DetoxElement;
-    const ordersTab = Matchers.getElementByText(/Orders/i) as DetoxElement;
-    const fundingTab = Matchers.getElementByText(/Funding/i) as DetoxElement;
+    const tradesTab = Matchers.getElementByTextContains(
+      'Trades',
+    ) as DetoxElement;
+    const ordersTab = Matchers.getElementByTextContains(
+      'Orders',
+    ) as DetoxElement;
+    const fundingTab = Matchers.getElementByTextContains(
+      'Funding',
+    ) as DetoxElement;
 
     // 1) Try tapping the top "Perps" tab directly
     const perpsTabVisible = await Utilities.isElementVisible(
