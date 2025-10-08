@@ -51,9 +51,14 @@ import { useStyles } from '../../../component-library/hooks';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
@@ -280,15 +285,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         assetId,
       }),
     );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Buy',
-          location: 'TokenDetails',
-          chain_id_destination: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
+
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.BUY,
+      button_label: strings('asset_overview.buy_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
   };
 
   const goToBrowserUrl = (url: string) => {
@@ -468,6 +471,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               address: asset.address,
               chainId,
             }}
+            location={ActionLocation.ASSET_DETAILS}
           />
           <Balance
             asset={asset}

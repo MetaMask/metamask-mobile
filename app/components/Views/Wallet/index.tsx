@@ -56,6 +56,12 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import {
@@ -588,6 +594,14 @@ const Wallet = ({
     isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
+    // Track Receive button click
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.RECEIVE,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.HOME,
+    });
+
     if (isMultichainAccountsState2Enabled) {
       if (selectedAccountGroupId) {
         navigate(
@@ -631,6 +645,8 @@ const Wallet = ({
       );
     }
   }, [
+    trackEvent,
+    createEventBuilder,
     isMultichainAccountsState2Enabled,
     navigate,
     selectedAccountGroupId,
@@ -641,6 +657,14 @@ const Wallet = ({
 
   const onSend = useCallback(async () => {
     try {
+      // Track Send button click
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SEND,
+        action_position: ActionPosition.SEND,
+        button_label: strings('asset_overview.send_button'),
+        location: ActionLocation.HOME,
+      });
+
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
       const wasHandledAsNonEvm = await sendNonEvmAsset(
@@ -675,6 +699,8 @@ const Wallet = ({
       navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
+    trackEvent,
+    createEventBuilder,
     nativeCurrency,
     navigateToSendPage,
     dispatch,

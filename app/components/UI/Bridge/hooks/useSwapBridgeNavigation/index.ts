@@ -15,8 +15,13 @@ import {
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { SolScope, EthScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { getDecimalChainId } from '../../../../../util/networks';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../../util/analytics/actionButtonTracking';
 import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscoveryDataController';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
@@ -28,6 +33,7 @@ import {
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
+import { strings } from '../../../../../../locales/i18n';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -136,16 +142,16 @@ export const useSwapBridgeNavigation = ({
         params,
       });
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-          .addProperties({
-            location,
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            token_symbol_source: sourceToken?.symbol,
-            token_address_source: sourceToken?.address,
-          })
-          .build(),
-      );
+      // Track Swap button click with new consolidated event
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SWAP,
+        button_label: strings('asset_overview.swap'),
+        location:
+          location === 'TabBar'
+            ? ActionLocation.HOME
+            : ActionLocation.ASSET_DETAILS,
+      });
       trace({
         name: TraceName.SwapViewLoaded,
         startTime: Date.now(),
