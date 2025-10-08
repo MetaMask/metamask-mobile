@@ -284,6 +284,28 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
     secrets: inherit
 
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  e2e-smoke-tests-ios:
+    name: 'iOS E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-ios-apps]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
@@ -489,6 +511,7 @@ jobs:
       - all-jobs-pass-merge-pr
       - needs_e2e_build
       - e2e-smoke-tests-android
+      - e2e-smoke-tests-ios
     steps:
       - run: |
           # Check if all non-E2E jobs passed
@@ -501,6 +524,10 @@ jobs:
           if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
             if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
               echo "Android E2E tests failed"
+              exit 1
+            fi
+            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
+              echo "iOS E2E tests failed"
               exit 1
             fi
           fi

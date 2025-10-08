@@ -159,6 +159,7 @@ jobs:
 
       - name: Download all test results
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           path: all-test-results/
           pattern: "*-android-*-test-results"
