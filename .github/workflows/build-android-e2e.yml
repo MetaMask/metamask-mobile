@@ -32,9 +32,9 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xxl
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
     env:
-      GRADLE_USER_HOME: /home/runner/_work/.gradle
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -47,8 +47,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
+
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
         with:
           platform: android
           setup-simulator: false
@@ -56,11 +62,13 @@ jobs:
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@v4
         with:
           path: |
             /home/runner/_work/.gradle/caches
             /home/runner/_work/.gradle/wrapper
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
             android/.gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
@@ -108,7 +116,7 @@ jobs:
 
       - name: Check and restore cached APKs if Fingerprint is found
         id: cache-restore
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -227,7 +235,7 @@ jobs:
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk

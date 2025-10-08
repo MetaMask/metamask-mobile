@@ -2885,23 +2885,33 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           onPress={[Function]}
                                           testID="amount-input"
                                         >
-                                          <Text
-                                            accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
+                                          <View
                                             style={
-                                              {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 24,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 32,
-                                              }
+                                              [
+                                                {
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "50%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
                                             }
-                                          >
-                                            $
-                                            0
-                                          </Text>
+                                          />
                                         </TouchableOpacity>
                                       </View>
                                       <View
@@ -2922,134 +2932,33 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                         testID="listitemcolumn"
                                       >
-                                        <TouchableOpacity
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={false}
-                                          hitSlop={
-                                            {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
-                                            }
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f3f5f9",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "30%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
                                           }
-                                          onPress={[Function]}
-                                          testID="select-currency"
-                                        >
-                                          <View>
-                                            <Text
-                                              style={
-                                                [
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
-                                                    "fontSize": 30,
-                                                    "marginVertical": 2,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
-                                                      "fontSize": 30,
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontFamily": "Geist Bold",
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "color": "#121314",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "color": "#121314",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
-                                                USD
-                                              </Text>
-                                                
-                                              <Text
-                                                allowFontScaling={false}
-                                                selectable={false}
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": undefined,
-                                                      "fontSize": 16,
-                                                    },
-                                                    {
-                                                      "color": "#121314",
-                                                      "marginLeft": 10,
-                                                    },
-                                                    {
-                                                      "fontFamily": "Entypo",
-                                                      "fontStyle": "normal",
-                                                      "fontWeight": "normal",
-                                                    },
-                                                    {},
-                                                  ]
-                                                }
-                                              >
-                                                
-                                              </Text>
-                                            </Text>
-                                          </View>
-                                        </TouchableOpacity>
+                                        />
                                       </View>
                                     </View>
                                   </View>
