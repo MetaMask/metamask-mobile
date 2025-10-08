@@ -85,7 +85,9 @@ function transformToValidPort(defaultPort: number) {
 
   // Avoid privileged/invalid ports (<1024). Map into 1024..65535 deterministically
   if (candidate < 1024) {
-    candidate = 1024 + (candidate % (65536 - 1024));
+    // Shift remapped range to avoid direct collisions with existing 1024..2047 values.
+    // Maps 0..1023 -> 2048..3071 instead of 1024..2047.
+    candidate = 1024 + ((candidate + 1024) % (65536 - 1024));
   }
 
   return candidate;
