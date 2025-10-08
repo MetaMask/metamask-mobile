@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`useSortedSourceNetworks should sort networks by total fiat value in descending order 1`] = `
+[
+  {
+    "chainId": "0x1",
+    "defaultRpcEndpointIndex": 0,
+    "name": "Ethereum Mainnet",
+    "nativeCurrency": "ETH",
+    "rpcEndpoints": [
+      {
+        "networkClientId": "mainnet",
+      },
+    ],
+    "totalFiatValue": 226000,
+  },
+  {
+    "chainId": "0xa",
+    "defaultRpcEndpointIndex": 0,
+    "name": "Optimism",
+    "nativeCurrency": "ETH",
+    "rpcEndpoints": [
+      {
+        "networkClientId": "optimismNetworkClientId",
+      },
+    ],
+    "totalFiatValue": 120000,
+  },
+  {
+    "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+    "decimals": 5,
+    "imageSource": 1,
+    "isEvm": false,
+    "isTestnet": false,
+    "name": "Solana",
+    "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+    "ticker": "SOL",
+    "totalFiatValue": 30012.755999999998,
+  },
+  {
+    "chainId": "bip122:000000000019d6689c085ae165831e93",
+    "decimals": 8,
+    "imageSource": 1,
+    "isEvm": false,
+    "isTestnet": false,
+    "name": "Bitcoin",
+    "nativeCurrency": "bip122:000000000019d6689c085ae165831e93/slip44:0",
+    "ticker": "BTC",
+    "totalFiatValue": 1500,
+  },
+]
+`;
