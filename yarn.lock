@@ -8775,43 +8775,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.4.0":
-  version: 60.4.0
-  resolution: "@metamask/transaction-controller@npm:60.4.0"
-  dependencies:
-    "@ethereumjs/common": ^4.4.0
-    "@ethereumjs/tx": ^5.4.0
-    "@ethereumjs/util": ^9.1.0
-    "@ethersproject/abi": ^5.7.0
-    "@ethersproject/contracts": ^5.7.0
-    "@ethersproject/providers": ^5.7.0
-    "@ethersproject/wallet": ^5.7.0
-    "@metamask/base-controller": ^8.4.0
-    "@metamask/controller-utils": ^11.14.0
-    "@metamask/eth-query": ^4.0.0
-    "@metamask/metamask-eth-abis": ^3.1.1
-    "@metamask/nonce-tracker": ^6.0.0
-    "@metamask/rpc-errors": ^7.0.2
-    "@metamask/utils": ^11.8.0
-    async-mutex: ^0.5.0
-    bn.js: ^5.2.1
-    eth-method-registry: ^4.0.0
-    fast-json-patch: ^3.1.1
-    lodash: ^4.17.21
-    uuid: ^8.3.2
-  peerDependencies:
-    "@babel/runtime": ^7.0.0
-    "@metamask/accounts-controller": ^33.0.0
-    "@metamask/approval-controller": ^7.0.0
-    "@metamask/eth-block-tracker": ">=9"
-    "@metamask/gas-fee-controller": ^24.0.0
-    "@metamask/network-controller": ^24.0.0
-    "@metamask/remote-feature-flag-controller": ^1.5.0
-  checksum: 1e43062f640bd797971a141081117ac5e4044f9d3fd0adb6592b7dbe5679e79b7bee0064dc17865609d6f1652e6c49f82cc58b15af2498355ffcbfcff31154fc
-  languageName: node
-  linkType: hard
-
-"@metamask/transaction-controller@npm:^60.6.0":
+"@metamask/transaction-controller@npm:^60.4.0, @metamask/transaction-controller@npm:^60.6.0":
   version: 60.6.0
   resolution: "@metamask/transaction-controller@npm:60.6.0"
   dependencies:
