@@ -1198,6 +1198,7 @@ describe('polymarket utils', () => {
         image: 'https://example.com/icon.png',
         status: 'open',
         recurrence: 'daily',
+        endDate: undefined,
         categories: [mockCategory],
         outcomes: [
           {
@@ -1223,6 +1224,7 @@ describe('polymarket utils', () => {
             ],
             negRisk: true,
             tickSize: '0.01',
+            resolvedBy: '0x0000000000000000000000000000000000000000',
           },
         ],
       });
