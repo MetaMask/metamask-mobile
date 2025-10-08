@@ -31,7 +31,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
   selectIsGaslessSwapEnabled,
@@ -176,7 +175,6 @@ export const TokenInputArea = forwardRef<
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
     const isGaslessSwapEnabled = useSelector((state: RootState) =>
       token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
     );
@@ -273,13 +271,9 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
-    let tokenButtonText = isUnifiedSwapsEnabled
-      ? 'bridge.swap_to'
-      : 'bridge.bridge_to';
+    let tokenButtonText = 'bridge.swap_to';
     if (isSourceToken) {
-      tokenButtonText = isUnifiedSwapsEnabled
-        ? 'bridge.swap_from'
-        : 'bridge.bridge_from';
+      tokenButtonText = 'bridge.swap_from';
     }
 
     return (

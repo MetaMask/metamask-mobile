@@ -82,10 +82,7 @@ import { selectNonEvmTransactions } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import {
-  selectIsUnifiedSwapsEnabled,
-  selectIsSwapsLive,
-} from '../../../core/redux/slices/bridge';
+import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -203,7 +200,6 @@ class Asset extends PureComponent {
      * Function to set the swaps liveness
      */
     setLiveness: PropTypes.func,
-    isUnifiedSwapsEnabled: PropTypes.bool,
   };
 
   state = {
@@ -583,16 +579,7 @@ class Asset extends PureComponent {
       swapsTokens: this.props.swapsTokens,
     });
 
-    // Check if unified swaps is enabled
-    const isUnifiedSwapsEnabled = this.props.isUnifiedSwapsEnabled;
-
     const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
-
-    const displayBridgeButton =
-      !isUnifiedSwapsEnabled &&
-      (isPortfolioViewEnabled()
-        ? isBridgeAllowed(asset.chainId)
-        : isBridgeAllowed(chainId));
 
     // Fund button should be visible if either deposit OR ramp is available
     const isDepositAvailable = this.props.isDepositEnabled;
@@ -616,7 +603,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
@@ -642,7 +628,6 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
-                  displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
                   networkName={
                     this.props.networkConfigurations[asset.chainId]?.name
@@ -812,7 +797,6 @@ const mapStateToProps = (state, { route }) => {
       );
     })(),
     networkClientId: selectNetworkClientId(state),
-    isUnifiedSwapsEnabled: selectIsUnifiedSwapsEnabled(state),
   };
 };
 

@@ -179,8 +179,6 @@ const BridgeView = () => {
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
-  const isSwap = sourceToken?.chainId === destToken?.chainId;
-
   const hasValidBridgeInputs =
     isValidSourceAmount &&
     !!sourceToken &&
@@ -321,9 +319,7 @@ const BridgeView = () => {
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    return isSwap
-      ? strings('bridge.confirm_swap')
-      : strings('bridge.confirm_bridge');
+    return strings('bridge.confirm_swap');
   };
 
   useEffect(() => {

@@ -27,7 +27,6 @@ jobs:
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
       NODE_OPTIONS: '--max-old-space-size=8192'
-      MM_UNIFIED_SWAPS_ENABLED: 'true'
       MM_BRIDGE_ENABLED: 'true'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -176,7 +175,6 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
-          MM_UNIFIED_SWAPS_ENABLED: 'true'
           MM_BRIDGE_ENABLED: 'true'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'

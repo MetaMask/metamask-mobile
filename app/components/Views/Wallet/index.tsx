@@ -144,9 +144,7 @@ import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -562,10 +560,8 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-
   // Setup for AssetDetailsActions
-  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+  const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
@@ -582,10 +578,6 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
-  const displayBridgeButton =
-    !isUnifiedSwapsEnabled &&
-    AppConstants.BRIDGE.ACTIVE &&
-    isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
@@ -1312,8 +1304,6 @@ const Wallet = ({
             <AssetDetailsActions
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
-              displayBridgeButton={displayBridgeButton}
-              goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
               onSend={onSend}
@@ -1350,11 +1340,9 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-      goToBridge,
       goToSwaps,
       displayBuyButton,
       displaySwapsButton,
-      displayBridgeButton,
       onReceive,
       onSend,
       route.params,

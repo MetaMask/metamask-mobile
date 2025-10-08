@@ -39,7 +39,6 @@ import {
 } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
-import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
@@ -472,21 +471,6 @@ export const selectIsEvmSwap = createSelector(
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
-);
-
-export const selectIsUnifiedSwapsEnabled = createSelector(
-  selectBridgeFeatureFlags,
-  selectChainId,
-  (bridgeFeatureFlags, chainId) => {
-    if (
-      isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
-    ) {
-      return true;
-    }
-    return false;
-  },
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(

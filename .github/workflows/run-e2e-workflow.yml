@@ -72,7 +72,6 @@ jobs:
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}
-      MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
       BRIDGE_USE_DEV_APIS: 'true'
