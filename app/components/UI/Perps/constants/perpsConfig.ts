@@ -7,6 +7,7 @@ export const PERPS_CONSTANTS = {
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
   CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
+  DEFAULT_MONITORING_TIMEOUT_MS: 10_000, // 10 seconds default timeout for data monitoring operations
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
@@ -21,6 +22,7 @@ export const PERPS_CONSTANTS = {
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
+  FALLBACK_PERCENTAGE_DISPLAY: '--%', // Display when change data is unavailable
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
 } as const;
 
@@ -85,6 +87,10 @@ export const PERFORMANCE_CONFIG = {
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
   NAVIGATION_PARAMS_DELAY_MS: 200,
+
+  // Tab control reset delay (milliseconds)
+  // Delay to reset programmatic tab control after tab switching to prevent render loops
+  TAB_CONTROL_RESET_DELAY_MS: 500,
 
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data

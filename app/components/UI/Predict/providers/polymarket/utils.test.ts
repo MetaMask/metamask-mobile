@@ -34,6 +34,7 @@ import {
   buildMarketOrderCreationArgs,
   buildPolyHmacSignature,
   calculateBuyMarketPrice,
+  calculateFeeAmount,
   calculateMarketPrice,
   calculateSellMarketPrice,
   createApiKey,
@@ -1071,6 +1072,84 @@ describe('polymarket utils', () => {
         }),
       ).rejects.toThrow('Network error');
     });
+
+    it('includes feeAuthorization in request body when provided', async () => {
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0xCollateralAddress',
+            operation: 0,
+            data: '0xdata',
+            value: '0',
+          },
+          sig: '0xsig',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({ ...mockClobOrder, feeAuthorization }),
+        },
+      );
+    });
+
+    it('omits feeAuthorization when undefined', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization: undefined,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/order',
+        {
+          method: 'POST',
+          headers: mockHeaders,
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
+        },
+      );
+    });
+
+    it('serializes feeAuthorization correctly to JSON', async () => {
+      const feeAuthorization = {
+        type: 'safe-transaction' as const,
+        authorization: {
+          tx: {
+            to: '0x1234567890123456789012345678901234567890',
+            operation: 0,
+            data: '0xabcdef',
+            value: '100',
+          },
+          sig: '0xdeadbeef',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody).toHaveProperty('feeAuthorization');
+      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
   });
 
   describe('parsePolymarketEvents', () => {
@@ -1100,6 +1179,8 @@ describe('polymarket utils', () => {
           negRisk: true,
           orderPriceMinTickSize: 0.01,
           status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
         },
       ],
     };
@@ -1117,6 +1198,7 @@ describe('polymarket utils', () => {
         image: 'https://example.com/icon.png',
         status: 'open',
         recurrence: 'daily',
+        endDate: undefined,
         categories: [mockCategory],
         outcomes: [
           {
@@ -1142,6 +1224,7 @@ describe('polymarket utils', () => {
             ],
             negRisk: true,
             tickSize: '0.01',
+            resolvedBy: '0x0000000000000000000000000000000000000000',
           },
         ],
       });
@@ -1197,70 +1280,283 @@ describe('polymarket utils', () => {
 
       expect(result[0].outcomes[0].image).toBe('');
     });
+
+    it('filter out inactive markets', () => {
+      const eventWithInactiveMarkets = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-1',
+            active: true,
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-2',
+            active: false,
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-3',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithInactiveMarkets],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(2);
+      expect(result[0].outcomes.map((outcome) => outcome.id)).toEqual([
+        'market-1',
+        'market-3',
+      ]);
+    });
+
+    it('sort markets by price in descending order', () => {
+      const eventWithMultipleMarkets = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-low-price',
+            outcomePrices: '["0.3", "0.7"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-high-price',
+            outcomePrices: '["0.8", "0.2"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-medium-price',
+            outcomePrices: '["0.5", "0.5"]',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithMultipleMarkets],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(3);
+      expect(result[0].outcomes.map((outcome) => outcome.id)).toEqual([
+        'market-high-price',
+        'market-medium-price',
+        'market-low-price',
+      ]);
+    });
+
+    it('handle markets with null outcomePrices in sorting', () => {
+      const eventWithNullPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-price',
+            outcomePrices: '["0.6", "0.4"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-without-price',
+            outcomePrices: null as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents([eventWithNullPrices], mockCategory);
+
+      expect(result[0].outcomes).toHaveLength(2);
+      // Market with price should come first (0.6 > 0)
+      expect(result[0].outcomes[0].id).toBe('market-with-price');
+      expect(result[0].outcomes[1].id).toBe('market-without-price');
+    });
+
+    it('handle markets with undefined outcomePrices in sorting', () => {
+      const eventWithUndefinedPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-price',
+            outcomePrices: '["0.3", "0.7"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-without-price',
+            outcomePrices: undefined as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithUndefinedPrices],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(2);
+      // Market with price should come first (0.3 > 0)
+      expect(result[0].outcomes[0].id).toBe('market-with-price');
+      expect(result[0].outcomes[1].id).toBe('market-without-price');
+    });
+
+    it('handle markets with empty outcomePrices string in sorting', () => {
+      const eventWithEmptyPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-price',
+            outcomePrices: '["0.4", "0.6"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-empty-price',
+            outcomePrices: '',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithEmptyPrices],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(2);
+      // Market with price should come first (0.4 > 0)
+      expect(result[0].outcomes[0].id).toBe('market-with-price');
+      expect(result[0].outcomes[1].id).toBe('market-with-empty-price');
+    });
+
+    it('include resolvedBy field in outcome', () => {
+      const eventWithResolvedBy = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            resolvedBy: '0x1234567890123456789012345678901234567890',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents([eventWithResolvedBy], mockCategory);
+
+      expect(result[0].outcomes[0].resolvedBy).toBe(
+        '0x1234567890123456789012345678901234567890',
+      );
+    });
+
+    it('handle undefined resolvedBy field', () => {
+      const eventWithoutResolvedBy = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            resolvedBy: undefined as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithoutResolvedBy],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes[0].resolvedBy).toBeUndefined();
+    });
+
+    it('handle complex sorting with mixed price scenarios', () => {
+      const eventWithComplexPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-zero',
+            outcomePrices: '["0", "1"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-high',
+            outcomePrices: '["0.9", "0.1"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-medium',
+            outcomePrices: '["0.5", "0.5"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-null',
+            outcomePrices: null as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithComplexPrices],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(4);
+      expect(result[0].outcomes.map((outcome) => outcome.id)).toEqual([
+        'market-high', // 0.9
+        'market-medium', // 0.5
+        'market-zero', // 0
+        'market-null', // 0 (default)
+      ]);
+    });
   });
 
   describe('parsePolymarketPositions', () => {
+    const createPosition = (
+      id: string,
+      index: number,
+      props: Partial<PolymarketPosition>,
+    ): PolymarketPosition => ({
+      asset: `position-${id}`,
+      conditionId: 'condition-1',
+      icon: `https://example.com/icon${id}.png`,
+      title: `Position ${id}`,
+      slug: `position-${id}`,
+      size: 100,
+      outcome: 'Yes',
+      outcomeIndex: index,
+      cashPnl: 10,
+      curPrice: 0.6,
+      currentValue: 60,
+      percentPnl: 5,
+      realizedPnl: 0,
+      initialValue: 50,
+      avgPrice: 0.5,
+      redeemable: false,
+      negativeRisk: false,
+      endDate: '2024-12-31',
+      ...props,
+    });
+
     const mockPositions: PolymarketPosition[] = [
-      {
-        asset: 'position-1',
-        conditionId: 'condition-1',
-        icon: 'https://example.com/icon1.png',
-        title: 'Position 1',
-        slug: 'position-1',
-        size: 100,
-        outcome: 'Yes',
-        outcomeIndex: 0,
-        cashPnl: 10,
-        curPrice: 0.6,
-        currentValue: 60,
-        percentPnl: 5,
-        realizedPnl: 0,
-        initialValue: 50,
-        avgPrice: 0.5,
-        redeemable: false,
-        negativeRisk: false,
-        endDate: '2024-12-31',
-      },
-      {
-        asset: 'position-2',
-        conditionId: 'condition-1',
-        icon: 'https://example.com/icon2.png',
-        title: 'Position 2',
-        slug: 'position-2',
+      createPosition('1', 0, {}),
+      createPosition('2', 1, {
         size: 50,
         outcome: 'No',
-        outcomeIndex: 1,
         cashPnl: -5,
         curPrice: 0.4,
         currentValue: 20,
         percentPnl: -10,
-        realizedPnl: 0,
         initialValue: 25,
-        avgPrice: 0.5,
         redeemable: true,
-        negativeRisk: false,
-        endDate: '2024-12-31',
-      },
-      {
-        asset: 'position-3',
-        conditionId: 'condition-1',
-        icon: 'https://example.com/icon3.png',
-        title: 'Position 3',
-        slug: 'position-3',
+      }),
+      createPosition('3', 2, {
         size: 75,
         outcome: 'Maybe',
-        outcomeIndex: 2,
         cashPnl: 15,
         curPrice: 0.8,
-        currentValue: 60,
         percentPnl: 20,
-        realizedPnl: 0,
-        initialValue: 50,
         avgPrice: 0.67,
         redeemable: true,
-        negativeRisk: false,
-        endDate: '2024-12-31',
-      },
+      }),
     ];
 
     const mockMarketResponse: Partial<PolymarketApiMarket>[] = [
@@ -1453,6 +1749,8 @@ describe('polymarket utils', () => {
           negRisk: true,
           orderPriceMinTickSize: 0.01,
           status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
         },
       ],
     };
@@ -1562,6 +1860,8 @@ describe('polymarket utils', () => {
       negRisk: true,
       orderPriceMinTickSize: 0.01,
       status: 'open',
+      active: true,
+      resolvedBy: '0x0000000000000000000000000000000000000000',
     };
 
     it('fetch single market successfully', async () => {
@@ -1754,6 +2054,174 @@ describe('polymarket utils', () => {
 
       expect(typeof result).toBe('string');
       expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('calculateFeeAmount', () => {
+    it('calculates 4% fee for BUY orders', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '1000000',
+        takerAmount: '500000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(40000));
+    });
+
+    it('returns zero fee for SELL orders', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '1000000',
+        takerAmount: '500000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.SELL,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(0));
+    });
+
+    it('handles large maker amounts correctly', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '100000000000',
+        takerAmount: '50000000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(feeAmount).toBe(BigInt(4000000000));
+    });
+
+    it('returns bigint type', () => {
+      const order: OrderData = {
+        maker: '0x1234567890123456789012345678901234567890',
+        signer: '0x1234567890123456789012345678901234567890',
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: '123',
+        makerAmount: '250000',
+        takerAmount: '125000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: UtilsSide.BUY,
+        signatureType: SignatureType.EOA,
+      };
+
+      const feeAmount = calculateFeeAmount(order);
+
+      expect(typeof feeAmount).toBe('bigint');
+      expect(feeAmount).toBe(BigInt(10000));
+    });
+  });
+
+  describe('submitClobOrder error handling', () => {
+    const mockHeaders: ClobHeaders = {
+      POLY_ADDRESS: mockAddress,
+      POLY_SIGNATURE: 'test-signature_',
+      POLY_TIMESTAMP: '1704067200',
+      POLY_API_KEY: 'test-api-key',
+      POLY_PASSPHRASE: 'test-passphrase',
+    };
+
+    const mockClobOrder: ClobOrderObject = {
+      maker: mockAddress,
+      signer: mockAddress,
+      taker: '0x0000000000000000000000000000000000000000',
+      tokenId: 'test-token',
+      makerAmount: '100000000',
+      takerAmount: '50000000',
+      expiration: '0',
+      nonce: '0',
+      feeRateBps: '0',
+      side: Side.BUY,
+      signatureType: SignatureType.EOA,
+      signature: 'mock-signature',
+      salt: 12345,
+    };
+
+    it('handle 403 geoblock response with specific error message', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'You are unable to access this provider.',
+        errorCode: 403,
+      });
+    });
+
+    it('handle non-403 error with JSON error message', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: jest.fn().mockResolvedValue({
+          error: 'Invalid order parameters',
+        }),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Invalid order parameters',
+      });
+    });
+
+    it('handle non-403 error without JSON error field, use statusText', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Internal Server Error',
+      });
     });
   });
 });

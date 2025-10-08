@@ -11,6 +11,8 @@ import { KVStore } from '../store/kv-store';
 import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 import { ConnectionInfo } from '../types/connection-info';
+import logger from './logger';
+import { IHostApplicationAdapter } from '../types/host-application-adapter';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -19,27 +21,34 @@ export class Connection {
   public readonly id: string;
   public readonly info: ConnectionInfo;
   public readonly client: WalletClient;
+  public readonly hostApp: IHostApplicationAdapter;
   public readonly bridge: IRPCBridgeAdapter;
 
-  private constructor(connInfo: ConnectionInfo, client: WalletClient) {
+  private constructor(
+    connInfo: ConnectionInfo,
+    client: WalletClient,
+    hostApp: IHostApplicationAdapter,
+  ) {
     this.id = connInfo.id;
     this.info = connInfo;
     this.client = client;
+    this.hostApp = hostApp;
     this.bridge = new RPCBridgeAdapter(this.info);
 
     this.client.on('message', (payload) => {
-      console.warn(
-        `[SDKConnectV2] [Connection:${this.id}] Received message:`,
-        JSON.stringify(payload),
-      );
+      logger.debug('Received message:', this.id, payload);
+
       this.bridge.send(payload);
     });
 
     this.bridge.on('response', (payload) => {
-      console.warn(
-        `[SDKConnectV2] [Connection:${this.id}] Sending message:`,
-        JSON.stringify(payload),
-      );
+      logger.debug('Sending message:', this.id, payload);
+
+      // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
+      if ('data' in payload && 'id' in payload.data) {
+        this.hostApp.showReturnToApp(this.info);
+      }
+
       this.client.sendResponse(payload);
     });
   }
@@ -56,6 +65,7 @@ export class Connection {
     connInfo: ConnectionInfo,
     keymanager: IKeyManager,
     relayURL: string,
+    hostApp: IHostApplicationAdapter,
   ): Promise<Connection> {
     const transport = await WebSocketTransport.create({
       url: relayURL,
@@ -66,7 +76,7 @@ export class Connection {
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
 
-    return new Connection(connInfo, client);
+    return new Connection(connInfo, client, hostApp);
   }
 
   /**
@@ -75,7 +85,6 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Connected to dApp.`);
   }
 
   /**
@@ -83,7 +92,6 @@ export class Connection {
    */
   public async resume(): Promise<void> {
     await this.client.resume(this.id);
-    console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
   }
 
   /**
@@ -92,6 +100,5 @@ export class Connection {
   public async disconnect(): Promise<void> {
     this.bridge.dispose();
     await this.client.disconnect();
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Disconnected.`);
   }
 }
