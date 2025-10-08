@@ -258,8 +258,6 @@ stages:
     workflows:
       - build_android_main_rc: {}
       - build_ios_main_rc: {}
-      - upload_apk_to_browserstack_rc: {}
-      - upload_ipa_to_browserstack_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -2735,6 +2733,7 @@ workflows:
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
+      - _upload_apk_to_browserstack_rc
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -3338,6 +3337,7 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+      - _upload_ipa_to_browserstack_rc
   build_ios_main_exp:
     envs:
       - CONFIGURATION: 'Release'
@@ -3690,12 +3690,6 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_rc_apps.json
           title: Bitrise Deploy Browserstack Uploaded RC Apps
-  upload_apk_to_browserstack_rc:
-    after_run:
-      - _upload_apk_to_browserstack_rc
-  upload_ipa_to_browserstack_rc:
-    after_run:
-      - _upload_ipa_to_browserstack_rc
   build_ios_flask_release:
     before_run:
       - code_setup
