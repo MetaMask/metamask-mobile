@@ -44,7 +44,10 @@ export function useMaxValueRefresher() {
       updateEditableParams(id, {
         value: maxValueHex,
       });
-      setValueJustUpdated(true);
+      // Do it on the next tick to avoid race condition in insufficient balance alert
+      setTimeout(() => {
+        setValueJustUpdated(true);
+      }, 0);
     }
   }, [
     balanceWeiInHex,
