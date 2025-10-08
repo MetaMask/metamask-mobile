@@ -433,11 +433,27 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('ChoosePassword', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+
+          const isIOS = Platform.OS === 'ios';
+
+          if (isIOS) {
+            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
+            this.props.navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+              {
+                accountName: result.accountName,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              },
+            );
+          } else {
+            // Direct navigation to ChoosePassword for Android
+            this.props.navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: this.onboardingTraceCtx,
+            });
+          }
         }
       } else if (!createWallet) {
         if (result.existingUser) {

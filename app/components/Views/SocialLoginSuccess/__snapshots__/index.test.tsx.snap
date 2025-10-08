@@ -1,0 +1,361 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SocialLoginSuccess should render correctly 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingBottom": 40,
+      "paddingHorizontal": 24,
+      "paddingTop": 60,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "height": 240,
+            "justifyContent": "center",
+            "marginBottom": 40,
+            "width": 240,
+          }
+        }
+      >
+        <LottieView
+          autoPlay={true}
+          loop={true}
+          resizeMode="contain"
+          source={{}}
+          style={
+            {
+              "height": "100%",
+              "width": "100%",
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "paddingHorizontal": 20,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Bold",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+              "marginBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          social_login_success.title
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "paddingTop": 20,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          social_login_success.set_metamask_pin
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`SocialLoginSuccess should render fox animation 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingBottom": 40,
+      "paddingHorizontal": 24,
+      "paddingTop": 60,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "height": 240,
+            "justifyContent": "center",
+            "marginBottom": 40,
+            "width": 240,
+          }
+        }
+      >
+        <LottieView
+          autoPlay={true}
+          loop={true}
+          resizeMode="contain"
+          source={{}}
+          style={
+            {
+              "height": "100%",
+              "width": "100%",
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "paddingHorizontal": 20,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Bold",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+              "marginBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          social_login_success.title
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "paddingTop": 20,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          social_login_success.set_metamask_pin
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`SocialLoginSuccess should use theme colors for styling 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingBottom": 40,
+      "paddingHorizontal": 24,
+      "paddingTop": 60,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "height": 240,
+            "justifyContent": "center",
+            "marginBottom": 40,
+            "width": 240,
+          }
+        }
+      >
+        <LottieView
+          autoPlay={true}
+          loop={true}
+          resizeMode="contain"
+          source={{}}
+          style={
+            {
+              "height": "100%",
+              "width": "100%",
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "paddingHorizontal": 20,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Bold",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+              "marginBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          social_login_success.title
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "paddingTop": 20,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          social_login_success.set_metamask_pin
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</RCTScrollView>
+`;
