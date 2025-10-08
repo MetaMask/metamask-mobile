@@ -3798,3 +3798,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
+  - push_branch: chore/predict-build-1
+    pipeline: create_qa_builds_pipeline
