@@ -30,7 +30,6 @@ export interface AssetDetailsActionsProps {
   // Optional custom action IDs to avoid test ID conflicts
   buyButtonActionID?: string;
   swapButtonActionID?: string;
-  bridgeButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
 }
