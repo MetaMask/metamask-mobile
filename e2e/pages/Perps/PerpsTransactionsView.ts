@@ -6,15 +6,15 @@ import { PerpsTransactionSelectorsIDs } from '../../selectors/Perps/Perps.select
 class PerpsTransactionsView {
   // Tabs use visible text from i18n via PerpsTransactionsView
   get tradesTab(): DetoxElement {
-    return Matchers.getElementByText(/Trades/i);
+    return Matchers.getElementByTextContains('Trades');
   }
 
   get ordersTab(): DetoxElement {
-    return Matchers.getElementByText(/Orders/i);
+    return Matchers.getElementByTextContains('Orders');
   }
 
   get fundingTab(): DetoxElement {
-    return Matchers.getElementByText(/Funding/i);
+    return Matchers.getElementByTextContains('Funding');
   }
 
   get anyTransactionItem(): DetoxElement {

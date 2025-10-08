@@ -77,20 +77,6 @@ class PerpsMarketListView {
     });
   }
 
-  // // Generic action to tap market row item by index (scrolls into view, then taps)
-  // async tapMarketRowItemAt(index: number) {
-  //   const target = this.getMarketRowItemAt(index);
-  //   await Gestures.scrollToElement(target, this.scrollableContainer, {
-  //     direction: 'down',
-  //     scrollAmount: 200,
-  //     elemDescription: `Perps Market Row at index ${index}`,
-  //   });
-  //   await Gestures.waitAndTap(target, {
-  //     elemDescription: `Perps Market Row at index ${index}`,
-  //     checkStability: true,
-  //   });
-  // }
-
   get tokenSelectorContainer() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CONTAINER);
   }

@@ -119,6 +119,13 @@ class PerpsMarketDetailsView {
     );
   }
 
+  // Scroll view matcher identifier (for whileElement(...).scroll API)
+  get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+  }
+
   // Trading action buttons
   get longButton() {
     return Matchers.getElementByID(
@@ -291,17 +298,11 @@ class PerpsMarketDetailsView {
       PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
     ) as DetoxElement;
 
-    for (let i = 0; i < 3; i++) {
-      const visible = await Utilities.isElementVisible(cancelBtn, 2000);
-      if (visible) {
-        break;
-      }
-      await Gestures.swipe(this.scrollView, 'up', {
-        speed: 'fast',
-        percentage: 0.7,
-        elemDescription: 'Scroll to reveal Close order button',
-      });
-    }
+    await Gestures.scrollToElement(cancelBtn, this.scrollViewIdentifier, {
+      direction: 'up',
+      scrollAmount: 350,
+      elemDescription: 'Scroll to reveal Close order button',
+    });
 
     await Assertions.expectElementToBeVisible(cancelBtn, {
       description: 'Close order button visible on market details',
