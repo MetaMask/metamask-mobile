@@ -1,0 +1,251 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1`] = `
+<View
+  style={
+    {
+      "marginBottom": 8,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ca35421a",
+        "borderColor": "#ca3542",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <SvgMock
+        color="#ca3542"
+        fill="currentColor"
+        height={24}
+        name="Danger"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="tail"
+        numberOfLines={2}
+        onTextLayout={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        This is a test error message
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = `
+<View
+  style={
+    {
+      "marginBottom": 8,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ca35421a",
+        "borderColor": "#ca3542",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <SvgMock
+        color="#ca3542"
+        fill="currentColor"
+        height={24}
+        name="Danger"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="tail"
+        numberOfLines={3}
+        onTextLayout={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        This is a test error message
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`TruncatedError Long error text renders "See more" button for long error text that gets truncated 1`] = `
+<View
+  style={
+    {
+      "marginBottom": 8,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ca35421a",
+        "borderColor": "#ca3542",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <SvgMock
+        color="#ca3542"
+        fill="currentColor"
+        height={24}
+        name="Danger"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="tail"
+        numberOfLines={2}
+        onTextLayout={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        This is a very long error message that should be truncated when displayed in the banner alert component because it exceeds the maximum number of lines allowed and will trigger the text layout event to detect truncation. A bit more text to ensure truncation occurs.
+      </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        labelTextVariant="sBodySM"
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          See more
+        </Text>
+      </Text>
+    </View>
+  </View>
+</View>
+`;
