@@ -2,6 +2,7 @@
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
 
 export const getIsSwapsAssetAllowed = ({
   asset,
@@ -18,18 +19,17 @@ export const getIsSwapsAssetAllowed = ({
   searchDiscoverySwapsTokens: string[];
   swapsTokens: Record<string, unknown>;
 }) => {
-  // EVM Swaps
-  let isEvmSwapsAssetAllowed;
+  let isSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
-    isEvmSwapsAssetAllowed = true;
+    const isChainAllowed = isSwapsAllowed(asset.chainId);
+    isSwapsAssetAllowed = isChainAllowed;
   } else if (isAssetFromSearch(asset)) {
-    isEvmSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
+    isSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
       asset.address?.toLowerCase(),
     );
   } else {
-    isEvmSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
+    isSwapsAssetAllowed = asset.address?.toLowerCase() in swapsTokens;
   }
-  let isSwapsAssetAllowed = isEvmSwapsAssetAllowed;
 
   // Solana Swaps
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
