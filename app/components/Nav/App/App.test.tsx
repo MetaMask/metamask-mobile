@@ -466,16 +466,71 @@ describe('App', () => {
         jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
       });
 
-      it('prevents OptinMetrics redirect when user came from lock screen and is on OptinMetrics', () => {
+      it('covers OptinMetrics navigation logic when conditions are met', async () => {
         // Arrange
-        const mockRoutesFromLockScreen = [
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+            userLoggedIn: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined, // SRP user
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return false;
+            }
+            return true; // existingUser = true
+          });
+
+        // Act
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
+          expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+        });
+
+        // Verify that OptinMetrics navigation occurred
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        });
+      });
+
+      it('covers navigation state parsing logic with lock screen detection', async () => {
+        // Arrange
+        const mockRoutesWithLockScreen = [
           { name: Routes.LOCK_SCREEN }, // Previous route
           {
-            name: Routes.ONBOARDING.ROOT_NAV, // Current route
+            name: Routes.ONBOARDING.ROOT_NAV,
             params: {
               screen: Routes.ONBOARDING.NAV,
               params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
+                screen: 'SomeOtherScreen',
               },
             },
           },
@@ -489,7 +544,7 @@ describe('App', () => {
                 routes: { name: string; params?: unknown }[];
               }) => unknown
             )({
-              routes: mockRoutesFromLockScreen,
+              routes: mockRoutesWithLockScreen,
             }),
           );
 
@@ -520,11 +575,108 @@ describe('App', () => {
             return true; // existingUser = true
           });
 
-        // Act: Render the component
+        // Act
         renderScreen(App, { name: 'App' }, { state: srpUserState });
 
         // Assert
-        expect(mockReset).not.toHaveBeenCalled();
+        await waitFor(() => {
+          expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+        });
+
+        // Should navigate to OptinMetrics since conditions are met and no early return triggered
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        });
+      });
+
+      it('covers nestedParams undefined branch when params is not an object', async () => {
+        // Arrange
+        const mockRoutesWithInvalidParams = [
+          { name: 'SomeRoute' },
+          {
+            name: Routes.ONBOARDING.ROOT_NAV, // Current route
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: 'invalid-string-params',
+            },
+          },
+        ];
+
+        jest
+          .spyOn(NavigationNative, 'useNavigationState')
+          .mockImplementation((selector: unknown) =>
+            (
+              selector as (state: {
+                routes: { name: string; params?: unknown }[];
+              }) => unknown
+            )({
+              routes: mockRoutesWithInvalidParams,
+            }),
+          );
+
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+            userLoggedIn: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined, // SRP user
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return false;
+            }
+            return true; // existingUser = true
+          });
+
+        // Act
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
+          expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+        });
+
+        // Should navigate to OptinMetrics since conditions are met and no early return
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        });
       });
 
       it('allows OptinMetrics to show when not coming from lock screen', async () => {
