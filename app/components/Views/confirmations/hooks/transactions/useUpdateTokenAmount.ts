@@ -14,23 +14,18 @@ import {
 } from '../../../../../util/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
+import { getTokenTransferData } from '../../utils/transaction-pay';
 
 export function useUpdateTokenAmount() {
   const transactionMeta = useTransactionMetadataRequest();
-  const { chainId, nestedTransactions, txParams } = transactionMeta ?? {};
-  const { data: singleData, to: singleTo } = txParams ?? {};
+  const { chainId } = transactionMeta ?? {};
   const transactionId = transactionMeta?.id ?? '';
 
-  const nestedCallIndex = nestedTransactions?.findIndex((call) =>
-    call.data?.startsWith('0xa9059cbb'),
-  );
-
-  const nestedCall = nestedCallIndex
-    ? nestedTransactions?.[nestedCallIndex]
-    : undefined;
-
-  const data = nestedCall?.data ?? singleData;
-  const to = nestedCall?.to ?? singleTo;
+  const {
+    data,
+    to,
+    index: nestedCallIndex,
+  } = (transactionMeta && getTokenTransferData(transactionMeta)) ?? {};
 
   const { decimals } =
     useSelector((state: RootState) =>
@@ -52,7 +47,7 @@ export function useUpdateTokenAmount() {
         amount: amountRaw.toString(16),
       }) as Hex;
 
-      if (nestedCallIndex) {
+      if (nestedCallIndex !== undefined) {
         updateAtomicBatchData({
           transactionId,
           transactionIndex: nestedCallIndex,
@@ -63,6 +58,7 @@ export function useUpdateTokenAmount() {
             error,
           );
         });
+
         return;
       }
 

@@ -49,7 +49,7 @@ describe('Transaction Pay Utils', () => {
       expect(getTokenTransferData(transactionMeta)).toBeUndefined();
     });
 
-    it('returns data and to from single transaction token transfer', () => {
+    it('returns data from single transaction token transfer', () => {
       const transactionMeta = {
         txParams: {
           data: TOKEN_TRANSFER_DATA_MOCK,
@@ -60,10 +60,11 @@ describe('Transaction Pay Utils', () => {
       expect(getTokenTransferData(transactionMeta)).toStrictEqual({
         data: TOKEN_TRANSFER_DATA_MOCK,
         to: TO_MOCK,
+        index: undefined,
       });
     });
 
-    it('returns data and to from nested transaction token transfer', () => {
+    it('returns data from nested transaction token transfer', () => {
       const transactionMeta = {
         txParams: {
           data: '0x1234',
@@ -84,6 +85,7 @@ describe('Transaction Pay Utils', () => {
       expect(getTokenTransferData(transactionMeta)).toStrictEqual({
         data: TOKEN_TRANSFER_DATA_MOCK,
         to: TO_MOCK,
+        index: 1,
       });
     });
   });

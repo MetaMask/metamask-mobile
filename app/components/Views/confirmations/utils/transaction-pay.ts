@@ -23,21 +23,35 @@ export function getRequiredBalance(
   return undefined;
 }
 
-export function getTokenTransferData(transactionMeta: TransactionMeta) {
+export function getTokenTransferData(transactionMeta: TransactionMeta):
+  | {
+      data: Hex;
+      to: Hex;
+      index?: number;
+    }
+  | undefined {
   const { nestedTransactions, txParams } = transactionMeta;
   const { data: singleData } = txParams;
   const singleTo = txParams.to as Hex | undefined;
 
-  if(singleData?.startsWith(FOUR_BYTE_TOKEN_TRANSFER) && singleTo) {
-    return { data: singleData as Hex, to: singleTo };
+  if (singleData?.startsWith(FOUR_BYTE_TOKEN_TRANSFER) && singleTo) {
+    return { data: singleData as Hex, to: singleTo, index: undefined };
   }
 
-  const nestedCall = nestedTransactions?.find((call) =>
+  const nestedCallIndex = nestedTransactions?.findIndex((call) =>
     call.data?.startsWith(FOUR_BYTE_TOKEN_TRANSFER),
   );
 
-  if(nestedCall?.data && nestedCall.to) {
-    return { data: nestedCall.data, to: nestedCall.to };
+  const nestedCall = nestedCallIndex
+    ? nestedTransactions?.[nestedCallIndex]
+    : undefined;
+
+  if (nestedCall?.data && nestedCall.to) {
+    return {
+      data: nestedCall.data,
+      to: nestedCall.to,
+      index: nestedCallIndex,
+    };
   }
 
   return undefined;
