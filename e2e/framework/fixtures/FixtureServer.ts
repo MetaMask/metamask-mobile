@@ -82,15 +82,24 @@ function performStateSubstitutions(
   );
 }
 
+export enum ServerStatus {
+  STOPPED = 'stopped',
+  STARTED = 'started',
+}
+
 class FixtureServer {
   private _app: Koa;
   private _stateMap: Map<string, object>;
-  private _server: ReturnType<Koa['listen']> | undefined;
+  private _server: ReturnType<Koa['listen']> | null;
+  private _port: number;
+  private _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
   constructor() {
     this._app = new Koa();
     this._stateMap = new Map([[DEFAULT_STATE_KEY, Object.create(null)]]);
-
+    this._port = getFixturesServerPort();
+    this._server = null;
+    this._serverStatus = ServerStatus.STOPPED;
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
       ctx.set('Access-Control-Allow-Origin', '*');
@@ -106,39 +115,65 @@ class FixtureServer {
     });
   }
 
+  /**
+   * Get the port the fixture server is running on
+   * @returns The port the fixture server is running on
+   */
+  get port() {
+    return this._port;
+  }
+
+  /**
+   * Get the status of the fixture server
+   * @returns The status of the fixture server
+   */
+  get serverStatus() {
+    return this._serverStatus;
+  }
+
+  /**
+   *
+   * @returns
+   */
+  get fixtureServerUrl() {
+    return `http://${getLocalHost()}:${this.port}/state.json`;
+  }
+
   // Start the fixture server
   async start() {
     const options = {
       host: getLocalHost(),
-      port: getFixturesServerPort(),
+      port: this.port,
       exclusive: true,
     };
 
     return new Promise((resolve, reject) => {
-      logger.debug('Starting fixture server...');
+      logger.debug(`Starting fixture server on port ${this.port}`);
       this._server = this._app.listen(options);
       if (!this._server) {
         throw new Error('Failed to start fixture server');
       }
       this._server.once('error', reject);
       this._server.once('listening', resolve);
+      this._serverStatus = ServerStatus.STARTED;
     });
   }
   // Stop the fixture server
   async stop() {
-    if (!this._server) {
+    if (this._serverStatus === ServerStatus.STOPPED) {
       return;
     }
 
     await new Promise((resolve, reject) => {
-      logger.debug('Stopping fixture server...');
-      if (!this._server) {
+      logger.debug(`Stopping fixture server on port ${this.port}`);
+      if (this._serverStatus === ServerStatus.STOPPED) {
         throw new Error('Failed to stop fixture server');
       }
-      this._server.close();
-      this._server.once('error', reject);
-      this._server.once('close', resolve);
-      this._server = undefined;
+      this._server?.close();
+      this._server?.once('error', reject);
+      this._server?.once('close', resolve);
+      this._server = null;
+      this._serverStatus = ServerStatus.STOPPED;
     });
   }
   // Load JSON state into the server

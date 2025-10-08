@@ -1,6 +1,6 @@
 /* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer from './FixtureServer';
+import FixtureServer, { ServerStatus } from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
 
@@ -45,18 +45,6 @@ import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 const logger = createLogger({
   name: 'FixtureHelper',
 });
-
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
-
-// checks if server has already been started
-const isFixtureServerStarted = async () => {
-  try {
-    const response = await axios.get(FIXTURE_SERVER_URL);
-    return response.status === 200;
-  } catch (error) {
-    return false;
-  }
-};
 
 /**
  * Handles the dapps by starting the servers and listening to the ports.
@@ -285,8 +273,10 @@ export const loadFixture = async (
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
-  logger.debug(`Loading fixture into fixture server: ${FIXTURE_SERVER_URL}`);
-  const response = await axios.get(FIXTURE_SERVER_URL);
+  logger.debug(
+    `Loading fixture into fixture server: ${fixtureServer.fixtureServerUrl}`,
+  );
+  const response = await axios.get(fixtureServer.fixtureServerUrl);
 
   // Throws if state is not properly loaded
   if (response.status !== 200) {
@@ -297,7 +287,7 @@ export const loadFixture = async (
 
 // Start the fixture server
 export const startFixtureServer = async (fixtureServer: FixtureServer) => {
-  if (await isFixtureServerStarted()) {
+  if (fixtureServer.serverStatus === ServerStatus.STARTED) {
     logger.debug('The fixture server has already been started');
     return;
   }
@@ -312,7 +302,7 @@ export const startFixtureServer = async (fixtureServer: FixtureServer) => {
 
 // Stop the fixture server
 export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
-  if (!(await isFixtureServerStarted())) {
+  if (fixtureServer.serverStatus === ServerStatus.STOPPED) {
     logger.debug('The fixture server has already been stopped');
     return;
   }
