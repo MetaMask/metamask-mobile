@@ -24,9 +24,6 @@ import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.typ
 export const determineAppInstallationStatus = (params: unknown): boolean => {
   try {
     if (!params) {
-      Logger.log(
-        'DeepLinkAnalytics: No Branch.io params available, defaulting to app installed',
-      );
       return true; // Default to app installed if no params
     }
 
@@ -39,13 +36,6 @@ export const determineAppInstallationStatus = (params: unknown): boolean => {
       | boolean
       | undefined;
 
-    Logger.log(
-      'DeepLinkAnalytics: Analyzing Branch.io parameters for app installation:',
-      {
-        isFirstSession,
-        clickedBranchLink,
-      },
-    );
 
     // Logic based on Branch.io documentation:
     // - +is_first_session: true = install, false = open
@@ -55,19 +45,12 @@ export const determineAppInstallationStatus = (params: unknown): boolean => {
       // User came from a Branch link
       if (isFirstSession === true) {
         // First session = app was installed via Branch.io (deferred deep link)
-        Logger.log(
-          'DeepLinkAnalytics: App was installed via Branch.io (deferred deep link)',
-        );
         return false; // was_app_installed = false
       }
       // Not first session = app was already installed
-      Logger.log(
-        'DeepLinkAnalytics: App was already installed (returning user from Branch link)',
-      );
       return true; // was_app_installed = true
     }
     // User did not come from a Branch link (direct app launch)
-    Logger.log('DeepLinkAnalytics: Direct app launch (not from Branch link)');
     return true; // was_app_installed = true
   } catch (error) {
     Logger.error(
@@ -248,10 +231,6 @@ export const extractSensitiveProperties = (
     // Extract properties using the route-specific extractor
     extractor(urlParams, sensitiveProps);
 
-    Logger.log(
-      `DeepLinkAnalytics: Extracted sensitive properties for ${route}:`,
-      sensitiveProps,
-    );
     return sensitiveProps;
   } catch (error) {
     Logger.error(
@@ -427,9 +406,5 @@ export const createDeepLinkUsedEventBuilder = async (
     .addProperties(eventProperties)
     .addSensitiveProperties(sensitiveProperties);
 
-  Logger.log('DeepLinkAnalytics: Created deep link event builder:', {
-    properties: eventProperties,
-    sensitiveProperties,
-  });
   return eventBuilder;
 };
