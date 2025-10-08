@@ -90,7 +90,7 @@ jobs:
         shell: bash
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
+          METAMASK_ENVIRONMENT: e2e
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
           IGNORE_BOXLOGS_DEVELOPMENT: true

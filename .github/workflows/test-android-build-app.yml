@@ -8,6 +8,16 @@ on:
         required: false
         default: '7'
         type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        default: 'e2e'
+        type: string
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        default: 'main'
+        type: string
 
 permissions:
   contents: write
@@ -103,18 +113,40 @@ jobs:
             echo "🚀 Finishing Android Setup..."
             yarn setup:github-ci --no-build-ios
 
+      - name: Determine target paths and Artifact Names
+        id: determine-target-paths
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
+              echo "artifact_name=app-flask-release"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
+              echo "artifact_name=app-prod-release"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
+
       # Build the Android QA app (APK and AAB)
       - name: Build Android App
         run: |
           echo "🏗 Building Android APP..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:qa
+          yarn build:android:${{ inputs.build_type }}:${{ inputs.metamask_environment }}
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: true
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -143,8 +175,8 @@ jobs:
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-qa-release.apk
-          path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error
         continue-on-error: true
@@ -154,19 +186,8 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: app-qa-release.aab
-          path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-          retention-days: ${{ inputs.retention_days }}
-          if-no-files-found: warn
-        continue-on-error: true
-
-      # Upload source map file for crash debugging and error tracking
-      - name: Upload Android Source Map
-        id: upload-sourcemap
-        uses: actions/upload-artifact@v4
-        with:
-          name: index.android.bundle.map
-          path: sourcemaps/android/index.android.bundle.map
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
+          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: warn
         continue-on-error: true
@@ -182,7 +203,6 @@ jobs:
           echo "Upload Status Summary:"
           echo "- 🤖 APK: ${{ steps.upload-apk.outcome }}"
           echo "- 📦 AAB Bundle: ${{ steps.upload-aab.outcome }}"
-          echo "- 📦 Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'
