@@ -9,7 +9,6 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useConfirmActions } from '../useConfirmActions';
-import { useMaxValueMode } from '../useMaxValueMode';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
 
@@ -34,7 +33,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-jest.mock('../useMaxValueMode');
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayToken');
@@ -51,7 +49,6 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
-  const mockUseMaxValueMode = jest.mocked(useMaxValueMode);
   const mockSelectNetworkConfigurations = jest.mocked(
     selectNetworkConfigurations,
   );
@@ -99,9 +96,6 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
-    mockUseMaxValueMode.mockReturnValue({
-      maxValueMode: false,
-    });
     mockUseConfirmActions.mockReturnValue({
       onReject: jest.fn(),
       onConfirm: jest.fn(),
@@ -110,15 +104,6 @@ describe('useInsufficientBalanceAlert', () => {
 
   it('return empty array when no transaction metadata is available', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-    expect(result.current).toEqual([]);
-  });
-
-  it('return empty array when max value mode is enabled', () => {
-    mockUseMaxValueMode.mockReturnValue({
-      maxValueMode: true,
-    });
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
     expect(result.current).toEqual([]);
@@ -219,9 +204,10 @@ describe('useInsufficientBalanceAlert', () => {
 
   describe('when ignoreGasFeeToken is true', () => {
     it('returns empty array', () => {
-      mockUseMaxValueMode.mockReturnValue({
-        maxValueMode: true,
-      });
+      mockUseAccountNativeBalance.mockReturnValue({
+        balanceWeiInHex: '0xC',
+      } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
       const { result } = renderHook(() =>
         useInsufficientBalanceAlert({ ignoreGasFeeToken: true }),
       );

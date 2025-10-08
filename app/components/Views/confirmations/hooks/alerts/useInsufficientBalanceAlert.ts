@@ -17,7 +17,6 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
-import { useMaxValueMode } from '../useMaxValueMode';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
 const HEX_ZERO = '0x0';
@@ -34,12 +33,11 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
   );
-  const { maxValueMode } = useMaxValueMode();
   const { onReject } = useConfirmActions();
   const { payToken } = useTransactionPayToken();
 
   return useMemo(() => {
-    if (!transactionMetadata || maxValueMode) {
+    if (!transactionMetadata) {
       return [];
     }
 
@@ -98,7 +96,6 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
-    maxValueMode,
     navigation,
     networkConfigurations,
     onReject,
