@@ -866,6 +866,57 @@ describe('OnboardingIntroStep', () => {
       expect(screen.queryByTestId('onboarding-intro-container')).toBeNull();
     });
 
+    it('should show skeleton when candidateSubscriptionId is retry', () => {
+      const mockSelectorWithRetry = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: 'retry',
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorRetry = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorRetry.mockImplementation(mockSelectorWithRetry);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should not render the main container when loading
+      expect(screen.queryByTestId('onboarding-intro-container')).toBeNull();
+    });
+
     it('should show error modal when candidateSubscriptionId is error', () => {
       const mockSelectorWithError = jest.fn((selector) => {
         const state = {

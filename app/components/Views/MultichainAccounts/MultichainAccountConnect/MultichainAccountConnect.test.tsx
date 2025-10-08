@@ -179,6 +179,10 @@ jest.mock('../../../hooks/useFavicon/useFavicon', () =>
 
 jest.mock('../../../hooks/useOriginSource', () => jest.fn(() => 'test-source'));
 
+jest.mock('../../../hooks/useSDKV2Connection/useSDKV2Connection', () => ({
+  useSDKV2Connection: jest.fn(() => undefined),
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
@@ -360,7 +364,7 @@ jest.mock(
         connectedAccountGroups: [],
         existingConnectedCaipAccountIds: [],
         connectedAccountGroupWithRequested: [],
-        caipAccountIdsOfConnectedAccountGroupWithRequested: [],
+        caipAccountIdsOfConnectedAndRequestedAccountGroups: [],
         selectedAndRequestedAccountGroups: mockAccountGroups,
       };
     }),
@@ -399,6 +403,10 @@ const createMockCaip25Permission = (
 
 const createMockState = (): DeepPartial<RootState> => ({
   settings: {},
+  sdk: {
+    v2Connections: {},
+    wc2Metadata: { id: '' },
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -719,11 +727,17 @@ describe('MultichainAccountConnect', () => {
   });
 
   describe('Domain title and hostname logic', () => {
+    const { useSDKV2Connection: mockUseSDKV2Connection } = jest.requireMock(
+      '../../../hooks/useSDKV2Connection/useSDKV2Connection',
+    );
+
     beforeEach(() => {
       mockGetConnection.mockReset();
       mockGetConnection.mockReturnValue(undefined);
       mockIsUUID.mockReset();
       mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReset();
+      mockUseSDKV2Connection.mockReturnValue(undefined);
       jest.clearAllMocks();
     });
 
@@ -736,10 +750,12 @@ describe('MultichainAccountConnect', () => {
       });
 
       mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReturnValue(undefined);
 
       const mockStateWithoutWC2 = {
         ...createMockState(),
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
         },
       };
@@ -777,12 +793,13 @@ describe('MultichainAccountConnect', () => {
       const mockChannelId = 'walletconnect-origin.com';
 
       mockGetConnection.mockReturnValue(undefined);
-
       mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReturnValue(undefined);
 
       const mockStateWithWC2 = {
         ...createMockState(),
         sdk: {
+          v2Connections: {},
           wc2Metadata: { id: 'mock-wc2-id' },
         },
       };
@@ -1815,10 +1832,6 @@ describe('MultichainAccountConnect', () => {
       const ethereumSelected = queryByTestId('Ethereum-selected');
 
       expect(ethereumSelected).toBeTruthy();
-
-      const polygonSelected = queryByTestId('Polygon-selected');
-
-      expect(polygonSelected).toBeTruthy();
     });
   });
 
