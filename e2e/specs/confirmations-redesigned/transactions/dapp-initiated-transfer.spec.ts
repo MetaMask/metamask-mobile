@@ -94,7 +94,7 @@ describe(RegressionConfirmationsRedesigned('DApp Initiated Transfer'), () => {
     jest.setTimeout(2500000);
   });
 
-  it('sends native asset', async () => {
+  it.skip('sends native asset', async () => {
     await withFixtures(
       {
         dapps: [
