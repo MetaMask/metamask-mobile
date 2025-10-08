@@ -103,6 +103,20 @@ export const formatVolume = (volume: string | number): string => {
   return Math.floor(num).toString();
 };
 
+/**
+ * Trims an Ethereum address to show first 3 and last 2 characters
+ * @param address - Full Ethereum address (e.g., "0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d")
+ * @returns Trimmed address (e.g., "0x2F...A9d")
+ * @example formatAddress("0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d") => "0x2F5...A9d"
+ */
+export const formatAddress = (address?: string): string => {
+  if (!address || address.length < 6) {
+    return 'N/A';
+  }
+
+  return `${address.slice(0, 5)}...${address.slice(-3)}`;
+};
+
 export const getRecurrence = (series?: PredictSeries[]): Recurrence => {
   if (!series || series.length === 0) {
     return Recurrence.NONE;
