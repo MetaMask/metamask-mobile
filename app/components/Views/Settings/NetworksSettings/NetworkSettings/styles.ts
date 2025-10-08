@@ -24,6 +24,9 @@ const createStyles = () =>
       marginRight: 16,
       marginTop: 4,
     },
+    tagLabelSpacing: {
+      marginLeft: 8,
+    },
   });
 
 export const createCustomNetworkStyles = (params: { colors: Colors }) =>
