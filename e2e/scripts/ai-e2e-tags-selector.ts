@@ -65,6 +65,8 @@ export class AIE2ETagsSelector {
   private isQuietMode = false;
   private conversationHistory: Anthropic.MessageParam[] = [];
   private readonly baseDir = process.cwd();
+  private baseBranch = 'origin/main';
+  private includeMainChanges = false;
 
   constructor(apiKey: string) {
     this.anthropic = new Anthropic({ apiKey });
@@ -84,14 +86,18 @@ export class AIE2ETagsSelector {
 
   async analyzeWithAgent(
     categorization: ReturnType<typeof this.categorizeFiles>,
-    prNumber?: number
+    options: { prNumber?: number; baseBranch?: string; includeMainChanges?: boolean }
   ): Promise<AIAnalysis> {
     this.log('🤖 Starting AI analysis for E2E tests...');
+
+    // Store base branch info for tool execution
+    if (options.baseBranch) this.baseBranch = options.baseBranch;
+    if (options.includeMainChanges !== undefined) this.includeMainChanges = options.includeMainChanges;
 
     const tools = this.defineTools();
     this.conversationHistory = [];
 
-    const initialPrompt = this.buildAgentPrompt(categorization, prNumber);
+    const initialPrompt = this.buildAgentPrompt(categorization, options.prNumber);
 
     let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
     const maxIterations = 12;
@@ -363,7 +369,11 @@ export class AIE2ETagsSelector {
           const linesLimit = (input.lines_limit as number) || 1000;
 
           try {
-            const diff = execSync(`git diff HEAD~1 HEAD -- "${filePath}"`, {
+            // Use same comparison as file categorization: base branch to HEAD
+            const targetBranch = this.baseBranch || 'origin/main';
+            const syntax = this.includeMainChanges ? '..' : '...';
+
+            const diff = execSync(`git diff ${targetBranch}${syntax}HEAD -- "${filePath}"`, {
               encoding: 'utf-8',
               cwd: this.baseDir
             });
@@ -1204,7 +1214,11 @@ Examples:
     }
 
 
-    const analysis = await this.analyzeWithAgent(categorization, options.prNumber);
+    const analysis = await this.analyzeWithAgent(categorization, {
+      prNumber: options.prNumber,
+      baseBranch: options.baseBranch,
+      includeMainChanges: options.includeMainChanges
+    });
 
 
     this.outputResults(analysis, options, categorization);
