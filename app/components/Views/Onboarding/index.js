@@ -66,6 +66,7 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import FastOnboarding from './FastOnboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -331,22 +332,6 @@ class Onboarding extends PureComponent {
         importedColors.btnBlack,
       ),
     );
-  };
-
-  handleOnboardingDeeplink = (onboardingDeepLink) => {
-    const params = this.props.route.params;
-    this.props.navigation.setParams({ ...params, onboardingType: undefined });
-    switch (onboardingDeepLink) {
-      case 'google':
-        this.onPressContinueWithGoogle();
-        break;
-      case 'apple':
-        this.onPressContinueWithApple();
-        break;
-      case 'import_srp':
-        this.onPressImport();
-        break;
-    }
   };
 
   componentDidMount() {
@@ -762,11 +747,6 @@ class Onboarding extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const onboardingType = this.props.route.params?.onboardingType;
-    if (onboardingType) {
-      this.handleOnboardingDeeplink(onboardingType);
-    }
-
     return (
       <View style={styles.ctas}>
         <View style={styles.titleWrapper}>
@@ -912,6 +892,12 @@ class Onboarding extends PureComponent {
 
           <View>{this.handleSimpleNotification()}</View>
         </View>
+
+        <FastOnboarding
+          onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+          onPressContinueWithApple={this.onPressContinueWithApple}
+          onPressImport={this.onPressImport}
+        />
       </ErrorBoundary>
     );
   }
