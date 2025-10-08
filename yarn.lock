@@ -11026,13 +11026,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/normalize-colors@npm:^0.74.1":
-  version: 0.74.89
-  resolution: "@react-native/normalize-colors@npm:0.74.89"
-  checksum: df62772f029dd132d3061a8ee7f90b6aaf5c525bb7e33c22908249daffa42995cddd91adc790ec9ce701636c14eeafc1809a9d0d879e3f8c71c9f340145abfce
-  languageName: node
-  linkType: hard
-
 "@react-native/typescript-config@npm:0.76.9":
   version: 0.76.9
   resolution: "@react-native/typescript-config@npm:0.76.9"
@@ -24170,15 +24163,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-in-js-utils@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "css-in-js-utils@npm:3.1.0"
-  dependencies:
-    hyphenate-style-name: ^1.0.3
-  checksum: 066318e918c04a5e5bce46b38fe81052ea6ac051bcc6d3c369a1d59ceb1546cb2b6086901ab5d22be084122ee3732169996a3dfb04d3406eaee205af77aec61b
-  languageName: node
-  linkType: hard
-
 "css-line-break@npm:^2.1.0":
   version: 2.1.0
   resolution: "css-line-break@npm:2.1.0"
@@ -28091,13 +28075,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-loops@npm:^1.1.3":
-  version: 1.1.4
-  resolution: "fast-loops@npm:1.1.4"
-  checksum: 8031a20f465ef35ac4ad98258470250636112d34f7e4efcb4ef21f3ced99df95a1ef1f0d6943df729a1e3e12a9df9319f3019df8cc1a0e0ed5a118bd72e505f9
-  languageName: node
-  linkType: hard
-
 "fast-redact@npm:^3.0.0":
   version: 3.1.2
   resolution: "fast-redact@npm:3.1.2"
@@ -28227,7 +28204,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fbjs@npm:^3.0.0, fbjs@npm:^3.0.4":
+"fbjs@npm:^3.0.0":
   version: 3.0.5
   resolution: "fbjs@npm:3.0.5"
   dependencies:
@@ -30405,13 +30382,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hyphenate-style-name@npm:^1.0.3":
-  version: 1.1.0
-  resolution: "hyphenate-style-name@npm:1.1.0"
-  checksum: b9ed74e29181d96bd58a2d0e62fc4a19879db591dba268275829ff0ae595fcdf11faafaeaa63330a45c3004664d7db1f0fc7cdb372af8ee4615ed8260302c207
-  languageName: node
-  linkType: hard
-
 "i18n-js@npm:3.0.11":
   version: 3.0.11
   resolution: "i18n-js@npm:3.0.11"
@@ -30642,16 +30612,6 @@ __metadata:
   version: 5.0.0
   resolution: "ini@npm:5.0.0"
   checksum: a1cd2a06bf4d995b072ebe97132d8d50a6630798cc3a1c56d325d7b3aaf1f236b3301816f0079e4d47a9887f08e60a6fb95673f19bcafe4f0f9c4a5b5e30aff4
-  languageName: node
-  linkType: hard
-
-"inline-style-prefixer@npm:^6.0.1":
-  version: 6.0.4
-  resolution: "inline-style-prefixer@npm:6.0.4"
-  dependencies:
-    css-in-js-utils: ^3.1.0
-    fast-loops: ^1.1.3
-  checksum: caf7a75d18acbedc7e3b8bfac17563082becd2df6b65accad964a6afdf490329b42315c37fe65ba0177cc10fd32809eb40d62aba23a0118c74d87d4fc58defa2
   languageName: node
   linkType: hard
 
@@ -34079,13 +34039,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"memoize-one@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "memoize-one@npm:6.0.0"
-  checksum: f185ea69f7cceae5d1cb596266dcffccf545e8e7b4106ec6aa93b71ab9d16460dd118ac8b12982c55f6d6322fcc1485de139df07eacffaae94888b9b3ad7675f
-  languageName: node
-  linkType: hard
-
 "memoizerific@npm:^1.11.3":
   version: 1.11.3
   resolution: "memoizerific@npm:1.11.3"
@@ -34152,10 +34105,10 @@ __metadata:
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.2
-    "@expo/fingerprint": ^0.15.0
-    "@expo/repack-app": ^0.2.9
     "@expo/browser-polyfill": ^1.0.1
+    "@expo/fingerprint": ^0.15.0
     "@expo/metro-runtime": ~4.0.1
+    "@expo/repack-app": ^0.2.9
     "@img/sharp-darwin-arm64": ^0.34.3
     "@img/sharp-libvips-darwin-arm64": ^1.2.1
     "@img/sharp-libvips-linux-x64": ^1.2.1
@@ -34545,7 +34498,6 @@ __metadata:
     react-native-video: ^6.10.1
     react-native-view-shot: ^3.1.2
     react-native-vision-camera: ^4.6.4
-    react-native-web: ~0.19.13
     react-native-webview-invoke: ^0.6.2
     react-redux: ^8.1.3
     react-test-renderer: 18.3.1
@@ -34581,7 +34533,6 @@ __metadata:
     viem: ^2.28.0
     vm-browserify: 1.1.2
     wdio-cucumberjs-json-reporter: ^4.4.3
-    web-streams-polyfill: ^4.2.0
     webextension-polyfill: ^0.12.0
     webpack: ^5.88.2
     webpack-cli: ^5.1.4
@@ -39599,25 +39550,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-web@npm:~0.19.13":
-  version: 0.19.13
-  resolution: "react-native-web@npm:0.19.13"
-  dependencies:
-    "@babel/runtime": ^7.18.6
-    "@react-native/normalize-colors": ^0.74.1
-    fbjs: ^3.0.4
-    inline-style-prefixer: ^6.0.1
-    memoize-one: ^6.0.0
-    nullthrows: ^1.1.1
-    postcss-value-parser: ^4.2.0
-    styleq: ^0.1.3
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  checksum: 15077f88204cb980203b8e3784c092c8c25c972bf281db43fd4ccc9696b603380a49f5289fb9a742daddd8e7599baab5798a1f1c857bdd634add827bc39fd8d8
-  languageName: node
-  linkType: hard
-
 "react-native-webview-invoke@npm:^0.6.2":
   version: 0.6.2
   resolution: "react-native-webview-invoke@npm:0.6.2"
@@ -42727,13 +42659,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"styleq@npm:^0.1.3":
-  version: 0.1.3
-  resolution: "styleq@npm:0.1.3"
-  checksum: 14a8d23abd914166a9b4bd04ed753bd91363f0e029ee4a94ec2c7dc37d3213fe01fceee22dc655288da3ae89f5dc01cec42d5e2b58478b0dea33bf5bdf509be1
-  languageName: node
-  linkType: hard
-
 "sucrase@npm:3.35.0, sucrase@npm:^3.35.0":
   version: 3.35.0
   resolution: "sucrase@npm:3.35.0"
@@ -45073,13 +44998,6 @@ __metadata:
   version: 3.3.3
   resolution: "web-streams-polyfill@npm:3.3.3"
   checksum: 21ab5ea08a730a2ef8023736afe16713b4f2023ec1c7085c16c8e293ee17ed085dff63a0ad8722da30c99c4ccbd4ccd1b2e79c861829f7ef2963d7de7004c2cb
-  languageName: node
-  linkType: hard
-
-"web-streams-polyfill@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "web-streams-polyfill@npm:4.2.0"
-  checksum: 21aba196470e4814ae7f475540c454145fabf72d3755fb51256f48a710302d7a203e4a519c185715c4d9a09c6201df9cc14c02fc2a0bfd64f2667b18bad96ca9
   languageName: node
   linkType: hard
 

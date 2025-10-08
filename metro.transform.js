@@ -2,7 +2,6 @@
 /* eslint-disable import/no-nodejs-modules */
 /* eslint-disable import/no-commonjs */
 const path = require('path');
-
 const {
   removeFencedCode,
   lintTransformedFile,
