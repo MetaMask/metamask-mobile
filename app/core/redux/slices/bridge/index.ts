@@ -229,10 +229,16 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
-export const selectIsBridgeEnabledSource = createSelector(
+/**
+ * Factory selector that returns a function to check if bridge is enabled for a source chain.
+ * Use this when you need to check multiple chain IDs or when the chain ID is determined after render.
+ * @example
+ * const getIsBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
+ * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
+ */
+export const selectIsBridgeEnabledSourceFactory = createSelector(
   selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
+  (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
 
     return (
@@ -240,6 +246,12 @@ export const selectIsBridgeEnabledSource = createSelector(
       bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
     );
   },
+);
+
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
 );
 
 export const selectIsBridgeEnabledDest = createSelector(

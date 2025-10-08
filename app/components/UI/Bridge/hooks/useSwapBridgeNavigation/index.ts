@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
@@ -16,8 +15,7 @@ import { ethers } from 'ethers';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
-import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 
@@ -44,10 +42,9 @@ export const useSwapBridgeNavigation = ({
   sourceToken?: BridgeToken;
 }) => {
   const navigation = useNavigation();
-  const selectedChainId = useSelector(selectChainId);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const isBridgeEnabledSource = useSelector((state: RootState) =>
-    selectIsBridgeEnabledSource(state, selectedChainId),
+  const getIsBridgeEnabledSource = useSelector(
+    selectIsBridgeEnabledSourceFactory,
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
 
@@ -101,6 +98,7 @@ export const useSwapBridgeNavigation = ({
 
       const candidateSourceToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
+      const isBridgeEnabledSource = getIsBridgeEnabledSource(effectiveChainId);
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
@@ -148,8 +146,8 @@ export const useSwapBridgeNavigation = ({
       trackEvent,
       createEventBuilder,
       location,
-      isBridgeEnabledSource,
       currentNetworkInfo,
+      getIsBridgeEnabledSource,
     ],
   );
   const { networkModal } = useAddNetwork();
