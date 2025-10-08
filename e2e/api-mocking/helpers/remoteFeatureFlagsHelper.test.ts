@@ -268,29 +268,24 @@ describe('Remote Feature Flags Helper', () => {
       mockSetupMockRequest.mockResolvedValue(undefined);
     });
 
-    it('should call setupMockRequest with default configuration for both main and flask distributions', async () => {
+    it('should call setupMockRequest with default configuration', async () => {
       await setupRemoteFeatureFlagsMock(mockServer);
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
 
       const expectedEnvironments = ['dev', 'test', 'prod'];
-      const expectedDistributions = ['main', 'flask'];
 
-      let callIndex = 0;
-      expectedDistributions.forEach((distribution) => {
-        expectedEnvironments.forEach((env) => {
-          expect(mockSetupMockRequest).toHaveBeenNthCalledWith(
-            callIndex + 1,
-            mockServer,
-            {
-              requestMethod: 'GET',
-              url: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=${distribution}&environment=${env}`,
-              response: expect.any(Array),
-              responseCode: 200,
-            },
-          );
-          callIndex++;
-        });
+      expectedEnvironments.forEach((env, index) => {
+        expect(mockSetupMockRequest).toHaveBeenNthCalledWith(
+          index + 1,
+          mockServer,
+          {
+            requestMethod: 'GET',
+            url: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=${env}`,
+            response: expect.any(Array),
+            responseCode: 200,
+          },
+        );
       });
 
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
@@ -300,42 +295,29 @@ describe('Remote Feature Flags Helper', () => {
       expect(response).toContainEqual({ rewards: false });
     });
 
-    it('should call setupMockRequest with flag overrides for both distributions', async () => {
+    it('should call setupMockRequest with flag overrides', async () => {
       await setupRemoteFeatureFlagsMock(mockServer, { rewards: true });
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
       expect(callArgs.response).toContainEqual({ rewards: true });
     });
 
-    it('should set up mocks for both main and flask distributions across all environments', async () => {
-      await setupRemoteFeatureFlagsMock(mockServer);
+    it('should call setupMockRequest with custom distribution', async () => {
+      await setupRemoteFeatureFlagsMock(mockServer, {}, 'flask');
 
-      expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
-
-      // Check that we have calls for both distributions
-      const urls = mockSetupMockRequest.mock.calls.map((call) => call[1].url);
-
-      // Check main distribution URLs
-      expect(urls).toContain(
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-      );
-      expect(urls).toContain(
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=test',
-      );
-      expect(urls).toContain(
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod',
-      );
-
-      // Check flask distribution URLs
-      expect(urls).toContain(
+      expect(mockSetupMockRequest).toHaveBeenCalledTimes(3);
+      const devCallArgs = mockSetupMockRequest.mock.calls[0][1];
+      const testCallArgs = mockSetupMockRequest.mock.calls[1][1];
+      const prodCallArgs = mockSetupMockRequest.mock.calls[2][1];
+      expect(devCallArgs.url).toBe(
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
       );
-      expect(urls).toContain(
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=test',
-      );
-      expect(urls).toContain(
+      expect(prodCallArgs.url).toBe(
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=prod',
+      );
+      expect(testCallArgs.url).toBe(
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=test',
       );
     });
 

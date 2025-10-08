@@ -4,7 +4,7 @@ import { ensureValidState } from './util';
 import {
   SmartTransactionStatuses,
   type SmartTransaction,
-} from '@metamask/smart-transactions-controller';
+} from '@metamask/smart-transactions-controller/dist/types';
 import { TransactionStatus, CHAIN_IDS } from '@metamask/transaction-controller';
 
 const migrationVersion = 63;

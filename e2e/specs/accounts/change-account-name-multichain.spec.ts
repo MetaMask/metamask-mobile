@@ -98,7 +98,7 @@ describe(
       );
     });
 
-    it.skip('import an account, edits the name, and verifies the new name persists after locking and unlocking the wallet with multichain account details V2 enabled', async () => {
+    it('import an account, edits the name, and verifies the new name persists after locking and unlocking the wallet with multichain account details V2 enabled', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()

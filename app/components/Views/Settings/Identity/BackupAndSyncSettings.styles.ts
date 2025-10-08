@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) =>
     wrapper: {
       backgroundColor: params.theme.colors.background.default,
       flex: 1,
-      padding: 16,
+      padding: 24,
       paddingBottom: 48,
     },
     heading: {

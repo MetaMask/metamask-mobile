@@ -7,5 +7,4 @@ import { Metadata } from './metadata';
 export interface ConnectionInfo {
   id: string;
   metadata: Metadata;
-  expiresAt: number;
 }

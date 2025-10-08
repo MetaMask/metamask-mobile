@@ -91,6 +91,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     <Text
       accessibilityRole="link"
       accessible={true}
+      labelTextVariant="sBodyMD"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -111,7 +112,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

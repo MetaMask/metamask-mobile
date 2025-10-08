@@ -228,10 +228,4 @@ export interface WithFixturesOptions {
   permissions?: Record<string, unknown>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTestfn?: (...args: any[]) => Promise<void>;
-  /**
-   * Skip reloading React Native during cleanup to preserve app state between tests.
-   * Use this when tests need to maintain state across multiple `it` blocks.
-   * @default false
-   */
-  skipReactNativeReload?: boolean;
 }
