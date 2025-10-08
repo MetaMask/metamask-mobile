@@ -334,6 +334,6 @@ function assetToToken(
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
-    type: asset.type,
+    accountType: asset.type,
   };
 }

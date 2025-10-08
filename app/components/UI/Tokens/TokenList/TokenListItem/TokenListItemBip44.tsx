@@ -169,7 +169,9 @@ export const TokenListItemBip44 = React.memo(
       return null;
     }
 
-    const label = asset.type ? accountTypeLabel[asset.type] : undefined;
+    const label = asset.accountType
+      ? accountTypeLabel[asset.accountType]
+      : undefined;
 
     return (
       <AssetElement

@@ -316,7 +316,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   describe('Account Type Label', () => {
     it('renders the correct account type label', () => {
       prepareMocks({
-        asset: { ...defaultAsset, type: BtcAccountType.P2wpkh },
+        asset: { ...defaultAsset, accountType: BtcAccountType.P2wpkh },
       });
 
       const assetKey: FlashListAssetKey = {

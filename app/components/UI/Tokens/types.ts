@@ -22,5 +22,5 @@ export interface TokenI {
   chainId?: string;
   isNative?: boolean;
   ticker?: string;
-  type?: KeyringAccountType;
+  accountType?: KeyringAccountType;
 }
