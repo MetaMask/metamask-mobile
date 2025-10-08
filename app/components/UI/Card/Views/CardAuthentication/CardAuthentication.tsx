@@ -1,13 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   TouchableOpacity,
-  View,
 } from 'react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 
 import Icon, {
   IconName,
@@ -24,29 +24,51 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import FoxImage from '../../../../../images/branding/fox.png';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardAuthentication.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
-import Logger from '../../../../../util/Logger';
 import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
 import { NavigationActions } from '@react-navigation/compat';
+import Routes from '../../../../../constants/navigation/Routes';
+import { CardLocation } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 
 const CardAuthentication = () => {
-  const { dispatch } = useNavigation();
+  const { dispatch, addListener } = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [location, setLocation] = useState<'us' | 'international'>(
-    'international',
-  );
+  const [location, setLocation] = useState<CardLocation>('international');
   const theme = useTheme();
-  const { login, loading } = useCardProviderAuthentication();
+  const { login, loading, error, clearError } = useCardProviderAuthentication();
 
   const styles = createStyles(theme);
+
+  const handleEmailChange = (newEmail: string) => {
+    setEmail(newEmail);
+    if (error) {
+      clearError();
+    }
+  };
+
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    if (error) {
+      clearError();
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = addListener('beforeRemove', (e) => {
+      if (loading) {
+        e.preventDefault();
+        return;
+      }
+    });
+
+    return unsubscribe;
+  }, [addListener, loading]);
 
   const performLogin = async () => {
     try {
@@ -55,15 +77,21 @@ const CardAuthentication = () => {
         email,
         password,
       });
+
       dispatch(
         NavigationActions.navigate({
-          routeName: 'CardHome',
+          routeName: Routes.CARD.HOME,
         }),
       );
-    } catch (error) {
-      Logger.log('BaanxOAuth login: error', error);
+    } catch (err) {
+      // Error is already handled by the hook
     }
   };
+
+  const isDisabled = useMemo(
+    () => loading || !!error || email.length === 0 || password.length === 0,
+    [loading, error, email, password],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -76,23 +104,23 @@ const CardAuthentication = () => {
           showsVerticalScrollIndicator={false}
           alwaysBounceVertical={false}
         >
-          <View style={styles.container}>
-            <View style={styles.imageWrapper}>
+          <Box style={styles.container}>
+            <Box style={styles.imageWrapper}>
               <Image
                 source={FoxImage}
                 style={styles.image}
                 resizeMode="contain"
                 testID={CardAuthenticationSelectors.FOX_IMAGE}
               />
-            </View>
+            </Box>
             <Text
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.HeadingMd}
               testID={CardAuthenticationSelectors.WELCOME_TO_CARD_TITLE_TEXT}
               style={styles.title}
             >
-              {'Log in to your Card account'}
+              {strings('card.card_authentication.title')}
             </Text>
-            <View style={styles.locationButtonsContainer}>
+            <Box style={styles.locationButtonsContainer}>
               <TouchableOpacity
                 style={[
                   styles.locationButton,
@@ -110,15 +138,18 @@ const CardAuthentication = () => {
                   }
                 />
                 <Text
-                  style={styles.locationButtonText}
-                  variant={TextVariant.BodySM}
-                  color={
-                    location === 'international'
-                      ? theme.colors.primary.default
-                      : theme.colors.text.alternative
-                  }
+                  style={[
+                    styles.locationButtonText,
+                    {
+                      color:
+                        location === 'international'
+                          ? theme.colors.primary.default
+                          : theme.colors.text.alternative,
+                    },
+                  ]}
+                  variant={TextVariant.BodySm}
                 >
-                  International
+                  {strings('card.card_authentication.location_button_text')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -130,60 +161,90 @@ const CardAuthentication = () => {
               >
                 <Text style={styles.usFlag}>🇺🇸</Text>
                 <Text
-                  style={styles.locationButtonText}
-                  variant={TextVariant.BodySM}
-                  color={
-                    location === 'us'
-                      ? theme.colors.primary.default
-                      : theme.colors.text.alternative
-                  }
+                  style={[
+                    styles.locationButtonText,
+                    {
+                      color:
+                        location === 'us'
+                          ? theme.colors.primary.default
+                          : theme.colors.text.alternative,
+                    },
+                  ]}
+                  variant={TextVariant.BodySm}
                 >
-                  US account
+                  {strings('card.card_authentication.location_button_text_us')}
                 </Text>
               </TouchableOpacity>
-            </View>
-            <View style={styles.textFieldsContainer}>
-              <View>
-                <Label style={styles.label}>{'Email'}</Label>
+            </Box>
+            <Box style={styles.textFieldsContainer}>
+              <Box>
+                <Label style={styles.label}>
+                  {strings('card.card_authentication.email_label')}
+                </Label>
                 <TextField
                   autoCapitalize={'none'}
-                  onChangeText={setEmail}
-                  placeholder={'Enter your email'}
+                  onChangeText={handleEmailChange}
+                  placeholder={strings(
+                    'card.card_authentication.email_placeholder',
+                  )}
                   numberOfLines={1}
                   size={TextFieldSize.Lg}
                   value={email}
                   returnKeyType={'next'}
                   keyboardType="email-address"
+                  maxLength={255}
+                  accessibilityLabel={strings(
+                    'card.card_authentication.email_label',
+                  )}
                 />
-              </View>
-              <View>
-                <Label style={styles.label}>{'Password'}</Label>
+              </Box>
+              <Box>
+                <Label style={styles.label}>
+                  {strings('card.card_authentication.password_label')}
+                </Label>
                 <TextField
                   autoCapitalize={'none'}
-                  onChangeText={setPassword}
-                  placeholder={'Enter your password'}
+                  onChangeText={handlePasswordChange}
+                  placeholder={strings(
+                    'card.card_authentication.password_placeholder',
+                  )}
                   numberOfLines={1}
                   size={TextFieldSize.Lg}
                   value={password}
+                  maxLength={255}
                   returnKeyType={'done'}
                   onSubmitEditing={performLogin}
                   secureTextEntry
+                  accessibilityLabel={strings(
+                    'card.card_authentication.password_label',
+                  )}
                 />
-              </View>
-            </View>
-            <View>
+              </Box>
+            </Box>
+            {error && (
+              <Box style={styles.errorBox}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  style={{ color: theme.colors.error.default }}
+                >
+                  {error}
+                </Text>
+              </Box>
+            )}
+            <Box>
               <Button
                 variant={ButtonVariants.Primary}
-                label={'Log in'}
+                label={strings('card.card_authentication.login_button')}
                 size={ButtonSize.Lg}
                 testID={CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON}
                 onPress={performLogin}
                 loading={loading}
-                style={styles.button}
+                style={[styles.button, isDisabled && styles.buttonDisabled]}
                 width={ButtonWidthTypes.Full}
+                disabled={isDisabled}
               />
-            </View>
-          </View>
+            </Box>
+          </Box>
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>

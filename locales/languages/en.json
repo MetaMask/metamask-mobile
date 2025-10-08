@@ -5793,6 +5793,28 @@
         "manage_card": "Manage card",
         "advanced_card_management_description": "Detailed transactions, freeze card, and more"
       }
+    },
+    "card_authentication": {
+      "title": "Log in to your Card account",
+      "location_button_text": "International",
+      "location_button_text_us": "US account",
+      "email_label": "Email",
+      "password_label": "Password",
+      "email_placeholder": "Enter your email address",
+      "password_placeholder": "Enter your password",
+      "login_button": "Log in",
+      "errors": {
+        "invalid_credentials": "Invalid login details",
+        "unknown_error": "Unknown error, please try again later",
+        "email_required": "Email is required",
+        "password_required": "Password is required",
+        "email_invalid": "Invalid email address",
+        "password_invalid": "Invalid password",
+        "network_error": "Network error. Please check your connection and try again.",
+        "timeout_error": "Request timed out. Please check your connection and try again.",
+        "server_error": "Server error. Please try again later.",
+        "configuration_error": "Service is temporarily unavailable. Please try again later."
+      }
     }
   },
   "onboarding_error_fallback": {

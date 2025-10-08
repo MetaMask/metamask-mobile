@@ -1,33 +1,60 @@
 import { useCallback, useMemo, useState } from 'react';
-import Logger from '../../../../util/Logger';
-import { uuid4 } from '@sentry/core';
 import { useCardSDK } from '../sdk';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
-import {
-  challengeFromVerifier,
-  generateCodeVerifier,
-} from '../util/generateCodeVerifier';
+import { generatePKCEPair, generateState } from '../util/pkceHelpers';
+import { CardError, CardErrorType, CardLocation } from '../types';
+import { strings } from '../../../../../locales/i18n';
+
+/**
+ * Maps CardError types to user-friendly localized error messages
+ */
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof CardError) {
+    switch (error.type) {
+      case CardErrorType.INVALID_CREDENTIALS:
+        return strings('card.card_authentication.errors.invalid_credentials');
+      case CardErrorType.NETWORK_ERROR:
+        return strings('card.card_authentication.errors.network_error');
+      case CardErrorType.TIMEOUT_ERROR:
+        return strings('card.card_authentication.errors.timeout_error');
+      case CardErrorType.API_KEY_MISSING:
+        return strings('card.card_authentication.errors.configuration_error');
+      case CardErrorType.VALIDATION_ERROR:
+        return error.message; // Use specific validation message
+      case CardErrorType.SERVER_ERROR:
+        return strings('card.card_authentication.errors.server_error');
+      case CardErrorType.UNKNOWN_ERROR:
+      default:
+        return strings('card.card_authentication.errors.unknown_error');
+    }
+  }
+
+  // Fallback for non-CardError instances
+  return strings('card.card_authentication.errors.unknown_error');
+};
 
 const useCardProviderAuthentication = (): {
   login: (params: {
-    location: 'us' | 'international';
+    location: CardLocation;
     email: string;
     password: string;
   }) => Promise<void>;
   loading: boolean;
   error: string | null;
+  clearError: () => void;
 } => {
-  // Generate state once; generating it on every render causes the auth request
-  // to be recreated which can trigger loops with useAuthRequest.
-  const stateUuid = uuid4();
+  const state = generateState();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { sdk, setIsAuthenticated } = useCardSDK();
-  const codeVerifier = generateCodeVerifier();
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
   const login = useCallback(
     async (params: {
-      location: 'us' | 'international';
+      location: CardLocation;
       email: string;
       password: string;
     }): Promise<void> => {
@@ -35,13 +62,13 @@ const useCardProviderAuthentication = (): {
         throw new Error('Card SDK not initialized');
       }
 
-      const codeChallenge = await challengeFromVerifier(codeVerifier);
+      const { codeVerifier, codeChallenge } = await generatePKCEPair();
 
       try {
         setLoading(true);
         const initiateResponse = await sdk.initiateCardProviderAuthentication({
           location: params.location,
-          state: stateUuid,
+          state,
           codeChallenge,
         });
 
@@ -57,7 +84,7 @@ const useCardProviderAuthentication = (): {
           loginAccessToken: loginResponse.accessToken,
         });
 
-        if (authorizeResponse.state !== stateUuid) {
+        if (authorizeResponse.state !== state) {
           throw new Error('Invalid state');
         }
 
@@ -74,15 +101,19 @@ const useCardProviderAuthentication = (): {
           expiresAt: Date.now() + exchangeTokenResponse.expiresIn * 1000,
           location: params.location,
         });
+
+        setError(null);
         setIsAuthenticated(true);
       } catch (err) {
-        Logger.log('BaanxOAuth login: error', err);
-        setError('Unknown error during Baanx login');
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+
+        throw err;
       } finally {
         setLoading(false);
       }
     },
-    [stateUuid, sdk, codeVerifier, setIsAuthenticated],
+    [state, sdk, setIsAuthenticated],
   );
 
   return useMemo(
@@ -90,8 +121,9 @@ const useCardProviderAuthentication = (): {
       login,
       error,
       loading,
+      clearError,
     }),
-    [login, error, loading],
+    [login, error, loading, clearError],
   );
 };
 

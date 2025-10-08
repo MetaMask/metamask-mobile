@@ -29,6 +29,8 @@ export interface CardLoginInitiateResponse {
   url: string;
 }
 
+export type CardLocation = 'us' | 'international';
+
 export interface CardLoginResponse {
   phase: string | null;
   userId: string;
@@ -59,4 +61,26 @@ export interface CardExchangeTokenResponse {
   expiresIn: number;
   refreshToken: string;
   refreshTokenExpiresIn: number;
+}
+
+export enum CardErrorType {
+  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
+  API_KEY_MISSING = 'API_KEY_MISSING',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  SERVER_ERROR = 'SERVER_ERROR',
+}
+
+export class CardError extends Error {
+  public type: CardErrorType;
+  public originalError?: Error;
+
+  constructor(type: CardErrorType, message: string, originalError?: Error) {
+    super(message);
+    this.name = 'CardError';
+    this.type = type;
+    this.originalError = originalError;
+  }
 }

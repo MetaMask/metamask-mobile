@@ -9,8 +9,11 @@ import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
   CardAuthorizeResponse,
+  CardError,
+  CardErrorType,
   CardExchangeTokenRawResponse,
   CardExchangeTokenResponse,
+  CardLocation,
   CardLoginInitiateResponse,
   CardLoginResponse,
   CardToken,
@@ -198,7 +201,7 @@ export class CardSDK {
     } catch (error) {
       Logger.error(
         error as Error,
-        'Failed to check if address is a card holder',
+        'CardSDK: Failed to check if address is a card holder',
       );
       return [];
     }
@@ -270,7 +273,7 @@ export class CardSDK {
 
       return await response.text();
     } catch (error) {
-      Logger.error(error as Error, 'Failed to get geolocation');
+      Logger.error(error as Error, 'CardSDK: Failed to get geolocation');
       return '';
     }
   };
@@ -384,7 +387,10 @@ export class CardSDK {
     const apiKey = this.cardBaanxApiKey;
 
     if (!apiKey) {
-      throw new Error('Card Baanx API key is not defined');
+      throw new CardError(
+        CardErrorType.API_KEY_MISSING,
+        'Card API key is not configured',
+      );
     }
 
     const headers: HeadersInit = {
@@ -403,7 +409,7 @@ export class CardSDK {
       }
     } catch (error) {
       // Continue without bearer token if retrieval fails
-      console.warn('Failed to retrieve bearer token:', error);
+      Logger.log('Failed to retrieve Card bearer token:', error);
     }
 
     const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
@@ -434,20 +440,40 @@ export class CardSDK {
 
       // Check if the error is due to timeout
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error(`Request timeout after ${timeoutMs}ms`);
+        throw new CardError(
+          CardErrorType.TIMEOUT_ERROR,
+          'Request timed out. Please check your connection.',
+          error,
+        );
       }
 
-      throw error;
+      // Network or other fetch errors
+      if (error instanceof Error) {
+        throw new CardError(
+          CardErrorType.NETWORK_ERROR,
+          'Network error. Please check your connection.',
+          error,
+        );
+      }
+
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'An unexpected error occurred.',
+        error instanceof Error ? error : undefined,
+      );
     }
   }
 
   initiateCardProviderAuthentication = async (queryParams: {
     state: string;
     codeChallenge: string;
-    location: 'us' | 'international';
+    location: CardLocation;
   }): Promise<CardLoginInitiateResponse> => {
     if (!this.cardBaanxApiKey) {
-      throw new Error('Card Baanx API key is not defined');
+      throw new CardError(
+        CardErrorType.API_KEY_MISSING,
+        'Card API key is not configured',
+      );
     }
 
     const { state, codeChallenge, location } = queryParams;
@@ -473,7 +499,22 @@ export class CardSDK {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to initiate card provider authentication');
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to initiate authentication. Please try again.',
+      );
+      Logger.error(
+        error,
+        `CardSDK: Failed to initiate card provider authentication. Status: ${response.status}, Response: ${responseBody}`,
+      );
+      throw error;
     }
 
     const data = await response.json();
@@ -483,9 +524,22 @@ export class CardSDK {
   login = async (body: {
     email: string;
     password: string;
-    location: 'us' | 'international';
+    location: CardLocation;
   }): Promise<CardLoginResponse> => {
     const { email, password, location } = body;
+
+    // Basic validation
+    if (!email?.trim()) {
+      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Email is required');
+    }
+
+    if (!password?.trim()) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Password is required',
+      );
+    }
+
     const response = await this.makeRequest(
       '/v1/auth/login',
       {
@@ -500,7 +554,47 @@ export class CardSDK {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to login');
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      // Handle specific HTTP status codes
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Invalid login details',
+        );
+        Logger.error(
+          error,
+          `CardSDK: Invalid credentials during login. Status: ${response.status}, Response: ${responseBody}`,
+        );
+        throw error;
+      }
+
+      if (response.status >= 500) {
+        const error = new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Server error. Please try again later.',
+        );
+        Logger.error(
+          error,
+          `CardSDK: Server error during login. Status: ${response.status}, Response: ${responseBody}`,
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Login failed. Please try again.',
+      );
+      Logger.error(
+        error,
+        `CardSDK: Unknown error during login. Status: ${response.status}, Response: ${responseBody}`,
+      );
+      throw error;
     }
 
     const data = await response.json();
@@ -510,7 +604,7 @@ export class CardSDK {
   authorize = async (body: {
     initiateAccessToken: string;
     loginAccessToken: string;
-    location: 'us' | 'international';
+    location: CardLocation;
   }): Promise<CardAuthorizeResponse> => {
     const { initiateAccessToken, loginAccessToken, location } = body;
     const response = await this.makeRequest(
@@ -529,7 +623,34 @@ export class CardSDK {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to authorize');
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Authorization failed. Please try logging in again.',
+        );
+        Logger.error(
+          error,
+          `CardSDK: Authorization failed - invalid credentials. Status: ${response.status}, Response: ${responseBody}`,
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Authorization failed. Please try again.',
+      );
+      Logger.error(
+        error,
+        `CardSDK: Authorization failed. Status: ${response.status}, Response: ${responseBody}`,
+      );
+      throw error;
     }
 
     const data = await response.json();
@@ -540,7 +661,7 @@ export class CardSDK {
     code?: string;
     codeVerifier?: string;
     grantType: 'authorization_code' | 'refresh_token';
-    location: 'us' | 'international';
+    location: CardLocation;
   }): Promise<CardExchangeTokenResponse> => {
     const response = await this.makeRequest(
       '/v1/auth/oauth/token',
@@ -561,7 +682,34 @@ export class CardSDK {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to exchange token');
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        const error = new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Token exchange failed. Please try logging in again.',
+        );
+        Logger.error(
+          error,
+          `CardSDK: Token exchange failed - invalid credentials. Status: ${response.status}, Response: ${responseBody}`,
+        );
+        throw error;
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Token exchange failed. Please try again.',
+      );
+      Logger.error(
+        error,
+        `CardSDK: Token exchange failed. Status: ${response.status}, Response: ${responseBody}`,
+      );
+      throw error;
     }
 
     const data = (await response.json()) as CardExchangeTokenRawResponse;
@@ -577,7 +725,7 @@ export class CardSDK {
 
   refreshLocalToken = async (
     refreshToken: string,
-    location: 'us' | 'international',
+    location: CardLocation,
   ): Promise<CardExchangeTokenResponse> => {
     const tokenResponse = await this.exchangeToken({
       code: refreshToken,

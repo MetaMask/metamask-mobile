@@ -66,8 +66,17 @@ const createStyles = (theme: Theme) =>
       marginTop: 28,
       marginBottom: 32,
     },
+    buttonDisabled: {
+      opacity: 0.5,
+    },
     scrollViewContentContainer: {
       flexGrow: 1,
+    },
+    errorBox: {
+      marginTop: 12,
+      padding: 12,
+      borderRadius: 8,
+      backgroundColor: theme.colors.error.muted,
     },
   });
 
