@@ -1,10 +1,8 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import {
-  PerpsConnectionProvider,
-  usePerpsConnection,
-} from './PerpsConnectionProvider';
+import { PerpsConnectionProvider } from './PerpsConnectionProvider';
+import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 // Mock dependencies
