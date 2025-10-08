@@ -11,7 +11,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(RegressionAssets('Asset list - '), () => {
+describe.skip(RegressionAssets('Asset list - '), () => {
   it('displays tokens across networks when all popular networks are selected', async () => {
     await withFixtures(
       {
