@@ -60,7 +60,7 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.flask-android-smoke.result != 'skipped'  }}
     needs:
       - flask-android-smoke
       
