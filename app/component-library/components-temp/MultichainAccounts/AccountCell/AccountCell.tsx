@@ -34,21 +34,21 @@ import { formatAddress } from '../../../../util/address';
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
-  isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
   chainId?: string;
+  onSelectAccount?: () => void;
 }
 
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
-  isSelected,
   hideMenu = false,
   startAccessory,
   chainId,
+  onSelectAccount,
 }: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, { isSelected });
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
@@ -106,68 +106,60 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      {startAccessory}
-      <View style={styles.avatarWrapper}>
+      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
+        {startAccessory}
         <AvatarAccount
           accountAddress={evmAddress}
           type={avatarAccountType}
           size={AvatarSize.Md}
-          style={styles.avatar}
           testID={AccountCellIds.AVATAR}
         />
-      </View>
-      <View style={styles.accountName}>
-        <View style={styles.accountNameRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            style={styles.accountNameText}
-            testID={AccountCellIds.ADDRESS}
-          >
-            {accountGroup.metadata.name}
-          </Text>
-          {!startAccessory && isSelected && (
-            <Icon
-              name={IconName.CheckBold}
-              size={IconSize.Md}
-              style={styles.checkIcon}
-              color={TextColor.Primary}
-              testID={AccountCellIds.CHECK_ICON}
-            />
-          )}
-        </View>
-        {networkAccountAddress && (
-          <View style={styles.accountSubRow}>
+        <View style={styles.accountName}>
+          <View style={styles.accountNameRow}>
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
               numberOfLines={1}
-              style={styles.accountSubText}
+              style={styles.accountNameText}
+              testID={AccountCellIds.ADDRESS}
             >
-              {networkAccountAddress}
+              {accountGroup.metadata.name}
             </Text>
           </View>
-        )}
-      </View>
-      <View style={styles.endContainer}>
-        <View style={styles.balanceContainer}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            testID={AccountCellIds.BALANCE}
-          >
-            {displayBalance}
-          </Text>
-          {networkImageSource && (
-            <Avatar
-              variant={AvatarVariant.Network}
-              size={AvatarSize.Xs}
-              style={styles.networkBadge}
-              imageSource={networkImageSource}
-            />
+          {networkAccountAddress && (
+            <View style={styles.accountSubRow}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+                style={styles.accountSubText}
+              >
+                {networkAccountAddress}
+              </Text>
+            </View>
           )}
         </View>
+      </TouchableOpacity>
+      <View style={styles.endContainer}>
+        <TouchableOpacity onPress={onSelectAccount}>
+          <View style={styles.balanceContainer}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              testID={AccountCellIds.BALANCE}
+            >
+              {displayBalance}
+            </Text>
+            {networkImageSource && (
+              <Avatar
+                variant={AvatarVariant.Network}
+                size={AvatarSize.Xs}
+                style={styles.networkBadge}
+                imageSource={networkImageSource}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
         {!hideMenu && (
           <TouchableOpacity
             testID={AccountCellIds.MENU}

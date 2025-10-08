@@ -575,7 +575,8 @@
     "token_contract_warning": "이 주소는 토큰 계약 주소입니다. 이 주소로 토큰을 보내면 토큰을 잃게 됩니다.",
     "invisible_character_error": "ENS 이름에서 보이지 않는 문자가 감지되었습니다. 잠재적인 사기를 피하기 위해 ENS 이름을 확인하세요.",
     "could_not_resolve_name": "이름을 확인할 수 없습니다",
-    "invalid_address": "잘못된 주소"
+    "invalid_address": "잘못된 주소",
+    "contractAddressError": "토큰의 계약 주소로 토큰을 보내고 있습니다. 이로 인해 해당 토큰이 손실될 수 있습니다."
   },
   "deposit": {
     "title": "예금",
@@ -877,6 +878,8 @@
     "withdraw": "출금",
     "refresh_balance": "잔액 새로고침",
     "add_funds": "자금 추가",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "내 포지션",
     "loading_positions": "포지션 불러오는 중...",
     "refreshing_positions": "포지션 새로고침 중...",
@@ -885,7 +888,7 @@
       "title": "예치 금액",
       "get_usdc_hyperliquid": "USDC 받기 • Hyperliquid",
       "insufficient_funds": "자금 부족",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "사용 가능한 자금이 없습니다. 먼저 입금하세요.",
       "enter_amount": "금액 입력",
       "fetching_quote": "견적 가져오기",
       "submitting": "트랜잭션 제출 중",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "자금 부족",
         "insufficient_balance": "잔액이 부족합니다. 필요: ${{required}}, 사용 가능: ${{available}}",
         "invalid_leverage": "레버리지는 {{min}}x~{{max}}x 사이여야 합니다",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "주문 크기는 ${{maxValue}} 미만이어야 합니다",
         "high_leverage_warning": "레버리지가 높을수록 청산 위험이 증가합니다",
         "invalid_take_profit": "{{positionType}} 포지션의 경우 익절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
         "invalid_stop_loss": "{{positionType}} 포지션의 경우 손절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
@@ -1332,9 +1335,9 @@
         "error_message": "시장 데이터를 찾을 수 없습니다. 뒤로 가서 다시 시도해 보세요."
       },
       "statistics": "개요",
-      "24hr_high": "24시간 최고가",
-      "24hr_low": "24시간 최저가",
-      "24h_volume": "24시간 거래량",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "미결제 약정",
       "funding_rate": "펀딩 비율",
       "countdown": "카운트다운",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "마켓 데이터 불러오기에 실패했습니다",
     "tap_to_retry": "탭하여 다시 시도",
     "search_by_token_symbol": "토큰 심볼별 검색",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "토큰을 찾을 수 없습니다",
+    "no_tokens_found_description": "\"{{searchQuery}}\"라는 이름의 토큰을 찾을 수 없습니다. 다른 검색어를 입력해 보세요.",
     "testnet": "테스트넷",
     "mainnet": "메인넷",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "체결",
         "metamask_fee": "MetaMask 수수료",
         "hyperliquid_fee": "Hyperliquid 수수료",
-        "total_fee": "총 수수료"
+        "total_fee": "총 수수료",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "날짜",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "회원님의 거래 내역이 여기에 표시됩니다"
       }
     },
-    "risk_disclaimer": "무기한 선물 거래는 위험하며, 예고 없이 갑작스럽게 증거금을 전부 잃을 수도 있습니다. 거래는 전적으로 회원님의 책임하에 이루어집니다. 시장 데이터는 Hyperliquid에서 제공됩니다. 가격 차트 제공:",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "계속",
       "skip": "건너뛰기",
@@ -1538,10 +1544,13 @@
         "description": "원하는 토큰으로 무기한 선물 계정에 입금하고, 바로 첫 거래를 시작하세요.",
         "footer_text": "MetaMask가 자금을 Arbitrum의 USDC로 스왑하고 추가 수수료 없이 HyperEVM에 입금합니다."
       },
-      "got_it": "확인"
+      "got_it": "확인",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "포인트",
-    "estimated_points": "Est. Points",
+    "estimated_points": "예상 포인트",
     "unable_to_load": "불러올 수 없음",
     "points_error": "지금 포인트를 불러올 수 없습니다",
     "points_error_content": "걱정하지 마세요. 여전히 보상이 적립되고 있습니다. 곧 계정에 표시되거나 나중에 보상 탭에서 확인할 수 있습니다.",
@@ -1864,13 +1873,13 @@
     "agree": "동의합니다",
     "decline": "동의하지 않습니다",
     "description_title": "MetaMask 개선에 도움을 주세요",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "이러한 권한을 요청하고자 합니다. 언제든지 사용 데이터를 거부하거나 삭제할 수 있습니다.",
     "description_content_2": "메트릭을 수집할 때는 항상...",
     "description_content_3": "프로필 사용 데이터를 수집하는 동안 개인정보 보호 방법을 알아보세요.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "기본 사용 데이터 수집",
+    "gather_basic_usage_description": "일반적인 위치, 클릭, 조회수와 같은 기본적인 제품 사용 데이터를 수집합니다. 다른 정보는 저장하지 않습니다.",
+    "gather_basic_usage_learn_more": "더 보기",
+    "checkbox_marketing": "마케팅 업데이트",
     "checkbox": "당사는 사용자가 마케팅 커뮤니케이션과 상호작용하는 방식을 파악하기 위해 이 데이터를 사용합니다. 관련 소식(제품 기능 등)을 공유할 수 있습니다.",
     "action_description_1_prefix": "개인 정보:",
     "action_description_2_prefix": "일반:",
@@ -1880,7 +1889,7 @@
     "action_description_3_description": "언제든지 설정을 통해 사용 데이터를 공유할지 삭제할지 결정할 수 있습니다.",
     "cta_no_thanks": "아니요, 괜찮습니다",
     "cta_i_agree": "동의합니다",
-    "continue": "Continue",
+    "continue": "계속",
     "fine_print_1_legacy": "이 데이터는 집계 처리된 정보이며 일반 데이터 보호 규정 (EU) 2016/679의 목적에 따라 익명으로 관리됩니다.",
     "fine_print_2a_legacy": "*MetaMask에서 Infura를 기본 RPC 공급업체로 이용하는 경우, 트랜잭션 전송 시 Infura가 IP 주소와 이더리움 지갑 주소 정보를 수집합니다. MetaMask는 해당 두 정보를 연계할 수 있는 방식으로 정보를 저장하지 않습니다. 계속 진행하기 전에 RPC 공급업체 이용방식을 구성할 수 있습니다.",
     "fine_print_2b_legacy": "데이터 수집 관점에서 MetaMask와 Infura가 인터렉션하는 방법에 대한 자세한 내용은 업데이트를 참조하세요.",
@@ -2043,9 +2052,9 @@
       "solana_devnet_account_name": "솔라나 데브넷 계정",
       "solana_testnet_account_name": "솔라나 테스트넷 계정",
       "solana_account_name": "솔라나 계정",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tron 계정",
+      "tron_nile_account_name": "Tron Nile 계정",
+      "tron_shasta_account_name": "Tron Shasta 계정"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} 계정 생성 실패"
@@ -3444,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " 이(가) 잘못되었거나 철자가 틀렸습니다.",
     "error_invalid_srp": "잘못된 비밀복구구문",
     "error_duplicate_srp": "이 비밀복구구문은 이미 가져왔습니다.",
-    "success_1": "Wallet",
+    "success_1": "지갑",
     "success_2": "가져옴"
   },
   "first_incoming_transaction": {
@@ -4887,7 +4896,7 @@
     "import_account": "개인 키",
     "add_bitcoin_account": "비트코인 계정",
     "add_solana_account": "솔라나 계정",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tron 계정",
     "switch_to_smart_account": "스마트 계정으로 전환",
     "rename_account": "계정 이름 변경",
     "addresses": "주소",
@@ -5600,7 +5609,7 @@
       "section_1_title": "멀티체인 계정이란?",
       "section_1_description": "하나의 계정으로 MetaMask가 지원하는 모든 네트워크의 주소를 사용할 수 있습니다. 이제 계정을 전환하지 않고도 이더리움, 솔라나 등 다양한 네트워크를 이용할 수 있습니다.",
       "section_2_title": "같은 주소, 더 많은 네트워크",
-      "section_2_description": "계정을 하나로 통합했습니다. MetaMask를 예전처럼 그대로 사용하실 수 있습니다. 자금은 안전하게 그대로 보관되어 있습니다.",
+      "section_2_description": "계정을 그룹화했습니다. 이전과 동일하게 MetaMask를 계속 사용하세요. 회원님의 자금은 안전하며 변경되지 않았습니다",
       "view_accounts_button": "계정 보기",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "계정 설정 중"
@@ -5654,6 +5663,7 @@
       "balance": "잔액",
       "create_account": "계정 만들기",
       "creating_account": "계정 생성 중...",
+      "discovering_accounts": "계정 검색 중...",
       "back_up": "백업",
       "reveal_recovery_phrase_with_index": "복구구문 {{index}} 공개"
     },
@@ -5751,6 +5761,11 @@
       "swap_description": "Linea에서 토큰을 {{symbol}}(으)로 스왑",
       "select_method": "방법 선택"
     },
+    "card_onboarding": {
+      "title": "카드에 오신 걸 환영합니다",
+      "description": "카드 기능을 사용하려면 MetaMask의 파트너사를 통해 계정을 인증해야 합니다.",
+      "verify_account_button": "계정 인증"
+    },
     "card_home": {
       "error_title": "데이터를 불러올 수 없습니다",
       "error_description": "이 페이지의 콘텐츠를 표시하는 데 문제가 발생했습니다. 연결 상태를 확인하거나 페이지를 새로 고침해 보세요.",
@@ -5826,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5865,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "익절",
-        "stop_loss": "손절",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5883,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "리워드를 받으세요",
+      "gtm_description": "활동에 대한 포인트를 획득하세요. \n레벨을 올려 리워드를 잠금 해제하세요.",
+      "gtm_confirm": "시작하기",
+      "intro_title": "시즌 1이 \n시작되었습니다",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5926,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6013,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "잠긴 리워드",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6025,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "남음",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6053,6 +6084,16 @@
       "perps_deposit": "자금 추가",
       "swap": "토큰 스왑",
       "swap_approval": "토큰 승인"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

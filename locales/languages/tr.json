@@ -575,7 +575,8 @@
     "token_contract_warning": "Bu adres bir token sözleşmesi adresi. Bu adrese token gönderirseniz bunları kaybedersiniz.",
     "invisible_character_error": "ENS adında görünmez bir karakter algıladık. Olası bir dolandırıcılığı önlemek için ENS adını kontrol edin.",
     "could_not_resolve_name": "Adı çözümlenemedi",
-    "invalid_address": "Geçersiz adres"
+    "invalid_address": "Geçersiz adres",
+    "contractAddressError": "Token'in sözleşme adresine token gönderiyorsunuz. Bu durum, bu token'lerin kaybedilmesine neden olabilir."
   },
   "deposit": {
     "title": "Para Yatır",
@@ -877,6 +878,8 @@
     "withdraw": "Çek",
     "refresh_balance": "Bakiyeyi Yenile",
     "add_funds": "Para ekle",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Pozisyonlarınız",
     "loading_positions": "Pozisyonlar yükleniyor...",
     "refreshing_positions": "Pozisyonlar yenileniyor...",
@@ -885,7 +888,7 @@
       "title": "Yatırılacak miktar",
       "get_usdc_hyperliquid": "USDC • Hyperliquid al",
       "insufficient_funds": "Para yetersiz",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Kullanılabilir para yok. Lütfen önce para yatırın.",
       "enter_amount": "Tutar gir",
       "fetching_quote": "Teklif alınıyor",
       "submitting": "İşlem gönderiliyor",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "Yetersiz bakiye",
         "insufficient_balance": "Bakiye yetersiz. Gereken: {{required}}$, Kullanılabilir: {{available}}$",
         "invalid_leverage": "Kaldıraç {{min}} katı ile {{max}} katı arasında olmalıdır",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "Emir büyüklüğü {{maxValue}}$ altında olmalıdır",
         "high_leverage_warning": "Yüksek kaldıraç likidasyon riskini artırır",
         "invalid_take_profit": "Kazancı al, {{positionType}} pozisyonlar için {{direction}} güncel fiyat olmalıdır",
         "invalid_stop_loss": "Zararda dur, {{positionType}} pozisyonlar için {{direction}} güncel fiyat olmalıdır",
@@ -1332,9 +1335,9 @@
         "error_message": "Piyasa verileri bulunamadı. Lütfen geri dönüp tekrar deneyin."
       },
       "statistics": "Genel Bakış",
-      "24hr_high": "Son 24 saatin en yüksek değeri",
-      "24hr_low": "Son 24 saatin en düşük değeri",
-      "24h_volume": "Son 24 saatin hacmi",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Açık faiz",
       "funding_rate": "Fonlama oranı",
       "countdown": "Geri sayım",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "Piyasa verileri yüklenemedi",
     "tap_to_retry": "Tekrar denemek için dokunun",
     "search_by_token_symbol": "Token sembolüne göre ara",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "Token bulunamadı",
+    "no_tokens_found_description": "\"{{searchQuery}}\" adında bir token bulamadık. Farklı bir arama yapmayı deneyin.",
     "testnet": "Test Ağı",
     "mainnet": "Ana Ağ",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "Gerçekleşti",
         "metamask_fee": "MetaMask ücreti",
         "hyperliquid_fee": "Hyperliquid ücreti",
-        "total_fee": "Toplam ücret"
+        "total_fee": "Toplam ücret",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Tarih",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "İşlem geçmişiniz burada görüntülenecektir"
       }
     },
-    "risk_disclaimer": "Sürekli vadeli işlemler risklidir ve aniden ve habersiz bir şekilde tüm marjınızı kaybedebilirsiniz. Riski tamamen kendinize ait olmak üzere işlem yaparsınız. Piyasa verileri Hyperliquid tarafından sağlanır. Piyasa grafiğini sağlayan",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Devam Et",
       "skip": "Atla",
@@ -1538,10 +1544,13 @@
         "description": "Sürekli vadeli işlem sözleşmeleri hesabınıza herhangi bir token ile fonlama gerçekleştirin ve saniyeler içinde ilk işleminizi yapın.",
         "footer_text": "MetaMask, fonlarınızı Arbitrum üzerinde USDC'ye takas eder ve ek ücret olmadan HyperEVM'e yatırır."
       },
-      "got_it": "Anladım"
+      "got_it": "Anladım",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Puan",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Tah. Puanlar",
     "unable_to_load": "Yüklenemedi",
     "points_error": "Şu anda puanları yükleyemiyoruz",
     "points_error_content": "Endişelenmeyin, puan kazanmaya devam ediyorsunuz. Yakında hesabınızda gösterilecek veya daha sonra Ödüller sekmesinde kontrol edebileceksiniz.",
@@ -1864,13 +1873,13 @@
     "agree": "Kabul Ediyorum",
     "decline": "Hayır, teşekkürler",
     "description_title": "MetaMask'ı iyileştirmemize yardımcı olun",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Bu izinleri talep ediyoruz. Dilediğiniz zaman vazgeçebilir veya kullanım verilerinizi silebilirsiniz.",
     "description_content_2": "Topladığımız ölçümler her zaman şu şekilde olacaktır...",
     "description_content_3": "Profiliniz için kullanım verilerini toplarken gizliliğinizi nasıl koruduğumuzu öğrenin.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Temel kullanım verilerini topla",
+    "gather_basic_usage_description": "Genel konum, tıklamalar ve görüntülemeler gibi temel ürün kullanımı verilerini toplayacağız. Başka hiçbir bilgi depolanmayacaktır.",
+    "gather_basic_usage_learn_more": "Daha fazla bilgi edinin",
+    "checkbox_marketing": "Pazarlama güncellemeleri",
     "checkbox": "Bu verileri, pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek için kullanacağız. İlgili haberleri (ürün özellikleri gibi) paylaşabiliriz.",
     "action_description_1_prefix": "Özel:",
     "action_description_2_prefix": "Genel:",
@@ -1880,7 +1889,7 @@
     "action_description_3_description": "Kullanım verilerinizi paylaşmak veya silmek isteyip istemediğinize dilediğiniz zaman ayarlar kısmından siz karar verirsiniz.",
     "cta_no_thanks": "Hayır, istemiyorum",
     "cta_i_agree": "Kabul ediyorum",
-    "continue": "Continue",
+    "continue": "Devam Et",
     "fine_print_1_legacy": "Bu veriler birleştirilmiştir ve bu nedenle 2016/679 sayılı Genel Veri Koruma Tüzüğü (AB) kapsamında isimsizdir.",
     "fine_print_2a_legacy": "*MetaMask'te varsayılan RPC sağlayıcınız olarak Infura'yı kullanırsanız siz bir işlem gönderdiğinizde Infura, IP adresinizi ve Ethereum cüzdan adresinizi toplar. Bu bilgileri sistemlerimizin bu iki veri parçasını ilişkilendirmesine izin verecek şekilde saklamayız. İlerlemeden önce RPC sağlayıcınızı",
     "fine_print_2b_legacy": "yapılandırabilirsiniz. \nMetaMask ve Infura'nın veri toplama açısından nasıl etkileşimde bulunduğu hakkında daha fazla bilgi için güncellememize bakın",
@@ -2043,9 +2052,9 @@
       "solana_devnet_account_name": "Solana Devnet Hesabı",
       "solana_testnet_account_name": "Solana Test Ağı Hesabı",
       "solana_account_name": "Solana Hesabı",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tron Hesabı",
+      "tron_nile_account_name": "Tron Nile Hesabı",
+      "tron_shasta_account_name": "Tron Shasta Hesabı"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
@@ -3444,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " yanlış veya yanlış yazılmış.",
     "error_invalid_srp": "Gizli Kurtarma İfadesi geçersiz",
     "error_duplicate_srp": "Bu Gizli Kurtarma İfadesi zaten içe aktarıldı.",
-    "success_1": "Wallet",
+    "success_1": "Cüzdan",
     "success_2": "i̇çe aktarıldı"
   },
   "first_incoming_transaction": {
@@ -4887,7 +4896,7 @@
     "import_account": "Özel anahtar",
     "add_bitcoin_account": "Bitcoin hesabı",
     "add_solana_account": "Solana hesabı",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tron hesabı",
     "switch_to_smart_account": "Akıllı Hesaba Geçiş Yap",
     "rename_account": "Hesabı yeniden adlandır",
     "addresses": "Adresler",
@@ -5428,7 +5437,7 @@
     "quote_details": "Teklif Ayrıntıları",
     "price_impact": "Fiyat Etkisi",
     "time": "Zaman",
-    "quote_info_content": "Sağlayıcı ücretleri ve %0,875 MetaMask ücreti dahil sağlayıcılardan bulduğumunuz en iyi oran.",
+    "quote_info_content": "The best rate we found from providers, including provider fees and a 0.875% MetaMask fee.",
     "quote_info_title": "Oran",
     "network_fee_info_title": "Ağ Ücreti",
     "network_fee_info_content": "Ağ ücretleri, ağın yoğunluğuna ve işlemin karmaşıklığına bağlıdır.",
@@ -5600,7 +5609,7 @@
       "section_1_title": "Çoklu zincir hesapları nedir?",
       "section_1_description": "Bir hesap, MetaMask'in desteklediği tüm ağlardaki adresler. Başka bir deyişle artık hesap değiştirmeden Ethereum, Solana ve daha fazlasını kullanabilirsiniz.",
       "section_2_title": "Aynı adres, daha fazla ağ",
-      "section_2_description": "Hesapları birleştirdik, yani MetaMask'i önceden olduğu gibi kullanmaya devam edebilirsiniz. Fonlarınız güvende ve herhangi bir değişiklik söz konusu değil.",
+      "section_2_description": "Hesaplarınızı gruplandırdık, yani MetaMask'i önceden olduğu gibi kullanmaya devam edebilirsiniz. Fonlarınız güvende ve herhangi bir değişiklik söz konusu değil",
       "view_accounts_button": "Hesapları görüntüle",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Hesaplarınızın kurulumu"
@@ -5654,6 +5663,7 @@
       "balance": "Bakiye",
       "create_account": "Hesap oluştur",
       "creating_account": "Hesap oluşturuluyor...",
+      "discovering_accounts": "Hesaplar keşfediliyor...",
       "back_up": "Yedekle",
       "reveal_recovery_phrase_with_index": "Kurtarma İfadesini göster {{index}}"
     },
@@ -5751,6 +5761,11 @@
       "swap_description": "Linea'da token - {{symbol}} takas işlemi yapın",
       "select_method": "Yöntem seç"
     },
+    "card_onboarding": {
+      "title": "Karta Hoş Geldiniz",
+      "description": "Kart özelliklerini kullanmak için iş ortağımızla hesabınızı doğrulamanız gerekecek.",
+      "verify_account_button": "Hesabı doğrula"
+    },
     "card_home": {
       "error_title": "Veriler alınamıyor",
       "error_description": "Bu sayfadaki içeriği görüntülemenizi önleyen bir sorun var gibi görünüyor. Lütfen bağlantınızı kontrol edin veya sayfayı yenilemeyi deneyin.",
@@ -5826,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5865,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Kazancı al",
-        "stop_loss": "Zararda durdur",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5883,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Ödüller burada",
+      "gtm_description": "Aktivitelerinizden puan kazanın. \nSeviyelerde ilerleyerek ödüllerin kilidini açın.",
+      "gtm_confirm": "Başlarken",
+      "intro_title": "Sezon 1 \nBaşladı",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5926,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6013,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Kilitli ödüller",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6025,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "kaldı",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6053,6 +6084,16 @@
       "perps_deposit": "Fon ekle",
       "swap": "Token swap işlemi yapın",
       "swap_approval": "Token'leri onayla"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

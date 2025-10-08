@@ -11,6 +11,13 @@ import Address from './address';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NameType } from '../../../../../../../UI/Name/Name.types';
 
+jest.mock(
+  '../../../../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
 const mockInitialState = {
   engine: {
     backgroundState: {

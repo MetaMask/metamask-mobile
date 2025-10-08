@@ -575,7 +575,8 @@
     "token_contract_warning": "यह एड्रेस एक टोकन कॉन्ट्रैक्ट एड्रेस है। अगर आप इस एड्रेस पर टोकन भेजते हैं, तो आप उन्हें खो देंगे।",
     "invisible_character_error": "हमने ENS नाम में एक अदृश्य कैरेक्टर का पता लगाया है। संभावित स्कैम से बचने के लिए ENS नाम की जाँच करें।",
     "could_not_resolve_name": "नाम हल नहीं किया जा सका",
-    "invalid_address": "एड्रेस ग़लत है"
+    "invalid_address": "एड्रेस ग़लत है",
+    "contractAddressError": "आप टोकन को टोकन के कॉन्ट्रैक्ट एड्रेस पर भेज रहे हैं। इससे इन टोकन को खोने की संभावना है।"
   },
   "deposit": {
     "title": "जमा करें",
@@ -877,6 +878,8 @@
     "withdraw": "निकालें",
     "refresh_balance": "बैलेंस रीफ्रेश करें",
     "add_funds": "फंड जोड़ें",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "आपकी पोज़िशन्स",
     "loading_positions": "पोजीशन्स लोड हो रही है...",
     "refreshing_positions": "पोज़िशन्स को रीफ़्रेश किया जा रहा है…",
@@ -885,7 +888,7 @@
       "title": "डिपॉज़िट करने के लिए राशि",
       "get_usdc_hyperliquid": "USDC प्राप्त करें • हाइपरलिक्विड",
       "insufficient_funds": "अपर्याप्त फंड",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "कोई फंड उपलब्ध नहीं है। कृपया पहले डिपॉज़िट करें।",
       "enter_amount": "रकम डालें",
       "fetching_quote": "कोटेशन लाया जा रहा है",
       "submitting": "ट्रांसेक्शन सबमिट किया जा रहा है",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "अपर्याप्त फंड",
         "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
         "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "ऑर्डर साइज़ ${{maxValue}} से कम होना चाहिए",
         "high_leverage_warning": "उच्च लेवरेज से लिक्विडेशन जोखिम बढ़ जाता है",
         "invalid_take_profit": "{{positionType}} पोजीशन के लिए टेक प्रॉफ़िट वर्तमान प्राइस {{direction}} होना चाहिए",
         "invalid_stop_loss": "{{positionType}} पोजीशन के लिए स्टॉप लॉस वर्तमान प्राइस {{direction}} होना चाहिए",
@@ -1332,9 +1335,9 @@
         "error_message": "मार्केट डाटा नहीं मिला। कृपया वापस जाएँ और फिर से प्रयास करें।"
       },
       "statistics": "ओवरव्यू",
-      "24hr_high": "24 घंटे का उच्च",
-      "24hr_low": "24 घंटे का निम्न",
-      "24h_volume": "24 घंटे का वॉल्यूम",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "ओपन इंटरेस्ट",
       "funding_rate": "फंडिंग रेट",
       "countdown": "उलटी गिनती",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "मार्केट डाटा लोड नहीं हो पाया",
     "tap_to_retry": "फिर से प्रयास करने के लिए टैप करें",
     "search_by_token_symbol": "टोकन सिंबल से ढूंढें",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "कोई टोकन नहीं मिला",
+    "no_tokens_found_description": "हमें \"{{searchQuery}}\" नाम से कोई टोकन नहीं मिला। कृपया एक अलग सर्च से प्रयास करें।",
     "testnet": "टैस्टनेट (testnet)",
     "mainnet": "मेननेट (mainnet)",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "भरा गया",
         "metamask_fee": "MetaMask फीस",
         "hyperliquid_fee": "हाइपरलिक्विड फीस",
-        "total_fee": "कुल फीस"
+        "total_fee": "कुल फीस",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "तिथि",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "आपका ट्रेडिंग इतिहास यहां दिखाई देगा"
       }
     },
-    "risk_disclaimer": "पर्प्स ट्रेडिंग जोखिमपूर्ण है, और आप अचानक बिना किसी सूचना के अपना पूरा मार्जिन खो सकते हैं। आप पूरी तरह से अपने जोखिम पर ट्रेड करते हैं। मार्केट डेटा हाइपरलिक्विड द्वारा प्रदान किया गया है। प्राइस चार्ट इसके द्वारा संचालित है",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "जारी रखें",
       "skip": "छोड़ें",
@@ -1538,10 +1544,13 @@
         "description": "अपने पर्प्स अकाउंट को किसी भी टोकन से फंड करें और सेकंडों में अपना पहला ट्रेड करें।",
         "footer_text": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperEVM में डिपॉज़िट करेगा।"
       },
-      "got_it": "समझ गए"
+      "got_it": "समझ गए",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "पॉइंट्स",
-    "estimated_points": "Est. Points",
+    "estimated_points": "अनुमानित पॉइंट्स",
     "unable_to_load": "लोड नहीं हो सका",
     "points_error": "हम अभी पॉइंट्स लोड नहीं कर सकते",
     "points_error_content": "चिंता न करें, आप अभी भी पॉइंट्स कमा रहे हैं। ये जल्द ही आपके एकाउंट्स में दिखेंगे, या आप बाद में रिवॉर्ड्स टैब में देख सकते हैं।",
@@ -1864,13 +1873,13 @@
     "agree": "मैं सहमत हूं",
     "decline": "नहीं धन्यवाद",
     "description_title": "MetaMask को बेहतर बनाने में हमारी मदद करें",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "हम इन अनुमतियों का अनुरोध करना चाहेंगे। आप कभी भी अपनी उपयोग संबंधी डेटा से बाहर निकल सकते हैं या उसे मिटा सकते हैं।",
     "description_content_2": "जब हम मेट्रिक्स इकट्ठा करते हैं, तो यह हमेशा... रहेगा",
     "description_content_3": "जानें कि आपके प्रोफ़ाइल के लिए यूसेज डेटा एकत्र करते समय हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं।",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "मूलभूत उपयोग संबंधी डेटा एकत्र करें",
+    "gather_basic_usage_description": "हम मूलभूत उत्पाद उपयोग संबंधी डेटा एकत्र करेंगे, जैसे सामान्य लोकेशन, क्लिक और व्यूज़। कोई अन्य जानकारी स्टोर नहीं की जाएगी।",
+    "gather_basic_usage_learn_more": "ज़्यादा जानें",
+    "checkbox_marketing": "मार्केटिंग अपडेट्स",
     "checkbox": "हम इस डेटा का उपयोग यह जानने के लिए करेंगे कि आप हमारे मार्केटिंग कम्यूनिकेशन्स के साथ कैसे इंटरैक्ट करते हैं। हम प्रासंगिक समाचार (जैसे प्रॉडक्ट फीचर्स) साझा कर सकते हैं।",
     "action_description_1_prefix": "निजी:",
     "action_description_2_prefix": "सामान्य:",
@@ -1880,7 +1889,7 @@
     "action_description_3_description": "आप तय करते हैं कि आप किसी भी समय सेटिंग्स के माध्यम से अपना यूसेज डेटा साझा करना चाहते हैं या हटाना चाहते हैं।",
     "cta_no_thanks": "जी नहीं, धन्यवाद",
     "cta_i_agree": "मैं सहमत हूं",
-    "continue": "Continue",
+    "continue": "जारी रखें",
     "fine_print_1_legacy": "यह डेटा एकत्र किया गया है और इसलिए सामान्य डेटा संरक्षण विनियम (EU) 2016/679 के हित में यह अज्ञात है।",
     "fine_print_2a_legacy": "*जब आप MetaMask में अपने डिफ़ॉल्ट RPC प्रोवाइडर के रूप में इन्फ्यूरा का उपयोग करते हैं, और जब आप लेनदेन भेजते हैं तो इन्फ्यूरा आपका IP पता और आपके एथेरियम वॉलेट का पता एकत्र कर लेगा। हम इस जानकारी को इस तरह से स्टोर नहीं करते हैं जिससे हमारे सिस्टम को डेटा के उन दो हिस्सों को जोड़ने की अनुमति मिलती हो। प्रारंभ करने से पहले",
     "fine_print_2b_legacy": "आप अपने RPC प्रोवाइडर को कॉन्फ़िगर कर सकते हैं। \nडेटा संग्रह के दृष्टिकोण से MetaMask और इन्फ्यूरा कैसे इंटरैक्ट करते हैं, इस बारे में अधिक जानकारी के लिए, हमारा अपडेट देखें।",
@@ -2043,9 +2052,9 @@
       "solana_devnet_account_name": "Solana Devnet अकाउंट",
       "solana_testnet_account_name": "Solana टैस्टनेट (testnet) अकाउंट",
       "solana_account_name": "Solana अकाउंट",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Tron अकाउंट",
+      "tron_nile_account_name": "Tron Nile अकाउंट",
+      "tron_shasta_account_name": "Tron Shasta अकाउंट"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} अकाउंट बनाने में विफल रहे"
@@ -3444,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " गलत हैं या उनकी स्पेलिंग गलत है।",
     "error_invalid_srp": "अमान्य सीक्रेट रिकवरी फ्रेज",
     "error_duplicate_srp": "यह सीक्रेट रिकवरी फ्रेज़ पहले ही इंपोर्ट किया जा चुका है।",
-    "success_1": "Wallet",
+    "success_1": "वॉलेट",
     "success_2": "इम्पोर्ट किया गया"
   },
   "first_incoming_transaction": {
@@ -4887,7 +4896,7 @@
     "import_account": "प्राइवेट की (key)",
     "add_bitcoin_account": "Bitcoin अकाउंट",
     "add_solana_account": "Solana अकाउंट",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Tron अकाउंट",
     "switch_to_smart_account": "स्मार्ट अकाउंट पर स्विच करें",
     "rename_account": "अकाउंट का नाम बदलें",
     "addresses": "एड्रेस",
@@ -5600,7 +5609,7 @@
       "section_1_title": "मल्टीचेन एकाउंट्स क्या हैं?",
       "section_1_description": "एक अकाउंट, सभी नेटवर्क पर एड्रेस जिन्हें MetaMask सपोर्ट करता है। अब आप Ethereum, Solana और अन्य का उपयोग बिना एकाउंट्स को बदले कर सकते हैं।",
       "section_2_title": "वही एड्रेस, अधिक नेटवर्क",
-      "section_2_description": "हमने आपके एकाउट्स को मर्ज कर दिया है, इसलिए MetaMask का उपयोग पहले की तरह जारी रखें। आपके फंड सुरक्षित और अपरिवर्तित हैं।",
+      "section_2_description": "हमने आपके एकाउट्स को समूहित किया है, इसलिए MetaMask का उपयोग पहले की तरह जारी रखें। आपके फंड सुरक्षित और अपरिवर्तित हैं",
       "view_accounts_button": "एकाउंट्स देखें",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "आपके एकाउंट्स को सेटअप किया जा रहा है"
@@ -5654,6 +5663,7 @@
       "balance": "बैलेंस",
       "create_account": "अकाउंट बनाएं",
       "creating_account": "अकाउंट बनाया जा रहा है...",
+      "discovering_accounts": "एकाउंट्स का पता लगाया जा रहा है…",
       "back_up": "बैक अप लें",
       "reveal_recovery_phrase_with_index": "रिकवरी फ्रेज़ दिखाएं {{index}}"
     },
@@ -5751,6 +5761,11 @@
       "swap_description": "Linea पर टोकन को {{symbol}} में स्वैप करें",
       "select_method": "विधि चुनें"
     },
+    "card_onboarding": {
+      "title": "कार्ड में आपका स्वागत है",
+      "description": "कार्ड संबंधी फीचर्स का उपयोग करने के लिए, आपको हमारे पार्टनर के साथ अपना अकाउंट वेरिफ़ाई करना होगा।",
+      "verify_account_button": "अकाउंट वेरिफ़ाई करें"
+    },
     "card_home": {
       "error_title": "डेटा प्राप्त नहीं किया जा सकता",
       "error_description": "ऐसा लगता है कि कोई समस्या आपको इस पेज की सामग्री देखने से रोक रही है। कृपया अपना कनेक्शन जांचें या पेज को रीफ्रेश करके देखें।",
@@ -5826,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5865,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "टेक प्रॉफ़िट",
-        "stop_loss": "स्टॉप लॉस",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5883,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "रिवॉर्ड्स उपलब्ध हैं",
+      "gtm_description": "अपनी गतिविधि के लिए पॉइंट्स कमाएं। \nलेवल बढ़ाएं और रिवॉर्ड्स अनलॉक करें।",
+      "gtm_confirm": "शुरू करें",
+      "intro_title": "सीज़न 1 \nलाइव है",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5926,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6013,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "लॉक किए हुए रिवॉर्ड्स",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6025,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "बचा है",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6053,6 +6084,16 @@
       "perps_deposit": "फंड जोड़ें",
       "swap": "टोकन स्वैप करें",
       "swap_approval": "टोकन एप्रूव करें"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {
