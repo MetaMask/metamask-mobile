@@ -75,7 +75,7 @@ graph TD
 
 **Exposes**: Connection context via `PerpsConnectionContext` that `usePerpsConnection` hook reads from
 
-**Note**: Internally uses `usePerpsConnectionLifecycle` to automatically connect/disconnect based on app state and tab visibility, but this is an implementation detail not exposed to UI components.
+**Note**: Internally uses `usePerpsConnectionLifecycle` to automatically connect/disconnect based on app state and tab visibility, but this is an implementation detail not exposed to UI components. Account and network change monitoring is handled by the Manager layer via Redux subscriptions, not by the Provider.
 
 ---
 
@@ -90,10 +90,12 @@ graph TD
 - Grace period timer (20s delay before disconnect)
 - Reference counting (tracks active provider instances)
 - Stream manager caches
+- Redux store subscription for account/network change monitoring
 
 **Responsibilities**:
 
 - Coordinate connect/disconnect based on provider reference counting
+- Monitor Redux for account and network changes, trigger reconnection automatically
 - Handle force flag logic (cancel pending operations vs wait)
 - Implement grace period to prevent flickering disconnects
 - Clear stream caches during reconnection
@@ -342,18 +344,37 @@ Each layer protects against its own concurrency concerns:
 | `pendingReconnectPromise` | Manager    | Prevents concurrent reconnects    | Manager coordinates reconnection   |
 | `isReinitializing`        | Controller | Prevents concurrent provider init | Controller owns provider instances |
 
+### Rapid Account Switch Protection
+
+**Scenario**: User rapidly switches Account A → B → C
+
+The Manager's `pendingReconnectPromise` ensures only one reconnection happens at a time:
+
+1. **A → B**: Triggers `reconnectWithNewContext()` → creates `pendingReconnectPromise`
+2. **B → C** (during B reconnection): Calls `reconnectWithNewContext()` again
+3. **Line 484-486**: Returns existing `pendingReconnectPromise` (doesn't start new reconnection)
+4. **When B completes**: Promise is cleared, state is updated
+5. **C change detected**: New reconnection starts with fresh promise
+
+**Result**: The final account (C) will be correctly connected because:
+
+- Each reconnection fetches account address fresh via `walletService.getCurrentAccountId()` at execution time
+- Redux subscription in Manager detects every account change and queues reconnection
+- `pendingReconnectPromise` serializes reconnections to prevent race conditions
+- The last account change always triggers a reconnection after previous one completes
+
 ---
 
 ## When to Use What
 
-| Scenario          | Method                      | Options           | Which Layer Decides         |
-| ----------------- | --------------------------- | ----------------- | --------------------------- |
-| Initial load      | `connect()`                 | -                 | Manager (via Provider hook) |
-| User retry button | `reconnectWithNewContext()` | `{ force: true }` | UI → Provider → Manager     |
-| Account switch    | `reconnectWithNewContext()` | default           | Lifecycle hook → Manager    |
-| Network switch    | `reconnectWithNewContext()` | default           | Lifecycle hook → Manager    |
-| App background    | `disconnect()`              | -                 | Lifecycle hook → Manager    |
-| App foreground    | `connect()`                 | -                 | Lifecycle hook → Manager    |
+| Scenario          | Method                      | Options           | Which Layer Decides                        |
+| ----------------- | --------------------------- | ----------------- | ------------------------------------------ |
+| Initial load      | `connect()`                 | -                 | Manager (via Provider hook)                |
+| User retry button | `reconnectWithNewContext()` | `{ force: true }` | UI → Provider → Manager                    |
+| Account switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) |
+| Network switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) |
+| App background    | `disconnect()`              | -                 | Provider lifecycle hook → Manager          |
+| App foreground    | `connect()`                 | -                 | Provider lifecycle hook → Manager          |
 
 ---
 
