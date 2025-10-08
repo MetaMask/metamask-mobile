@@ -94,19 +94,27 @@ export const isTLD = (hostname: string, error: any) =>
 /**
  *
  * List of all protocols that our webview load unconditionally
+ *
  */
-export const protocolAllowList = ['about:', 'http:', 'https:'];
+export const protocolAllowList = [
+  'about:',
+  'http:',
+  'https:',
+  'file:',
+  'wc:',
+  'metamask:',
+  'ethereum:',
+  'dapp:',
+];
 
 /**
  *
  * List of all trusted protocols for OS Linker to handle
  */
 export const trustedProtocolToDeeplink = [
-  'wc:',
-  'metamask:',
-  'ethereum:',
-  'dapp:',
   'market:',
+  // app store deeplink
+  'itms-apps:',
 ];
 
 /**
