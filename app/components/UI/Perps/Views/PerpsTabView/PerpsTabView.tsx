@@ -231,7 +231,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
