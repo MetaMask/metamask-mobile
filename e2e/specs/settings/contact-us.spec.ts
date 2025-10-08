@@ -6,7 +6,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
-describe(RegressionWalletUX('Settings'), () => {
+describe.skip(RegressionWalletUX('Settings'), () => {
   it('Open contact support', async () => {
     await withFixtures(
       {

@@ -141,6 +141,7 @@ export type PredictOutcome = {
   groupItemTitle: string;
   negRisk?: boolean;
   tickSize?: string;
+  resolvedBy?: string;
 };
 
 export type PredictOutcomeToken = {

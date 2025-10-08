@@ -66,12 +66,67 @@ function matchesExclusionPattern(filePath, patterns) {
 function getCurrentBranchName() {
   try {
     const branch = execSync('git branch --show-current', { encoding: 'utf8', cwd: process.cwd() }).trim();
+
+    if (!branch) {
+      throw new Error('Git branch name is empty - ensure you are in a git repository with a checked out branch');
+    }
+
     // Sanitize branch name for filename (replace problematic chars)
     return branch.replace(/[/\\:*?"<>|]/g, '-');
   } catch (error) {
-    console.log('Could not detect branch name, using "unknown"');
-    return 'unknown';
+    console.error('❌ Failed to detect git branch:', error.message);
+    throw new Error(`Cannot determine git branch name: ${error.message}`);
   }
+}
+
+/**
+ * Run git diff command for a specific file
+ */
+function runGitDiff(file) {
+  const cmd = `git diff --unified=0 main...HEAD -- "${file}"`;
+  return execSync(cmd, { encoding: 'utf8', cwd: process.cwd() });
+}
+
+/**
+ * Extract line numbers from a diff hunk
+ */
+function extractLinesFromHunk(match, debugMode = false) {
+  const startLine = parseInt(match[1]);
+  const lineCount = match[2] ? parseInt(match[2]) : 1;
+
+  if (debugMode) {
+    console.log(`Found hunk: +${startLine},${lineCount} (lines ${startLine} to ${startLine + lineCount - 1})`);
+  }
+
+  const lines = [];
+  for (let i = startLine; i < startLine + lineCount; i++) {
+    lines.push(i);
+  }
+  return lines;
+}
+
+/**
+ * Parse diff output to extract changed line numbers
+ */
+function parseDiffOutput(output, file, debugMode = false) {
+  const changedLines = [];
+  const lines = output.split('\n');
+
+  for (const line of lines) {
+    // Check if this is a new file
+    if (line.includes('new file mode')) {
+      if (debugMode) console.log(`Detected new file: ${file}`);
+    }
+
+    // Parse lines like "@@ -45,3 +45,8 @@" to extract added line ranges
+    const match = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/);
+    if (match) {
+      const hunkLines = extractLinesFromHunk(match, debugMode);
+      changedLines.push(...hunkLines);
+    }
+  }
+
+  return changedLines.sort((a, b) => a - b);
 }
 
 /**
@@ -79,10 +134,7 @@ function getCurrentBranchName() {
  */
 function getChangedLines(file, debugMode = false) {
   try {
-    // Get unified diff for the specific file against base branch (main)
-    // This ensures we capture all changes in the PR, not just the last commit
-    const cmd = `git diff --unified=0 main...HEAD -- "${file}"`;
-    const output = execSync(cmd, { encoding: 'utf8', cwd: process.cwd() });
+    const output = runGitDiff(file);
 
     if (debugMode) {
       console.log(`\n--- Git diff for ${file} ---`);
@@ -90,33 +142,7 @@ function getChangedLines(file, debugMode = false) {
       console.log('--- End git diff ---\n');
     }
 
-    const changedLines = [];
-    const lines = output.split('\n');
-    let isNewFile = false;
-
-    for (const line of lines) {
-      // Check if this is a new file
-      if (line.includes('new file mode')) {
-        isNewFile = true;
-        if (debugMode) console.log(`Detected new file: ${file}`);
-      }
-
-      // Parse lines like "@@ -45,3 +45,8 @@" to extract added line ranges
-      const match = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/);
-      if (match) {
-        const startLine = parseInt(match[1]);
-        const lineCount = match[2] ? parseInt(match[2]) : 1;
-
-        if (debugMode) {
-          console.log(`Found hunk: +${startLine},${lineCount} (lines ${startLine} to ${startLine + lineCount - 1})`);
-        }
-
-        // Add all lines in this range
-        for (let i = startLine; i < startLine + lineCount; i++) {
-          changedLines.push(i);
-        }
-      }
-    }
+    const changedLines = parseDiffOutput(output, file, debugMode);
 
     if (debugMode) {
       console.log(`Total changed lines detected: ${changedLines.length}`);
@@ -125,7 +151,7 @@ function getChangedLines(file, debugMode = false) {
 
     // For new files, we should only count executable lines that exist in coverage data
     // This will be validated later against the actual coverage data
-    return changedLines.sort((a, b) => a - b);
+    return changedLines;
   } catch (error) {
     // Fallback: if git diff fails, assume all lines are new (for new files)
     if (debugMode) console.log(`Git diff failed for ${file}:`, error.message);
@@ -201,10 +227,92 @@ function generateTestSuggestions(file, uncoveredLines = []) {
 }
 
 /**
+ * Run tests with optimized two-phase approach: parse first run, then re-run only passing tests for coverage
+ */
+function runTestsWithFallback(testFiles) {
+  const testArgs = testFiles.join(' ');
+  const cmd = `npx jest ${testArgs} --coverage --coverageReporters=lcov --passWithNoTests`;
+
+  try {
+    // Phase 1: Try running all tests together (fast path)
+    console.log('🧪 Running all tests together...');
+    execSync(cmd, { cwd: process.cwd(), stdio: 'pipe' });
+    console.log('✓ All tests passed\n');
+    return { allPassed: true, failedTests: [], passedTests: testFiles };
+  } catch (error) {
+    // Phase 2: Parse output to identify passing and failing tests
+    console.log('⚠️  Some tests failed. Analyzing results...\n');
+
+    const output = error.stderr?.toString() || error.stdout?.toString() || '';
+    const lines = output.split('\n');
+
+    const passedTests = [];
+    const failedTests = [];
+    const failureDetails = {};
+
+    // Parse PASS/FAIL lines to identify which tests passed/failed
+    lines.forEach(line => {
+      const passMatch = line.match(/^PASS\s+(.+\.test\.(ts|tsx))/);
+      const failMatch = line.match(/^FAIL\s+(.+\.test\.(ts|tsx))/);
+
+      if (passMatch) {
+        passedTests.push(passMatch[1]);
+      } else if (failMatch) {
+        const testFile = failMatch[1];
+        failedTests.push(testFile);
+        failureDetails[testFile] = [];
+      }
+    });
+
+    // Extract failure details (● lines) for each failed test
+    let currentFailedTest = null;
+    lines.forEach(line => {
+      const failMatch = line.match(/^FAIL\s+(.+\.test\.(ts|tsx))/);
+      if (failMatch) {
+        currentFailedTest = failMatch[1];
+      } else if (currentFailedTest && line.trim().startsWith('●')) {
+        if (failureDetails[currentFailedTest].length < 3) {
+          failureDetails[currentFailedTest].push(line.trim());
+        }
+      }
+    });
+
+    console.log(`📊 Results: ${passedTests.length} passed, ${failedTests.length} failed`);
+
+    // Build failed test objects
+    const failedTestObjects = failedTests.map(file => ({
+      file,
+      error: failureDetails[file]?.length > 0
+        ? failureDetails[file].join('\n')
+        : 'Test failed (see full output for details)',
+      command: `npx jest ${file} --no-coverage`
+    }));
+
+    // Phase 3: Re-run only passing tests with coverage if any passed
+    if (passedTests.length > 0) {
+      console.log(`🔄 Re-running ${passedTests.length} passing tests to generate coverage...\n`);
+      const passingTestsArgs = passedTests.join(' ');
+      const coverageCmd = `npx jest ${passingTestsArgs} --coverage --coverageReporters=lcov --silent --passWithNoTests`;
+
+      try {
+        execSync(coverageCmd, { cwd: process.cwd(), stdio: 'pipe' });
+        console.log('✓ Coverage generated for passing tests\n');
+      } catch (coverageError) {
+        console.warn('⚠️  Failed to generate coverage for passing tests');
+      }
+    } else {
+      console.log('⚠️  No passing tests to generate coverage\n');
+    }
+
+    return { allPassed: false, failedTests: failedTestObjects, passedTests };
+  }
+}
+
+/**
  * Parse LCOV file and extract coverage data for specified files
  */
 function parseLCOVData(sourceFiles) {
-  if (sourceFiles.length === 0) return [];
+  if (sourceFiles.length === 0) return { results: [], failedTests: [] };
 
   try {
     console.log('🧪 Running coverage analysis on test files...');
@@ -216,20 +324,17 @@ function parseLCOVData(sourceFiles) {
 
     if (testFiles.length === 0) {
       console.log('No test files found to analyze');
-      return [];
+      return { results: [], failedTests: [] };
     }
 
-    // Run Jest on test files with coverage (generate LCOV)
-    const testArgs = testFiles.join(' ');
-    const cmd = `npx jest ${testArgs} --coverage --coverageReporters=lcov --silent --passWithNoTests`;
-
-    execSync(cmd, { cwd: process.cwd(), stdio: 'pipe' });
+    // Run tests with two-phase approach
+    const testResult = runTestsWithFallback(testFiles);
 
     // Read LCOV report
     const lcovPath = path.join(process.cwd(), 'tests', 'coverage', 'lcov.info');
     if (!fs.existsSync(lcovPath)) {
       console.log('No LCOV report generated');
-      return [];
+      return { results: [], failedTests: testResult.failedTests };
     }
 
     const lcovData = fs.readFileSync(lcovPath, 'utf8');
@@ -278,7 +383,7 @@ function parseLCOVData(sourceFiles) {
 
         changedLines.forEach(lineNum => {
           // Check if this line exists in LCOV data (making it executable)
-          if (Object.prototype.hasOwnProperty.call(lineData, lineNum)) {
+          if (Object.hasOwn(lineData, lineNum)) {
             executableChangedLines.push(lineNum);
 
             // Check if this line is covered (hits > 0)
@@ -310,10 +415,230 @@ function parseLCOVData(sourceFiles) {
       }
     });
 
-    return results;
+    return { results, failedTests: testResult.failedTests };
   } catch (error) {
     console.log('Coverage analysis failed:', error.message);
-    return [];
+    return { results: [], failedTests: [] };
+  }
+}
+
+/**
+ * Get and validate files to analyze
+ */
+function getFilesToAnalyze(specificFiles, sonarExclusions) {
+  if (specificFiles && specificFiles.length > 0) {
+    // Use specified files, but validate they exist and apply exclusions
+    const validFiles = specificFiles.filter(file => {
+      const exists = fs.existsSync(file);
+      if (!exists) {
+        console.warn(`⚠️  File not found: ${file}`);
+      }
+      return exists;
+    });
+
+    const changedFiles = validFiles.filter(file => shouldTest(file, sonarExclusions));
+    const excludedCount = validFiles.length - changedFiles.length;
+
+    if (changedFiles.length === 0) {
+      console.log('No valid files to analyze after applying exclusions');
+      return null;
+    }
+
+    console.log(`Analyzing ${changedFiles.length} specified files (${excludedCount} excluded)`);
+    return changedFiles;
+  }
+
+  // Get changed files from PR (existing behavior)
+  const allChangedFiles = getPRChangedFiles();
+  console.log(`Found ${allChangedFiles.length} changed files`);
+
+  if (allChangedFiles.length === 0) {
+    console.log('No files to analyze');
+    return null;
+  }
+
+  // Filter out files using SonarCloud exclusions
+  const changedFiles = allChangedFiles.filter(file => shouldTest(file, sonarExclusions));
+  const excludedCount = allChangedFiles.length - changedFiles.length;
+  console.log(`Analyzing ${changedFiles.length} relevant files (${excludedCount} excluded by SonarCloud patterns)`);
+  return changedFiles;
+}
+
+/**
+ * Categorize files into those with and without tests
+ */
+function categorizeFilesByTestStatus(changedFiles) {
+  const needsTests = [];
+  const hasTests = [];
+
+  changedFiles.forEach(file => {
+    if (hasTestFile(file)) {
+      hasTests.push(file);
+    } else {
+      needsTests.push(file);
+    }
+  });
+
+  return { needsTests, hasTests };
+}
+
+/**
+ * Calculate coverage statistics
+ */
+function calculateCoverageStats(coverageResults) {
+  const belowTarget = coverageResults.filter(r => r.coverage.lines < 80);
+  const aboveTarget = coverageResults.filter(r => r.coverage.lines >= 80);
+
+  const totalCoveredLines = coverageResults.reduce((sum, r) => sum + r.coverage.coveredLines, 0);
+  const totalLines = coverageResults.reduce((sum, r) => sum + r.coverage.totalLines, 0);
+  const overallCoverage = totalLines > 0 ? Math.round((totalCoveredLines / totalLines) * 100) : 0;
+
+  const totalNewLinesCovered = coverageResults.reduce((sum, r) => sum + r.coverage.newLinesCovered, 0);
+  const totalNewLines = coverageResults.reduce((sum, r) => sum + r.coverage.newLinesTotal, 0);
+  const newCodeCoverage = totalNewLines > 0 ? Math.round((totalNewLinesCovered / totalNewLines) * 100) : 0;
+
+  return {
+    belowTarget,
+    aboveTarget,
+    overallCoverage,
+    newCodeCoverage,
+    totalCoveredLines,
+    totalLines,
+    totalNewLinesCovered,
+    totalNewLines
+  };
+}
+
+/**
+ * Generate actionable recommendations for improving coverage
+ */
+function generateActionableRecommendations(coverageResults, belowTarget, needsTests) {
+  return {
+    filesNeedingImprovement: belowTarget.concat(
+      coverageResults.filter(r => r.coverage.newLinesTotal > 0 && r.coverage.newLines < 80)
+    ).map(result => {
+      const uncoveredNewLines = result.coverage.executableChangedLines.filter(lineNum =>
+        !result.coverage.lcovLineData[lineNum] || result.coverage.lcovLineData[lineNum] === 0
+      );
+
+      return {
+        file: result.file,
+        currentCoverage: result.coverage.lines || result.coverage.statements,
+        newCodeCoverage: result.coverage.newLines,
+        uncoveredNewLines,
+        totalUncoveredLines: result.coverage.newLinesTotal - result.coverage.newLinesCovered,
+        suggestedTestCases: generateTestSuggestions(result.file, uncoveredNewLines)
+      };
+    }),
+    priorityFiles: needsTests.slice(0, 5).map(file => ({
+      file,
+      reason: 'No tests exist - create comprehensive test suite',
+      suggestedTestCases: generateTestSuggestions(file, [])
+    }))
+  };
+}
+
+/**
+ * Save coverage reports to disk
+ */
+function saveReports(report, currentBranch) {
+  const reportsDir = path.join(__dirname, 'reports');
+  if (!fs.existsSync(reportsDir)) {
+    fs.mkdirSync(reportsDir, { recursive: true });
+  }
+
+  // Save branch-specific JSON report
+  const reportFilename = `coverage-report-${currentBranch}.json`;
+  const reportPath = path.join(reportsDir, reportFilename);
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+
+  // Save branch-specific LCOV report
+  const lcovFilename = `coverage-lcov-${currentBranch}.info`;
+  const lcovPath = path.join(reportsDir, lcovFilename);
+  const sourceLcovPath = path.join(process.cwd(), 'tests', 'coverage', 'lcov.info');
+
+  let lcovSaved = false;
+  if (fs.existsSync(sourceLcovPath)) {
+    try {
+      fs.copyFileSync(sourceLcovPath, lcovPath);
+      lcovSaved = true;
+    } catch (error) {
+      console.warn('⚠️  Failed to copy LCOV file:', error.message);
+    }
+  }
+
+  // Add LCOV info to report
+  report.lcovReport = {
+    saved: lcovSaved,
+    path: lcovSaved ? lcovPath : null,
+    filename: lcovSaved ? lcovFilename : null
+  };
+
+  return { reportPath, lcovPath, lcovSaved };
+}
+
+/**
+ * Print coverage analysis summary to console
+ */
+function printCoverageSummary(stats, coverageResults, needsTests, failedTests) {
+  const { overallCoverage, totalCoveredLines, totalLines, aboveTarget, newCodeCoverage, totalNewLinesCovered, totalNewLines } = stats;
+
+  console.log('\n📊 Coverage Analysis');
+  console.log(`Overall Files: ${overallCoverage}% (${totalCoveredLines}/${totalLines} lines) - ${aboveTarget.length}/${coverageResults.length} files ≥80%`);
+  console.log(`New Code Only: ${newCodeCoverage}% (${totalNewLinesCovered}/${totalNewLines} changed lines)\n`);
+
+  // Show coverage for all files with tests
+  if (coverageResults.length > 0) {
+    console.log('Files Coverage:');
+    coverageResults.forEach(result => {
+      const coverage = result.coverage.lines;
+      const coveredCount = result.coverage.coveredLines;
+      const totalCount = result.coverage.totalLines;
+      const icon = coverage >= 80 ? '✅' : '🔴';
+
+      const newCov = result.coverage.newLines;
+      const newCovDisplay = result.coverage.newLinesTotal > 0
+        ? `New: ${newCov}% (${result.coverage.newLinesCovered}/${result.coverage.newLinesTotal})`
+        : 'New: No changes';
+
+      const debugInfo = result.coverage.totalChangedLines !== result.coverage.newLinesTotal
+        ? ` [${result.coverage.totalChangedLines} total changed, ${result.coverage.newLinesTotal} executable]`
+        : '';
+
+      let status;
+      if (coverage >= 80) {
+        status = '';
+      } else if (coverage === 0) {
+        status = ' - NO TESTS';
+      } else {
+        status = ' - NEEDS WORK';
+      }
+
+      console.log(`${icon} ${path.basename(result.file)}: ${coverage}% overall (${coveredCount}/${totalCount}) | ${newCovDisplay}${debugInfo}${status}`);
+    });
+  }
+
+  // Show files needing new tests
+  if (needsTests.length > 0) {
+    console.log('\n⚠️  Files needing NEW tests:');
+    needsTests.slice(0, 10).forEach(file => {
+      console.log(`🔴 ${path.basename(file)}: 0% (0/? lines) - NO TESTS`);
+    });
+  }
+
+  // Show failed tests
+  if (failedTests.length > 0) {
+    console.log(`\n❌ Failed Tests (${failedTests.length}):`);
+    failedTests.forEach(({ file, error }) => {
+      console.log(`\n🔴 ${path.basename(file)}`);
+      const firstErrorLine = error.split('\n')[0];
+      const truncated = firstErrorLine.length > 100 ? firstErrorLine.substring(0, 100) + '...' : firstErrorLine;
+      console.log(`   ${truncated}`);
+    });
+
+    console.log('\n📝 To re-run failed tests:');
+    const failedFilesArgs = failedTests.map(t => t.file).join(' ');
+    console.log(`   npx jest ${failedFilesArgs} --no-coverage\n`);
   }
 }
 
@@ -333,102 +658,26 @@ async function analyzeCoverage(specificFiles = null) {
     console.log(`📋 Loaded ${sonarExclusions.length} SonarCloud exclusion patterns`);
   }
 
-  let changedFiles;
+  // Get files to analyze
+  const changedFiles = getFilesToAnalyze(specificFiles, sonarExclusions);
+  if (!changedFiles) return;
 
-  if (specificFiles && specificFiles.length > 0) {
-    // Use specified files, but validate they exist and apply exclusions
-    const validFiles = specificFiles.filter(file => {
-      const exists = fs.existsSync(file);
-      if (!exists) {
-        console.warn(`⚠️  File not found: ${file}`);
-      }
-      return exists;
-    });
+  // Categorize files
+  const { needsTests, hasTests } = categorizeFilesByTestStatus(changedFiles);
 
-    changedFiles = validFiles.filter(file => shouldTest(file, sonarExclusions));
-    const excludedCount = validFiles.length - changedFiles.length;
+  // Get coverage data
+  const { results: coverageResults, failedTests } = parseLCOVData(hasTests);
 
-    if (changedFiles.length === 0) {
-      console.log('No valid files to analyze after applying exclusions');
-      return;
-    }
-
-    console.log(`Analyzing ${changedFiles.length} specified files (${excludedCount} excluded)`);
-  } else {
-    // Get changed files from PR (existing behavior)
-    const allChangedFiles = getPRChangedFiles();
-    console.log(`Found ${allChangedFiles.length} changed files`);
-
-    if (allChangedFiles.length === 0) {
-      console.log('No files to analyze');
-      return;
-    }
-
-    // Filter out files using SonarCloud exclusions
-    changedFiles = allChangedFiles.filter(file => shouldTest(file, sonarExclusions));
-    const excludedCount = allChangedFiles.length - changedFiles.length;
-    console.log(`Analyzing ${changedFiles.length} relevant files (${excludedCount} excluded by SonarCloud patterns)`);
-  }
-
-  // Split into files with/without tests
-  const needsTests = [];
-  const hasTests = [];
-
-  changedFiles.forEach(file => {
-    if (hasTestFile(file)) {
-      hasTests.push(file);
-    } else {
-      needsTests.push(file);
-    }
-  });
-
-  // Get actual coverage for files with tests using LCOV
-  const coverageResults = parseLCOVData(hasTests);
-
-  // Analyze coverage results using LCOV line coverage
-  const belowTarget = coverageResults.filter(r => r.coverage.lines < 80);
-  const aboveTarget = coverageResults.filter(r => r.coverage.lines >= 80);
-
-  // Calculate overall coverage stats
-  const totalCoveredLines = coverageResults.reduce((sum, r) => sum + r.coverage.coveredLines, 0);
-  const totalLines = coverageResults.reduce((sum, r) => sum + r.coverage.totalLines, 0);
-  const overallCoverage = totalLines > 0 ? Math.round((totalCoveredLines / totalLines) * 100) : 0;
-
-  // Calculate new lines coverage stats
-  const totalNewLinesCovered = coverageResults.reduce((sum, r) => sum + r.coverage.newLinesCovered, 0);
-  const totalNewLines = coverageResults.reduce((sum, r) => sum + r.coverage.newLinesTotal, 0);
-  const newCodeCoverage = totalNewLines > 0 ? Math.round((totalNewLinesCovered / totalNewLines) * 100) : 0;
+  // Calculate statistics
+  const stats = calculateCoverageStats(coverageResults);
 
   // Get current branch for reporting
   const currentBranch = getCurrentBranchName();
 
-  // Generate LLM-friendly actionable recommendations
-  const actionableRecommendations = {
-    filesNeedingImprovement: belowTarget.concat(
-      coverageResults.filter(r => r.coverage.newLinesTotal > 0 && r.coverage.newLines < 80)
-    ).map(result => {
-      const uncoveredNewLines = result.coverage.executableChangedLines.filter(lineNum =>
-        // Check if this specific line is uncovered (0 hits or missing from coverage data)
-        !result.coverage.lcovLineData[lineNum] || result.coverage.lcovLineData[lineNum] === 0
-      );
+  // Generate recommendations
+  const actionableRecommendations = generateActionableRecommendations(coverageResults, stats.belowTarget, needsTests);
 
-      return {
-        file: result.file,
-        currentCoverage: result.coverage.lines || result.coverage.statements,
-        newCodeCoverage: result.coverage.newLines,
-        uncoveredNewLines,
-        totalUncoveredLines: result.coverage.newLinesTotal - result.coverage.newLinesCovered,
-        suggestedTestCases: generateTestSuggestions(result.file, uncoveredNewLines)
-      };
-    }),
-    priorityFiles: needsTests.slice(0, 5).map(file => ({
-      file,
-      reason: 'No tests exist - create comprehensive test suite',
-      suggestedTestCases: generateTestSuggestions(file, [])
-    }))
-  };
-
-  // Generate report
+  // Generate report structure
   const report = {
     branch: currentBranch,
     generatedAt: new Date().toISOString(),
@@ -436,16 +685,19 @@ async function analyzeCoverage(specificFiles = null) {
       totalFiles: changedFiles.length,
       needsTests: needsTests.length,
       hasTests: hasTests.length,
-      belowTarget: belowTarget.length,
-      aboveTarget: aboveTarget.length,
-      overallCoverage: `${overallCoverage}%`,
-      newCodeCoverage: `${newCodeCoverage}%`,
-      totalCoveredLines,
-      totalLines,
-      totalNewLinesCovered,
-      totalNewLines,
-      coverageTarget: '80%'
+      belowTarget: stats.belowTarget.length,
+      aboveTarget: stats.aboveTarget.length,
+      overallCoverage: `${stats.overallCoverage}%`,
+      newCodeCoverage: `${stats.newCodeCoverage}%`,
+      totalCoveredLines: stats.totalCoveredLines,
+      totalLines: stats.totalLines,
+      totalNewLinesCovered: stats.totalNewLinesCovered,
+      totalNewLines: stats.totalNewLines,
+      coverageTarget: '80%',
+      failedTests: failedTests.length,
+      passedTests: hasTests.length - failedTests.length
     },
+    failedTests,
     actionableRecommendations,
     filesNeedingTests: needsTests.map(file => ({
       file,
@@ -453,82 +705,15 @@ async function analyzeCoverage(specificFiles = null) {
       priority: file.includes('/Perps/') || file.includes('/Rewards/') ? 'HIGH' : 'MEDIUM'
     })),
     filesWithCoverage: coverageResults,
-    filesBelowTarget: belowTarget,
-    filesAboveTarget: aboveTarget
+    filesBelowTarget: stats.belowTarget,
+    filesAboveTarget: stats.aboveTarget
   };
 
-  // Ensure reports directory exists
-  const reportsDir = path.join(__dirname, 'reports');
-  if (!fs.existsSync(reportsDir)) {
-    fs.mkdirSync(reportsDir, { recursive: true });
-  }
+  // Save reports and get paths
+  const { reportPath, lcovPath, lcovSaved } = saveReports(report, currentBranch);
 
-  // Save branch-specific JSON report
-  const reportFilename = `coverage-report-${currentBranch}.json`;
-  const reportPath = path.join(reportsDir, reportFilename);
-
-  // Save branch-specific LCOV report
-  const lcovFilename = `coverage-lcov-${currentBranch}.info`;
-  const lcovPath = path.join(reportsDir, lcovFilename);
-  const sourceLcovPath = path.join(process.cwd(), 'tests', 'coverage', 'lcov.info');
-
-  // Copy LCOV file if it exists
-  let lcovSaved = false;
-  if (fs.existsSync(sourceLcovPath)) {
-    try {
-      fs.copyFileSync(sourceLcovPath, lcovPath);
-      lcovSaved = true;
-    } catch (error) {
-      console.warn('⚠️  Failed to copy LCOV file:', error.message);
-    }
-  }
-
-  // Add LCOV info to report
-  report.lcovReport = {
-    saved: lcovSaved,
-    path: lcovSaved ? lcovPath : null,
-    filename: lcovSaved ? lcovFilename : null
-  };
-
-  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-
-  // Print SonarCloud-style coverage summary
-  console.log('\n📊 Coverage Analysis');
-  console.log(`Overall Files: ${overallCoverage}% (${totalCoveredLines}/${totalLines} lines) - ${aboveTarget.length}/${coverageResults.length} files ≥80%`);
-  console.log(`New Code Only: ${newCodeCoverage}% (${totalNewLinesCovered}/${totalNewLines} changed lines)\n`);
-
-  // Show coverage for all files with tests
-  if (coverageResults.length > 0) {
-    console.log('Files Coverage:');
-    coverageResults.forEach(result => {
-      const coverage = result.coverage.lines;
-      const coveredCount = result.coverage.coveredLines;
-      const totalCount = result.coverage.totalLines;
-      const icon = coverage >= 80 ? '✅' : '🔴';
-
-      const newCov = result.coverage.newLines;
-      const newCovDisplay = result.coverage.newLinesTotal > 0
-        ? `New: ${newCov}% (${result.coverage.newLinesCovered}/${result.coverage.newLinesTotal})`
-        : 'New: No changes';
-
-      // Show additional debug info for validation
-      const debugInfo = result.coverage.totalChangedLines !== result.coverage.newLinesTotal
-        ? ` [${result.coverage.totalChangedLines} total changed, ${result.coverage.newLinesTotal} executable]`
-        : '';
-
-      const status = coverage >= 80 ? '' : coverage === 0 ? ' - NO TESTS' : ' - NEEDS WORK';
-
-      console.log(`${icon} ${path.basename(result.file)}: ${coverage}% overall (${coveredCount}/${totalCount}) | ${newCovDisplay}${debugInfo}${status}`);
-    });
-  }
-
-  // Show files needing new tests
-  if (needsTests.length > 0) {
-    console.log('\n⚠️  Files needing NEW tests:');
-    needsTests.slice(0, 10).forEach(file => {
-      console.log(`🔴 ${path.basename(file)}: 0% (0/? lines) - NO TESTS`);
-    });
-  }
+  // Print summary
+  printCoverageSummary(stats, coverageResults, needsTests, failedTests);
 
   console.log(`\nReports saved to:`);
   console.log(`  📄 JSON: ${reportPath}`);
@@ -552,13 +737,18 @@ function parseArgs() {
     if (arg === '--help' || arg === '-h') {
       showHelp = true;
     } else if (arg === '--files' || arg === '-f') {
-      // Next arguments until next flag are files
-      i++;
-      while (i < args.length && !args[i].startsWith('-')) {
-        specificFiles.push(args[i]);
-        i++;
+      // Collect all following arguments until next flag as files
+      const startIndex = i + 1;
+      let endIndex = startIndex;
+      while (endIndex < args.length && !args[endIndex].startsWith('-')) {
+        endIndex++;
       }
-      i--; // Back up one since the loop will increment
+      // Add all files found
+      for (let j = startIndex; j < endIndex; j++) {
+        specificFiles.push(args[j]);
+      }
+      // Skip processed arguments
+      i = endIndex - 1;
     } else if (!arg.startsWith('-')) {
       // Assume it's a file if no flag specified
       specificFiles.push(arg);
