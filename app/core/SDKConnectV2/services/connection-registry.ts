@@ -153,7 +153,8 @@ export class ConnectionRegistry {
     const jsonString =
       compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
 
-    if (jsonString.length > 1024 * 1024) {
+    // apply a post-decompression sanity limit to mitigate zip-bombs
+    if (jsonString.length > 2 * 1024 * 1024) {
       throw new Error('Payload too large (max 1MB).');
     }
 
