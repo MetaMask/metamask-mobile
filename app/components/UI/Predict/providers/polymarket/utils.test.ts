@@ -1280,6 +1280,233 @@ describe('polymarket utils', () => {
 
       expect(result[0].outcomes[0].image).toBe('');
     });
+
+    it('filter out inactive markets', () => {
+      const eventWithInactiveMarkets = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-1',
+            active: true,
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-2',
+            active: false,
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-3',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithInactiveMarkets],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(2);
+      expect(result[0].outcomes.map((outcome) => outcome.id)).toEqual([
+        'market-1',
+        'market-3',
+      ]);
+    });
+
+    it('sort markets by price in descending order', () => {
+      const eventWithMultipleMarkets = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-low-price',
+            outcomePrices: '["0.3", "0.7"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-high-price',
+            outcomePrices: '["0.8", "0.2"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-medium-price',
+            outcomePrices: '["0.5", "0.5"]',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithMultipleMarkets],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(3);
+      expect(result[0].outcomes.map((outcome) => outcome.id)).toEqual([
+        'market-high-price',
+        'market-medium-price',
+        'market-low-price',
+      ]);
+    });
+
+    it('handle markets with null outcomePrices in sorting', () => {
+      const eventWithNullPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-price',
+            outcomePrices: '["0.6", "0.4"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-without-price',
+            outcomePrices: null as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents([eventWithNullPrices], mockCategory);
+
+      expect(result[0].outcomes).toHaveLength(2);
+      // Market with price should come first (0.6 > 0)
+      expect(result[0].outcomes[0].id).toBe('market-with-price');
+      expect(result[0].outcomes[1].id).toBe('market-without-price');
+    });
+
+    it('handle markets with undefined outcomePrices in sorting', () => {
+      const eventWithUndefinedPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-price',
+            outcomePrices: '["0.3", "0.7"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-without-price',
+            outcomePrices: undefined as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithUndefinedPrices],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(2);
+      // Market with price should come first (0.3 > 0)
+      expect(result[0].outcomes[0].id).toBe('market-with-price');
+      expect(result[0].outcomes[1].id).toBe('market-without-price');
+    });
+
+    it('handle markets with empty outcomePrices string in sorting', () => {
+      const eventWithEmptyPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-price',
+            outcomePrices: '["0.4", "0.6"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-with-empty-price',
+            outcomePrices: '',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithEmptyPrices],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(2);
+      // Market with price should come first (0.4 > 0)
+      expect(result[0].outcomes[0].id).toBe('market-with-price');
+      expect(result[0].outcomes[1].id).toBe('market-with-empty-price');
+    });
+
+    it('include resolvedBy field in outcome', () => {
+      const eventWithResolvedBy = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            resolvedBy: '0x1234567890123456789012345678901234567890',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents([eventWithResolvedBy], mockCategory);
+
+      expect(result[0].outcomes[0].resolvedBy).toBe(
+        '0x1234567890123456789012345678901234567890',
+      );
+    });
+
+    it('handle undefined resolvedBy field', () => {
+      const eventWithoutResolvedBy = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            resolvedBy: undefined as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithoutResolvedBy],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes[0].resolvedBy).toBeUndefined();
+    });
+
+    it('handle complex sorting with mixed price scenarios', () => {
+      const eventWithComplexPrices = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-zero',
+            outcomePrices: '["0", "1"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-high',
+            outcomePrices: '["0.9", "0.1"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-medium',
+            outcomePrices: '["0.5", "0.5"]',
+          },
+          {
+            ...mockEvent.markets[0],
+            conditionId: 'market-null',
+            outcomePrices: null as any,
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents(
+        [eventWithComplexPrices],
+        mockCategory,
+      );
+
+      expect(result[0].outcomes).toHaveLength(4);
+      expect(result[0].outcomes.map((outcome) => outcome.id)).toEqual([
+        'market-high', // 0.9
+        'market-medium', // 0.5
+        'market-zero', // 0
+        'market-null', // 0 (default)
+      ]);
+    });
   });
 
   describe('parsePolymarketPositions', () => {
