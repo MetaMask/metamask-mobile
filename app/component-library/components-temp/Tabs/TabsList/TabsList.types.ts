@@ -47,6 +47,10 @@ export interface TabsListProps extends BoxProps {
    * Tailwind CSS classes to apply to the TabsBar container
    */
   tabsBarTwClassName?: string;
+  /**
+   * Tailwind CSS classes to apply to the tab content containers
+   */
+  tabsListContentTwClassName?: string;
 }
 
 /**

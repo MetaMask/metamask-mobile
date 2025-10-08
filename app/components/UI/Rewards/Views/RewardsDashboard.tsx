@@ -257,6 +257,7 @@ const RewardsDashboard: React.FC = () => {
           onChangeTab={handleTabChange}
           testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
           tabsBarTwClassName="px-4"
+          tabsListContentTwClassName="px-0"
         >
           <RewardsOverview
             key="overview"

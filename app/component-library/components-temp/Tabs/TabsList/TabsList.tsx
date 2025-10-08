@@ -31,6 +31,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       onChangeTab,
       testID,
       tabsBarTwClassName,
+      tabsListContentTwClassName,
       ...boxProps
     },
     ref,
@@ -461,7 +462,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           {enabledTabs.map((enabledTab) => (
             <Box
               key={enabledTab.key}
-              style={tw.style('flex-1 px-4', { width: containerWidth })}
+              style={tw.style(
+                `flex-1 px-4 ${tabsListContentTwClassName || ''}`,
+                {
+                  width: containerWidth,
+                },
+              )}
             >
               {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
                 ? enabledTab.content
