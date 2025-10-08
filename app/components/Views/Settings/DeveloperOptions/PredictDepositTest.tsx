@@ -29,9 +29,10 @@ export function PredictDepositTest() {
   const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  const { networkClientId } = useSelector((state: RootState) =>
-    selectDefaultEndpointByChainId(state, CHAIN_IDS.POLYGON),
-  );
+  const { networkClientId } =
+    useSelector((state: RootState) =>
+      selectDefaultEndpointByChainId(state, CHAIN_IDS.POLYGON),
+    ) ?? {};
 
   const transferData = generateTransferData('transfer', {
     toAddress: '0x13032833b30f3388208cda38971fdc839936b042',
