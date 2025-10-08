@@ -38,8 +38,9 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import Routes from '../../../../../constants/navigation/Routes';
+import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
@@ -57,7 +58,6 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { TraceName } from '../../../../../util/trace';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -620,6 +620,27 @@ const PerpsOrderViewContentBase: React.FC = () => {
         return;
       }
 
+      // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
+      // Always monitor both orders and positions because:
+      // - Market orders: Usually create positions immediately
+      // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
+      // Monitoring both ensures we route to the correct tab regardless of execution speed
+      const monitorOrders = true;
+      const monitorPositions = true;
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: navigationMarketData,
+          // Pass monitoring intent to destination screen for data-driven tab selection
+          monitoringIntent: {
+            asset: orderForm.asset,
+            monitorOrders,
+            monitorPositions,
+          },
+        },
+      });
+
       const tpParams = orderForm.takeProfitPrice?.trim()
         ? { takeProfitPrice: orderForm.takeProfitPrice }
         : {};
@@ -664,14 +685,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         },
       };
 
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: navigationMarketData,
-          isNavigationFromOrderSuccess: false,
-        },
-      });
-
       // Check if TP/SL should be handled separately (for new positions or position flips)
       const shouldHandleTPSLSeparately =
         (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
@@ -691,10 +704,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
         });
-        return;
+      } else {
+        await executeOrder(orderParams);
       }
-
-      await executeOrder(orderParams);
     } finally {
       // Always reset submission flag
       isSubmittingRef.current = false;
