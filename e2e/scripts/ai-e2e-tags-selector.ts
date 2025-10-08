@@ -159,6 +159,16 @@ export class AIE2ETagsSelector {
 
 
             if (toolUse.name === 'finalize_decision') {
+              // Log raw tool result for debugging
+              if (!this.isQuietMode) {
+                try {
+                  const parsed = JSON.parse(toolResult);
+                  this.log(`📝 Agent decision: confidence=${parsed.confidence}%, risk=${parsed.risk_level}, tags=${parsed.selected_tags?.length || 0}`);
+                } catch {
+                  // Ignore parse errors in logging
+                }
+              }
+
               const analysis = this.parseAgentDecision(toolResult);
               if (analysis) {
 
@@ -704,6 +714,22 @@ SELECTION GUIDANCE:
 - For CI files: Use find_related_files first, then assess impact breadth
 - If a reusable workflow or widely-used script changes → likely HIGH impact
 
+CONFIDENCE SCORING (0-100):
+- 90-100%: Very confident (clear-cut cases)
+  * Pure docs/README changes → 0 tags
+  * Single test file change with no functional impact
+  * Obvious critical changes requiring full coverage
+- 70-89%: Confident (normal cases)
+  * Standard code changes with clear impact assessment
+  * Used tools to investigate and have good understanding
+- 50-69%: Moderate confidence (some uncertainty)
+  * Complex changes with unclear boundaries
+  * Couldn't fully investigate all dependencies
+- 0-49%: Low confidence (significant uncertainty)
+  * Large refactors with unknown impact
+  * Insufficient information to assess properly
+  * When in doubt, err on side of running more tests
+
 Be thorough but efficient. Use your judgment.
 
 When confident in your decision, use finalize_decision to complete.`;
@@ -807,12 +833,16 @@ Call finalize_decision when ready.`;
           this.pipelineTags.includes(tag)
         );
 
+        // Handle confidence: use provided value, or default to 75
+        // Use ?? instead of || to properly handle 0 as a valid value
+        const confidence = parsed.confidence ?? 75;
+
         return {
           riskLevel: parsed.risk_level || 'medium',
           selectedTags: validTags,
           areas: parsed.areas || [],
           reasoning: parsed.reasoning || 'Analysis completed',
-          confidence: Math.min(100, Math.max(0, parsed.confidence || 75))
+          confidence: Math.min(100, Math.max(0, confidence))
         };
       } catch {
         return null;
