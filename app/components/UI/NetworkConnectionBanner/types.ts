@@ -1,7 +1,7 @@
 /**
  * Network Connection Banner Status
  *
- * Slow: The network is taking more than 5 seconds to initialize.
+ * Degraded: The network is taking more than 5 seconds to initialize.
  * Unavailable: The network is not available.
  */
-export type NetworkConnectionBannerStatus = 'slow' | 'unavailable';
+export type NetworkConnectionBannerStatus = 'degraded' | 'unavailable';

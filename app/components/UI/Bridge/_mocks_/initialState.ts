@@ -5,6 +5,8 @@ import {
   EthScope,
   EthAccountType,
   SolAccountType,
+  BtcScope,
+  BtcAccountType,
 } from '@metamask/keyring-api';
 import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
@@ -29,6 +31,9 @@ export const solanaAccountId = 'solanaAccountId';
 export const solanaAccountAddress =
   'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
 
+export const btcAccountId = 'btcAccountId';
+export const btcAccountAddress = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
+
 // Ethereum tokens
 export const ethToken1Address =
   '0x0000000000000000000000000000000000000001' as Hex;
@@ -44,6 +49,9 @@ export const solanaNativeTokenAddress =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
 export const solanaToken2Address =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
+
+export const btcNativeTokenAddress =
+  'bip122:000000000019d6689c085ae165831e93/slip44:0' as CaipAssetId;
 
 export const initialState = {
   engine: {
@@ -82,6 +90,42 @@ export const initialState = {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isUnifiedUIEnabled: true,
+                isGaslessSwapEnabled: false,
+              },
+              [SolScope.Mainnet]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isUnifiedUIEnabled: true,
+                isGaslessSwapEnabled: false,
+              },
+              [BtcScope.Mainnet]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isUnifiedUIEnabled: true,
+                isGaslessSwapEnabled: false,
+              },
+            },
+            bip44DefaultPairs: {
+              bip122: {
+                other: {},
+                standard: {
+                  'bip122:000000000019d6689c085ae165831e93/slip44:0':
+                    'eip155:1/slip44:60',
+                },
+              },
+              eip155: {
+                other: {},
+                standard: {
+                  'eip155:1/slip44:60':
+                    'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                },
+              },
+              solana: {
+                other: {},
+                standard: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501':
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                },
               },
             },
           },
@@ -208,13 +252,16 @@ export const initialState = {
           [SolScope.Mainnet]: {
             chainId: SolScope.Mainnet,
             name: 'Solana',
-            nativeCurrency: 'SOL',
-            rpcEndpoints: [
-              {
-                networkClientId: 'solana',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as const,
+            isEvm: false as const,
+          },
+          [BtcScope.Mainnet]: {
+            chainId: 'bip122:000000000019d6689c085ae165831e93' as const,
+            name: 'Bitcoin',
+            nativeCurrency:
+              'bip122:000000000019d6689c085ae165831e93/slip44:0' as const,
+            isEvm: false as const,
           },
         },
       },
@@ -230,13 +277,53 @@ export const initialState = {
               unit: 'USDC',
             },
           },
+          [btcAccountId]: {
+            [btcNativeTokenAddress]: {
+              amount: '0.015',
+              unit: 'BTC',
+            },
+          },
         },
       },
       MultichainAssetsController: {
         accountsAssets: {
           [solanaAccountId]: [solanaNativeTokenAddress, solanaToken2Address],
+          [btcAccountId]: [btcNativeTokenAddress],
         },
         assetsMetadata: {
+          [btcNativeTokenAddress]: {
+            fungible: true as const,
+            name: 'Bitcoin',
+            units: [
+              {
+                name: 'Bitcoin',
+                decimals: 8,
+                symbol: 'BTC',
+              },
+              {
+                name: 'CentiBitcoin',
+                decimals: 6,
+                symbol: 'cBTC',
+              },
+              {
+                name: 'MilliBitcoin',
+                decimals: 5,
+                symbol: 'mBTC',
+              },
+              {
+                name: 'Bit',
+                decimals: 2,
+                symbol: 'bits',
+              },
+              {
+                name: 'Satoshi',
+                decimals: 0,
+                symbol: 'satoshi',
+              },
+            ],
+            iconUrl: 'btcIconUrl',
+            symbol: 'BTC',
+          },
           [solanaNativeTokenAddress]: {
             name: 'Solana',
             symbol: 'SOL',
@@ -277,6 +364,10 @@ export const initialState = {
             rate: '1', // 1 USDC = 1 USD
             conversionTime: 0,
           },
+          [btcNativeTokenAddress]: {
+            rate: '100000', // 1 BTC = 100000 USD
+            conversionTime: 0,
+          },
         },
       },
       AccountsController: {
@@ -299,6 +390,16 @@ export const initialState = {
               name: 'Account 2',
               type: SolAccountType.DataAccount,
               scopes: [SolScope.Mainnet],
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+            [btcAccountId]: {
+              id: btcAccountId,
+              address: btcAccountAddress,
+              name: 'Account 3',
+              type: BtcAccountType.P2wpkh,
+              scopes: [BtcScope.Mainnet],
               metadata: {
                 lastSelected: 0,
               },
@@ -331,7 +432,7 @@ export const initialState = {
                       groupIndex: 0,
                     },
                   },
-                  accounts: [evmAccountId, solanaAccountId],
+                  accounts: [evmAccountId, solanaAccountId, btcAccountId],
                 },
               },
             },

@@ -31,8 +31,7 @@ const createStyles = (colors) =>
       flex: 1,
     },
     wrapperContent: {
-      paddingLeft: 24,
-      paddingRight: 24,
+      paddingHorizontal: 16,
       paddingVertical: 24,
     },
     title: {

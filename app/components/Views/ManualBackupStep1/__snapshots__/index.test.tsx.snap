@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by default (dark theme) 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
@@ -384,11 +392,19 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
     </View>
   </View>
   <View />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`ManualBackupStep1 Theme appearance renders light SRP design image for light theme 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
@@ -771,11 +787,19 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
     </View>
   </View>
   <View />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`ManualBackupStep1 render matches snapshot 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
@@ -1158,5 +1182,5 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
     </View>
   </View>
   <View />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

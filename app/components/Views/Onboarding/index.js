@@ -67,8 +67,9 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const createStyles = (colors) =>
+const createStyles = () =>
   StyleSheet.create({
     scroll: {
       flex: 1,
@@ -77,7 +78,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: Device.isMediumDevice() ? 16 : 30,
+      paddingVertical: 16,
     },
     loaderWrapper: {
       flex: 1,
@@ -138,28 +139,9 @@ const createStyles = (colors) =>
       marginBottom: 40,
       marginTop: -40,
     },
-    login: {
-      fontSize: 18,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    buttonDescription: {
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    importWrapper: {
-      marginVertical: 16,
-    },
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
-      marginBottom: 16,
-      width: '100%',
-    },
-    buttonWrapper: {
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      gap: Device.isMediumDevice() ? 12 : 16,
       width: '100%',
     },
     buttonLabel: {
@@ -188,34 +170,8 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    bottomSheetContainer: {
-      padding: 16,
-      flexDirection: 'column',
-      rowGap: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    socialBtn: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      color: colors.text.default,
-    },
     blackButton: {
       backgroundColor: importedColors.btnBlack,
-    },
-    blackButtonText: {
-      color: importedColors.btnBlackText,
     },
     inverseBlackButton: {
       backgroundColor: importedColors.btnBlackInverse,
@@ -322,7 +278,7 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { route, navigation } = this.props;
+    const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getTransparentOnboardingNavbarOptions(
@@ -719,8 +675,7 @@ class Onboarding extends PureComponent {
   };
 
   renderLoader = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     return (
       <View style={styles.loaderWrapper}>
@@ -744,8 +699,7 @@ class Onboarding extends PureComponent {
   };
 
   renderContent() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     return (
       <View style={styles.ctas}>
@@ -810,8 +764,7 @@ class Onboarding extends PureComponent {
   }
 
   handleSimpleNotification = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     if (!this.props.route.params?.delete) return;
     return (
@@ -838,8 +791,7 @@ class Onboarding extends PureComponent {
   render() {
     const { loading } = this.props;
     const { existingUser, errorToThrow } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = createStyles();
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -858,7 +810,7 @@ class Onboarding extends PureComponent {
         }
       >
         <ThrowErrorIfNeeded />
-        <View
+        <SafeAreaView
           style={[
             baseStyles.flexGrow,
             {
@@ -891,13 +843,13 @@ class Onboarding extends PureComponent {
           <FadeOutOverlay />
 
           <View>{this.handleSimpleNotification()}</View>
-        </View>
 
-        <FastOnboarding
-          onPressContinueWithGoogle={this.onPressContinueWithGoogle}
-          onPressContinueWithApple={this.onPressContinueWithApple}
-          onPressImport={this.onPressImport}
-        />
+          <FastOnboarding
+            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+            onPressContinueWithApple={this.onPressContinueWithApple}
+            onPressImport={this.onPressImport}
+          />
+        </SafeAreaView>
       </ErrorBoundary>
     );
   }

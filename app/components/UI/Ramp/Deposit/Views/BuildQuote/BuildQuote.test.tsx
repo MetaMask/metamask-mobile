@@ -56,7 +56,6 @@ const {
 
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockUseAccountTokenCompatible = jest.fn();
 const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
 jest.mock('@react-navigation/native', () => {
@@ -92,11 +91,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock(
   '../../hooks/useDepositTokenExchange',
   () => () => mockUseDepositTokenExchange(),
-);
-
-jest.mock(
-  '../../hooks/useAccountTokenCompatible',
-  () => () => mockUseAccountTokenCompatible(),
 );
 
 jest.mock('../../hooks/useDepositRouting', () => ({
@@ -159,7 +153,6 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockUseAccountTokenCompatible.mockReturnValue(true);
     mockUseRoute.mockReturnValue({ params: {} });
 
     jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_RETURN);
@@ -236,6 +229,9 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
           screen: 'DepositUnsupportedRegionModal',
+          params: {
+            regions: MOCK_REGIONS,
+          },
         });
       });
     });
@@ -454,8 +450,11 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates to incompatible token modal when user they are not compatible', async () => {
-      mockUseAccountTokenCompatible.mockReturnValue(false);
+    it('navigates to incompatible token modal when selectedWalletAddress is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ selectedWalletAddress: null }),
+      );
+
       render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');

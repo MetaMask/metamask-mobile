@@ -2,6 +2,7 @@ import {
   selectSourceToken,
   setSourceAmount,
   setSourceToken,
+  selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { BridgeToken } from '../../types';
@@ -11,7 +12,7 @@ import { useNetworkInfo } from '../../../../../selectors/selectedNetworkControll
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   getNativeAssetForChainId,
-  isSolanaChainId,
+  isNonEvmChainId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
@@ -27,8 +28,8 @@ import { useEffect } from 'react';
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
 
-  // getNativeAssetForChainId returns zero address for Solana, we need the assetId to get balances properly for native SOL
-  const address = isSolanaChainId(chainId)
+  // getNativeAssetForChainId returns zero address for non-EVM chains, we need the CAIP assetId to get balances properly for native asset
+  const address = isNonEvmChainId(chainId)
     ? nativeAsset.assetId
     : nativeAsset.address;
 
@@ -44,6 +45,11 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
+/**
+ *
+ * @param initialSourceToken The initial source token to set, e.g. coming in from Asset Details page or a deeplink
+ * @param initialSourceAmount The initial source amount to set, e.g. coming in from a deeplink
+ */
 export const useInitialSourceToken = (
   initialSourceToken?: BridgeToken,
   initialSourceAmount?: string,
@@ -69,14 +75,21 @@ export const useInitialSourceToken = (
     selectedChainId: selectedEvmChainId,
     selectedNetworkName: selectedEvmNetworkName,
   });
+  const bip44DefaultPair = useSelector(selectBip44DefaultPair);
 
   const chainId = isEvmNetworkSelected
     ? selectedEvmChainId
     : selectedNonEvmNetworkChainId;
 
   useEffect(() => {
-    // Will default to the native token of the current chain if no token is provided
+    // If no initial source token is provided,
+    // set the source token to the bip44 default pair (preferred) or the native token of the current chain
     if (!initialSourceToken && !sourceToken) {
+      if (bip44DefaultPair) {
+        dispatch(setSourceToken(bip44DefaultPair.sourceAsset));
+        return;
+      }
+
       dispatch(setSourceToken(getNativeSourceToken(chainId)));
       return;
     }
@@ -125,5 +138,6 @@ export const useInitialSourceToken = (
     dispatch,
     initialSourceAmount,
     prevInitialSourceToken,
+    bip44DefaultPair,
   ]);
 };

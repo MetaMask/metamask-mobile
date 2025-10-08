@@ -424,7 +424,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="source-token-area-input"
@@ -437,18 +438,18 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       <View
                                         alignItems="flex-end"
                                         flexDirection="row"
-                                        gap={4}
+                                        gap={8}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
                                               "alignItems": "flex-end",
                                               "flexDirection": "row",
-                                              "gap": 4,
+                                              "gap": 8,
                                               "justifyContent": "flex-end",
                                             },
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 100,
                                               "paddingLeft": 8,
                                               "paddingRight": 11,
@@ -478,10 +479,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -691,13 +690,13 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#f3f5f9",
-                                        "borderRadius": 16,
+                                        "borderRadius": 22,
                                         "display": "flex",
-                                        "height": 32,
+                                        "height": 44,
                                         "justifyContent": "center",
                                         "position": "absolute",
-                                        "top": -16,
-                                        "width": 32,
+                                        "top": -22,
+                                        "width": 44,
                                       },
                                     ]
                                   }
@@ -713,10 +712,10 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "alignItems": "center",
                                         "borderRadius": 8,
-                                        "height": 24,
+                                        "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                     testID="arrow-button"
@@ -724,15 +723,15 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     <SvgMock
                                       color="#121314"
                                       fill="currentColor"
-                                      height={16}
-                                      name="Arrow2Down"
+                                      height={24}
+                                      name="SwapVertical"
                                       style={
                                         {
-                                          "height": 16,
-                                          "width": 16,
+                                          "height": 24,
+                                          "width": 24,
                                         }
                                       }
-                                      width={16}
+                                      width={24}
                                     />
                                   </TouchableOpacity>
                                 </View>
@@ -741,7 +740,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                 style={
                                   [
                                     {},
-                                    undefined,
+                                    {
+                                      "marginTop": 16,
+                                    },
                                   ]
                                 }
                               >
@@ -807,7 +808,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="dest-token-area-input"
@@ -1399,7 +1401,8 @@ exports[`BridgeView renders 1`] = `
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="source-token-area-input"
@@ -1412,18 +1415,18 @@ exports[`BridgeView renders 1`] = `
                                       <View
                                         alignItems="flex-end"
                                         flexDirection="row"
-                                        gap={4}
+                                        gap={8}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
                                               "alignItems": "flex-end",
                                               "flexDirection": "row",
-                                              "gap": 4,
+                                              "gap": 8,
                                               "justifyContent": "flex-end",
                                             },
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "#3c4d9d0f",
                                               "borderRadius": 100,
                                               "paddingLeft": 8,
                                               "paddingRight": 11,
@@ -1453,10 +1456,8 @@ exports[`BridgeView renders 1`] = `
                                             <View
                                               useNativeDriver={true}
                                             >
-                                              <Image
+                                              <View
                                                 fadeIn={true}
-                                                onError={[Function]}
-                                                onLoadEnd={[Function]}
                                                 source={
                                                   {
                                                     "uri": "",
@@ -1666,13 +1667,13 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#f3f5f9",
-                                        "borderRadius": 16,
+                                        "borderRadius": 22,
                                         "display": "flex",
-                                        "height": 32,
+                                        "height": 44,
                                         "justifyContent": "center",
                                         "position": "absolute",
-                                        "top": -16,
-                                        "width": 32,
+                                        "top": -22,
+                                        "width": 44,
                                       },
                                     ]
                                   }
@@ -1688,10 +1689,10 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "alignItems": "center",
                                         "borderRadius": 8,
-                                        "height": 24,
+                                        "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                     testID="arrow-button"
@@ -1699,15 +1700,15 @@ exports[`BridgeView renders 1`] = `
                                     <SvgMock
                                       color="#121314"
                                       fill="currentColor"
-                                      height={16}
-                                      name="Arrow2Down"
+                                      height={24}
+                                      name="SwapVertical"
                                       style={
                                         {
-                                          "height": 16,
-                                          "width": 16,
+                                          "height": 24,
+                                          "width": 24,
                                         }
                                       }
-                                      width={16}
+                                      width={24}
                                     />
                                   </TouchableOpacity>
                                 </View>
@@ -1716,7 +1717,9 @@ exports[`BridgeView renders 1`] = `
                                 style={
                                   [
                                     {},
-                                    undefined,
+                                    {
+                                      "marginTop": 16,
+                                    },
                                   ]
                                 }
                               >
@@ -1782,7 +1785,8 @@ exports[`BridgeView renders 1`] = `
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="dest-token-area-input"
