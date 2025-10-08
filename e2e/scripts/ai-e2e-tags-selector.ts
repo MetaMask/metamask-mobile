@@ -94,7 +94,7 @@ export class AIE2ETagsSelector {
     const initialPrompt = this.buildAgentPrompt(categorization, prNumber);
 
     let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
-    const maxIterations = 8;
+    const maxIterations = 12;
 
     for (let iteration = 0; iteration < maxIterations; iteration++) {
       this.log(`🔄 Iteration ${iteration + 1}/${maxIterations}...`);
@@ -120,39 +120,50 @@ export class AIE2ETagsSelector {
         this.log(`💭 ${thinking.thinking.substring(0, 200)}...`);
       }
 
+      const toolUseBlocks = response.content.filter((block: Anthropic.ContentBlock) => block.type === 'tool_use');
 
-      const toolUse = response.content.find((block: Anthropic.ContentBlock) => block.type === 'tool_use');
+      if (toolUseBlocks.length > 0) {
+        const toolResults: Anthropic.MessageParam['content'] = [];
 
-      if (toolUse && toolUse.type === 'tool_use') {
-        this.log(`🔧 Tool: ${toolUse.name}`);
+        for (const toolUse of toolUseBlocks) {
+          if (toolUse.type === 'tool_use') {
+            this.log(`🔧 Tool: ${toolUse.name}`);
 
-        const toolResult = await this.executeTool(
-          toolUse.name,
-          toolUse.input as Record<string, unknown>
-        );
+            const toolResult = await this.executeTool(
+              toolUse.name,
+              toolUse.input as Record<string, unknown>
+            );
 
 
-        if (toolUse.name === 'finalize_decision') {
-          const analysis = this.parseAgentDecision(toolResult);
-          if (analysis) {
+            if (toolUse.name === 'finalize_decision') {
+              const analysis = this.parseAgentDecision(toolResult);
+              if (analysis) {
 
-            if (analysis.selectedTags.length > 0) {
-              this.log('🔢 Counting test files...');
-              const testFileInfo = await this.countTestFilesForTags(analysis.selectedTags);
-              const combinedPattern = analysis.selectedTags.join('|');
-              const actualTestFiles = await this.countTestFilesForCombinedPattern(combinedPattern);
-              const totalSplits = this.calculateSplitsForActualFiles(actualTestFiles);
+                if (analysis.selectedTags.length > 0) {
+                  this.log('🔢 Counting test files...');
+                  const testFileInfo = await this.countTestFilesForTags(analysis.selectedTags);
+                  const combinedPattern = analysis.selectedTags.join('|');
+                  const actualTestFiles = await this.countTestFilesForCombinedPattern(combinedPattern);
+                  const totalSplits = this.calculateSplitsForActualFiles(actualTestFiles);
 
-              analysis.testFileInfo = testFileInfo;
-              analysis.totalSplits = totalSplits;
+                  analysis.testFileInfo = testFileInfo;
+                  analysis.totalSplits = totalSplits;
+                }
+
+                this.log(`✅ Analysis complete!`);
+                return analysis;
+              }
+
+              this.log('⚠️ Failed to parse finalize_decision');
+              return this.fallbackAnalysis(categorization.allFiles);
             }
 
-            this.log(`✅ Analysis complete!`);
-            return analysis;
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: toolUse.id,
+              content: toolResult.substring(0, 50000)
+            });
           }
-
-          this.log('⚠️ Failed to parse finalize_decision');
-          return this.fallbackAnalysis(categorization.allFiles);
         }
 
         this.conversationHistory.push({
@@ -164,11 +175,7 @@ export class AIE2ETagsSelector {
           content: response.content
         });
 
-        currentMessage = [{
-          type: 'tool_result',
-          tool_use_id: toolUse.id,
-          content: toolResult.substring(0, 50000)
-        }];
+        currentMessage = toolResults;
 
         continue;
       }
@@ -263,6 +270,30 @@ export class AIE2ETagsSelector {
             }
           },
           required: ['pr_number']
+        }
+      },
+      {
+        name: 'find_related_files',
+        description: 'Find files related to a changed file to understand change impact depth. For CI files: finds workflows that call reusable workflows, scripts used in workflows, or workflows using specific scripts. For code files: finds importers, dependencies, tests.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            file_path: {
+              type: 'string',
+              description: 'Path to the changed file'
+            },
+            search_type: {
+              type: 'string',
+              enum: ['importers', 'imports', 'tests', 'module', 'ci', 'all'],
+              description: 'Type of related files: importers (who uses this code), imports (what this uses), tests (test files), module (same directory), ci (CI relationships - reusable workflow callers, script usage), all (comprehensive)'
+            },
+            max_results: {
+              type: 'number',
+              description: 'Max files to return (default: 20)',
+              default: 20
+            }
+          },
+          required: ['file_path', 'search_type']
         }
       },
       {
@@ -380,6 +411,178 @@ export class AIE2ETagsSelector {
           }
         }
 
+        case 'find_related_files': {
+          const filePath = input.file_path as string;
+          const searchType = input.search_type as string;
+          const maxResults = (input.max_results as number) || 20;
+
+          const results: string[] = [];
+          const isCI = filePath.includes('.github/workflows/') || filePath.includes('/scripts/');
+
+          try {
+            // CI-specific relationships
+            if ((searchType === 'ci' || searchType === 'all') && isCI) {
+
+              // For reusable workflows: find who calls them
+              if (filePath.includes('.github/workflows/')) {
+                const workflowName = filePath.split('/').pop();
+                const fullPath = join(this.baseDir, filePath);
+
+                // Check if this is a reusable workflow
+                if (existsSync(fullPath)) {
+                  const content = readFileSync(fullPath, 'utf-8');
+                  const isReusable = content.includes('workflow_call');
+
+                  if (isReusable && workflowName) {
+                    // Find workflows that call this one
+                    const callers = execSync(
+                      `grep -r -l "uses:.*${workflowName}" .github/workflows/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+                      { encoding: 'utf-8', cwd: this.baseDir }
+                    ).trim().split('\n').filter(f => f);
+
+                    if (callers.length > 0) {
+                      results.push(`🔄 Reusable Workflow - Called by ${callers.length} workflow(s):`);
+                      results.push(...callers.map(f => `  ${f}`));
+                    }
+                  }
+
+                  // Find what this workflow calls (other workflows)
+                  const workflowCalls = content.match(/uses:\s*\.\/\.github\/workflows\/([^\s]+)/g) || [];
+
+                  if (workflowCalls.length > 0) {
+                    results.push(results.length > 0 ? '\n📤 Calls reusable workflows:' : '📤 Calls reusable workflows:');
+                    const uniqueCalls = Array.from(new Set(workflowCalls));
+                    uniqueCalls.slice(0, maxResults).forEach(call => {
+                      const match = call.match(/uses:\s*\.\/\.github\/workflows\/([^\s]+)/);
+                      if (match) results.push(`  .github/workflows/${match[1]}`);
+                    });
+                  }
+
+                  // Find scripts used in this workflow
+                  const scriptCalls = content.match(/(?:\.\/)?(?:scripts|\.github\/scripts)\/[^\s'"]+\.(?:sh|mjs|js|ts)/g) || [];
+                  const uniqueScripts = Array.from(new Set(scriptCalls));
+
+                  if (uniqueScripts.length > 0) {
+                    results.push(results.length > 0 ? '\n📜 Executes scripts:' : '📜 Executes scripts:');
+                    uniqueScripts.slice(0, maxResults).forEach(script =>
+                      results.push(`  ${script.replace(/^\.\//, '')}`)
+                    );
+                  }
+                }
+              }
+
+              // For scripts: find workflows that use them
+              if (filePath.includes('/scripts/') || filePath.endsWith('.sh') || filePath.endsWith('.mjs') || filePath.endsWith('.js')) {
+                const scriptName = filePath.split('/').pop() || filePath;
+                const scriptPath = filePath.replace(/^\.\//, '');
+
+                const workflowsUsingScript = execSync(
+                  `grep -r -l -E "${scriptPath}|${scriptName}" .github/workflows/ 2>/dev/null | head -${maxResults} || true`,
+                  { encoding: 'utf-8', cwd: this.baseDir }
+                ).trim().split('\n').filter(f => f);
+
+                if (workflowsUsingScript.length > 0) {
+                  results.push(results.length > 0 ? '\n⚙️  Script used in workflows:' : '⚙️  Script used in workflows:');
+                  results.push(...workflowsUsingScript.map(f => `  ${f}`));
+                }
+
+                // Check if script is used in other scripts
+                const scriptsDir = filePath.includes('.github/scripts') ? '.github/scripts' : 'scripts';
+                const otherScriptsUsing = execSync(
+                  `grep -r -l "${scriptName}" ${scriptsDir}/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+                  { encoding: 'utf-8', cwd: this.baseDir }
+                ).trim().split('\n').filter(f => f);
+
+                if (otherScriptsUsing.length > 0) {
+                  results.push(results.length > 0 ? '\n🔗 Referenced in other scripts:' : '🔗 Referenced in other scripts:');
+                  results.push(...otherScriptsUsing.map(f => `  ${f}`));
+                }
+              }
+            }
+
+            // Find files that import this file (dependents)
+            if ((searchType === 'importers' || searchType === 'all') && !isCI) {
+              const importPattern = filePath
+                .replace(/^app\//, '')
+                .replace(/\.(ts|tsx|js|jsx)$/, '');
+              const fileName = importPattern.split('/').pop();
+
+              if (fileName) {
+                const importers = execSync(
+                  `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from.*['\\\"].*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+                  { encoding: 'utf-8', cwd: this.baseDir }
+                ).trim().split('\n').filter(f => f);
+
+                if (importers.length > 0) {
+                  results.push(results.length > 0 ? `\n📥 Importers (${importers.length} files depend on this):` : `📥 Importers (${importers.length} files depend on this):`);
+                  results.push(...importers.map(f => `  ${f}`));
+                }
+              }
+            }
+
+            // Find what this file imports (dependencies)
+            if ((searchType === 'imports' || searchType === 'all') && !isCI) {
+              const fullPath = join(this.baseDir, filePath);
+              if (existsSync(fullPath)) {
+                const content = readFileSync(fullPath, 'utf-8');
+                const imports = content.match(/from\s+['"]([^'"]+)['"]/g) || [];
+                const relativeImports = imports
+                  .map(imp => imp.match(/from\s+['"]([^'"]+)['"]/)?.[1])
+                  .filter(imp => imp && (imp.startsWith('./') || imp.startsWith('../')))
+                  .slice(0, maxResults);
+
+                if (relativeImports.length > 0) {
+                  results.push(results.length > 0 ? `\n📦 Imports (${relativeImports.length} local dependencies):` : `📦 Imports (${relativeImports.length} local dependencies):`);
+                  results.push(...relativeImports.map(imp => `  ${imp}`));
+                }
+              }
+            }
+
+            // Find related test files
+            if ((searchType === 'tests' || searchType === 'all') && !isCI) {
+              const baseName = filePath.replace(/\.(ts|tsx|js|jsx)$/, '');
+              const fileName = baseName.split('/').pop();
+
+              if (fileName) {
+                const testFiles = execSync(
+                  `find . -type f \\( -name "*${fileName}*.test.*" -o -name "*${fileName}*.spec.*" -o -path "*/__tests__/*${fileName}*" \\) 2>/dev/null | head -${maxResults} || true`,
+                  { encoding: 'utf-8', cwd: this.baseDir }
+                ).trim().split('\n').filter(f => f);
+
+                if (testFiles.length > 0) {
+                  results.push(results.length > 0 ? `\n🧪 Test files (${testFiles.length}):` : `🧪 Test files (${testFiles.length}):`);
+                  results.push(...testFiles.map(f => `  ${f.replace(/^\.\//, '')}`));
+                }
+              }
+            }
+
+            // Find files in same module/directory
+            if (searchType === 'module' || searchType === 'all') {
+              const directory = filePath.substring(0, filePath.lastIndexOf('/'));
+              const fileName = filePath.split('/').pop();
+
+              if (directory) {
+                const moduleFiles = execSync(
+                  `find "${directory}" -maxdepth 1 -type f \\( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.yml" -o -name "*.yaml" \\) 2>/dev/null | grep -v "${fileName}" | head -${maxResults} || true`,
+                  { encoding: 'utf-8', cwd: this.baseDir }
+                ).trim().split('\n').filter(f => f);
+
+                if (moduleFiles.length > 0) {
+                  results.push(results.length > 0 ? `\n📁 Same module (${directory}):` : `📁 Same module (${directory}):`);
+                  results.push(...moduleFiles.map(f => `  ${f}`));
+                }
+              }
+            }
+
+            return results.length > 0
+              ? `Related files for ${filePath}:\n\n${results.join('\n')}`
+              : `No related files found for ${filePath}`;
+
+          } catch (error) {
+            return `Error finding related files: ${error instanceof Error ? error.message : String(error)}`;
+          }
+        }
+
         case 'finalize_decision': {
           return JSON.stringify(input);
         }
@@ -416,6 +619,12 @@ TOOLS AVAILABLE:
 - read_file: Read actual file content
 - get_git_diff: See exact code changes
 - get_pr_diff: Get full PR diff (for live PRs)
+- find_related_files: Discover impact depth and relationships
+  * For CI files: finds reusable workflow callers, script usage in workflows
+  * For code files: finds importers (dependents), dependencies, tests, module files
+  * Use search_type='ci' for workflow/script relationships
+  * Use search_type='importers' to find who depends on code changes
+  * Use search_type='all' for comprehensive relationship analysis
 - finalize_decision: Submit your selection
 
 REASONING APPROACH:
@@ -428,10 +637,14 @@ You have extended thinking enabled (10,000 tokens). Use it to:
 WORKFLOW:
 1. Review the changed files
 2. For critical files (Engine, controllers, core), examine actual changes
-3. Use get_git_diff to see specific modifications if needed
-4. Think about what functionality is affected
-5. Select appropriate tags
-6. Call finalize_decision with your analysis
+3. For critical changes or CI files, use find_related_files to understand impact depth:
+   - CI files: Use search_type='ci' to find workflow callers and script usage
+   - Core code: Use search_type='importers' to find dependents
+   - When unsure about impact: Use search_type='all' for comprehensive view
+4. Use get_git_diff to see specific modifications if needed
+5. Think about what functionality is affected
+6. Select appropriate tags
+7. Call finalize_decision with your analysis
 
 RISK ASSESSMENT:
 - Low: Pure documentation, README, comments
@@ -441,8 +654,15 @@ RISK ASSESSMENT:
 - Still consider tests for low/medium changes if they affect user flows or testing infrastructure
 
 SPECIAL CASES:
-- CI/CD changes (workflows, bitrise, actions): Examine what's being added/removed
-  If test workflows are modified, consider running related tests
+- CI/CD changes (workflows, bitrise, actions): ALWAYS investigate deeply
+  * For reusable workflows (.github/workflows with workflow_call):
+    Use find_related_files with search_type='ci' to find all callers
+    If widely used (>5 callers) → HIGH RISK → run comprehensive tests
+  * For scripts (scripts/, .github/scripts/):
+    Use find_related_files to find all workflows using the script
+    If used in test/build workflows → consider running affected test tags
+  * For workflow changes: Read the diff to understand what's being modified
+    If test execution logic changes → HIGH RISK
 - Test file changes: Usually safe, but examine what's being tested
 - Config changes: May affect runtime behavior, investigate carefully
 
@@ -450,7 +670,8 @@ SELECTION GUIDANCE:
 - Use your judgment on whether tests are needed - 0 tags is perfectly acceptable for genuine non-functional changes
 - Critical files (package.json, controllers, Engine) should almost always trigger tests
 - Reading actual diffs (get_git_diff) provides better context than filenames alone
-- If a CI file is changed, consider how far reaching the impact might be
+- For CI files: Use find_related_files first, then assess impact breadth
+- If a reusable workflow or widely-used script changes → likely HIGH impact
 
 Be thorough but efficient. Use your judgment.
 
