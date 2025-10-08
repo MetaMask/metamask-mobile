@@ -58,7 +58,7 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
-        await FooterActions.tapCancelButton();
+        await FooterActions.tapConfirmButton();
       },
     );
   });
@@ -110,7 +110,7 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
-        await FooterActions.tapCancelButton();
+        await FooterActions.tapConfirmButton();
       },
     );
   });
@@ -162,7 +162,7 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
-        await FooterActions.tapCancelButton();
+        await FooterActions.tapConfirmButton();
       },
     );
   });
