@@ -42,9 +42,10 @@ export function getTokenTransferData(transactionMeta: TransactionMeta):
     call.data?.startsWith(FOUR_BYTE_TOKEN_TRANSFER),
   );
 
-  const nestedCall = nestedCallIndex
-    ? nestedTransactions?.[nestedCallIndex]
-    : undefined;
+  const nestedCall =
+    nestedCallIndex !== undefined
+      ? nestedTransactions?.[nestedCallIndex]
+      : undefined;
 
   if (nestedCall?.data && nestedCall.to) {
     return {

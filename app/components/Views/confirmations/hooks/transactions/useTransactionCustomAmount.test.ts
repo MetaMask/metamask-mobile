@@ -26,15 +26,17 @@ function runHook({
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
-      {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [transactionMeta ?? {}],
+      transactionMeta
+        ? {
+            engine: {
+              backgroundState: {
+                TransactionController: {
+                  transactions: [transactionMeta],
+                },
+              },
             },
-          },
-        },
-      },
+          }
+        : {},
     ),
   });
 }
