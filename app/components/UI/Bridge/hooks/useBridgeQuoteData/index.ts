@@ -25,7 +25,6 @@ import {
 } from '../../utils/quoteUtils';
 
 import { selectTicker } from '../../../../../selectors/networkController';
-import { formatAmount } from '../../../SimulationDetails/formatAmount';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -124,9 +123,11 @@ export const useBridgeQuoteData = ({
       return '-';
     }
 
-    const formattedAmount = `${formatAmount(
-      locale,
-      new BigNumber(amount),
+    const networkFeeFormatter = getIntlNumberFormatter(locale, {
+      maximumFractionDigits: 6,
+    });
+    const formattedAmount = `${networkFeeFormatter.format(
+      Number(amount),
     )} ${ticker}`;
     const formattedValueInCurrency = fiatFormatter(
       new BigNumber(valueInCurrency),
