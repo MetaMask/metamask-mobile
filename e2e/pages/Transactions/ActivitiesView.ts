@@ -50,7 +50,7 @@ class ActivitiesView {
 
   // Top tab: Perps (Activity tabs: Transactions | Orders | Perps)
   get perpsTopTab(): DetoxElement {
-    return Matchers.getElementByText(/Perps/i);
+    return Matchers.getElementByTextContains('Perps');
   }
 
   transactionStatus(row: number): DetoxElement {
