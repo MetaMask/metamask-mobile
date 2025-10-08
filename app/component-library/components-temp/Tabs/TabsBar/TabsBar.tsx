@@ -48,8 +48,16 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // Reset layout data when tabs change structurally (count or content)
   const tabKeys = useMemo(() => tabs.map((tab) => tab.key).join(','), [tabs]);
   const prevTabKeys = useRef<string>('');
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    // Skip reset logic on initial mount to avoid interfering with initialization
+    if (isInitialMount.current) {
+      prevTabKeys.current = tabKeys;
+      isInitialMount.current = false;
+      return;
+    }
+
     // Reset when tabs change (either count or content/keys)
     const shouldReset =
       tabLayouts.current.length !== tabs.length ||
