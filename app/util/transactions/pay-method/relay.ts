@@ -6,7 +6,7 @@ import {
   getClient,
 } from '@relayprotocol/relay-sdk';
 import { BridgeQuoteRequest } from '../../../components/Views/confirmations/utils/bridge';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { cloneDeep, noop } from 'lodash';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
@@ -101,7 +101,7 @@ export class RelayPayMethod implements PayMethod<Execute> {
       handleSignMessageStep: async () => '',
       handleSendTransactionStep: async (chainId, item, step) => {
         const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          toHex(chainId),
+          toHex(chainId).toLowerCase() as Hex,
         );
 
         log('Adding transaction', {
@@ -206,7 +206,7 @@ export class RelayPayMethod implements PayMethod<Execute> {
   ): TransactionParams {
     return {
       ...params,
-      gasLimit: toHex(params.gas),
+      gas: params.gas ? toHex(params.gas) : toHex(50000),
       maxFeePerGas: toHex(params.maxFeePerGas),
       maxPriorityFeePerGas: toHex(params.maxPriorityFeePerGas),
       value: toHex(params.value),
@@ -235,9 +235,13 @@ export class RelayPayMethod implements PayMethod<Execute> {
     return {
       amount: quote?.details?.currencyOut?.amountFormatted ?? '0',
       estimatedTime: quote.details?.timeEstimate ?? 0,
-      fee: quote.fees?.relayer?.amountUsd ?? '0',
+      fee: new BigNumber(quote.details?.currencyIn?.amountUsd ?? '0')
+        .minus(quote?.details?.currencyOut?.amountUsd ?? '0')
+        .toString(10),
       method: PayMethodType.Relay,
-      networkFee: quote.fees?.gas?.amountUsd ?? '0',
+      networkFee: new BigNumber(quote.fees?.gas?.amountUsd ?? '0')
+        .multipliedBy(2)
+        .toString(10),
       original: quote,
       request,
     };

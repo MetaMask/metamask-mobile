@@ -143,6 +143,7 @@ const PerpsScreenStack = () => (
           component={Confirm}
           options={{
             title: '',
+            headerLeft: () => null,
           }}
         />
       </Stack.Navigator>
