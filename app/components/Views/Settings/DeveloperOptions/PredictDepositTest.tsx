@@ -42,7 +42,6 @@ export function PredictDepositTest() {
   const handleDeposit = useCallback(async () => {
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.PERPS.ROOT,
     });
 
     addTransactionBatch({
