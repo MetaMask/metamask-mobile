@@ -20,6 +20,7 @@ import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import type { ReconnectOptions } from '../types';
 
 // simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -321,6 +322,19 @@ class PerpsConnectionManagerClass {
       await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
     }
 
+    // Wait if we're already reconnecting
+    if (this.pendingReconnectPromise) {
+      DevLogger.log(
+        'PerpsConnectionManager: Waiting for reconnection to complete before connecting',
+      );
+      await this.pendingReconnectPromise;
+      // After reconnection completes, check if we still need to connect
+      if (this.isConnected) {
+        this.clearError();
+        return Promise.resolve();
+      }
+    }
+
     // Set up monitoring when first entering Perps (refCount 0 -> 1)
     if (this.connectionRefCount === 0) {
       this.setupStateMonitoring();
@@ -339,58 +353,12 @@ class PerpsConnectionManagerClass {
       return this.initPromise;
     }
 
-    // Check if we think we're connected but the controller might be disconnected
-    // This handles the case where state gets out of sync
+    // If already connected, clear any stale errors and return early
+    // Note: We don't proactively check for stale connections here for performance reasons
+    // Any connection issues will surface when components attempt to use the connection
     if (this.isConnected) {
-      try {
-        // Quick check to see if connection is actually alive
-        await Engine.context.PerpsController.getAccountState({
-          source: 'health_check',
-        });
-        DevLogger.log(
-          'PerpsConnectionManager: Connection is already active and healthy',
-        );
-        // Clear any previous errors on successful connection
-        this.clearError();
-        return Promise.resolve();
-      } catch (error) {
-        // Check if this is a rate limit error - don't treat as stale connection
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        const isRateLimitError =
-          errorMessage.includes('429') ||
-          errorMessage.includes('Too Many Requests');
-
-        if (isRateLimitError) {
-          // Track rate limit events in Sentry for monitoring API health
-          Logger.error(error as Error, {
-            message:
-              'HyperLiquid API rate limit exceeded - not treating as stale connection',
-            context: 'PerpsConnectionManager.connect',
-            provider: 'hyperliquid',
-            isTestnet:
-              Engine.context.PerpsController?.getCurrentNetwork?.() ===
-              'testnet',
-          });
-
-          // Set error but don't reset connection state - let it recover naturally
-          this.setError(
-            'API rate limit exceeded. Please try again in a moment.',
-          );
-          throw error; // Propagate the error without resetting connection
-        }
-
-        // Connection is stale, reset state and reconnect
-        Logger.error(error as Error, {
-          message: 'Stale connection detected, will reconnect',
-          context: 'PerpsConnectionManager.connect',
-          provider: 'hyperliquid',
-          isTestnet:
-            Engine.context.PerpsController?.getCurrentNetwork?.() === 'testnet',
-        });
-        this.isConnected = false;
-        this.isInitialized = false;
-      }
+      this.clearError();
+      return Promise.resolve();
     }
 
     this.isConnecting = true;
@@ -422,39 +390,7 @@ class PerpsConnectionManagerClass {
           traceSpan,
         );
 
-        // Stage 2: Get account state - may fail if still initializing
-        const accountStart = performance.now();
-        try {
-          await Engine.context.PerpsController.getAccountState({
-            source: 'initial_connection',
-          });
-        } catch (error) {
-          // If it's a CLIENT_REINITIALIZING error, wait and retry once
-          if (
-            error instanceof Error &&
-            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING
-          ) {
-            DevLogger.log(
-              'PerpsConnectionManager: Provider reinitializing, retrying...',
-              {
-                error: error.message,
-              },
-            );
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            await Engine.context.PerpsController.getAccountState({
-              source: 'initial_connection_retry',
-            });
-          } else {
-            throw error;
-          }
-        }
-        setMeasurement(
-          PerpsMeasurementName.PERPS_ACCOUNT_STATE_FETCH,
-          performance.now() - accountStart,
-          'millisecond',
-          traceSpan,
-        );
-
+        // Mark as connected - WebSocket connection will be established during preload
         this.isConnected = true;
         this.isConnecting = false;
         // Clear errors on successful connection
@@ -569,10 +505,40 @@ class PerpsConnectionManagerClass {
   /**
    * Force reconnection with new account/network context
    * Used when user switches accounts or networks
+   * @param options - Reconnection options
    */
-  async reconnectWithNewContext(): Promise<void> {
-    // Cancel any pending reconnection and start fresh
-    this.pendingReconnectPromise = null;
+  async reconnectWithNewContext(options?: ReconnectOptions): Promise<void> {
+    const force = options?.force ?? false;
+
+    if (force) {
+      // Force mode: Cancel all pending operations and start fresh
+      DevLogger.log(
+        'PerpsConnectionManager: Force reconnection - cancelling pending operations',
+      );
+
+      // Clear all pending promises to cancel in-flight operations
+      // Note: Actual disconnect happens in performReconnection → Controller.initializeProviders → performInitialization
+      this.isConnecting = false;
+      this.initPromise = null;
+      this.pendingReconnectPromise = null;
+    } else {
+      // Wait for pending initialization if exists
+      if (this.initPromise) {
+        DevLogger.log(
+          'PerpsConnectionManager: Waiting for pending initialization before reconnecting',
+        );
+        await this.initPromise;
+        // After init completes, check if we're already connected
+        if (this.isConnected) {
+          return;
+        }
+      }
+
+      // If already reconnecting, return existing promise
+      if (this.pendingReconnectPromise) {
+        return this.pendingReconnectPromise;
+      }
+    }
 
     // Create a new reconnection promise
     this.pendingReconnectPromise = this.performReconnection();
@@ -633,7 +599,7 @@ class PerpsConnectionManagerClass {
 
       // Stage 2: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
-      await Engine.context.PerpsController.reconnectWithNewContext();
+      await Engine.context.PerpsController.initializeProviders();
       setMeasurement(
         PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
         performance.now() - reinitStart,

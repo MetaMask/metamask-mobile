@@ -2910,49 +2910,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Reconnect with new account/network context
-   * Called when user switches accounts or networks
-   */
-  async reconnectWithNewContext(): Promise<void> {
-    // Prevent concurrent reinitializations
-    if (this.isReinitializing) {
-      DevLogger.log('PerpsController: Already reinitializing, waiting...', {
-        timestamp: new Date().toISOString(),
-      });
-      // Wait for the current reinitialization to complete
-      if (this.initializationPromise) {
-        await this.initializationPromise;
-      }
-      return;
-    }
-
-    this.isReinitializing = true;
-
-    try {
-      DevLogger.log('PerpsController: Reconnecting with new account/network', {
-        timestamp: new Date().toISOString(),
-      });
-
-      // Clear Redux state immediately to reset UI
-      this.update((state) => {
-        state.accountState = null;
-        state.pendingOrders = [];
-        state.lastError = null;
-      });
-
-      // Clear state and force reinitialization
-      // initializeProviders() will handle disconnection if needed
-      this.isInitialized = false;
-      this.initializationPromise = null;
-
-      // Reinitialize with new context
-      await this.initializeProviders();
-    } finally {
-      this.isReinitializing = false;
-    }
-  }
-
-  /**
    * Eligibility (Geo-Blocking)
    */
 
