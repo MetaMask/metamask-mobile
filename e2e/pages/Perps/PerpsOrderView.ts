@@ -159,8 +159,8 @@ class PerpsOrderView {
     });
   }
 
-  async setLimitPricePresetLong(percentage: number) {
-    // For long orders, presets are negative values: -1, -2, -5, -10
+  async setLimitPricePreset(percentage: number) {
+    // For short orders, presets are positive values: 1, 2, 5, 10
     const label = `${percentage > 0 ? '+' : ''}${percentage}%`;
     const preset = Matchers.getElementByText(label) as DetoxElement;
     await Gestures.waitAndTap(preset, {
