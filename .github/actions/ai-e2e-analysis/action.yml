@@ -32,17 +32,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Minimal checkout for AI analysis
+    - name: Full checkout for AI analysis
       uses: actions/checkout@v4
       with:
-        sparse-checkout: |
-          .github/scripts
-          e2e/scripts
-          e2e/specs
-          e2e/tags.js
-          .nvmrc
-        sparse-checkout-cone-mode: false
-        fetch-depth: 1
+        fetch-depth: 1  # Shallow clone for speed - agent needs to read files and search codebase
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
