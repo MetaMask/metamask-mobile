@@ -268,6 +268,11 @@ export const DEFAULT_MOCKS = {
       response: {},
     },
     {
+      urlEndpoint: 'https://transaction.api.cx.metamask.io/networks/1/getFees',
+      responseCode: 200,
+      response: {},
+    },
+    {
       urlEndpoint:
         /^https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[a-fA-F0-9]+$/,
       responseCode: 200,
