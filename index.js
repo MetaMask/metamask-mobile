@@ -21,7 +21,6 @@ import {
 } from './app/core/ErrorHandler';
 
 import { enableFreeze } from 'react-native-screens';
-import { ReadableStream } from 'web-streams-polyfill';
 
 if (__DEV__) {
   require('./ReactotronConfig');
@@ -34,7 +33,6 @@ setupSentry(__DEV__);
 
 // Setup Performance observers
 Performance.setupPerformanceObservers();
-global.ReadableStream = ReadableStream;
 
 // Ignore all logs
 LogBox.ignoreAllLogs();

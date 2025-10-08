@@ -3,10 +3,6 @@
 /* eslint-disable import/no-commonjs */
 const path = require('path');
 
-// Set global ReadableStream from web-streams-polyfill
-const { ReadableStream } = require('web-streams-polyfill');
-global.ReadableStream = ReadableStream;
-
 const {
   removeFencedCode,
   lintTransformedFile,
@@ -93,11 +89,6 @@ function getBuildTypeFeatures() {
  * See https://github.com/MetaMask/core/tree/main/packages/build-utils for details.
  */
 module.exports.transform = async ({ src, filename, options }) => {
-  // Ensure ReadableStream is available globally
-  if (!global.ReadableStream) {
-    const { ReadableStream } = require('web-streams-polyfill');
-    global.ReadableStream = ReadableStream;
-  }
   if (filename.endsWith('.svg')) {
     return svgTransformer.transform({ src, filename, options });
   }
