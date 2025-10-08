@@ -9,6 +9,7 @@ import { useAssetFromTheme } from '../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import emptyStatePerpsLight from '../../../../../images/empty-state-perps-light.png';
 import emptyStatePerpsDark from '../../../../../images/empty-state-perps-dark.png';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export interface PerpsEmptyStateProps extends TabEmptyStateProps {
   testID?: string;
@@ -34,6 +35,9 @@ export const PerpsEmptyState: React.FC<PerpsEmptyStateProps> = ({
       }
       description={strings('perps.position.list.first_time_description')}
       actionButtonText={strings('perps.position.list.start_trading')}
+      actionButtonProps={{
+        testID: PerpsTabViewSelectorsIDs.ONBOARDING_BUTTON,
+      }}
       testID={testID}
       {...props}
     />

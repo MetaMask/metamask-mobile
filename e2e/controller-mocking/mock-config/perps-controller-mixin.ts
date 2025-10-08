@@ -18,7 +18,7 @@ import type {
   ClosePositionParams,
   LiquidationPriceParams,
   Funding,
-} from '../../../app/components/UI/Perps/controllers/types';
+ UpdatePositionTPSLParams } from '../../../app/components/UI/Perps/controllers/types';
 import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
 
 // Interface for controller with update method access
@@ -93,8 +93,10 @@ export class E2EControllerOverrides {
 
   // Mock historical orders
   async getOrders(): Promise<Order[]> {
-    const orders = this.mockService.getMockOrders();
-    return orders;
+    // Return combined open orders and historical (canceled/filled) orders
+    const openOrders = this.mockService.getMockOrders();
+    const historicalOrders = this.mockService.getMockOrdersHistory();
+    return [...openOrders, ...historicalOrders];
   }
 
   // Mock historical order fills (trades)
@@ -152,6 +154,32 @@ export class E2EControllerOverrides {
       },
     );
 
+    return result;
+  }
+
+  // Mock cancel order
+  async cancelOrder(params: {
+    orderId: string;
+    coin: string;
+  }): Promise<OrderResult> {
+    const result = await this.mockService.mockCancelOrder(params.orderId);
+    return result;
+  }
+
+  // Mock TP/SL update creating trigger orders
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    const result = await this.mockService.mockUpdatePositionTPSL(params);
+    // Refresh Redux positions after TP/SL changes
+    const mockPositions = this.mockService.getMockPositions();
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.positions = mockPositions;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
     return result;
   }
 
@@ -232,10 +260,16 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   // Override key methods with E2E mocks
   const methodsToOverride = [
     'placeOrder',
+    'cancelOrder',
     'getAccountState',
     'getPositions',
     'closePosition',
+    'updatePositionTPSL',
     'calculateLiquidationPrice',
+    // Activity > Perps data sources
+    'getOrders',
+    'getOrderFills',
+    'getFunding',
     'subscribeToAccount',
     'subscribeToPositions',
     'subscribeToOrders',
