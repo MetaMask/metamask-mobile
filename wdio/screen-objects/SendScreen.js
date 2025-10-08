@@ -132,7 +132,7 @@ class SendScreen {
   }
 
   async isVisible() {
-    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Ethereum');
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
     await appwrightExpect(networkButton).toBeVisible();
   }
 
@@ -198,6 +198,13 @@ class SendScreen {
     }
   }
 
+  async clickOnFirstTokenBadge() {
+    const firstTokenBadge = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`);
+    // await firstTokenBadge.tap();
+    appwrightExpect(firstTokenBadge).toBeVisible();
+    await AppwrightGestures.tap(firstTokenBadge);
+  }
+
   async selectNetwork(network) {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
@@ -212,20 +219,28 @@ class SendScreen {
     }
   }
 
-  async selectToken(tokenName, tokenSymbol) {
+  async selectToken(networkName = 'Ethereum', tokenSymbol) {
 
     if (!this._device) {
       await Gestures.tapTextByXpath(tokenName);
     } else {
-      await this._device.pause(150000000000)
-      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName} ${tokenSymbol}`);
-      await tokenButton.tap();
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        //const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
+        //const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
+        //await AppwrightGestures.tap(tokenButton);
+      } else {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${networkName}"]`);
+        await AppwrightGestures.tap(networkButton);
+        const tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, tokenSymbol);
+        await AppwrightGestures.tap(tokenButton);
+      }
+
     }
   }
 
   async assetsListIsDisplayed() {
-    const assetsList = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
-    await appwrightExpect(assetsList).toBeVisible();
+    const searchTokenField = await this.searchTokenField
+    await appwrightExpect(searchTokenField).toBeVisible();
   }
 
   async isSelectAddressScreenDisplayed() {

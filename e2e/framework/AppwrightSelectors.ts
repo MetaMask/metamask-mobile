@@ -46,7 +46,7 @@ export default class AppwrightSelectors {
   ): Promise<AppwrightLocator | null> {
     const isIOS = AppwrightSelectors.isIOS(testDevice);
     if (isIOS) {
-      const xpath = `//*[contains(@name,'${identifier}')][1]`;
+      const xpath = `//*[contains(@name,'${identifier}')]`;
       return await AppwrightSelectors.getElementByXpath(testDevice, xpath);
     }
     return null;

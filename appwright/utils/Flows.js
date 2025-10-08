@@ -118,14 +118,30 @@ export async function login(device, options = {}) {
   // Wait for app to settle after unlock
 
   // Only tap intro screens on first login
-  if (!skipIntro) {
-    await dismissMultichainAccountsIntroModal(device);
-    await tapPerpsBottomSheetGotItButton(device);
-  }
+  //if (!skipIntro) {
+  // Run both modal dismissals in parallel with 5 second timeout
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Modal dismissal timeout')), 10000)
+  );
+  
+  await Promise.race([
+    Promise.allSettled([
+      dismissMultichainAccountsIntroModal(device),
+      tapPerpsBottomSheetGotItButton(device)
+    ]),
+    timeoutPromise
+  ]).catch((error) => {
+    console.log('Modal dismissal completed or timed out:', error.message);
+  });
+  //}
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
   const container = await PerpsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
+  }
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
@@ -138,6 +154,9 @@ export async function dismissMultichainAccountsIntroModal(
 ) {
   MultichainAccountEducationModal.device = device;
   const closeButton = await MultichainAccountEducationModal.closeButton;
+  if (await closeButton.isVisible({ timeout })) {
+    await MultichainAccountEducationModal.tapGotItButton();
+  }
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
   }
