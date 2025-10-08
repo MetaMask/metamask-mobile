@@ -33,7 +33,6 @@ jobs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     steps:
       # Get the source code from the repository
       - name: Checkout repo
