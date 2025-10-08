@@ -681,9 +681,9 @@ TOOLS AVAILABLE:
 - get_git_diff: See exact code changes
 - get_pr_diff: Get full PR diff (for live PRs)
 - find_related_files: Discover impact depth and relationships
-  * For CI files: finds reusable workflow callers, script usage in workflows
+  * For CI files: finds reusable workflow callers, GitHub Action usage, script usage in workflows
   * For code files: finds importers (dependents), dependencies, tests, module files
-  * Use search_type='ci' for workflow/script relationships
+  * Use search_type='ci' for workflow/action/script relationships
   * Use search_type='importers' to find who depends on code changes
   * Use search_type='all' for comprehensive relationship analysis
 - finalize_decision: Submit your selection
@@ -715,7 +715,11 @@ RISK ASSESSMENT:
 - Still consider tests for low/medium changes if they affect user flows or testing infrastructure
 
 SPECIAL CASES:
-- CI/CD changes (workflows, bitrise, actions): ALWAYS investigate deeply
+- CI/CD changes (workflows, actions, scripts): ALWAYS investigate deeply
+  * For GitHub Actions (.github/actions/):
+    Use find_related_files with search_type='ci' to find workflows using the action
+    If used in test workflows → consider running affected test tags
+    Changes to action logic may affect multiple workflows
   * For reusable workflows (.github/workflows with workflow_call):
     Use find_related_files with search_type='ci' to find all callers
     If widely used (>5 callers) → HIGH RISK → run comprehensive tests
