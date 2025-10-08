@@ -5,6 +5,9 @@ import {
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { hasTransactionType } from './transaction';
+import { Hex } from '@metamask/utils';
+
+const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
@@ -15,6 +18,26 @@ export function getRequiredBalance(
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     return PREDICT_MINIMUM_DEPOSIT;
+  }
+
+  return undefined;
+}
+
+export function getTokenTransferData(transactionMeta: TransactionMeta) {
+  const { nestedTransactions, txParams } = transactionMeta;
+  const { data: singleData } = txParams;
+  const singleTo = txParams.to as Hex | undefined;
+
+  if(singleData?.startsWith(FOUR_BYTE_TOKEN_TRANSFER) && singleTo) {
+    return { data: singleData as Hex, to: singleTo };
+  }
+
+  const nestedCall = nestedTransactions?.find((call) =>
+    call.data?.startsWith(FOUR_BYTE_TOKEN_TRANSFER),
+  );
+
+  if(nestedCall?.data && nestedCall.to) {
+    return { data: nestedCall.data, to: nestedCall.to };
   }
 
   return undefined;

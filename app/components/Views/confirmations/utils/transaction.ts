@@ -112,7 +112,9 @@ export function hasTransactionType(
     return true;
   }
 
-  return nestedTransactions?.some((tx) =>
-    types.includes(tx.type as TransactionType),
+  return (
+    nestedTransactions?.some((tx) =>
+      types.includes(tx.type as TransactionType),
+    ) ?? false
   );
 }
