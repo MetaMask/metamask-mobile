@@ -6,7 +6,7 @@ import {
   getTestDappLocalUrlByDappCounter,
 } from './FixtureUtils';
 import { merge } from 'lodash';
-import { encryptVault } from './FixtureHelper';
+import { encryptVault } from './helpers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
