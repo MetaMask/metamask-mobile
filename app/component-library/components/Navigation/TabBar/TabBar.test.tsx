@@ -12,6 +12,11 @@ import TabBar from './TabBar';
 import { TabBarIconKey } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
 
+// Force rewards feature flag to be enabled for this test file
+jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
+  selectRewardsEnabledFlag: () => true,
+}));
+
 // Mock the navigation object.
 const navigation = {
   navigate: jest.fn(),
@@ -23,8 +28,12 @@ const mockInitialState = {
       ...backgroundState,
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          rewards: true,
+          rewardsEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.1',
+          },
         },
+        cacheTimestamp: 0,
       },
     },
   },
