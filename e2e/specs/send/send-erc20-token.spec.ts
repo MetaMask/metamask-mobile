@@ -1,7 +1,9 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../pages/Send/RedesignedSendView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
+import { Assertions } from '../../framework';
 import { DappVariants } from '../../framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
@@ -59,6 +61,8 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
         await FooterActions.tapConfirmButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
@@ -111,6 +115,8 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
         await FooterActions.tapConfirmButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
@@ -163,6 +169,8 @@ describe(SmokeConfirmationsRedesigned('Send ERC20 asset'), () => {
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
         await FooterActions.tapConfirmButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
