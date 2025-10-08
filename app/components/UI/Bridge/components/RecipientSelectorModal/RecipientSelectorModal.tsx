@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,6 +18,9 @@ import {
   selectAccountToGroupMap,
   selectAccountGroupsByWallet,
 } from '../../../../../selectors/multichainAccounts/accountTreeController.ts';
+import { EthScope } from '@metamask/keyring-api';
+import { KnownCaipNamespace } from '@metamask/utils';
+import { AccountId } from '@metamask/accounts-controller';
 
 const RecipientSelectorModal: React.FC = () => {
   const navigation = useNavigation();
@@ -29,17 +32,29 @@ const RecipientSelectorModal: React.FC = () => {
   const destToken = useSelector(selectDestToken);
   const destAddress = useSelector(selectDestAddress);
 
+  const destScope = formatChainIdToCaip(destToken?.chainId || '');
+  const isDestEvm = destScope.startsWith(KnownCaipNamespace.Eip155);
+
   const handleClose = () => {
     navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
     });
   };
 
+  const getIsAccountSupported = useCallback(
+    (account: AccountId) => {
+      const byDestScope =
+        internalAccountsById[account]?.scopes.includes(destScope);
+      const byEvmWildcard = isDestEvm
+        ? internalAccountsById[account]?.scopes.includes(EthScope.Eoa)
+        : false;
+      return byDestScope || byEvmWildcard;
+    },
+    [internalAccountsById, destScope, isDestEvm],
+  );
+
   const handleSelectAccount = (accountGroup: AccountGroupObject) => {
-    const destScope = formatChainIdToCaip(destToken?.chainId || '');
-    const internalAccountId = accountGroup.accounts.find((account) =>
-      internalAccountsById[account].scopes.includes(destScope),
-    );
+    const internalAccountId = accountGroup.accounts.find((accountId) => getIsAccountSupported(accountId));
     if (internalAccountId) {
       const internalAccount = internalAccountsById[internalAccountId];
       dispatch(setDestAddress(internalAccount.address));
@@ -57,21 +72,11 @@ const RecipientSelectorModal: React.FC = () => {
       return undefined;
     }
 
-    const destScope = formatChainIdToCaip(destToken.chainId);
-
     return accountGroupsByWallet.reduce<AccountSection[]>((acc, section) => {
       // Filter account groups to only include those with accounts supporting destScope
       const filteredGroups = section.data.filter((accountGroup) =>
         // Filter accounts within the group to only those supporting destScope
-         accountGroup.accounts.some((accountId) => {
-          const isWildcardEvmScope = destScope.startsWith('eip155:');
-          if (isWildcardEvmScope) {
-            return internalAccountsById[accountId]?.scopes.some((scope) =>
-              scope.startsWith('eip155:'),
-            );
-          }
-          return internalAccountsById[accountId]?.scopes.includes(destScope);
-        })
+        accountGroup.accounts.some((accountId) => getIsAccountSupported(accountId)),
       );
 
       // Only include the wallet section if it has at least one group with supported accounts
@@ -85,7 +90,12 @@ const RecipientSelectorModal: React.FC = () => {
 
       return acc;
     }, []);
-  }, [destToken, accountGroupsByWallet, internalAccountsById]);
+  }, [
+    destToken,
+    accountGroupsByWallet,
+    internalAccountsById,
+    getIsAccountSupported,
+  ]);
 
   const selectedAccountGroup = useMemo(() => {
     if (!destAddress) return undefined;

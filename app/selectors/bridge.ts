@@ -14,6 +14,7 @@ import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { selectMultichainAccountsState2Enabled } from './featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from './util';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account
@@ -57,7 +58,7 @@ export const selectValidDestInternalAccountIds = createDeepEqualSelector(
     if (!destToken) return new Set<AccountId>();
 
     const destScope = formatChainIdToCaip(destToken.chainId);
-    const isEvm = destScope.startsWith('eip155:');
+    const isEvm = destScope.startsWith(KnownCaipNamespace.Eip155);
 
     const byDestScope = selectInternalAccountsByScope(state, destScope);
     const evmWildcard = isEvm
