@@ -17,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
   selectIsBridgeEnabledSource: jest.fn(() => true),
+  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true),
 }));
 
 const mockGoToPortfolioBridge = jest.fn();
@@ -405,7 +406,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -457,7 +458,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
