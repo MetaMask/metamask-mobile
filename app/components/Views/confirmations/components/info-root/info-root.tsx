@@ -21,6 +21,7 @@ import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
+import { hasTransactionType } from '../../utils/transaction';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -75,8 +76,6 @@ const Info = ({ route }: InfoProps) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
-  const { nestedTransactions } = transactionMetadata ?? {};
-  const nestedTransactionTypes = nestedTransactions?.map((tx) => tx.type) ?? [];
 
   if (!approvalRequest?.type) {
     return null;
@@ -90,7 +89,7 @@ const Info = ({ route }: InfoProps) => {
     return <QRInfo />;
   }
 
-  if (nestedTransactionTypes.includes(TransactionType.predictDeposit)) {
+  if (transactionMetadata && hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])) {
     return <PredictDepositInfo />;
   }
 

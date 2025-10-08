@@ -488,14 +488,6 @@ const SettingsFlow = () => (
     {
       ///: END:ONLY_INCLUDE_IF
     }
-    <Stack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={RedesignedConfirm}
-      options={{
-        title: '',
-        headerLeft: () => null,
-      }}
-    />
   </Stack.Navigator>
 );
 
