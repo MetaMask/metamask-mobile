@@ -12,7 +12,6 @@ import {
   mapSupportedActionToRoute,
   createDeepLinkUsedEventBuilder,
 } from './deepLinkAnalytics';
-import { ACTIONS } from '../../constants/deeplinks';
 import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.types';
 import {
   DeepLinkRoute,
@@ -43,7 +42,7 @@ jest.mock('./deepLinkAnalytics', () => {
 
 describe('deepLinkAnalytics', () => {
   describe('determineAppInstallationStatus', () => {
-    it('returns false for deferred deep link (first session from Branch link)', () => {
+    it('detects deferred deep link when user installs app via Branch link', () => {
       const params = {
         '+is_first_session': true,
         '+clicked_branch_link': true,
@@ -55,7 +54,7 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(false);
     });
 
-    it('returns true for returning user from Branch link', () => {
+    it('detects returning user when app was already installed', () => {
       const params = {
         '+is_first_session': false,
         '+clicked_branch_link': true,
@@ -67,7 +66,7 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(true);
     });
 
-    it('returns true for direct app launch (not from Branch link)', () => {
+    it('detects direct app launch when not from Branch link', () => {
       const params = {
         '+is_first_session': false,
         '+clicked_branch_link': false,
@@ -79,44 +78,40 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(true);
     });
 
-    it('returns true when no params are available (default case)', () => {
-      const result = determineAppInstallationStatus(null);
-
+    it('defaults to app installed when no params available', () => {
+      const noParams = null;
+      const result = determineAppInstallationStatus(noParams);
       expect(result).toBe(true);
     });
 
-    it('returns true when params are empty object', () => {
-      const result = determineAppInstallationStatus({});
-
+    it('defaults to app installed when params are empty', () => {
+      const emptyParams = {};
+      const result = determineAppInstallationStatus(emptyParams);
       expect(result).toBe(true);
     });
 
-    it('handles undefined clicked_branch_link', () => {
+    it('handles missing clicked_branch_link parameter', () => {
       const params = {
         '+is_first_session': true,
         '+clicked_branch_link': undefined,
         BNCUpdateStateInstall: 0,
       };
-
       const result = determineAppInstallationStatus(params);
-
       expect(result).toBe(true);
     });
 
-    it('handles missing is_first_session', () => {
+    it('handles missing is_first_session parameter', () => {
       const params = {
         '+clicked_branch_link': true,
         BNCUpdateStateInstall: 0,
       };
-
       const result = determineAppInstallationStatus(params);
-
       expect(result).toBe(true);
     });
 
-    it('returns true for invalid params', () => {
-      const result = determineAppInstallationStatus('invalid-params');
-
+    it('defaults to app installed for invalid parameter types', () => {
+      const invalidParams = 'invalid-params';
+      const result = determineAppInstallationStatus(invalidParams);
       expect(result).toBe(true);
     });
   });
@@ -141,34 +136,25 @@ describe('deepLinkAnalytics', () => {
       crypto_amount: '0.1',
     };
 
-    it('extracts common properties for all routes', () => {
-      const result = extractSensitiveProperties(
-        DeepLinkRoute.SWAP,
-        mockUrlParams,
-      );
-
+    it('extracts common transaction properties for swap route', () => {
+      const swapRoute = DeepLinkRoute.SWAP;
+      const result = extractSensitiveProperties(swapRoute, mockUrlParams);
       expect(result.from).toBe('ETH');
       expect(result.to).toBe('USDC');
       expect(result.amount).toBe('100');
       expect(result.asset).toBe('ETH');
     });
 
-    it('extracts swap-specific properties', () => {
-      const result = extractSensitiveProperties(
-        DeepLinkRoute.SWAP,
-        mockUrlParams,
-      );
-
+    it('extracts swap-specific properties including slippage', () => {
+      const swapRoute = DeepLinkRoute.SWAP;
+      const result = extractSensitiveProperties(swapRoute, mockUrlParams);
       expect(result.slippage).toBe('0.5');
       expect(result.symbol).toBeUndefined();
     });
 
-    it('extracts perps-specific properties', () => {
-      const result = extractSensitiveProperties(
-        DeepLinkRoute.PERPS,
-        mockUrlParams,
-      );
-
+    it('extracts perps-specific properties including symbol and navigation', () => {
+      const perpsRoute = DeepLinkRoute.PERPS;
+      const result = extractSensitiveProperties(perpsRoute, mockUrlParams);
       expect(result.symbol).toBe('BTC');
       expect(result.screen).toBe('markets');
       expect(result.tab).toBe('positions');
@@ -321,60 +307,70 @@ describe('deepLinkAnalytics', () => {
   });
 
   describe('mapSupportedActionToRoute', () => {
-    it('map swap action to SWAP route', () => {
-      const result = mapSupportedActionToRoute(SUPPORTED_ACTIONS.SWAP);
+    it('maps swap action to SWAP route', () => {
+      const swapAction = SUPPORTED_ACTIONS.SWAP;
+      const result = mapSupportedActionToRoute(swapAction);
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
-    it('map perps actions to PERPS route', () => {
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.PERPS)).toBe(
-        DeepLinkRoute.PERPS,
-      );
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.PERPS_MARKETS)).toBe(
-        DeepLinkRoute.PERPS,
-      );
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.PERPS_ASSET)).toBe(
-        DeepLinkRoute.PERPS,
-      );
-    });
+    it.each([
+      [SUPPORTED_ACTIONS.PERPS, DeepLinkRoute.PERPS],
+      [SUPPORTED_ACTIONS.PERPS_MARKETS, DeepLinkRoute.PERPS],
+      [SUPPORTED_ACTIONS.PERPS_ASSET, DeepLinkRoute.PERPS],
+    ] as const)(
+      'maps perps action %s to PERPS route',
+      (action, expectedRoute) => {
+        // Arrange & Act
+        const result = mapSupportedActionToRoute(action);
+        expect(result).toBe(expectedRoute);
+      },
+    );
 
-    it('map deposit action to DEPOSIT route', () => {
-      const result = mapSupportedActionToRoute(SUPPORTED_ACTIONS.DEPOSIT);
+    it('maps deposit action to DEPOSIT route', () => {
+      const depositAction = SUPPORTED_ACTIONS.DEPOSIT;
+      const result = mapSupportedActionToRoute(depositAction);
       expect(result).toBe(DeepLinkRoute.DEPOSIT);
     });
 
-    it('map send action to TRANSACTION route', () => {
-      const result = mapSupportedActionToRoute(SUPPORTED_ACTIONS.SEND);
+    it('maps send action to TRANSACTION route', () => {
+      const sendAction = SUPPORTED_ACTIONS.SEND;
+      const result = mapSupportedActionToRoute(sendAction);
       expect(result).toBe(DeepLinkRoute.TRANSACTION);
     });
 
-    it('map buy actions to BUY route', () => {
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.BUY)).toBe(DeepLinkRoute.BUY);
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.BUY_CRYPTO)).toBe(
-        DeepLinkRoute.BUY,
-      );
+    it.each([
+      [SUPPORTED_ACTIONS.BUY, DeepLinkRoute.BUY],
+      [SUPPORTED_ACTIONS.BUY_CRYPTO, DeepLinkRoute.BUY],
+    ] as const)('maps buy action %s to BUY route', (action, expectedRoute) => {
+      // Arrange & Act
+      const result = mapSupportedActionToRoute(action);
+      expect(result).toBe(expectedRoute);
     });
 
-    it('map home action to HOME route', () => {
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.HOME)).toBe(DeepLinkRoute.HOME);
+    it('maps home action to HOME route', () => {
+      const homeAction = SUPPORTED_ACTIONS.HOME;
+      const result = mapSupportedActionToRoute(homeAction);
+      expect(result).toBe(DeepLinkRoute.HOME);
     });
 
-    it('map unsupported actions to INVALID route', () => {
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.DAPP)).toBe(
-        DeepLinkRoute.INVALID,
-      );
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.WC)).toBe(DeepLinkRoute.INVALID);
-      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.CREATE_ACCOUNT)).toBe(
-        DeepLinkRoute.INVALID,
-      );
-    });
+    it.each([
+      [SUPPORTED_ACTIONS.DAPP, DeepLinkRoute.INVALID],
+      [SUPPORTED_ACTIONS.WC, DeepLinkRoute.INVALID],
+      [SUPPORTED_ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.INVALID],
+    ] as const)(
+      'maps unsupported action %s to INVALID route',
+      (action, expectedRoute) => {
+        // Arrange & Act
+        const result = mapSupportedActionToRoute(action);
+        expect(result).toBe(expectedRoute);
+      },
+    );
   });
 
   describe('extractRouteFromUrl', () => {
-    it('extract swap route', () => {
-      const result = extractRouteFromUrl(
-        'https://link.metamask.io/swap?from=ETH',
-      );
+    it('extracts swap route from URL', () => {
+      const swapUrl = 'https://link.metamask.io/swap?from=ETH';
+      const result = extractRouteFromUrl(swapUrl);
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
@@ -441,7 +437,7 @@ describe('deepLinkAnalytics', () => {
       mockDetectAppInstallation = deepLinkAnalytics.detectAppInstallation;
     });
 
-    it('create event with correct properties for swap route', async () => {
+    it('creates event with correct properties for swap route', async () => {
       mockDetectAppInstallation.mockResolvedValue(true);
 
       const context: DeepLinkAnalyticsContext = {
@@ -460,10 +456,8 @@ describe('deepLinkAnalytics', () => {
         interstitialDisabled: false,
         interstitialAction: InterstitialState.ACCEPTED,
       };
-
       const eventBuilder = await createDeepLinkUsedEventBuilder(context);
       const result = eventBuilder.build();
-
       expect(result.properties.route).toBe('swap');
       expect(result.properties.was_app_installed).toBe(true);
       expect(result.properties.signature).toBe(SignatureStatus.MISSING);
@@ -478,8 +472,7 @@ describe('deepLinkAnalytics', () => {
       });
     });
 
-    it('create event for invalid route with target URL', async () => {
-      // Mock the Branch.io getLatestReferringParams to return deferred deep link params
+    it('creates event for invalid route with target URL', async () => {
       const mockBranch = jest.requireMock('react-native-branch');
       mockBranch.getLatestReferringParams.mockResolvedValue({
         '+is_first_session': true,
@@ -495,10 +488,8 @@ describe('deepLinkAnalytics', () => {
         interstitialShown: false,
         interstitialDisabled: false,
       };
-
       const eventBuilder = await createDeepLinkUsedEventBuilder(context);
       const result = eventBuilder.build();
-
       expect(result.properties.route).toBe('invalid');
       expect(result.properties.was_app_installed).toBe(false);
       expect(result.properties.signature).toBe(SignatureStatus.INVALID);
@@ -525,8 +516,9 @@ describe('deepLinkAnalytics', () => {
       const eventBuilder = await createDeepLinkUsedEventBuilder(context);
       const result = eventBuilder.build();
 
-      expect(result).toBeDefined();
       expect(result.properties.was_app_installed).toBe(true);
+      expect(result.properties.route).toBe('swap');
+      expect(result.properties.signature).toBe(SignatureStatus.MISSING);
     });
   });
 });

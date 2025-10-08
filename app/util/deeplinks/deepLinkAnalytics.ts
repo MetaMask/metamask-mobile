@@ -36,7 +36,6 @@ export const determineAppInstallationStatus = (params: unknown): boolean => {
       | boolean
       | undefined;
 
-
     // Logic based on Branch.io documentation:
     // - +is_first_session: true = install, false = open
     // - +clicked_branch_link: true = came from Branch link
@@ -119,10 +118,22 @@ const extractCommonProperties = (
   urlParams: Record<string, string>,
   sensitiveProps: Record<string, string>,
 ): void => {
-  addPropertyIfExists(sensitiveProps, 'from', getStringValue(urlParams, 'from'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'from',
+    getStringValue(urlParams, 'from'),
+  );
   addPropertyIfExists(sensitiveProps, 'to', getStringValue(urlParams, 'to'));
-  addPropertyIfExists(sensitiveProps, 'amount', getStringValue(urlParams, 'amount'));
-  addPropertyIfExists(sensitiveProps, 'asset', getStringValue(urlParams, 'asset'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'amount',
+    getStringValue(urlParams, 'amount'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'asset',
+    getStringValue(urlParams, 'asset'),
+  );
 };
 
 /**
@@ -135,7 +146,11 @@ const extractSwapProperties = (
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(sensitiveProps, 'slippage', getStringValue(urlParams, 'slippage'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'slippage',
+    getStringValue(urlParams, 'slippage'),
+  );
 };
 
 /**
@@ -148,8 +163,16 @@ const extractPerpsProperties = (
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(sensitiveProps, 'symbol', getStringValue(urlParams, 'symbol'));
-  addPropertyIfExists(sensitiveProps, 'screen', getStringValue(urlParams, 'screen'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'symbol',
+    getStringValue(urlParams, 'symbol'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'screen',
+    getStringValue(urlParams, 'screen'),
+  );
   addPropertyIfExists(sensitiveProps, 'tab', getStringValue(urlParams, 'tab'));
 };
 
@@ -163,11 +186,31 @@ const extractDepositProperties = (
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(sensitiveProps, 'provider', getStringValue(urlParams, 'provider'));
-  addPropertyIfExists(sensitiveProps, 'payment_method', getStringValue(urlParams, 'payment_method'));
-  addPropertyIfExists(sensitiveProps, 'sub_payment_method', getStringValue(urlParams, 'sub_payment_method'));
-  addPropertyIfExists(sensitiveProps, 'fiat_currency', getStringValue(urlParams, 'fiat_currency'));
-  addPropertyIfExists(sensitiveProps, 'fiat_quantity', getStringValue(urlParams, 'fiat_quantity'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'provider',
+    getStringValue(urlParams, 'provider'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'payment_method',
+    getStringValue(urlParams, 'payment_method'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'sub_payment_method',
+    getStringValue(urlParams, 'sub_payment_method'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'fiat_currency',
+    getStringValue(urlParams, 'fiat_currency'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'fiat_quantity',
+    getStringValue(urlParams, 'fiat_quantity'),
+  );
 };
 
 /**
@@ -181,7 +224,11 @@ const extractTransactionProperties = (
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
   addPropertyIfExists(sensitiveProps, 'gas', getStringValue(urlParams, 'gas'));
-  addPropertyIfExists(sensitiveProps, 'gasPrice', getStringValue(urlParams, 'gasPrice'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'gasPrice',
+    getStringValue(urlParams, 'gasPrice'),
+  );
 };
 
 /**
@@ -194,21 +241,64 @@ const extractBuyProperties = (
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(sensitiveProps, 'crypto_currency', getStringValue(urlParams, 'crypto_currency'));
-  addPropertyIfExists(sensitiveProps, 'crypto_amount', getStringValue(urlParams, 'crypto_amount'));
+  addPropertyIfExists(
+    sensitiveProps,
+    'crypto_currency',
+    getStringValue(urlParams, 'crypto_currency'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'crypto_amount',
+    getStringValue(urlParams, 'crypto_amount'),
+  );
+};
+
+/**
+ * Extract properties specific to HOME route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractHomeProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  // HOME route only extracts previewToken, not common transaction properties
+  addPropertyIfExists(
+    sensitiveProps,
+    'previewToken',
+    getStringValue(urlParams, 'previewToken'),
+  );
+};
+
+/**
+ * Extract properties for INVALID route (no properties to extract)
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractInvalidProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  // No properties to extract for invalid routes
 };
 
 /**
  * Route-specific property extractor functions mapping
  */
-const routeExtractors: Record<DeepLinkRoute, (urlParams: Record<string, string>, sensitiveProps: Record<string, string>) => void> = {
+const routeExtractors: Record<
+  DeepLinkRoute,
+  (
+    urlParams: Record<string, string>,
+    sensitiveProps: Record<string, string>,
+  ) => void
+> = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
   [DeepLinkRoute.DEPOSIT]: extractDepositProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
-  [DeepLinkRoute.HOME]: () => {}, // No properties for home route
-  [DeepLinkRoute.INVALID]: () => {}, // No properties for invalid route
+  [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
 /**
@@ -224,10 +314,11 @@ export const extractSensitiveProperties = (
 ): Record<string, string> => {
   try {
     const sensitiveProps: Record<string, string> = {};
-    
+
     // Get the appropriate extractor function for the route
-    const extractor = routeExtractors[route] || routeExtractors[DeepLinkRoute.INVALID];
-    
+    const extractor =
+      routeExtractors[route] || routeExtractors[DeepLinkRoute.INVALID];
+
     // Extract properties using the route-specific extractor
     extractor(urlParams, sensitiveProps);
 

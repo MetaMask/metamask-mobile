@@ -35,7 +35,6 @@ const {
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-
 /**
  * Actions that should not show the deep link modal
  */
@@ -126,27 +125,30 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
-  const interstitialAction =
-    WHITELISTED_ACTIONS.includes(action) 
-      ? InterstitialState.ACCEPTED
-      : (await new Promise<InterstitialState>((resolve) => {
-          const [, actionName] = validatedUrl.pathname.split('/');
-          const sanitizedAction = actionName?.replace(/-/g, ' ');
-          const pageTitle: string =
-            capitalize(sanitizedAction?.toLowerCase()) || '';
+  const interstitialAction = WHITELISTED_ACTIONS.includes(action)
+    ? InterstitialState.ACCEPTED
+    : await new Promise<InterstitialState>((resolve) => {
+        const [, actionName] = validatedUrl.pathname.split('/');
+        const sanitizedAction = actionName?.replace(/-/g, ' ');
+        const pageTitle: string =
+          capitalize(sanitizedAction?.toLowerCase()) || '';
 
-          const validatedUrlString = validatedUrl.toString();
-          if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
-            resolve(InterstitialState.ACCEPTED);
-            return;
-          }
+        const validatedUrlString = validatedUrl.toString();
+        if (
+          interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))
+        ) {
+          resolve(InterstitialState.ACCEPTED);
+          return;
+        }
 
-          handleDeepLinkModalDisplay({
+        handleDeepLinkModalDisplay(
+          {
             linkType: linkType(),
             pageTitle,
             onContinue: () => resolve(InterstitialState.ACCEPTED),
             onBack: () => resolve(InterstitialState.REJECTED),
-          }, {
+          },
+          {
             url,
             route: mapSupportedActionToRoute(action),
             urlParams: {
@@ -157,8 +159,9 @@ async function handleUniversalLink({
             interstitialShown: false, // Will be updated when modal is shown
             interstitialDisabled: false, // Will be updated based on user settings
             interstitialAction: undefined, // Will be set when user acts
-          });
-        }));
+          },
+        );
+      });
 
   // Universal links
   handled();
@@ -201,17 +204,19 @@ async function handleUniversalLink({
     );
 
     // Determine if interstitial was shown based on user action
-    const wasInterstitialShown = (interstitialAction as InterstitialState) === InterstitialState.ACCEPTED || 
-                                 (interstitialAction as InterstitialState) === InterstitialState.REJECTED;
+    const wasInterstitialShown =
+      (interstitialAction as InterstitialState) ===
+        InterstitialState.ACCEPTED ||
+      (interstitialAction as InterstitialState) === InterstitialState.REJECTED;
 
     // Create analytics context
     const analyticsContext: DeepLinkAnalyticsContext = {
       url,
       route: mapSupportedActionToRoute(action), // Proper mapping function
-            urlParams: {
-              ...params,
-              hr: params.hr ? '1' : '0', // Convert boolean back to string for analytics
-            },
+      urlParams: {
+        ...params,
+        hr: params.hr ? '1' : '0', // Convert boolean back to string for analytics
+      },
       signatureStatus,
       interstitialShown: wasInterstitialShown, // Modal was shown if user accepted or rejected
       interstitialDisabled: isModalDisabled, // Get actual modal disabled state
@@ -226,7 +231,7 @@ async function handleUniversalLink({
 
     const event = eventBuilder.build();
     metrics.trackEvent(event);
-    
+
     DevLogger.log(
       'DeepLinkAnalytics: Tracked consolidated deep link event:',
       event,
