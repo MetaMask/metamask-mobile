@@ -11,6 +11,7 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
@@ -42,6 +43,7 @@ jest.mock('../../../../../selectors/networkController');
 jest.mock('../../../../../reducers/transaction', () => ({
   selectTransactionState: jest.fn(),
 }));
+jest.mock('../../context/confirmation-context');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -53,7 +55,7 @@ describe('useInsufficientBalanceAlert', () => {
     selectNetworkConfigurations,
   );
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
-
+  const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const mockChainId = '0x1';
   const mockFromAddress = '0x123';
   const mockNativeCurrency = 'ETH';
@@ -100,10 +102,22 @@ describe('useInsufficientBalanceAlert', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: false,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
   it('return empty array when no transaction metadata is available', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+    expect(result.current).toEqual([]);
+  });
+
+  it('return empty array when isTransactionValueUpdating is true', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: true,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
     expect(result.current).toEqual([]);

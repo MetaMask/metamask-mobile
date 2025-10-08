@@ -18,6 +18,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const HEX_ZERO = '0x0';
 
@@ -33,11 +34,12 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
   );
+  const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
   const { payToken } = useTransactionPayToken();
 
   return useMemo(() => {
-    if (!transactionMetadata) {
+    if (!transactionMetadata || isTransactionValueUpdating) {
       return [];
     }
 
@@ -96,6 +98,7 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
+    isTransactionValueUpdating,
     navigation,
     networkConfigurations,
     onReject,
