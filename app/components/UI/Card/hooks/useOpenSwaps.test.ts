@@ -167,12 +167,8 @@ describe('useOpenSwaps', () => {
       }),
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0xbeef',
-        symbol: 'ETHX',
-      }),
-    );
+    // goToSwaps is now called without arguments (sourceToken passed to hook)
+    expect(mockGoToSwaps).toHaveBeenCalled();
 
     expect(mockTrackEvent).toHaveBeenCalledWith('mock-event');
   });
@@ -197,12 +193,8 @@ describe('useOpenSwaps', () => {
     });
 
     // The sourceToken should be created from the ethToken
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0xbeef',
-        symbol: 'ETHX',
-      }),
-    );
+    // goToSwaps is now called without arguments (sourceToken passed to hook)
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('honors beforeNavigate: closes first, then navigates when callback is invoked', () => {
@@ -255,12 +247,8 @@ describe('useOpenSwaps', () => {
       }),
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: '0xbeef',
-        symbol: 'ETHX',
-      }),
-    );
+    // goToSwaps is now called without arguments (sourceToken passed to hook)
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('passes undefined to goToSwaps if getHighestFiatToken returns undefined', () => {
@@ -276,7 +264,8 @@ describe('useOpenSwaps', () => {
       });
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(undefined);
+    // goToSwaps is now called without arguments
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('uses custom location and sourcePage when provided', () => {

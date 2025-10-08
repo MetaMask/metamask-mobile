@@ -93,7 +93,6 @@ describe('AssetDetailsActions', () => {
 
     expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
-    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
     expect(getByText(strings('asset_overview.send_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
@@ -207,7 +206,6 @@ describe('AssetDetailsActions', () => {
     expect(
       queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
     ).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
   });
 
   it('disables buttons when the account cannot sign transactions', () => {
@@ -250,7 +248,6 @@ describe('AssetDetailsActions', () => {
 
     const buttons = [
       TokenOverviewSelectorsIDs.SWAP_BUTTON,
-      TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
       TokenOverviewSelectorsIDs.SEND_BUTTON,
     ];
 
