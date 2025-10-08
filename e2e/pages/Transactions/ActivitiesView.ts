@@ -140,19 +140,25 @@ class ActivitiesView {
     const ordersTab = Matchers.getElementByText(/Orders/i) as DetoxElement;
     const fundingTab = Matchers.getElementByText(/Funding/i) as DetoxElement;
 
-    // 1) Intentar tocar directamente el tab superior "Perps"
-    const perpsTabVisible = await Utilities.isElementVisible(this.perpsTopTab, 800);
+    // 1) Try tapping the top "Perps" tab directly
+    const perpsTabVisible = await Utilities.isElementVisible(
+      this.perpsTopTab,
+      800,
+    );
     if (perpsTabVisible) {
       await Gestures.waitAndTap(this.perpsTopTab, {
         elemDescription: 'Tap Perps top tab in Activity',
       });
     }
 
-    // 2) Verificar sub‑tabs; si no aparecen, fallback a swipes con reintentos
+    // 2) Verify sub-tabs; if not visible, fall back to swipes with retries
     for (let i = 0; i < 3; i++) {
       const isTradesVisible = await Utilities.isElementVisible(tradesTab, 600);
       const isOrdersVisible = await Utilities.isElementVisible(ordersTab, 600);
-      const isFundingVisible = await Utilities.isElementVisible(fundingTab, 600);
+      const isFundingVisible = await Utilities.isElementVisible(
+        fundingTab,
+        600,
+      );
       if (isTradesVisible && isOrdersVisible && isFundingVisible) {
         return;
       }
@@ -163,7 +169,7 @@ class ActivitiesView {
       });
     }
 
-    // 3) Aserciones finales para diagnosticar si no estamos en Perps
+    // 3) Final assertions to diagnose if we are not in Perps
     await Assertions.expectElementToBeVisible(tradesTab, {
       description: 'Perps Trades tab should be visible',
       timeout: 2000,

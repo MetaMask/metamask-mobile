@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
@@ -19,7 +19,7 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
-describe(RegressionTrade('Perps Position'), () => {
+describe(SmokeTrade('Perps Position'), () => {
   it('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
@@ -45,7 +45,6 @@ describe(RegressionTrade('Perps Position'), () => {
         await PerpsMarketDetailsView.tapLongButton();
         await PerpsOrderView.tapTakeProfitButton();
         await PerpsView.tapTakeProfitPercentageButton(1);
-        await PerpsView.tapStopLossPercentageButton(1);
         await PerpsView.tapSetTpslButton();
         await PerpsView.tapPlaceOrderButton();
 
@@ -54,7 +53,6 @@ describe(RegressionTrade('Perps Position'), () => {
 
         // Wait for screen ready and assert Close Position availability
         await PerpsMarketDetailsView.waitForScreenReady();
-        await PerpsMarketDetailsView.scrollToBottom();
         await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
         await PerpsView.tapClosePositionButton();

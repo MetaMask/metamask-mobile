@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { PerpsHelpers } from './helpers/perps-helpers';
@@ -12,15 +12,11 @@ import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
 
-describe(RegressionTrade('Perps - ETH limit long fill'), () => {
+describe(SmokeTrade('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPerpsProfile('no-positions')
-          .withPerpsFirstTimeUser(false)
-          .withPopularNetworks()
-          .build(),
+        fixture: new FixtureBuilder().withPerpsProfile('no-positions').build(),
         restartDevice: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
@@ -43,7 +39,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
 
         // When Limit is selected without price, the limit price bottom sheet opens automatically.
         // Press preset -10% for long (config LONG_PRESETS: [-1,-2,-5,-10])
-        await PerpsOrderView.setLimitPricePresetLong(-10);
+        await PerpsOrderView.setLimitPricePreset(-10);
 
         // Confirm limit price (Set button)
         await PerpsOrderView.confirmLimitPrice();

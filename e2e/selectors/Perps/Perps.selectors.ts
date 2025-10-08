@@ -292,6 +292,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-geo-block-bottom-sheet-tooltip',
+  CLOSE_ORDER_BUTTON: 'perps-market-details-close-order-button',
 };
 
 // ========================================
