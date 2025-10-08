@@ -16,7 +16,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectIsBridgeEnabledSource: jest.fn(() => true),
   selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true),
 }));
 
