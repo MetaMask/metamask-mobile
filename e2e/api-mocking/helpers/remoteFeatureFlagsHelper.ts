@@ -77,7 +77,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       support: true,
       chains: {
         '1': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
           isGaslessSwapEnabled: true,
@@ -85,55 +84,44 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
         '10': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '56': {
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
         },
         '137': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '324': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '1329': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '8453': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '42161': {
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
         },
         '43114': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '59144': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '20000000000001': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '1151111081099710': {
-          isUnifiedUIEnabled: true,
           refreshRate: 10000,
           topAssets: [
             'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
