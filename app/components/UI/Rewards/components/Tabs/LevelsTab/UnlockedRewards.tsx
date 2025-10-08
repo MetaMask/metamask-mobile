@@ -51,7 +51,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   isLoading,
 }) => (
   <Box>
-    <Box twClassName="flex-row items-center gap-2 items-center">
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.unlocked_rewards.title')}
       </Text>
@@ -114,7 +114,7 @@ const UnlockedRewards: React.FC = () => {
 
   return (
     <Box
-      twClassName="py-4 px-4 gap-4"
+      twClassName="p-4 gap-4"
       testID={REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS}
     >
       {/* Always show section header */}

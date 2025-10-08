@@ -41,7 +41,12 @@ import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
-const SNAP_ADJUSTMENT = 42; // Accounts for margins and padding in snap calculation
+// SNAP_ADJUSTMENT accounts for the horizontal padding and margin applied to the BoostCard
+// and its container.
+// Calculation: BoostCard container has horizontal padding of 16px (px-4) on each side,
+// and BoostCard itself has marginRight of 10px.
+// Total adjustment = 16 (left padding) + 16 (right padding) + 10 (card margin) = 42
+const SNAP_ADJUSTMENT = 16 + 16 + 10;
 
 interface BoostCardProps {
   boost: PointsBoostDto;

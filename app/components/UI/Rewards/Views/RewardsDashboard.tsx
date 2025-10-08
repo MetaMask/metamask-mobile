@@ -149,6 +149,18 @@ const RewardsDashboard: React.FC = () => {
     [dispatch, tabOptions, activeTab],
   );
 
+  const tabsListProps = useMemo(
+    () => ({
+      ref: tabsListRef,
+      initialActiveIndex: getActiveIndex(),
+      onChangeTab: handleTabChange,
+      testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
+      tabsBarTwClassName: 'px-4',
+      tabsListContentTwClassName: 'px-0',
+    }),
+    [getActiveIndex, handleTabChange],
+  );
+
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
@@ -251,14 +263,7 @@ const RewardsDashboard: React.FC = () => {
         <SeasonStatus />
 
         {/* Tab View */}
-        <TabsList
-          ref={tabsListRef}
-          initialActiveIndex={getActiveIndex()}
-          onChangeTab={handleTabChange}
-          testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
-          tabsBarTwClassName="px-4"
-          tabsListContentTwClassName="px-0"
-        >
+        <TabsList {...tabsListProps}>
           <RewardsOverview
             key="overview"
             tabLabel={strings('rewards.tab_overview_title')}
