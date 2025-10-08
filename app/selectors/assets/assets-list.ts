@@ -136,7 +136,7 @@ const selectStakedAssets = createDeepEqualSelector(
             );
 
             const stakedAsset = {
-              type: account?.type,
+              accountType: account?.type,
               assetId: nativeToken.address,
               isNative: true,
               isStaked: true,
@@ -323,17 +323,17 @@ function assetToToken(
         })
       : undefined,
     logo:
-      asset.type.startsWith('eip155') && asset.isNative
+      asset.accountType.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
         : asset.image,
     isETH:
-      asset.type.startsWith('eip155') &&
+      asset.accountType.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
     isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
-    accountType: asset.type,
+    accountType: asset.accountType,
   };
 }
