@@ -22,6 +22,7 @@ import { Hex } from '@metamask/utils';
 import { generateTransferData } from '../../../../util/transactions';
 import { useConfirmNavigation } from '../../confirmations/hooks/useConfirmNavigation';
 import { ConfirmationLoader } from '../../confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 export function PredictDepositTest() {
   const theme = useTheme();
@@ -42,6 +43,7 @@ export function PredictDepositTest() {
   const handleDeposit = useCallback(async () => {
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.PREDICT.ROOT,
     });
 
     addTransactionBatch({

@@ -3086,6 +3086,7 @@
     "tx_review_lending_deposit": "Lending Deposit",
     "tx_review_lending_withdraw": "Lending Withdrawal",
     "tx_review_perps_deposit": "Funded Perps account",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -6131,6 +6132,7 @@
       "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
+      "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
     }
