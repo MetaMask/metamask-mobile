@@ -6116,7 +6116,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Funded perps account",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Transaction details"
     },
     "label": {
