@@ -112,14 +112,18 @@ const getNonce = async ({
   );
 
   // Call the nonce() function on the Safe contract
-  const nonce = (await query(ethQuery, 'call', [
+  const res = (await query(ethQuery, 'call', [
     {
       to: safeAddress,
       data: new Interface(safeAbi).encodeFunctionData('nonce', []),
     },
-  ])) as bigint;
+  ])) as Hex;
 
-  return nonce;
+  if (res === '0x') {
+    return 0n;
+  }
+
+  return BigInt(res);
 };
 
 const getTransactionHash = async ({
