@@ -8,13 +8,7 @@ import {
   type PerpsAssetCtx,
   type Book,
 } from '@deeeed/hyperliquid-node20';
-import performance from 'react-native-performance';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PriceUpdate,
@@ -133,20 +127,6 @@ export class HyperLiquidSubscriptionService {
     } = params;
     const unsubscribers: (() => void)[] = [];
 
-    // Track subscription start time using performance.now()
-    const subscriptionStartTime = performance.now();
-
-    // Start trace for subscription
-    trace({
-      name: TraceName.PerpsMarketDataUpdate,
-      op: TraceOperation.PerpsMarketData,
-      tags: {
-        symbols: symbols.join(','),
-        includeMarketData,
-        includeOrderBook,
-      },
-    });
-
     symbols.forEach((symbol) => {
       unsubscribers.push(
         this.createSubscription(this.priceSubscribers, callback, symbol),
@@ -241,15 +221,6 @@ export class HyperLiquidSubscriptionService {
         if (includeOrderBook) {
           this.cleanupL2BookSubscription(symbol);
         }
-      });
-
-      // End trace on unsubscribe with correct duration calculation
-      endTrace({
-        name: TraceName.PerpsMarketDataUpdate,
-        data: {
-          subscription_duration_ms: performance.now() - subscriptionStartTime,
-          symbols_count: symbols.length,
-        },
       });
     };
   }
