@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import type { CaipAccountId } from '@metamask/utils';
 import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { useArbitrumTransactionMonitor } from './useArbitrumTransactionMonitor';
@@ -15,7 +16,7 @@ import { transformArbitrumWithdrawalsToHistoryItems } from '../utils/arbitrumWit
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
   endTime?: number;
-  accountId?: string;
+  accountId?: CaipAccountId;
   skipInitialFetch?: boolean;
 }
 
@@ -120,14 +121,12 @@ export const usePerpsTransactionHistory = ({
         const existingIndex = acc.findIndex((t) => t.id === transaction.id);
         if (existingIndex === -1) {
           acc.push(transaction);
-        } else {
+        } else if (
+          transaction.type === 'deposit' ||
+          transaction.type === 'withdrawal'
+        ) {
           // Keep the more detailed version (prefer user history over other sources)
-          if (
-            transaction.type === 'deposit' ||
-            transaction.type === 'withdrawal'
-          ) {
-            acc[existingIndex] = transaction;
-          }
+          acc[existingIndex] = transaction;
         }
         return acc;
       }, [] as PerpsTransaction[]);
@@ -145,7 +144,7 @@ export const usePerpsTransactionHistory = ({
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, endTime, accountId, userHistory]);
+  }, [startTime, endTime, accountId, userHistory, arbitrumWithdrawals]);
 
   const refetch = useCallback(async () => {
     await Promise.all([
@@ -162,9 +161,7 @@ export const usePerpsTransactionHistory = ({
   }, [fetchAllTransactions, skipInitialFetch]);
 
   // Combine loading states
-  const combinedIsLoading = useMemo(() => {
-    return isLoading || userHistoryLoading || arbitrumLoading;
-  }, [isLoading, userHistoryLoading, arbitrumLoading]);
+  const combinedIsLoading = useMemo(() => isLoading || userHistoryLoading || arbitrumLoading, [isLoading, userHistoryLoading, arbitrumLoading]);
 
   // Combine error states
   const combinedError = useMemo(() => {

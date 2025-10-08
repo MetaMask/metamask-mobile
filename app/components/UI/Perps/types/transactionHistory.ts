@@ -75,7 +75,7 @@ export interface PerpsTransaction {
     isPositive: boolean;
     asset: string;
     txHash: string;
-    status: 'completed' | 'failed' | 'pending';
+    status: 'completed' | 'failed' | 'pending' | 'bridging';
     type: 'deposit' | 'withdrawal';
   };
 }

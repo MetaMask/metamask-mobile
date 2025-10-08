@@ -317,6 +317,12 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
+  withdrawalRequests: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
   depositRequests: {
     includeInStateLogs: true,
     persist: true,

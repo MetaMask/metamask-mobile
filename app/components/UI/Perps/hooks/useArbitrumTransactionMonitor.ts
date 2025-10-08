@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { RootState } from '../../../../reducers';
-import type { TransactionMeta } from '../../../../core/TransactionController/types';
+import type { TransactionMeta } from '../../../../core/Engine/controllers/transaction-controller/types';
+import { selectChainId } from '../../../../selectors/networkController';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   ARBITRUM_TESTNET_CHAIN_ID,
@@ -47,10 +48,7 @@ export const useArbitrumTransactionMonitor =
         state.engine.backgroundState.PreferencesController?.selectedAddress,
     );
 
-    const currentChainId = useSelector(
-      (state: RootState) =>
-        state.engine.backgroundState.NetworkController?.provider?.chainId,
-    );
+    const currentChainId = useSelector(selectChainId);
 
     // Get all transactions from TransactionController
     const allTransactions = useSelector(
@@ -59,12 +57,10 @@ export const useArbitrumTransactionMonitor =
     );
 
     // Check if we're on Arbitrum
-    const isArbitrum = useMemo(() => {
-      return (
+    const isArbitrum = useMemo(() => (
         currentChainId === ARBITRUM_MAINNET_CHAIN_ID ||
         currentChainId === ARBITRUM_TESTNET_CHAIN_ID
-      );
-    }, [currentChainId]);
+      ), [currentChainId]);
 
     /**
      * Detect if a transaction is a HyperLiquid withdrawal using utility function

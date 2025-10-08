@@ -606,6 +606,15 @@ export interface IPerpsProvider {
     endTime?: number;
   }): Promise<unknown[]>;
 
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]>;
+
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
