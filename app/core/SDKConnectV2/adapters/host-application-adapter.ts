@@ -49,7 +49,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(
       showSimpleNotification({
         id: conninfo.id,
-        autodismiss: 8000,
+        autodismiss: 3000,
         title: strings('sdk_connect_v2.show_return_to_app.title'),
         description: strings('sdk_connect_v2.show_return_to_app.description'),
         status: 'success',
