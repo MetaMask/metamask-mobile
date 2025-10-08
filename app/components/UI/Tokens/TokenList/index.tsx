@@ -101,12 +101,12 @@ const TokenListComponent = ({
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 1000,
       }}
-      decelerationRate={0}
       renderItem={renderTokenListItem}
       keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;
       }}
+      decelerationRate="fast"
       ListFooterComponent={<TokenListFooter />}
       refreshControl={
         <RefreshControl

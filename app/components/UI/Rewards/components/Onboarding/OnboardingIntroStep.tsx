@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { Image, ImageBackground, Text as RNText } from 'react-native';
+import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -261,9 +261,11 @@ const OnboardingIntroStep: React.FC<{
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12 leading-1'),
+            tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '500' },
+            {
+              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+            },
           ]}
         >
           {title}
@@ -339,7 +341,7 @@ const OnboardingIntroStep: React.FC<{
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[10%]" />
+        <Box twClassName="flex-basis-[6%]" />
 
         {/* Title Section */}
         {renderTitle()}
