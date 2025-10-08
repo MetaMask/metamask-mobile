@@ -57,7 +57,7 @@ jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
   createDeepLinkUsedEventBuilder: jest.fn(),
 }));
 
-jest.mock('../../../core/DeeplinkManager/types/deepLinkAnalytics', () => ({
+jest.mock('../../../core/DeeplinkManager/types/deepLinkAnalytics.types', () => ({
   InterstitialState: {
     ACCEPTED: 'accepted',
     REJECTED: 'rejected',
@@ -112,16 +112,23 @@ describe('DeepLinkModal', () => {
     // Set up default mock for createDeepLinkUsedEventBuilder
     (createDeepLinkUsedEventBuilder as jest.Mock).mockImplementation(
       (context) => {
-        const mockBuilder = {
+        interface MockBuilder {
+          additionalProperties: Record<string, unknown>;
+          addProperties: jest.MockedFunction<(props: Record<string, unknown>) => MockBuilder>;
+          addSensitiveProperties: jest.MockedFunction<() => MockBuilder>;
+          build: jest.MockedFunction<() => unknown>;
+        }
+
+        const mockBuilder: MockBuilder = {
           additionalProperties: {},
-          addProperties: jest.fn().mockImplementation(function(props) {
+          addProperties: jest.fn().mockImplementation(function(this: MockBuilder, props: Record<string, unknown>) {
             this.additionalProperties = { ...this.additionalProperties, ...props };
             return this;
           }),
-          addSensitiveProperties: jest.fn().mockImplementation(function() {
+          addSensitiveProperties: jest.fn().mockImplementation(function(this: MockBuilder) {
             return this;
           }),
-          build: jest.fn().mockImplementation(function() {
+          build: jest.fn().mockImplementation(function(this: MockBuilder) {
             return {
               name: 'Deep link Used',
               properties: {

@@ -27,6 +27,7 @@ import { MetaMetrics } from '../../Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import ReduxService from '../../redux';
+import Logger from '../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -199,6 +200,10 @@ async function handleUniversalLink({
       ReduxService.store.getState(),
     );
 
+    // Determine if interstitial was shown based on user action
+    const wasInterstitialShown = (interstitialAction as InterstitialState) === InterstitialState.ACCEPTED || 
+                                 (interstitialAction as InterstitialState) === InterstitialState.REJECTED;
+
     // Create analytics context
     const analyticsContext: DeepLinkAnalyticsContext = {
       url,
@@ -208,7 +213,7 @@ async function handleUniversalLink({
               hr: params.hr ? '1' : '0', // Convert boolean back to string for analytics
             },
       signatureStatus,
-      interstitialShown: interstitialAction !== InterstitialState.ACCEPTED, // If user didn't accept, interstitial was shown
+      interstitialShown: wasInterstitialShown, // Modal was shown if user accepted or rejected
       interstitialDisabled: isModalDisabled, // Get actual modal disabled state
       interstitialAction,
     };
@@ -219,14 +224,15 @@ async function handleUniversalLink({
     const metrics = MetaMetrics.getInstance();
     eventBuilder.addProperties(generateDeviceAnalyticsMetaData());
 
-    metrics.trackEvent(eventBuilder.build());
-
+    const event = eventBuilder.build();
+    metrics.trackEvent(event);
+    
     DevLogger.log(
       'DeepLinkAnalytics: Tracked consolidated deep link event:',
-      eventBuilder.build(),
+      event,
     );
   } catch (error) {
-    DevLogger.log('DeepLinkAnalytics: Error tracking deep link event:', error);
+    Logger.error(error as Error, 'Error tracking deep link event');
   }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;

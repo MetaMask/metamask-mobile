@@ -13,6 +13,7 @@ import {
   createDeepLinkUsedEventBuilder,
 } from './deepLinkAnalytics';
 import { ACTIONS } from '../../constants/deeplinks';
+import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.types';
 import {
   DeepLinkRoute,
   InterstitialState,
@@ -321,49 +322,49 @@ describe('deepLinkAnalytics', () => {
 
   describe('mapSupportedActionToRoute', () => {
     it('map swap action to SWAP route', () => {
-      const result = mapSupportedActionToRoute(ACTIONS.SWAP);
+      const result = mapSupportedActionToRoute(SUPPORTED_ACTIONS.SWAP);
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
     it('map perps actions to PERPS route', () => {
-      expect(mapSupportedActionToRoute(ACTIONS.PERPS)).toBe(
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.PERPS)).toBe(
         DeepLinkRoute.PERPS,
       );
-      expect(mapSupportedActionToRoute(ACTIONS.PERPS_MARKETS)).toBe(
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.PERPS_MARKETS)).toBe(
         DeepLinkRoute.PERPS,
       );
-      expect(mapSupportedActionToRoute(ACTIONS.PERPS_ASSET)).toBe(
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.PERPS_ASSET)).toBe(
         DeepLinkRoute.PERPS,
       );
     });
 
     it('map deposit action to DEPOSIT route', () => {
-      const result = mapSupportedActionToRoute(ACTIONS.DEPOSIT);
+      const result = mapSupportedActionToRoute(SUPPORTED_ACTIONS.DEPOSIT);
       expect(result).toBe(DeepLinkRoute.DEPOSIT);
     });
 
     it('map send action to TRANSACTION route', () => {
-      const result = mapSupportedActionToRoute(ACTIONS.SEND);
+      const result = mapSupportedActionToRoute(SUPPORTED_ACTIONS.SEND);
       expect(result).toBe(DeepLinkRoute.TRANSACTION);
     });
 
     it('map buy actions to BUY route', () => {
-      expect(mapSupportedActionToRoute(ACTIONS.BUY)).toBe(DeepLinkRoute.BUY);
-      expect(mapSupportedActionToRoute(ACTIONS.BUY_CRYPTO)).toBe(
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.BUY)).toBe(DeepLinkRoute.BUY);
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.BUY_CRYPTO)).toBe(
         DeepLinkRoute.BUY,
       );
     });
 
     it('map home action to HOME route', () => {
-      expect(mapSupportedActionToRoute(ACTIONS.HOME)).toBe(DeepLinkRoute.HOME);
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.HOME)).toBe(DeepLinkRoute.HOME);
     });
 
     it('map unsupported actions to INVALID route', () => {
-      expect(mapSupportedActionToRoute(ACTIONS.DAPP)).toBe(
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.DAPP)).toBe(
         DeepLinkRoute.INVALID,
       );
-      expect(mapSupportedActionToRoute(ACTIONS.WC)).toBe(DeepLinkRoute.INVALID);
-      expect(mapSupportedActionToRoute(ACTIONS.CREATE_ACCOUNT)).toBe(
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.WC)).toBe(DeepLinkRoute.INVALID);
+      expect(mapSupportedActionToRoute(SUPPORTED_ACTIONS.CREATE_ACCOUNT)).toBe(
         DeepLinkRoute.INVALID,
       );
     });
