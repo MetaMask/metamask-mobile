@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { usePerpsDepositMinimumAlert } from '../../../hooks/alerts/usePerpsDepositMinimumAlert';
-import { Alert } from '../../../types/alerts';
-import { useInsufficientPayTokenBalanceAlert } from '../../../hooks/alerts/useInsufficientPayTokenBalanceAlert';
-import { usePerpsHardwareAccountAlert } from '../../../hooks/alerts/usePerpsHardwareAccountAlert';
-import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
+import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
+import { Alert } from '../../types/alerts';
+import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
+import { usePerpsHardwareAccountAlert } from './usePerpsHardwareAccountAlert';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
-export function usePerpsDepositAlerts({
+export function usePendingAmountAlerts({
   pendingTokenAmount,
 }: {
   pendingTokenAmount: string | undefined;

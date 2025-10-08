@@ -1,14 +1,14 @@
-import Engine from '../../../../../../core/Engine';
+import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useAsyncResult } from '../../../../../hooks/useAsyncResult';
-import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
+import { useAsyncResult } from '../../../../hooks/useAsyncResult';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 const USDC_SYMBOL = 'USDC';
 const USDC_DECIMALS = 6;
 
-export function usePerpsDepositInit() {
+export function usePerpsDepositToken() {
   const { NetworkController, TokensController } = Engine.context;
 
   const tokens = useSelector((state) =>

@@ -1,16 +1,16 @@
 import { Token } from '@metamask/assets-controllers';
-import Engine from '../../../../../../core/Engine';
-import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
-import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
-import { usePerpsDepositInit } from './usePerpsDepositInit';
+import Engine from '../../../../../core/Engine';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { usePerpsDepositToken } from './usePerpsDepositToken';
 import { act } from '@testing-library/react-native';
-import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 const NETWORK_CLIENT_ID = 'mockNetworkClientId';
 
-jest.mock('../../../../../../selectors/tokensController');
+jest.mock('../../../../../selectors/tokensController');
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
@@ -22,7 +22,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 }));
 
 async function runHook() {
-  const result = renderHookWithProvider(usePerpsDepositInit, {});
+  const result = renderHookWithProvider(usePerpsDepositToken, {});
 
   await act(async () => {
     // Intentionally empty
@@ -31,7 +31,7 @@ async function runHook() {
   return result;
 }
 
-describe('usePerpsDepositInit', () => {
+describe('usePerpsDepositToken', () => {
   const mockFindNetworkClientIdByChainId = jest.mocked(
     Engine.context.NetworkController.findNetworkClientIdByChainId,
   );
