@@ -2,12 +2,12 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { RegressionTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../pages/Perps/PerpsOnboarding';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 
 describe(
   RegressionTrade('Perps - no funds shows Start Trading and tutorial'),
@@ -24,17 +24,14 @@ describe(
             .withPerpsFirstTimeUser(true)
             .build(),
           restartDevice: true,
-          // Ensure Hyperliquid icons and Arbitrum RPC are mocked (no live requests)
           testSpecificMock: PERPS_ARBITRUM_MOCKS,
         },
         async () => {
           await loginToApp();
 
           // Go to Perps tab from Wallet
-          await WalletView.tapOnPerpsTab();
-
-          // Start Trading should be present for first-time/no-funds
-          await PerpsTabView.tapOnboardingButton();
+          await TabBarComponent.tapTrade();
+          await WalletActionsBottomSheet.tapPerpsButton();
 
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();

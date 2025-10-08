@@ -158,6 +158,12 @@ class PerpsMarketDetailsView {
     );
   }
 
+  get closeOrderButton() {
+    return Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    );
+  }
+
   // Actions
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
@@ -277,6 +283,37 @@ class PerpsMarketDetailsView {
     await Assertions.expectElementToBeVisible(closeBtn, {
       description: 'Close position button visible on market details',
       timeout: 5000,
+    });
+  }
+
+  async expectCloseOrderButtonVisible() {
+    const cancelBtn = Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    ) as DetoxElement;
+
+    for (let i = 0; i < 3; i++) {
+      const visible = await Utilities.isElementVisible(cancelBtn, 2000);
+      if (visible) {
+        break;
+      }
+      await Gestures.swipe(this.scrollView, 'up', {
+        speed: 'fast',
+        percentage: 0.7,
+        elemDescription: 'Scroll to reveal Close order button',
+      });
+    }
+
+    await Assertions.expectElementToBeVisible(cancelBtn, {
+      description: 'Close order button visible on market details',
+      timeout: 5000,
+    });
+  }
+
+  async tapCloseOrderButton() {
+    await Gestures.waitAndTap(this.closeOrderButton, {
+      elemDescription: 'Close order button',
+      checkStability: true,
+      timeout: 10000,
     });
   }
 }

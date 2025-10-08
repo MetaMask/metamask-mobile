@@ -31,6 +31,18 @@ export default class Matchers {
   }
 
   /**
+   * Get element by text (case-insensitive contains). Useful for ordered list checks.
+   */
+  static async getElementByTextContains(
+    containsText: string,
+    index = 0,
+  ): Promise<Detox.IndexableNativeElement> {
+    const escaped = containsText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(escaped, 'i');
+    return this.getElementByText(pattern, index);
+  }
+
+  /**
    * Get element that matches by id and label
    * This strategy matches elements by combining 2 matchers together.
    * Elements returned match the provided ID and Label at the same time.
