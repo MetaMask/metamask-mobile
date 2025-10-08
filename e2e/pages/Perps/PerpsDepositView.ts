@@ -3,11 +3,6 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 
 class PerpsDepositView {
-  // Amount input (native edit amount field)
-  get amountInput(): DetoxElement {
-    return Matchers.getElementByID('edit-amount-input');
-  }
-
   // Custom deposit keypad container
   get keypad(): DetoxElement {
     return Matchers.getElementByID('deposit-keyboard');
@@ -49,11 +44,14 @@ class PerpsDepositView {
   }
 
   async focusAmount(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.amountInput, {
-      description: 'Edit amount input visible',
+    // Ensure the deposit keyboard is visible and interactable, then tap it to focus amount entry
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible before typing amount',
     });
-    await Gestures.waitAndTap(this.amountInput, {
-      elemDescription: 'Focus edit amount input',
+    await Gestures.waitAndTap(this.keypad, {
+      elemDescription: 'Focus amount via deposit keyboard container',
+      checkEnabled: false,
+      checkVisibility: false,
     });
   }
 
@@ -85,5 +83,3 @@ class PerpsDepositView {
 }
 
 export default new PerpsDepositView();
-
-
