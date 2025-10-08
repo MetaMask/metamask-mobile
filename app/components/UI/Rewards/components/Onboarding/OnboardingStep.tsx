@@ -158,7 +158,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
                 size={ButtonSize.Lg}
                 onPress={onSkip}
                 twClassName="w-full bg-gray-500 border-gray-500"
-                testID="skip-button"
+                testID={`${REWARDS_VIEW_SELECTORS.SKIP_BUTTON}`}
               >
                 <Text twClassName="text-text-default">
                   {strings('rewards.onboarding.step_skip')}
