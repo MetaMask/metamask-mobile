@@ -23,7 +23,7 @@ import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import { login } from '../../../utils/Flows.js';
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
-test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
+test.skip('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {

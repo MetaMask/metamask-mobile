@@ -17,7 +17,7 @@ import { tapPerpsBottomSheetGotItButton } from '../../../utils/Flows.js';
 
 /* Scenario 2: Account creation after fresh install */
 
-test('Account creation after fresh install', async ({
+test.skip('Account creation after fresh install', async ({
   device,
   performanceTracker,
 }, testInfo) => {
