@@ -1,11 +1,11 @@
 import { decompressPayloadB64 } from './compression-utils';
-import { inflateRaw } from 'pako';
+import { inflate } from 'pako';
 
 jest.mock('pako', () => ({
-  inflateRaw: jest.fn(),
+  inflate: jest.fn(),
 }));
 
-const mockInflateRaw = inflateRaw as jest.MockedFunction<typeof inflateRaw>;
+const mockInflate = inflate as jest.MockedFunction<typeof inflate>;
 
 describe('compression-utils', () => {
   beforeEach(() => {
@@ -20,12 +20,12 @@ describe('compression-utils', () => {
         72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33,
       ]); // "Hello, World!" in bytes
 
-      mockInflateRaw.mockReturnValue(mockDecompressed);
+      mockInflate.mockReturnValue(mockDecompressed);
 
       const result = decompressPayloadB64(compressedBase64);
 
       expect(result).toBe(originalText);
-      expect(mockInflateRaw).toHaveBeenCalledWith(expect.any(Uint8Array));
+      expect(mockInflate).toHaveBeenCalledWith(expect.any(Uint8Array));
     });
   });
 });
