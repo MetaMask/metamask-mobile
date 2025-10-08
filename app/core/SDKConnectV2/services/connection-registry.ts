@@ -149,14 +149,13 @@ export class ConnectionRegistry {
       throw new Error('No payload found in URL.');
     }
 
+    if (payload.length > 1024 * 1024) {
+      throw new Error('Payload too large (max 1MB).');
+    }
+
     const compressionFlag = parsed.searchParams.get('c');
     const jsonString =
       compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
-
-    // apply a post-decompression sanity limit to mitigate zip-bombs
-    if (jsonString.length > 2 * 1024 * 1024) {
-      throw new Error('Payload too large (max 1MB).');
-    }
 
     const connReq: unknown = JSON.parse(jsonString);
 
