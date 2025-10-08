@@ -832,7 +832,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -948,7 +949,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -1112,7 +1114,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -1394,7 +1397,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -2410,7 +2414,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -2526,7 +2531,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -2690,7 +2696,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -2972,7 +2979,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -3988,7 +3996,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -4104,7 +4113,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -4268,7 +4278,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -4550,7 +4561,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -5566,7 +5578,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -5682,7 +5695,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -5846,7 +5860,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -6128,7 +6143,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -7144,7 +7160,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -7275,7 +7292,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -7454,7 +7472,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -7751,7 +7770,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -8782,7 +8802,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -8913,7 +8934,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -9092,7 +9114,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -9374,7 +9397,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -10405,7 +10429,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -10536,7 +10561,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -10715,7 +10741,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
