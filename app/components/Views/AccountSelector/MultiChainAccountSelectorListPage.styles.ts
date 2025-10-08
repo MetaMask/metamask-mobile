@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -9,23 +9,33 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     header: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      margin: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      minHeight: 56, // Ensure consistent header height
     },
     footer: {
       backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      marginVertical: 16,
-      marginHorizontal: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
     },
-    button: { flex: 1 },
+    headerAccessoryWrapper: {
+      width: 40,
+    },
+    startAccessoryWrapper: {
+      width: 40,
+      alignItems: 'flex-start',
+    },
+    endAccessoryWrapper: {
+      width: 40,
+      alignItems: 'flex-end',
+    },
   });
 };
 

@@ -6,7 +6,7 @@ import { selectSelectedAccountGroup } from '../../../selectors/multichainAccount
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, SafeAreaView } from 'react-native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './MultiChainAccountSelectorListPage.styles';
 import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
@@ -18,10 +18,7 @@ import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import { ActivityIndicator, View } from 'react-native';
-import Button, {
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import { Box } from '../../UI/Box/Box';
 import {
@@ -34,6 +31,9 @@ import { MultichainAddWalletActions } from '../../../component-library/component
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import { SHEET_HEADER_BACK_BUTTON_ID } from '../../../component-library/components/Sheet/SheetHeader/SheetHeader.constants';
 
 export const createMultichainAccountSelectorListPageNavigationDetails =
   createNavigationDetails(
@@ -64,6 +64,29 @@ const MultiChainAccountSelectorListPage = () => {
     setShowAddWalletActions(true);
   }, []);
 
+  const addAccountButtonProps = useMemo(
+    () => [
+      {
+        variant: ButtonVariants.Secondary,
+        label: (
+          <Box
+            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.center}
+            flexDirection={FlexDirection.Row}
+            gap={8}
+          >
+            {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
+            <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
+          </Box>
+        ),
+        onPress: handleAddAccount,
+        isDisabled: isAccountSyncingInProgress,
+        testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      },
+    ],
+    [buttonLabel, isAccountSyncingInProgress, handleAddAccount],
+  );
+
   const handleCloseAddWalletActions = useCallback(() => {
     setShowAddWalletActions(false);
   }, []);
@@ -77,6 +100,9 @@ const MultiChainAccountSelectorListPage = () => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
         accountGroup.id,
       );
+      // Navigate back to close the page after account selection
+      navigation.goBack();
+      // TODO: Add event tracking - should we still send number_of_accounts?
       // trackEvent(
       //   createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
       //     .addProperties({
@@ -86,51 +112,41 @@ const MultiChainAccountSelectorListPage = () => {
       //     .build(),
       // );
     },
-    [],
+    [navigation],
   );
-  return selectedAccountGroup ? (
+  return (
     <>
       <SafeAreaView style={styles.container}>
         <HeaderBase
           style={styles.header}
           startAccessory={
             <ButtonLink
-              // testID={WalletDetailsIds.BACK_BUTTON}
+              testID={SHEET_HEADER_BACK_BUTTON_ID} // TODO: Added now to minimize e2e test changes. Should be changed to something better reflecting what it is.
               labelTextVariant={TextVariant.BodyMDMedium}
               label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
               onPress={() => navigation.goBack()}
             />
           }
+          startAccessoryWrapperProps={{
+            style: styles.startAccessoryWrapper,
+          }}
+          endAccessoryWrapperProps={{
+            style: styles.endAccessoryWrapper,
+          }}
         >
           {strings('accounts.accounts_title')}
         </HeaderBase>
-        <MultichainAccountSelectorList
-          onSelectAccount={_onSelectMultichainAccount}
-          selectedAccountGroups={[selectedAccountGroup]}
-          // testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-          // setKeyboardAvoidingViewEnabled={}
-        />
-        <View style={styles.footer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            isDisabled={isAccountSyncingInProgress}
-            style={styles.button}
-            label={
-              <Box
-                alignItems={AlignItems.center}
-                justifyContent={JustifyContent.center}
-                flexDirection={FlexDirection.Row}
-                gap={8}
-              >
-                {isAccountSyncingInProgress && (
-                  <ActivityIndicator size="small" />
-                )}
-                <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
-              </Box>
-            }
-            onPress={handleAddAccount}
+        {selectedAccountGroup && (
+          <MultichainAccountSelectorList
+            onSelectAccount={_onSelectMultichainAccount}
+            selectedAccountGroups={[selectedAccountGroup]}
+            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
-        </View>
+        )}
+        <BottomSheetFooter
+          buttonPropsArray={addAccountButtonProps}
+          style={styles.footer}
+        />
       </SafeAreaView>
       {showAddWalletActions ? (
         <BottomSheet
@@ -142,7 +158,7 @@ const MultiChainAccountSelectorListPage = () => {
         </BottomSheet>
       ) : null}
     </>
-  ) : null;
+  );
 };
 
 export default MultiChainAccountSelectorListPage;
