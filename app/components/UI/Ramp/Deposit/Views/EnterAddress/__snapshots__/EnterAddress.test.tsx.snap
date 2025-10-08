@@ -830,7 +830,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -959,7 +960,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -1083,7 +1085,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -1335,7 +1338,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -1485,7 +1489,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -2499,7 +2504,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -2613,7 +2619,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -2737,7 +2744,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -2951,7 +2959,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -3086,7 +3095,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -4100,7 +4110,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -4214,7 +4225,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -4338,7 +4350,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -4560,7 +4573,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -4695,7 +4709,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -5709,7 +5724,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -5823,7 +5839,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -5947,7 +5964,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -6062,7 +6080,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="state-input"
@@ -6188,7 +6207,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -6323,7 +6343,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
