@@ -461,7 +461,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <React.Fragment key={screen.id}>
+            <View key={screen.id}>
               <View style={styles.screenContainer}>
                 {/* Header Section - Fixed height for text content */}
                 <View style={styles.headerSection}>
@@ -520,7 +520,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                   </Text>
                 )}
               </View>
-            </React.Fragment>
+            </View>
           ))}
         </ScrollableTabView>
       </View>
