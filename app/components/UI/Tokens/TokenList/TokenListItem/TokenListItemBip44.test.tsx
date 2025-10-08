@@ -1,3 +1,4 @@
+import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -11,7 +12,6 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { TokenI } from '../../types';
 import { SECONDARY_BALANCE_TEST_ID } from '../../../AssetElement/index.constants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { BtcAccountType } from '@metamask/keyring-api';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
