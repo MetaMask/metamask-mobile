@@ -466,6 +466,67 @@ describe('App', () => {
         jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
       });
 
+      it('prevents OptinMetrics redirect when user came from lock screen and is on OptinMetrics', () => {
+        // Arrange
+        const mockRoutesFromLockScreen = [
+          { name: Routes.LOCK_SCREEN }, // Previous route
+          {
+            name: Routes.ONBOARDING.ROOT_NAV, // Current route
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
+          },
+        ];
+
+        jest
+          .spyOn(NavigationNative, 'useNavigationState')
+          .mockImplementation((selector: unknown) =>
+            (
+              selector as (state: {
+                routes: { name: string; params?: unknown }[];
+              }) => unknown
+            )({
+              routes: mockRoutesFromLockScreen,
+            }),
+          );
+
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+            userLoggedIn: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined, // SRP user
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return false;
+            }
+            return true; // existingUser = true
+          });
+
+        // Act: Render the component
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        expect(mockReset).not.toHaveBeenCalled();
+      });
+
       it('allows OptinMetrics to show when not coming from lock screen', async () => {
         // Arrange
         const srpUserState = {
@@ -473,11 +534,15 @@ describe('App', () => {
           user: {
             ...initialState.user,
             existingUser: true,
+            userLoggedIn: true,
           },
           engine: {
             ...initialState.engine,
             backgroundState: {
               ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined, // SRP user
+              },
               PreferencesController: {
                 ...initialState.engine?.backgroundState?.PreferencesController,
                 isMultiAccountBalancesEnabled: true,
