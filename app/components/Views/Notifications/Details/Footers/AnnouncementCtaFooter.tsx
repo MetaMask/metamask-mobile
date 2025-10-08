@@ -1,11 +1,12 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
+import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../../../../core/AppConstants';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -28,7 +29,11 @@ export default function AnnouncementCtaFooter(
       width={ButtonWidthTypes.Full}
       label={mobileLinkText}
       style={styles.ctaBtn}
-      onPress={() => Linking.openURL(mobileLinkUrl)}
+      onPress={() =>
+        SharedDeeplinkManager.parse(mobileLinkUrl, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        })
+      }
     />
   );
 }
