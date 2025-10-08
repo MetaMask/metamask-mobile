@@ -5,7 +5,6 @@
  *
  * @type {import('metro-config').MetroConfig}
  */
-
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
