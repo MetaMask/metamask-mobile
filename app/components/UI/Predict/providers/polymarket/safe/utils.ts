@@ -36,7 +36,7 @@ function abiEncodePacked(
         return encoded.slice(130, 130 + 2 * bytesLength);
       }
 
-      let typeMatch = type.match(/^(?:u?int\d*|bytes\d+|address)\[\]$/);
+      let typeMatch = /^(?:u?int\d*|bytes\d+|address)\[\]$/.exec(type);
       if (typeMatch) {
         return encoded.slice(130);
       }
@@ -46,7 +46,7 @@ function abiEncodePacked(
         return encoded.slice(2, 2 + 2 * bytesLength);
       }
 
-      typeMatch = type.match(/^u?int(\d*)$/);
+      typeMatch = /^u?int(\d*)$/.exec(type);
       if (typeMatch) {
         if (typeMatch[1] !== '') {
           const bytesLength = parseInt(typeMatch[1]) / 8;
