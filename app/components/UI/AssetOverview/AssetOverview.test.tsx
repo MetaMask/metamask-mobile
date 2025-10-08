@@ -240,7 +240,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -254,7 +253,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -282,7 +280,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -318,12 +315,7 @@ describe('AssetOverview', () => {
     };
 
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={nativeAsset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-      />,
+      <AssetOverview asset={nativeAsset} displayBuyButton displaySwapsButton />,
       {
         state: {
           ...mockInitialState,
@@ -373,12 +365,7 @@ describe('AssetOverview', () => {
 
   it('should handle swap button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-      />,
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
@@ -414,7 +401,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -447,12 +433,7 @@ describe('AssetOverview', () => {
 
   it('should handle bridge button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-      />,
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
@@ -476,7 +457,6 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton={false}
-        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -485,28 +465,12 @@ describe('AssetOverview', () => {
     expect(swapButton).toBeNull();
   });
 
-  it('should not render bridge button if displayBridgeButton is false', async () => {
-    const { queryByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton={false}
-      />,
-      { state: mockInitialState },
-    );
-
-    const bridgeButton = queryByTestId('token-bridge-button');
-    expect(bridgeButton).toBeNull();
-  });
-
   it('should not render buy button if displayBuyButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton={false}
         displaySwapsButton
-        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -525,7 +489,6 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -544,7 +507,6 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
-        displayBridgeButton
       />,
       {
         state: {
@@ -648,7 +610,6 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -678,7 +639,6 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -724,7 +684,6 @@ describe('AssetOverview', () => {
           asset={sameChainAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -771,7 +730,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -829,7 +787,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -862,7 +819,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -893,7 +849,6 @@ describe('AssetOverview', () => {
           asset={solanaAsset}
           displayBuyButton
           displaySwapsButton
-          displayBridgeButton
         />,
         { state: mockInitialState },
       );
@@ -919,12 +874,7 @@ describe('AssetOverview', () => {
       mockSendNonEvmAsset.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={evmAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-        />,
+        <AssetOverview asset={evmAsset} displayBuyButton displaySwapsButton />,
         { state: mockInitialState },
       );
 

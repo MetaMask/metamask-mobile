@@ -67,18 +67,6 @@ export const NoSwapsButton = Template.bind(
   },
 );
 
-export const NoBridgeButton = Template.bind(
-  {},
-  {
-    displayBuyButton: true,
-    displaySwapsButton: true,
-    onBuy: () => null,
-    goToSwaps: () => null,
-    onSend: () => null,
-    onReceive: () => null,
-  },
-);
-
 export const NoButtons = Template.bind(
   {},
   {

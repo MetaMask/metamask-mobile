@@ -246,7 +246,6 @@ describe('BridgeSourceNetworkSelector', () => {
     ] = {
       isActiveSrc: true,
       isActiveDest: true,
-      isUnifiedUIEnabled: true,
       isGaslessSwapEnabled: false,
     };
 

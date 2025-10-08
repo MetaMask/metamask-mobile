@@ -13,13 +13,6 @@ jest.mock('react-native-device-info', () => ({
   getTotalMemorySync: jest.fn(() => 4000000000),
 }));
 
-jest.mock(
-  '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-  () => ({
-    isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
-  }),
-);
-
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () =>
   jest.fn((_props) => null),
@@ -92,7 +85,6 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -534,48 +526,6 @@ describe('Wallet', () => {
       mockTabsListComponent.mockClear();
     });
 
-    it('should pass displayBridgeButton as true when isUnifiedSwapsEnabled is false', () => {
-      const stateWithUnifiedSwapsDisabled = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  chains: {
-                    'eip155:1': {
-                      isUnifiedUIEnabled: false,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // Mock the unified swaps env var as false
-      jest.mocked(isUnifiedSwapsEnvVarEnabled).mockReturnValue(false);
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) =>
-          callback(stateWithUnifiedSwapsDisabled),
-        );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      // Check that AssetDetailsActions was called with displayBridgeButton: true
-      expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
-        expect.objectContaining({
-          displayBridgeButton: true,
-        }),
-      );
-    });
-
     it('should pass all required props to AssetDetailsActions', () => {
       jest
         .mocked(useSelector)
@@ -591,14 +541,11 @@ describe('Wallet', () => {
         expect.objectContaining({
           displayBuyButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
-          displayBridgeButton: expect.any(Boolean),
-          goToBridge: expect.any(Function),
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
           buyButtonActionID: 'wallet-buy-button',
           swapButtonActionID: 'wallet-swap-button',
-          bridgeButtonActionID: 'wallet-bridge-button',
           sendButtonActionID: 'wallet-send-button',
           receiveButtonActionID: 'wallet-receive-button',
         }),
@@ -782,14 +729,6 @@ describe('Wallet', () => {
       const passedProps = mockAssetDetailsActions.mock.calls[0][0];
       expect(passedProps.onBuy).toBeUndefined();
       expect(passedProps.buyButtonActionID).toBeDefined();
-    });
-
-    it('should handle goToBridge callback correctly', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      const goToBridge = mockAssetDetailsActions.mock.calls[0][0].goToBridge;
-      expect(typeof goToBridge).toBe('function');
     });
 
     it('should handle goToSwaps callback correctly', () => {

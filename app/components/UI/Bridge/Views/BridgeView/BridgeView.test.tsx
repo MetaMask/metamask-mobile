@@ -36,14 +36,6 @@ jest.mock(
   }),
 );
 
-// Mock the isUnifiedSwapsEnvVarEnabled function to return false for consistent test behavior
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-  () => ({
-    isUnifiedSwapsEnvVarEnabled: jest.fn(() => true),
-  }),
-);
-
 const mockState = {
   ...initialState,
   engine: {
