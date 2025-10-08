@@ -239,6 +239,7 @@ describe('Browser utils :: protocolWhitelist', () => {
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
   it('No javascript:', () => {
+    // eslint-disable-next-line no-script-url
     const { protocol } = new URL('javascript://metamask.io');
 
     expect(protocolAllowList.includes(protocol)).toBeFalsy();
