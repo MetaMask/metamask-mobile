@@ -37,6 +37,12 @@ runs:
       with:
         fetch-depth: 50
 
+    - name: Disable sparse checkout and restore all files
+      shell: bash
+      run: |
+        git sparse-checkout disable
+        git checkout HEAD -- .
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
