@@ -11,6 +11,11 @@ import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 import { Mockttp } from 'mockttp';
 
+/**
+ * TODO:
+ * Moving to quaratine since all tests are being skipped.
+ * When this test is fixed we need to add a second shard to CI.
+ */
 describe(SmokeTrade('On-Ramp Limits'), () => {
   const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
   it.skip('should check order min and maxlimits', async () => {
