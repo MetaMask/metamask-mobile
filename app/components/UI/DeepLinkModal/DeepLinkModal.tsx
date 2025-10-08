@@ -125,7 +125,7 @@ const DeepLinkModal = () => {
       ? params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const dispatch = useDispatch();
@@ -218,7 +218,7 @@ const DeepLinkModal = () => {
       }
       onBack?.();
     });
-  }, [trackEvent, onBack]);
+  }, [trackEvent, onBack, params.deepLinkContext]);
 
   const openMetaMaskStore = useCallback(() => {
     // Open appropriate store based on platform
@@ -275,7 +275,7 @@ const DeepLinkModal = () => {
         params.onContinue();
       }
     });
-  }, [trackEvent, linkType, params, navigation, pageTitle]);
+  }, [trackEvent, linkType, params, navigation, pageTitle, params.deepLinkContext]);
 
   const onDontRemindMeAgainPressed = useCallback(async () => {
     try {

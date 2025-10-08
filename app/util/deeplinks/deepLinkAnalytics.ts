@@ -461,7 +461,7 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
 export const createDeepLinkUsedEventBuilder = async (
   context: DeepLinkAnalyticsContext,
 ): Promise<MetricsEventBuilder> => {
-  const { url, urlParams, signatureStatus } = context;
+  const { url, signatureStatus } = context;
 
   // Detect app installation status
   const wasAppInstalled = await detectAppInstallation();
@@ -470,7 +470,7 @@ export const createDeepLinkUsedEventBuilder = async (
   const route = extractRouteFromUrl(url);
 
   // Extract sensitive properties
-  const sensitiveProperties = extractSensitiveProperties(route, urlParams);
+  const sensitiveProperties = extractSensitiveProperties(route, context.urlParams);
 
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);
@@ -481,12 +481,12 @@ export const createDeepLinkUsedEventBuilder = async (
     was_app_installed: wasAppInstalled,
     signature: signatureStatus,
     interstitial,
-    attribution_id: urlParams.attributionId,
-    utm_source: urlParams.utm_source,
-    utm_medium: urlParams.utm_medium,
-    utm_campaign: urlParams.utm_campaign,
-    utm_term: urlParams.utm_term,
-    utm_content: urlParams.utm_content,
+    attribution_id: context.urlParams.attributionId,
+    utm_source: context.urlParams.utm_source,
+    utm_medium: context.urlParams.utm_medium,
+    utm_campaign: context.urlParams.utm_campaign,
+    utm_term: context.urlParams.utm_term,
+    utm_content: context.urlParams.utm_content,
     target: route === DeepLinkRoute.INVALID ? url : undefined,
   };
 

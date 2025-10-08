@@ -10,7 +10,7 @@ import {
   MISSING,
   VALID,
 } from './utils/verifySignature';
-import { DeepLinkModalLinkType } from '../types/deepLink.types';
+import { DeepLinkModalLinkType , SUPPORTED_ACTIONS } from '../types/deepLink.types';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
 import {
@@ -22,7 +22,6 @@ import {
   SignatureStatus,
   InterstitialState,
 } from '../types/deepLinkAnalytics.types';
-import { SUPPORTED_ACTIONS } from '../types/deepLink.types';
 import { MetaMetrics } from '../../Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
