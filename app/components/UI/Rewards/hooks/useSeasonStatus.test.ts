@@ -1,3 +1,8 @@
+// Mock the useInvalidateByRewardEvents hook BEFORE importing useSeasonStatus
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
+}));
+
 import { renderHook } from '@testing-library/react-hooks';
 import { useSeasonStatus } from './useSeasonStatus';
 import Engine from '../../../../core/Engine';
@@ -21,6 +26,7 @@ import {
 import { handleRewardsErrorMessage } from '../utils';
 import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
 import { strings } from '../../../../../locales/i18n';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -52,12 +58,6 @@ jest.mock('../../../../reducers/rewards', () => ({
   resetRewardsState: jest.fn(),
   setCandidateSubscriptionId: jest.fn(),
   setSeasonStatusLoading: jest.fn(),
-}));
-
-// Mock the useInvalidateByRewardEvents hook
-const mockUseInvalidateByRewardEvents = jest.fn();
-jest.mock('./useInvalidateByRewardEvents', () => ({
-  useInvalidateByRewardEvents: mockUseInvalidateByRewardEvents,
 }));
 
 // Mock React Navigation hooks
@@ -114,6 +114,10 @@ describe('useSeasonStatus', () => {
       typeof handleRewardsErrorMessage
     >;
   const mockStrings = strings as jest.MockedFunction<typeof strings>;
+  const mockUseInvalidateByRewardEvents =
+    useInvalidateByRewardEvents as jest.MockedFunction<
+      typeof useInvalidateByRewardEvents
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
