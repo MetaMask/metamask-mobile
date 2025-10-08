@@ -29,6 +29,8 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
+import Tag from '../../../../../../component-library/components/Tags/Tag';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -49,6 +51,9 @@ const CustomNetwork = ({
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
   const { safeChains } = useSafeChains();
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
@@ -133,6 +138,12 @@ const CustomNetwork = ({
             <CustomText bold={!isNetworkUiRedesignEnabled()}>
               {networkConfiguration.nickname}
             </CustomText>
+            {isGasFeesSponsoredNetworkEnabled(networkConfiguration.chainId) ? (
+              <Tag
+                label={strings('networks.no_network_fee')}
+                style={networkSettingsStyles.tagLabelSpacing}
+              />
+            ) : null}
           </View>
 
           <View style={networkSettingsStyles.popularWrapper}>
