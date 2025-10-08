@@ -155,7 +155,9 @@ const RewardsDashboard: React.FC = () => {
       initialActiveIndex: getActiveIndex(),
       onChangeTab: handleTabChange,
       testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
-      tabsBarTwClassName: 'px-4',
+      tabsBarProps: {
+        twClassName: 'px-4',
+      },
       tabsListContentTwClassName: 'px-0',
     }),
     [getActiveIndex, handleTabChange],

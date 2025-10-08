@@ -30,7 +30,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       initialActiveIndex = 0,
       onChangeTab,
       testID,
-      tabsBarTwClassName,
+      tabsBarProps,
       tabsListContentTwClassName,
       ...boxProps
     },
@@ -425,21 +425,21 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ],
     );
 
-    const tabBarProps = useMemo(
+    const tabBarPropsComputed = useMemo(
       () => ({
         tabs,
         activeIndex,
         onTabPress: handleTabPress,
         testID: testID ? `${testID}-bar` : undefined,
-        twClassName: tabsBarTwClassName,
+        ...tabsBarProps,
       }),
-      [tabs, activeIndex, handleTabPress, testID, tabsBarTwClassName],
+      [tabs, activeIndex, handleTabPress, testID, tabsBarProps],
     );
 
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
         {/* Render TabsBar */}
-        <TabsBar {...tabBarProps} />
+        <TabsBar {...tabBarPropsComputed} />
 
         {/* Horizontal ScrollView for tab contents */}
         <ScrollView
