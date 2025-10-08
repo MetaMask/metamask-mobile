@@ -591,6 +591,8 @@ export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
   subscriptionId: string | null;
+  lastCheckedAuth: number;
+  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };

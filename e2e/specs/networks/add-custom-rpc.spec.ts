@@ -11,7 +11,7 @@ import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 
-describe.skip(RegressionAssets('Custom RPC Tests'), () => {
+describe(RegressionAssets('Custom RPC Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

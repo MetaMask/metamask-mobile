@@ -52,7 +52,6 @@ const mockConnectionRequest: ConnectionRequest = {
 const mockConnectionInfo: ConnectionInfo = {
   id: mockConnectionRequest.sessionRequest.id,
   metadata: mockConnectionRequest.metadata,
-  expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
 };
 
 describe('Connection', () => {

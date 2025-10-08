@@ -44,7 +44,6 @@ import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { PredictPosition, PredictPriceHistoryInterval } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import TabBar from '../../../../Base/TabBar';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -196,7 +195,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         accessibilityRole="button"
         accessibilityLabel={strings('back')}
         style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -533,27 +531,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         />
         <ScrollableTabView
           renderTabBar={() => (
-            <TabBar
-              textStyle={tw.style('text-base font-bold text-center')}
-              testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
-            />
+            <TabBar textStyle={tw.style('text-base font-bold text-center')} />
           )}
           style={tw.style('mt-2')}
           initialPage={0}
         >
-          <Box
-            key="about"
-            {...{ tabLabel: 'About' }}
-            twClassName="pt-4"
-            testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
-          >
+          <Box key="about" {...{ tabLabel: 'About' }} twClassName="pt-4">
             {renderAboutSection()}
           </Box>
           <Box
             key="positions"
             {...{ tabLabel: 'Positions' }}
             twClassName="pt-4"
-            testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
           >
             {renderPositionsSection()}
           </Box>
@@ -562,7 +551,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               key="outcomes"
               {...{ tabLabel: 'Outcomes' }}
               twClassName="pt-4"
-              testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
             >
               <Box>
                 {market?.outcomes?.map((outcome, index) => (

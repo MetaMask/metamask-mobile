@@ -266,7 +266,10 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_type: 'simple_send',
       },
       sensitiveProperties: {
+        from_address: FROM_ADDRESS_MOCK,
         sensitive_data: 'sensitive_value',
+        to_address: undefined,
+        value: undefined,
       },
     });
   });
@@ -301,6 +304,11 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_envelope_type: undefined,
         transaction_internal_id: 'test-id-123',
         transaction_type: 'simple_send',
+      },
+      sensitiveProperties: {
+        from_address: FROM_ADDRESS_MOCK,
+        to_address: undefined,
+        value: undefined,
       },
     });
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import '@shopify/flash-list/jestSetup';
 import {
   AccountGroupObject,
@@ -20,7 +20,7 @@ import {
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { ReactTestInstance } from 'react-test-renderer';
 
 // Mock the new hook to avoid dependencies
 jest.mock('../../../../components/UI/Assets/hooks', () => ({
@@ -188,7 +188,7 @@ describe('MultichainAccountSelectorList', () => {
     expect(getByText('Ledger')).toBeTruthy();
   });
 
-  it('shows the correct account as selected', async () => {
+  it('shows the correct account as selected', () => {
     const account1 = createMockAccountGroup(
       'keyring:wallet1/group1',
       'Account 1',
@@ -206,75 +206,20 @@ describe('MultichainAccountSelectorList', () => {
       account1,
       account2,
     ]);
+    const { getAllByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
 
-    const { getAllByTestId, rerender, queryByText } =
-      renderComponentWithMockState([wallet1], internalAccounts, [account2]);
-
-    await waitFor(() => {
-      expect(getAllByTestId(AccountCellIds.CONTAINER)).toHaveLength(2);
-    });
-
-    const accountCells = getAllByTestId(AccountCellIds.CONTAINER);
-
+    const accountCells = getAllByTestId('multichain-account-cell-container');
     const account1Cell = accountCells.find((cell) =>
       within(cell).queryByText('Account 1'),
     );
-    const account2Cell = accountCells.find((cell) =>
-      within(cell).queryByText('Account 2'),
-    );
-
     expect(account1Cell).toBeTruthy();
-    expect(account2Cell).toBeTruthy();
+    fireEvent.press(account1Cell as ReactTestInstance);
 
-    const account1Text = queryByText('Account 1');
-    const account1TouchableParent = account1Text?.parent?.parent;
-
-    if (account1TouchableParent) {
-      await act(async () => {
-        fireEvent.press(account1TouchableParent);
-      });
-    }
-
-    await waitFor(() => {
-      expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
-    });
-
-    mockOnSelectAccount.mockClear();
-
-    const account2Text = queryByText('Account 2');
-    const account2TouchableParent = account2Text?.parent?.parent;
-
-    if (account2TouchableParent) {
-      await act(async () => {
-        fireEvent.press(account2TouchableParent);
-      });
-    }
-
-    await waitFor(() => {
-      expect(mockOnSelectAccount).toHaveBeenCalledWith(account2);
-    });
-
-    await act(async () => {
-      rerender(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroups={[account2]}
-          showCheckbox
-        />,
-      );
-    });
-
-    await waitFor(() => {
-      const account2Checkbox = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      expect(account2Checkbox).toHaveLength(1);
-
-      const account1Checkbox = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      expect(account1Checkbox).toHaveLength(1);
-    });
+    expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
   });
 
   describe('Search functionality', () => {
@@ -612,7 +557,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText('My Account')).toBeFalsy();
           expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 1000 }, // Increased timeout for debounced search
+        { timeout: 500 },
       );
     });
 

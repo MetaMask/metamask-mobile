@@ -93,7 +93,7 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      padding: 16,
+      padding: 24,
       zIndex: 99999999999999,
     },
     titleContainer: {

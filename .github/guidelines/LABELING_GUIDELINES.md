@@ -24,7 +24,6 @@ Any label can be manually added on demand depending on the PR's content. For ins
 Android E2E smoke tests run on every PR automatically, but running iOS E2E smoke tests are optional based on the following label:
 
 - **run-ios-e2e-smoke**: The iOS E2E smoke tests jobs will run in the pipeline.
-- **run-android-flask-e2e-smoke**: The Android Flask E2E smoke tests jobs will run in the pipeline.
 
 ### Bypass Quality Gates
 

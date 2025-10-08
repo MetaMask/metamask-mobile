@@ -5,6 +5,7 @@ exports[`DefaultSettings should render correctly 1`] = `
   style={
     {
       "flex": 1,
+      "paddingTop": 16,
     }
   }
 >

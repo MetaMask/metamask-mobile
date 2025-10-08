@@ -16,7 +16,7 @@ class TabBarComponent {
   }
 
   get tabBarActionButton(): DetoxElement {
-    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
   get tabBarSettingButton(): DetoxElement {
@@ -55,7 +55,7 @@ class TabBarComponent {
 
   async tapActions(): Promise<void> {
     await Gestures.waitAndTap(this.tabBarActionButton, {
-      elemDescription: 'Tab Bar - Trade Button',
+      elemDescription: 'Tab Bar - Actions Button',
     });
   }
 

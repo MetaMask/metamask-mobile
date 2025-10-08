@@ -1,7 +1,7 @@
 import migrate from './092';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@sentry/react-native', () => ({

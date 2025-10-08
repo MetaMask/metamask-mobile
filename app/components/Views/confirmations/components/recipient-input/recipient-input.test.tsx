@@ -54,6 +54,8 @@ const mockUseSendActions = jest.mocked(useSendActions);
 describe('RecipientInput', () => {
   const mockUpdateTo = jest.fn();
   const mockValidateToAddress = jest.fn();
+  const mockSetRecipientInputMethodPasted = jest.fn();
+  const mockSetRecipientInputMethodManual = jest.fn();
   const mockCaptureRecipientSelected = jest.fn();
   const mockHandleSubmitPress = jest.fn();
 
@@ -86,6 +88,10 @@ describe('RecipientInput', () => {
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: mockCaptureRecipientSelected,
+      setRecipientInputMethodManual: jest.fn(),
+      setRecipientInputMethodPasted: mockSetRecipientInputMethodPasted,
+      setRecipientInputMethodSelectAccount: jest.fn(),
+      setRecipientInputMethodSelectContact: jest.fn(),
     });
 
     mockUseSendActions.mockReturnValue({
@@ -180,6 +186,10 @@ describe('RecipientInput', () => {
   it('calls requires callbacks when text input changes', () => {
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: jest.fn(),
+      setRecipientInputMethodManual: mockSetRecipientInputMethodManual,
+      setRecipientInputMethodPasted: jest.fn(),
+      setRecipientInputMethodSelectAccount: jest.fn(),
+      setRecipientInputMethodSelectContact: jest.fn(),
     });
 
     const mockSetIsRecipientSelectedFromList = jest.fn();
@@ -203,6 +213,7 @@ describe('RecipientInput', () => {
     );
     expect(mockSetIsRecipientSelectedFromList).toHaveBeenCalled();
     expect(mockSetPastedRecipient).toHaveBeenCalledWith(undefined);
+    expect(mockSetRecipientInputMethodManual).toHaveBeenCalled();
   });
 
   it('handles paste functionality updates input', async () => {

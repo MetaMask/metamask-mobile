@@ -10,16 +10,12 @@ import {
   TransactionMeta,
   WalletDevice,
   TransactionEnvelopeType,
-  TransactionControllerGetNonceLockAction,
-  TransactionControllerGetTransactionsAction,
-  TransactionControllerConfirmExternalTransactionAction,
-  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
-  ClientId,
-  SmartTransactionsController,
   type SmartTransaction,
-} from '@metamask/smart-transactions-controller';
+  ClientId,
+} from '@metamask/smart-transactions-controller/dist/types';
 
 import {
   AllowedActions,
@@ -148,30 +144,24 @@ function withRequest<ReturnValue>(
     ...options
   } = rest;
   const messenger = new Messenger<
-    | NetworkControllerGetNetworkClientByIdAction
-    | TransactionControllerGetNonceLockAction
-    | TransactionControllerGetTransactionsAction
-    | TransactionControllerConfirmExternalTransactionAction
-    | TransactionControllerUpdateTransactionAction
-    | AllowedActions,
+    NetworkControllerGetNetworkClientByIdAction | AllowedActions,
     NetworkControllerStateChangeEvent | AllowedEvents
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     messenger: messenger.getRestricted({
       name: 'SmartTransactionsController',
-      allowedActions: [
-        'NetworkController:getNetworkClientById',
-        'TransactionController:getNonceLock',
-        'TransactionController:getTransactions',
-        'TransactionController:confirmExternalTransaction',
-        'TransactionController:updateTransaction',
-      ],
+      allowedActions: ['NetworkController:getNetworkClientById'],
       allowedEvents: ['NetworkController:stateChange'],
     }),
+    getNonceLock: jest.fn(),
+    confirmExternalTransaction: jest.fn(),
     trackMetaMetricsEvent: jest.fn(),
+    getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
     getFeatureFlags: jest.fn(),
+    updateTransaction: jest.fn(),
     clientId: ClientId.Mobile,
   });
 

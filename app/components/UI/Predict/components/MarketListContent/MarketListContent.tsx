@@ -16,7 +16,6 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from '../PredictMarket';
-import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface MarketListContentProps {
   q?: string;
@@ -43,17 +42,10 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <PredictMarket
-        key={item.id}
-        market={item}
-        testID={getPredictMarketListSelector.marketCardByCategory(
-          category,
-          index + 1,
-        )}
-      />
+    ({ item }: { item: PredictMarketType }) => (
+      <PredictMarket key={item.id} market={item} />
     ),
-    [category],
+    [],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -149,10 +141,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   if (!marketData || marketData.length === 0) {
     return (
-      <Box
-        testID={getPredictMarketListSelector.emptyState()}
-        style={styles.emptyContainer}
-      >
+      <Box style={styles.emptyContainer}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           No {category} markets available
         </Text>

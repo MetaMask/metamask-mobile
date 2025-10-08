@@ -5,15 +5,14 @@ import PredictMarketMultiple from '../PredictMarketMultiple';
 
 interface PredictMarketProps {
   market: PredictMarketType;
-  testID?: string;
 }
 
-const PredictMarket: React.FC<PredictMarketProps> = ({ market, testID }) => {
+const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
   if (market.outcomes.length === 1) {
-    return <PredictMarketSingle market={market} testID={testID} />;
+    return <PredictMarketSingle market={market} />;
   }
 
-  return <PredictMarketMultiple market={market} testID={testID} />;
+  return <PredictMarketMultiple market={market} />;
 };
 
 export default PredictMarket;

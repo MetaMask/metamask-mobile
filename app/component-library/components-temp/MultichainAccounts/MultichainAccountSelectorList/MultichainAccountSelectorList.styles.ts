@@ -1,15 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
-const createStyles = (params: {
-  theme: Theme;
-  vars: { isSelected?: boolean };
-}) => {
-  const { theme, vars } = params;
-  const { isSelected } = vars;
-  const { colors } = theme;
-
-  return StyleSheet.create({
+const createStyles = ({ theme }: { theme: Theme }) =>
+  StyleSheet.create({
     container: {
       flex: 1,
       minHeight: 300,
@@ -51,24 +44,8 @@ const createStyles = (params: {
       color: theme.colors.text.alternative,
     },
     accountItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
       paddingHorizontal: 16,
       width: '100%',
-      backgroundColor: isSelected
-        ? colors.info.muted
-        : colors.background.default,
-    },
-    selectedIndicator: {
-      marginLeft: -12, // The width of the indicator is 4px, so we need to offset by 12px to align with the cell
-      marginRight: 8,
-      width: 4,
-      height: 56, // Cell height (68px) - 4px
-      borderRadius: 8,
-      backgroundColor: theme.colors.primary.default,
-    },
-    accountCellWrapper: {
-      flex: 1,
     },
     emptyState: {
       flex: 1,
@@ -85,6 +62,5 @@ const createStyles = (params: {
       height: 8,
     },
   });
-};
 
 export default createStyles;

@@ -1,9 +1,4 @@
 /* eslint-disable react/prop-types */
-
-/**
- * @deprecated Please update your code to use `BadgeCount`, `BadgeIcon`, `BadgeNetwork` or `BadgeStatus` from `@metamask/design-system-react-native`
- */
-
 // Third library dependencies.
 import React from 'react';
 import { View } from 'react-native';

@@ -120,7 +120,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
+describe(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

@@ -6,7 +6,7 @@ import NotificationManager, {
   constructTitleAndMessage,
 } from './NotificationManager';
 import { strings } from '../../locales/i18n';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import Engine from './Engine';
 import {
   TransactionController,

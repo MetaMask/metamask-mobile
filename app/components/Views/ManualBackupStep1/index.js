@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
+  SafeAreaView,
   ActivityIndicator,
   KeyboardAvoidingView,
   FlatList,
   TouchableOpacity,
   ImageBackground,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -366,7 +366,7 @@ const ManualBackupStep1 = ({
   );
 
   return ready ? (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper}>
       <View style={[styles.container]}>
         {seedPhrase && (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

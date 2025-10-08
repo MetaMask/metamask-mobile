@@ -13,7 +13,6 @@ import {
   RegionsService,
   CryptoCurrency,
   Payment,
-  Environment,
 } from '@consensys/on-ramp-sdk';
 import { getSdkEnvironment } from './getSdkEnvironment';
 import { getCaipChainIdFromCryptoCurrency } from '../utils';
@@ -39,15 +38,13 @@ import useActivationKeys from '../hooks/useActivationKeys';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { selectNickname } from '../../../../../selectors/networkController';
 
-const environment = getSdkEnvironment();
-
 const isDevelopment =
   process.env.NODE_ENV !== 'production' ||
   process.env.RAMP_DEV_BUILD === 'true';
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
-const isProduction = environment === Environment.Production;
-const isDevelopmentOrInternalBuild =
-  isDevelopment || isInternalBuild || !isProduction;
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
+const environment = getSdkEnvironment();
 
 let context = Context.Mobile;
 if (Device.isAndroid()) {
@@ -118,9 +115,9 @@ interface ProviderProps<T> {
   children?: React.ReactNode;
 }
 
-export const callbackBaseUrl = isProduction
-  ? 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback'
-  : 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
+export const callbackBaseUrl = isDevelopment
+  ? 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback'
+  : 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';
 

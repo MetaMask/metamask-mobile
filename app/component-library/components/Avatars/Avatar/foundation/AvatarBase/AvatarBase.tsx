@@ -1,9 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `AvatarBase` from `@metamask/design-system-react-native`
- */
-
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';

@@ -6,7 +6,7 @@ import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
   SmartTransaction,
   SmartTransactionStatuses,
-} from '@metamask/smart-transactions-controller';
+} from '@metamask/smart-transactions-controller/dist/types';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts/accountTreeController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';

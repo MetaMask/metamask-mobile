@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Image, useWindowDimensions } from 'react-native';
+import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -18,7 +18,6 @@ const OnboardingStep1: React.FC = () => {
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { colors } = useTheme();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const handleNext = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_2));
@@ -35,14 +34,12 @@ const OnboardingStep1: React.FC = () => {
       <Step1BgImg
         name="rewards-onboarding-step1-bg"
         fill={colors.background.muted}
-        style={tw.style('absolute')}
-        width={screenWidth}
-        height={screenHeight}
+        style={tw.style('absolute w-full h-full')}
       />
 
       <Image
         source={step1Img}
-        style={tw.style('h-[75%] z-10')}
+        style={tw.style('h-80 z-10')}
         testID="step-1-image"
         resizeMode="contain"
       />

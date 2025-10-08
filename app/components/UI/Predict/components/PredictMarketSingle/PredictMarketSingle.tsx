@@ -27,12 +27,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
-  testID?: string;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
-  testID,
 }) => {
   const outcome = market.outcomes[0];
   const navigation =
@@ -179,7 +177,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   return (
     <TouchableOpacity
-      testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,

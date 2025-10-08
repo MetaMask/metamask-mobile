@@ -24,6 +24,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
+import { toHex } from '@metamask/controller-utils';
 import { RootState } from '../../../../reducers';
 
 const createStyles = (
@@ -111,7 +112,9 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
         }
       } else if (isAccountDisconnect) {
         // This is a pure permission management action.
-        removePermittedAccounts(channelId as string, [account]);
+        removePermittedAccounts(channelId as string, [
+          toHex(account as string),
+        ]);
         // If it's the last account, escalate to a full session termination.
         if (accountsLength && accountsLength <= 1) {
           if (isV2) {
