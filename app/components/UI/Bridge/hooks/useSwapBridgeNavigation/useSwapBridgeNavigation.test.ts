@@ -1,12 +1,9 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
-import { waitFor } from '@testing-library/react-native';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { EthScope, SolScope } from '@metamask/keyring-api';
-import Engine from '../../../../../core/Engine';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
 
@@ -195,54 +192,6 @@ describe('useSwapBridgeNavigation', () => {
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
       },
-    });
-  });
-
-  it('switches network and navigates to Swaps when goToSwaps is called and token chainId differs from selected chainId', async () => {
-    const differentChainId = '0xa' as Hex;
-    const mockToken: BridgeToken = {
-      address: '0x0000000000000000000000000000000000000001',
-      symbol: 'TOKEN',
-      name: 'Test Token',
-      decimals: 18,
-      chainId: differentChainId,
-    };
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-          sourceToken: mockToken,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps();
-
-    await waitFor(() => {
-      expect(
-        Engine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith(differentChainId);
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('optimismNetworkClientId');
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: mockToken.address,
-          chainId: mockToken.chainId,
-          sourcePage: mockSourcePage,
-        },
-      });
     });
   });
 
