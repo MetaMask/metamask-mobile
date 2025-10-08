@@ -65,17 +65,19 @@ app/core/Analytics/events/confirmations                     @MetaMask/confirmati
 ppom                                                        @MetaMask/confirmations
 app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
 
-# All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
-app/actions/sdk   @MetaMask/sdk-devs
-app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs
-app/components/Views/SDK   @MetaMask/sdk-devs
-app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs
-app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs
-app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs
-app/core/SDKConnect   @MetaMask/sdk-devs
-app/core/WalletConnect   @MetaMask/sdk-devs
-app/reducers/sdk   @MetaMask/sdk-devs
-app/util/walletconnect.js   @MetaMask/sdk-devs
+# Wallet integrations Team
+app/actions/sdk                                             @MetaMask/wallet-integrations
+app/components/Approvals/WalletConnectApproval              @MetaMask/wallet-integrations
+app/components/Views/SDK                                    @MetaMask/wallet-integrations
+app/components/Views/WalletConnectSessions                  @MetaMask/wallet-integrations
+app/core/BackgroundBridge/WalletConnectPort.ts              @MetaMask/wallet-integrations
+app/core/RPCMethods                                         @MetaMask/wallet-integrations
+app/core/SDKConnect                                         @MetaMask/wallet-integrations
+app/core/SDKConnectV2                                       @MetaMask/wallet-integrations
+app/core/WalletConnect                                      @MetaMask/wallet-integrations
+app/reducers/sdk                                            @MetaMask/wallet-integrations
+app/util/walletconnect.js                                   @MetaMask/wallet-integrations
+app/util/permissions/                                       @MetaMask/wallet-integrations
 
 # Accounts Team
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
@@ -121,9 +123,6 @@ app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 # Co-owned by Confirmations team and Core Platform team
 app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-platform
 
-# Wallet API Platform Team
-app/core/RPCMethods/                 @MetaMask/wallet-api-platform-engineers
-app/util/permissions/                @MetaMask/wallet-api-platform-engineers
 
 # Earn Team
 app/components/UI/Stake              @MetaMask/metamask-earn

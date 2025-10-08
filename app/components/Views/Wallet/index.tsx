@@ -196,7 +196,6 @@ const createStyles = ({ colors }: Theme) =>
     walletAccount: { marginTop: 28 },
 
     tabContainer: {
-      paddingHorizontal: 16,
       flex: 1,
     },
     loader: {
@@ -449,9 +448,29 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     enabledNetworksIsSolana,
   ]);
 
+  // Create a key that changes when tab structure changes to force re-render
+  const tabsKey = useMemo(() => {
+    const enabledFeatures = [
+      isPerpsEnabled ? 'perps' : '',
+      isPredictEnabled ? 'predict' : '',
+      defiEnabled ? 'defi' : '',
+      collectiblesEnabled ? 'nfts' : '',
+      enabledNetworksIsSolana ? 'solana' : '',
+    ]
+      .filter(Boolean)
+      .join('-');
+    return `tabs-${enabledFeatures}`;
+  }, [
+    isPerpsEnabled,
+    isPredictEnabled,
+    defiEnabled,
+    collectiblesEnabled,
+    enabledNetworksIsSolana,
+  ]);
+
   return (
     <View style={styles.tabContainer}>
-      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
         {tabsToRender}
       </TabsList>
     </View>

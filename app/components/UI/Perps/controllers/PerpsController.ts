@@ -825,11 +825,14 @@ export class PerpsController extends BaseController<
         state.pendingOrders.push(orderWithoutTracking);
       });
 
-      const result = await provider.placeOrder(params);
-
-      // Clear discount context after order (success or failure)
-      if (provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(undefined);
+      let result: OrderResult;
+      try {
+        result = await provider.placeOrder(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
       }
 
       // Update state only on success
@@ -1428,7 +1431,24 @@ export class PerpsController extends BaseController<
     const startTime = performance.now();
     const provider = this.getActiveProvider();
 
-    const result = await provider.updatePositionTPSL(params);
+    // Get fee discount from rewards
+    const feeDiscountBips = await this.calculateUserFeeDiscount();
+
+    // Set discount context in provider for this operation
+    if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+      provider.setUserFeeDiscount(feeDiscountBips);
+    }
+
+    let result: OrderResult;
+    try {
+      result = await provider.updatePositionTPSL(params);
+    } finally {
+      // Always clear discount context, even on exception
+      if (provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(undefined);
+      }
+    }
+
     const completionDuration = performance.now() - startTime;
 
     // Record operation duration as measurement
@@ -1522,13 +1542,6 @@ export class PerpsController extends BaseController<
           depositId: undefined,
         };
 
-        console.log('Created deposit request:', {
-          id: depositRequest.id,
-          timestamp: new Date(depositRequest.timestamp).toISOString(),
-          amount: depositRequest.amount,
-          status: depositRequest.status,
-        });
-
         state.depositRequests.unshift(depositRequest); // Add to beginning of array
       });
 
@@ -1577,15 +1590,6 @@ export class PerpsController extends BaseController<
       // Store the transaction ID and try to get amount from transaction
       this.update((state) => {
         state.lastDepositTransactionId = transactionMeta.id;
-
-        // Try to get the amount from the transaction metadata
-        // The amount might be in the transaction data or value
-        console.log('Transaction metadata:', {
-          id: transactionMeta.id,
-          transaction: transactionMeta.transaction,
-          value: transactionMeta.transaction?.value,
-          data: transactionMeta.transaction?.data,
-        });
       });
 
       // At this point, the confirmation modal is shown to the user
@@ -1616,13 +1620,6 @@ export class PerpsController extends BaseController<
               // (the transaction hash means the deposit was successful)
               latestRequest.status = 'completed';
               latestRequest.txHash = actualTxHash;
-
-              console.log('Updated deposit request to completed:', {
-                id: latestRequest.id,
-                status: latestRequest.status,
-                txHash: latestRequest.txHash,
-                amount: latestRequest.amount,
-              });
             }
           });
 
@@ -1807,13 +1804,6 @@ export class PerpsController extends BaseController<
           // Update the most recent withdrawal request
           if (state.withdrawalRequests.length > 0) {
             const latestRequest = state.withdrawalRequests[0];
-            console.log('Updating withdrawal request:', {
-              id: latestRequest.id,
-              currentStatus: latestRequest.status,
-              resultSuccess: result.success,
-              resultTxHash: result.txHash,
-              resultWithdrawalId: result.withdrawalId,
-            });
 
             // Set status based on success and txHash availability
             if (result.txHash) {
@@ -1827,13 +1817,6 @@ export class PerpsController extends BaseController<
             if (result.withdrawalId) {
               latestRequest.withdrawalId = result.withdrawalId;
             }
-
-            console.log('Updated withdrawal request:', {
-              id: latestRequest.id,
-              newStatus: latestRequest.status,
-              txHash: latestRequest.txHash,
-              withdrawalId: latestRequest.withdrawalId,
-            });
           }
         });
 

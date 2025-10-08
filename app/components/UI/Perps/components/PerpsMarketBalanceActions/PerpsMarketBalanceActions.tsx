@@ -328,12 +328,8 @@ const PerpsMarketBalanceActions: React.FC<
               }
               size={ButtonSize.Lg}
               onPress={handleAddFunds}
-              disabled={isAnyTransactionInProgress}
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-              style={
-                isAnyTransactionInProgress ? tw.style('opacity-50') : undefined
-              }
             >
               {strings('perps.add_funds')}
             </Button>
@@ -346,14 +342,8 @@ const PerpsMarketBalanceActions: React.FC<
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleWithdraw}
-                disabled={isAnyTransactionInProgress}
                 isFullWidth
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
-                style={
-                  isAnyTransactionInProgress
-                    ? tw.style('opacity-50')
-                    : undefined
-                }
               >
                 {strings('perps.withdraw')}
               </Button>

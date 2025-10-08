@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, ImageBackground, Text as RNText } from 'react-native';
+import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -36,9 +36,9 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import Device from '../../../../../util/device';
 
 /**
  * OnboardingIntroStep Component
@@ -55,14 +55,7 @@ const OnboardingIntroStep: React.FC<{
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { bottom: bottomInsets } = useSafeAreaInsets();
-  const imageBackgroundStyle = useMemo(
-    () => [
-      tw.style('flex-grow px-4 py-8'),
-      { paddingBottom: bottomInsets + 16 },
-    ],
-    [tw, bottomInsets],
-  );
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -270,9 +263,11 @@ const OnboardingIntroStep: React.FC<{
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12 leading-1'),
+            tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '500' },
+            {
+              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+            },
           ]}
         >
           {title}
@@ -344,11 +339,11 @@ const OnboardingIntroStep: React.FC<{
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={imageBackgroundStyle}
+        style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[10%]" />
+        {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
 
         {/* Title Section */}
         {renderTitle()}

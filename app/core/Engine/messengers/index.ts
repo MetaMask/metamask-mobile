@@ -51,6 +51,15 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
+import {
+  getSnapKeyringBuilderInitMessenger,
+  getSnapKeyringBuilderMessenger,
+} from './snap-keyring-builder-messenger';
+import { getKeyringControllerMessenger } from './keyring-controller-messenger';
+import {
+  getNetworkControllerInitMessenger,
+  getNetworkControllerMessenger,
+} from './network-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -83,6 +92,14 @@ export const CONTROLLER_MESSENGERS = {
   GasFeeController: {
     getMessenger: getGasFeeControllerMessenger,
     getInitMessenger: noop,
+  },
+  KeyringController: {
+    getMessenger: getKeyringControllerMessenger,
+    getInitMessenger: noop,
+  },
+  NetworkController: {
+    getMessenger: getNetworkControllerMessenger,
+    getInitMessenger: getNetworkControllerInitMessenger,
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
@@ -154,6 +171,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
+  },
+  SnapKeyringBuilder: {
+    getMessenger: getSnapKeyringBuilderMessenger,
+    getInitMessenger: getSnapKeyringBuilderInitMessenger,
   },
   ///: END:ONLY_INCLUDE_IF
   PermissionController: {
