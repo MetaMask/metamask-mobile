@@ -575,7 +575,8 @@
     "token_contract_warning": "Esta dirección es una dirección de contrato de tokens. Si envías tokens a esta dirección, los perderás.",
     "invisible_character_error": "Detectamos un carácter invisible en el nombre de ENS. Verifica el nombre de ENS para evitar una posible estafa.",
     "could_not_resolve_name": "No se pudo resolver el nombre",
-    "invalid_address": "Dirección no válida"
+    "invalid_address": "Dirección no válida",
+    "contractAddressError": "Estás enviando tokens a la dirección del contrato del token. Esto podría resultar en la pérdida de estos tokens."
   },
   "deposit": {
     "title": "Depósito",
@@ -877,6 +878,8 @@
     "withdraw": "Retirar",
     "refresh_balance": "Actualizar saldo",
     "add_funds": "Agregar fondos",
+    "deposit_in_progress": "Deposit in progress",
+    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Tus posiciones",
     "loading_positions": "Cargando posiciones...",
     "refreshing_positions": "Actualizando posiciones...",
@@ -885,7 +888,7 @@
       "title": "Monto a depositar",
       "get_usdc_hyperliquid": "Obtén USDC • Hyperliquid",
       "insufficient_funds": "Fondos insuficientes",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "No hay fondos disponibles. Primero realiza un depósito.",
       "enter_amount": "Ingrese una cantidad",
       "fetching_quote": "Obteniendo cotización",
       "submitting": "Enviando transacción",
@@ -1037,7 +1040,7 @@
         "insufficient_funds": "Fondos insuficientes",
         "insufficient_balance": "Saldo insuficiente. Necesitas: ${{required}}, Disponible: ${{available}}",
         "invalid_leverage": "El apalancamiento debe estar entre {{min}}x y {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "El tamaño de la orden debe ser inferior a ${{maxValue}}",
         "high_leverage_warning": "Un apalancamiento elevado aumenta el riesgo de liquidación",
         "invalid_take_profit": "La toma de ganancias debe estar {{direction}} del precio actual para posiciones {{positionType}}",
         "invalid_stop_loss": "El límite de pérdidas debe estar {{direction}} del precio actual para posiciones {{positionType}}",
@@ -1332,9 +1335,9 @@
         "error_message": "No se encontraron datos de mercado. Vuelve atrás e inténtalo de nuevo."
       },
       "statistics": "Resumen",
-      "24hr_high": "Máximo de 24 h",
-      "24hr_low": "Mínimo de 24 h",
-      "24h_volume": "Volumen de 24 h",
+      "24h_high": "24h high",
+      "24h_low": "24h low",
+      "24h_volume": "24h volume",
       "open_interest": "Interés abierto",
       "funding_rate": "Tasa de financiación",
       "countdown": "Cuenta regresiva",
@@ -1460,8 +1463,8 @@
     "failed_to_load_market_data": "Error al cargar los datos del mercado",
     "tap_to_retry": "Toca para volver a intentarlo",
     "search_by_token_symbol": "Buscar por símbolo de token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "No se encontraron tokens",
+    "no_tokens_found_description": "No encontramos ningún token con el nombre \"{{searchQuery}}\". Prueba con otra búsqueda.",
     "testnet": "Red de pruebas",
     "mainnet": "Red principal",
     "developer_options": {
@@ -1493,7 +1496,10 @@
         "filled": "Completado",
         "metamask_fee": "Tarifa de MetaMask",
         "hyperliquid_fee": "Tarifa de Hyperliquid",
-        "total_fee": "Tarifa total"
+        "total_fee": "Tarifa total",
+        "liquidated": "Liquidated",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss"
       },
       "funding": {
         "date": "Fecha",
@@ -1506,7 +1512,7 @@
         "history_will_appear": "Tu historial de trading aparecerá aquí"
       }
     },
-    "risk_disclaimer": "El trading con contratos perpetuos es arriesgado y podrías perder todo tu margen repentinamente y sin previo aviso. Operas bajo tu propio riesgo. Datos de mercado proporcionados por Hyperliquid. Gráfico de precios proporcionado por",
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by Hyperliquid.",
     "tutorial": {
       "continue": "Continuar",
       "skip": "Omitir",
@@ -1538,10 +1544,13 @@
         "description": "Financia tu cuenta de contratos perpetuos con cualquier token y realiza tu primera operación en segundos.",
         "footer_text": "MetaMask canjeará tus fondos a USDC en Arbitrum y los depositará en HyperEVM sin cargo adicional."
       },
-      "got_it": "Entendido"
+      "got_it": "Entendido",
+      "card": {
+        "title": "Learn the basics of perps"
+      }
     },
     "points": "Puntos",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Puntos estimados",
     "unable_to_load": "No se pudo cargar",
     "points_error": "No podemos cargar puntos en este momento",
     "points_error_content": "No te preocupes, sigues ganando puntos. Pronto aparecerán en tu cuenta o puedes consultar la pestaña Recompensas más tarde.",
@@ -1614,8 +1623,7 @@
     "accept": "Aceptar"
   },
   "qr_tab_switcher": {
-    "scanner_tab": "Escanear código QR",
-    "receive_tab": "Su código QR"
+    "scanner_tab": "Escanear código QR"
   },
   "banner": {
     "bridge": {
@@ -1865,13 +1873,13 @@
     "agree": "Acepto",
     "decline": "No, gracias",
     "description_title": "Ayúdenos a mejorar MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Nos gustaría solicitar estos permisos. Puedes optar por no participar o eliminar tus datos de uso en cualquier momento.",
     "description_content_2": "Al recopilar métricas, siempre serán...",
     "description_content_3": "Conozca cómo protegemos su privacidad mientras recopilamos datos de uso para su perfil.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Recopilar datos básicos de uso",
+    "gather_basic_usage_description": "Recopilaremos datos básicos de uso del producto, como ubicación general, clics y visualizaciones. No se almacenará ninguna otra información.",
+    "gather_basic_usage_learn_more": "Más información",
+    "checkbox_marketing": "Actualizaciones de marketing",
     "checkbox": "Utilizaremos estos datos para saber cómo usted interactúa con nuestras comunicaciones de marketing. Podremos compartir noticias relevantes (como características de productos).",
     "action_description_1_prefix": "Privadas:",
     "action_description_2_prefix": "General:",
@@ -1881,7 +1889,7 @@
     "action_description_3_description": "Tú decides si deseas compartir o eliminar tus datos de uso a través de la configuración en cualquier momento.",
     "cta_no_thanks": "No, gracias",
     "cta_i_agree": "Acepto",
-    "continue": "Continue",
+    "continue": "Continuar",
     "fine_print_1_legacy": "Estos datos se agrupan y, por lo tanto, son anónimos a los efectos del Reglamento general de protección de datos (UE) 2016/679.",
     "fine_print_2a_legacy": "*Cuando usa Infura como su proveedor de RPC predeterminado en MetaMask, Infura recopilará su dirección IP y la dirección de su monedero de Ethereum cuando envíe una transacción. No almacenamos esta información de una manera que permita a nuestros sistemas asociar esos dos datos. Puede configurar su proveedor RPC",
     "fine_print_2b_legacy": "antes de continuar.\nPara obtener más información sobre cómo interactúan MetaMask e Infura desde la perspectiva de la recopilación de datos, consulte nuestra actualización",
@@ -2044,9 +2052,9 @@
       "solana_devnet_account_name": "Cuenta DevNet de Solana",
       "solana_testnet_account_name": "Cuenta de red de pruebas de Solana",
       "solana_account_name": "Cuenta de Solana",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Cuenta de Tron",
+      "tron_nile_account_name": "Cuenta de Tron Nile",
+      "tron_shasta_account_name": "Cuenta de Tron Shasta"
     },
     "error_messages": {
       "failed_to_create_account": "No se pudo crear la cuenta de {{clientType}}"
@@ -3445,7 +3453,7 @@
     "error_multiple_srp_word_error_3": " son incorrectas o están mal escritas.",
     "error_invalid_srp": "Frase secreta de recuperación no válida",
     "error_duplicate_srp": "Esta frase secreta de recuperación ya se importó.",
-    "success_1": "Wallet",
+    "success_1": "Billetera",
     "success_2": "importado"
   },
   "first_incoming_transaction": {
@@ -4888,7 +4896,7 @@
     "import_account": "Clave privada",
     "add_bitcoin_account": "Cuenta de Bitcoin",
     "add_solana_account": "Cuenta de Solana",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Cuenta de Tron",
     "switch_to_smart_account": "Cambiar a cuenta inteligente",
     "rename_account": "Cambiar el nombre de la cuenta",
     "addresses": "Direcciones",
@@ -5601,7 +5609,7 @@
       "section_1_title": "¿Qué son las cuentas multicadena?",
       "section_1_description": "Una sola cuenta, direcciones en todas las redes compatibles con MetaMask. Ahora puedes usar Ethereum, Solana y más sin cambiar de cuenta.",
       "section_2_title": "La misma dirección, más redes",
-      "section_2_description": "Hemos fusionado tus cuentas, así que sigue usando MetaMask como antes. Tus fondos están seguros y sin cambios.",
+      "section_2_description": "Hemos agrupado tus cuentas, así que sigue usando MetaMask como antes. Tus fondos están seguros y sin cambios",
       "view_accounts_button": "Ver cuentas",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Configurar tus cuentas"
@@ -5655,6 +5663,7 @@
       "balance": "Saldo",
       "create_account": "Crear cuenta",
       "creating_account": "Creando cuenta...",
+      "discovering_accounts": "Descubriendo cuentas...",
       "back_up": "Respaldo",
       "reveal_recovery_phrase_with_index": "Revelar la frase de recuperación {{index}}"
     },
@@ -5752,6 +5761,11 @@
       "swap_description": "Canjea tokens por {{symbol}} en Linea",
       "select_method": "Seleccionar método"
     },
+    "card_onboarding": {
+      "title": "Bienvenido a la tarjeta",
+      "description": "Para utilizar las funciones de la tarjeta, deberás verificar tu cuenta con nuestro socio.",
+      "verify_account_button": "Verificar cuenta"
+    },
     "card_home": {
       "error_title": "No se pueden obtener los datos",
       "error_description": "Parece que hay un problema que te impide ver el contenido de esta página. Comprueba tu conexión o intenta actualizar la página.",
@@ -5827,6 +5841,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "error_messages": {
+      "unknown_error": "Unknown error occurred",
+      "something_went_wrong": "Something went wrong. Please try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "request_rejected": "You rejected the request.",
+      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
+      "service_not_available": "Service is not available at the moment. Please try again shortly."
+    },
     "claim_reward_error": {
       "title": "Failed to claim reward"
     },
@@ -5866,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Toma de ganancias",
-        "stop_loss": "Límite de pérdidas",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5884,8 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "intro_title_1": "Season 1",
-      "intro_title_2": "is Live",
+      "gtm_title": "Las recompensas están aquí",
+      "gtm_description": "Gana puntos por tu actividad. \nAvanza a través de los niveles para desbloquear recompensas.",
+      "gtm_confirm": "Comenzar",
+      "intro_title": "La Temporada 1 \nya está disponible",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -5927,7 +5952,9 @@
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
-      "link_account_button": "Add"
+      "link_account_button": "Add",
+      "link_account_failed_error": "Failed to link account",
+      "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -6014,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Recompensas bloqueadas",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6026,8 +6053,11 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "restantes",
       "expired": "Expired"
+    },
+    "animation": {
+      "could_not_load": "Couldn't load"
     }
   },
   "time": {
@@ -6054,6 +6084,16 @@
       "perps_deposit": "Agregar fondos",
       "swap": "Canjear tokens",
       "swap_approval": "Aprobar tokens"
+    }
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
     }
   },
   "network_connection_banner": {

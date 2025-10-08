@@ -77,7 +77,18 @@ import {
   CaveatSpecificationConstraint,
   PermissionController,
   PermissionSpecificationConstraint,
+  SubjectMetadataController,
 } from '@metamask/permission-controller';
+import { subjectMetadataControllerInit } from '../controllers/subject-metadata-controller-init';
+import { preferencesControllerInit } from '../controllers/preferences-controller-init';
+import { PreferencesController } from '@metamask/preferences-controller';
+import { keyringControllerInit } from '../controllers/keyring-controller-init';
+import { snapKeyringBuilderInit } from '../controllers/snap-keyring-builder-init';
+import { KeyringController } from '@metamask/keyring-controller';
+import { SnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
+import { InitModularizedControllersFunctionRequest } from '../types';
+import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import { networkControllerInit } from '../controllers/network-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -123,6 +134,11 @@ jest.mock(
 );
 jest.mock('../controllers/selected-network-controller-init');
 jest.mock('../controllers/permission-controller-init');
+jest.mock('../controllers/subject-metadata-controller-init');
+jest.mock('../controllers/preferences-controller-init');
+jest.mock('../controllers/keyring-controller-init');
+jest.mock('../controllers/snap-keyring-builder-init');
+jest.mock('../controllers/network-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -190,10 +206,17 @@ describe('initModularizedControllers', () => {
   const mockGatorPermissionsControllerInit = jest.mocked(
     GatorPermissionsControllerInit,
   );
+  const mockSubjectMetadataControllerInit = jest.mocked(
+    subjectMetadataControllerInit,
+  );
+  const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
+  const mockKeyringControllerInit = jest.mocked(keyringControllerInit);
+  const mockSnapKeyringBuilderInit = jest.mocked(snapKeyringBuilderInit);
+  const mockNetworkControllerInit = jest.mocked(networkControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
-  ) {
+  ): InitModularizedControllersFunctionRequest {
     return merge(
       {
         existingControllersByName: {},
@@ -235,11 +258,20 @@ describe('initModularizedControllers', () => {
           RewardsController: mockRewardsControllerInit,
           PredictController: mockPredictControllerInit,
           GatorPermissionsController: mockGatorPermissionsControllerInit,
+          SubjectMetadataController: mockSubjectMetadataControllerInit,
+          PreferencesController: mockPreferencesControllerInit,
+          KeyringController: mockKeyringControllerInit,
+          SnapKeyringBuilder: mockSnapKeyringBuilderInit,
+          NetworkController: mockNetworkControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
         getGlobalChainId: jest.fn(),
         getState: jest.fn(),
+        removeAccount: jest.fn(),
+        qrKeyringScanner:
+          jest.fn() as unknown as QrKeyringDeferredPromiseBridge,
+        initialKeyringState: null,
       },
       overrides,
     );
@@ -334,6 +366,21 @@ describe('initModularizedControllers', () => {
     });
     mockGatorPermissionsControllerInit.mockReturnValue({
       controller: {} as unknown as GatorPermissionsController,
+    });
+    mockSubjectMetadataControllerInit.mockReturnValue({
+      controller: {} as unknown as SubjectMetadataController,
+    });
+    mockPreferencesControllerInit.mockReturnValue({
+      controller: {} as unknown as PreferencesController,
+    });
+    mockKeyringControllerInit.mockReturnValue({
+      controller: {} as unknown as KeyringController,
+    });
+    mockSnapKeyringBuilderInit.mockReturnValue({
+      controller: {} as unknown as SnapKeyringBuilder,
+    });
+    mockNetworkControllerInit.mockReturnValue({
+      controller: {} as unknown as NetworkController,
     });
   });
 

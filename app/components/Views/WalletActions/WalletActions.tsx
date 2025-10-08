@@ -29,6 +29,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -130,7 +131,7 @@ const WalletActions = () => {
   ]);
 
   const onPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
+    let params: { screen: string; params?: { source: string } } | null = null;
     if (isFirstTimePerpsUser) {
       params = {
         screen: Routes.PERPS.TUTORIAL,
@@ -138,6 +139,7 @@ const WalletActions = () => {
     } else {
       params = {
         screen: Routes.PERPS.MARKETS,
+        params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
       };
     }
     closeBottomSheetAndNavigate(() => {
