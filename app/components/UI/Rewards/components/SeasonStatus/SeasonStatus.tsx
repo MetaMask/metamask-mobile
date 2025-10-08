@@ -46,7 +46,7 @@ const SeasonStatus: React.FC = () => {
   const seasonEndDate = useSelector(selectSeasonEndDate);
   const theme = useTheme();
 
-  const { fetchSeasonStatus } = useSeasonStatus();
+  const { fetchSeasonStatus } = useSeasonStatus({ onlyForExplicitFetch: true });
 
   const progress = React.useMemo(() => {
     if (!currentTier || !balanceTotal) {
