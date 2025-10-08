@@ -55,10 +55,10 @@ import {
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { pageNotFound, foxLogo } from './constant';
 import {
-  DeepLinkModalLinkType,
   DeepLinkModalParams,
   ModalImageProps,
 } from './types';
+import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   if (linkType === DeepLinkModalLinkType.INVALID) {
