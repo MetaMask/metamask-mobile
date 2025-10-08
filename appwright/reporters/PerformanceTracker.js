@@ -12,6 +12,9 @@ export class PerformanceTracker {
     }
 
     this.timers.push(timer);
+    console.log(`🕐 Timer added: ${timer.id}`);
+    console.log(`🕐 Timer duration: ${timer.getDuration()}`);
+    console.log(`🕐 Timer duration in seconds: ${timer.getDurationInSeconds()}`);
   }
 
   async storeSessionData(sessionId, testTitle) {

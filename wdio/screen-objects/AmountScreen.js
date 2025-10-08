@@ -45,7 +45,7 @@ class AmountScreen {
     if (!this._device) {
       return Selectors.getElementByPlatform(NEXT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByText(this._device, 'Continue');
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Continue');
     }
   }
   // Helper method to split amount into digits
@@ -90,23 +90,16 @@ class AmountScreen {
       await Gestures.waitAndTap(this.amountInputField);
       await Gestures.typeText(this.amountInputField, text);
     } else {
-      // Use direct text input instead of individual digit tapping
-      try {
-        console.log('Entering amount directly:', text);
-        await Gestures.waitAndTap(this.amountInputField);
-        await Gestures.typeText(this.amountInputField, text);
-        console.log('Amount entered successfully:', text);
-      } catch (error) {
         console.log('Direct input failed, falling back to digit tapping');
         // Fallback to digit tapping if direct input fails
         const digits = this.splitAmountIntoDigits(text);
         for (const digit of digits) {
+          console.log('Tapping digit:', digit);
           await this.tapNumberKey(digit);
-          await new Promise(resolve => setTimeout(resolve, 50)); // Minimal delay
         }
       }
-    }
   }
+
 
   async isTokenCorrect(token) {
     expect(this.confirmAmount).toHaveText(token);
@@ -123,7 +116,7 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    await AppwrightGestures.tap(this.nextButton, );
+    await AppwrightGestures.tap(this.nextButton);
   }
 
   async isVisible() {

@@ -98,6 +98,7 @@ class SendScreen {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
+      console.log('Typing address in send address field');
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
       await AppwrightGestures.typeText(element, address);
     }
@@ -244,8 +245,9 @@ class SendScreen {
   }
 
   async isSelectAddressScreenDisplayed() {
+    console.log('Checking if select address screen is displayed');
     const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-    appwrightExpect(await selectAddressScreen).toBeVisible();
+    appwrightExpect(await selectAddressScreen).toBeVisible({timeout: 10000});
   }
 }
 

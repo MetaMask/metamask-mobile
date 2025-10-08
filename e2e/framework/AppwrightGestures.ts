@@ -31,6 +31,7 @@ export default class AppwrightGestures {
         return; // Success, exit early
       } catch (error: unknown) {
         lastError = error as Error;
+        console.log('Error tapping element:', lastError);
 
         // Check if it's a "not found" error and we have retries left
         // This is needed because of the system dialogs that pop up specifically on iOS
