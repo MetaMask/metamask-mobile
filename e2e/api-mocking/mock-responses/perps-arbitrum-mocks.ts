@@ -65,7 +65,8 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
   const USDC_ARBITRUM_E = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'; // USDC.e (legacy)
   const USDC_ARBITRUM = '0xaf88d065e77c8cc2239327c5edb3a432268e5831'; // Native USDC
   // Encode balanceOf(Account1) result for 100 USDC (6 decimals) => 100000000
-  const HUNDRED_USDC_HEX = '0x0000000000000000000000000000000000000000000000000000000005f5e100';
+  const HUNDRED_USDC_HEX =
+    '0x0000000000000000000000000000000000000000000000000000000005f5e100';
   // 100 ETH in wei
   const HUNDRED_ETH_WEI_HEX = '0x56bc75e2d63100000';
 
@@ -89,7 +90,11 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           const results = body.map((req) => {
             // Special-case eth_getBalance in batch
             if (req.method === 'eth_getBalance') {
-              return { id: req.id, jsonrpc: '2.0', result: HUNDRED_ETH_WEI_HEX };
+              return {
+                id: req.id,
+                jsonrpc: '2.0',
+                result: HUNDRED_ETH_WEI_HEX,
+              };
             }
             return {
               id: req.id,
@@ -112,12 +117,18 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
         if (method === 'eth_call') {
           // Extract call data to detect balanceOf(address)
           try {
-            const params = (body?.params || []) as any[];
-            const to = params?.[0]?.to?.toLowerCase?.();
-            const data: string | undefined = params?.[0]?.data;
+            interface EthCallArg { to?: string; data?: string }
+            const params = (body as { params?: EthCallArg[] })?.params ?? [];
+            const arg0 = (params[0] as EthCallArg | undefined) || undefined;
+            const to = arg0?.to?.toLowerCase?.();
+            const data: string | undefined = arg0?.data;
             // ERC20 balanceOf selector 0x70a08231
-            const isBalanceOf = typeof data === 'string' && data.startsWith('0x70a08231');
-            if ((to === USDC_ARBITRUM || to === USDC_ARBITRUM_E) && isBalanceOf) {
+            const isBalanceOf =
+              typeof data === 'string' && data.startsWith('0x70a08231');
+            if (
+              (to === USDC_ARBITRUM || to === USDC_ARBITRUM_E) &&
+              isBalanceOf
+            ) {
               return {
                 statusCode: 200,
                 body: JSON.stringify({
@@ -224,7 +235,10 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       const urlParam = new URL(request.url).searchParams.get('url') || '';
       const url = new URL(urlParam);
       const address = (url.searchParams.get('address') || '').toLowerCase();
-      console.log('[Perps E2E Mock] Intercepted Token API request for', address);
+      console.log(
+        '[Perps E2E Mock] Intercepted Token API request for',
+        address,
+      );
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -244,7 +258,9 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     .forPost('/proxy')
     .matching((request) => {
       const urlParam = new URL(request.url).searchParams.get('url') || '';
-      return urlParam.includes('tx-sentinel-arbitrum-mainnet.api.cx.metamask.io');
+      return urlParam.includes(
+        'tx-sentinel-arbitrum-mainnet.api.cx.metamask.io',
+      );
     })
     .asPriority(1000)
     .thenCallback(async () => {
