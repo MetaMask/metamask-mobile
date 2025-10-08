@@ -203,7 +203,6 @@ export const BaseWalletDetails = ({
         <AccountCell
           accountGroup={accountGroup}
           avatarAccountType={avatarAccountType}
-          isSelected={false}
           hideMenu
         />
       </View>

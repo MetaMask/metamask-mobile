@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -34,12 +34,15 @@ export const createErrorDetailsModalNavigationDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { styles } = useStyles(styleSheet, {});
+  const { height: screenHeight } = useWindowDimensions();
+  const { styles } = useStyles(styleSheet, {
+    screenHeight,
+  });
 
   const { errorMessage } = useParams<ErrorDetailsModalParams>();
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack isFullscreen>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <View style={styles.headerContainer}>
           <Icon
@@ -53,18 +56,16 @@ function ErrorDetailsModal() {
         </View>
       </BottomSheetHeader>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator
-      >
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
-          style={styles.errorText}
-        >
-          {errorMessage}
-        </Text>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.contentContainer}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            style={styles.errorText}
+          >
+            {errorMessage}
+          </Text>
+        </View>
       </ScrollView>
     </BottomSheet>
   );

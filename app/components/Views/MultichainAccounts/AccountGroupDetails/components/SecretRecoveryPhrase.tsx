@@ -58,6 +58,13 @@ export const SecretRecoveryPhrase = ({
     }
   }, [navigation, account?.options.entropySource]);
 
+  const handleBackupPressed = useCallback(() => {
+    navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
+      params: { backupFlow: true },
+    });
+  }, [navigation]);
+
   return (
     <TouchableOpacity
       style={styles.secretRecoveryPhrase}
@@ -73,12 +80,14 @@ export const SecretRecoveryPhrase = ({
         gap={8}
       >
         {showSeedphraseBackReminder && (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('multichain_accounts.export_credentials.backup')}
-          </Text>
+          <TouchableOpacity onPress={handleBackupPressed}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('multichain_accounts.export_credentials.backup')}
+            </Text>
+          </TouchableOpacity>
         )}
         <Icon
           name={IconName.ArrowRight}
