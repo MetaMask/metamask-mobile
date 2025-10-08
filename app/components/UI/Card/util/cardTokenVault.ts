@@ -21,6 +21,7 @@ export async function storeCardBaanxToken(params: {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
+  location: 'us' | 'international';
 }): Promise<TokenResponse> {
   try {
     const stringifiedTokens = JSON.stringify(params);
@@ -58,6 +59,7 @@ export async function getCardBaanxToken(): Promise<{
     accessToken?: string;
     refreshToken?: string;
     expiresAt?: number;
+    location?: 'us' | 'international';
   };
   error?: string;
 }> {
@@ -77,6 +79,7 @@ export async function getCardBaanxToken(): Promise<{
       accessToken: string;
       refreshToken: string;
       expiresAt: number;
+      location: 'us' | 'international';
     } = JSON.parse(secureItem.value);
 
     if (Date.now() >= tokenData.expiresAt) {

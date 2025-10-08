@@ -338,6 +338,7 @@ const Routes = {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
+    AUTHENTICATION: 'CardAuthentication',
   },
   SEND: {
     RECIPIENT: 'Recipient',

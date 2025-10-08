@@ -1,8 +1,11 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
-import { useCardSDK, withCardSDK } from '../sdk';
+import { withCardSDK } from '../sdk';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
@@ -14,7 +17,7 @@ import { StyleSheet, View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Loader from '../../../../component-library/components-temp/Loader';
+import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 
 const Stack = createStackNavigator();
 
@@ -27,7 +30,7 @@ export const cardDefaultNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
-}) => ({
+}): StackNavigationOptions => ({
   headerLeft: () => <View />,
   headerTitle: () => (
     <Text
@@ -48,27 +51,50 @@ export const cardDefaultNavigationOptions = ({
   ),
 });
 
-const CardRoutes = () => {
-  const { isLoading } = useCardSDK();
+export const cardAuthenticationNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
+  headerRight: () => <View />,
+});
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  return (
-    <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
-      <Stack.Screen
-        name={Routes.CARD.HOME}
-        component={CardHome}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.WELCOME}
-        component={CardWelcome}
-        options={cardDefaultNavigationOptions}
-      />
-    </Stack.Navigator>
-  );
-};
-
+const CardRoutes = () => (
+  // Remove the loading check to prevent component unmounting/remounting
+  // during SDK initialization which causes duplicate tracking events
+  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
+    <Stack.Screen
+      name={Routes.CARD.HOME}
+      component={CardHome}
+      options={cardDefaultNavigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.CARD.WELCOME}
+      component={CardWelcome}
+      options={cardDefaultNavigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.CARD.AUTHENTICATION}
+      component={CardAuthentication}
+      options={cardAuthenticationNavigationOptions}
+    />
+  </Stack.Navigator>
+);
 export default withCardSDK(CardRoutes);

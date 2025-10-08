@@ -7,7 +7,14 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
 import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
-import { CardToken } from '../types';
+import {
+  CardAuthorizeResponse,
+  CardExchangeTokenRawResponse,
+  CardExchangeTokenResponse,
+  CardLoginInitiateResponse,
+  CardLoginResponse,
+  CardToken,
+} from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -369,17 +376,20 @@ export class CardSDK {
 
   private async makeRequest(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestInit & { query?: string } = {},
     authenticated: boolean = false,
+    isUSEnv: boolean = false,
     timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
   ): Promise<Response> {
     const apiKey = this.cardBaanxApiKey;
+
     if (!apiKey) {
       throw new Error('Card Baanx API key is not defined');
     }
 
-    const headers: Record<string, string> = {
+    const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      'x-us-env': isUSEnv ? 'true' : 'false',
       'x-client-key': apiKey,
     };
 
@@ -396,7 +406,9 @@ export class CardSDK {
       console.warn('Failed to retrieve bearer token:', error);
     }
 
-    const url = `${this.cardBaanxApiBaseUrl}${endpoint}`;
+    const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
+      options.query ? `?${options.query}` : ''
+    }`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();
@@ -429,19 +441,35 @@ export class CardSDK {
     }
   }
 
-  initiateCardProviderAuthentication = async (body: {
-    redirectUrl: string;
+  initiateCardProviderAuthentication = async (queryParams: {
     state: string;
-  }): Promise<{
-    hostedPageUrl: string;
-  }> => {
+    codeChallenge: string;
+    location: 'us' | 'international';
+  }): Promise<CardLoginInitiateResponse> => {
+    if (!this.cardBaanxApiKey) {
+      throw new Error('Card Baanx API key is not defined');
+    }
+
+    const { state, codeChallenge, location } = queryParams;
+    const queryParamsString = new URLSearchParams();
+    queryParamsString.set('client_id', this.cardBaanxApiKey);
+    // Redirect URI is required but not used by this flow
+    queryParamsString.set('redirect_uri', 'https://example.com');
+    queryParamsString.set('state', state);
+    queryParamsString.set('code_challenge', codeChallenge);
+    queryParamsString.set('code_challenge_method', 'S256');
+    queryParamsString.set('mode', 'api');
+    queryParamsString.set('client_secret', this.cardBaanxApiKey);
+    queryParamsString.set('response_type', 'code');
+
     const response = await this.makeRequest(
       '/v1/auth/oauth/authorize/initiate',
       {
-        method: 'POST',
-        body: JSON.stringify(body),
+        method: 'GET',
+        query: queryParamsString.toString(),
       },
       false,
+      location === 'us',
     );
 
     if (!response.ok) {
@@ -449,45 +477,112 @@ export class CardSDK {
     }
 
     const data = await response.json();
-    return data;
+    return data as CardLoginInitiateResponse;
+  };
+
+  login = async (body: {
+    email: string;
+    password: string;
+    location: 'us' | 'international';
+  }): Promise<CardLoginResponse> => {
+    const { email, password, location } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      },
+      false,
+      location === 'us',
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to login');
+    }
+
+    const data = await response.json();
+    return data as CardLoginResponse;
+  };
+
+  authorize = async (body: {
+    initiateAccessToken: string;
+    loginAccessToken: string;
+    location: 'us' | 'international';
+  }): Promise<CardAuthorizeResponse> => {
+    const { initiateAccessToken, loginAccessToken, location } = body;
+    const response = await this.makeRequest(
+      '/v1/auth/oauth/authorize',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          token: initiateAccessToken,
+        }),
+        headers: {
+          Authorization: `Bearer ${loginAccessToken}`,
+        },
+      },
+      false,
+      location === 'us',
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to authorize');
+    }
+
+    const data = await response.json();
+    return data as CardAuthorizeResponse;
   };
 
   exchangeToken = async (body: {
-    token: string;
-  }): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> => {
-    Logger.log('Starting exchangeToken request', body.token);
+    code?: string;
+    codeVerifier?: string;
+    grantType: 'authorization_code' | 'refresh_token';
+    location: 'us' | 'international';
+  }): Promise<CardExchangeTokenResponse> => {
     const response = await this.makeRequest(
       '/v1/auth/oauth/token',
       {
         method: 'POST',
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          code: body.code,
+          code_verifier: body.codeVerifier,
+          grant_type: body.grantType,
+          redirect_uri: 'https://example.com',
+        }),
+        headers: {
+          'x-secret-key': this.cardBaanxApiKey || '',
+        },
       },
       false,
+      body.location === 'us',
     );
 
-    Logger.log('ExchangeToken response', response.status);
-
     if (!response.ok) {
-      Logger.log('ExchangeToken failed', response.status);
       throw new Error('Failed to exchange token');
     }
 
-    const data = await response.json();
-    Logger.log('ExchangeToken success', data);
-    return data;
+    const data = (await response.json()) as CardExchangeTokenRawResponse;
+
+    return {
+      accessToken: data.access_token,
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      refreshToken: data.refresh_token,
+      refreshTokenExpiresIn: data.refresh_token_expires_in,
+    } as CardExchangeTokenResponse;
   };
 
   refreshLocalToken = async (
     refreshToken: string,
-  ): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> => {
+    location: 'us' | 'international',
+  ): Promise<CardExchangeTokenResponse> => {
     const tokenResponse = await this.exchangeToken({
-      token: refreshToken,
+      code: refreshToken,
+      grantType: 'refresh_token',
+      location,
     });
 
     return tokenResponse;

@@ -1,103 +1,89 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  AuthSessionResult,
-  ResponseType,
-  useAuthRequest,
-} from 'expo-auth-session';
+import { useCallback, useMemo, useState } from 'react';
 import Logger from '../../../../util/Logger';
-import { AppRedirectUri } from '../../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { uuid4 } from '@sentry/core';
 import { useCardSDK } from '../sdk';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
-import { DEFAULT_TOKEN_EXPIRATION_TIME } from '../constants';
+import {
+  challengeFromVerifier,
+  generateCodeVerifier,
+} from '../util/generateCodeVerifier';
 
 const useCardProviderAuthentication = (): {
-  login: () => Promise<void>;
+  login: (params: {
+    location: 'us' | 'international';
+    email: string;
+    password: string;
+  }) => Promise<void>;
   loading: boolean;
   error: string | null;
 } => {
   // Generate state once; generating it on every render causes the auth request
   // to be recreated which can trigger loops with useAuthRequest.
-  const stateRef = useRef<string>();
-  if (!stateRef.current) {
-    stateRef.current = uuid4();
-  }
-  const state = stateRef.current;
+  const stateUuid = uuid4();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { sdk, setIsAuthenticated } = useCardSDK();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, __, promptAsync] = useAuthRequest(
-    {
-      responseType: ResponseType.Token,
-      clientId: 'metamask-mobile',
-      redirectUri: AppRedirectUri,
-      state,
-    },
-    {},
-  );
+  const codeVerifier = generateCodeVerifier();
 
-  const handleResponse = useCallback(
-    async (res: AuthSessionResult) => {
-      // Satify typescript
-      if (!sdk) return;
+  const login = useCallback(
+    async (params: {
+      location: 'us' | 'international';
+      email: string;
+      password: string;
+    }): Promise<void> => {
+      if (!sdk) {
+        throw new Error('Card SDK not initialized');
+      }
 
-      if (res.type === 'success') {
-        const extractedToken =
-          (res as unknown as { params?: Record<string, string> }).params
-            ?.token || '';
+      const codeChallenge = await challengeFromVerifier(codeVerifier);
 
-        if (extractedToken) {
-          const { accessToken, refreshToken } = await sdk.exchangeToken({
-            token: extractedToken,
-          });
-          await storeCardBaanxToken({
-            accessToken,
-            refreshToken,
-            expiresAt: Date.now() + DEFAULT_TOKEN_EXPIRATION_TIME,
-          });
-          setIsAuthenticated(true);
+      try {
+        setLoading(true);
+        const initiateResponse = await sdk.initiateCardProviderAuthentication({
+          location: params.location,
+          state: stateUuid,
+          codeChallenge,
+        });
+
+        const loginResponse = await sdk.login({
+          location: params.location,
+          email: params.email,
+          password: params.password,
+        });
+
+        const authorizeResponse = await sdk.authorize({
+          location: params.location,
+          initiateAccessToken: initiateResponse.token,
+          loginAccessToken: loginResponse.accessToken,
+        });
+
+        if (authorizeResponse.state !== stateUuid) {
+          throw new Error('Invalid state');
         }
-      }
 
-      if (res.type === 'cancel') {
-        setError('User cancelled the login process');
-      }
+        const exchangeTokenResponse = await sdk.exchangeToken({
+          location: params.location,
+          code: authorizeResponse.code,
+          codeVerifier,
+          grantType: 'authorization_code',
+        });
 
-      if (res.type === 'dismiss') {
-        setError('User dismissed the login process');
-      }
-
-      if (res.type === 'error') {
+        await storeCardBaanxToken({
+          accessToken: exchangeTokenResponse.accessToken,
+          refreshToken: exchangeTokenResponse.refreshToken,
+          expiresAt: Date.now() + exchangeTokenResponse.expiresIn * 1000,
+          location: params.location,
+        });
+        setIsAuthenticated(true);
+      } catch (err) {
+        Logger.log('BaanxOAuth login: error', err);
         setError('Unknown error during Baanx login');
+      } finally {
+        setLoading(false);
       }
     },
-    [sdk, setIsAuthenticated],
+    [stateUuid, sdk, codeVerifier, setIsAuthenticated],
   );
-
-  const login = useCallback(async (): Promise<void> => {
-    if (!sdk) {
-      throw new Error('Card SDK not initialized');
-    }
-
-    try {
-      setLoading(true);
-      const { hostedPageUrl } = await sdk.initiateCardProviderAuthentication({
-        redirectUrl: AppRedirectUri,
-        state,
-      });
-
-      const result = await promptAsync({
-        url: hostedPageUrl,
-      });
-      await handleResponse(result);
-    } catch (err) {
-      Logger.log('BaanxOAuth login: error', err);
-      setError('Unknown error during Baanx login');
-    } finally {
-      setLoading(false);
-    }
-  }, [promptAsync, state, sdk, handleResponse]);
 
   return useMemo(
     () => ({

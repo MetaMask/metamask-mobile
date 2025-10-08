@@ -17,7 +17,6 @@ import {
   storeCardBaanxToken,
 } from '../util/cardTokenVault';
 import Logger from '../../../../util/Logger';
-import { DEFAULT_TOKEN_EXPIRATION_TIME } from '../constants';
 
 // Types
 export interface ICardSDK {
@@ -26,6 +25,7 @@ export interface ICardSDK {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   isLoading: boolean;
   logoutFromProvider: () => Promise<void>;
+  userCardLocation: 'us' | 'international';
 }
 
 interface ProviderProps<T> {
@@ -47,6 +47,9 @@ export const CardSDKProvider = ({
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userCardLocation, setUserCardLocation] = useState<
+    'us' | 'international'
+  >('international');
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize CardSDK when feature flag is enabled
@@ -60,13 +63,16 @@ export const CardSDKProvider = ({
   }, [cardFeatureFlag]);
 
   const attemptTokenRefresh = useCallback(
-    async (refreshToken: string): Promise<void> => {
+    async (
+      refreshToken: string,
+      location: 'us' | 'international',
+    ): Promise<void> => {
       if (!sdk) {
         throw new Error('SDK not available for token refresh');
       }
 
       try {
-        const newTokens = await sdk.refreshLocalToken(refreshToken);
+        const newTokens = await sdk.refreshLocalToken(refreshToken, location);
 
         if (!newTokens?.accessToken || !newTokens?.refreshToken) {
           throw new Error('Invalid token response from refresh request');
@@ -76,11 +82,13 @@ export const CardSDKProvider = ({
         await storeCardBaanxToken({
           accessToken: newTokens.accessToken,
           refreshToken: newTokens.refreshToken,
-          expiresAt: Date.now() + DEFAULT_TOKEN_EXPIRATION_TIME,
+          expiresAt: Date.now() + newTokens.expiresIn * 1000,
+          location,
         });
 
         Logger.log('Token refresh successful');
         setIsAuthenticated(true);
+        setUserCardLocation(location);
       } catch (error) {
         Logger.log('Token refresh failed:', error);
         setIsAuthenticated(false);
@@ -99,11 +107,11 @@ export const CardSDKProvider = ({
       return;
     }
 
-    const { accessToken, refreshToken, expiresAt } =
+    const { accessToken, refreshToken, expiresAt, location } =
       tokenResult.tokenData || {};
 
     // If no token data exists, user needs to authenticate
-    if (!accessToken || !refreshToken || !expiresAt) {
+    if (!accessToken || !refreshToken || !expiresAt || !location) {
       Logger.log('No valid token data found');
       setIsAuthenticated(false);
       return;
@@ -113,24 +121,18 @@ export const CardSDKProvider = ({
     if (Date.now() < expiresAt) {
       Logger.log('Token is valid');
       setIsAuthenticated(true);
+      setUserCardLocation(location);
       return;
     }
 
     // Token is expired, attempt to refresh it
     Logger.log('Token expired, attempting refresh...');
-    await attemptTokenRefresh(refreshToken);
+    await attemptTokenRefresh(refreshToken, location);
   }, [attemptTokenRefresh]);
 
   // Check authentication status and handle token refresh
   useEffect(() => {
     const authenticateUser = async () => {
-      if (!sdk?.isBaanxLoginEnabled) {
-        Logger.log(
-          'SDK not available or Baanx login not enabled, skipping authentication check',
-        );
-        return;
-      }
-
       Logger.log('Starting authentication check...');
       setIsLoading(true);
 
@@ -144,8 +146,17 @@ export const CardSDKProvider = ({
       }
     };
 
-    authenticateUser();
-  }, [sdk, handleTokenAuthentication]);
+    // Only run authentication check if SDK is available and Baanx login is enabled
+    if (sdk?.isBaanxLoginEnabled) {
+      authenticateUser();
+    } else {
+      Logger.log(
+        'SDK not available or Baanx login not enabled, skipping authentication check',
+      );
+      setIsLoading(false);
+      setIsAuthenticated(false);
+    }
+  }, [sdk?.isBaanxLoginEnabled, handleTokenAuthentication]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
@@ -164,8 +175,16 @@ export const CardSDKProvider = ({
       setIsAuthenticated,
       isLoading,
       logoutFromProvider,
+      userCardLocation,
     }),
-    [sdk, isAuthenticated, setIsAuthenticated, isLoading, logoutFromProvider],
+    [
+      sdk,
+      isAuthenticated,
+      setIsAuthenticated,
+      isLoading,
+      logoutFromProvider,
+      userCardLocation,
+    ],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;

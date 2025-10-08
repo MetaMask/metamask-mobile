@@ -70,7 +70,11 @@ const CardHome = () => {
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { isAuthenticated, logoutFromProvider } = useCardSDK();
+  const {
+    isAuthenticated,
+    logoutFromProvider,
+    isLoading: isSDKLoading,
+  } = useCardSDK();
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
 
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -146,6 +150,16 @@ const CardHome = () => {
   const hasTrackedCardHomeView = useRef(false);
 
   useEffect(() => {
+    // Early return if already tracked to prevent any possibility of duplicate tracking
+    if (hasTrackedCardHomeView.current) {
+      return;
+    }
+
+    // Don't track while SDK is still loading to prevent premature tracking
+    if (isSDKLoading) {
+      return;
+    }
+
     const hasValidMainBalance =
       mainBalance !== undefined &&
       mainBalance !== TOKEN_BALANCE_LOADING &&
@@ -160,7 +174,10 @@ const CardHome = () => {
     const isLoaded =
       !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
 
-    if (isLoaded && !hasTrackedCardHomeView.current) {
+    if (isLoaded) {
+      // Set flag immediately to prevent race conditions
+      hasTrackedCardHomeView.current = true;
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
@@ -170,16 +187,16 @@ const CardHome = () => {
           })
           .build(),
       );
-      hasTrackedCardHomeView.current = true;
     }
   }, [
-    trackEvent,
-    createEventBuilder,
     priorityToken,
     mainBalance,
     balanceFiat,
-    rawFiatNumber,
     rawTokenBalance,
+    rawFiatNumber,
+    trackEvent,
+    createEventBuilder,
+    isSDKLoading,
   ]);
 
   const addFundsAction = useCallback(() => {
@@ -436,8 +453,8 @@ const CardHome = () => {
       {isBaanxLoginEnabled && isAuthenticated ? (
         <ManageCardListItem
           title="Logout"
-          description="Logout of your Baanx account"
-          rightIcon={IconName.Export}
+          description="Logout of your Card account"
+          rightIcon={IconName.Logout}
           onPress={logoutAction}
         />
       ) : null}
