@@ -98,6 +98,137 @@ export const detectAppInstallation = async (): Promise<boolean> => {
 };
 
 /**
+ * Helper function to safely extract string values from URL parameters
+ * @param urlParams - URL parameters object
+ * @param key - The key to extract
+ * @returns string | undefined - The extracted value or undefined
+ */
+const getStringValue = (
+  urlParams: Record<string, string>,
+  key: string,
+): string | undefined => {
+  const value = urlParams[key];
+  return typeof value === 'string' && value.trim() !== '' ? value : undefined;
+};
+
+/**
+ * Helper function to conditionally add properties to sensitive props object
+ * @param sensitiveProps - The object to add properties to
+ * @param key - The property key
+ * @param value - The property value (only added if truthy)
+ */
+const addPropertyIfExists = (
+  sensitiveProps: Record<string, string>,
+  key: string,
+  value: string | undefined,
+): void => {
+  if (value) {
+    sensitiveProps[key] = value;
+  }
+};
+
+/**
+ * Extract properties for common fields (from, to, amount, asset)
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractCommonProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  addPropertyIfExists(sensitiveProps, 'from', getStringValue(urlParams, 'from'));
+  addPropertyIfExists(sensitiveProps, 'to', getStringValue(urlParams, 'to'));
+  addPropertyIfExists(sensitiveProps, 'amount', getStringValue(urlParams, 'amount'));
+  addPropertyIfExists(sensitiveProps, 'asset', getStringValue(urlParams, 'asset'));
+};
+
+/**
+ * Extract properties specific to SWAP route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractSwapProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  extractCommonProperties(urlParams, sensitiveProps);
+  addPropertyIfExists(sensitiveProps, 'slippage', getStringValue(urlParams, 'slippage'));
+};
+
+/**
+ * Extract properties specific to PERPS route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractPerpsProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  extractCommonProperties(urlParams, sensitiveProps);
+  addPropertyIfExists(sensitiveProps, 'symbol', getStringValue(urlParams, 'symbol'));
+  addPropertyIfExists(sensitiveProps, 'screen', getStringValue(urlParams, 'screen'));
+  addPropertyIfExists(sensitiveProps, 'tab', getStringValue(urlParams, 'tab'));
+};
+
+/**
+ * Extract properties specific to DEPOSIT route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractDepositProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  extractCommonProperties(urlParams, sensitiveProps);
+  addPropertyIfExists(sensitiveProps, 'provider', getStringValue(urlParams, 'provider'));
+  addPropertyIfExists(sensitiveProps, 'payment_method', getStringValue(urlParams, 'payment_method'));
+  addPropertyIfExists(sensitiveProps, 'sub_payment_method', getStringValue(urlParams, 'sub_payment_method'));
+  addPropertyIfExists(sensitiveProps, 'fiat_currency', getStringValue(urlParams, 'fiat_currency'));
+  addPropertyIfExists(sensitiveProps, 'fiat_quantity', getStringValue(urlParams, 'fiat_quantity'));
+};
+
+/**
+ * Extract properties specific to TRANSACTION route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractTransactionProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  extractCommonProperties(urlParams, sensitiveProps);
+  addPropertyIfExists(sensitiveProps, 'gas', getStringValue(urlParams, 'gas'));
+  addPropertyIfExists(sensitiveProps, 'gasPrice', getStringValue(urlParams, 'gasPrice'));
+};
+
+/**
+ * Extract properties specific to BUY route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractBuyProperties = (
+  urlParams: Record<string, string>,
+  sensitiveProps: Record<string, string>,
+): void => {
+  extractCommonProperties(urlParams, sensitiveProps);
+  addPropertyIfExists(sensitiveProps, 'crypto_currency', getStringValue(urlParams, 'crypto_currency'));
+  addPropertyIfExists(sensitiveProps, 'crypto_amount', getStringValue(urlParams, 'crypto_amount'));
+};
+
+/**
+ * Route-specific property extractor functions mapping
+ */
+const routeExtractors: Record<DeepLinkRoute, (urlParams: Record<string, string>, sensitiveProps: Record<string, string>) => void> = {
+  [DeepLinkRoute.SWAP]: extractSwapProperties,
+  [DeepLinkRoute.PERPS]: extractPerpsProperties,
+  [DeepLinkRoute.DEPOSIT]: extractDepositProperties,
+  [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
+  [DeepLinkRoute.BUY]: extractBuyProperties,
+  [DeepLinkRoute.HOME]: () => {}, // No properties for home route
+  [DeepLinkRoute.INVALID]: () => {}, // No properties for invalid route
+};
+
+/**
  * Extract sensitive properties based on route type
  * Only includes relevant parameters for each route
  * @param route - The deep link route type
@@ -110,119 +241,12 @@ export const extractSensitiveProperties = (
 ): Record<string, string> => {
   try {
     const sensitiveProps: Record<string, string> = {};
-
-    // Helper function to safely extract string values
-    const getStringValue = (key: string): string | undefined => {
-      const value = urlParams[key];
-      return typeof value === 'string' && value.trim() !== ''
-        ? value
-        : undefined;
-    };
-
-    // Extract route-specific properties based on route type
-    switch (route) {
-      case DeepLinkRoute.SWAP:
-        // Extract common properties for swap
-        const swapFrom = getStringValue('from');
-        const swapTo = getStringValue('to');
-        const swapAmount = getStringValue('amount');
-        const swapAsset = getStringValue('asset');
-        const swapSlippage = getStringValue('slippage');
-
-        if (swapFrom) sensitiveProps.from = swapFrom;
-        if (swapTo) sensitiveProps.to = swapTo;
-        if (swapAmount) sensitiveProps.amount = swapAmount;
-        if (swapAsset) sensitiveProps.asset = swapAsset;
-        if (swapSlippage) sensitiveProps.slippage = swapSlippage;
-        break;
-
-      case DeepLinkRoute.PERPS:
-        // Extract common properties for perps
-        const perpsFrom = getStringValue('from');
-        const perpsTo = getStringValue('to');
-        const perpsAmount = getStringValue('amount');
-        const perpsAsset = getStringValue('asset');
-        const perpsSymbol = getStringValue('symbol');
-        const perpsScreen = getStringValue('screen');
-        const perpsTab = getStringValue('tab');
-
-        if (perpsFrom) sensitiveProps.from = perpsFrom;
-        if (perpsTo) sensitiveProps.to = perpsTo;
-        if (perpsAmount) sensitiveProps.amount = perpsAmount;
-        if (perpsAsset) sensitiveProps.asset = perpsAsset;
-        if (perpsSymbol) sensitiveProps.symbol = perpsSymbol;
-        if (perpsScreen) sensitiveProps.screen = perpsScreen;
-        if (perpsTab) sensitiveProps.tab = perpsTab;
-        break;
-
-      case DeepLinkRoute.DEPOSIT:
-        // Extract common properties for deposit
-        const depositFrom = getStringValue('from');
-        const depositTo = getStringValue('to');
-        const depositAmount = getStringValue('amount');
-        const depositAsset = getStringValue('asset');
-        const depositProvider = getStringValue('provider');
-        const depositPaymentMethod = getStringValue('payment_method');
-        const depositSubPaymentMethod = getStringValue('sub_payment_method');
-        const depositFiatCurrency = getStringValue('fiat_currency');
-        const depositFiatQuantity = getStringValue('fiat_quantity');
-
-        if (depositFrom) sensitiveProps.from = depositFrom;
-        if (depositTo) sensitiveProps.to = depositTo;
-        if (depositAmount) sensitiveProps.amount = depositAmount;
-        if (depositAsset) sensitiveProps.asset = depositAsset;
-        if (depositProvider) sensitiveProps.provider = depositProvider;
-        if (depositPaymentMethod)
-          sensitiveProps.payment_method = depositPaymentMethod;
-        if (depositSubPaymentMethod)
-          sensitiveProps.sub_payment_method = depositSubPaymentMethod;
-        if (depositFiatCurrency)
-          sensitiveProps.fiat_currency = depositFiatCurrency;
-        if (depositFiatQuantity)
-          sensitiveProps.fiat_quantity = depositFiatQuantity;
-        break;
-
-      case DeepLinkRoute.TRANSACTION:
-        // Extract common properties for transaction
-        const txFrom = getStringValue('from');
-        const txTo = getStringValue('to');
-        const txAmount = getStringValue('amount');
-        const txAsset = getStringValue('asset');
-        const txGas = getStringValue('gas');
-        const txGasPrice = getStringValue('gasPrice');
-
-        if (txFrom) sensitiveProps.from = txFrom;
-        if (txTo) sensitiveProps.to = txTo;
-        if (txAmount) sensitiveProps.amount = txAmount;
-        if (txAsset) sensitiveProps.asset = txAsset;
-        if (txGas) sensitiveProps.gas = txGas;
-        if (txGasPrice) sensitiveProps.gasPrice = txGasPrice;
-        break;
-
-      case DeepLinkRoute.BUY:
-        // Extract common properties for buy
-        const buyFrom = getStringValue('from');
-        const buyTo = getStringValue('to');
-        const buyAmount = getStringValue('amount');
-        const buyAsset = getStringValue('asset');
-        const buyCryptoCurrency = getStringValue('crypto_currency');
-        const buyCryptoAmount = getStringValue('crypto_amount');
-
-        if (buyFrom) sensitiveProps.from = buyFrom;
-        if (buyTo) sensitiveProps.to = buyTo;
-        if (buyAmount) sensitiveProps.amount = buyAmount;
-        if (buyAsset) sensitiveProps.asset = buyAsset;
-        if (buyCryptoCurrency)
-          sensitiveProps.crypto_currency = buyCryptoCurrency;
-        if (buyCryptoAmount) sensitiveProps.crypto_amount = buyCryptoAmount;
-        break;
-
-      case DeepLinkRoute.HOME:
-      case DeepLinkRoute.INVALID:
-      default:
-        // No properties for home or invalid routes
-        break;
-    }
+    
+    // Get the appropriate extractor function for the route
+    const extractor = routeExtractors[route] || routeExtractors[DeepLinkRoute.INVALID];
+    
+    // Extract properties using the route-specific extractor
+    extractor(urlParams, sensitiveProps);
 
     Logger.log(
       `DeepLinkAnalytics: Extracted sensitive properties for ${route}:`,
