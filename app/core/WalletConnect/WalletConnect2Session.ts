@@ -557,6 +557,8 @@ class WalletConnect2Session {
         getSource: () => AppConstants.REQUEST_SOURCES.WC,
       });
 
+      const originalRequestPermittedChainsPermissionIncrementalForOrigin =
+        hooks.requestPermittedChainsPermissionIncrementalForOrigin;
       hooks.requestPermittedChainsPermissionIncrementalForOrigin = (
         ...args
       ) => {
@@ -566,7 +568,7 @@ class WalletConnect2Session {
         Engine.context.ApprovalController.clear(
           providerErrors.userRejectedRequest(),
         );
-        return hooks.requestPermittedChainsPermissionIncrementalForOrigin(
+        return originalRequestPermittedChainsPermissionIncrementalForOrigin(
           ...args,
         );
       };
