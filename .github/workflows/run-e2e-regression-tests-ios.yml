@@ -1,8 +1,8 @@
 name: iOS E2E Regression Tests
 
 on:
-  schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours
+  # schedule: # Currently disabled to fine-tune test suites
+  #   - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
     inputs:
       notify_on_pass:

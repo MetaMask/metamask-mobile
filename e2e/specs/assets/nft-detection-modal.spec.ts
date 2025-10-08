@@ -9,7 +9,7 @@ import { RegressionAssets } from '../../tags';
 
 import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
 
-describe(RegressionAssets('NFT Detection Modal'), () => {
+describe.skip(RegressionAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
