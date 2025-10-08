@@ -61,6 +61,7 @@ export function GasFeeTokenIcon({
       <NetworkAssetLogo
         chainId={token?.chainId ?? (chainId as Hex)}
         style={styles.logoNative}
+        emptyIconTextStyle={[styles.emptyText, styles.logoNative]}
         ticker={token?.symbol ?? (nativeCurrency as string)}
         big={false}
         biggest={false}

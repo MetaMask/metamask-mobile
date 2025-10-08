@@ -7,6 +7,7 @@ interface NetworkAssetLogoProps {
   biggest: boolean;
   chainId: string;
   style: object;
+  emptyIconTextStyle?: object;
   ticker: string;
   testID?: string;
 }
@@ -15,6 +16,7 @@ function NetworkAssetLogo({
   big,
   biggest,
   chainId,
+  emptyIconTextStyle,
   style,
   ticker,
   testID,
@@ -34,6 +36,7 @@ function NetworkAssetLogo({
     <TokenIcon
       big={big}
       biggest={biggest}
+      emptyIconTextStyle={emptyIconTextStyle}
       style={style}
       symbol={ticker}
       testID={testID}
