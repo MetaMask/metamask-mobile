@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
         android: StatusBar.currentHeight ?? 0,
         default: 0,
       }),
-      backgroundColor: colors.background.default,
       flex: 1,
     },
     wrapper: {
@@ -25,10 +24,20 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     container: {
       flex: 1,
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
       alignItems: 'center',
       flexDirection: 'column',
       width: '100%',
+    },
+    scrollContentContainer: {
+      flex: 1,
+    },
+    foxAnimationWrapper: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 200,
     },
     foxWrapper: {
       justifyContent: 'center',
@@ -47,28 +56,25 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 24,
     },
     field: {
-      marginBottom: Device.isAndroid() ? 0 : 10,
+      marginBottom: 0,
       flexDirection: 'column',
       width: '100%',
       rowGap: 8,
       justifyContent: 'flex-start',
-    },
-    label: {
-      marginBottom: -4,
     },
     ctaWrapper: {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
       rowGap: 24,
-      marginTop: 24,
+      marginTop: 0,
     },
     footer: {
       marginVertical: 40,
       alignItems: 'center',
     },
     goBack: {
-      marginVertical: 14,
+      marginVertical: 0,
       alignSelf: 'center',
     },
     biometrics: {
