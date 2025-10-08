@@ -456,6 +456,10 @@ export const buildMarketOrderCreationArgs = async ({
     nonce = '0';
   }
 
+  /**
+   * Do NOT change the order below.
+   * This order needs to match the order on the relayer.
+   */
   return {
     salt: hexToNumber(generateSalt()).toString(),
     maker,
@@ -551,6 +555,7 @@ function replaceAll(s: string, search: string, replace: string) {
 export const submitClobOrder = async ({
   headers,
   clobOrder,
+  feeAuthorization,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
@@ -558,20 +563,22 @@ export const submitClobOrder = async ({
 }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
   let url = `${CLOB_ENDPOINT}/order`;
-
-  // TODO: Add feeAuthorization to the body when relayer is ready
-  const body = JSON.stringify({ ...clobOrder });
-  let finalHeaders = { ...headers };
+  let body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+    ...clobOrder,
+  };
 
   // TODO: Remove this and simply update endpoint once we have a
   // production relayer.
-  const TEST_RELAYER = false;
-  if (TEST_RELAYER) {
-    url = `http://localhost:3000/order`;
+  const USE_ORDER_RELAY = false;
+  if (USE_ORDER_RELAY && clobOrder.order.side === Side.BUY) {
+    // url = `http://localhost:3000/order`;
+    // url = `https://predict.api.cx.metamask.io/order`;
+    url = `https://predict.dev-api.cx.metamask.io/order`;
+    body = { ...body, feeAuthorization };
     // For our relayer, we need to replace the underscores with dashes
     // since underscores are not standardly allowed in headers
-    finalHeaders = {
-      ...finalHeaders,
+    headers = {
+      ...headers,
       ...Object.entries(headers)
         .map(([key, value]) => ({
           [key.replace(/_/g, '-')]: value,
@@ -582,8 +589,8 @@ export const submitClobOrder = async ({
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: finalHeaders,
-    body,
+    headers,
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
