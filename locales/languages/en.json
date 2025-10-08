@@ -221,6 +221,10 @@
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
     "setting_security_privacy": "Settings > Security & Privacy"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
     "title2": "Manage your digital assets",
@@ -389,6 +393,7 @@
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
     "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_ios" : "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create password",
