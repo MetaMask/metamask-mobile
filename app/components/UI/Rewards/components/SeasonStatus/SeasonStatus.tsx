@@ -128,14 +128,14 @@ const SeasonStatus: React.FC = () => {
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-alternative"
-              testID={`${REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}`}
+              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}
             >
               {strings('rewards.level')} {currentTierOrder}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               twClassName="text-default"
-              testID={`${REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}`}
+              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}
             >
               {tierName}
             </Text>
@@ -213,7 +213,7 @@ const SeasonStatus: React.FC = () => {
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
             <Text
-              testID={`${REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}`}
+              testID={REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}
               style={tw.style({
                 fontSize: 22,
                 fontWeight: FontWeight.Bold,

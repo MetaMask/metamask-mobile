@@ -21,21 +21,17 @@ class RewardsView {
   }
 
   get seasonStatusLevel(): DetoxElement {
-    return Matchers.getElementByID(
-      `${REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}`,
-    );
+    return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL);
   }
 
   get seasonStatusTierName(): DetoxElement {
     return Matchers.getElementByID(
-      `${REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}`,
+      REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME,
     );
   }
 
   get seasonStatusPoints(): DetoxElement {
-    return Matchers.getElementByID(
-      `${REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}`,
-    );
+    return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS);
   }
 
   async tapRewardsOverviewTabButton(): Promise<void> {
