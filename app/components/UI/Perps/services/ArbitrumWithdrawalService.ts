@@ -2,7 +2,7 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { detectHyperLiquidWithdrawal } from '../utils/arbitrumWithdrawalDetection';
 import { transformArbitrumWithdrawalsToHistoryItems } from '../utils/arbitrumWithdrawalTransforms';
-import type { TransactionMeta } from '../../../../core/Engine/controllers/transaction-controller/types';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { UserHistoryItem } from '../controllers/types';
 
 interface ArbitrumWithdrawal {
@@ -46,8 +46,9 @@ export class ArbitrumWithdrawalService {
   private getCurrentChainId(): string | null {
     try {
       const networkController = Engine.context.NetworkController;
-      // Use the proper way to get chainId from NetworkController
-      return networkController.state.chainId || null;
+      // Get the chainId from the provider configuration
+      const providerConfig = networkController.state?.providerConfig;
+      return providerConfig?.chainId || null;
     } catch (error) {
       DevLogger.log('Error getting current chain ID:', error);
       return null;

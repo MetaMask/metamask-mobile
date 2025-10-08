@@ -388,7 +388,7 @@ export interface GetAccountStateParams {
 
 export interface GetOrderFillsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
-  user: Hex; // Optional: user address
+  user?: Hex; // Optional: user address (defaults to selected account)
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination

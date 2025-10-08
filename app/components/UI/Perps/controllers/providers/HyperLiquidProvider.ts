@@ -1,5 +1,5 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import { type Hex } from '@metamask/utils';
+import { type Hex, type CaipAccountId } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -87,6 +87,7 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  UserHistoryItem,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
 
@@ -1419,6 +1420,72 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return [];
     }
   }
+
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  async getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]> {
+    try {
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawLedgerUpdates = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress as `0x${string}`,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      // Transform the raw ledger updates to UserHistoryItem format
+      return (rawLedgerUpdates || [])
+        .filter(
+          (update) =>
+            // Only include deposits and withdrawals, skip other types
+            update.delta.type === 'deposit' || update.delta.type === 'withdraw',
+        )
+        .map((update) => {
+          // Extract amount and asset based on delta type
+          let amount = '0';
+          let asset = 'USDC';
+
+          if ('usdc' in update.delta) {
+            amount = Math.abs(parseFloat(update.delta.usdc)).toString();
+          }
+          if ('coin' in update.delta && typeof update.delta.coin === 'string') {
+            asset = update.delta.coin;
+          }
+
+          return {
+            id: `history-${update.hash}`,
+            timestamp: update.time,
+            amount,
+            asset,
+            txHash: update.hash,
+            status: 'completed' as const,
+            type: update.delta.type === 'withdraw' ? 'withdrawal' : 'deposit',
+            details: {
+              source: '',
+              bridgeContract: undefined,
+              recipient: undefined,
+              blockNumber: undefined,
+              chainId: undefined,
+              synthetic: undefined,
+            },
+          };
+        });
+    } catch (error) {
+      DevLogger.log('Error fetching user history:', error);
+      return [];
+    }
+  }
+
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {

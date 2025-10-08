@@ -2,11 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { UserHistoryItem, GetUserHistoryParams } from '../controllers/types';
+import type { CaipAccountId } from '@metamask/utils';
 
 interface UseUserHistoryParams {
   startTime?: number;
   endTime?: number;
-  accountId?: string;
+  accountId?: CaipAccountId;
 }
 
 interface UseUserHistoryResult {
