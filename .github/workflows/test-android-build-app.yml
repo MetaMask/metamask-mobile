@@ -17,7 +17,8 @@ on:
         description: 'The type of build to perform'
         required: false
         default: 'main'
-        type: string
+        type: choice
+        options: [main, flask]
 
 permissions:
   contents: write
