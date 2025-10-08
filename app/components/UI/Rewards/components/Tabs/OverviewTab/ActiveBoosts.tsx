@@ -237,10 +237,9 @@ const ActiveBoosts: React.FC<{
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            decelerationRate={0.9}
+            decelerationRate="fast"
             snapToInterval={CARD_WIDTH - SNAP_ADJUSTMENT}
             snapToAlignment="start"
-            pagingEnabled={false}
             contentContainerStyle={tw.style('pr-4')}
           >
             {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
