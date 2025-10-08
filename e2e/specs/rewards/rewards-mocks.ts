@@ -1,7 +1,6 @@
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { remoteFeatureRewardsEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
 const REWARDS_API_BASE_URL = 'https://rewards.uat-api.cx.metamask.io';
@@ -749,13 +748,6 @@ const setupSeasonPointsEventsMock = async (
   });
 };
 
-const setupRewardsFeatureFlagsMock = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureRewardsEnabled(true),
-  );
-};
-
 const setupMobileOptinMock = async (mockServer: Mockttp) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'POST',
@@ -822,6 +814,9 @@ const setupMobileLoginUnauthorizedMock = async (mockServer: Mockttp) => {
 };
 
 export const setUpRewardsOnboardingMocks = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    rewardsEnabled: { enabled: true, minimumVersion: '7.57.0' },
+  });
   await setupGeolocationMock(mockServer);
   await setupRewardsOisMock(mockServer);
   await setupMobileOptinMock(mockServer);
@@ -829,15 +824,16 @@ export const setUpRewardsOnboardingMocks = async (mockServer: Mockttp) => {
   await setupActiveBoostsMock(mockServer);
   await setupMobileLoginUnauthorizedMock(mockServer);
   await setupSeasonPointsEventsMock(mockServer, POINTS_EVENTS_AFTER_ONBOARDING);
-  await setupRewardsFeatureFlagsMock(mockServer);
 };
 
 export const setUpActivityMocks = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    rewardsEnabled: { enabled: true, minimumVersion: '7.57.0' },
+  });
   await setupGeolocationMock(mockServer);
   await setupRewardsOisMock(mockServer);
   await setupMobileLoginMock(mockServer);
   await setupSeasonStatusMock(mockServer, SEASON_STATUS_RESPONSE);
   await setupSeasonPointsEventsMock(mockServer, POINTS_EVENTS_MOCK);
-  await setupRewardsFeatureFlagsMock(mockServer);
   await setupActiveBoostsMock(mockServer);
 };

@@ -120,14 +120,6 @@ export const remoteFeatureMultichainAccountsAccountDetails = (
   },
 });
 
-export const remoteFeatureRewardsEnabled = (enabled = true) => ({
-  rewards: {
-    enabled,
-    featureVersion: '1',
-    minimumVersion: '7.53.0',
-  },
-});
-
 export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   enabled = true,
 ) => ({
