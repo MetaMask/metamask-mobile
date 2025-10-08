@@ -1316,8 +1316,8 @@ const events = {
     EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
   ),
 
-      // Deep Link Analytics
-      DEEP_LINK_USED: generateOpt(EVENT_NAME.DEEP_LINK_USED),
+  // Deep Link Analytics
+  DEEP_LINK_USED: generateOpt(EVENT_NAME.DEEP_LINK_USED),
 
   // Perps Events - Consolidated
   PERPS_WITHDRAWAL_TRANSACTION: generateOpt(

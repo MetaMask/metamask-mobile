@@ -43,7 +43,6 @@ export enum DeepLinkRoute {
   INVALID = 'invalid',
 }
 
-
 /**
  * Branch.io parameters interface
  */

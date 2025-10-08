@@ -2,7 +2,10 @@ import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
-import { HandleRewardsUrlParams, RewardsNavigationParams } from '../types/deepLink.types';
+import {
+  HandleRewardsUrlParams,
+  RewardsNavigationParams,
+} from '../types/deepLink.types';
 
 /**
  * Parse URL parameters into typed navigation parameters

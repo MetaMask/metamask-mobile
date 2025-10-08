@@ -5,7 +5,10 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../components/UI/Perps/constants/perpsConfig';
 import { store } from '../../../store';
 import { selectIsFirstTimePerpsUser } from '../../../components/UI/Perps/selectors/perpsController';
-import { HandlePerpsUrlParams, PerpsNavigationParams } from '../types/deepLink.types';
+import {
+  HandlePerpsUrlParams,
+  PerpsNavigationParams,
+} from '../types/deepLink.types';
 
 /**
  * Parse URL parameters into typed navigation parameters
