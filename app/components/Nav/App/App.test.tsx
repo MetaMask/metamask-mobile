@@ -461,6 +461,62 @@ describe('App', () => {
       });
     });
 
+    describe('OptinMetrics auto-redirect prevention', () => {
+      beforeEach(() => {
+        jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      });
+
+      it('allows OptinMetrics to show when not coming from lock screen', async () => {
+        // Arrange
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              PreferencesController: {
+                ...initialState.engine?.backgroundState?.PreferencesController,
+                isMultiAccountBalancesEnabled: true,
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return false;
+            }
+            return true; // existingUser = true
+          });
+
+        // Act: Render the component
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        });
+      });
+    });
+
     describe('Seedless onboarding password outdated check', () => {
       const LoggerMock = jest.requireMock('../../../util/Logger');
 
