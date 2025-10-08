@@ -17,8 +17,10 @@ const styleSheet = (params: {
       height: isLogoSizeMd ? 32 : 16,
       borderRadius: 99,
     },
-    emptyText: {
+    emptyIconText: {
       fontSize: 12,
+      width: 16,
+      height: 16,
     },
   });
 };
