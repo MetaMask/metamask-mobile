@@ -41,14 +41,19 @@ import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
-const CARD_SPACING = 16;
+const SNAP_ADJUSTMENT = 42; // Accounts for margins and padding in snap calculation
 
 interface BoostCardProps {
   boost: PointsBoostDto;
   index: number;
+  isLast: boolean;
 }
 
-const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
+const BoostCard: React.FC<BoostCardProps> = ({
+  boost,
+  index: _index,
+  isLast: _isLast,
+}) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -113,7 +118,11 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     <TouchableOpacity onPress={handleBoostTap} activeOpacity={0.8}>
       <Box
         style={[
-          tw.style('rounded-xl max-w-60 p-4 mr-2 h-32 relative'),
+          tw.style(
+            `rounded-xl max-w-60 p-4 h-32 relative ${
+              _index === 0 ? 'ml-4' : ''
+            } ${!_isLast ? 'mr-4' : ''}`,
+          ),
           {
             width: CARD_WIDTH,
             backgroundColor: boost.backgroundColor || tw.color('bg-default'),
@@ -160,7 +169,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   count,
   isLoading,
 }) => (
-  <Box>
+  <Box twClassName="px-4">
     <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.active_boosts_title')}
@@ -228,12 +237,19 @@ const ActiveBoosts: React.FC<{
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            decelerationRate="fast"
-            snapToInterval={CARD_WIDTH + CARD_SPACING}
+            decelerationRate={0.9}
+            snapToInterval={CARD_WIDTH - SNAP_ADJUSTMENT}
             snapToAlignment="start"
+            pagingEnabled={false}
+            contentContainerStyle={tw.style('pr-4')}
           >
             {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
-              <BoostCard key={boost.id} boost={boost} index={index} />
+              <BoostCard
+                key={boost.id}
+                boost={boost}
+                index={index}
+                isLast={index === activeBoosts.length - 1}
+              />
             ))}
           </ScrollView>
         </GestureDetector>
@@ -249,7 +265,7 @@ const ActiveBoosts: React.FC<{
   }
 
   return (
-    <Box twClassName="py-4 gap-4">
+    <Box twClassName="pt-4 pb-4 gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={activeBoosts?.length || null}

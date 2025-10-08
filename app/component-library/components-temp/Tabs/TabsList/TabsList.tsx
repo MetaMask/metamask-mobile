@@ -25,7 +25,14 @@ import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
-    { children, initialActiveIndex = 0, onChangeTab, testID, ...boxProps },
+    {
+      children,
+      initialActiveIndex = 0,
+      onChangeTab,
+      testID,
+      tabsBarTwClassName,
+      ...boxProps
+    },
     ref,
   ) => {
     const tw = useTailwind();
@@ -423,8 +430,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         activeIndex,
         onTabPress: handleTabPress,
         testID: testID ? `${testID}-bar` : undefined,
+        twClassName: tabsBarTwClassName,
       }),
-      [tabs, activeIndex, handleTabPress, testID],
+      [tabs, activeIndex, handleTabPress, testID, tabsBarTwClassName],
     );
 
     return (

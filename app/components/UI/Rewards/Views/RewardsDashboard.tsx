@@ -216,11 +216,11 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <Box
-        twClassName="flex-1 px-4 bg-default gap-4 relative"
+        twClassName="flex-1 bg-default gap-4 relative"
         style={{ marginTop: insets.top }}
       >
         {/* Header row */}
-        <Box twClassName="flex-row  justify-between">
+        <Box twClassName="flex-row justify-between px-4">
           <Text variant={TextVariant.HeadingLg} twClassName="text-default">
             {strings('rewards.main_title')}
           </Text>
@@ -256,6 +256,7 @@ const RewardsDashboard: React.FC = () => {
           initialActiveIndex={getActiveIndex()}
           onChangeTab={handleTabChange}
           testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
+          tabsBarTwClassName="px-4"
         >
           <RewardsOverview
             key="overview"

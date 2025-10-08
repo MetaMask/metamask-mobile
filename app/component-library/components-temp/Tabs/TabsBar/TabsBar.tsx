@@ -25,6 +25,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   activeIndex,
   onTabPress,
   testID,
+  twClassName,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -342,7 +343,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName="relative overflow-hidden"
+      twClassName={`relative overflow-hidden ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}

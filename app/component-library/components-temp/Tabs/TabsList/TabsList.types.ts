@@ -43,6 +43,10 @@ export interface TabsListProps extends BoxProps {
     i: number;
     ref: React.ReactNode;
   }) => void;
+  /**
+   * Tailwind CSS classes to apply to the TabsBar container
+   */
+  tabsBarTwClassName?: string;
 }
 
 /**
