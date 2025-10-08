@@ -56,6 +56,13 @@ jest.mock('../../core/Engine', () => ({
 
 jest.mock('../../core/Analytics/MetaMetrics');
 
+jest.mock(
+  '../../core/Engine/controllers/remote-feature-flag-controller/utils',
+  () => ({
+    getFeatureFlagAppEnvironment: jest.fn(() => 'Development'),
+  }),
+);
+
 const mockMetrics = {
   isEnabled: jest.fn(() => true),
   getMetaMetricsId: jest.fn(() =>
@@ -471,5 +478,37 @@ describe('logs :: downloadStateLogs', () => {
     const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
     const jsonData = JSON.parse(decodedData);
     expect(jsonData).not.toHaveProperty('metaMetricsId');
+  });
+
+  it('includes remote feature flag environment in logs', async () => {
+    // Given the device info and remote feature flag environment are set
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    });
+
+    // When downloadStateLogs is called
+    await downloadStateLogs(mockStateInput);
+
+    // Then the logs should include the remote feature flag environment
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    expect(shareOpenCalls.length).toBeGreaterThan(0);
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
+    expect(jsonData.remoteFeatureFlagEnvironment).toBe('Development');
   });
 });

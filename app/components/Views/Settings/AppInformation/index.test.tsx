@@ -21,6 +21,15 @@ jest.mock('../../../../util/test/utils', () => ({
   isQa: () => mockIsQa(),
 }));
 
+// Mock getFeatureFlagAppEnvironment
+const mockGetFeatureFlagAppEnvironment = jest.fn();
+jest.mock(
+  '../../../../core/Engine/controllers/remote-feature-flag-controller/utils',
+  () => ({
+    getFeatureFlagAppEnvironment: () => mockGetFeatureFlagAppEnvironment(),
+  }),
+);
+
 describe('AppInformation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -28,6 +37,7 @@ describe('AppInformation', () => {
     mockGetVersion.mockResolvedValue('7.0.0');
     mockGetBuildNumber.mockResolvedValue('1000');
     mockIsQa.mockReturnValue(false);
+    mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
   });
 
   it('renders correctly with snapshot', () => {
@@ -141,6 +151,98 @@ describe('AppInformation', () => {
       // Then the fox logo should be present
       const images = UNSAFE_getAllByType(Image);
       expect(images.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Environment Information Display', () => {
+    const originalEnv = process.env.METAMASK_ENVIRONMENT;
+
+    afterEach(() => {
+      process.env.METAMASK_ENVIRONMENT = originalEnv;
+    });
+
+    it('displays remote feature flag environment when not in production', async () => {
+      // Given the environment is not production
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
+
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When the component renders
+      // Then it should display the remote feature flag environment
+      await waitFor(() => {
+        expect(getByText('Remote Feature Flag Env: Development')).toBeTruthy();
+      });
+    });
+
+    it('does not display remote feature flag environment in production', () => {
+      // Given the environment is production
+      process.env.METAMASK_ENVIRONMENT = 'production';
+
+      const { queryByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When the component renders
+      // Then it should not display the remote feature flag environment
+      expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
+    });
+
+    it('displays METAMASK_ENVIRONMENT when not in production', async () => {
+      // Given the environment is not production
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When the component renders
+      // Then it should display the environment
+      await waitFor(() => {
+        expect(getByText('Environment: dev')).toBeTruthy();
+      });
+    });
+
+    it('displays branch information when isQa is true', async () => {
+      // Given isQa returns true and environment is not production
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      process.env.GIT_BRANCH = 'feature/test-branch';
+      mockIsQa.mockReturnValue(true);
+
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When the component renders
+      // Then it should display the branch information
+      await waitFor(() => {
+        expect(getByText('Branch: feature/test-branch')).toBeTruthy();
+      });
+    });
+
+    it('does not display branch information when isQa is false', () => {
+      // Given isQa returns false
+      mockIsQa.mockReturnValue(false);
+
+      const { queryByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When the component renders
+      // Then it should not display the branch information
+      expect(queryByText(/Branch:/)).toBeNull();
     });
   });
 });

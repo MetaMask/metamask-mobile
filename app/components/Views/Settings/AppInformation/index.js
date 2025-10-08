@@ -23,6 +23,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
 import { isQa } from '../../../../util/test/utils';
+import { getFeatureFlagAppEnvironment } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,6 +198,12 @@ export default class AppInformation extends PureComponent {
             {process.env.METAMASK_ENVIRONMENT !== 'production' ? (
               <Text style={styles.branchInfo}>
                 {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
+              </Text>
+            ) : null}
+
+            {process.env.METAMASK_ENVIRONMENT !== 'production' ? (
+              <Text style={styles.branchInfo}>
+                {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
               </Text>
             ) : null}
           </View>

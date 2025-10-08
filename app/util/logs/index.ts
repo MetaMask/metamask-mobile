@@ -12,6 +12,7 @@ import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
 import { MetaMetrics } from '../../core/Analytics';
+import { getFeatureFlagAppEnvironment } from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
@@ -123,6 +124,7 @@ export const downloadStateLogs = async (
   loggedIn = true,
 ) => {
   const environment = process.env.METAMASK_ENVIRONMENT;
+  const remoteFeatureFlagEnvironment = getFeatureFlagAppEnvironment();
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
@@ -143,6 +145,7 @@ export const downloadStateLogs = async (
         buildNumber,
         metaMetricsId,
         environment,
+        remoteFeatureFlagEnvironment,
       },
       loggedIn,
     );
