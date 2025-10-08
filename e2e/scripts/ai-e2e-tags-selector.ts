@@ -82,6 +82,23 @@ export class AIE2ETagsSelector {
     }
   }
 
+  /**
+   * Validates and sanitizes a PR number to prevent command injection
+   * @param input - The input to validate (can be string or number)
+   * @returns Safe PR number or null if invalid
+   */
+  private validatePRNumber(input: unknown): number | null {
+    // Convert to number if string
+    const num = typeof input === 'string' ? parseInt(input, 10) : input;
+
+    // Check if it's a valid positive integer
+    if (typeof num !== 'number' || !Number.isInteger(num) || num <= 0 || num > 999999) {
+      return null;
+    }
+
+    return num;
+  }
+
 
 
   async analyzeWithAgent(
@@ -394,8 +411,12 @@ export class AIE2ETagsSelector {
         }
 
         case 'get_pr_diff': {
-          const prNumber = input.pr_number as number;
+          const prNumber = this.validatePRNumber(input.pr_number);
           const files = (input.files as string[]) || [];
+
+          if (!prNumber) {
+            return `Invalid PR number: ${input.pr_number}. Must be a positive integer.`;
+          }
 
           try {
 
@@ -1036,16 +1057,23 @@ Call finalize_decision when ready.`;
     }
   }
 
-  private getPRFiles(prNumber: number): string[] {
+  private getPRFiles(prNumber: number | undefined): string[] {
+    const validPR = this.validatePRNumber(prNumber);
+
+    if (!validPR) {
+      console.error(`❌ Invalid PR number: ${prNumber}. Must be a positive integer.`);
+      return [];
+    }
+
     try {
       const files = execSync(
-        `gh pr view ${prNumber} --json files --jq '.files[].path'`,
+        `gh pr view ${validPR} --json files --jq '.files[].path'`,
         { encoding: 'utf-8' }
       ).trim().split('\n').filter(f => f);
 
       return files;
     } catch (error) {
-      console.error(`❌ Failed to fetch files for PR #${prNumber}. Ensure gh CLI is authenticated.`);
+      console.error(`❌ Failed to fetch files for PR #${validPR}. Ensure gh CLI is authenticated.`);
       return [];
     }
   }
@@ -1139,9 +1167,16 @@ Call finalize_decision when ready.`;
         case '--changed-files':
           options.changedFiles = args[++i];
           break;
-        case '--pr':
-          options.prNumber = parseInt(args[++i]);
+        case '--pr': {
+          const prInput = args[++i];
+          const validPR = this.validatePRNumber(prInput);
+          if (!validPR) {
+            console.error(`❌ Invalid PR number: ${prInput}. Must be a positive integer (1-999999).`);
+            process.exit(1);
+          }
+          options.prNumber = validPR;
           break;
+        }
       }
     }
 
