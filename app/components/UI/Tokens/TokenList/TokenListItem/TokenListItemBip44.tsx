@@ -40,6 +40,8 @@ import SensitiveText, {
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
+export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
+
 const accountTypeLabel: Partial<Record<KeyringAccountType, string>> = {
   [BtcAccountType.P2pkh]: 'Legacy',
   [BtcAccountType.P2sh]: 'Nested SegWit',
@@ -204,7 +206,7 @@ export const TokenListItemBip44 = React.memo(
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
-            {label && <Tag label={label} />}
+            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
           <View style={styles.percentageChange}>
             {

@@ -1,6 +1,9 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { TokenListItemBip44 } from './TokenListItemBip44';
+import {
+  ACCOUNT_TYPE_LABEL_TEST_ID,
+  TokenListItemBip44,
+} from './TokenListItemBip44';
 import { FlashListAssetKey } from '..';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
@@ -8,6 +11,7 @@ import { formatWithThreshold } from '../../../../../util/assets';
 import { TokenI } from '../../types';
 import { SECONDARY_BALANCE_TEST_ID } from '../../../AssetElement/index.constants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { BtcAccountType } from '@metamask/keyring-api';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -306,6 +310,34 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Account Type Label', () => {
+    it('renders the correct account type label', () => {
+      prepareMocks({
+        asset: { ...defaultAsset, type: BtcAccountType.P2wpkh },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toHaveTextContent(
+        'Native SegWit',
+      );
     });
   });
 });
