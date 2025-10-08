@@ -458,7 +458,7 @@ export class AIE2ETagsSelector {
           const maxResults = (input.max_results as number) || 20;
 
           const results: string[] = [];
-          const isCI = filePath.includes('.github/workflows/') || filePath.includes('/scripts/');
+          const isCI = filePath.includes('.github/workflows/') || filePath.includes('.github/actions/') || filePath.includes('/scripts/');
 
           try {
             // CI-specific relationships
@@ -508,6 +508,26 @@ export class AIE2ETagsSelector {
                     uniqueScripts.slice(0, maxResults).forEach(script =>
                       results.push(`  ${script.replace(/^\.\//, '')}`)
                     );
+                  }
+                }
+              }
+
+              // For GitHub Actions: find workflows that use them
+              if (filePath.includes('.github/actions/')) {
+                // Extract action path (e.g., ".github/actions/ai-e2e-analysis")
+                const actionPathMatch = filePath.match(/\.github\/actions\/[^/]+/);
+                if (actionPathMatch) {
+                  const actionPath = actionPathMatch[0];
+
+                  // Search for workflows using this action
+                  const workflowsUsingAction = execSync(
+                    `grep -r -l "uses:.*${actionPath}" .github/workflows/ 2>/dev/null | head -${maxResults} || true`,
+                    { encoding: 'utf-8', cwd: this.baseDir }
+                  ).trim().split('\n').filter(f => f);
+
+                  if (workflowsUsingAction.length > 0) {
+                    results.push(results.length > 0 ? `\n🎬 GitHub Action used in ${workflowsUsingAction.length} workflow(s):` : `🎬 GitHub Action used in ${workflowsUsingAction.length} workflow(s):`);
+                    results.push(...workflowsUsingAction.map(f => `  ${f}`));
                   }
                 }
               }
