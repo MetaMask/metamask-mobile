@@ -8,7 +8,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { merge } from 'lodash';
 
 const initialState = {
