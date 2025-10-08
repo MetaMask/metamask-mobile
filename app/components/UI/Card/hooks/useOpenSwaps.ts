@@ -70,7 +70,7 @@ export const useOpenSwaps = ({
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps(sourceToken);
+        goToSwaps();
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties({
