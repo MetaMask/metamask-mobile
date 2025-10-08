@@ -1,3 +1,9 @@
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import {
+  EthAccountType,
+  SolAccountType,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import type { RootState } from '../../reducers';
 import {
@@ -5,8 +11,6 @@ import {
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
 } from './assets-list';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
-import { TrxScope } from '@metamask/keyring-api';
 
 const mockState = ({
   filterNetwork,
@@ -696,6 +700,7 @@ describe('selectAsset', () => {
       logo: '../images/eth-logo-new.png',
       image: '',
       aggregators: [],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -722,6 +727,7 @@ describe('selectAsset', () => {
       logo: '../images/eth-logo-new.png',
       image: '',
       aggregators: [],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -749,6 +755,7 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
       aggregators: [],
+      accountType: EthAccountType.Eoa,
     });
   });
 
@@ -776,6 +783,7 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       aggregators: [],
+      accountType: SolAccountType.DataAccount,
     });
   });
 
@@ -803,6 +811,7 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
       aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+      accountType: EthAccountType.Eoa,
     });
   });
 
