@@ -55,6 +55,7 @@ const createMockConnectionInfo = (
       platform: 'JavaScript',
     },
   },
+  expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days from now
 });
 
 describe('HostApplicationAdapter', () => {
@@ -114,6 +115,24 @@ describe('HostApplicationAdapter', () => {
         title: 'sdk_connect_v2.show_error.title',
         description: 'sdk_connect_v2.show_error.description',
         status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('showReturnToApp', () => {
+    it('dispatches a success notification prompting user to return to app', () => {
+      adapter.showReturnToApp(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: 'session-123',
+        autodismiss: 3000,
+        title: 'sdk_connect_v2.show_return_to_app.title',
+        description: 'sdk_connect_v2.show_return_to_app.description',
+        status: 'success',
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
     });

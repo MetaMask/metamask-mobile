@@ -129,7 +129,7 @@ import SmartTransactionsMigrationBanner from '../../Views/confirmations/legacy/c
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import Routes from '../../../constants/navigation/Routes';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { getTradeTxTokenFee } from '../../../util/smart-transactions';
 import { useFiatConversionRates } from './utils/useFiatConversionRates';
 import { useGasTokenFiatAmount } from './utils/useGasTokenFiatAmount';
