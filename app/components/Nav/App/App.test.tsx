@@ -679,84 +679,6 @@ describe('App', () => {
         });
       });
 
-      it('covers nestedParams undefined when currentParams.params is null', async () => {
-        // Arrange
-        const mockRoutesWithNullParams = [
-          { name: 'SomeRoute' },
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: null,
-            },
-          },
-        ];
-
-        jest
-          .spyOn(NavigationNative, 'useNavigationState')
-          .mockImplementation((selector: unknown) =>
-            (
-              selector as (state: {
-                routes: { name: string; params?: unknown }[];
-              }) => unknown
-            )({
-              routes: mockRoutesWithNullParams,
-            }),
-          );
-
-        const srpUserState = {
-          ...initialState,
-          user: {
-            ...initialState.user,
-            existingUser: true,
-            userLoggedIn: true,
-          },
-          engine: {
-            ...initialState.engine,
-            backgroundState: {
-              ...initialState.engine?.backgroundState,
-              SeedlessOnboardingController: {
-                vault: undefined, // SRP user
-              },
-            },
-          },
-        };
-
-        jest
-          .spyOn(StorageWrapper, 'getItem')
-          .mockImplementation(async (key) => {
-            if (key === OPTIN_META_METRICS_UI_SEEN) {
-              return false;
-            }
-            return true; // existingUser = true
-          });
-
-        // Act
-        renderScreen(App, { name: 'App' }, { state: srpUserState });
-
-        // Assert
-        await waitFor(() => {
-          expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
-        });
-
-        // Should still navigate to OptinMetrics since no early return
-        await waitFor(() => {
-          expect(mockReset).toHaveBeenCalledWith({
-            routes: [
-              {
-                name: Routes.ONBOARDING.ROOT_NAV,
-                params: {
-                  screen: Routes.ONBOARDING.NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.OPTIN_METRICS,
-                  },
-                },
-              },
-            ],
-          });
-        });
-      });
-
       it('covers lock screen detection and OptinMetrics screen detection logic', async () => {
         // Arrange
         const mockRoutesWithLockAndOptinMetrics = [
@@ -820,8 +742,35 @@ describe('App', () => {
         });
       });
 
-      it('allows OptinMetrics to show when not coming from lock screen', async () => {
-        // Arrange
+      it('covers nestedParams object branch when params is a valid object', async () => {
+        // Arrange: Test the TRUE branch of the ternary operator (lines 1103-1104)
+        const mockRoutesWithValidObjectParams = [
+          { name: 'SomeRoute' }, // Not lock screen
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                // This is a valid object, should trigger the TRUE branch
+                screen: 'SomeScreen',
+                additionalData: 'test',
+              },
+            },
+          },
+        ];
+
+        jest
+          .spyOn(NavigationNative, 'useNavigationState')
+          .mockImplementation((selector: unknown) =>
+            (
+              selector as (state: {
+                routes: { name: string; params?: unknown }[];
+              }) => unknown
+            )({
+              routes: mockRoutesWithValidObjectParams,
+            }),
+          );
+
         const srpUserState = {
           ...initialState,
           user: {
@@ -836,10 +785,6 @@ describe('App', () => {
               SeedlessOnboardingController: {
                 vault: undefined, // SRP user
               },
-              PreferencesController: {
-                ...initialState.engine?.backgroundState?.PreferencesController,
-                isMultiAccountBalancesEnabled: true,
-              },
             },
           },
         };
@@ -853,10 +798,15 @@ describe('App', () => {
             return true; // existingUser = true
           });
 
-        // Act: Render the component
+        // Act
         renderScreen(App, { name: 'App' }, { state: srpUserState });
 
-        // Assert
+        // Assert: This should cover the object branch of nestedParams
+        await waitFor(() => {
+          expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+        });
+
+        // Should navigate to OptinMetrics since no early return conditions are met
         await waitFor(() => {
           expect(mockReset).toHaveBeenCalledWith({
             routes: [
