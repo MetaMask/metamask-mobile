@@ -30,4 +30,10 @@ export const REWARDS_VIEW_SELECTORS = {
   CLAIM_MODAL: 'rewards-view-claim-modal',
   CLAIM_MODAL_CONFIRM_BUTTON: 'rewards-view-claim-modal-confirm-button',
   CLAIM_MODAL_ERROR_MESSAGE: 'rewards-view-claim-modal-error-message',
+  CLAIM_BUTTON: 'rewards-view-claim-button',
+  SKIP_BUTTON: 'rewards-view-skip-button',
+  NEXT_BUTTON: 'rewards-view-next-button',
+  SEASON_STATUS_LEVEL: 'season-status-level',
+  SEASON_STATUS_TIER_NAME: 'season-status-tier-name',
+  SEASON_STATUS_POINTS: 'season-status-points',
 } as const;

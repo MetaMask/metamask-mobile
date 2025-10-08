@@ -32,6 +32,7 @@ import RewardsThemeImageComponent from '../ThemeImageComponent';
 import { Image } from 'react-native';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 const SeasonStatus: React.FC = () => {
   const tw = useTailwind();
@@ -127,14 +128,14 @@ const SeasonStatus: React.FC = () => {
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-alternative"
-              testID="season-status-level"
+              testID={`${REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}`}
             >
               {strings('rewards.level')} {currentTierOrder}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               twClassName="text-default"
-              testID="season-status-tier-name"
+              testID={`${REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}`}
             >
               {tierName}
             </Text>
@@ -212,7 +213,7 @@ const SeasonStatus: React.FC = () => {
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
             <Text
-              testID="season-status-points"
+              testID={`${REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}`}
               style={tw.style({
                 fontSize: 22,
                 fontWeight: FontWeight.Bold,

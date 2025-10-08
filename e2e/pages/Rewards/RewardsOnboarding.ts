@@ -1,14 +1,15 @@
+import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views/RewardsView.constants';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
 class RewardsClaimBonus {
   get rewardsClaimBonusButton(): DetoxElement {
-    return Matchers.getElementByID('rewards-claim-button');
+    return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.CLAIM_BUTTON);
   }
 
   get rewardsOnboardingNextButton(): DetoxElement {
-    return Matchers.getElementByID('next-button');
+    return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.NEXT_BUTTON);
   }
 
   get rewardsOnboardingInfoScreen1(): DetoxElement {

@@ -1,55 +1,41 @@
 import Matchers from '../../framework/Matchers';
+import { RewardsActivityListSelectorsIDs } from '../../selectors/Rewards/RewardsActivityList.selectors';
 
 class RewardsActivityTabView {
   // FlatList container
   get flatList() {
-    return Matchers.getElementByID('flatlist');
+    return Matchers.getElementByID(RewardsActivityListSelectorsIDs.FLATLIST);
   }
 
   // Activity event rows
   getActivityEventRow(eventType: string, index: number) {
-    return Matchers.getElementByID(`activity-row-${eventType}-${index}`);
-  }
-
-  // Specific event rows
-  get signUpBonusRow() {
-    return Matchers.getElementByID('activity-row-sign_up_bonus-0');
-  }
-
-  get firstSwapRow() {
-    return Matchers.getElementByID('activity-row-swap-1');
-  }
-
-  get perpsRow() {
-    return Matchers.getElementByID('activity-row-perps-2');
-  }
-
-  get referralRow() {
-    return Matchers.getElementByID('activity-row-referral-3');
+    return Matchers.getElementByID(
+      `${RewardsActivityListSelectorsIDs.ACTIVITY_ROW}-${eventType}-${index}`,
+    );
   }
 
   // Text elements within rows
   getEventRowTitle(eventType: string, index: number) {
     return Matchers.getElementByID(
-      `activity-event-row-title-activity-row-${eventType}-${index}`,
+      `${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_TITLE}-${RewardsActivityListSelectorsIDs.ACTIVITY_ROW}-${eventType}-${index}`,
     );
   }
 
   getEventRowValue(eventType: string, index: number) {
     return Matchers.getElementByID(
-      `activity-event-row-value-activity-row-${eventType}-${index}`,
+      `${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_VALUE}-${RewardsActivityListSelectorsIDs.ACTIVITY_ROW}-${eventType}-${index}`,
     );
   }
 
   getEventRowDetails(eventType: string, index: number) {
     return Matchers.getElementByID(
-      `activity-event-row-details-activity-row-${eventType}-${index}`,
+      `${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_DETAILS}-${RewardsActivityListSelectorsIDs.ACTIVITY_ROW}-${eventType}-${index}`,
     );
   }
 
   getEventRowDate(eventType: string, index: number) {
     return Matchers.getElementByID(
-      `activity-event-row-date-activity-row-${eventType}-${index}`,
+      `${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_DATE}-${RewardsActivityListSelectorsIDs.ACTIVITY_ROW}-${eventType}-${index}`,
     );
   }
 

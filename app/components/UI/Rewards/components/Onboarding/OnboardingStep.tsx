@@ -23,6 +23,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Device from '../../../../../util/device';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 interface OnboardingStepProps {
   // Progress indicator props
@@ -146,7 +147,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
               isLoading={onNextLoading}
               loadingText={onNextLoadingText}
               isDisabled={onNextDisabled || onNextLoading}
-              testID="next-button"
+              testID={`${REWARDS_VIEW_SELECTORS.NEXT_BUTTON}`}
             >
               {nextButtonText || strings('rewards.onboarding.step_confirm')}
             </Button>

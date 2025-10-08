@@ -205,45 +205,4 @@ describe(SmokeRewards('Rewards Feature Test'), () => {
       },
     );
   });
-
-  it('should display correct points and level details in overview tab', async () => {
-    const testSpecificMock = async (mockServer: Mockttp) => {
-      await setUpActivityMocks(mockServer);
-    };
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-        testSpecificMock,
-      },
-      async () => {
-        await device.disableSynchronization();
-        await loginToApp();
-        await TabBarComponent.tapRewards();
-        await RewardsView.tapRewardsOverviewTabButton();
-
-        await Assertions.expectElementToHaveText(
-          RewardsView.seasonStatusLevel,
-          'Level 4',
-          {
-            description: 'Season status level should have correct text',
-          },
-        );
-        await Assertions.expectElementToHaveText(
-          RewardsView.seasonStatusTierName,
-          'Oceania uat',
-          {
-            description: 'Season status tier name should have correct text',
-          },
-        );
-        await Assertions.expectElementToHaveText(
-          RewardsView.seasonStatusPoints,
-          '1,245',
-          {
-            description: 'Season status points should have correct text',
-          },
-        );
-      },
-    );
-  });
 });

@@ -1,28 +1,41 @@
+import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views/RewardsView.constants';
 import { Gestures, Matchers } from '../../framework';
 
 class RewardsView {
   get rewardsOverviewTabButton(): DetoxElement {
-    return Matchers.getElementByID('rewards-view-tab-control-bar-tab-0');
+    return Matchers.getElementByID(
+      `${REWARDS_VIEW_SELECTORS.TAB_CONTROL}-bar-tab-0`,
+    );
   }
 
   get rewardActivityTabButton(): DetoxElement {
-    return Matchers.getElementByID('rewards-view-tab-control-bar-tab-2');
+    return Matchers.getElementByID(
+      `${REWARDS_VIEW_SELECTORS.TAB_CONTROL}-bar-tab-2`,
+    );
   }
 
   get rewardLevelsTabButton(): DetoxElement {
-    return Matchers.getElementByID('rewards-view-tab-control-bar-tab-1');
+    return Matchers.getElementByID(
+      `${REWARDS_VIEW_SELECTORS.TAB_CONTROL}-bar-tab-1`,
+    );
   }
 
   get seasonStatusLevel(): DetoxElement {
-    return Matchers.getElementByID('season-status-level');
+    return Matchers.getElementByID(
+      `${REWARDS_VIEW_SELECTORS.SEASON_STATUS_LEVEL}`,
+    );
   }
 
   get seasonStatusTierName(): DetoxElement {
-    return Matchers.getElementByID('season-status-tier-name');
+    return Matchers.getElementByID(
+      `${REWARDS_VIEW_SELECTORS.SEASON_STATUS_TIER_NAME}`,
+    );
   }
 
   get seasonStatusPoints(): DetoxElement {
-    return Matchers.getElementByID('season-status-points');
+    return Matchers.getElementByID(
+      `${REWARDS_VIEW_SELECTORS.SEASON_STATUS_POINTS}`,
+    );
   }
 
   async tapRewardsOverviewTabButton(): Promise<void> {

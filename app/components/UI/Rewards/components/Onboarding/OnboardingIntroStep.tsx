@@ -39,6 +39,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Device from '../../../../../util/device';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 /**
  * OnboardingIntroStep Component
@@ -311,7 +312,7 @@ const OnboardingIntroStep: React.FC<{
         }
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
         onPress={handleNext}
-        testID="rewards-claim-button"
+        testID={`${REWARDS_VIEW_SELECTORS.CLAIM_BUTTON}`}
         twClassName="w-full bg-primary-default"
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
@@ -324,7 +325,7 @@ const OnboardingIntroStep: React.FC<{
         isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
-        testID="rewards-skip-button"
+        testID={`${REWARDS_VIEW_SELECTORS.SKIP_BUTTON}`}
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}
