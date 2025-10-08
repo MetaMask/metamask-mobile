@@ -32,6 +32,7 @@ export interface GetMarketsParams {
 export interface Signer {
   address: string;
   signTypedMessage: KeyringController['signTypedMessage'];
+  signPersonalMessage: KeyringController['signPersonalMessage'];
 }
 
 export interface BuyOrderParams {

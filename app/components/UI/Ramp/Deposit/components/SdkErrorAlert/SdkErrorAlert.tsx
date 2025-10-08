@@ -3,6 +3,9 @@ import BannerAlert from '../../../../../../component-library/components/Banners/
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 
 interface SdkErrorAlertProps {
   error: string | null;
@@ -34,13 +37,16 @@ const SdkErrorAlert: React.FC<SdkErrorAlertProps> = ({
 
   return (
     <BannerAlert
-      description={getErrorMessage()}
+      description={
+        <Text variant={TextVariant.BodySM}>{getErrorMessage()}</Text>
+      }
       severity={BannerAlertSeverity.Error}
       actionButtonProps={
         onRetry
           ? {
               variant: ButtonVariants.Link,
               label: strings('deposit.errors.try_again'),
+              labelTextVariant: TextVariant.BodySM,
               onPress: onRetry,
               isDisabled: isRetrying,
               loading: isRetrying,

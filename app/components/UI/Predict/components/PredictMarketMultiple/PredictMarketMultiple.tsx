@@ -32,10 +32,12 @@ import { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictMarketMultipleProps {
   market: PredictMarket;
+  testID?: string;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
+  testID,
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -107,6 +109,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   return (
     <TouchableOpacity
+      testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
