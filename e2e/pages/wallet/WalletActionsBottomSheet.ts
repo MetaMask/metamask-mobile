@@ -85,7 +85,7 @@ class WalletActionsBottomSheet {
   async tapPredictButton(): Promise<void> {
     await Gestures.waitAndTap(this.predictButton);
   }
-  
+
   async tapStartANewTradeButton(): Promise<void> {
     await Gestures.waitAndTap(this.startANewTradeButton);
   }

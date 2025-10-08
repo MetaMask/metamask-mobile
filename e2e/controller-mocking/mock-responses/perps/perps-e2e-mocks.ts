@@ -18,7 +18,8 @@ import type {
   WithdrawParams,
   WithdrawResult,
   Funding,
- UpdatePositionTPSLParams } from '../../../../app/components/UI/Perps/controllers/types';
+  UpdatePositionTPSLParams,
+} from '../../../../app/components/UI/Perps/controllers/types';
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;
@@ -344,9 +345,7 @@ export class PerpsE2EMockService {
    * Mock deposit in USD into the perps trading account.
    * Increases both availableBalance and totalBalance by the provided fiat amount.
    */
-  public async mockDepositUSD(
-    amountFiat: string,
-  ): Promise<{ success: boolean }> {
+  public mockDepositUSD(amountFiat: string): { success: boolean } {
     const delta = parseFloat(amountFiat || '0');
     if (!Number.isFinite(delta) || delta <= 0) {
       return { success: false };
@@ -367,10 +366,7 @@ export class PerpsE2EMockService {
   }
 
   // Mock close position
-  public async mockClosePosition(
-    coin: string,
-    _size?: string,
-  ): Promise<OrderResult> {
+  public mockClosePosition(coin: string, _size?: string): OrderResult {
     const existingPosition = this.mockPositions.find((p) => p.coin === coin);
     if (!existingPosition) {
       return {
