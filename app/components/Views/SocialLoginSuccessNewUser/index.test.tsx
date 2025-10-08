@@ -56,27 +56,27 @@ describe('SocialLoginSuccessNewUser', () => {
     mockUseTheme.mockReturnValue(mockTheme);
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = render(<SocialLoginSuccessNewUser />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should display the success title', () => {
+  it('displays the success title', () => {
     const { getByText } = render(<SocialLoginSuccessNewUser />);
     expect(getByText('social_login_success.title')).toBeTruthy();
   });
 
-  it('should display the set pin button', () => {
+  it('displays the set pin button', () => {
     const { getByText } = render(<SocialLoginSuccessNewUser />);
     expect(getByText('social_login_success.set_metamask_pin')).toBeTruthy();
   });
 
-  it('should render fox animation', () => {
+  it('renders fox animation', () => {
     const { toJSON } = render(<SocialLoginSuccessNewUser />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call navigation.replace when Set MetaMask pin button is pressed', () => {
+  it('navigates to ChoosePassword when Set MetaMask pin button is pressed', () => {
     const { getByText } = render(<SocialLoginSuccessNewUser />);
     const button = getByText('social_login_success.set_metamask_pin');
 
@@ -93,7 +93,7 @@ describe('SocialLoginSuccessNewUser', () => {
     );
   });
 
-  it('should handle missing route params gracefully', () => {
+  it('handles missing route params gracefully', () => {
     (useRoute as jest.Mock).mockReturnValue({ params: undefined });
 
     const { getByText } = render(<SocialLoginSuccessNewUser />);
@@ -112,7 +112,7 @@ describe('SocialLoginSuccessNewUser', () => {
     );
   });
 
-  it('should handle partial route params', () => {
+  it('handles partial route params', () => {
     (useRoute as jest.Mock).mockReturnValue({
       params: {
         accountName: 'partial@test.com',
@@ -135,12 +135,12 @@ describe('SocialLoginSuccessNewUser', () => {
     );
   });
 
-  it('should set navigation options on mount', () => {
+  it('sets navigation options on mount', () => {
     render(<SocialLoginSuccessNewUser />);
     expect(mockNavigation.setOptions).toHaveBeenCalledWith({});
   });
 
-  it('should use theme colors for styling', () => {
+  it('uses theme colors for styling', () => {
     const customTheme = {
       colors: {
         background: { default: '#123456' },
@@ -153,11 +153,11 @@ describe('SocialLoginSuccessNewUser', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render without crashing when all props are provided', () => {
+  it('renders without crashing when all props are provided', () => {
     expect(() => render(<SocialLoginSuccessNewUser />)).not.toThrow();
   });
 
-  it('should render without crashing when no props are provided', () => {
+  it('renders without crashing when no props are provided', () => {
     (useRoute as jest.Mock).mockReturnValue({});
     expect(() => render(<SocialLoginSuccessNewUser />)).not.toThrow();
   });

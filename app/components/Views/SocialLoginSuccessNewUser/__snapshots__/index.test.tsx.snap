@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SocialLoginSuccessNewUser should render correctly 1`] = `
+exports[`SocialLoginSuccessNewUser renders correctly 1`] = `
 <RCTScrollView
   contentContainerStyle={
     {
@@ -120,7 +120,7 @@ exports[`SocialLoginSuccessNewUser should render correctly 1`] = `
 </RCTScrollView>
 `;
 
-exports[`SocialLoginSuccessNewUser should render fox animation 1`] = `
+exports[`SocialLoginSuccessNewUser renders fox animation 1`] = `
 <RCTScrollView
   contentContainerStyle={
     {
@@ -240,7 +240,7 @@ exports[`SocialLoginSuccessNewUser should render fox animation 1`] = `
 </RCTScrollView>
 `;
 
-exports[`SocialLoginSuccessNewUser should use theme colors for styling 1`] = `
+exports[`SocialLoginSuccessNewUser uses theme colors for styling 1`] = `
 <RCTScrollView
   contentContainerStyle={
     {
