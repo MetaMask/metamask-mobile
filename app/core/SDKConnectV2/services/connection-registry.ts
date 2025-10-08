@@ -10,6 +10,7 @@ import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import { decompressPayloadB64 } from '../utils/compression-utils';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -138,7 +139,7 @@ export class ConnectionRegistry {
    * @param url The full deeplink URL that triggered the connection.
    * @returns The parsed connection request.
    *
-   * Format: metamask://connect/mwp?p=<encoded_connection_request>
+   * Format: metamask://connect/mwp?p=<encoded_connection_request>&c=1
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
     const parsed = new URL(url);
@@ -148,11 +149,15 @@ export class ConnectionRegistry {
       throw new Error('No payload found in URL.');
     }
 
-    if (payload.length > 1024 * 1024) {
+    const compressionFlag = parsed.searchParams.get('c');
+    const jsonString =
+      compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
+
+    if (jsonString.length > 1024 * 1024) {
       throw new Error('Payload too large (max 1MB).');
     }
 
-    const connReq: unknown = JSON.parse(payload);
+    const connReq: unknown = JSON.parse(jsonString);
 
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
