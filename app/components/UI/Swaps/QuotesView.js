@@ -34,7 +34,7 @@ import {
   toWei,
   weiToFiat,
   calculateEthFeeForMultiLayer,
-} from '../../../util/number';
+} from '../../../util/number/legacy';
 import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,

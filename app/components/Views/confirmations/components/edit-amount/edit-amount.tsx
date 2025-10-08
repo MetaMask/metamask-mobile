@@ -7,7 +7,7 @@ import { DepositKeyboard, DepositKeyboardSkeleton } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
-import { getCurrencySymbol } from '../../../../../util/number';
+import { getCurrencySymbol } from '../../../../../util/number/legacy';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';

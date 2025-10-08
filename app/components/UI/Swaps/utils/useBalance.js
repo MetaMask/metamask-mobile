@@ -4,7 +4,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   safeNumberToBN,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { safeToChecksumAddress } from '../../../../util/address';
 
 function useBalance(

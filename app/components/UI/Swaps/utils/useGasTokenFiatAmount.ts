@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { ContractExchangeRates } from '@metamask/assets-controllers';
-import { toWei, weiToFiat } from '../../../../util/number';
+import { toWei, weiToFiat } from '../../../../util/number/legacy';
 import { hexToDecimal } from '../../../../util/conversions';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Quote } from '@metamask/swaps-controller/dist/types';

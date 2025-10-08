@@ -29,7 +29,7 @@ import usePoolStakedClaim from '../../../../hooks/usePoolStakedClaim';
 import { useStakeContext } from '../../../../hooks/useStakeContext';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import styleSheet from './ClaimBanner.styles';
-import { renderFromWei } from '../../../../../../../util/number';
+import { renderFromWei } from '../../../../../../../util/number/legacy';
 import { TokenI } from '../../../../../Tokens/types';
 import { getDecimalChainId } from '../../../../../../../util/networks';
 import { trace, TraceName } from '../../../../../../../util/trace';

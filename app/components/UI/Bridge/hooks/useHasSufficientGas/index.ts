@@ -9,7 +9,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { getNativeSourceToken } from '../useInitialSourceToken';
 import { BigNumber } from 'bignumber.js';
-import { isNumberValue } from '../../../../../util/number';
+import { isNumberValue } from '../../../../../util/number/legacy';
 
 interface Props {
   quote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];

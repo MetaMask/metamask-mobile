@@ -8,7 +8,7 @@ import { protectWalletModalVisible } from '../../../../../actions/user';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
-import { hexToBN, toHexadecimal } from '../../../../../util/number';
+import { hexToBN, toHexadecimal } from '../../../../../util/number/legacy';
 
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { getNotificationDetails } from '../utils';

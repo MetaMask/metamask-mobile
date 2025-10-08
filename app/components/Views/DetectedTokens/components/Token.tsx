@@ -17,7 +17,7 @@ import { selectEvmChainId } from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { useTheme } from '../../../../util/theme';
 import {
   selectCurrencyRates,

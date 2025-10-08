@@ -29,7 +29,7 @@ import {
   weiToFiat,
   weiToFiatNumber,
   toTokenMinimalUnit,
-} from '../number';
+} from '../number/legacy';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';

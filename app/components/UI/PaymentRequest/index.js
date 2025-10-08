@@ -29,7 +29,7 @@ import {
   renderFromTokenMinimalUnit,
   fromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../util/number';
+} from '../../../util/number/legacy';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';

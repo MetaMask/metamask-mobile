@@ -20,7 +20,7 @@ import { selectMultichainTokenListForAccountId } from '../../../../../selectors/
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
-import { renderNumber, renderFiat } from '../../../../../util/number';
+import { renderNumber, renderFiat } from '../../../../../util/number/legacy';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';

@@ -20,7 +20,7 @@ import {
   toHex,
 } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
-import { fastSplit } from '../number';
+import { fastSplit } from '../number/legacy';
 import { regex } from '../../../app/util/regex';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 import {

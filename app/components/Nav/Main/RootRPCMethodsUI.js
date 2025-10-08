@@ -9,7 +9,7 @@ import abi from 'human-standard-token-abi';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
+import { hexToBN, fromWei, isZeroValue } from '../../../util/number/legacy';
 import {
   setEtherTransaction,
   setTransactionObject,
