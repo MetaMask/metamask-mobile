@@ -1,4 +1,5 @@
 import {
+  FeatureId,
   GenericQuoteRequest,
   QuoteMetadata,
   QuoteResponse,
@@ -34,6 +35,7 @@ export interface BridgeQuoteRequest {
   bufferInitial: number;
   bufferStep: number;
   bufferSubsequent: number;
+  featureId?: FeatureId;
   from: Hex;
   slippage: number;
   sourceBalanceRaw: string;
@@ -192,6 +194,7 @@ async function getSingleBridgeQuote(
   gasFeeEstimates: GasFeeEstimates,
 ): Promise<TransactionBridgeQuote> {
   const {
+    featureId,
     from,
     slippage,
     sourceChainId,
@@ -217,7 +220,11 @@ async function getSingleBridgeQuote(
     walletAddress: from,
   };
 
-  const quotes = await BridgeController.fetchQuotes(quoteRequest);
+  const quotes = await BridgeController.fetchQuotes(
+    quoteRequest,
+    undefined,
+    featureId,
+  );
 
   if (!quotes.length) {
     throw new Error(ERROR_MESSAGE_NO_QUOTES);
