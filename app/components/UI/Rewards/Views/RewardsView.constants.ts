@@ -33,7 +33,7 @@ export const REWARDS_VIEW_SELECTORS = {
   CLAIM_BUTTON: 'rewards-view-claim-button',
   SKIP_BUTTON: 'rewards-view-skip-button',
   NEXT_BUTTON: 'rewards-view-next-button',
-  SEASON_STATUS_LEVEL: 'season-status-level',
-  SEASON_STATUS_TIER_NAME: 'season-status-tier-name',
-  SEASON_STATUS_POINTS: 'season-status-points',
+  SEASON_STATUS_LEVEL: 'rewards-view-season-status-level',
+  SEASON_STATUS_TIER_NAME: 'rewards-view-season-status-tier-name',
+  SEASON_STATUS_POINTS: 'rewards-view-season-status-points',
 } as const;
