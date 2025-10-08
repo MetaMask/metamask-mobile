@@ -95,6 +95,7 @@ describe('Connection', () => {
     }) as any;
 
     mockWalletClientInstance.sendResponse = jest.fn();
+    mockWalletClientInstance.resume = jest.fn().mockResolvedValue(undefined);
 
     MockedWalletClient.mockImplementation(
       () => mockWalletClientInstance as WalletClient,
@@ -217,6 +218,24 @@ describe('Connection', () => {
     });
   });
 
+  describe('resume', () => {
+    it('should call resume on its WalletClient with the connection ID', async () => {
+      const connection = await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      await connection.resume();
+
+      expect(mockWalletClientInstance.resume).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.resume).toHaveBeenCalledWith(
+        mockConnectionInfo.id,
+      );
+    });
+  });
+
   describe('disconnect', () => {
     it('should call disconnect on its WalletClient, dispose the bridge, and remove listeners', async () => {
       const connection = await Connection.create(
@@ -230,6 +249,86 @@ describe('Connection', () => {
 
       expect(mockWalletClientInstance.disconnect).toHaveBeenCalledTimes(1);
       expect(mockBridgeInstance.dispose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('showReturnToApp notification', () => {
+    it('should show return to app notification when bridge response includes an id', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const responsePayload = {
+        data: { id: 1, result: ['0x123'] },
+      };
+
+      // Simulate the RPCBridgeAdapter emitting a response with an id
+      onBridgeResponseCallback(responsePayload);
+
+      // Should show return to app notification
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+
+      // And still send the response to the client
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        responsePayload,
+      );
+    });
+
+    it('should not show return to app notification when bridge response is a notification without id', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const notificationPayload = {
+        data: { method: 'accountsChanged', params: [] },
+      };
+
+      // Simulate the RPCBridgeAdapter emitting a notification without an id
+      onBridgeResponseCallback(notificationPayload);
+
+      // Should not show return to app notification
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      // But still send the notification to the client
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        notificationPayload,
+      );
+    });
+
+    it('should not show return to app notification when response data does not have id property', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const responsePayload = {
+        data: { someOtherProp: 'value' },
+      };
+
+      // Simulate the RPCBridgeAdapter emitting a response without an id
+      onBridgeResponseCallback(responsePayload);
+
+      // Should not show return to app notification
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      // But still send the response to the client
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        responsePayload,
+      );
     });
   });
 });

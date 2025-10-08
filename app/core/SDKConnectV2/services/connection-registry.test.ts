@@ -101,7 +101,7 @@ describe('ConnectionRegistry', () => {
 
   const RELAY_URL = 'wss://test-relay.example.com';
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
 
     mockHostApp =
@@ -130,6 +130,56 @@ describe('ConnectionRegistry', () => {
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
+
+    // Wait for initialization to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  describe('isConnectDeeplink', () => {
+    it('should return true for valid MWP connect deeplinks', () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      expect(registry.isConnectDeeplink(validDeeplink)).toBe(true);
+      expect(
+        registry.isConnectDeeplink('metamask://connect/mwp?p=somedata'),
+      ).toBe(true);
+    });
+
+    it('should return false for non-MWP deeplinks', () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      expect(registry.isConnectDeeplink('metamask://some-other-path')).toBe(
+        false,
+      );
+      expect(registry.isConnectDeeplink('https://example.com')).toBe(false);
+      expect(registry.isConnectDeeplink('metamask://connect/other')).toBe(
+        false,
+      );
+    });
+
+    it('should return false for non-string values', () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      expect(registry.isConnectDeeplink(null)).toBe(false);
+      expect(registry.isConnectDeeplink(undefined)).toBe(false);
+      expect(registry.isConnectDeeplink(123)).toBe(false);
+      expect(registry.isConnectDeeplink({})).toBe(false);
+    });
   });
 
   describe('handleConnectDeeplink', () => {
@@ -267,6 +317,112 @@ describe('ConnectionRegistry', () => {
 
       disconnectSpy.mockRestore();
     });
+
+    it('should be idempotent and ignore duplicate deeplink calls', async () => {
+      // Given: a registry ready to handle connections
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // When: handling the same deeplink twice in parallel
+      const promise1 = registry.handleConnectDeeplink(validDeeplink);
+      const promise2 = registry.handleConnectDeeplink(validDeeplink);
+
+      await Promise.all([promise1, promise2]);
+
+      // Then: connection should only be created once
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+      expect(mockConnection.connect).toHaveBeenCalledTimes(1);
+      expect(mockStore.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle deeplinks with no payload parameter', async () => {
+      // Given: a registry ready to handle connections
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const invalidDeeplink = 'metamask://connect/mwp';
+
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      // Then: error should be shown
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('should reject payloads larger than 1MB', async () => {
+      // Given: a registry ready to handle connections
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // Create a large payload (over 1MB)
+      const largePayload = 'x'.repeat(1024 * 1024 + 1);
+      const largeDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        largePayload,
+      )}`;
+
+      await registry.handleConnectDeeplink(largeDeeplink);
+
+      // Then: error should be shown
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('should handle malformed connection request structure', async () => {
+      // Given: a registry ready to handle connections
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const invalidRequest = { invalidStructure: true };
+      const invalidDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(invalidRequest),
+      )}`;
+
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      // Then: error should be shown
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('should handle connection creation failure', async () => {
+      // Given: a registry where connection creation fails
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const creationError = new Error('Connection creation failed');
+      (Connection.create as jest.Mock).mockRejectedValueOnce(creationError);
+
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      // Then: error should be shown and cleanup should occur
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockStore.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('disconnect', () => {
@@ -392,6 +548,27 @@ describe('ConnectionRegistry', () => {
       // Verify that the initialization completed without throwing
       expect(mockStore.list).toHaveBeenCalledTimes(1);
       expect(Connection.create).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle errors when store.list fails during initialization', async () => {
+      // Given: store.list fails
+      mockStore.list.mockRejectedValue(new Error('Storage error'));
+
+      // When: creating a new registry
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // Wait for initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Then: initialization should complete without throwing
+      expect(mockStore.list).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
     });
   });
 
