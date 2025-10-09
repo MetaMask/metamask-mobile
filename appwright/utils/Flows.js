@@ -75,6 +75,12 @@ export async function onboardingFlowImportSRP(device, srp) {
   await WalletMainScreen.isMainWalletViewVisible();
 }
 
+export async function dissmissAllModals(device) {
+  await dismissMultichainAccountsIntroModal(device);
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissRewardsBottomSheetModal(device);
+}
+
 export async function importSRPFlow(device, srp) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -115,6 +121,7 @@ export async function importSRPFlow(device, srp) {
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
 
   await ImportFromSeedScreen.tapContinueButton(false);
+  await dissmissAllModals(device);
   timer4.start();
   await WalletMainScreen.isMainWalletViewVisible();
   timer4.stop();
@@ -134,23 +141,7 @@ export async function login(device, options = {}) {
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
 
-  // Only tap intro screens on first login
-  //if (!skipIntro) {
-  // Run both modal dismissals in parallel with 5 second timeout
-  const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('Modal dismissal timeout')), 10000)
-  );
-  
-  await Promise.race([
-    Promise.allSettled([
-      dismissMultichainAccountsIntroModal(device),
-      tapPerpsBottomSheetGotItButton(device)
-    ]),
-    timeoutPromise
-  ]).catch((error) => {
-    console.log('Modal dismissal completed or timed out:', error.message);
-  });
-  //}
+  await dissmissAllModals(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
