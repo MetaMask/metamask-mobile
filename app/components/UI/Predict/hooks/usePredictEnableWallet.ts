@@ -5,6 +5,9 @@ import { addTransaction } from '../../../../util/transaction-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { usePredictAccountState } from './usePredictAccountState';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface UsePredictEnableWalletParams {
   providerId?: string;
@@ -25,6 +28,7 @@ export const usePredictEnableWallet = ({
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const { isDeployed } = usePredictAccountState({ providerId });
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   useEffect(() => {
     if (error) {
@@ -100,6 +104,10 @@ export const usePredictEnableWallet = ({
     setIsLoading(true);
     setError(null);
     try {
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
+      });
       const { PredictController } = Engine.context;
       const { response } = await PredictController.enableWallet({
         providerId,

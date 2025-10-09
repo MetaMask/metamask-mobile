@@ -773,8 +773,8 @@ export class PredictController extends BaseController<
           params: {
             data: transaction.data,
             to: transaction.to,
-            type: transaction.type,
           },
+          type: transaction.type,
         })),
       });
 

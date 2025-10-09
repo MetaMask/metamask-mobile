@@ -564,7 +564,7 @@ export class PolymarketProvider implements PredictProvider {
     });
     transactions.push(allowanceTransaction);
 
-    const depositTransactionCallData = await generateTransferData('transfer', {
+    const depositTransactionCallData = generateTransferData('transfer', {
       toAddress: safeAddress,
       amount: '0x0',
     });

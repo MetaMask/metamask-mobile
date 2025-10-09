@@ -303,7 +303,7 @@ export const createSafeFeeAuthorization = async ({
   };
 };
 
-export const getDeployProxyWalletTypedData = async () => {
+export const getDeployProxyWalletTypedData = () => {
   const domain = {
     name: SAFE_FACTORY_NAME,
     chainId: numberToHex(POLYGON_MAINNET_CHAIN_ID),
@@ -358,7 +358,7 @@ export const getDeployProxyWalletTransaction = async ({
   signer: Signer;
 }) => {
   try {
-    const data = await getDeployProxyWalletTypedData();
+    const data = getDeployProxyWalletTypedData();
     const signature = await signer.signTypedMessage(
       { data, from: signer.address as string },
       SignTypedDataVersion.V4,
