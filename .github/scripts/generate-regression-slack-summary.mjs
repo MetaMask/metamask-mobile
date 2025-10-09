@@ -27,16 +27,16 @@ async function parseJUnitXML(xmlContent) {
       mergeAttrs: true,
     });
 
-    // Handle both single testsuite and multiple testsuites wrapped in <testsuites>
-    // Use if-else to prevent double-counting when both structures exist
     let testsuites = [];
-    if (result.testsuites?.testsuite) {
-      // Multiple testsuites wrapped in <testsuites>
+
+    const hasWrappedTestsuites = !!result.testsuites?.testsuite;
+    const hasRootTestsuite = !!result.testsuite;
+
+    if (hasWrappedTestsuites) {
       testsuites = Array.isArray(result.testsuites.testsuite)
         ? result.testsuites.testsuite
         : [result.testsuites.testsuite];
-    } else if (result.testsuite) {
-      // Single testsuite at root level
+    } else if (hasRootTestsuite) {
       testsuites = Array.isArray(result.testsuite)
         ? result.testsuite
         : [result.testsuite];
