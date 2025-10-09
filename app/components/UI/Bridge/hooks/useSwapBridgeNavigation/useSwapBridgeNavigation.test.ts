@@ -1,17 +1,10 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
-import { waitFor } from '@testing-library/react-native';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { EthScope, SolScope } from '@metamask/keyring-api';
-import Engine from '../../../../../core/Engine';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
-import {
-  selectIsBridgeEnabledSource,
-  selectIsUnifiedSwapsEnabled,
-} from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 
 // Mock dependencies
@@ -23,8 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectIsBridgeEnabledSource: jest.fn(() => true),
-  selectIsUnifiedSwapsEnabled: jest.fn(() => false),
+  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true),
 }));
 
 const mockGoToPortfolioBridge = jest.fn();
@@ -131,7 +123,7 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
@@ -145,7 +137,7 @@ describe('useSwapBridgeNavigation', () => {
           chainId: mockChainId,
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
@@ -169,19 +161,19 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
         sourceToken: mockToken,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
 
-  it('navigates to Bridge when goToBridge is called and bridge UI is enabled', () => {
+  it('navigates to Bridge when goToSwaps is called and bridge UI is enabled', () => {
     const { result } = renderHookWithProvider(
       () =>
         useSwapBridgeNavigation({
@@ -191,118 +183,15 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
         sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
-    });
-  });
-
-  it('calls goToPortfolioBridge when goToBridge is called and isBridgeEnabledSource is false', () => {
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValueOnce(
-      false,
-    );
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToBridge();
-
-    expect(mockGoToPortfolioBridge).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('navigates to Swaps when goToSwaps is called and token chainId matches selected chainId', async () => {
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps();
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: mockNativeAsset.address,
-          chainId: mockChainId,
-          sourcePage: mockSourcePage,
-        },
-      });
-    });
-
-    expect(
-      Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).not.toHaveBeenCalled();
-  });
-
-  it('switches network and navigates to Swaps when goToSwaps is called and token chainId differs from selected chainId', async () => {
-    const differentChainId = '0xa' as Hex;
-    const mockToken: BridgeToken = {
-      address: '0x0000000000000000000000000000000000000001',
-      symbol: 'TOKEN',
-      name: 'Test Token',
-      decimals: 18,
-      chainId: differentChainId,
-    };
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-          sourceToken: mockToken,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps();
-
-    await waitFor(() => {
-      expect(
-        Engine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith(differentChainId);
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('optimismNetworkClientId');
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: mockToken.address,
-          chainId: mockToken.chainId,
-          sourcePage: mockSourcePage,
-        },
-      });
     });
   });
 
@@ -334,7 +223,7 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
@@ -348,7 +237,7 @@ describe('useSwapBridgeNavigation', () => {
           chainId: '0x89', // Should be converted to hex format
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
@@ -377,7 +266,7 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
@@ -391,17 +280,13 @@ describe('useSwapBridgeNavigation', () => {
           chainId: '0x1', // Should use mainnet fallback
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
 
   describe('Unified', () => {
     it('navigates to Bridge when goToSwaps is called and unified swaps is enabled', () => {
-      (selectIsUnifiedSwapsEnabled as unknown as jest.Mock).mockReturnValueOnce(
-        true,
-      );
-
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
@@ -454,7 +339,7 @@ describe('useSwapBridgeNavigation', () => {
         { state: initialState },
       );
 
-      result.current.goToBridge();
+      result.current.goToSwaps();
 
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
@@ -468,7 +353,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet, // Should keep CAIP format for Solana
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Bridge,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -520,7 +405,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -572,7 +457,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
