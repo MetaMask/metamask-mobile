@@ -504,7 +504,10 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$99,999,999.99')).toBeOnTheScreen();
+      // With 4 significant digits, this rounds to $100,000,000.00
+      expect(screen.getByText('$100,000,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('+2.50%')).toBeOnTheScreen();
+      expect(screen.getByText('$10.00B')).toBeOnTheScreen();
     });
   });
 
