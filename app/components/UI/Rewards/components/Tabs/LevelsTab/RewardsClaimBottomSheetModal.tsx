@@ -145,7 +145,7 @@ const RewardsClaimBottomSheetModal = ({
 
       handleModalClose();
       showToast();
-    } catch (error) {
+    } catch {
       // keep modal open to display error message
     }
   }, [

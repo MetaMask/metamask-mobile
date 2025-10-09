@@ -231,7 +231,7 @@ const ActiveBoosts: React.FC<{
       !hasError
     ) {
       return (
-        <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
+        <Skeleton style={tw.style('h-32 mx-4 bg-rounded')} width={CARD_WIDTH} />
       );
     }
 
