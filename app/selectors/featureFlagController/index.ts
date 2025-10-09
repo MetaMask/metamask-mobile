@@ -15,3 +15,6 @@ export const selectRemoteFeatureFlags = createSelector(
     return remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
   },
 );
+
+// Export feature flag selectors
+export { selectIsAddBitcoinAccountEnabled } from './addBitcoinAccount';
