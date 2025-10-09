@@ -7,7 +7,6 @@ import { Box } from '../../../../../UI/Box/Box';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { noop } from 'lodash';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-footer.styles';
 import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
@@ -24,7 +23,11 @@ import { RootState } from '../../../../../../reducers';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSelector } from 'react-redux';
 
-export function PredictClaimFooter() {
+export interface PredictClaimFooterProps {
+  onPress: () => void;
+}
+
+export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
   const { id: transactionId } = useTransactionMetadataRequest() ?? {};
 
@@ -59,7 +62,7 @@ export function PredictClaimFooter() {
         labelTextVariant={TextVariant.BodyLGMedium}
         style={styles.button}
         label={strings('confirm.predict_claim.button_label')}
-        onPress={noop}
+        onPress={onPress}
         isInverse
       />
       <Text
