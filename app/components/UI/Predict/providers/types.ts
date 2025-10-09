@@ -105,7 +105,7 @@ export interface GetPositionsParams {
   marketId?: string;
 }
 
-export interface EnableWalletParams {
+export interface PrepareDepositParams {
   providerId: string;
 }
 
@@ -113,11 +113,13 @@ export interface GetAccountStateParams {
   providerId: string;
 }
 
-export interface EnableWalletResponse {
+export interface PrepareDepositResponse {
   chainId: Hex;
   transactions: {
-    to: Hex;
-    data: Hex;
+    params: {
+      to: Hex;
+      data: Hex;
+    };
     type?: TransactionType;
   }[];
 }
@@ -167,9 +169,9 @@ export interface PredictProvider {
   isEligible(): Promise<boolean>;
 
   // Predict wallet management
-  enableWallet(
-    params: EnableWalletParams & { signer: Signer },
-  ): Promise<EnableWalletResponse>;
+  prepareDeposit(
+    params: PrepareDepositParams & { signer: Signer },
+  ): Promise<PrepareDepositResponse>;
   getAccountState(
     params: GetAccountStateParams & { ownerAddress: string },
   ): Promise<AccountState>;

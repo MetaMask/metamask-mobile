@@ -22,7 +22,7 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
-import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
+import PredictDeposit from '../../components/PredictDeposit/PredictDeposit';
 import PredictBalance from '../../components/PredictBalance/PredictBalance';
 import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 
@@ -77,7 +77,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     if (claimablePositions.length === 0)
       return (
         <Box twClassName="gap-2">
-          <PredictOnboarding />
+          <PredictDeposit />
           <PredictBalance
             balance={balance}
             isLoading={isLoadingAccountState}
@@ -101,7 +101,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
     return (
       <Box twClassName="gap-2">
-        <PredictOnboarding />
+        <PredictDeposit />
         <PredictBalance
           balance={balance}
           isLoading={isLoadingAccountState}

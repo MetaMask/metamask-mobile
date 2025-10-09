@@ -15,6 +15,9 @@ import {
   createAllowancesSafeTransaction,
   hasAllowances,
   createClaimSafeTransaction,
+  getSafeTransactionCallData,
+  getProxyWalletAllowancesTransaction,
+  getClaimTransaction,
 } from './utils';
 import { OperationType } from './types';
 import { Signer } from '../../types';
@@ -454,10 +457,10 @@ describe('safe utils', () => {
 
       const tx = await getDeployProxyWalletTransaction({ signer });
 
-      expect(tx).toHaveProperty('from', signer.address);
-      expect(tx).toHaveProperty('to', SAFE_FACTORY_ADDRESS);
-      expect(tx).toHaveProperty('data');
-      expect(tx?.data).toMatch(/^0x[a-f0-9]+$/);
+      expect(tx).toHaveProperty('params');
+      expect(tx?.params).toHaveProperty('to', SAFE_FACTORY_ADDRESS);
+      expect(tx?.params).toHaveProperty('data');
+      expect(tx?.params.data).toMatch(/^0x[a-f0-9]+$/);
     });
 
     it('calls signTypedMessage with correct parameters', async () => {
@@ -719,6 +722,357 @@ describe('safe utils', () => {
 
       expect(safeTxn.to).toBeDefined();
       expect(safeTxn.data).toBeDefined();
+    });
+  });
+
+  describe('getSafeTransactionCallData', () => {
+    it('generates call data for safe transaction execution', async () => {
+      // Given a Safe transaction and signer
+      const signer = buildSigner();
+      const mockTxn = {
+        to: TEST_TO_ADDRESS,
+        value: '0',
+        data: '0x1234',
+        operation: OperationType.Call,
+      };
+
+      setupMocksForFeeAuth();
+
+      // When generating call data
+      const callData = await getSafeTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        txn: mockTxn,
+      });
+
+      // Then call data is returned with correct format
+      expect(callData).toMatch(/^0x[a-f0-9]+$/);
+      expect(mockQuery).toHaveBeenCalled();
+      expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+
+    it('handles overrides parameter', async () => {
+      // Given overrides are provided
+      const signer = buildSigner();
+      const mockTxn = {
+        to: TEST_TO_ADDRESS,
+        value: '0',
+        data: '0x1234',
+        operation: OperationType.Call,
+      };
+
+      setupMocksForFeeAuth();
+
+      const overrides = { gasLimit: '100000' };
+
+      // When generating call data with overrides
+      const callData = await getSafeTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        txn: mockTxn,
+        overrides,
+      });
+
+      // Then call data is generated successfully
+      expect(callData).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('encodes execTransaction function call', async () => {
+      // Given a transaction to execute
+      const signer = buildSigner();
+      const mockTxn = {
+        to: TEST_TO_ADDRESS,
+        value: '100',
+        data: '0xabcdef',
+        operation: OperationType.Call,
+      };
+
+      setupMocksForFeeAuth();
+
+      // When generating call data
+      const callData = await getSafeTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        txn: mockTxn,
+      });
+
+      // Then the call data contains execTransaction encoding
+      expect(callData).toBeDefined();
+      expect(typeof callData).toBe('string');
+      expect(callData.length).toBeGreaterThan(10);
+    });
+
+    it('queries nonce from Safe contract', async () => {
+      // Given a Safe address
+      const signer = buildSigner();
+      const mockTxn = {
+        to: TEST_TO_ADDRESS,
+        value: '0',
+        data: '0x1234',
+        operation: OperationType.Call,
+      };
+
+      setupMocksForFeeAuth();
+
+      // When generating call data
+      await getSafeTransactionCallData({
+        signer,
+        safeAddress: TEST_SAFE_ADDRESS,
+        txn: mockTxn,
+      });
+
+      // Then nonce is queried from contract
+      const nonceCall = mockQuery.mock.calls.find(
+        (call) => call[2][0].to === TEST_SAFE_ADDRESS,
+      );
+      expect(nonceCall).toBeDefined();
+    });
+  });
+
+  describe('getProxyWalletAllowancesTransaction', () => {
+    it('generates transaction for setting allowances', async () => {
+      // Given a signer
+      const signer = buildSigner();
+
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000009999999999999999999999999999999999999999',
+        )
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      // When generating allowances transaction
+      const tx = await getProxyWalletAllowancesTransaction({ signer });
+
+      // Then transaction is returned with correct structure
+      expect(tx).toHaveProperty('params');
+      expect(tx?.params).toHaveProperty('to');
+      expect(tx?.params).toHaveProperty('data');
+      expect(tx?.params.to).toMatch(/^0x[a-f0-9]{40}$/);
+      expect(tx?.params.data).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('computes Safe address for signer', async () => {
+      // Given a signer with specific address
+      const signer = buildSigner({
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      });
+
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000001111111111111111111111111111111111111111',
+        )
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      // When generating allowances transaction
+      await getProxyWalletAllowancesTransaction({ signer });
+
+      // Then Safe address is computed for the signer
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.any(EthQuery),
+        'call',
+        expect.arrayContaining([
+          expect.objectContaining({
+            to: SAFE_FACTORY_ADDRESS,
+          }),
+        ]),
+      );
+    });
+
+    it('includes allowances for USDC and outcome tokens', async () => {
+      // Given a signer
+      const signer = buildSigner();
+
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000009999999999999999999999999999999999999999',
+        )
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      // When generating allowances transaction
+      const tx = await getProxyWalletAllowancesTransaction({ signer });
+
+      // Then transaction data includes allowance settings
+      expect(tx?.params.data).toBeDefined();
+      expect(tx?.params.data.length).toBeGreaterThan(10);
+    });
+
+    it('signs the transaction for execution', async () => {
+      // Given a signer
+      const signer = buildSigner();
+
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000009999999999999999999999999999999999999999',
+        )
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      // When generating allowances transaction
+      await getProxyWalletAllowancesTransaction({ signer });
+
+      // Then signer's signPersonalMessage is called
+      expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+  });
+
+  describe('getClaimTransaction', () => {
+    const mockPosition: PredictPosition = {
+      id: 'position-1',
+      providerId: 'polymarket',
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcome: 'YES',
+      outcomeTokenId: 'token-1',
+      title: 'Test Market',
+      icon: 'icon.png',
+      amount: 100,
+      price: 0.5,
+      status: PredictPositionStatus.REDEEMABLE,
+      size: 100,
+      outcomeIndex: 0,
+      realizedPnl: 50,
+      percentPnl: 20,
+      cashPnl: 50,
+      initialValue: 100,
+      avgPrice: 0.5,
+      currentValue: 150,
+      endDate: '2025-01-01',
+      claimable: true,
+    };
+
+    it('generates claim transaction for positions', async () => {
+      // Given a signer and positions to claim
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      // When generating claim transaction
+      const tx = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+      });
+
+      // Then transaction is returned with correct structure
+      expect(tx).toHaveProperty('from', signer.address);
+      expect(tx).toHaveProperty('to', TEST_SAFE_ADDRESS);
+      expect(tx).toHaveProperty('data');
+      expect(tx.data).toMatch(/^0x[a-f0-9]+$/);
+    });
+
+    it('handles multiple positions in one transaction', async () => {
+      // Given multiple positions to claim
+      const signer = buildSigner();
+      const positions = [
+        mockPosition,
+        { ...mockPosition, id: 'position-2', outcomeIndex: 1 },
+      ];
+
+      setupMocksForFeeAuth();
+
+      // When generating claim transaction
+      const tx = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+      });
+
+      // Then single transaction is returned with all claims
+      expect(tx).toHaveProperty('from');
+      expect(tx).toHaveProperty('to');
+      expect(tx).toHaveProperty('data');
+    });
+
+    it('signs the claim transaction', async () => {
+      // Given a signer and positions
+      const signer = buildSigner();
+      const positions = [mockPosition];
+
+      setupMocksForFeeAuth();
+
+      // When generating claim transaction
+      await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: TEST_SAFE_ADDRESS,
+      });
+
+      // Then signer's signPersonalMessage is called
+      expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+
+    it('uses provided Safe address', async () => {
+      // Given a specific Safe address
+      const signer = buildSigner();
+      const positions = [mockPosition];
+      const customSafeAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+      setupMocksForFeeAuth();
+
+      // When generating claim transaction
+      const tx = await getClaimTransaction({
+        signer,
+        positions,
+        safeAddress: customSafeAddress,
+      });
+
+      // Then transaction is sent to the provided Safe address
+      expect(tx.to).toBe(customSafeAddress);
+    });
+
+    it('creates transaction for negRisk positions', async () => {
+      // Given a negRisk position
+      const signer = buildSigner();
+      const negRiskPosition = { ...mockPosition, negRisk: true };
+
+      setupMocksForFeeAuth();
+
+      // When generating claim transaction
+      const tx = await getClaimTransaction({
+        signer,
+        positions: [negRiskPosition],
+        safeAddress: TEST_SAFE_ADDRESS,
+      });
+
+      // Then transaction is generated successfully
+      expect(tx).toBeDefined();
+      expect(tx.data).toMatch(/^0x[a-f0-9]+$/);
     });
   });
 });

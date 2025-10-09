@@ -67,7 +67,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockUsePredictPositions = jest.fn();
 const mockUsePredictClaim = jest.fn();
 const mockUsePredictAccountState = jest.fn();
-const mockUsePredictEnableWallet = jest.fn();
+const mockUsePredictDeposit = jest.fn();
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: (options?: { claimable?: boolean }) =>
@@ -82,8 +82,8 @@ jest.mock('../../hooks/usePredictAccountState', () => ({
   usePredictAccountState: () => mockUsePredictAccountState(),
 }));
 
-jest.mock('../../hooks/usePredictEnableWallet', () => ({
-  usePredictEnableWallet: () => mockUsePredictEnableWallet(),
+jest.mock('../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => mockUsePredictDeposit(),
 }));
 
 // Mock components
@@ -159,16 +159,6 @@ jest.mock('../../components/PredictPositionEmpty', () => {
           </TouchableOpacity>
         </View>
       );
-    },
-  };
-});
-
-jest.mock('../../components/PredictOnboarding/PredictOnboarding', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockPredictOnboarding() {
-      return <View testID="predict-onboarding" />;
     },
   };
 });
@@ -364,7 +354,7 @@ describe('PredictTabView', () => {
       refetch: jest.fn(),
     });
 
-    mockUsePredictEnableWallet.mockReturnValue({
+    mockUsePredictDeposit.mockReturnValue({
       isLoading: false,
       error: null,
       isSuccess: false,

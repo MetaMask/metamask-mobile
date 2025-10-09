@@ -13,27 +13,15 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { usePredictEnableWallet } from '../../hooks/usePredictEnableWallet';
-import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 
 // This is a temporary component that will be removed when the onboarding is fully implemented
-const PredictOnboarding: React.FC = () => {
-  const { isLoading, hasAllowances, isDeployed, loadAccountState } =
-    usePredictAccountState();
-  const { enableWallet, isLoading: isEnableWalletLoading } =
-    usePredictEnableWallet({ onSuccess: () => loadAccountState() });
+const PredictDeposit: React.FC = () => {
+  const { deposit, isLoading: isEnableWalletLoading } = usePredictDeposit();
 
-  const handleEnablePredict = useCallback(async () => {
-    if (isLoading) {
-      return;
-    }
-
-    await enableWallet();
-  }, [enableWallet, isLoading]);
-
-  if (isLoading || (isDeployed && hasAllowances)) {
-    return null;
-  }
+  const handleDeposit = useCallback(async () => {
+    deposit();
+  }, [deposit]);
 
   return (
     <Box
@@ -53,12 +41,12 @@ const PredictOnboarding: React.FC = () => {
           <Text
             variant={TextVariant.BodyMd}
             twClassName="text-alternative"
-            testID="markets-won-count"
+            testID="predict-deposit-label"
           >
-            {isDeployed ? 'Enable allowances' : 'Deploy Predict Wallet'}
+            Deposit
           </Text>
         </Box>
-        <TouchableOpacity onPress={handleEnablePredict}>
+        <TouchableOpacity onPress={handleDeposit}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -80,4 +68,4 @@ const PredictOnboarding: React.FC = () => {
   );
 };
 
-export default PredictOnboarding;
+export default PredictDeposit;

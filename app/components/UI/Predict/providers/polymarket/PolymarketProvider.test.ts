@@ -20,6 +20,8 @@ import {
   parsePolymarketPositions,
   priceValid,
   submitClobOrder,
+  getMarketPositions,
+  getBalance,
 } from './utils';
 import { PlaceOrderParams } from '../types';
 import { query } from '@metamask/controller-utils';
@@ -27,8 +29,14 @@ import {
   computeSafeAddress,
   createSafeFeeAuthorization,
   getClaimTransaction,
+  getDeployProxyWalletTransaction,
+  getProxyWalletAllowancesTransaction,
   hasAllowances,
 } from './safe/utils';
+import {
+  generateTransferData,
+  isSmartContractAddress,
+} from '../../../../../util/transactions';
 
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
@@ -80,6 +88,8 @@ jest.mock('./utils', () => {
     priceValid: jest.fn(),
     createApiKey: jest.fn(),
     submitClobOrder: jest.fn(),
+    getMarketPositions: jest.fn(),
+    getBalance: jest.fn(),
     POLYGON_MAINNET_CHAIN_ID: 137,
   };
 });
@@ -88,7 +98,14 @@ jest.mock('./safe/utils', () => ({
   computeSafeAddress: jest.fn(),
   createSafeFeeAuthorization: jest.fn(),
   getClaimTransaction: jest.fn(),
+  getDeployProxyWalletTransaction: jest.fn(),
+  getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
+}));
+
+jest.mock('../../../../../util/transactions', () => ({
+  generateTransferData: jest.fn(),
+  isSmartContractAddress: jest.fn(),
 }));
 
 const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
@@ -1957,6 +1974,316 @@ describe('PolymarketProvider', () => {
       const result = await provider.getPriceHistory({ marketId: 'market-1' });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('calculateCashOutAmounts', () => {
+    it('successfully calculates cash out amounts for a position', async () => {
+      // Given a market with positions
+      const provider = createProvider();
+      const mockPosition = {
+        outcomeTokenId: 'token-123',
+        currentValue: 150,
+        cashPnl: 50,
+        percentPnl: 33.33,
+      };
+
+      (getMarketPositions as jest.Mock).mockResolvedValue([mockPosition]);
+
+      // When calculating cash out amounts
+      const result = await provider.calculateCashOutAmounts({
+        providerId: 'polymarket',
+        outcomeTokenId: 'token-123',
+        marketId: 'market-1',
+        address: '0x123',
+      });
+
+      // Then correct amounts are returned
+      expect(result).toEqual({
+        currentValue: 150,
+        cashPnl: 50,
+        percentPnl: 33.33,
+      });
+      expect(getMarketPositions).toHaveBeenCalledWith({
+        marketId: 'market-1',
+        address: '0x123',
+      });
+    });
+
+    it('throws error when position is not found', async () => {
+      // Given no matching position
+      const provider = createProvider();
+      (getMarketPositions as jest.Mock).mockResolvedValue([
+        { outcomeTokenId: 'token-456', currentValue: 100 },
+      ]);
+
+      // When calculating cash out amounts for non-existent position
+      // Then it throws an error
+      await expect(
+        provider.calculateCashOutAmounts({
+          providerId: 'polymarket',
+          outcomeTokenId: 'token-123',
+          marketId: 'market-1',
+          address: '0x123',
+        }),
+      ).rejects.toThrow('position not found');
+    });
+
+    it('handles empty positions array', async () => {
+      // Given no positions
+      const provider = createProvider();
+      (getMarketPositions as jest.Mock).mockResolvedValue([]);
+
+      // When calculating cash out amounts
+      // Then it throws an error
+      await expect(
+        provider.calculateCashOutAmounts({
+          providerId: 'polymarket',
+          outcomeTokenId: 'token-123',
+          marketId: 'market-1',
+          address: '0x123',
+        }),
+      ).rejects.toThrow('position not found');
+    });
+  });
+
+  describe('prepareDeposit', () => {
+    const mockSigner = {
+      address: '0x123',
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    };
+
+    beforeEach(() => {
+      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+      (generateTransferData as jest.Mock).mockReturnValue('0xtransferData');
+    });
+
+    it('prepares deploy and allowance transactions when wallet not deployed', async () => {
+      // Given a wallet that is not deployed
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      (getBalance as jest.Mock).mockResolvedValue(0);
+      (getDeployProxyWalletTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xFactory', data: '0xdeploy' },
+      });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      // When preparing deposit
+      const result = await provider.prepareDeposit({
+        providerId: 'polymarket',
+        signer: mockSigner,
+      });
+
+      // Then all three transactions are included
+      expect(result.transactions).toHaveLength(3);
+      expect(result.transactions[0].params.data).toBe('0xdeploy');
+      expect(result.transactions[1].params.data).toBe('0xallowances');
+      expect(result.transactions[2].type).toBe('predictDeposit');
+      expect(result.chainId).toBe('0x89');
+    });
+
+    it('prepares only allowance transaction when wallet deployed but no allowances', async () => {
+      // Given a deployed wallet without allowances
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      (getBalance as jest.Mock).mockResolvedValue(100);
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      // When preparing deposit
+      const result = await provider.prepareDeposit({
+        providerId: 'polymarket',
+        signer: mockSigner,
+      });
+
+      // Then only allowance and deposit transactions are included
+      expect(result.transactions).toHaveLength(2);
+      expect(result.transactions[0].params.data).toBe('0xallowances');
+      expect(result.transactions[1].type).toBe('predictDeposit');
+    });
+
+    it('prepares only deposit transaction when wallet deployed and has allowances', async () => {
+      // Given a fully set up wallet
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (getBalance as jest.Mock).mockResolvedValue(100);
+
+      // When preparing deposit
+      const result = await provider.prepareDeposit({
+        providerId: 'polymarket',
+        signer: mockSigner,
+      });
+
+      // Then only deposit transaction is included
+      expect(result.transactions).toHaveLength(1);
+      expect(result.transactions[0].type).toBe('predictDeposit');
+    });
+
+    it('throws error when deploy transaction fails', async () => {
+      // Given deploy transaction returns undefined
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      (getBalance as jest.Mock).mockResolvedValue(0);
+      (getDeployProxyWalletTransaction as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+
+      // When preparing deposit
+      // Then it throws an error
+      await expect(
+        provider.prepareDeposit({
+          providerId: 'polymarket',
+          signer: mockSigner,
+        }),
+      ).rejects.toThrow('Failed to get deploy proxy wallet transaction params');
+    });
+
+    it('uses correct collateral address in deposit transaction', async () => {
+      // Given a fully set up wallet
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (getBalance as jest.Mock).mockResolvedValue(100);
+
+      // When preparing deposit
+      const result = await provider.prepareDeposit({
+        providerId: 'polymarket',
+        signer: mockSigner,
+      });
+
+      // Then deposit transaction targets collateral contract
+      expect(result.transactions[0].params.to).toBeDefined();
+      expect(generateTransferData).toHaveBeenCalledWith('transfer', {
+        toAddress: '0xSafeAddress',
+        amount: '0x0',
+      });
+    });
+  });
+
+  describe('getAccountState', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (computeSafeAddress as jest.Mock).mockResolvedValue('0xSafeAddress');
+    });
+
+    it('returns account state for an undeployed wallet', async () => {
+      // Given an undeployed wallet
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(false);
+      (hasAllowances as jest.Mock).mockResolvedValue(false);
+      (getBalance as jest.Mock).mockResolvedValue(0);
+
+      // When getting account state
+      const result = await provider.getAccountState({
+        ownerAddress: '0x123',
+      });
+
+      // Then correct state is returned
+      expect(result).toEqual({
+        address: '0xSafeAddress',
+        isDeployed: false,
+        hasAllowances: false,
+        balance: 0,
+      });
+    });
+
+    it('returns account state for a deployed wallet with allowances', async () => {
+      // Given a deployed wallet with allowances
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (getBalance as jest.Mock).mockResolvedValue(150.5);
+
+      // When getting account state
+      const result = await provider.getAccountState({
+        ownerAddress: '0x456',
+      });
+
+      // Then correct state is returned
+      expect(result).toEqual({
+        address: '0xSafeAddress',
+        isDeployed: true,
+        hasAllowances: true,
+        balance: 150.5,
+      });
+    });
+
+    it('caches account state by owner address', async () => {
+      // Given an account state check
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (getBalance as jest.Mock).mockResolvedValue(100);
+
+      // When getting account state twice
+      await provider.getAccountState({ ownerAddress: '0x123' });
+      await provider.getAccountState({ ownerAddress: '0x123' });
+
+      // Then Safe address is only computed once
+      expect(computeSafeAddress).toHaveBeenCalledTimes(1);
+    });
+
+    it('computes Safe address for each unique owner', async () => {
+      // Given multiple owner addresses
+      const provider = createProvider();
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      (hasAllowances as jest.Mock).mockResolvedValue(true);
+      (getBalance as jest.Mock).mockResolvedValue(100);
+
+      // When getting account state for different owners
+      await provider.getAccountState({ ownerAddress: '0x123' });
+      await provider.getAccountState({ ownerAddress: '0x456' });
+
+      // Then Safe address is computed for each owner
+      expect(computeSafeAddress).toHaveBeenCalledTimes(2);
+      expect(computeSafeAddress).toHaveBeenCalledWith('0x123');
+      expect(computeSafeAddress).toHaveBeenCalledWith('0x456');
+    });
+
+    it('calls all required functions in parallel', async () => {
+      // Given account state check
+      const provider = createProvider();
+      const isDeployedPromise = Promise.resolve(true);
+      const hasAllowancesPromise = Promise.resolve(true);
+      const balancePromise = Promise.resolve(100);
+
+      (isSmartContractAddress as jest.Mock).mockReturnValue(isDeployedPromise);
+      (hasAllowances as jest.Mock).mockReturnValue(hasAllowancesPromise);
+      (getBalance as jest.Mock).mockReturnValue(balancePromise);
+
+      // When getting account state
+      await provider.getAccountState({ ownerAddress: '0x123' });
+
+      // Then all functions are called
+      expect(isSmartContractAddress).toHaveBeenCalledWith(
+        '0xSafeAddress',
+        '0x89',
+      );
+      expect(hasAllowances).toHaveBeenCalledWith({
+        address: '0xSafeAddress',
+      });
+      expect(getBalance).toHaveBeenCalledWith({ address: '0xSafeAddress' });
+    });
+  });
+
+  describe('getBalance', () => {
+    it('returns 0 as balance is not yet implemented', async () => {
+      // Given a provider
+      const provider = createProvider();
+
+      // When getting balance
+      const result = await provider.getBalance();
+
+      // Then 0 is returned
+      expect(result).toBe(0);
     });
   });
 });

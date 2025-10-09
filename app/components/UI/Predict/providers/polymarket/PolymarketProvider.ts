@@ -2,6 +2,7 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -25,16 +26,17 @@ import {
   CalculateCashOutAmountsResponse,
   ClaimOrderParams,
   ClaimOrderResponse,
-  EnableWalletParams,
-  EnableWalletResponse,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
   PredictProvider,
+  PrepareDepositParams,
+  PrepareDepositResponse,
   Signer,
 } from '../types';
 import {
   FEE_COLLECTOR_ADDRESS,
+  MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
 } from './constants';
@@ -76,7 +78,6 @@ import {
   priceValid,
   submitClobOrder,
 } from './utils';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -542,35 +543,45 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async enableWallet(
-    params: EnableWalletParams & { signer: Signer },
-  ): Promise<EnableWalletResponse> {
+  public async prepareDeposit(
+    params: PrepareDepositParams & { signer: Signer },
+  ): Promise<PrepareDepositResponse> {
     const transactions = [];
     const { signer } = params;
 
-    const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+    const { collateral } = MATIC_CONTRACTS;
 
-    const safeAddress = await computeSafeAddress(signer.address);
-
-    const deployTransaction = await getDeployProxyWalletTransaction({ signer });
-
-    if (!deployTransaction) {
-      throw new Error('Failed to get deploy proxy wallet transaction params');
-    }
-    transactions.push(deployTransaction);
-
-    const allowanceTransaction = await getProxyWalletAllowancesTransaction({
-      signer,
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
     });
-    transactions.push(allowanceTransaction);
+
+    if (!accountState.isDeployed) {
+      const deployTransaction = await getDeployProxyWalletTransaction({
+        signer,
+      });
+
+      if (!deployTransaction) {
+        throw new Error('Failed to get deploy proxy wallet transaction params');
+      }
+      transactions.push(deployTransaction);
+    }
+
+    if (!accountState.hasAllowances) {
+      const allowanceTransaction = await getProxyWalletAllowancesTransaction({
+        signer,
+      });
+      transactions.push(allowanceTransaction);
+    }
 
     const depositTransactionCallData = generateTransferData('transfer', {
-      toAddress: safeAddress,
+      toAddress: accountState.address,
       amount: '0x0',
     });
     transactions.push({
-      to: contractConfig.collateral as Hex,
-      data: depositTransactionCallData as Hex,
+      params: {
+        to: collateral as Hex,
+        data: depositTransactionCallData as Hex,
+      },
       type: TransactionType.predictDeposit,
     });
 

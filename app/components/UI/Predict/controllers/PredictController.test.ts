@@ -82,6 +82,8 @@ describe('PredictController', () => {
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: jest.fn(),
       prepareClaim: jest.fn(),
+      prepareDeposit: jest.fn(),
+      getAccountState: jest.fn(),
       isEligible: jest.fn(),
       providerId: 'polymarket',
     } as unknown as jest.Mocked<PolymarketProvider>;
@@ -1742,6 +1744,283 @@ describe('PredictController', () => {
 
         // Should remain null
         expect(controller.state.claimTransaction).toBeNull();
+      });
+    });
+  });
+
+  describe('depositWithConfirmation', () => {
+    it('successfully prepare and submit deposit transactions', async () => {
+      // Given a valid deposit request
+      const mockTransactions = [
+        {
+          params: {
+            to: '0xToken' as `0x${string}`,
+            data: '0xapprove' as `0x${string}`,
+          },
+        },
+        {
+          params: {
+            to: '0xSafe' as `0x${string}`,
+            data: '0xdeposit' as `0x${string}`,
+          },
+        },
+      ];
+
+      const mockChainId = '0x89'; // Polygon
+      const mockBatchId = 'batch-123';
+
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: mockTransactions,
+        chainId: mockChainId,
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: mockBatchId,
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        const result = await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Then it should succeed
+        expect(result.success).toBe(true);
+        expect(result.response?.batchId).toBe(mockBatchId);
+
+        // And prepareDeposit should be called with correct signer
+        expect(mockPolymarketProvider.prepareDeposit).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+            signTypedMessage: expect.any(Function),
+            signPersonalMessage: expect.any(Function),
+          }),
+        });
+
+        // And addTransactionBatch should be called with correct params
+        expect(addTransactionBatch).toHaveBeenCalledWith({
+          from: '0x1234567890123456789012345678901234567890',
+          origin: 'metamask',
+          networkClientId: 'mainnet',
+          disableHook: true,
+          disableSequential: true,
+          transactions: mockTransactions,
+        });
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        // Given an invalid provider ID
+        // When calling depositWithConfirmation
+        // Then it should throw an error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'invalid-provider',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('throw error when prepareDeposit fails', async () => {
+      // Given prepareDeposit throws an error
+      const errorMessage = 'Insufficient balance';
+      mockPolymarketProvider.prepareDeposit.mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw the error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(errorMessage);
+      });
+    });
+
+    it('throw error when addTransactionBatch fails', async () => {
+      // Given prepareDeposit succeeds but addTransactionBatch fails
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      const errorMessage = 'Transaction submission failed';
+      (addTransactionBatch as jest.Mock).mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw the error
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(errorMessage);
+      });
+    });
+
+    it('use correct network client ID from chain ID', async () => {
+      // Given a deposit on a specific chain
+      const mockChainId = '0x1'; // Mainnet
+      const mockNetworkClientId = 'ethereum-mainnet';
+
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: mockChainId,
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-456',
+      });
+
+      await withController(
+        async ({ controller }) => {
+          // When calling depositWithConfirmation
+          await controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          });
+
+          // Then the correct network client ID should be resolved
+          expect(addTransactionBatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+              networkClientId: expect.any(String),
+            }),
+          );
+        },
+        {
+          mocks: {
+            getNetworkState: jest.fn().mockReturnValue({
+              selectedNetworkClientId: mockNetworkClientId,
+            }),
+          },
+        },
+      );
+    });
+
+    it('pass all parameters from prepareDeposit to provider', async () => {
+      // Given a deposit request
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-789',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Then all parameters should be passed to provider
+        expect(mockPolymarketProvider.prepareDeposit).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        });
+      });
+    });
+
+    it('handle empty transaction array from prepareDeposit', async () => {
+      // Given prepareDeposit returns empty transactions
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-empty',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        const result = await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Then it should still succeed
+        expect(result.success).toBe(true);
+
+        // And addTransactionBatch should be called with empty array
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transactions: [],
+          }),
+        );
+      });
+    });
+  });
+
+  describe('getAccountState', () => {
+    it('successfully retrieve account state', async () => {
+      // Given a valid account state
+      const mockAccountState = {
+        address: '0xProxyAddress',
+        isDeployed: true,
+        hasAllowances: true,
+        balance: 100.5,
+      };
+
+      mockPolymarketProvider.getAccountState.mockResolvedValue(
+        mockAccountState,
+      );
+
+      await withController(async ({ controller }) => {
+        // When calling getAccountState
+        const result = await controller.getAccountState({
+          providerId: 'polymarket',
+        });
+
+        // Then it should return the account state
+        expect(result).toEqual(mockAccountState);
+
+        // And provider should be called with correct owner address
+        expect(mockPolymarketProvider.getAccountState).toHaveBeenCalledWith({
+          providerId: 'polymarket',
+          ownerAddress: '0x1234567890123456789012345678901234567890',
+        });
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        // Given an invalid provider ID
+        // When calling getAccountState
+        // Then it should throw an error
+        await expect(
+          controller.getAccountState({
+            providerId: 'invalid-provider',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
       });
     });
   });

@@ -31,12 +31,12 @@ import {
   CalculateBetAmountsResponse,
   CalculateCashOutAmountsParams,
   CalculateCashOutAmountsResponse,
-  EnableWalletParams,
   GetAccountStateParams,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
   PredictProvider,
+  PrepareDepositParams,
 } from '../providers/types';
 import {
   ClaimParams,
@@ -725,8 +725,8 @@ export class PredictController extends BaseController<
   }
 
   // TODO: We need to change to execute the transactions in the controller
-  public async enableWallet(
-    params: EnableWalletParams,
+  public async depositWithConfirmation(
+    params: PrepareDepositParams,
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.providers.get(params.providerId);
     if (!provider) {
@@ -748,20 +748,13 @@ export class PredictController extends BaseController<
           KeyringController.signPersonalMessage(params),
       };
 
-      const response = await provider.enableWallet({
+      const { transactions, chainId } = await provider.prepareDeposit({
         ...params,
         signer,
       });
 
-      const { transactions } = response;
-
-      console.log('response', response);
-
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        response.chainId,
-      );
-
-      console.log('transactions', transactions);
+      const networkClientId =
+        NetworkController.findNetworkClientIdByChainId(chainId);
 
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
@@ -769,13 +762,7 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        transactions: transactions.map((transaction) => ({
-          params: {
-            data: transaction.data,
-            to: transaction.to,
-          },
-          type: transaction.type,
-        })),
+        transactions,
       });
 
       return {
@@ -785,7 +772,6 @@ export class PredictController extends BaseController<
         },
       };
     } catch (error) {
-      console.log('error', error);
       throw new Error(
         error instanceof Error
           ? error.message
