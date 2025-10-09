@@ -11,14 +11,15 @@ const styleSheet = (params: { theme: Theme }) =>
       borderTopLeftRadius: 12,
       borderTopRightRadius: 12,
       padding: 12,
-      paddingBottom: 20,
+      paddingBottom: 16,
+      marginVertical: 12,
     },
     percentageButton: {
       borderRadius: 12,
+      color: params.theme.colors.text.default,
       backgroundColor: params.theme.colors.background.muted,
       height: 48,
       flexGrow: 1,
-      fontSize: 20,
     },
   });
 
