@@ -174,7 +174,10 @@ class PerpsConnectionManagerClass {
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(error as Error, 'Error performing actual disconnection');
+          Logger.error(error as Error, {
+            message: 'Error performing actual disconnection',
+            context: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+          });
         });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS) as unknown as number;
       // Stop immediately after scheduling (not in the callback)
@@ -183,7 +186,10 @@ class PerpsConnectionManagerClass {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(error as Error, 'Error performing actual disconnection');
+          Logger.error(error as Error, {
+            message: 'Error performing actual disconnection',
+            context: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+          });
         });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS);
     }
