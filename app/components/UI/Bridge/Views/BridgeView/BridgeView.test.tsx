@@ -37,14 +37,6 @@ jest.mock(
   }),
 );
 
-// Mock the isUnifiedSwapsEnvVarEnabled function to return false for consistent test behavior
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-  () => ({
-    isUnifiedSwapsEnvVarEnabled: jest.fn(() => true),
-  }),
-);
-
 const mockState = {
   ...initialState,
   engine: {
@@ -695,7 +687,7 @@ describe('BridgeView', () => {
           willRefresh: false,
         }));
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -703,9 +695,8 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Use getAllByText to handle multiple elements with "Bridge" text
-      const bridgeElements = getAllByText(strings('bridge.confirm_bridge'));
-      expect(bridgeElements.length).toBeGreaterThan(0);
+      const continueButton = getByTestId('bridge-confirm-button');
+      expect(continueButton).toBeTruthy();
     });
 
     it('should handle "Confirm Bridge" button press', async () => {
@@ -724,7 +715,7 @@ describe('BridgeView', () => {
         },
       });
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -734,10 +725,8 @@ describe('BridgeView', () => {
         },
       );
 
-      // Use getAllByText to handle multiple elements and get the button
-      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
-      const button = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
-      fireEvent.press(button);
+      const continueButton = getByTestId('bridge-confirm-button');
+      fireEvent.press(continueButton);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
@@ -1144,7 +1133,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1153,7 +1142,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_swap'));
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1210,7 +1199,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1219,8 +1208,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button - use getAllByText to handle multiple elements
-      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
-      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1274,7 +1262,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1283,7 +1271,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_swap'));
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1334,7 +1322,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getAllByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1343,8 +1331,7 @@ describe('BridgeView', () => {
       );
 
       // Find and press the continue button - use getAllByText to handle multiple elements
-      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
-      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
+      const continueButton = getByTestId('bridge-confirm-button');
       await act(async () => {
         fireEvent.press(continueButton);
       });
