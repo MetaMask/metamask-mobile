@@ -35,8 +35,8 @@ class SettingsScreen {
 
   get securityAndPrivacy() {
     if (!this._device) {
-      return Selectors.getXpathElementByResourceId(
-        SettingsViewSelectorsIDs.GENERAL,
+      return Selectors.getXpathElementByText(
+        'Security & Privacy',
       );
     } else {
       return AppwrightSelectors.getElementByCatchAll(this._device, 'Security & Privacy');

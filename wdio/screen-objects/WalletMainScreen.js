@@ -31,7 +31,7 @@ class WalletMainScreen {
 
   get burgerMenu() {
     if (!this._device) {
-      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_BURGER_MENU);
     } else {
       return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_BURGER_MENU);
     }
@@ -170,7 +170,7 @@ class WalletMainScreen {
   }
   async tapOnBurgerMenu() {
     if (!this._device) {
-      await Gestures.waitAndTap(this.accountIcon);
+      await Gestures.waitAndTap(this.burgerMenu);
     } else {
       await AppwrightGestures.tap(this.burgerMenu);
     }

@@ -29,24 +29,6 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
 
   await login(device);
 
-  // await TabBarModal.tapBrowserButton();
-
-  /*
-    These steps are too flaky. Commenting out for now.
-
-  // await BrowserScreen.isScreenContentDisplayed();
-  // await BrowserScreen.tapUrlBar();
-  // await AddressBarScreen.tapClearButton();
-  // await AddressBarScreen.editUrlInput('https://metamask.github.io/test-dapp/');
-
-  // await AddressBarScreen.submitUrlWebsite();
-  // await ExternalWebsitesScreen.isTestDappDisplayed();
-
-  // await ExternalWebsitesScreen.tapDappConnectButton();
-  // console.log('Waiting for 10 seconds');
-  // await AccountApprovalModal.tapConnectButtonByText();
-  // console.log('Waiting for 30 seconds');
-*/
   await WalletMainScreen.tapOnBurgerMenu();
   await SettingsScreen.tapSecurityAndPrivacy();
   await SettingsScreen.tapLockOption();
