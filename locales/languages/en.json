@@ -4835,7 +4835,6 @@
     "quote_details_max_slippage": "Max slippage",
     "source": "Source",
     "estimated_network_fees": "Estimated gas fees",
-    "gas_fees_sponsored": "Paid by MetaMask",
     "guaranteed_amount": "Guaranteed amount",
     "quote_source_dex": {
       "1": "This quote comes directly from a",
@@ -5927,6 +5926,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network fee",
+    "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
@@ -5938,6 +5938,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "network_fee_info_content_sponsored": "The network fee for this swap is sponsored by MetaMask. This allows you to transact without needing native token on your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
     "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",

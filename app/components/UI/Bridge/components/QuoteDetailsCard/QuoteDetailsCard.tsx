@@ -95,6 +95,8 @@ const QuoteDetailsCard: React.FC = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
+  const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
+
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
@@ -142,7 +144,27 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
+        {gasSponsored ? (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.network_fee'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_sponsored'),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: strings('bridge.gas_fees_sponsored'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        ) : activeQuote?.quote.gasIncluded ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
