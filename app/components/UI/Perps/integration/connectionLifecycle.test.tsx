@@ -1,15 +1,13 @@
+import { act, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
-import { Text, AppState } from 'react-native';
+import { AppState, Text } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import Device from '../../../../util/device';
-import {
-  PerpsConnectionProvider,
-  usePerpsConnection,
-} from '../providers/PerpsConnectionProvider';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsTabViewWithProvider from '../Views/PerpsTabView';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { usePerpsConnection } from '../hooks';
 
 // Type definitions for hook parameters
 interface PerpsConnectionLifecycleParams {
