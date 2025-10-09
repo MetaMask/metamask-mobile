@@ -185,7 +185,8 @@ const EnterAddress = (): JSX.Element => {
 
   useEffect(() => {
     handleFormDataChange('state')('');
-  }, [selectedRegion, handleFormDataChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRegion]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
