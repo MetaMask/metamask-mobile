@@ -275,7 +275,7 @@ const DeepLinkModal = () => {
         params.onContinue();
       }
     });
-  }, [trackEvent, linkType, params, navigation, pageTitle, params.deepLinkContext]);
+  }, [trackEvent, linkType, params, navigation, pageTitle]);
 
   const onDontRemindMeAgainPressed = useCallback(async () => {
     try {

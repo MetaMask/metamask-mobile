@@ -13,8 +13,7 @@ import {
   DeepLinkRoute,
   DeepLinkAnalyticsContext,
 } from '../types/deepLinkAnalytics.types';
-import { MetaMetrics, MetaMetricsEvents } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { MetaMetrics } from '../../Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Logger from '../../../util/Logger';
 

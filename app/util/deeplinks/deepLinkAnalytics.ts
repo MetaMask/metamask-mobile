@@ -271,13 +271,15 @@ const extractHomeProperties = (
 };
 
 /**
- * Extract properties for INVALID route (no properties to extract)
+ * Extract properties for INVALID route
+ * No properties to extract, this function is a placeholder
+ * to satisfy the type checker
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
  */
 const extractInvalidProperties = (
-  urlParams: Record<string, string>,
-  sensitiveProps: Record<string, string>,
+  _urlParams: Record<string, string>,
+  _sensitiveProps: Record<string, string>,
 ): void => {
   // No properties to extract for invalid routes
 };
