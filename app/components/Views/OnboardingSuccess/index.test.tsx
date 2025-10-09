@@ -138,6 +138,11 @@ describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
     mockImportAdditionalAccounts.mockReset();
     mockIsMultichainAccountsState2Enabled.mockReset();
+    mockIsE2EValue = false;
+  });
+
+  afterEach(() => {
+    mockIsE2EValue = false;
   });
 
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {

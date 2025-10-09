@@ -5,21 +5,32 @@ import { Box } from '@metamask/design-system-react-native';
 interface OnboardingSuccessAnimationProps {
   startAnimation: boolean;
   onAnimationComplete: () => void;
-  autoComplete?: boolean;
-  mode?: 'setup' | 'ready';
+  slideOut?: boolean;
+  mode?: 'setup' | 'success';
+  trigger?: string;
+  showText?: boolean;
 }
 
 const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   onAnimationComplete,
+  slideOut = false,
 }) => {
   React.useEffect(() => {
-    // Simulate animation completion after a short delay
-    const timer = setTimeout(() => {
+    if (slideOut) {
       onAnimationComplete();
-    }, 100);
+    }
+  }, [slideOut, onAnimationComplete]);
 
-    return () => clearTimeout(timer);
-  }, [onAnimationComplete]);
+  React.useEffect(() => {
+    if (!slideOut) {
+      // Simulate animation
+      const timer = setTimeout(() => {
+        onAnimationComplete();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [slideOut, onAnimationComplete]);
 
   return (
     <Box testID="mock-onboarding-success-animation">

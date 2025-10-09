@@ -73,11 +73,13 @@ describe('OnboardingSuccessAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockIsE2EValue = false;
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    mockIsE2EValue = false;
   });
 
   it('renders correctly with required props', () => {
