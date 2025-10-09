@@ -100,20 +100,22 @@ export async function importSRPFlow(device, srp) {
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
 
+
+  await AccountListComponent.tapOnAddWalletButton();
   timer2.start();
-  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
-  timer3.start();
+
   await AddAccountModal.tapImportSrpButton();
+  timer3.start();
   await ImportFromSeedScreen.isScreenTitleVisible(false);
   timer3.stop();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(srp, false);
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
 
-  timer4.start();
   await ImportFromSeedScreen.tapContinueButton(false);
+  timer4.start();
   await WalletMainScreen.isMainWalletViewVisible();
   timer4.stop();
 

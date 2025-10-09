@@ -34,12 +34,21 @@ class AccountListComponent {
     }
   }
 
+  get addWalletButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'account-list-add-account-button');
+  }
+
   async tapCreateAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
       await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
+  }
+
+  async tapOnAddWalletButton() {
+    const element = await this.addWalletButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async isComponentDisplayed() {
