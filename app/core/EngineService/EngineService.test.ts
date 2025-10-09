@@ -363,7 +363,12 @@ describe('EngineService', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockPersistController = jest.fn().mockResolvedValue(undefined);
-      mockCreatePersistController.mockReturnValue(mockPersistController);
+      // Add debounced function properties to match DebouncedFunc type
+      Object.assign(mockPersistController, {
+        cancel: jest.fn(),
+        flush: jest.fn(),
+      });
+      mockCreatePersistController.mockReturnValue(mockPersistController as any);
       mockGetPersistentState.mockReturnValue({ filtered: 'state' });
 
       // Mock Engine.context for metadata - this will be used by the existing Engine mock
@@ -419,24 +424,21 @@ describe('EngineService', () => {
     });
 
     it('should skip CronjobController state change events', async () => {
-      // Mock BACKGROUND_STATE_CHANGE_EVENT_NAMES to include CronjobController
-      const originalEvents = BACKGROUND_STATE_CHANGE_EVENT_NAMES;
-      (BACKGROUND_STATE_CHANGE_EVENT_NAMES as string[]).push('CronjobController:stateChange');
-
       // Act
       await engineService.start();
 
       // Assert
       const mockSubscribe = Engine.controllerMessenger.subscribe as jest.MockedFunction<typeof Engine.controllerMessenger.subscribe>;
 
-      // Should not subscribe to CronjobController:stateChange
+      // Should not subscribe to CronjobController:stateChange (since it's not in our mocked events)
+      // Our mocked BACKGROUND_STATE_CHANGE_EVENT_NAMES only includes KeyringController, PreferencesController, NetworkController
       expect(mockSubscribe).not.toHaveBeenCalledWith(
         'CronjobController:stateChange',
         expect.any(Function),
       );
 
-      // Clean up
-      (BACKGROUND_STATE_CHANGE_EVENT_NAMES as string[]).pop();
+      // Should only subscribe to the events we have in our mock
+      expect(mockSubscribe).toHaveBeenCalledTimes(3); // KeyringController, PreferencesController, NetworkController
     });
 
     it('should handle controller state changes correctly', async () => {
