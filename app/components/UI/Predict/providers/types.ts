@@ -1,15 +1,14 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
   GetPriceHistoryParams,
-  OffchainTradeParams,
   PredictActivity,
   PredictCategory,
   PredictClaim,
   PredictMarket,
-  PredictOrder,
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
+  Side,
 } from '../types';
 
 export interface GetMarketsParams {
@@ -41,11 +40,45 @@ export interface BuyOrderParams {
   outcomeId: string;
   outcomeTokenId: string;
   size: number;
+  isOnboarded: boolean;
 }
 
 export interface SellOrderParams {
   signer: Signer;
   position: PredictPosition;
+  isOnboarded: boolean;
+}
+
+export interface PlaceOrderParams {
+  outcomeId: string;
+  outcomeTokenId: string;
+  side: Side;
+  size: number;
+  providerId: string;
+}
+
+export interface CalculateBetAmountsParams {
+  providerId: string;
+  outcomeTokenId: string;
+  userBetAmount: number;
+}
+
+export interface CalculateBetAmountsResponse {
+  toWin: number;
+  sharePrice: number;
+}
+
+export interface CalculateCashOutAmountsParams {
+  address: string;
+  providerId: string;
+  marketId: string;
+  outcomeTokenId: string;
+}
+
+export interface CalculateCashOutAmountsResponse {
+  currentValue: number;
+  cashPnl: number;
+  percentPnl: number;
 }
 
 export interface ClaimOrderParams {
@@ -58,6 +91,7 @@ export interface GetPositionsParams {
   limit?: number;
   offset?: number;
   claimable?: boolean;
+  marketId?: string;
 }
 
 export interface PredictProvider {
@@ -78,13 +112,20 @@ export interface PredictProvider {
   }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
-  prepareBuyOrder(params: BuyOrderParams): Promise<PredictOrder>;
-  prepareSellOrder(params: SellOrderParams): Promise<PredictOrder>;
+  placeOrder<T = void>(
+    params: PlaceOrderParams & { signer: Signer },
+  ): Promise<Result<T>>;
+
+  calculateBetAmounts(
+    params: CalculateBetAmountsParams,
+  ): Promise<CalculateBetAmountsResponse>;
+
+  calculateCashOutAmounts(
+    params: CalculateCashOutAmountsParams,
+  ): Promise<CalculateCashOutAmountsResponse>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): PredictClaim;
-
-  submitOffchainTrade?(params: OffchainTradeParams): Promise<Result>;
 
   // Eligibility (Geo-Blocking)
   isEligible(): Promise<boolean>;

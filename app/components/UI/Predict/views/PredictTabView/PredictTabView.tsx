@@ -16,7 +16,6 @@ import PredictNewButton from '../../components/PredictNewButton';
 import PredictPosition from '../../components/PredictPosition';
 import PredictPositionEmpty from '../../components/PredictPositionEmpty';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictNotifications } from '../../hooks/usePredictNotifications';
 import {
   PredictPositionStatus,
   PredictPosition as PredictPositionType,
@@ -25,6 +24,7 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
 
 interface PredictTabViewProps {}
 
@@ -58,9 +58,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     selectSelectedInternalAccountAddress,
   );
 
-  // TODO: remove this once we have a better way to trigger notifications globally
-  usePredictNotifications();
-
   const handleClaimPress = useCallback(() => {
     claim({
       positions: claimablePositions,
@@ -68,7 +65,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   }, [claim, claimablePositions]);
 
   const renderMarketsWonCard = useCallback(() => {
-    if (claimablePositions.length === 0) return null;
+    if (claimablePositions.length === 0) return <PredictOnboarding />;
 
     const wonPositions = claimablePositions.filter(
       (position) => position.status === PredictPositionStatus.WON,
