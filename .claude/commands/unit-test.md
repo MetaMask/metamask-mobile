@@ -1,18 +1,18 @@
-## Overview
+# Unit Test Runner
 
-Run unit tests for staged files and their related test files without coverage.
+**Goal**: Run unit tests for all changed files and their related test files.
 
 ## Steps
 
-1. **Get staged files**
+1. **Get changed files**
 
-   - Run `git diff --cached --name-only --diff-filter=ACMR`
+   - Run `git diff --name-only --diff-filter=ACMR` to get all changed files (staged and unstaged)
    - Filter for JavaScript/TypeScript files with `.js`, `.jsx`, `.ts`, `.tsx` extensions
-   - Display the list of staged files
+   - Display the list of changed files
 
 2. **Find test files**
 
-   - For each staged file, check if it's already a test file (contains `.test.`)
+   - For each changed file, check if it's already a test file (contains `.test.`)
    - For source files, find related test files in the same directory
    - Look for files matching pattern: `{basename}.test.{ext}`
    - Exclude snapshot files (`.snap`)
@@ -39,8 +39,8 @@ Run unit tests for staged files and their related test files without coverage.
 
 ## Checklist
 
-- [ ] All staged files identified
-- [ ] Related test files found for each staged file
+- [ ] All changed files identified
+- [ ] Related test files found for each changed file
 - [ ] Tests executed successfully
 - [ ] All tests pass without failures
 - [ ] No test timeouts or memory issues
@@ -58,3 +58,23 @@ If tests fail:
 5. **Re-run tests**: Execute the same test files again to verify fixes
 6. **Continue fixing**: Repeat steps 1-5 until all tests pass
 7. **Final verification**: Ensure all tests pass before considering the command complete
+
+## Quick Commands
+
+```bash
+# Run tests on specific files
+yarn jest <filename>
+
+# Run tests with verbose output
+yarn jest <filename> --verbose
+
+# Debug failing test
+yarn jest <filename> --no-coverage --verbose
+```
+
+## Success Criteria
+
+- All tests pass
+- No test failures or errors
+- Tests run without timeouts or memory issues
+- All changed files have their related tests executed
