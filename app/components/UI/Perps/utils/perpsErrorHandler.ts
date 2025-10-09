@@ -6,6 +6,19 @@ import {
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
+ * Ensures we have a proper Error object for logging
+ * Converts unknown/string errors to proper Error instances
+ * @param error - The caught error (could be Error, string, or unknown)
+ * @returns A proper Error instance
+ */
+export function ensureError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+  return new Error(String(error));
+}
+
+/**
  * Maps error codes to i18n keys
  */
 const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
