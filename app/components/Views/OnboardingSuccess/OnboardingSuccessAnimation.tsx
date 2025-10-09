@@ -90,18 +90,20 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, [dotsCount]);
 
   const startRiveAnimation = useCallback(() => {
-    if (!riveRef.current) {
+    if (isE2E) {
+      // Set static state for E2E tests
+      if (riveRef.current) {
+        riveRef.current.setInputState(
+          'OnboardingLoader',
+          'Dark mode',
+          isDarkMode,
+        );
+        riveRef.current.fireState('OnboardingLoader', animationTrigger);
+      }
       return;
     }
 
-    if (isE2E) {
-      // Set static state for E2E tests
-      riveRef.current.setInputState(
-        'OnboardingLoader',
-        'Dark mode',
-        isDarkMode,
-      );
-      riveRef.current.fireState('OnboardingLoader', animationTrigger);
+    if (!riveRef.current) {
       return;
     }
 
