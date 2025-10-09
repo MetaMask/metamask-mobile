@@ -498,13 +498,7 @@ const BuildQuote = () => {
       valueAsNumber: number;
       pressedKey: Keys;
     }) => {
-      // If keyboard is freshly opened and a digit key is pressed, clear the existing amount first
-      if (
-        isKeyboardFreshlyOpened &&
-        pressedKey >= Keys.Digit0 &&
-        pressedKey <= Keys.Digit9
-      ) {
-        // Clear the amount and start fresh with just the pressed digit
+      if (isKeyboardFreshlyOpened && /^[0-9]$/.test(pressedKey)) {
         setAmount(pressedKey);
         setAmountNumber(Number(pressedKey));
         if (isSell) {
@@ -514,7 +508,6 @@ const BuildQuote = () => {
         }
         setIsKeyboardFreshlyOpened(false);
       } else {
-        // Normal behavior - use the calculated value
         setAmount(`${value}`);
         setAmountNumber(valueAsNumber);
         if (isSell) {
@@ -522,7 +515,6 @@ const BuildQuote = () => {
             toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
           );
         }
-        // Reset fresh keyboard flag after any input
         if (isKeyboardFreshlyOpened) {
           setIsKeyboardFreshlyOpened(false);
         }
