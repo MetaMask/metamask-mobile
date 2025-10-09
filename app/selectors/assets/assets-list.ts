@@ -148,7 +148,7 @@ const selectStakedAssets = createDeepEqualSelector(
               image: '',
               name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
-              accountId: account?.id,
+              accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
               balance: fromWei(stakedBalance),
@@ -164,7 +164,7 @@ const selectStakedAssets = createDeepEqualSelector(
 
             return {
               chainId,
-              accountId: account?.id as string,
+              accountId: account.id,
               stakedAsset,
             };
           })
