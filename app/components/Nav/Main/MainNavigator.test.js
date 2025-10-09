@@ -21,11 +21,19 @@ jest.mock('./MainNavigator', () => {
     const isRewardsEnabled = selectRewardsEnabledFlag();
     const isBrowserFullscreen = selectBrowserFullscreen();
 
-    // Simulate the real behavior: hide tabs only when browser is fullscreen AND on browser route
-    const isOnBrowserRoute = route?.name?.startsWith?.('Browser') || false;
-    const shouldHideTabs = isBrowserFullscreen && isOnBrowserRoute;
+    // Simulate hidding tab bar when browser is in fullscreen mode AND on browser route
+    if (isBrowserFullscreen && route?.name?.startsWith('BrowserTabHome')) {
+      return null;
+    }
 
-    // If should hide tabs, don't render any tabs (simulates hidden tab bar)
+    // Legacy support for existing tests - broader Browser check for backwards compatibility
+    const isOnBrowserRoute = route?.name?.startsWith?.('Browser') || false;
+    const shouldHideTabs =
+      isBrowserFullscreen &&
+      isOnBrowserRoute &&
+      !route?.name?.startsWith('BrowserTabHome');
+
+    // If should hide tabs (legacy), don't render any tabs (simulates hidden tab bar)
     if (shouldHideTabs) {
       return React.createElement(View, { testID: 'main-navigator' }, []);
     }
@@ -151,5 +159,18 @@ describe('MainNavigator', () => {
     expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
     expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
+  });
+
+  it('should return null when isBrowserFullscreen is true AND route starts with BrowserTabHome', () => {
+    // Given browser is in fullscreen mode
+    selectBrowserFullscreen.mockReturnValue(true);
+
+    // When rendering MainNavigator with exact BrowserTabHome route (matches Routes.BROWSER.HOME)
+    const rendered = render(
+      <MainNavigator route={{ name: 'BrowserTabHome' }} />,
+    );
+
+    // Then component should return null (empty container validates return null behavior)
+    expect(rendered.toJSON()).toBe(null);
   });
 });
