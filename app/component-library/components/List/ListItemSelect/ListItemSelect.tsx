@@ -53,12 +53,12 @@ const TouchableOpacity = ({
       coordinationRef.current.isProcessing = true;
       coordinationRef.current.lastPressTime = now;
 
-      // Reset processing flag after execution completes
-      setTimeout(() => {
+      try {
+        onPress(pressEvent as GestureResponderEvent);
+      } finally {
+        // Synchronously reset processing flag after execution completes
         coordinationRef.current.isProcessing = false;
-      }, 0);
-
-      onPress(pressEvent as GestureResponderEvent);
+      }
     }
   };
 
