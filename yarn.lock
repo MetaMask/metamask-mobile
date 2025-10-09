@@ -7886,6 +7886,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/mobile-wallet-protocol-core@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/mobile-wallet-protocol-core@npm:0.3.0"
+  dependencies:
+    centrifuge: ^5.3.5
+    eventemitter3: ^5.0.1
+    uuid: ^11.1.0
+  checksum: 0e353b845088196c27b42740f2524bc6588ab7394e631e366aaa02fdaa90a217c3fb1d8936e60254ed2d1aafe17adf92ed83cf61b4e200b3efb5c4177fdf8870
+  languageName: node
+  linkType: hard
+
 "@metamask/mobile-wallet-protocol-wallet-client@npm:^0.2.1":
   version: 0.2.1
   resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.2.1"
@@ -34031,7 +34042,7 @@ __metadata:
     "@metamask/message-signing-snap": ^1.1.2
     "@metamask/metamask-eth-abis": 3.1.1
     "@metamask/mobile-provider": ^3.0.0
-    "@metamask/mobile-wallet-protocol-core": ^0.2.0
+    "@metamask/mobile-wallet-protocol-core": ^0.3.0
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.2.1
     "@metamask/multichain-account-service": ^1.6.0
     "@metamask/multichain-api-client": ^0.7.0
