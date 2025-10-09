@@ -16,14 +16,14 @@ export function AmountHighlight() {
         You won
       </Text>
       <Text variant={TextVariant.BodyMDMedium} style={styles.value}>
-        $199.09
+        $299.09
       </Text>
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Success}
         style={styles.change}
       >
-        +46.52%
+        +$46.35 (20.23%)
       </Text>
     </Box>
   );

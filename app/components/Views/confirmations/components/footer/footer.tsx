@@ -36,6 +36,7 @@ import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -188,6 +189,13 @@ export const Footer = () => {
 
   if (!isFooterVisible) {
     return null;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
+  ) {
+    return <PredictClaimFooter />;
   }
 
   return (
