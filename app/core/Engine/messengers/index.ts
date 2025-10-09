@@ -66,6 +66,7 @@ import {
   getTokensControllerInitMessenger,
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
+import { getTokenListControllerMessenger } from './token-list-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -86,6 +87,10 @@ export const CONTROLLER_MESSENGERS = {
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
+  },
+  TokenListController: {
+    getMessenger: getTokenListControllerMessenger,
+    getInitMessenger: getTokenListControllerMessenger,
   },
   TokensController: {
     getMessenger: getTokensControllerMessenger,

@@ -13,7 +13,6 @@ import {
   NftDetectionController,
   TokenBalancesController,
   TokenDetectionController,
-  TokenListController,
   TokenRatesController,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
@@ -197,6 +196,7 @@ import { networkControllerInit } from './controllers/network-controller-init';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
+import { tokenListControllerInit } from './controllers/token-list-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -389,6 +389,7 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        TokenListController: tokenListControllerInit,
         TokensController: tokensControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
@@ -467,6 +468,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const tokenListController = controllersByName.TokenListController;
     const tokensController = controllersByName.TokensController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
@@ -515,19 +517,6 @@ export class Engine {
         allowedEvents: [],
       }),
       state: initialState.LoggingController,
-    });
-    const tokenListController = new TokenListController({
-      chainId: getGlobalChainId(networkController),
-      onNetworkStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          listener,
-        ),
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokenListController',
-        allowedActions: [`${networkController.name}:getNetworkClientById`],
-        allowedEvents: [`${networkController.name}:stateChange`],
-      }),
     });
     const remoteFeatureFlagControllerMessenger =
       this.controllerMessenger.getRestricted({
