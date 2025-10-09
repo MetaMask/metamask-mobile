@@ -4,8 +4,10 @@ import {
 } from '@metamask/account-tree-controller';
 import type { ControllerInitFunction } from '../../../core/Engine/types';
 import { trace } from '../../../util/trace';
+import { forwardSelectedAccountGroupToSnapKeyring } from '../../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AccountGroupId } from '@metamask/account-api';
 
 /**
  * Initialize the AccountTreeController.
@@ -40,6 +42,16 @@ export const accountTreeControllerInit: ControllerInitFunction<
       },
     },
   });
+
+  // Forward selected accounts every time the selected account group changes.
+  controllerMessenger.subscribe(
+    'AccountTreeController:selectedAccountGroupChange',
+    (groupId: AccountGroupId | '') => {
+      // TODO: Move this logic to the SnapKeyring directly.
+      // eslint-disable-next-line no-void
+      void forwardSelectedAccountGroupToSnapKeyring(groupId);
+    },
+  );
 
   return { controller };
 };

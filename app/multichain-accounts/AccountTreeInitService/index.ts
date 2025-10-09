@@ -1,11 +1,8 @@
-import { AccountGroupId } from '@metamask/account-api';
 import Engine from '../../core/Engine';
+import { forwardSelectedAccountGroupToSnapKeyring } from '../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 
 export class AccountTreeInitService {
-  #initializedOnce: boolean = false;
-
   initializeAccountTree = async (): Promise<void> => {
-    const messenger = Engine.controllerMessenger;
     const { AccountTreeController, AccountsController } = Engine.context;
 
     await AccountsController.updateAccounts();
@@ -21,29 +18,11 @@ export class AccountTreeInitService {
     // change that needed to be cherry-picked in the 7.57.
     //
     // This will be addresses in later releases.
-    if (!this.#initializedOnce) {
-      // We need the `#initializedOnce` to avoid registering the event subscriptions multiple
-      // times.
-      const snapKeyring = await Engine.getSnapKeyring();
 
-      const forwardSelectedAccountsToSnapKeyring = (groupId: AccountGroupId | '') => {
-        if (groupId) {
-          const group = AccountTreeController.getAccountGroupObject(groupId);
-          if (group) {
-            console.log('-- SnapKeyring.setSelectedAccounts', group.accounts);
-            //snapKeyring.setSelectedAccounts(group.accounts);
-          }
-        }
-      };
-
-      // Forward initial selected accounts.
-      forwardSelectedAccountsToSnapKeyring(AccountTreeController.state.accountTree.selectedAccountGroup);
-
-      // Forward selected accounts every time the selected account group changes.
-      messenger.subscribe('AccountTreeController:selectedAccountGroupChange', forwardSelectedAccountsToSnapKeyring);
-    }
-
-    this.#initializedOnce = true;
+    // Forward initial selected accounts.
+    await forwardSelectedAccountGroupToSnapKeyring(
+      AccountTreeController.getSelectedAccountGroup(),
+    );
   };
 
   clearState = async (): Promise<void> => {
