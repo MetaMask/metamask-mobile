@@ -77,8 +77,6 @@ export const cardAuthenticationNavigationOptions = ({
 });
 
 const CardRoutes = () => (
-  // Remove the loading check to prevent component unmounting/remounting
-  // during SDK initialization which causes duplicate tracking events
   <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
     <Stack.Screen
       name={Routes.CARD.HOME}
