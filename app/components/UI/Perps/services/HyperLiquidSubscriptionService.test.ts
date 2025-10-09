@@ -66,9 +66,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 // Mock trace utilities
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
-  endTrace: jest.fn(),
   TraceName: {
-    PerpsMarketDataUpdate: 'Perps Market Data Update',
     PerpsWebSocketConnected: 'Perps WebSocket Connected',
     PerpsWebSocketDisconnected: 'Perps WebSocket Disconnected',
   },
@@ -76,14 +74,6 @@ jest.mock('../../../../util/trace', () => ({
     PerpsMarketData: 'perps.market_data',
   },
 }));
-
-// Mock react-native-performance
-jest.mock('react-native-performance', () => {
-  const moduleStartTime = Date.now();
-  return {
-    now: jest.fn(() => Date.now() - moduleStartTime), // Returns elapsed time since module load
-  };
-});
 
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
@@ -868,52 +858,6 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Verify performance measurements
-    });
-
-    it('should calculate subscription duration correctly using performance.now()', async () => {
-      const mockCallback = jest.fn();
-      const traceModule = jest.requireMock('../../../../util/trace');
-      const performanceModule = jest.requireMock('react-native-performance');
-
-      // Clear previous calls
-      traceModule.endTrace.mockClear();
-
-      // Reset the performance mock to ensure clean state
-      let callCount = 0;
-      performanceModule.now.mockImplementation(() => {
-        callCount++;
-        // First call (subscription start): return 0
-        // Second call (unsubscribe): return 50 to simulate 50ms elapsed
-        return callCount === 1 ? 0 : 50;
-      });
-
-      const unsubscribe = await service.subscribeToPrices({
-        symbols: ['BTC'],
-        callback: mockCallback,
-      });
-
-      // Wait a bit to simulate subscription time
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Unsubscribe to trigger endTrace
-      unsubscribe();
-
-      // Verify endTrace was called with correct duration calculation
-      expect(traceModule.endTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Perps Market Data Update',
-          data: expect.objectContaining({
-            subscription_duration_ms: expect.any(Number),
-            symbols_count: 1,
-          }),
-        }),
-      );
-
-      // The duration should be a positive number (not negative from Date.now() - performance.now())
-      const endTraceCall = traceModule.endTrace.mock.calls[0][0];
-      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThan(0);
-      // Should be exactly 50ms based on our mock
-      expect(endTraceCall.data.subscription_duration_ms).toBe(50);
     });
   });
 
