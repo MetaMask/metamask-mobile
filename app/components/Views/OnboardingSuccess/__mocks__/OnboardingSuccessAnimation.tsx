@@ -15,22 +15,32 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   onAnimationComplete,
   slideOut = false,
 }) => {
+  const completedRef = React.useRef(false);
+
   React.useEffect(() => {
-    if (slideOut) {
+    if (slideOut && !completedRef.current) {
+      // Simulate immediate completion for slideOut
+      completedRef.current = true;
       onAnimationComplete();
     }
   }, [slideOut, onAnimationComplete]);
 
   React.useEffect(() => {
-    if (!slideOut) {
-      // Simulate animation
+    if (!slideOut && !completedRef.current) {
       const timer = setTimeout(() => {
-        onAnimationComplete();
+        if (!completedRef.current) {
+          completedRef.current = true;
+          onAnimationComplete();
+        }
       }, 100);
 
       return () => clearTimeout(timer);
     }
   }, [slideOut, onAnimationComplete]);
+
+  React.useEffect(() => () => {
+      completedRef.current = false;
+    }, []);
 
   return (
     <Box testID="mock-onboarding-success-animation">

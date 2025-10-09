@@ -54,10 +54,10 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   const riveRef = useRef<RiveRef>(null);
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
   const riveTimeoutId = useRef<NodeJS.Timeout | null>(null);
+  const isCompletedRef = useRef(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const [dotsCount, setDotsCount] = useState(isE2E ? 3 : 1);
-  const [isCompleted, setIsCompleted] = useState(false);
 
   // Determine trigger based on mode or explicit override
   const animationTrigger = useMemo(() => {
@@ -80,6 +80,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
       clearTimeout(riveTimeoutId.current);
       riveTimeoutId.current = null;
     }
+    isCompletedRef.current = false;
   }, []);
 
   const renderAnimatedDots = useCallback(() => {
@@ -142,31 +143,26 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, []);
 
   const startSlideOutAnimation = useCallback(() => {
-    if (isE2E) {
-      if (!isCompleted) {
-        setIsCompleted(true);
-        _onAnimationComplete();
-      }
+    if (isCompletedRef.current) {
       return;
     }
 
-    if (!isCompleted) {
-      Animated.timing(slideAnim, {
-        toValue: -screenDimensions.screenWidth,
-        duration: 800,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => {
-        setIsCompleted(true);
-        _onAnimationComplete();
-      });
+    if (isE2E) {
+      isCompletedRef.current = true;
+      _onAnimationComplete();
+      return;
     }
-  }, [
-    slideAnim,
-    screenDimensions.screenWidth,
-    isCompleted,
-    _onAnimationComplete,
-  ]);
+
+    isCompletedRef.current = true;
+    Animated.timing(slideAnim, {
+      toValue: -screenDimensions.screenWidth,
+      duration: 800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      _onAnimationComplete();
+    });
+  }, [slideAnim, screenDimensions.screenWidth, _onAnimationComplete]);
 
   useEffect(() => {
     startRiveAnimation();

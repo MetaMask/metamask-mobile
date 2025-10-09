@@ -504,32 +504,41 @@ class ChoosePassword extends PureComponent {
         });
 
         // Store navigation data and trigger slide out
-        this.setState({
-          navigationData: {
-            type: 'reset',
-            params: {
-              index: 0,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.SUCCESS,
-                  params: { showPasswordHint: true },
-                },
-              ],
+        this.setState(
+          {
+            navigationData: {
+              type: 'reset',
+              params: {
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS,
+                    params: { showPasswordHint: true },
+                  },
+                ],
+              },
             },
           },
-          shouldSlideOut: true,
-        });
+          () => {
+            // Trigger slide out
+            this.setState({ shouldSlideOut: true });
+          },
+        );
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
         // Store navigation data and trigger slide out
-        this.setState({
-          navigationData: {
-            type: 'replace',
-            screen: 'AccountBackupStep1',
-            params: { seedPhrase },
+        this.setState(
+          {
+            navigationData: {
+              type: 'replace',
+              screen: 'AccountBackupStep1',
+              params: { seedPhrase },
+            },
           },
-          shouldSlideOut: true,
-        });
+          () => {
+            this.setState({ shouldSlideOut: true });
+          },
+        );
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
