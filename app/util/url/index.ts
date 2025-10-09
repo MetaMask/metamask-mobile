@@ -90,17 +90,7 @@ export function isSameOrigin(a: string, b: string) {
     const urlA = new URL(a);
     const urlB = new URL(b);
 
-    if (urlA.origin === urlB.origin) {
-      return true;
-    }
-    if (
-      urlA.protocol === urlB.protocol &&
-      urlA.hostname === urlB.hostname &&
-      urlA.port === urlB.port
-    ) {
-      return true;
-    }
-    return false;
+    return urlA.origin === urlB.origin;
   } catch (e) {
     console.warn(e);
     return false;
