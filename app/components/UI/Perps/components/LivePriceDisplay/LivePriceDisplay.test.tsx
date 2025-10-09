@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceDisplay from './LivePriceDisplay';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { formatPrice, formatPercentage } from '../../utils/formatUtils';
 import {
   TextVariant,
   TextColor,
@@ -10,23 +9,15 @@ import {
 
 // Mock dependencies
 jest.mock('../../hooks/stream');
-jest.mock('../../utils/formatUtils');
+// No need to mock formatUtils - use real implementations
 
 describe('LivePriceDisplay', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
     typeof usePerpsLivePrices
   >;
-  const mockFormatPrice = formatPrice as jest.MockedFunction<
-    typeof formatPrice
-  >;
-  const mockFormatPercentage = formatPercentage as jest.MockedFunction<
-    typeof formatPercentage
-  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFormatPrice.mockImplementation((price) => `$${price}`);
-    mockFormatPercentage.mockImplementation((pct) => `${pct}%`);
   });
 
   it('should render with live price data', () => {
@@ -41,7 +32,8 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="BTC" />);
 
-    expect(getByText('$50000')).toBeTruthy();
+    // Now uses formatPerpsFiat with 4 sig figs: 50000 → $50,000.00
+    expect(getByText('$50,000.00')).toBeTruthy();
     expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
       symbols: ['BTC'],
       throttleMs: 1000,
@@ -68,8 +60,10 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="ETH" showChange />);
 
-    expect(getByText('$3000')).toBeTruthy();
-    expect(getByText('-2.5%')).toBeTruthy();
+    // Now uses formatPerpsFiat with 4 sig figs: 3000 → $3,000.00
+    expect(getByText('$3,000.00')).toBeTruthy();
+    // Now uses formatPercentage with 2 decimal places
+    expect(getByText('-2.50%')).toBeTruthy();
   });
 
   it('should render price without change when showChange is false', () => {
@@ -86,7 +80,8 @@ describe('LivePriceDisplay', () => {
       <LivePriceDisplay symbol="SOL" showChange={false} />,
     );
 
-    expect(getByText('$100')).toBeTruthy();
+    // Now uses formatPerpsFiat with 4 sig figs: 100 → $100.00
+    expect(getByText('$100.00')).toBeTruthy();
     expect(queryByText('10%')).toBeNull();
   });
 
@@ -145,7 +140,8 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="UNI" showChange />);
 
-    expect(getByText('15%')).toBeTruthy();
+    // Now uses formatPercentage which adds "+" sign for positive values
+    expect(getByText('+15.00%')).toBeTruthy();
   });
 
   it('should handle negative price change color', () => {
@@ -160,7 +156,8 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="LINK" showChange />);
 
-    expect(getByText('-8%')).toBeTruthy();
+    // Now uses formatPercentage with 2 decimal places
+    expect(getByText('-8.00%')).toBeTruthy();
   });
 
   it('should handle zero price change', () => {
@@ -177,7 +174,8 @@ describe('LivePriceDisplay', () => {
       <LivePriceDisplay symbol="MATIC" showChange />,
     );
 
-    expect(getByText('0%')).toBeTruthy();
+    // Now uses formatPercentage which adds "+" for zero and formats with 2 decimals
+    expect(getByText('+0.00%')).toBeTruthy();
   });
 
   it('should handle missing percentChange24h', () => {
@@ -192,7 +190,9 @@ describe('LivePriceDisplay', () => {
 
     const { getByText } = render(<LivePriceDisplay symbol="DOT" showChange />);
 
-    expect(getByText('$5')).toBeTruthy();
-    expect(getByText('0%')).toBeTruthy(); // Defaults to 0
+    // Now uses formatPerpsFiat with 4 sig figs: 5 → $5.00
+    expect(getByText('$5.00')).toBeTruthy();
+    // Defaults to 0, formatPercentage adds "+" and 2 decimals
+    expect(getByText('+0.00%')).toBeTruthy();
   });
 });
