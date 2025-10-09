@@ -50,9 +50,10 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   };
 
   const handleSecureWallet = () => {
-    navigation.navigate('Rehydrate', {
+    navigation.replace('Rehydrate', {
       [PREVIOUS_SCREEN]: ONBOARDING,
       oauthLoginSuccess: true,
+      onboardingTraceCtx,
     });
   };
 

@@ -16,15 +16,9 @@ jest.mock('../../../util/device', () => ({
 }));
 
 // Mock navigation
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockDispatch = jest.fn();
 const mockReplace = jest.fn();
 
 const mockNavigation = {
-  navigate: mockNavigate,
-  goBack: mockGoBack,
-  dispatch: mockDispatch,
   replace: mockReplace,
 };
 
@@ -96,6 +90,7 @@ describe('SocialLoginIosUser', () => {
   describe('SocialLoginSuccessExistingUser', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      (useRoute as jest.Mock).mockReturnValue(mockRoute);
       (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     });
 
@@ -134,9 +129,10 @@ describe('SocialLoginIosUser', () => {
         OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
       );
       fireEvent.press(secureWalletButton);
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('Rehydrate', {
+      expect(mockNavigation.replace).toHaveBeenCalledWith('Rehydrate', {
         previous_screen: 'onboarding',
         oauthLoginSuccess: true,
+        onboardingTraceCtx: { traceId: 'test-trace' },
       });
     });
   });
