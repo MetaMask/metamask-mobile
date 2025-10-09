@@ -15,6 +15,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 
 import onboardingRiveFile from '../../../animations/onboarding_loader.riv';
+import { isE2E } from '../../../util/test/utils';
 
 interface OnboardingSuccessAnimationProps {
   startAnimation: boolean;
@@ -54,7 +55,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const [dotsCount, setDotsCount] = useState(1);
+  const [dotsCount, setDotsCount] = useState(isE2E ? 3 : 1);
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Determine trigger based on mode or explicit override
@@ -84,6 +85,17 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 
   const startRiveAnimation = useCallback(() => {
     if (riveRef.current) {
+      if (isE2E) {
+        // Set static state for E2E tests - no animation delays
+        riveRef.current.setInputState(
+          'OnboardingLoader',
+          'Dark mode',
+          isDarkMode,
+        );
+        riveRef.current.fireState('OnboardingLoader', animationTrigger);
+        return;
+      }
+
       setTimeout(() => {
         if (riveRef.current) {
           try {
@@ -102,6 +114,11 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, [isDarkMode, animationTrigger]);
 
   const startDotsAnimation = useCallback(() => {
+    if (isE2E) {
+      setDotsCount(3);
+      return;
+    }
+
     dotsIntervalId.current = setInterval(() => {
       setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
     }, 500);
@@ -109,6 +126,12 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 
   const startSlideOutAnimation = useCallback(() => {
     if (!isCompleted) {
+      if (isE2E) {
+        setIsCompleted(true);
+        _onAnimationComplete();
+        return;
+      }
+
       Animated.timing(slideAnim, {
         toValue: -screenDimensions.screenWidth,
         duration: 800,

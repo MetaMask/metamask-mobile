@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { Animated } from 'react-native';
 
 // Mock useTheme hook
@@ -45,6 +45,14 @@ jest.mock('../../../component-library/components/Texts/Text', () => ({
   default: 'Text',
   TextVariant: {
     HeadingLG: 'HeadingLG',
+  },
+}));
+
+// Mock isE2E utility
+let mockIsE2EValue = false;
+jest.mock('../../../util/test/utils', () => ({
+  get isE2E() {
+    return mockIsE2EValue;
   },
 }));
 
@@ -543,6 +551,55 @@ describe('OnboardingSuccessAnimation', () => {
       expect(
         queryByText(/onboarding_success.setting_up_wallet_base/),
       ).toBeTruthy();
+    });
+  });
+
+  describe('E2E test behavior', () => {
+    beforeEach(() => {
+      mockIsE2EValue = true;
+    });
+
+    afterEach(() => {
+      mockIsE2EValue = false;
+    });
+
+    it('uses static values instead of animations when isE2E is true', () => {
+      // Arrange
+      const mockOnAnimationComplete = jest.fn();
+
+      // Act
+      const { toJSON } = render(
+        <OnboardingSuccessAnimation
+          startAnimation
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Advance timers to ensure no delayed animations start
+      jest.advanceTimersByTime(1000);
+
+      // Assert
+      expect(toJSON()).not.toBeNull();
+      expect(mockOnAnimationComplete).not.toHaveBeenCalled();
+    });
+
+    it('completes slide animation immediately in E2E tests', async () => {
+      // Arrange
+      const mockOnAnimationComplete = jest.fn();
+
+      // Act
+      render(
+        <OnboardingSuccessAnimation
+          startAnimation
+          slideOut
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(mockOnAnimationComplete).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });
