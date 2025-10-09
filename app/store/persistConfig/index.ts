@@ -147,7 +147,6 @@ const MigratedStorage = {
     }
   },
 };
-
 /**
  * Creates a debounced controller persistence function.
  * 
