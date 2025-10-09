@@ -14,8 +14,6 @@ export async function forwardSelectedAccountGroupToSnapKeyring(
   if (groupId) {
     const group = AccountTreeController.getAccountGroupObject(groupId);
     if (group) {
-      // eslint-disable-next-line no-console
-      console.log('-- SnapKeyring - setSelectedAccounts: ', group.accounts);
       const snapKeyring = await Engine.getSnapKeyring();
       snapKeyring.setSelectedAccounts(group.accounts);
     }
