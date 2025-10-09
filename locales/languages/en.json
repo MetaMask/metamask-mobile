@@ -5403,8 +5403,9 @@
     },
     "predict_claim": {
       "button_label": "Claim winnings",
-      "footer_top": "Winnings from {{count}} markets",
-      "footer_bottom": "Funds will be added to your available balance"
+      "summary": "You won",
+      "footer_bottom": "Funds will be added to your available balance",
+      "footer_top": "Winnings from {{count}} markets"
     },
     "unlimited": "Unlimited",
     "all": "All",

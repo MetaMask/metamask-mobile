@@ -1,5 +1,5 @@
 import React from 'react';
-import { AmountHighlight } from '../../transactions/amount-highlight';
+import { PredictClaimAmount } from '../../predict-confirmations/predict-claim-amount';
 import { PredictClaimBackground } from '../../predict-confirmations/predict-claim-background';
 import { useModalNavbar } from '../../../hooks/ui/useNavbar';
 
@@ -9,7 +9,7 @@ export function PredictClaimInfo() {
   return (
     <>
       <PredictClaimBackground />
-      <AmountHighlight />
+      <PredictClaimAmount />
     </>
   );
 }
