@@ -576,7 +576,7 @@
     "invisible_character_error": "May natukoy kaming hindi nakikitang character sa ENS name. Suriin ang ENS name para maiwasan ang potensyal na panloloko.",
     "could_not_resolve_name": "Hindi maresolba ang pangalan",
     "invalid_address": "Di-wastong address",
-    "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
+    "contractAddressError": "Nagpapadala ka ng mga token sa address ng kontrata ng token. Maaari itong magresulta sa pagkawala ng mga token na ito."
   },
   "deposit": {
     "title": "Magdeposito",
@@ -888,7 +888,7 @@
       "title": "Halagang idedeposito",
       "get_usdc_hyperliquid": "Kumuha ng USDC • Hyperliquid",
       "insufficient_funds": "Hindi sapat ang pondo",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Walang available na mga pondo. Magdeposito muna.",
       "enter_amount": "Ilagay ang halaga",
       "fetching_quote": "Kumukuha ng quote",
       "submitting": "Isinusumite ang transaksyon",
@@ -1040,7 +1040,7 @@
         "insufficient_funds": "Hindi sapat ang mga pondo",
         "insufficient_balance": "Hindi sapat ang balanse. Kinakailangan: ${{required}}, Available: ${{available}}",
         "invalid_leverage": "Ang leverage ay dapat nasa pagitan ng {{min}}x at {{max}}x",
-        "max_order_value": "Order size must be below ${{maxValue}}",
+        "max_order_value": "Ang sukat ng order ay dapat na mas mababa sa ${{maxValue}}",
         "high_leverage_warning": "Pinapataas ng mataas na leverage ang panganib ng liquidation",
         "invalid_take_profit": "Ang take profit ay dapat na {{direction}} ng kasalukuyang presyo para sa {{positionType}} na mga posisyon",
         "invalid_stop_loss": "Ang stop loss ay dapat na {{direction}} ng kasalukuyang presyo para sa {{positionType}} na mga posisyon",
@@ -1463,8 +1463,8 @@
     "failed_to_load_market_data": "Hindi nakapag-load ng market data",
     "tap_to_retry": "I-tap para subukang muli",
     "search_by_token_symbol": "Maghanap ayon sa simbolo ng token",
-    "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found": "Walang nakitang token",
+    "no_tokens_found_description": "Wala kaming nakitang anumang token na may pangalang \"{{searchQuery}}\". Subukang maghanap ng iba.",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1550,7 +1550,7 @@
       }
     },
     "points": "Mga Point",
-    "estimated_points": "Est. Points",
+    "estimated_points": "Tinatayang mga Point",
     "unable_to_load": "Hindi mai-load",
     "points_error": "Hindi namin mai-load ang mga point sa ngayon",
     "points_error_content": "Huwag mag-alala, nakakakuha ka parin ng mga point. Lalabas ang mga iyon sa iyong account mayamaya, o pwede mong tingnan ang tab ng mga Reward mamaya.",
@@ -1873,13 +1873,13 @@
     "agree": "Sang-ayon ako",
     "decline": "Huwag na lang",
     "description_title": "Tulungan kaming mapahusay ang MetaMask",
-    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
+    "description_content_1": "Nais naming humiling ng mga pahintulot na ito. Maaari kang tumangging pumayag o tanggalin ang iyong data ng paggamit anumang oras.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
-    "gather_basic_usage_title": "Gather basic usage data",
-    "gather_basic_usage_description": "We'll collect basic product usage data like general location, clicks, and views. No other information will be stored.",
-    "gather_basic_usage_learn_more": "Learn more",
-    "checkbox_marketing": "Marketing updates",
+    "gather_basic_usage_title": "Mangalap ng pangunahing data ng paggamit",
+    "gather_basic_usage_description": "Mangongolekta kami ng pangunahing data ng paggamit ng produkto tulad ng pangkalahatang lokasyon, mga pag-click, at mga pagtingin. Wala ng ibang impormasyon na itatago.",
+    "gather_basic_usage_learn_more": "Matuto pa",
+    "checkbox_marketing": "Mga update sa marketing",
     "checkbox": "Gagamitin namin ang data na ito para matutunan kung paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
@@ -1889,7 +1889,7 @@
     "action_description_3_description": "Ikaw ang magpapasya kung nais mong ibahagi o tanggalin ang iyong data ng paggamit sa pamamagitan ng mga setting anumang oras.",
     "cta_no_thanks": "Salamat nalang",
     "cta_i_agree": "Sumasang-ayon ako",
-    "continue": "Continue",
+    "continue": "Magpatuloy",
     "fine_print_1_legacy": "Ang data na ito ay pinagsama-sama at dahil dito ay wala nang pagkakilanlan para sa layunin ng General Data Protection Regulation (EU) 2016/679.",
     "fine_print_2a_legacy": "*Kapag gumamit ka ng Infura bilang iyong RPC provider sa MetaMask, kokolektahin ng Infura ang iyong IP address at ang address ng wallet mo sa Ethereum kapag nagpadala ka ng transaksyon. Hindi kami mag-iimbak ng impormasyong ito sa paraan na nagpapahintulot sa aming mga system upang iugnay ang dalawang pirasong iyon ng data. Maaari mong i-configure ang iyong RPC provider",
     "fine_print_2b_legacy": "bago magpatuloy.\nPara sa higit pang impormasyon kung paano nakikipag-usap ang MetaMask at Infura mula sa perspektibo ng koleksyon ng datos, tingnan ang aming update",
@@ -2052,9 +2052,9 @@
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
       "solana_account_name": "Solana Account",
-      "tron_account_name": "Tron Account",
-      "tron_nile_account_name": "Tron Nile Account",
-      "tron_shasta_account_name": "Tron Shasta Account"
+      "tron_account_name": "Account sa Tron",
+      "tron_nile_account_name": "Account sa Tron Nile",
+      "tron_shasta_account_name": "Account sa Tron Shasta"
     },
     "error_messages": {
       "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
@@ -4896,7 +4896,7 @@
     "import_account": "Pribadong key",
     "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
-    "add_tron_account": "Tron account",
+    "add_tron_account": "Account sa Tron",
     "switch_to_smart_account": "Lumipat sa Smart account",
     "rename_account": "Palitan ang pangalan ng account",
     "addresses": "Mga Address",
@@ -5609,7 +5609,7 @@
       "section_1_title": "Ano ang mga account na multichain?",
       "section_1_description": "Isang account lang, may mga address sa lahat ng network na sinusuportahan ng MetaMask. Kaya ngayon, maaari mong gamitin ang Ethereum, Solana, at iba pa nang hindi kailangang magpalit ng account.",
       "section_2_title": "Parehong address, mas maraming network",
-      "section_2_description": "We’ve grouped your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged",
+      "section_2_description": "Pinaggrupo na namin ang iyong mga account, kaya magpatuloy lang gamitin ang MetaMask gaya ng dati. Ligtas at hindi nagbago ang iyong mga pondo",
       "view_accounts_button": "Tingnan ang mga account",
       "learn_more_button": "Learn more",
       "setting_up_accounts": "Sinet-set up ang iyong mga account"
@@ -5663,7 +5663,7 @@
       "balance": "Balanse",
       "create_account": "Gumawa ng account",
       "creating_account": "Ginagawa ang account...",
-      "discovering_accounts": "Discovering accounts...",
+      "discovering_accounts": "Tinutuklas ang mga account...",
       "back_up": "Mag-back up",
       "reveal_recovery_phrase_with_index": "Ipakita ang Parirala ng Pagbawi (Recovery Phrase) {{index}}"
     },
@@ -5762,9 +5762,9 @@
       "select_method": "Pumili ng paraan"
     },
     "card_onboarding": {
-      "title": "Welcome to Card",
-      "description": "To use card features, you’ll need to verify your account with our partner.",
-      "verify_account_button": "Verify account"
+      "title": "Welcome sa Card",
+      "description": "Para gamitin ang mga feature ng card, kakailanganin mong i-veify ang account mo sa aming ka-partner.",
+      "verify_account_button": "I-verify ang account"
     },
     "card_home": {
       "error_title": "Hindi makuha ang data",
@@ -5889,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Take profit",
-        "stop_loss": "Stop loss",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -5907,10 +5907,10 @@
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
-      "gtm_title": "Rewards are here",
-      "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
-      "gtm_confirm": "Get started",
-      "intro_title": "Season 1 \nis Live",
+      "gtm_title": "Narito na ang mga reward",
+      "gtm_description": "Mag-ipon ng points mula sa aktibidad mo. \nMagpatuloy sa mas mataas na antas upang ma-unlock ang mga reward.",
+      "gtm_confirm": "Magsimula",
+      "intro_title": "Ang Season 1 \nay Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
@@ -6041,7 +6041,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
-      "title": "Locked rewards",
+      "title": "Naka-lock na mga reward",
       "points_needed": "{{points}} points",
       "cta_label": "Got it",
       "alpha_fox_invite_input_placeholder": "Your Telegram handle"
@@ -6053,7 +6053,7 @@
       "claim_label": "Claim",
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
-      "time_left": "left",
+      "time_left": "natitira",
       "expired": "Expired"
     },
     "animation": {
