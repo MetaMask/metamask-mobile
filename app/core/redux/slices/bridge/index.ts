@@ -21,6 +21,7 @@ import {
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -284,6 +285,9 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
       : undefined,
 );
 
+/**
+ * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
+ */
 export const selectEnabledSourceChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
@@ -394,24 +398,35 @@ export const selectIsSolanaSourced = createSelector(
   (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
-export const selectIsEvmToSolana = createSelector(
+export const selectIsEvmToNonEvm = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
     sourceToken?.chainId &&
-    !isSolanaChainId(sourceToken.chainId) &&
+    !isNonEvmChainId(sourceToken.chainId) &&
     destToken?.chainId &&
-    isSolanaChainId(destToken.chainId),
+    isNonEvmChainId(destToken.chainId),
 );
 
-export const selectIsSolanaToEvm = createSelector(
+export const selectIsNonEvmToEvm = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
     sourceToken?.chainId &&
-    isSolanaChainId(sourceToken.chainId) &&
+    isNonEvmChainId(sourceToken.chainId) &&
     destToken?.chainId &&
-    !isSolanaChainId(destToken.chainId),
+    !isNonEvmChainId(destToken.chainId),
+);
+
+export const selectIsNonEvmNonEvmBridge = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    isNonEvmChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isNonEvmChainId(destToken.chainId) &&
+    sourceToken.chainId !== destToken.chainId,
 );
 
 export const selectIsSolanaSwap = createSelector(
@@ -424,10 +439,10 @@ export const selectIsSolanaSwap = createSelector(
     isSolanaChainId(destToken.chainId),
 );
 
-export const selectIsEvmSolanaBridge = createSelector(
-  selectIsEvmToSolana,
-  selectIsSolanaToEvm,
-  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
+export const selectIsEvmNonEvmBridge = createSelector(
+  selectIsEvmToNonEvm,
+  selectIsNonEvmToEvm,
+  (isEvmToNonEvm, isNonEvmToEvm) => isEvmToNonEvm || isNonEvmToEvm,
 );
 
 export const selectIsBridge = createSelector(

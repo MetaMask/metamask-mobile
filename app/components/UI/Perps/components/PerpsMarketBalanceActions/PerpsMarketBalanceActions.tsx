@@ -306,10 +306,8 @@ const PerpsMarketBalanceActions: React.FC<
               }
               size={ButtonSize.Lg}
               onPress={handleAddFunds}
-              disabled={isDepositInProgress}
               isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-              style={isDepositInProgress ? tw.style('opacity-50') : undefined}
             >
               {strings('perps.add_funds')}
             </Button>
@@ -322,27 +320,14 @@ const PerpsMarketBalanceActions: React.FC<
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleWithdraw}
-                disabled={isDepositInProgress}
                 isFullWidth
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
-                style={isDepositInProgress ? tw.style('opacity-50') : undefined}
               >
                 {strings('perps.withdraw')}
               </Button>
             </Box>
           )}
         </Box>
-
-        {/* Deposit Progress Message */}
-        {isDepositInProgress && (
-          <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Alternative}
-            style={tw.style('text-center pb-4')}
-          >
-            {strings('perps.deposit_pending_try_again')}
-          </Text>
-        )}
       </Box>
 
       {/* Eligibility Modal */}

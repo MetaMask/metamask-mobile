@@ -1,8 +1,8 @@
 name: iOS E2E Regression Tests
 
 on:
-  schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours
+  # schedule: # Currently disabled to fine-tune test suites
+  #   - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:
     inputs:
       notify_on_pass:
@@ -16,8 +16,18 @@ permissions:
   actions: read
 
 jobs:
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
   regression-confirmations-ios:
     name: 'Confirmations Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -33,6 +43,7 @@ jobs:
 
   regression-trade-ios:
     name: 'Trade Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -48,6 +59,7 @@ jobs:
 
   regression-wallet-platform-ios:
     name: 'Wallet Platform Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -63,6 +75,7 @@ jobs:
 
   regression-accounts-ios:
     name: 'Accounts Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -78,6 +91,7 @@ jobs:
 
   regression-network-abstraction-ios:
     name: 'Network Abstraction Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -93,6 +107,7 @@ jobs:
 
   regression-network-expansion-ios:
     name: 'Network Expansion Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -108,6 +123,7 @@ jobs:
 
   regression-assets-ios:
     name: 'Assets Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1, 2]
@@ -123,6 +139,7 @@ jobs:
   
   regression-ux-ios:
     name: 'UX Regression (iOS) - ${{ matrix.split }}'
+    needs: [build-ios-apps]
     strategy:
       matrix:
         split: [1]

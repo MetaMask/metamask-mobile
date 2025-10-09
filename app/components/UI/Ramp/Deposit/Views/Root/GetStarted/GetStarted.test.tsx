@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import GetStarted from './GetStarted';
 import { useDepositSDK } from '../../../sdk';
 import { getDepositNavbarOptions } from '../../../../../Navbar';
+import useDepositFeatureFlags from '../../../hooks/useDepositFeatureFlags';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../sdk', () => ({
@@ -12,6 +13,8 @@ jest.mock('../../../sdk', () => ({
 jest.mock('../../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({}),
 }));
+
+jest.mock('../../../hooks/useDepositFeatureFlags');
 
 const mockSetOptions = jest.fn();
 const mockReset = jest.fn();
@@ -36,6 +39,14 @@ describe('GetStarted', () => {
     (useDepositSDK as jest.Mock).mockReturnValue({
       getStarted: false,
       setGetStarted: mockSetGetStarted,
+    });
+
+    (
+      useDepositFeatureFlags as jest.MockedFunction<
+        typeof useDepositFeatureFlags
+      >
+    ).mockReturnValue({
+      metamaskUsdEnabled: false,
     });
   });
 
@@ -69,5 +80,35 @@ describe('GetStarted', () => {
     const getStartedButton = screen.getByText('Get started');
     fireEvent.press(getStartedButton);
     expect(mockSetGetStarted).toHaveBeenCalledWith(true);
+  });
+
+  describe('MUSD feature flag', () => {
+    it('displays USDC content when MUSD feature flag is disabled', () => {
+      (
+        useDepositFeatureFlags as jest.MockedFunction<
+          typeof useDepositFeatureFlags
+        >
+      ).mockReturnValue({
+        metamaskUsdEnabled: false,
+      });
+
+      renderWithProvider(<GetStarted />);
+
+      expect(screen.getByText('Starting is easy with USDC')).toBeOnTheScreen();
+    });
+
+    it('displays MUSD content when MUSD feature flag is enabled', () => {
+      (
+        useDepositFeatureFlags as jest.MockedFunction<
+          typeof useDepositFeatureFlags
+        >
+      ).mockReturnValue({
+        metamaskUsdEnabled: true,
+      });
+
+      renderWithProvider(<GetStarted />);
+
+      expect(screen.getByText('Starting is easy with mUSD')).toBeOnTheScreen();
+    });
   });
 });

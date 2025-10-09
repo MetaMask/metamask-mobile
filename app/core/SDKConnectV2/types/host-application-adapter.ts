@@ -26,6 +26,11 @@ export interface IHostApplicationAdapter {
   showConnectionError(): void;
 
   /**
+   * Displays a "Return to App" toast notification.
+   */
+  showReturnToApp(conninfo: ConnectionInfo): void;
+
+  /**
    * Syncs the full list of active v2 connections with the application's
    * UI layer (e.g., dispatching an action to update a Redux store).
    * @param connections The complete array of active Connection objects.
