@@ -71,6 +71,14 @@ const PredictScreenStack = () => (
         title: '',
       }}
     />
+
+    <Stack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+      component={Confirm}
+      options={{
+        headerShown: false,
+      }}
+    />
   </Stack.Navigator>
 );
 

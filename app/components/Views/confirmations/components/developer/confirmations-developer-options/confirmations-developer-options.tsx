@@ -43,7 +43,10 @@ function PredictClaim() {
   const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
 
   const handleClaim = useCallback(() => {
-    addTransactionBatchAndNavigate(TransactionType.predictClaim);
+    addTransactionBatchAndNavigate({
+      headerShown: false,
+      transactionType: TransactionType.predictClaim,
+    });
   }, [addTransactionBatchAndNavigate]);
 
   return (
@@ -60,7 +63,10 @@ function PredictDeposit() {
   const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
 
   const handleDeposit = useCallback(async () => {
-    addTransactionBatchAndNavigate(TransactionType.predictDeposit);
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.predictDeposit,
+    });
   }, [addTransactionBatchAndNavigate]);
 
   return (
@@ -88,9 +94,18 @@ function useAddTransactionBatch() {
   }) as Hex;
 
   const addTransactionBatchAndNavigate = useCallback(
-    async (transactionType: TransactionType) => {
+    async ({
+      headerShown,
+      loader,
+      transactionType,
+    }: {
+      headerShown?: boolean;
+      loader?: ConfirmationLoader;
+      transactionType: TransactionType;
+    }) => {
       navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
+        headerShown,
+        loader,
         stack: Routes.PREDICT.ROOT,
       });
 

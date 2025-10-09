@@ -1,14 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { AmountHighlight } from '../../transactions/amount-highlight';
-import { useNavigation } from '@react-navigation/native';
 import { PredictClaimBackground } from '../../predict-confirmations/predict-claim-background';
+import { useModalNavbar } from '../../../hooks/ui/useNavbar';
 
 export function PredictClaimInfo() {
-  const navigation = useNavigation();
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
+  useModalNavbar();
 
   return (
     <>

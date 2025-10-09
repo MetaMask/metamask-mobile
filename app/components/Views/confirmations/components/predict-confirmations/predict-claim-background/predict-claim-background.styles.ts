@@ -11,7 +11,7 @@ const styleSheet = (params: {
   StyleSheet.create({
     image: {
       width: params.vars.screenWidth,
-      height: params.vars.screenHeight * 0.7,
+      height: params.vars.screenHeight * 0.5,
       marginLeft: -16,
     },
   });

@@ -45,7 +45,7 @@ const DeveloperOptions = () => {
     <ScrollView style={styles.wrapper}>
       <SentryTest />
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
-      <PredictDepositTest />
+      <ConfirmationsDeveloperOptions />
     </ScrollView>
   );
 };
