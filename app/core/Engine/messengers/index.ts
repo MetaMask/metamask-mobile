@@ -61,6 +61,7 @@ import {
   getNetworkControllerMessenger,
 } from './network-controller-messenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
+import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -76,6 +77,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   ApprovalController: {
     getMessenger: getApprovalControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AssetsContractController: {
+    getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionController: {

@@ -675,6 +675,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
+  | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
   | 'ExecutionService'

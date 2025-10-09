@@ -9,7 +9,6 @@ import {
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountTrackerController,
-  AssetsContractController,
   NftController,
   NftDetectionController,
   TokenBalancesController,
@@ -197,6 +196,7 @@ import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init'
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
+import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -381,6 +381,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
+        AssetsContractController: assetsContractControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
         ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
@@ -427,6 +428,7 @@ export class Engine {
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
     const approvalController = controllersByName.ApprovalController;
+    const assetsContractController = controllersByName.AssetsContractController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
@@ -499,23 +501,6 @@ export class Engine {
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
-
-    const assetsContractController = new AssetsContractController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'AssetsContractController',
-        allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getNetworkConfigurationByNetworkClientId',
-          'NetworkController:getSelectedNetworkClient',
-          'NetworkController:getState',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
-        ],
-      }),
-      chainId: getGlobalChainId(networkController),
-    });
 
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
