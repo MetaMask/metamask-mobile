@@ -1,5 +1,6 @@
 import React, { useCallback, memo, useState } from 'react';
-import { FlatList, ListRenderItem, View } from 'react-native';
+import { View } from 'react-native';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -23,6 +24,13 @@ import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMar
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../../hooks/useLinkAccount';
+import { useOptout } from '../../hooks/useOptout';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../utils';
+import Routes from '../../../../../constants/navigation/Routes';
+import ButtonComponent, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -36,7 +44,7 @@ interface RewardSettingsTabsProps {
 const LinkedAccountItem = memo(
   ({ account }: { account: AccountWithOptInStatus }) => (
     <Box
-      twClassName="flex-row items-center justify-between rounded-lg"
+      twClassName="flex-row items-center justify-between rounded-lg py-1"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
@@ -72,7 +80,7 @@ const UnlinkedAccountItem = memo(
 
     return (
       <Box
-        twClassName="flex-row items-center justify-between rounded-lg"
+        twClassName="flex-row items-center justify-between rounded-lg py-1"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
@@ -101,6 +109,45 @@ const UnlinkedAccountItem = memo(
     prevProps.account.id === nextProps.account.id &&
     prevProps.onSuccess === nextProps.onSuccess,
 );
+
+// Memoized component for opt-out footer
+const OptOutFooter = memo(() => {
+  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const handleOptOutPress = useCallback(() => {
+    showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({
+          button_type: RewardsMetricsButtons.OPT_OUT,
+        })
+        .build(),
+    );
+  }, [showOptoutBottomSheet, trackEvent, createEventBuilder]);
+
+  return (
+    <Box twClassName="gap-4 flex-col">
+      <Box twClassName="gap-2">
+        <Text variant={TextVariant.HeadingSm}>
+          {strings('rewards.optout.title')}
+        </Text>
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {strings('rewards.optout.description')}
+        </Text>
+      </Box>
+
+      <ButtonComponent
+        variant={ButtonVariants.Secondary}
+        label={strings('rewards.optout.confirm')}
+        isDisabled={isOptingOut}
+        isDanger
+        width={null as unknown as number}
+        onPress={handleOptOutPress}
+      />
+    </Box>
+  );
+});
 
 const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   initialTabIndex,
@@ -149,13 +196,13 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     () => (
       <>
         {linkedAccounts.length > 0 ? (
-          <FlatList
+          <FlashList
             data={linkedAccounts}
             keyExtractor={(item) => `linked-${item.id}`}
             renderItem={renderLinkedAccountItem}
-            scrollEnabled={false}
+            scrollEnabled
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('gap-3 pt-4')}
+            ListFooterComponent={<OptOutFooter />}
           />
         ) : (
           <Box twClassName="py-8 items-center">
@@ -165,11 +212,12 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
             >
               {strings('rewards.settings.no_linked_accounts')}
             </Text>
+            <OptOutFooter />
           </Box>
         )}
       </>
     ),
-    [linkedAccounts, renderLinkedAccountItem, tw],
+    [linkedAccounts, renderLinkedAccountItem],
   );
 
   const UnlinkedAccountsContent = useCallback(
@@ -177,52 +225,30 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
       <>
         {unlinkedAccounts.length > 0 ? (
           <Box twClassName="flex-1 relative">
-            <FlatList
+            <FlashList
               data={unlinkedAccounts}
               keyExtractor={(item) => `unlinked-${item.id}`}
               renderItem={renderUnlinkedAccountItem}
-              scrollEnabled={false}
+              scrollEnabled
               showsVerticalScrollIndicator={false}
-              getItemLayout={(_, index) => ({
-                length: 50,
-                offset: 50 * index,
-                index,
-              })}
-              contentContainerStyle={tw.style('gap-3 pt-4')}
+              ListFooterComponent={<OptOutFooter />}
             />
           </Box>
         ) : (
-          <Box twClassName="py-8">
+          <Box twClassName="py-4 gap-4">
             <RewardsInfoBanner
               title={strings('rewards.settings.all_accounts_linked_title')}
               description={strings(
                 'rewards.settings.all_accounts_linked_description',
               )}
             />
+            <OptOutFooter />
           </Box>
         )}
       </>
     ),
-    [unlinkedAccounts, renderUnlinkedAccountItem, tw],
+    [unlinkedAccounts, renderUnlinkedAccountItem],
   );
-
-  // Tab configurations
-  const tabConfigs = [
-    {
-      key: 'linked',
-      label: strings('rewards.settings.tab_linked_accounts', {
-        count: linkedAccounts.length,
-      }),
-      content: <LinkedAccountsContent />,
-    },
-    {
-      key: 'unlinked',
-      label: strings('rewards.settings.tab_unlinked_accounts', {
-        count: unlinkedAccounts.length,
-      }),
-      content: <UnlinkedAccountsContent />,
-    },
-  ];
 
   if (isLoadingOptInSummary) {
     // Create an array of unique identifiers for skeleton items
@@ -253,7 +279,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     !unlinkedAccounts.length
   ) {
     return (
-      <Box twClassName="py-8">
+      <Box twClassName="py-8 gap-4">
         <RewardsErrorBanner
           title={strings(
             'rewards.accounts_opt_in_state_error.error_fetching_title',
@@ -268,27 +294,41 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
             'rewards.accounts_opt_in_state_error.retry_button',
           )}
         />
+
+        <OptOutFooter />
       </Box>
     );
   }
 
-  // Tab-based account list - only render active tab content
+  // Tab-based account list - render content components directly
   return (
     <TabsList
       initialActiveIndex={initialTabIndex}
       onChangeTab={handleTabChange}
     >
-      {tabConfigs.map((tab, index) => (
-        <View
-          key={tab.key}
-          {...({
-            tabLabel: tab.label,
-          } as TabViewProps)}
-          style={tw.style('flex-1')}
-        >
-          {index === activeTabIndex ? tab.content : null}
-        </View>
-      ))}
+      <View
+        key="linked"
+        {...({
+          tabLabel: strings('rewards.settings.tab_linked_accounts', {
+            count: linkedAccounts.length,
+          }),
+        } as TabViewProps)}
+        style={tw.style('flex-1')}
+      >
+        {activeTabIndex === 0 ? <LinkedAccountsContent /> : null}
+      </View>
+
+      <View
+        key="unlinked"
+        {...({
+          tabLabel: strings('rewards.settings.tab_unlinked_accounts', {
+            count: unlinkedAccounts.length,
+          }),
+        } as TabViewProps)}
+        style={tw.style('flex-1')}
+      >
+        {activeTabIndex === 1 ? <UnlinkedAccountsContent /> : null}
+      </View>
     </TabsList>
   );
 };
