@@ -49,7 +49,7 @@ async function parseDeeplink({
       case PROTOCOLS.HTTPS: {
         const mappedUrl = url.replace(
           `${PROTOCOLS.METAMASK}://`,
-          `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/`,
+          `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
         );
         const { urlObj: mappedUrlObj } = extractURLParams(mappedUrl);
         handleUniversalLink({
