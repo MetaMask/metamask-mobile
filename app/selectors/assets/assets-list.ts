@@ -135,8 +135,12 @@ const selectStakedAssets = createDeepEqualSelector(
                 internalAccount.address === address.toLowerCase(),
             );
 
+            if (!account) {
+              return undefined;
+            }
+
             const stakedAsset = {
-              accountType: account?.type,
+              accountType: account.type,
               assetId: nativeToken.address,
               isNative: true,
               isStaked: true,
@@ -163,7 +167,8 @@ const selectStakedAssets = createDeepEqualSelector(
               accountId: account?.id as string,
               stakedAsset,
             };
-          }),
+          })
+          .filter((item): item is NonNullable<typeof item> => Boolean(item)),
       );
 
     return stakedAssets;
