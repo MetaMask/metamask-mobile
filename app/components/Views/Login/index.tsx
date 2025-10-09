@@ -851,18 +851,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 loading={finalLoading}
               />
 
-              {isComingFromOauthOnboarding ? (
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={handleUseOtherMethod}
-                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                  label={strings('login.other_methods')}
-                  loading={finalLoading}
-                  isDisabled={finalLoading}
-                  size={ButtonSize.Lg}
-                />
-              ) : (
+              {!isComingFromOauthOnboarding && (
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
@@ -874,6 +863,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 />
               )}
             </View>
+
+            {isComingFromOauthOnboarding && (
+              <View style={styles.footer}>
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={handleUseOtherMethod}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  label={strings('login.other_methods')}
+                  loading={finalLoading}
+                  isDisabled={finalLoading}
+                  size={ButtonSize.Lg}
+                />
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
