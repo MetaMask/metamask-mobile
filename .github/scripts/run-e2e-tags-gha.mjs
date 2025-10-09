@@ -129,7 +129,7 @@ function findMatchingFiles(baseDir, tag) {
   const resolvedBase = path.resolve(baseDir);
   const results = [];
   // Escape the tag for safe usage in RegExp
-  const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\\\]]/g, '\\$&');
   // Match tag with word-boundary semantics similar to `grep -w -F`
   // We require a non-word (or start) before and after the tag to avoid substring matches
   const boundaryPattern = new RegExp(
@@ -309,7 +309,7 @@ function normalizePathForCompare(p) {
  * @returns {string} - Escaped string
  */
 function escapeRegex(s) {
-  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(s).replace(/[.*+?^${}()|[\\\]]/g, '\\$&');
 }
 
 /**
@@ -325,9 +325,9 @@ async function resolveTestNamePrefix(suiteTag) {
     const tagsModule = await import(tagsModuleUrl);
     const factory = tagsModule?.[suiteTag];
     if (typeof factory === 'function') {
-      // Most factories append a trailing space after the prefix; trim it
+      // Preserve any trailing space from factory output as it is part of the prefix
       const generated = String(factory(''));
-      return generated.trim();
+      return generated;
     }
   } catch {
     // ignore and fall through
@@ -443,7 +443,9 @@ async function main() {
   const extraEnv = { IGNORE_BOXLOGS_DEVELOPMENT: 'true' };
   // Derive a robust Jest testNamePattern from the suite tag
   const namePrefix = await resolveTestNamePrefix(testSuiteTag);
-  const testNamePatternArg = `--testNamePattern=^${escapeRegex(namePrefix)}`;
+  // Escape regex metacharacters but NEVER escape '@' (ensure any spurious escapes are removed)
+  const safePrefix = escapeRegex(namePrefix).replace(/\\@/g, '@');
+  const testNamePatternArg = `--testNamePattern=^${safePrefix}`;
   const args = [testNamePatternArg, ...runFiles];
 
   try {
