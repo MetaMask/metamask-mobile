@@ -3,12 +3,6 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import {
-  selectLastSelectedEvmAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectLastSelectedSolanaAccount,
-  ///: END:ONLY_INCLUDE_IF
-} from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -20,9 +14,6 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
@@ -31,6 +22,9 @@ import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { toChecksumAddress } from '../../../../../util/address';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { EthScope } from '@metamask/keyring-api';
+import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -153,12 +147,12 @@ export const useTokensWithBalance: ({
     selectNetworkConfigurations,
   );
 
-  const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
+  const selectedAccountGroupInternalAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
   );
-  ///: END:ONLY_INCLUDE_IF
+  const evmAddress = selectedAccountGroupInternalAccounts.find((account) =>
+    account.scopes.includes(EthScope.Eoa),
+  )?.address;
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -167,10 +161,7 @@ export const useTokensWithBalance: ({
   // All EVM tokens across chains and their balances
   // Includes native and non-native ERC20 tokens in TokenI format, i.e. balance is possibly to be "< 0.00001"
   const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChainsForAddress(
-      state,
-      lastSelectedEvmAccount?.address,
-    ),
+    selectAccountTokensAcrossChainsForAddress(state, evmAddress),
   );
   // EVM native token balances in atomic hex amount
   const evmAccountsByChainId = useSelector(selectAccountsByChainId);
@@ -180,9 +171,7 @@ export const useTokensWithBalance: ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
-  );
+  const nonEvmTokens = useNonEvmTokensWithBalance();
   ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
@@ -209,7 +198,7 @@ export const useTokensWithBalance: ({
       networkConfigurationsByChainId,
       multiChainCurrencyRates,
       currentCurrency,
-      selectedAddress: lastSelectedEvmAccount?.address as Hex,
+      selectedAddress: evmAddress as Hex,
       evmAccountsByChainId,
     });
 
@@ -256,7 +245,7 @@ export const useTokensWithBalance: ({
     multiChainCurrencyRates,
     currentCurrency,
     tokenSortConfig,
-    lastSelectedEvmAccount?.address,
+    evmAddress,
     chainIds,
     evmAccountsByChainId,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

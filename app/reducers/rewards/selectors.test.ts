@@ -11,6 +11,7 @@ import {
   selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
+  selectSeasonStatusError,
   selectSeasonId,
   selectSeasonName,
   selectSeasonStartDate,
@@ -23,11 +24,24 @@ import {
   selectReferralDetailsLoading,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
+  selectHideCurrentAccountNotOptedInBannerArray,
+  selectActiveBoosts,
+  selectActiveBoostsLoading,
+  selectActiveBoostsError,
+  selectUnlockedRewards,
+  selectUnlockedRewardLoading,
+  selectUnlockedRewardError,
+  selectSeasonRewardById,
+  selectPointsEvents,
 } from './selectors';
 import { OnboardingStep } from './types';
-import { SeasonTierDto } from '../../core/Engine/controllers/rewards-controller/types';
-import { RootState } from '../index';
-import { RewardsState } from './index';
+import {
+  RewardDto,
+  SeasonTierDto,
+  PointsEventDto,
+} from '../../core/Engine/controllers/rewards-controller/types';
+import { RootState } from '..';
+import { RewardsState, AccountOptInBannerInfoStatus } from '.';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -158,6 +172,12 @@ describe('Rewards selectors', () => {
         id: 'tier1',
         name: 'Bronze',
         pointsNeeded: 100,
+        image: {
+          lightModeUrl: 'https://example.com/bronze-light.png',
+          darkModeUrl: 'https://example.com/bronze-dark.png',
+        },
+        levelNumber: '1',
+        rewards: [],
       };
       const mockState = { rewards: { currentTier: mockTier } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
@@ -181,6 +201,12 @@ describe('Rewards selectors', () => {
         id: 'tier2',
         name: 'Silver',
         pointsNeeded: 500,
+        image: {
+          lightModeUrl: 'https://example.com/silver-light.png',
+          darkModeUrl: 'https://example.com/silver-dark.png',
+        },
+        levelNumber: '2',
+        rewards: [],
       };
       const mockState = { rewards: { nextTier: mockTier } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
@@ -295,6 +321,60 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectSeasonStatusError', () => {
+    it('returns null when no season status error is set', () => {
+      const mockState = { rewards: { seasonStatusError: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonStatusError));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns error message when season status error is set', () => {
+      const errorMessage = 'Failed to fetch season status';
+      const mockState = { rewards: { seasonStatusError: errorMessage } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonStatusError));
+      expect(result.current).toBe(errorMessage);
+    });
+
+    it('returns timeout error message', () => {
+      const timeoutError = 'Request timed out while fetching season status';
+      const mockState = { rewards: { seasonStatusError: timeoutError } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonStatusError));
+      expect(result.current).toBe(timeoutError);
+    });
+
+    it('returns API error message', () => {
+      const apiError = 'API returned 500: Internal server error';
+      const mockState = { rewards: { seasonStatusError: apiError } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonStatusError));
+      expect(result.current).toBe(apiError);
+    });
+
+    it('returns network error message', () => {
+      const networkError = 'Network connection failed';
+      const mockState = { rewards: { seasonStatusError: networkError } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonStatusError));
+      expect(result.current).toBe(networkError);
+    });
+
+    it('returns undefined when season status error is undefined', () => {
+      const mockState = { rewards: { seasonStatusError: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonStatusError));
+      expect(result.current).toBeUndefined();
+    });
+  });
+
   describe('selectSeasonId', () => {
     it('returns null when season ID is not set', () => {
       const mockState = { rewards: { seasonId: null } };
@@ -400,16 +480,34 @@ describe('Rewards selectors', () => {
           id: 'bronze',
           name: 'Bronze',
           pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'https://example.com/bronze-light.png',
+            darkModeUrl: 'https://example.com/bronze-dark.png',
+          },
+          levelNumber: '1',
+          rewards: [],
         },
         {
           id: 'silver',
           name: 'Silver',
           pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'https://example.com/silver-light.png',
+            darkModeUrl: 'https://example.com/silver-dark.png',
+          },
+          levelNumber: '2',
+          rewards: [],
         },
         {
           id: 'gold',
           name: 'Gold',
           pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'https://example.com/gold-light.png',
+            darkModeUrl: 'https://example.com/gold-dark.png',
+          },
+          levelNumber: '3',
+          rewards: [],
         },
       ];
       const mockState = { rewards: { seasonTiers: mockTiers } };
@@ -630,17 +728,363 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectHideCurrentAccountNotOptedInBannerArray', () => {
+    it('returns empty array when no accounts are configured', () => {
+      const mockState = { rewards: { hideCurrentAccountNotOptedInBanner: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('returns single account configuration when set', () => {
+      const mockAccountConfig: AccountOptInBannerInfoStatus = {
+        caipAccountId: 'eip155:1:0x123456789abcdef',
+        hide: true,
+      };
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: [mockAccountConfig] },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([mockAccountConfig]);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.caipAccountId).toBe(
+        'eip155:1:0x123456789abcdef',
+      );
+      expect(result.current?.[0]?.hide).toBe(true);
+    });
+
+    it('returns multiple account configurations when set', () => {
+      const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x123456789abcdef',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0xabcdef123456789',
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:137:0x987654321fedcba',
+          hide: true,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: mockAccountConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(mockAccountConfigs);
+      expect(result.current).toHaveLength(3);
+      expect(result.current?.[0]?.hide).toBe(true);
+      expect(result.current?.[1]?.hide).toBe(false);
+      expect(result.current?.[2]?.hide).toBe(true);
+    });
+
+    it('handles mixed hide states correctly', () => {
+      const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x111111111111111',
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:1:0x222222222222222',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0x333333333333333',
+          hide: false,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: mockAccountConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(mockAccountConfigs);
+      expect(result.current?.filter((config) => config.hide)).toHaveLength(1);
+      expect(result.current?.filter((config) => !config.hide)).toHaveLength(2);
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: {
+          hideCurrentAccountNotOptedInBanner:
+            [] as AccountOptInBannerInfoStatus[],
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
+
+      // Change state to have account configs
+      const newAccountConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x444444444444444',
+          hide: true,
+        },
+      ];
+      mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: newAccountConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newAccountConfigs);
+      expect(result.current).toHaveLength(1);
+    });
+
+    it('preserves account configuration order', () => {
+      const orderedConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0xaaa',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0xbbb',
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:1:0xccc',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0xddd',
+          hide: false,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: orderedConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(orderedConfigs);
+      expect(result.current?.[0]?.caipAccountId).toBe('eip155:1:0xaaa');
+      expect(result.current?.[1]?.caipAccountId).toBe('eip155:1:0xbbb');
+      expect(result.current?.[2]?.caipAccountId).toBe('eip155:1:0xccc');
+      expect(result.current?.[3]?.caipAccountId).toBe('eip155:1:0xddd');
+    });
+
+    it('handles different CAIP account ID formats correctly', () => {
+      const differentFormatConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x123456789abcdef', // Ethereum mainnet
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:137:0xabcdef123456789', // Polygon
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:56:0x987654321fedcba', // BSC
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:42161:0x555666777888999', // Arbitrum
+          hide: false,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: differentFormatConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(differentFormatConfigs);
+      expect(result.current).toHaveLength(4);
+      expect(
+        result.current?.every((config) =>
+          config.caipAccountId.startsWith('eip155:'),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectCurrentSeasonId', () => {
+    it('returns null when season ID is null', () => {
+      const mockState = { rewards: { seasonId: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns season ID when set', () => {
+      const mockState = { rewards: { seasonId: 'season-123' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('season-123');
+    });
+
+    it('returns different season IDs correctly', () => {
+      const mockState = { rewards: { seasonId: 'winter-2024' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('winter-2024');
+    });
+  });
+
+  describe('selectActiveBoosts', () => {
+    it('returns empty array when no boosts', () => {
+      const mockState = { rewards: { activeBoosts: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns active boosts array when set', () => {
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'light1.png',
+            darkModeUrl: 'dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'light2.png',
+            darkModeUrl: 'dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+      const mockState = { rewards: { activeBoosts: mockBoosts } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual(mockBoosts);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('boost-1');
+      expect(result.current?.[1]?.seasonLong).toBe(false);
+    });
+
+    it('returns single boost correctly', () => {
+      const singleBoost = [
+        {
+          id: 'single-boost',
+          name: 'Single Boost',
+          icon: {
+            lightModeUrl: 'single.png',
+            darkModeUrl: 'single-dark.png',
+          },
+          boostBips: 2000,
+          seasonLong: true,
+          backgroundColor: '#0000FF',
+        },
+      ];
+      const mockState = { rewards: { activeBoosts: singleBoost } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual(singleBoost);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.name).toBe('Single Boost');
+      expect(result.current?.[0]?.boostBips).toBe(2000);
+    });
+  });
+
+  describe('selectActiveBoostsLoading', () => {
+    it('returns false when not loading', () => {
+      const mockState = { rewards: { activeBoostsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectActiveBoostsLoading),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when loading', () => {
+      const mockState = { rewards: { activeBoostsLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectActiveBoostsLoading),
+      );
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectActiveBoostsError', () => {
+    it('returns false when no error', () => {
+      const mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when error occurs', () => {
+      const mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectActiveBoostsError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+  });
+
   // Direct selector tests (without useSelector hook)
   describe('Direct selector calls', () => {
     describe('selectActiveTab direct calls', () => {
       it('returns correct active tab directly', () => {
         const state = createMockRootState({ activeTab: 'activity' });
         expect(selectActiveTab(state)).toBe('activity');
-      });
-
-      it('returns null when activeTab is null directly', () => {
-        const state = createMockRootState({ activeTab: null });
-        expect(selectActiveTab(state)).toBeNull();
       });
     });
 
@@ -685,17 +1129,67 @@ describe('Rewards selectors', () => {
       });
 
       it('returns single tier correctly', () => {
-        const tier = { id: 'bronze', name: 'Bronze', pointsNeeded: 100 };
+        const tier = {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'bronze.png',
+            darkModeUrl: 'bronze-dark.png',
+          },
+          levelNumber: 'Level 1',
+          rewards: [],
+        };
         const state = createMockRootState({ seasonTiers: [tier] });
         expect(selectSeasonTiers(state)).toEqual([tier]);
       });
 
       it('preserves tier order', () => {
         const tiers = [
-          { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-          { id: 'silver', name: 'Silver', pointsNeeded: 100 },
-          { id: 'gold', name: 'Gold', pointsNeeded: 500 },
-          { id: 'platinum', name: 'Platinum', pointsNeeded: 1000 },
+          {
+            id: 'bronze',
+            name: 'Bronze',
+            pointsNeeded: 100,
+            image: {
+              lightModeUrl: 'bronze.png',
+              darkModeUrl: 'bronze-dark.png',
+            },
+            levelNumber: 'Level 1',
+            rewards: [],
+          },
+          {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 100,
+            image: {
+              lightModeUrl: 'silver.png',
+              darkModeUrl: 'silver-dark.png',
+            },
+            levelNumber: 'Level 2',
+            rewards: [],
+          },
+          {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 500,
+            image: {
+              lightModeUrl: 'gold.png',
+              darkModeUrl: 'gold-dark.png',
+            },
+            levelNumber: 'Level 3',
+            rewards: [],
+          },
+          {
+            id: 'platinum',
+            name: 'Platinum',
+            pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'platinum.png',
+              darkModeUrl: 'platinum-dark.png',
+            },
+            levelNumber: 'Level 4',
+            rewards: [],
+          },
         ];
         const state = createMockRootState({ seasonTiers: tiers });
         expect(selectSeasonTiers(state)).toEqual(tiers);
@@ -729,6 +1223,86 @@ describe('Rewards selectors', () => {
       it('returns null correctly', () => {
         const state = createMockRootState({ candidateSubscriptionId: null });
         expect(selectCandidateSubscriptionId(state)).toBeNull();
+      });
+    });
+
+    describe('selectActiveBoostsError direct calls', () => {
+      it('returns false when no error', () => {
+        const state = createMockRootState({ activeBoostsError: false });
+        expect(selectActiveBoostsError(state)).toBe(false);
+      });
+
+      it('returns true when error occurs', () => {
+        const state = createMockRootState({ activeBoostsError: true });
+        expect(selectActiveBoostsError(state)).toBe(true);
+      });
+    });
+
+    describe('selectHideCurrentAccountNotOptedInBannerArray direct calls', () => {
+      it('returns empty array when no accounts configured', () => {
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: [],
+        });
+        expect(selectHideCurrentAccountNotOptedInBannerArray(state)).toEqual(
+          [],
+        );
+      });
+
+      it('returns account configurations when set', () => {
+        const accountConfigs: AccountOptInBannerInfoStatus[] = [
+          {
+            caipAccountId: 'eip155:1:0x123456789abcdef',
+            hide: true,
+          },
+          {
+            caipAccountId: 'eip155:1:0xabcdef123456789',
+            hide: false,
+          },
+        ];
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: accountConfigs,
+        });
+        expect(selectHideCurrentAccountNotOptedInBannerArray(state)).toEqual(
+          accountConfigs,
+        );
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(state),
+        ).toHaveLength(2);
+      });
+
+      it('preserves account configuration references', () => {
+        const accountConfig: AccountOptInBannerInfoStatus = {
+          caipAccountId: 'eip155:1:0x987654321fedcba',
+          hide: true,
+        };
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: [accountConfig],
+        });
+
+        const result1 = selectHideCurrentAccountNotOptedInBannerArray(state);
+        const result2 = selectHideCurrentAccountNotOptedInBannerArray(state);
+
+        expect(result1).toBe(result2); // Same reference
+        expect(result1).toEqual(result2); // Same value
+        expect(result1[0]).toBe(accountConfig); // Original reference preserved
+      });
+
+      it('handles large arrays correctly', () => {
+        const largeAccountConfigs: AccountOptInBannerInfoStatus[] = Array.from(
+          { length: 50 },
+          (_, i) => ({
+            caipAccountId: `eip155:1:0x${i.toString().padStart(40, '0')}`,
+            hide: i % 2 === 0,
+          }),
+        );
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: largeAccountConfigs,
+        });
+
+        const result = selectHideCurrentAccountNotOptedInBannerArray(state);
+        expect(result).toHaveLength(50);
+        expect(result.filter((config) => config.hide)).toHaveLength(25);
+        expect(result.filter((config) => !config.hide)).toHaveLength(25);
       });
     });
   });
@@ -934,7 +1508,17 @@ describe('Rewards selectors', () => {
   describe('Performance and consistency', () => {
     describe('Selector consistency', () => {
       it('returns same reference for same input', () => {
-        const tier = { id: 'silver', name: 'Silver', pointsNeeded: 500 };
+        const tier = {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'silver.png',
+            darkModeUrl: 'silver-dark.png',
+          },
+          levelNumber: 'Level 2',
+          rewards: [],
+        };
         const state = createMockRootState({ currentTier: tier });
 
         const result1 = selectCurrentTier(state);
@@ -945,9 +1529,28 @@ describe('Rewards selectors', () => {
       });
 
       it('returns different references for different inputs', () => {
-        const tier1 = { id: 'silver', name: 'Silver', pointsNeeded: 500 };
-        const tier2 = { id: 'gold', name: 'Gold', pointsNeeded: 1000 };
-
+        const tier1 = {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'silver.png',
+            darkModeUrl: 'silver-dark.png',
+          },
+          levelNumber: 'Level 2',
+          rewards: [],
+        };
+        const tier2 = {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'gold.png',
+            darkModeUrl: 'gold-dark.png',
+          },
+          levelNumber: 'Level 3',
+          rewards: [],
+        };
         const state1 = createMockRootState({ currentTier: tier1 });
         const state2 = createMockRootState({ currentTier: tier2 });
 
@@ -968,15 +1571,50 @@ describe('Rewards selectors', () => {
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-03-31'),
         seasonTiers: [
-          { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-          { id: 'silver', name: 'Silver', pointsNeeded: 500 },
-          { id: 'gold', name: 'Gold', pointsNeeded: 1500 },
+          {
+            id: 'bronze',
+            name: 'Bronze',
+            pointsNeeded: 0,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 1',
+            rewards: [],
+          },
+          {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 500,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 2',
+            rewards: [],
+          },
+          {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 1500,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 3',
+            rewards: [],
+          },
         ],
         referralDetailsLoading: false,
         referralCode: 'REFER2024',
         refereeCount: 25,
-        currentTier: { id: 'silver', name: 'Silver', pointsNeeded: 500 },
-        nextTier: { id: 'gold', name: 'Gold', pointsNeeded: 1500 },
+        currentTier: {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+          levelNumber: 'Level 2',
+          rewards: [],
+        },
+        nextTier: {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 1500,
+          image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+          levelNumber: 'Level 3',
+          rewards: [],
+        },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
         balanceRefereePortion: 1250.25,
@@ -987,6 +1625,22 @@ describe('Rewards selectors', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        hideCurrentAccountNotOptedInBanner: [
+          {
+            caipAccountId: 'eip155:1:0x123456789abcdef',
+            hide: true,
+          },
+          {
+            caipAccountId: 'eip155:137:0xabcdef123456789',
+            hide: false,
+          },
+        ],
+        activeBoosts: [],
+        activeBoostsLoading: false,
+        activeBoostsError: false,
+        unlockedRewards: [],
+        unlockedRewardLoading: false,
+        unlockedRewardError: false,
       });
 
       it('all selectors return expected values from comprehensive state', () => {
@@ -1022,7 +1676,535 @@ describe('Rewards selectors', () => {
         expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
         expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState),
+        ).toHaveLength(2);
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
+            .caipAccountId,
+        ).toBe('eip155:1:0x123456789abcdef');
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
+            .hide,
+        ).toBe(true);
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
+            .caipAccountId,
+        ).toBe('eip155:137:0xabcdef123456789');
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
+            .hide,
+        ).toBe(false);
+        expect(selectActiveBoosts(comprehensiveState)).toEqual([]);
+        expect(selectActiveBoostsLoading(comprehensiveState)).toBe(false);
+        expect(selectActiveBoostsError(comprehensiveState)).toBe(false);
+        expect(selectUnlockedRewards(comprehensiveState)).toEqual([]);
+        expect(selectUnlockedRewardLoading(comprehensiveState)).toBe(false);
+        expect(selectUnlockedRewardError(comprehensiveState)).toBe(false);
       });
+      it('returns true when loading', () => {
+        const mockState = { rewards: { activeBoostsLoading: true } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+        const { result } = renderHook(() =>
+          useSelector(selectActiveBoostsLoading),
+        );
+        expect(result.current).toBe(true);
+      });
+
+      it('handles loading state changes correctly', () => {
+        let mockState = { rewards: { activeBoostsLoading: false } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+        const { result, rerender } = renderHook(() =>
+          useSelector(selectActiveBoostsLoading),
+        );
+        expect(result.current).toBe(false);
+
+        // Change state to loading
+        mockState = { rewards: { activeBoostsLoading: true } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+        rerender();
+        expect(result.current).toBe(true);
+      });
+    });
+  });
+
+  describe('selectUnlockedRewards', () => {
+    it('returns empty array when unlockedRewards is null', () => {
+      const mockState = { rewards: { unlockedRewards: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectUnlockedRewards));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns empty array when unlockedRewards is empty', () => {
+      const mockState = { rewards: { unlockedRewards: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectUnlockedRewards));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns unlocked rewards array when available', () => {
+      const mockUnlockedRewards = [
+        {
+          id: 'reward-1',
+          seasonRewardId: 'season-reward-1',
+          claimStatus: 'CLAIMED',
+        },
+        {
+          id: 'reward-2',
+          seasonRewardId: 'season-reward-2',
+          claimStatus: 'UNCLAIMED',
+        },
+      ];
+      const mockState = { rewards: { unlockedRewards: mockUnlockedRewards } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectUnlockedRewards));
+      expect(result.current).toEqual(mockUnlockedRewards);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('reward-1');
+      expect(result.current?.[1]?.claimStatus).toBe('UNCLAIMED');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewards: [] as RewardDto[] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewards),
+      );
+      expect(result.current).toEqual([]);
+
+      // Change state to have rewards
+      const newRewards = [
+        {
+          id: 'new-reward',
+          seasonRewardId: 'season-1',
+          claimStatus: 'CLAIMED',
+        },
+      ] as RewardDto[];
+      mockState = { rewards: { unlockedRewards: newRewards } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newRewards);
+    });
+  });
+
+  describe('selectUnlockedRewardLoading', () => {
+    it('returns false when unlockedRewardLoading is false', () => {
+      const mockState = { rewards: { unlockedRewardLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when unlockedRewardLoading is true', () => {
+      const mockState = { rewards: { unlockedRewardLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when unlockedRewardLoading is undefined', () => {
+      const mockState = { rewards: { unlockedRewardLoading: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles loading state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewardLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to loading
+      mockState = { rewards: { unlockedRewardLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectUnlockedRewardError', () => {
+    it('returns false when unlockedRewardError is false', () => {
+      const mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when unlockedRewardError is true', () => {
+      const mockState = { rewards: { unlockedRewardError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when unlockedRewardError is undefined', () => {
+      const mockState = { rewards: { unlockedRewardError: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { unlockedRewardError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+  });
+
+  describe('selectSeasonRewardById', () => {
+    const mockSeasonTiers = [
+      {
+        id: 'tier-1',
+        name: 'Bronze',
+        pointsNeeded: 0,
+        image: {
+          lightModeUrl: 'https://example.com/bronze-light.png',
+          darkModeUrl: 'https://example.com/bronze-dark.png',
+        },
+        levelNumber: '1',
+        rewards: [
+          {
+            id: 'reward-1',
+            name: 'Bronze Badge',
+            shortDescription: 'Bronze tier reward',
+            iconName: 'Star',
+            rewardType: 'BADGE',
+          },
+          {
+            id: 'reward-2',
+            name: 'Bronze Points',
+            shortDescription: 'Bronze tier points',
+            iconName: 'Trophy',
+            rewardType: 'POINTS',
+          },
+        ],
+      },
+      {
+        id: 'tier-2',
+        name: 'Silver',
+        pointsNeeded: 1000,
+        image: {
+          lightModeUrl: 'https://example.com/silver-light.png',
+          darkModeUrl: 'https://example.com/silver-dark.png',
+        },
+        levelNumber: '2',
+        rewards: [
+          {
+            id: 'reward-3',
+            name: 'Silver Badge',
+            shortDescription: 'Silver tier reward',
+            iconName: 'Medal',
+            rewardType: 'BADGE',
+          },
+        ],
+      },
+    ];
+
+    it('returns undefined when seasonTiers is null', () => {
+      const mockState = { rewards: { seasonTiers: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns undefined when seasonTiers is empty', () => {
+      const mockState = { rewards: { seasonTiers: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns undefined when reward is not found', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('non-existent-reward')),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns the correct reward when found in first tier', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-1');
+      expect(result.current?.name).toBe('Bronze Badge');
+      expect(result.current?.rewardType).toBe('BADGE');
+    });
+
+    it('returns the correct reward when found in second tier', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-3')),
+      );
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-3');
+      expect(result.current?.name).toBe('Silver Badge');
+      expect(result.current?.rewardType).toBe('BADGE');
+    });
+
+    it('returns the correct reward from multiple rewards in same tier', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-2')),
+      );
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-2');
+      expect(result.current?.name).toBe('Bronze Points');
+      expect(result.current?.rewardType).toBe('POINTS');
+    });
+
+    it('handles different reward IDs correctly', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      // Test multiple different IDs
+      const { result: result1 } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      const { result: result2 } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-2')),
+      );
+      const { result: result3 } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-3')),
+      );
+
+      expect(result1.current?.id).toBe('reward-1');
+      expect(result2.current?.id).toBe('reward-2');
+      expect(result3.current?.id).toBe('reward-3');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = { rewards: { seasonTiers: [] as SeasonTierDto[] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeUndefined();
+
+      // Change state to have tiers with rewards
+      mockState = {
+        rewards: { seasonTiers: mockSeasonTiers as SeasonTierDto[] },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-1');
+    });
+  });
+
+  describe('selectPointsEvents', () => {
+    it('returns null when points events is null', () => {
+      const mockState = { rewards: { pointsEvents: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns empty array when points events is empty', () => {
+      const mockState = { rewards: { pointsEvents: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('returns points events array when available', () => {
+      const mockPointsEvents: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+              type: 'eip155:1/slip44:0',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+            },
+            txHash:
+              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          },
+        },
+        {
+          id: 'event-2',
+          type: 'REFERRAL',
+          timestamp: new Date('2024-01-02T00:00:00Z'),
+          value: 50,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const mockState = { rewards: { pointsEvents: mockPointsEvents } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toEqual(mockPointsEvents);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('event-1');
+      expect(result.current?.[0]?.type).toBe('SWAP');
+      expect(result.current?.[1]?.type).toBe('REFERRAL');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: { pointsEvents: null as PointsEventDto[] | null },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectPointsEvents),
+      );
+      expect(result.current).toBeNull();
+
+      // Change state to have points events
+      const newEvents: PointsEventDto[] = [
+        {
+          id: 'new-event',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 150,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              decimals: 8,
+              type: 'eip155:1/slip44:0',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              name: 'Ethereum',
+              decimals: 18,
+              symbol: 'ETH',
+              type: 'eip155:1/slip44:60',
+            },
+          },
+        },
+      ];
+      mockState = { rewards: { pointsEvents: newEvents } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newEvents);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.id).toBe('new-event');
+    });
+
+    it('returns same reference for same input', () => {
+      const events: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+          },
+        },
+      ];
+      const state = createMockRootState({ pointsEvents: events });
+
+      const result1 = selectPointsEvents(state);
+      const result2 = selectPointsEvents(state);
+
+      expect(result1).toBe(result2); // Same reference
+      expect(result1).toEqual(result2); // Same value
     });
   });
 });

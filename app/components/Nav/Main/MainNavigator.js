@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -71,24 +71,17 @@ import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getActiveTabUrl } from '../../../util/transactions';
-import { getPermittedCaipAccountIdsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
-import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
-import URL from 'url-parse';
-import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
@@ -103,6 +96,11 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -116,9 +114,9 @@ import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
-import { useOptin } from '../../UI/Rewards/hooks/useOptIn';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
+import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -192,6 +190,11 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
+      name={Routes.PREDICT.ROOT}
+      component={PredictScreenStack}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
       name="AddAsset"
       component={AddAsset}
       options={AddAsset.navigationOptions}
@@ -249,22 +252,16 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const RewardsHome = () => {
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
-  if (!isRewardsEnabled) {
-    return null;
-  }
-
-  return <RewardsNavigator />;
-};
-
-const RewardsModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
+const RewardsHome = () => (
+  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+      component={RewardsClaimBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -503,6 +500,7 @@ const HomeTabs = () => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -528,9 +526,9 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
-    actions: {
-      tabBarIconKey: TabBarIconKey.Actions,
-      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+    trade: {
+      tabBarIconKey: TabBarIconKey.Trade,
+      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
     },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
@@ -569,6 +567,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
+      unmountOnBlur: true,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -604,10 +603,12 @@ const HomeTabs = () => {
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
+
     // Hide tab bar for rewards onboarding splash screen
     if (
-      currentRoute.name?.startsWith('REWARDS_ONBOARDING') &&
-      !isRewardsEnabled
+      currentRoute.name?.startsWith('Rewards') &&
+      isRewardsEnabled &&
+      !rewardsSubscription
     ) {
       return null;
     }
@@ -638,8 +639,8 @@ const HomeTabs = () => {
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        options={options.actions}
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        options={options.trade}
         component={WalletTabModalFlow}
       />
       <Tab.Screen
@@ -652,7 +653,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsModalFlow}
+          component={RewardsHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
@@ -673,7 +674,6 @@ const Webview = () => (
       name="SimpleWebview"
       component={SimpleWebview}
       mode={'modal'}
-      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -868,6 +868,12 @@ const MainNavigator = () => {
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
+  // Get feature flag state for conditional Predict screen registration
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useMemo(
+    () => predictEnabledFlag && isEvmSelected,
+    [predictEnabledFlag, isEvmSelected],
+  );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
@@ -912,7 +918,22 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
           component={SettingsFlow}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
       )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
@@ -1009,6 +1030,26 @@ const MainNavigator = () => {
             options={{
               title: 'Funding Transaction',
               headerShown: true,
+            }}
+          />
+        </>
+      )}
+      {isPredictEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PREDICT.ROOT}
+            component={PredictScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PREDICT.MODALS.ROOT}
+            component={PredictModalStack}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+              animationEnabled: true,
             }}
           />
         </>

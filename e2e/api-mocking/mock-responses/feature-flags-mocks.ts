@@ -123,11 +123,15 @@ export const remoteFeatureMultichainAccountsAccountDetails = (
 export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   enabled = true,
 ) => ({
-  enableMultichainAccounts: {
+  enableMultichainAccountsState2: {
     enabled,
     featureVersion: '2',
     minimumVersion: '7.46.0',
   },
+});
+
+export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
+  predictEnabled: enabled,
 });
 
 export const remoteFeatureFlagSendRedesignDisabled = {

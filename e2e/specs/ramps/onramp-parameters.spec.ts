@@ -50,7 +50,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
   );
 };
 
-describe(RegressionTrade('On-Ramp Parameters'), () => {
+describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });

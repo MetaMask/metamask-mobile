@@ -35,6 +35,18 @@ jest.mock('../../../../selectors/assets/balances', () => {
   };
 });
 
+// Mock account selector to avoid deep store dependencies
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
+  const actual = jest.requireActual(
+    '../../../../selectors/multichainAccounts/accounts',
+  );
+  return {
+    ...actual,
+    selectIconSeedAddressByAccountGroupId: () => () =>
+      '0x1234567890abcdef1234567890abcdef12345678',
+  };
+});
+
 // Mock navigation
 const mockNavigate = jest.fn();
 
@@ -55,6 +67,7 @@ const renderAccountCell = (
     isSelected?: boolean;
     hideMenu?: boolean;
     avatarAccountType?: AvatarAccountType;
+    onSelectAccount?: () => void;
   } = {},
 ) => {
   const defaultProps = {
@@ -62,6 +75,7 @@ const renderAccountCell = (
     avatarAccountType: AvatarAccountType.Maskicon,
     isSelected: false,
     hideMenu: false,
+    onSelectAccount: jest.fn(),
     ...props,
   };
 
@@ -108,50 +122,127 @@ describe('AccountCell', () => {
 
   it('renders menu button by default', () => {
     const { getByTestId } = renderAccountCell();
-    expect(getByTestId('multichain-account-cell-menu')).toBeTruthy();
+    expect(getByTestId(AccountCellIds.MENU)).toBeTruthy();
   });
 
   it('hides menu button when hideMenu is true', () => {
     const { queryByTestId } = renderAccountCell({ hideMenu: true });
-    expect(queryByTestId('multichain-account-cell-menu')).toBeNull();
+    expect(queryByTestId(AccountCellIds.MENU)).toBeNull();
   });
 
-  it('navigates to account actions when menu button is pressed', () => {
+  it('navigates to account group details when menu button is pressed', () => {
     const { getByTestId } = renderAccountCell();
-    const menuButton = getByTestId('multichain-account-cell-menu');
+    const menuButton = getByTestId(AccountCellIds.MENU);
     fireEvent.press(menuButton);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MultichainAccountDetailActions',
-      {
-        screen: 'MultichainAccountActions',
-        params: {
-          accountGroup: mockAccountGroup,
-        },
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('MultichainAccountGroupDetails', {
+      accountGroup: mockAccountGroup,
+    });
   });
 
   it('renders Maskicon AvatarAccount when avatarAccountType is Maskicon', () => {
-    const { getByTestId } = renderAccountCell({
+    const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.Maskicon,
     });
-    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
-    expect(() => avatarContainer.findByType(Maskicon)).not.toThrow();
+    expect(UNSAFE_getByType(Maskicon)).toBeTruthy();
   });
 
   it('renders JazzIcon AvatarAccount when avatarAccountType is JazzIcon', () => {
-    const { getByTestId } = renderAccountCell({
+    const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.JazzIcon,
     });
-    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
-    expect(() => avatarContainer.findByType(JazzIcon)).not.toThrow();
+    expect(UNSAFE_getByType(JazzIcon)).toBeTruthy();
   });
 
   it('renders Blockies AvatarAccount when avatarAccountType is Blockies', () => {
-    const { getByTestId } = renderAccountCell({
+    const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.Blockies,
     });
-    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
-    expect(() => avatarContainer.findByType(RNImage)).not.toThrow();
+    expect(UNSAFE_getByType(RNImage)).toBeTruthy();
+  });
+
+  it('calls onSelectAccount when account name is pressed', () => {
+    const mockOnSelectAccount = jest.fn();
+    const { getByText } = renderAccountCell({
+      onSelectAccount: mockOnSelectAccount,
+    });
+
+    // Given a rendered account cell
+    // When the user presses the account name
+    fireEvent.press(getByText('Test Account Group'));
+
+    // Then onSelectAccount should be called
+    expect(mockOnSelectAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onSelectAccount when balance is pressed', () => {
+    const mockOnSelectAccount = jest.fn();
+    mockBalance.value = 100;
+    mockBalance.currency = 'usd';
+    const { getByText } = renderAccountCell({
+      onSelectAccount: mockOnSelectAccount,
+    });
+
+    // Given a rendered account cell with balance
+    // When the user presses the balance
+    fireEvent.press(getByText('$100.00'));
+
+    // Then onSelectAccount should be called
+    expect(mockOnSelectAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onSelectAccount when avatar is pressed', () => {
+    const mockOnSelectAccount = jest.fn();
+    const { getByTestId } = renderAccountCell({
+      onSelectAccount: mockOnSelectAccount,
+    });
+
+    fireEvent.press(getByTestId(AccountCellIds.AVATAR));
+
+    expect(mockOnSelectAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onSelectAccount when menu button is pressed', () => {
+    const mockOnSelectAccount = jest.fn();
+    const { getByTestId } = renderAccountCell({
+      onSelectAccount: mockOnSelectAccount,
+    });
+
+    // Given a rendered account cell
+    // When the user presses the menu button
+    const menuButton = getByTestId(AccountCellIds.MENU);
+    fireEvent.press(menuButton);
+
+    // Then onSelectAccount should not be called, only navigate
+    expect(mockOnSelectAccount).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('renders avatar inside wrapper with correct styling when selected', () => {
+    const { getByTestId } = renderAccountCell({ isSelected: true });
+
+    // Given an account cell that is selected
+    // When rendered
+    // Then the avatar should be visible with selection indicator
+    expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
+  });
+
+  it('renders avatar inside wrapper with correct styling when not selected', () => {
+    const { getByTestId } = renderAccountCell({ isSelected: false });
+
+    // Given an account cell that is not selected
+    // When rendered
+    // Then the avatar should be visible without selection indicator
+    expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
+  });
+
+  it('displays correct test IDs for all elements', () => {
+    const { getByTestId } = renderAccountCell();
+
+    // Verify all expected test IDs are present
+    expect(getByTestId(AccountCellIds.CONTAINER)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.ADDRESS)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.BALANCE)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.MENU)).toBeTruthy();
   });
 });

@@ -8,6 +8,7 @@ import {
   AccountGroupId,
   AccountWalletId,
   AccountWalletType,
+  parseAccountGroupId,
 } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import {
@@ -18,6 +19,7 @@ import {
 import { CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupWithInternalAccounts } from './accounts.type';
+import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 
 // Stable empty references to prevent unnecessary re-renders
 const EMPTY_ARR: readonly never[] = Object.freeze([]);
@@ -26,6 +28,30 @@ const EMPTY_OBJ: Readonly<Record<string, never>> = Object.freeze({});
 // Type definitions for reverse mappings
 type AccountToWalletMap = Readonly<Record<AccountId, AccountWalletId>>;
 type AccountToGroupMap = Readonly<Record<AccountId, AccountGroupObject>>;
+
+/**
+ * Get an account group from the AccountControllerState.
+ *
+ * @param state - The AccountControllerState object.
+ * @param groupId - The group ID to get.
+ * @returns The account group boject for this group ID.
+ * */
+function getAccountGroupFrom(
+  state: AccountTreeControllerState | undefined,
+  groupId: AccountGroupId | null,
+) {
+  if (!state?.accountTree?.wallets || !groupId) {
+    return undefined;
+  }
+
+  const { wallets } = state.accountTree;
+  const {
+    wallet: { id: walletId },
+  } = parseAccountGroupId(groupId);
+  const wallet = wallets[walletId];
+
+  return wallet?.groups[groupId];
+}
 
 /**
  * Get the AccountTreeController state
@@ -224,16 +250,48 @@ export const selectWalletByAccount = createSelector(
 );
 
 /**
- * Get the selected account group from the AccountTreeController using optimized reverse mapping
- * @param state - Root redux state
- * @param selectedAccountId - The ID of the selected account
- * @returns The selected account group or null if not found
+ * Get a wallet status.
+ *
+ * @param walletId - The wallet ID.
+ * @returns The wallet status is wallet has been found, null otherwise.
  */
-export const selectSelectedAccountGroup = createSelector(
-  [selectAccountToGroupMap, selectSelectedInternalAccountId],
-  (accountToGroupMap, selectedAccountId): AccountGroupObject | null => {
-    if (!selectedAccountId) return null;
+export const selectWalletStatus = createSelector(
+  [selectWalletsMap],
+  (wallets) =>
+    (walletId: AccountWalletId): AccountWalletObject['status'] | null => {
+      if (!wallets) return null;
 
+      return wallets[walletId]?.status ?? null;
+    },
+);
+
+/**
+ * Resolves the selected account group preferring the controller's explicit selection,
+ * and falling back to deriving from the selected internal account.
+ */
+export const selectResolvedSelectedAccountGroup = createSelector(
+  [
+    selectAccountTreeControllerState,
+    selectAccountToGroupMap,
+    selectSelectedInternalAccountId,
+  ],
+  (
+    accountTreeState,
+    accountToGroupMap,
+    selectedAccountId,
+  ): AccountGroupObject | null => {
+    const selectedAccountGroupId =
+      accountTreeState?.accountTree?.selectedAccountGroup;
+    if (selectedAccountGroupId) {
+      const [walletId] = selectedAccountGroupId.split('/') as [AccountWalletId];
+      const wallet = accountTreeState?.accountTree?.wallets?.[walletId];
+      const group = wallet?.groups?.[
+        selectedAccountGroupId as keyof typeof wallet.groups
+      ] as AccountGroupObject | undefined;
+      return group ?? null;
+    }
+
+    if (!selectedAccountId) return null;
     return accountToGroupMap[selectedAccountId] ?? null;
   },
 );
@@ -247,21 +305,9 @@ export const selectSelectedAccountGroup = createSelector(
  */
 export const selectAccountGroupById = createSelector(
   selectAccountTreeControllerState,
-  (_, accountId: AccountGroupId) => accountId,
-  (
-    accountTree: AccountTreeControllerState | undefined,
-    accountId: AccountGroupId,
-  ) => {
-    if (!accountTree?.accountTree?.wallets) {
-      return undefined;
-    }
-
-    const { wallets } = accountTree.accountTree;
-    const [walletId] = accountId.split('/');
-    const wallet = wallets[walletId as AccountWalletId];
-
-    return wallet?.groups[accountId as AccountGroupId];
-  },
+  (_, groupId: AccountGroupId) => groupId,
+  (state: AccountTreeControllerState | undefined, groupId: AccountGroupId) =>
+    getAccountGroupFrom(state, groupId),
 );
 
 /**
@@ -305,6 +351,20 @@ export const selectSelectedAccountGroupId = createSelector(
 );
 
 /**
+ * Get the selected account group from the AccountTreeController using optimized reverse mapping
+ * @param state - Root redux state
+ * @param selectedAccountId - The ID of the selected account
+ * @returns The selected account group or null if not found
+ */
+export const selectSelectedAccountGroup = createSelector(
+  [selectAccountTreeControllerState, selectSelectedAccountGroupId],
+  (
+    state: AccountTreeControllerState,
+    groupId: AccountGroupId | null,
+  ): AccountGroupObject | null => getAccountGroupFrom(state, groupId) ?? null,
+);
+
+/**
  * Selects account groups with their internal accounts fully populated.
  * This selector transforms `accountGroup.accounts` by replacing account IDs
  * with the corresponding internal account objects from the `internalAccounts` array.
@@ -332,3 +392,58 @@ export const selectAccountGroupWithInternalAccounts = createSelector(
         .filter((account): account is InternalAccount => account !== undefined),
     })),
 );
+
+/**
+ * Selector to get internal accounts associated with the currently selected account group.
+ *
+ * This composes `selectAccountGroupWithInternalAccounts` and `selectSelectedAccountGroup`
+ * to return the list of internal accounts belonging to the selected group.
+ *
+ * @param state - The Redux root state
+ * @returns A readonly array of internal accounts for the selected account group
+ */
+export const selectSelectedAccountGroupInternalAccounts = createSelector(
+  [selectAccountGroupWithInternalAccounts, selectResolvedSelectedAccountGroup],
+  (
+    accountGroupsWithAccounts: readonly AccountGroupWithInternalAccounts[],
+    selectedGroup: AccountGroupObject | null,
+  ): readonly InternalAccount[] => {
+    if (!selectedGroup) {
+      return EMPTY_ARR as readonly InternalAccount[];
+    }
+
+    const group = accountGroupsWithAccounts.find(
+      (groupItem) => groupItem.id === selectedGroup.id,
+    );
+
+    return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
+  },
+);
+
+/**
+ * Returns an array with the formatted addresses of the internal accounts
+ * of the selected account group.
+ *
+ */
+export const selectSelectedAccountGroupWithInternalAccountsAddresses =
+  createSelector(
+    selectSelectedAccountGroup,
+    selectInternalAccounts,
+    (selectedAccountGroup, internalAccounts) => {
+      if (!selectedAccountGroup) return EMPTY_ARR as readonly string[];
+
+      return selectedAccountGroup.accounts
+        .map((accountId: string) => {
+          const accountGroupInternalAccount = internalAccounts.find(
+            (internalAccount) => internalAccount.id === accountId,
+          );
+          if (accountGroupInternalAccount?.address) {
+            return getFormattedAddressFromInternalAccount(
+              accountGroupInternalAccount,
+            );
+          }
+          return null;
+        })
+        .filter(Boolean);
+    },
+  );

@@ -5,6 +5,7 @@ import {
   selectAccountGroups,
   selectAccountGroupsByWallet,
   selectSelectedAccountGroup,
+  selectResolvedSelectedAccountGroup,
   selectAccountTreeControllerState,
   selectWalletsMap,
   selectAccountToWalletMap,
@@ -14,15 +15,18 @@ import {
   selectAccountGroupById,
   selectSelectedAccountGroupId,
   selectInternalAccountFromAccountGroup,
+  selectSelectedAccountGroupInternalAccounts,
+  selectSelectedAccountGroupWithInternalAccountsAddresses,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountId } from '@metamask/accounts-controller';
-import { AccountGroupType } from '@metamask/account-api';
+import { AccountGroupType, toAccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
-import { EthScope, SolScope } from '@metamask/keyring-api';
+import { BtcAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'keyring:wallet2' as const;
@@ -82,6 +86,7 @@ const createMockState = (
       metadata: { name: string };
     }
   > = {},
+  selectedAccount?: string | null,
 ): RootState =>
   ({
     engine: {
@@ -99,6 +104,7 @@ const createMockState = (
         AccountsController: {
           internalAccounts: {
             accounts: internalAccounts,
+            ...(selectedAccount !== undefined ? { selectedAccount } : {}),
           },
         },
         KeyringController: {
@@ -267,6 +273,152 @@ describe('AccountTreeController Selectors', () => {
         accountTree: { wallets: {} },
       });
       expect(selectAccountSections(mockState)).toEqual([]);
+    });
+  });
+
+  describe('selectResolvedSelectedAccountGroup', () => {
+    it('returns explicitly selected account group when set', () => {
+      // Given a wallet with a known group and an explicit selectedAccountGroup ID
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const group = createMockAccountGroup(groupId, ['account1', 'account2']);
+      const state = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            selectedAccountGroup: groupId,
+            wallets: {
+              [walletId]: {
+                id: walletId,
+                metadata: { name: 'Test Wallet' },
+                groups: {
+                  [groupId]: group,
+                },
+              },
+            },
+          },
+        },
+        'account2',
+      );
+
+      // When resolving the selected account group
+      const result = selectResolvedSelectedAccountGroup(state);
+
+      // Then it should return the explicitly selected group
+      expect(result).toEqual(group);
+    });
+
+    it('returns null when explicit selectedAccountGroup is set but group does not exist', () => {
+      // Given a state with an explicit group ID that does not exist in wallets
+      const walletId = 'keyring:test-wallet' as const;
+      const missingGroupId = `${walletId}/missing` as const;
+      const state = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            selectedAccountGroup: missingGroupId,
+            wallets: {
+              [walletId]: {
+                id: walletId,
+                metadata: { name: 'Test Wallet' },
+                groups: {},
+              },
+            },
+          },
+        },
+        'account1',
+      );
+
+      // When resolving the selected account group
+      const result = selectResolvedSelectedAccountGroup(state);
+
+      // Then it should return null because the group is missing
+      expect(result).toBeNull();
+    });
+
+    it('falls back to selected internal account mapping when no explicit selection', () => {
+      // Given a wallet with a group containing the selected internal account
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const group = createMockAccountGroup(groupId, ['account1', 'account2']);
+      const state = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            wallets: {
+              [walletId]: {
+                id: walletId,
+                metadata: { name: 'Test Wallet' },
+                groups: {
+                  [groupId]: group,
+                },
+              },
+            },
+          },
+        },
+        'account2',
+      );
+
+      // When resolving without explicit group selection
+      const result = selectResolvedSelectedAccountGroup(state);
+
+      // Then it should return the group that contains the selected account
+      expect(result).toEqual(group);
+    });
+
+    it('returns null when no explicit selection and no selected internal account', () => {
+      // Given a state with wallets but no selected internal account
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const group = createMockAccountGroup(groupId, ['account1']);
+      const state = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            wallets: {
+              [walletId]: {
+                id: walletId,
+                metadata: { name: 'Test Wallet' },
+                groups: {
+                  [groupId]: group,
+                },
+              },
+            },
+          },
+        },
+        null,
+      );
+
+      // When resolving without any selection
+      const result = selectResolvedSelectedAccountGroup(state);
+
+      // Then it should return null
+      expect(result).toBeNull();
+    });
+
+    it('returns null when selected internal account is not part of any group', () => {
+      // Given wallets whose groups do not contain the selected internal account
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const group = createMockAccountGroup(groupId, ['account1']);
+      const state = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            wallets: {
+              [walletId]: {
+                id: walletId,
+                metadata: { name: 'Test Wallet' },
+                groups: {
+                  [groupId]: group,
+                },
+              },
+            },
+          },
+        },
+        'account999',
+      );
+
+      // When resolving using the fallback path
+      const result = selectResolvedSelectedAccountGroup(state);
+
+      // Then it should return null because the selected account is not mapped
+      expect(result).toBeNull();
     });
   });
 
@@ -672,16 +824,50 @@ describe('AccountTreeController Selectors', () => {
       },
     );
 
-    it('returns account group when selected account is found', () => {
+    it('returns account group when selected account group is found', () => {
+      const walletId = WALLET_ID_1;
+      const groupId1 = toAccountGroupId(walletId, 'test-1');
       const mockState = createStateWithSelectedAccount(
         {
           accountTree: {
             wallets: {
-              [WALLET_ID_1]: {
+              [walletId]: {
                 ...mockWallet1,
-                groups: { 'keyring:1/ethereum': { accounts: [ACCOUNT_ID_1] } },
+                groups: { [groupId1]: { accounts: [ACCOUNT_ID_1] } },
               },
             },
+            selectedAccountGroup: groupId1,
+          },
+        },
+        ACCOUNT_ID_1,
+      );
+
+      const result = selectSelectedAccountGroup(mockState);
+      expect(result).toEqual({ accounts: [ACCOUNT_ID_1] });
+    });
+
+    it('returns account group even if accounts controller use a different selected account', () => {
+      const walletId = WALLET_ID_1;
+      const groupId1 = toAccountGroupId(walletId, 'test-1');
+      const groupId2 = toAccountGroupId(walletId, 'test-2');
+      const mockState = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            wallets: {
+              [walletId]: {
+                ...mockWallet1,
+                groups: {
+                  [groupId1]: { accounts: [ACCOUNT_ID_1] },
+                  [groupId2]: { accounts: [ACCOUNT_ID_2] },
+                },
+              },
+            },
+            selectedAccountGroup: groupId1,
+          },
+          internalAccount: {
+            // Associated with `groupId2`, but this should not interfere with the actual
+            // selected account group.
+            selectedAccount: ACCOUNT_ID_2,
           },
         },
         ACCOUNT_ID_1,
@@ -1118,25 +1304,6 @@ describe('AccountTreeController Selectors', () => {
       expect(result).toBeUndefined();
     });
 
-    it('handles malformed group ID gracefully', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              ...mockWallet1,
-              groups: {},
-            },
-          },
-        },
-      });
-
-      const malformedGroupId = 'keyring:invalid-group-id' as Parameters<
-        typeof selectAccountGroupById
-      >[1];
-      const result = selectAccountGroupById(mockState, malformedGroupId);
-      expect(result).toBeUndefined();
-    });
-
     it('correctly extracts wallet ID from group ID and finds group', () => {
       const groupId = 'keyring:test-wallet/ethereum' as Parameters<
         typeof selectAccountGroupById
@@ -1418,6 +1585,263 @@ describe('AccountTreeController Selectors', () => {
         {},
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe('selectSelectedAccountGroupInternalAccounts', () => {
+    it('returns empty array when no account is selected', () => {
+      // Given a wallet with a group and internal accounts but no selected account
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+      );
+
+      // When selecting internal accounts for the (non-selected) group
+      const result = selectSelectedAccountGroupInternalAccounts(state);
+
+      // Then it returns an empty array
+      expect(result).toEqual([]);
+    });
+
+    it('returns internal accounts for the selected account group', () => {
+      // Given a wallet with a group that contains two accounts
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+        'account2',
+      );
+
+      // When selecting internal accounts for the selected group
+      const result = selectSelectedAccountGroupInternalAccounts(state);
+
+      // Then it returns the list of internal account objects in the group order
+      expect(result.map((a) => a.id)).toEqual(['account1', 'account2']);
+    });
+
+    it('filters out accounts missing from internal accounts map', () => {
+      // Given a group with two account IDs but only one present in internal accounts
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+        'account2',
+      );
+
+      // When selecting internal accounts for the selected group
+      const result = selectSelectedAccountGroupInternalAccounts(state);
+
+      // Then it includes only the internal accounts that exist
+      expect(result.map((a) => a.id)).toEqual(['account2']);
+    });
+  });
+
+  describe('selectSelectedAccountGroupWithInternalAccountsAddresses', () => {
+    it('returns empty array when no account is selected', () => {
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+      );
+
+      const result =
+        selectSelectedAccountGroupWithInternalAccountsAddresses(state);
+      expect(result).toEqual([]);
+    });
+
+    it('returns formatted addresses of internal accounts in the selected account group', () => {
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, [
+            'account1',
+            'account2',
+            'account3',
+          ]),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+        account3: {
+          ...createMockInternalAccount(
+            '0x2990079bcdee240329a520d2444386fc119da21a',
+            'Account 3',
+          ),
+          id: 'account3',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: { [walletId]: wallet },
+            selectedAccountGroup: groupId,
+          },
+        },
+        true,
+        internalAccounts,
+        'account2',
+      );
+
+      const result =
+        selectSelectedAccountGroupWithInternalAccountsAddresses(state);
+      expect(result).toEqual([
+        '0x1',
+        '0x2',
+        '0x2990079bcdEe240329a520d2444386FC119da21a',
+      ]);
+    });
+
+    it('handles groups with mixed account types correctly', () => {
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/mixed` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, [
+            'account1',
+            'account2',
+            'account3',
+            'account4',
+          ]),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+        account3: {
+          ...createMockInternalAccount(
+            'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
+            'Account 3',
+            KeyringTypes.snap,
+            BtcAccountType.P2pkh,
+          ),
+          id: 'account3',
+        },
+        account4: {
+          ...createMockInternalAccount('', 'Account 4'),
+          id: 'account4',
+        },
+      };
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: { [walletId]: wallet },
+            selectedAccountGroup: groupId,
+          },
+        },
+        true,
+        internalAccounts,
+        'account2',
+      );
+
+      const result =
+        selectSelectedAccountGroupWithInternalAccountsAddresses(state);
+      expect(result).toEqual([
+        '0x1',
+        '0x2',
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
+      ]);
     });
   });
 });

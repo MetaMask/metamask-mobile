@@ -1,6 +1,5 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -10,6 +9,15 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
+
+// Mock @consensys/native-ramps-sdk to provide missing enum
+jest.mock('@consensys/native-ramps-sdk', () => ({
+  ...jest.requireActual('@consensys/native-ramps-sdk'),
+  DepositPaymentMethodDuration: {
+    instant: 'instant',
+    oneToTwoDays: 'oneToTwoDays',
+  },
+}));
 
 // Mock Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -51,7 +59,10 @@ const mockRouteParams: {
     volume: string;
     maxLeverage: string;
   };
-  isNavigationFromOrderSuccess: boolean;
+  monitoringIntent?: {
+    asset: string;
+    monitor: 'orders' | 'positions' | 'both';
+  };
 } = {
   market: {
     symbol: 'BTC',
@@ -62,7 +73,7 @@ const mockRouteParams: {
     volume: '$1.23B',
     maxLeverage: '40x',
   },
-  isNavigationFromOrderSuccess: false,
+  monitoringIntent: undefined,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -215,12 +226,6 @@ jest.mock('../../hooks', () => ({
     refresh: jest.fn(),
     isRefreshing: false,
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
@@ -360,6 +365,18 @@ describe('PerpsMarketDetailsView', () => {
       isInitialLoading: false,
     });
 
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '1000',
+      },
+      isInitialLoading: false,
+    });
+
     mockUseHasExistingPosition.mockReturnValue({
       hasPosition: false,
       isLoading: false,
@@ -387,7 +404,6 @@ describe('PerpsMarketDetailsView', () => {
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
 
     // Reset route params to default
-    mockRouteParams.isNavigationFromOrderSuccess = false;
     mockRouteParams.market = {
       symbol: 'BTC',
       name: 'Bitcoin',
@@ -550,6 +566,18 @@ describe('PerpsMarketDetailsView', () => {
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
           totalValue: '0.00',
+        },
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
         },
         isInitialLoading: false,
       });
@@ -966,6 +994,18 @@ describe('PerpsMarketDetailsView', () => {
         isInitialLoading: false,
       });
 
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
+      });
+
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -1077,6 +1117,18 @@ describe('PerpsMarketDetailsView', () => {
         isInitialLoading: false,
       });
 
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
+      });
+
       const { getByTestId, getByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -1135,7 +1187,10 @@ describe('PerpsMarketDetailsView', () => {
   describe('notification tooltip functionality', () => {
     it('renders tooltip when flags are true and from successful order', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-      mockRouteParams.isNavigationFromOrderSuccess = true;
+      mockRouteParams.monitoringIntent = {
+        asset: 'BTC',
+        monitor: 'orders',
+      };
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1153,7 +1208,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('does not show PerpsNotificationTooltip when not navigating from order success', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-      mockRouteParams.isNavigationFromOrderSuccess = false;
+      mockRouteParams.monitoringIntent = undefined;
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1171,7 +1226,10 @@ describe('PerpsMarketDetailsView', () => {
 
     it('does not show PerpsNotificationTooltip when notifications feature is disabled', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(false);
-      mockRouteParams.isNavigationFromOrderSuccess = true;
+      mockRouteParams.monitoringIntent = {
+        asset: 'BTC',
+        monitor: 'orders',
+      };
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1230,63 +1288,6 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
       ).toBeNull();
-    });
-  });
-
-  describe('TradingView link functionality', () => {
-    it('opens TradingView URL when link is pressed', async () => {
-      const { getByText } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
-      fireEvent.press(tradingViewLink);
-
-      // Verify Linking.openURL was called with correct URL
-      await waitFor(() => {
-        expect(Linking.openURL).toHaveBeenCalledWith(
-          'https://www.tradingview.com/',
-        );
-      });
-    });
-
-    it('handles error when opening TradingView URL fails', async () => {
-      // Mock console.error to avoid test output pollution
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      // Mock Linking.openURL to reject
-      (Linking.openURL as jest.Mock).mockRejectedValueOnce(
-        new Error('Failed to open URL'),
-      );
-
-      const { getByText } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
-      fireEvent.press(tradingViewLink);
-
-      // Wait for the error to be logged
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          'Failed to open Trading View URL:',
-          expect.any(Error),
-        );
-      });
-
-      consoleErrorSpy.mockRestore();
     });
   });
 

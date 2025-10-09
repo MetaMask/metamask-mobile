@@ -25,6 +25,7 @@ module.exports = {
     },
     jest: {
       setupTimeout: 220000,
+      teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
     },
     retries: 1,
   },
@@ -66,6 +67,10 @@ module.exports = {
       device: 'android.github_ci.emulator',
       app: 'android.release',
     },
+    'android.github_ci.flask.release': {
+      device: 'android.github_ci.emulator',
+      app: 'android.flask.release',
+    },
     'android.emu.flask.release': {
       device: 'android.bitrise.emulator',
       app: 'android.flask.release',
@@ -99,8 +104,8 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      // optimized for GitHub Actions CI runners
-      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on -wipe-data -read-only',
+      // Increased memory and cores for CI stability
+      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on -wipe-data -read-only',      
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },

@@ -133,6 +133,7 @@ export class SDKConnect {
     originatorInfo,
     initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+    hideReturnToApp,
   }: ConnectionProps) {
     return connectToChannel({
       id,
@@ -144,6 +145,7 @@ export class SDKConnect {
       validUntil,
       initialConnection,
       instance: this,
+      hideReturnToApp,
     });
   }
 

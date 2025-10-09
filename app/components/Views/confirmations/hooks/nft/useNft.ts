@@ -35,12 +35,12 @@ export const useNft = (): UseNftResponse => {
   const tokenAddress = safeToChecksumAddress(txParams?.to) ?? '';
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
-  const tokenId = transactionData?.args?._value ?? undefined;
+  const tokenId = (
+    transactionData?.args?._value ?? transactionData?.args[2]
+  )?.toString();
 
   const nfts: Nft[] = useSelector(collectiblesSelector);
-  const nft = tokenId
-    ? nfts.find((c) => c.tokenId === tokenId.toString())
-    : undefined;
+  const nft = tokenId ? nfts.find((c) => c.tokenId === tokenId) : undefined;
 
   const nftContract = useNftContract(chainId, tokenAddress);
 

@@ -1,3 +1,4 @@
+import { BtcAccountType, KeyringAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
@@ -15,7 +16,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
-
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -33,11 +33,21 @@ import {
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+
+export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
+
+const accountTypeLabel: Partial<Record<KeyringAccountType, string>> = {
+  [BtcAccountType.P2pkh]: 'Legacy',
+  [BtcAccountType.P2sh]: 'Nested SegWit',
+  [BtcAccountType.P2wpkh]: 'Native SegWit',
+  [BtcAccountType.P2tr]: 'Taproot',
+};
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -110,7 +120,7 @@ export const TokenListItemBip44 = React.memo(
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
-      () => NetworkBadgeSource(chainId),
+      () => (chainId ? NetworkBadgeSource(chainId) : null),
       [chainId],
     );
 
@@ -159,6 +169,10 @@ export const TokenListItemBip44 = React.memo(
       return null;
     }
 
+    const label = asset.accountType
+      ? accountTypeLabel[asset.accountType]
+      : undefined;
+
     return (
       <AssetElement
         onPress={onItemPress}
@@ -174,10 +188,12 @@ export const TokenListItemBip44 = React.memo(
           style={styles.badge}
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource}
-            />
+            networkBadgeSource ? (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource}
+              />
+            ) : null
           }
         >
           <AssetLogo asset={asset} />
@@ -192,7 +208,7 @@ export const TokenListItemBip44 = React.memo(
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
-            {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
+            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
           <View style={styles.percentageChange}>
             {
@@ -209,7 +225,7 @@ export const TokenListItemBip44 = React.memo(
           </View>
         </View>
         <ScamWarningIcon
-          asset={asset}
+          asset={asset as TokenI & { chainId: string }}
           setShowScamWarningModal={setShowScamWarningModal}
         />
       </AssetElement>

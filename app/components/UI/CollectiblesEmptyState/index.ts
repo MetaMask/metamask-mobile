@@ -1,0 +1,1 @@
+export { CollectiblesEmptyState } from './CollectiblesEmptyState';

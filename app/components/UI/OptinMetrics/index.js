@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
   View,
-  SafeAreaView,
   StyleSheet,
   ScrollView,
   BackHandler,
@@ -9,7 +8,9 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -17,7 +18,6 @@ import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
-import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
@@ -30,8 +30,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { MAINNET } from '../../../constants/network';
-import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -41,11 +39,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import {
   updateCachedConsent,
@@ -53,6 +46,8 @@ import {
   discardBufferedTraces,
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
+import Device from '../../../util/device';
+import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -117,6 +112,34 @@ const createStyles = ({ colors }) =>
     title: {
       fontWeight: '700',
     },
+    sectionContainer: {
+      backgroundColor: colors.background.section,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    },
+    imageContainer: {
+      alignItems: 'center',
+      marginVertical: Device.isMediumDevice() ? 8 : 12,
+    },
+    illustration: {
+      width: Device.isMediumDevice() ? 160 : 200,
+      height: Device.isMediumDevice() ? 120 : 150,
+      alignSelf: 'center',
+    },
+    flexContainer: {
+      flex: 1,
+    },
+    descriptionText: {
+      marginTop: 4,
+      marginLeft: 0,
+    },
+    disabledContainer: {
+      opacity: 0.5,
+    },
+    disabledText: {
+      color: colors.text.muted,
+    },
   });
 
 /**
@@ -164,34 +187,17 @@ class OptinMetrics extends PureComponent {
     /**
      * Tracks the checkbox's checked state.
      */
-    isCheckboxChecked: false,
+    isMarketingChecked: false,
+    /**
+     * Tracks the basic usage checkbox's checked state.
+     */
+    isBasicUsageChecked: true,
   };
 
   getStyles = () => {
     const { colors, typography } = this.context;
     return createStyles({ colors, typography });
   };
-
-  actionsList = isPastPrivacyPolicyDate
-    ? [1, 2, 3].map((value) => ({
-        action: value,
-        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-        description: strings(
-          `privacy_policy.action_description_${value}_description`,
-        ),
-      }))
-    : [1, 2, 3, 4, 5].map((value) => {
-        const actionVal = value <= 2 ? 0 : 1;
-        return {
-          action: actionVal,
-          prefix: actionVal
-            ? `${strings('privacy_policy.action_description_never_legacy')} `
-            : '',
-          description: strings(
-            `privacy_policy.action_description_${value}_legacy`,
-          ),
-        };
-      });
 
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
@@ -247,96 +253,22 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Render each action with corresponding icon
-   *
-   * @param {object} - Object containing action and description to be rendered
-   * @param {number} i - Index key
-   */
-  renderLegacyAction = ({ action, description, prefix }, i) => {
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.action} key={i}>
-        {action === 0 ? (
-          <Icon
-            name={IconName.CheckBold}
-            size={IconSize.Lg}
-            color={IconColor.Success}
-          />
-        ) : (
-          <Icon
-            name={IconName.CircleX}
-            size={IconSize.Lg}
-            color={IconColor.Error}
-          />
-        )}
-        <Text style={styles.description}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {prefix}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {description}
-          </Text>
-        </Text>
-      </View>
-    );
-  };
-
-  renderAction = ({ description, prefix }, i) => {
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.action} key={i}>
-        <Icon
-          name={IconName.CheckBold}
-          size={IconSize.Lg}
-          color={IconColor.Success}
-        />
-        <Text style={styles.description}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {prefix + ' '}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {description}
-          </Text>
-        </Text>
-      </View>
-    );
-  };
-
-  /**
-   * Callback on press cancel
-   */
-  onCancel = async () => {
-    setTimeout(async () => {
-      const { clearOnboardingEvents, metrics, setDataCollectionForMarketing } =
-        this.props;
-      // Ensure marketing data collection is explicitly disabled when declining metrics
-      setDataCollectionForMarketing(false);
-      // if users refuses tracking, get rid of the stored events
-      // and never send them to Segment
-      // and disable analytics
-      clearOnboardingEvents();
-      await metrics.enable(false);
-      await setupSentry(); // Re-setup Sentry with enabled: false
-      discardBufferedTraces();
-      updateCachedConsent(false);
-    }, 200);
-    this.continue();
-  };
-
-  /**
    * Callback on press confirm
    */
   onConfirm = async () => {
     const { events, metrics, setDataCollectionForMarketing } = this.props;
 
-    await metrics.enable();
-    await setupSentry(); // Re-setup Sentry with enabled: true
-    await flushBufferedTraces();
-    updateCachedConsent(true);
+    await metrics.enable(this.state.isBasicUsageChecked);
+    await setupSentry(); // enabled/disabled depend on the isBasicUsageChecked
 
-    setDataCollectionForMarketing(this.state.isCheckboxChecked);
+    if (this.state.isBasicUsageChecked) {
+      await flushBufferedTraces();
+    } else {
+      discardBufferedTraces();
+    }
+    updateCachedConsent(this.state.isBasicUsageChecked);
+
+    setDataCollectionForMarketing(this.state.isMarketingChecked);
 
     // Track the analytics preference event first
     metrics.trackEvent(
@@ -344,9 +276,9 @@ class OptinMetrics extends PureComponent {
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
           [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-            this.state.isCheckboxChecked,
+            this.state.isMarketingChecked,
           ),
-          is_metrics_opted_in: true,
+          is_metrics_opted_in: this.state.isBasicUsageChecked,
           location: 'onboarding_metametrics',
           updated_after_onboarding: false,
         })
@@ -382,16 +314,6 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Open RPC settings.
-   */
-  openRPCSettings = () => {
-    this.props.navigation.navigate(Routes.ADD_NETWORK, {
-      network: MAINNET,
-      isCustomMainnet: true,
-    });
-  };
-
-  /**
    * Opens link when provided link params.
    *
    * @param {Object} linkParams
@@ -405,76 +327,33 @@ class OptinMetrics extends PureComponent {
     });
   };
 
-  /**
-   * Open privacy policy in webview.
-   */
-  openPrivacyPolicy = () =>
+  openLearnMore = () =>
     this.onPressLink({
-      url: AppConstants.URLS.PRIVACY_POLICY,
-      title: strings('privacy_policy.title'),
+      url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+      title: 'How to manage your MetaMetrics settings',
     });
 
-  /**
-   * Open data retention post in webview.
-   */
-  openDataRetentionPost = () =>
-    this.onPressLink({
-      url: AppConstants.URLS.DATA_RETENTION_UPDATE,
-      title: '',
-    });
+  handleBasicUsageToggle = () => {
+    this.setState((prevState) => ({
+      isBasicUsageChecked: !prevState.isBasicUsageChecked,
 
-  /**
-   * Render privacy policy description
-   *
-   * @returns - Touchable opacity object to render with privacy policy information
-   */
-  renderPrivacyPolicy = () => {
-    const styles = this.getStyles();
-
-    if (isPastPrivacyPolicyDate) {
-      return (
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('privacy_policy.fine_print_1') + ' '}
-          <Text
-            color={TextColor.Primary}
-            variant={TextVariant.BodySM}
-            onPress={this.openPrivacyPolicy}
-          >
-            {strings('privacy_policy.privacy_policy_button')}
-          </Text>
-          {' ' + strings('privacy_policy.fine_print_2')}
-        </Text>
-      );
-    }
-
-    return (
-      <View>
-        <Text style={styles.privacyPolicy}>
-          <Text>{strings('privacy_policy.fine_print_1_legacy')}</Text>
-          {'\n\n'}
-          {strings('privacy_policy.fine_print_2a_legacy') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here_legacy')}
-            onPress={this.openRPCSettings}
-          />
-          {' ' + strings('privacy_policy.fine_print_2b_legacy') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            onPress={this.openDataRetentionPost}
-            label={strings('privacy_policy.here_legacy')}
-          />
-          {strings('privacy_policy.fine_print_2c_legacy') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here_legacy')}
-            onPress={this.openPrivacyPolicy}
-          />
-          {strings('unit.point')}
-        </Text>
-      </View>
-    );
+      isMarketingChecked: prevState.isBasicUsageChecked
+        ? false
+        : prevState.isMarketingChecked,
+    }));
   };
+
+  handleMarketingToggle = () => {
+    if (this.state.isBasicUsageChecked) {
+      this.setState((prevState) => ({
+        isMarketingChecked: !prevState.isMarketingChecked,
+      }));
+    }
+  };
+
+  get isMarketingDisabled() {
+    return !this.state.isBasicUsageChecked;
+  }
 
   renderActionButtons = () => {
     const styles = this.getStyles();
@@ -482,22 +361,11 @@ class OptinMetrics extends PureComponent {
     return (
       <View style={styles.actionContainer}>
         <Button
-          variant={ButtonVariants.Secondary}
-          onPress={this.onCancel}
-          testID={
-            MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID
-          }
-          style={styles.button}
-          label={strings('privacy_policy.cta_no_thanks')}
-          size={ButtonSize.Lg}
-        />
-        <View style={styles.buttonDivider} />
-        <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
-          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID}
+          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID}
           style={styles.button}
-          label={strings('privacy_policy.cta_i_agree')}
+          label={strings('privacy_policy.continue')}
           size={ButtonSize.Lg}
         />
       </View>
@@ -556,7 +424,7 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaView style={styles.root}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
         <ScrollView
           style={styles.root}
           scrollEventThrottle={150}
@@ -574,54 +442,109 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
+            <View style={styles.imageContainer}>
+              <Image
+                source={PrivacyIllustration}
+                style={styles.illustration}
+                resizeMode="contain"
+              />
+            </View>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              color={TextColor.Alternative}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
             >
-              {strings(
-                isPastPrivacyPolicyDate
-                  ? 'privacy_policy.description_content_1'
-                  : 'privacy_policy.description_content_1_legacy',
-              )}
+              {strings('privacy_policy.description_content_1')}
             </Text>
-            {this.actionsList.map((action, i) =>
-              isPastPrivacyPolicyDate
-                ? this.renderAction(action, i)
-                : this.renderLegacyAction(action, i),
-            )}
-            {isPastPrivacyPolicyDate ? (
+            <View>
               <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  this.setState((prevState) => ({
-                    isCheckboxChecked: !prevState.isCheckboxChecked,
-                  }))
+                style={styles.sectionContainer}
+                onPress={this.handleBasicUsageToggle}
+                testID={
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
                 }
-                activeOpacity={1}
+                activeOpacity={0.7}
               >
-                <Checkbox
-                  isChecked={this.state.isCheckboxChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  onPress={() =>
-                    this.setState((prevState) => ({
-                      isCheckboxChecked: !prevState.isCheckboxChecked,
-                    }))
-                  }
-                />
+                <View style={styles.checkbox}>
+                  <Checkbox
+                    onPress={this.handleBasicUsageToggle}
+                    isChecked={this.state.isBasicUsageChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                  />
+                  <View style={styles.flexContainer}>
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      color={TextColor.Default}
+                    >
+                      {strings('privacy_policy.gather_basic_usage_title')}
+                    </Text>
+                  </View>
+                </View>
                 <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={styles.descriptionText}
+                >
+                  {strings('privacy_policy.gather_basic_usage_description') +
+                    ' '}
+                  <Text
+                    color={TextColor.Primary}
+                    variant={TextVariant.BodySM}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      this.openLearnMore();
+                    }}
+                  >
+                    {strings('privacy_policy.gather_basic_usage_learn_more')}
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.sectionContainer,
+                  this.isMarketingDisabled && styles.disabledContainer,
+                ]}
+                onPress={this.handleMarketingToggle}
+                activeOpacity={this.isMarketingDisabled ? 1 : 0.7}
+                disabled={this.isMarketingDisabled}
+              >
+                <View style={styles.checkbox}>
+                  <Checkbox
+                    onPress={this.handleMarketingToggle}
+                    isChecked={this.state.isMarketingChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
+                    disabled={this.isMarketingDisabled}
+                  />
+                  <View style={styles.flexContainer}>
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      color={
+                        this.isMarketingDisabled
+                          ? TextColor.Muted
+                          : TextColor.Default
+                      }
+                    >
+                      {strings('privacy_policy.checkbox_marketing')}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    this.isMarketingDisabled
+                      ? TextColor.Muted
+                      : TextColor.Alternative
+                  }
+                  style={styles.descriptionText}
                 >
                   {strings('privacy_policy.checkbox')}
                 </Text>
               </TouchableOpacity>
-            ) : null}
-            <View style={styles.divider} />
-            {this.renderPrivacyPolicy()}
+            </View>
           </View>
         </ScrollView>
         {this.renderActionButtons()}

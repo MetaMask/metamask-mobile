@@ -58,6 +58,7 @@ const mockSelectIsAllNetworks = jest.fn();
 const mockSelectIsPopularNetwork = jest.fn();
 const mockSelectIsEvmNetworkSelected = jest.fn();
 const mockSelectNetworkName = jest.fn();
+const mockSelectMultichainAccountsState2Enabled = jest.fn();
 
 jest.mock('../../../../selectors/networkController', () => ({
   selectIsAllNetworks: () => mockSelectIsAllNetworks(),
@@ -71,6 +72,14 @@ jest.mock('../../../../selectors/multichainNetworkController', () => ({
 jest.mock('../../../../selectors/networkInfos', () => ({
   selectNetworkName: () => mockSelectNetworkName(),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () =>
+      mockSelectMultichainAccountsState2Enabled(),
+  }),
+);
 
 // Mock typed functions
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
@@ -88,6 +97,45 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const useNetworksByNamespaceModule = jest.requireMock(
   '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
 );
+
+// Import and mock useNetworkEnablement
+const useNetworkEnablementModule = jest.requireMock(
+  '../../../hooks/useNetworkEnablement/useNetworkEnablement',
+);
+
+jest.mock('@metamask/keyring-api', () => ({
+  EthMethod: {
+    PersonalSign: 'personal_sign',
+    SignTransaction: 'eth_signTransaction',
+    SignTypedDataV4: 'eth_signTypedData_v4',
+  },
+  EthScope: {
+    Eoa: 'eip155:eoa',
+  },
+  SolAccountType: {
+    DataAccount: 'solana:dataAccount',
+  },
+  BtcAccountType: {
+    P2wpkh: 'bip122:p2wpkh',
+  },
+  BtcScope: {
+    Mainnet: 'bip122:000000000019d6689c085ae165831e93',
+    Testnet: 'bip122:000000000933ea01ad0ee984209779ba',
+  },
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    Devnet: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+  },
+  isEvmAccountType: jest.fn(() => true),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn(() => null)),
+}));
+
+jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(),
+}));
 
 // Import and mock useStyles
 const useStylesModule = jest.requireMock('../../../hooks/useStyles');
@@ -177,6 +225,9 @@ describe('BaseControlBar', () => {
       totalEnabledNetworksCount: 2,
     });
     useStylesModule.useStyles.mockReturnValue({ styles: defaultStyles });
+    useNetworkEnablementModule.useNetworkEnablement.mockReturnValue({
+      enableAllPopularNetworks: jest.fn(),
+    });
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
     // Setup selector mocks
@@ -184,6 +235,7 @@ describe('BaseControlBar', () => {
     mockSelectIsPopularNetwork.mockReturnValue(false);
     mockSelectIsEvmNetworkSelected.mockReturnValue(true);
     mockSelectNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
   });
 
   const renderComponent = (
@@ -226,9 +278,9 @@ describe('BaseControlBar', () => {
         mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       });
 
-      it('should show "All Networks" when multiple networks are enabled', () => {
+      it('should show "Popular Networks" when multiple networks are enabled', () => {
         const { getByText } = renderComponent();
-        expect(getByText('wallet.all_networks')).toBeTruthy();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
       });
 
       it('should show current network name when only one network is enabled', () => {
@@ -509,6 +561,45 @@ describe('BaseControlBar', () => {
       expect(filterButton.props.style).toBeDefined();
       expect(filterButton.props.style.opacity).toBeUndefined();
     });
+
+    it('should enable button when multichain accounts state 2 is enabled', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+      const disabledNetworkInfo = {
+        ...defaultNetworkInfo,
+        isDisabled: true,
+      };
+      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
+
+      const { getByTestId } = renderComponent();
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(false);
+    });
+
+    it('should respect custom isDisabled over multichain accounts state', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const { getByTestId } = renderComponent({
+        isDisabled: true,
+      });
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(true);
+    });
+
+    it('should use hook isDisabled when multichain accounts state 2 is disabled', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+      const disabledNetworkInfo = {
+        ...defaultNetworkInfo,
+        isDisabled: true,
+      };
+      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
+
+      const { getByTestId } = renderComponent();
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(true);
+    });
   });
 
   describe('Custom wrapper layouts', () => {
@@ -574,7 +665,7 @@ describe('BaseControlBar', () => {
 
       const { getByText } = renderComponent();
 
-      expect(getByText('wallet.all_networks')).toBeTruthy();
+      expect(getByText('wallet.popular_networks')).toBeTruthy();
     });
 
     it('should call strings function for fallback text', () => {

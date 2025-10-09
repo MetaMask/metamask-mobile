@@ -32,9 +32,9 @@ import {
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import Engine from '../../../../core/Engine';
-import { getCaip25AccountFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountFromAccountGroupAndScope';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../../component-library/components/Toast';
+import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope';
 
 export interface MultichainAccountPermissionsProps {
   route: {
@@ -142,10 +142,11 @@ export const MultichainAccountPermissions = (
       );
 
       // Generate CAIP account IDs from selected account groups and chain IDs
-      const selectedCaipAccountIds = getCaip25AccountFromAccountGroupAndScope(
-        selectedAccountGroups,
-        selectedChainIds,
-      );
+      const selectedCaipAccountIds =
+        getCaip25AccountIdsFromAccountGroupAndScope(
+          selectedAccountGroups,
+          selectedChainIds,
+        );
 
       // Get the existing caveat value
       const existingCaveat = existingPermissionsCaip25CaveatValue;
@@ -190,7 +191,7 @@ export const MultichainAccountPermissions = (
       });
 
       // Navigate back
-      navigation.goBack();
+      navigation.navigate(Routes.BROWSER.HOME);
     } catch (error) {
       console.error('Error updating permissions:', error);
       // TODO: Show error to user
@@ -348,7 +349,7 @@ export const MultichainAccountPermissions = (
         screenTitle={strings('accounts.edit_accounts_title')}
         showDisconnectAllButton
         onUserAction={() => {
-          // TODO: Implement user action handler
+          // Not used in this component.
         }}
         isRenderedAsBottomSheet={false}
       />

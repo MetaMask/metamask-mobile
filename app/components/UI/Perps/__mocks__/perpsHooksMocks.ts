@@ -1,4 +1,3 @@
-import { noop } from 'lodash';
 import type { UsePerpsMarketStatsReturn } from '../hooks/usePerpsMarketStats';
 import type { Position, Order } from '../controllers/types';
 
@@ -38,7 +37,24 @@ export const defaultPerpsEventTrackingMock = {
   track: jest.fn(),
 };
 
-export const defaultPerpsScreenTrackingMock = noop;
+// Mock implementation for usePerpsEventTracking that handles both imperative and declarative usage
+export const createPerpsEventTrackingMock = () => {
+  const track = jest.fn();
+
+  return {
+    usePerpsEventTracking: jest.fn((options) => {
+      // If options are provided (declarative API), call track immediately
+      if (options?.eventName) {
+        // Simulate the declarative API behavior - call track immediately on mount
+        track(options.eventName, options.properties || {});
+      }
+
+      // Always return the track function for imperative usage
+      return { track };
+    }),
+    defaultTrack: track, // Expose the track function for test assertions
+  };
+};
 
 export const defaultMinimumOrderAmountMock = {
   minimumOrderAmount: 10,
@@ -123,6 +139,16 @@ export const defaultPerpsMarketStatsMock: UsePerpsMarketStatsReturn = {
   refresh: jest.fn(),
 };
 
+export const defaultPerpsRewardsMock = {
+  shouldShowRewardsRow: false,
+  isLoading: false,
+  estimatedPoints: undefined,
+  bonusBips: undefined,
+  feeDiscountPercentage: undefined,
+  hasError: false,
+  isRefresh: false,
+};
+
 /**
  * Helper to create a complete mock setup for Perps hooks
  */
@@ -134,11 +160,11 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   ),
   usePerpsClosePosition: jest.fn(() => defaultPerpsClosePositionMock),
   usePerpsEventTracking: jest.fn(() => defaultPerpsEventTrackingMock),
-  usePerpsScreenTracking: jest.fn(() => defaultPerpsScreenTrackingMock),
   useMinimumOrderAmount: jest.fn(() => defaultMinimumOrderAmountMock),
-  usePerpsLiveAccount: jest.fn(() => defaultPerpsAccountMock),
+  usePerpsAccount: jest.fn(() => defaultPerpsAccountMock),
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),
+  usePerpsRewards: jest.fn(() => defaultPerpsRewardsMock),
   ...overrides,
 });

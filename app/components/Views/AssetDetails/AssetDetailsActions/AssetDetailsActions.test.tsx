@@ -11,6 +11,7 @@ import { EthMethod } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
@@ -21,6 +22,17 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
   };
 });
+
+// Mock react-native-device-info to provide a valid version string
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.0.0'),
+}));
+
+// Mock the selectIsSwapsEnabled selector
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../core/redux/slices/bridge'),
+  selectIsSwapsEnabled: jest.fn(),
+}));
 
 // Mock the ramp hooks
 jest.mock('../../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => () => [
@@ -35,17 +47,14 @@ jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();
-  const mockGoToBridge = jest.fn();
   const mockOnSend = jest.fn();
   const mockOnReceive = jest.fn();
 
   const defaultProps = {
     displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    swapsIsLive: true,
+    chainId: '0x1' as const,
     goToSwaps: mockGoToSwaps,
-    goToBridge: mockGoToBridge,
     onSend: mockOnSend,
     onReceive: mockOnReceive,
   };
@@ -65,6 +74,7 @@ describe('AssetDetailsActions', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
   it('should render correctly', () => {
@@ -83,7 +93,6 @@ describe('AssetDetailsActions', () => {
 
     expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
-    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
     expect(getByText(strings('asset_overview.send_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
@@ -126,6 +135,9 @@ describe('AssetDetailsActions', () => {
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {
+    // Given swaps are enabled
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+
     // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
@@ -137,20 +149,6 @@ describe('AssetDetailsActions', () => {
 
     // Then the goToSwaps callback should be called
     expect(mockGoToSwaps).toHaveBeenCalled();
-  });
-
-  it('calls goToBridge when the bridge button is pressed', () => {
-    // Given a state with an account that can sign transactions
-    const { getByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} />,
-      { state: createStateWithSigningCapability() },
-    );
-
-    // When the button is pressed
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON));
-
-    // Then the goToBridge callback should be called
-    expect(mockGoToBridge).toHaveBeenCalled();
   });
 
   it('calls onSend when the send button is pressed', () => {
@@ -195,58 +193,15 @@ describe('AssetDetailsActions', () => {
     expect(queryByText(strings('asset_overview.swap'))).toBeNull();
   });
 
-  it('does not render the bridge button when displayBridgeButton is false (unified UI enabled)', () => {
-    const { queryByText, queryByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayBridgeButton={false} />,
-      { state: initialRootState },
-    );
-
-    expect(queryByText(strings('asset_overview.bridge'))).toBeNull();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
-  });
-
-  it('renders the bridge button when displayBridgeButton is true (unified UI disabled)', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayBridgeButton />,
-      { state: initialRootState },
-    );
-
-    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
-    expect(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
-  });
-
   it('renders correct number of buttons when unified UI is enabled', () => {
     const { queryByTestId } = renderWithProvider(
-      <AssetDetailsActions
-        {...defaultProps}
-        displayBridgeButton={false} // Unified UI enabled
-      />,
+      <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
 
     // Should have 4 buttons: Buy, Swap, Send, Receive (no Bridge)
     expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
-    expect(
-      queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
-    ).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
-  });
-
-  it('renders correct number of buttons when unified UI is disabled', () => {
-    const { queryByTestId } = renderWithProvider(
-      <AssetDetailsActions
-        {...defaultProps}
-        displayBridgeButton // Unified UI disabled
-      />,
-      { state: initialRootState },
-    );
-
-    // Should have 5 buttons: Buy, Swap, Bridge, Send, Receive
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
     expect(
       queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
@@ -293,7 +248,6 @@ describe('AssetDetailsActions', () => {
 
     const buttons = [
       TokenOverviewSelectorsIDs.SWAP_BUTTON,
-      TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
       TokenOverviewSelectorsIDs.SEND_BUTTON,
     ];
 

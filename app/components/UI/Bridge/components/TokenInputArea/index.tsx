@@ -1,5 +1,11 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { StyleSheet, ImageSourcePropType, TextInput } from 'react-native';
+import {
+  StyleSheet,
+  ImageSourcePropType,
+  TextInput,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
@@ -14,7 +20,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers, BigNumber } from 'ethers';
+import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -25,10 +31,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
+  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -39,6 +46,8 @@ import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
+import { isNativeAddress } from '@metamask/bridge-controller';
+import { Theme } from '../../../../../util/theme/models';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -54,7 +63,13 @@ export const calculateFontSize = (length: number): number => {
   return 20;
 };
 
-const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
+const createStyles = ({
+  vars,
+  theme,
+}: {
+  vars: { fontSize: number };
+  theme: Theme;
+}) =>
   StyleSheet.create({
     content: {
       paddingVertical: 16,
@@ -75,6 +90,9 @@ const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
     },
     currencyContainer: {
       flex: 1,
+    },
+    maxButton: {
+      color: theme.colors.text.default,
     },
   });
 
@@ -126,6 +144,8 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   latestAtomicBalance?: BigNumber;
+  isSourceToken?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const TokenInputArea = forwardRef<
@@ -148,12 +168,16 @@ export const TokenInputArea = forwardRef<
       onInputPress,
       onMaxPress,
       latestAtomicBalance,
+      isSourceToken,
+      style,
     },
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+    const isGaslessSwapEnabled = useSelector((state: RootState) =>
+      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
+    );
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -184,6 +208,12 @@ export const TokenInputArea = forwardRef<
         params: {
           shouldGoToTokens: true,
         } as BridgeDestNetworkSelectorRouteParams,
+      });
+    };
+
+    const navigateToSourceTokenSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       });
     };
 
@@ -225,8 +255,10 @@ export const TokenInputArea = forwardRef<
             token?.symbol
           }`
         : undefined;
+
+    const isNativeAsset = isNativeAddress(token?.address);
     const formattedAddress =
-      token?.address && token.address !== ethers.constants.AddressZero
+      token?.address && !isNativeAsset
         ? formatAddress(token?.address)
         : undefined;
 
@@ -239,14 +271,13 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
-    // TODO come up with a more robust way to check if the asset is native
-    // Maybe a util in BridgeController
-    const isNativeAsset =
-      token?.address === ethers.constants.AddressZero ||
-      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    let tokenButtonText = 'bridge.swap_to';
+    if (isSourceToken) {
+      tokenButtonText = 'bridge.swap_from';
+    }
 
     return (
-      <Box>
+      <Box style={style}>
         <Box style={styles.content} gap={4}>
           <Box style={styles.row}>
             <Box style={styles.amountContainer}>
@@ -293,10 +324,12 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(
-                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
-                )}
-                onPress={navigateToDestNetworkSelector}
+                label={strings(tokenButtonText)}
+                onPress={
+                  isSourceToken
+                    ? navigateToSourceTokenSelector
+                    : navigateToDestNetworkSelector
+                }
               />
             )}
           </Box>
@@ -314,7 +347,8 @@ export const TokenInputArea = forwardRef<
                   tokenType === TokenInputAreaType.Source &&
                   tokenBalance &&
                   onMaxPress &&
-                  !isNativeAsset ? (
+                  (!isNativeAsset ||
+                    (isNativeAsset && isGaslessSwapEnabled)) ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={

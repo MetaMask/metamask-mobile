@@ -32,7 +32,6 @@ import { useDepositSDK } from '../../sdk';
 import StateSelector from '../../components/StateSelector';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { VALIDATION_REGEX } from '../../constants/constants';
-import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -70,15 +69,7 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(
-    quote.cryptoCurrency,
-    quote.network,
-  );
-
-  const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
-    paymentMethodId: quote.paymentMethod,
-  });
+  const { routeAfterAuthentication } = useDepositRouting();
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',

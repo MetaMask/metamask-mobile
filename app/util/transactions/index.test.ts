@@ -2074,8 +2074,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
     // Use unknown cast to work with JS function parameter expectations
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(false);
   });
@@ -2096,8 +2096,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
 
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(true);
   });
@@ -2119,8 +2119,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
 
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(false);
   });
@@ -2132,8 +2132,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
 
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(false);
   });

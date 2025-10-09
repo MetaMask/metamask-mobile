@@ -517,7 +517,15 @@ exports[`EnterAddress Component displays form validation errors when continue is
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -822,7 +830,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -951,7 +960,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -1075,7 +1085,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -1327,7 +1338,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -1477,7 +1489,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -1648,7 +1661,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2178,7 +2191,15 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2483,7 +2504,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -2597,7 +2619,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -2721,7 +2744,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -2935,7 +2959,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -3070,7 +3095,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -3241,7 +3267,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3771,7 +3797,15 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -4076,7 +4110,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -4190,7 +4225,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -4314,7 +4350,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -4536,7 +4573,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -4671,7 +4709,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -4842,7 +4881,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -5372,7 +5411,15 @@ exports[`EnterAddress Component shows text input for state when region is not US
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5677,7 +5724,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -5791,7 +5839,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 0,
+                                            "paddingVertical": 2,
+                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -5915,7 +5964,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -6030,7 +6080,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="state-input"
@@ -6156,7 +6207,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -6291,7 +6343,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "paddingVertical": 2,
+                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -6462,7 +6515,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

@@ -45,10 +45,10 @@ export const setupBridge = ({
       getProviderState,
     }: RPCMethodsMiddleParameters) => {
       DevLogger.log(
-        `getRpcMethodMiddleware hostname=${connection.host} url=${originatorInfo.url} `,
+        `getRpcMethodMiddleware origin=${connection.origin} url=${originatorInfo.url} `,
       );
       return getRpcMethodMiddleware({
-        hostname: connection.host,
+        hostname: connection.origin,
         channelId: connection.channelId,
         getProviderState,
         isMMSDK: true,

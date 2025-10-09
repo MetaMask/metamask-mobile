@@ -1,6 +1,11 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { Hex, CaipChainId } from '@metamask/utils';
+import {
+  Hex,
+  CaipChainId,
+  parseCaipChainId,
+  CaipAssetType,
+} from '@metamask/utils';
 import { createSelector } from 'reselect';
 import {
   selectChainId,
@@ -16,6 +21,7 @@ import {
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -27,9 +33,13 @@ import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
+import {
+  selectHasCreatedSolanaMainnetAccount,
+  selectCanSignTransactions,
+} from '../../../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
-import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
+import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -202,12 +212,7 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
 
-    if (
-      hasMinimumRequiredVersion(
-        featureFlags.minimumVersion,
-        process.env.MM_BRIDGE_ENABLED === 'true',
-      )
-    ) {
+    if (hasMinimumRequiredVersion(featureFlags.minimumVersion)) {
       return featureFlags;
     }
 
@@ -219,10 +224,16 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
-export const selectIsBridgeEnabledSource = createSelector(
+/**
+ * Factory selector that returns a function to check if bridge is enabled for a source chain.
+ * Use this when you need to check multiple chain IDs or when the chain ID is determined after render.
+ * @example
+ * const getIsBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
+ * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
+ */
+export const selectIsBridgeEnabledSourceFactory = createSelector(
   selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
+  (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
 
     return (
@@ -230,6 +241,12 @@ export const selectIsBridgeEnabledSource = createSelector(
       bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
     );
   },
+);
+
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
 );
 
 export const selectIsBridgeEnabledDest = createSelector(
@@ -255,6 +272,16 @@ export const selectIsSwapsLive = createSelector(
   (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
 );
 
+/**
+ * Selector that determines if swap functionality is enabled
+ * Combines all the conditions needed for swap functionality to be available
+ */
+export const selectIsSwapsEnabled = createSelector(
+  [selectCanSignTransactions, selectBasicFunctionalityEnabled],
+  (canSignTransactions, basicFunctionalityEnabled) =>
+    canSignTransactions && basicFunctionalityEnabled,
+);
+
 export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
@@ -264,6 +291,9 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
       : undefined,
 );
 
+/**
+ * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
+ */
 export const selectEnabledSourceChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
@@ -374,24 +404,35 @@ export const selectIsSolanaSourced = createSelector(
   (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
-export const selectIsEvmToSolana = createSelector(
+export const selectIsEvmToNonEvm = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
     sourceToken?.chainId &&
-    !isSolanaChainId(sourceToken.chainId) &&
+    !isNonEvmChainId(sourceToken.chainId) &&
     destToken?.chainId &&
-    isSolanaChainId(destToken.chainId),
+    isNonEvmChainId(destToken.chainId),
 );
 
-export const selectIsSolanaToEvm = createSelector(
+export const selectIsNonEvmToEvm = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
     sourceToken?.chainId &&
-    isSolanaChainId(sourceToken.chainId) &&
+    isNonEvmChainId(sourceToken.chainId) &&
     destToken?.chainId &&
-    !isSolanaChainId(destToken.chainId),
+    !isNonEvmChainId(destToken.chainId),
+);
+
+export const selectIsNonEvmNonEvmBridge = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    isNonEvmChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isNonEvmChainId(destToken.chainId) &&
+    sourceToken.chainId !== destToken.chainId,
 );
 
 export const selectIsSolanaSwap = createSelector(
@@ -404,10 +445,10 @@ export const selectIsSolanaSwap = createSelector(
     isSolanaChainId(destToken.chainId),
 );
 
-export const selectIsEvmSolanaBridge = createSelector(
-  selectIsEvmToSolana,
-  selectIsSolanaToEvm,
-  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
+export const selectIsEvmNonEvmBridge = createSelector(
+  selectIsEvmToNonEvm,
+  selectIsNonEvmToEvm,
+  (isEvmToNonEvm, isNonEvmToEvm) => isEvmToNonEvm || isNonEvmToEvm,
 );
 
 export const selectIsBridge = createSelector(
@@ -439,18 +480,55 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
-export const selectIsUnifiedSwapsEnabled = createSelector(
+export const selectIsGaslessSwapEnabled = createSelector(
+  selectIsSwap,
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (isSwap, bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const chainConfig = bridgeFeatureFlags.chains[caipChainId];
+    return isSwap && chainConfig?.isGaslessSwapEnabled === true;
+  },
+);
+
+export const selectNoFeeAssets = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    if (!chainId) {
+      return [];
+    }
+    const caipChainId = formatChainIdToCaip(chainId);
+    return bridgeFeatureFlags.chains[caipChainId]?.noFeeAssets;
+  },
+);
+
+export const selectBip44DefaultPair = createSelector(
   selectBridgeFeatureFlags,
   selectChainId,
   (bridgeFeatureFlags, chainId) => {
-    if (
-      isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
-    ) {
-      return true;
+    const caipChainId = formatChainIdToCaip(chainId);
+    const { namespace } = parseCaipChainId(caipChainId);
+    const bip44DefaultPair =
+      bridgeFeatureFlags.bip44DefaultPairs?.[namespace]?.standard;
+
+    if (!bip44DefaultPair) {
+      return undefined;
     }
-    return false;
+
+    // If 0th entry doesn't exist, error thrown and we return undefined
+    const pairs = Object.entries(bip44DefaultPair);
+    const sourceAssetId = pairs[0]?.[0];
+    const destAssetId = pairs[0]?.[1];
+    const sourceAsset =
+      Bip44TokensForDefaultPairs[sourceAssetId as CaipAssetType];
+    const destAsset = Bip44TokensForDefaultPairs[destAssetId as CaipAssetType];
+
+    if (!sourceAsset || !destAsset) {
+      return undefined;
+    }
+
+    return { sourceAsset, destAsset };
   },
 );
 

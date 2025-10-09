@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import { renderWithProviders } from '../testUtils';
 import OnboardingStep3 from '../OnboardingStep3';
 
@@ -104,12 +104,23 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 // Mock actions and reducers
 jest.mock('../../../../../../actions/rewards', () => ({
-  setOnboardingActiveStep: jest.fn(),
+  setOnboardingActiveStep: jest.fn((step) => ({
+    type: 'SET_ONBOARDING_ACTIVE_STEP',
+    payload: step,
+  })),
 }));
 
 jest.mock('../../../../../../reducers/rewards/types', () => ({
   OnboardingStep: {
     STEP_3: 'STEP_3',
+    STEP_4: 'STEP_4',
+  },
+}));
+
+// Mock navigation routes
+jest.mock('../../../../../../constants/navigation', () => ({
+  Routes: {
+    REWARDS_ONBOARDING_STEP_4: 'RewardsOnboardingStep4',
   },
 }));
 
@@ -142,15 +153,36 @@ describe('OnboardingStep3', () => {
       // Verify that navigation buttons are rendered in the component
       expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
     });
-  });
+    describe('integration', () => {
+      it('should integrate with navigation and dispatch functions', () => {
+        renderWithProviders(<OnboardingStep3 />);
 
-  describe('integration', () => {
-    it('should integrate with navigation and dispatch functions', () => {
-      renderWithProviders(<OnboardingStep3 />);
+        // Verify navigation and dispatch functions are available
+        expect(mockDispatch).toBeDefined();
+        expect(mockNavigate).toBeDefined();
+      });
+    });
 
-      // Verify navigation and dispatch functions are available
-      expect(mockDispatch).toBeDefined();
-      expect(mockNavigate).toBeDefined();
+    describe('skip functionality', () => {
+      it('should render skip button when onSkip is provided', () => {
+        renderWithProviders(<OnboardingStep3 />);
+
+        const skipButton = screen.getByTestId('skip-button');
+        expect(skipButton).toBeDefined();
+      });
+
+      it('should navigate to step 4 and update redux state when skip button is pressed', () => {
+        renderWithProviders(<OnboardingStep3 />);
+
+        const skipButton = screen.getByTestId('skip-button');
+        fireEvent.press(skipButton);
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'SET_ONBOARDING_ACTIVE_STEP',
+          payload: 'STEP_4',
+        });
+        expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding4');
+      });
     });
   });
 });
