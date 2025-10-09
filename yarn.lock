@@ -7745,19 +7745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0":
-  version: 21.0.0
-  resolution: "@metamask/keyring-api@npm:21.0.0"
-  dependencies:
-    "@metamask/keyring-utils": ^3.1.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.1.0
-    bitcoin-address-validation: ^2.2.3
-  checksum: 8391f5be3f287805b153b02d3974a88515ec26a01fb9df84379bd85b86f665f3aabe6f036a17e140d0700d3e9c93074bb67c578566af48679073037f785f6559
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-api@npm:^21.1.0":
+"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.1.0":
   version: 21.1.0
   resolution: "@metamask/keyring-api@npm:21.1.0"
   dependencies:
@@ -7802,18 +7790,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-internal-api@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "@metamask/keyring-internal-api@npm:9.0.0"
-  dependencies:
-    "@metamask/keyring-api": ^21.0.0
-    "@metamask/keyring-utils": ^3.1.0
-    "@metamask/superstruct": ^3.1.0
-  checksum: 98f8a47a198311f852f7c94e80a1da6f86cacadd94af1cfdbea364e8519c3657d5e1f3a0391e10457bf1d606cdd5cecc1a58584bb426fe6d8f7d0ea6c5f8633d
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-internal-api@npm:^9.1.0":
+"@metamask/keyring-internal-api@npm:^9.0.0, @metamask/keyring-internal-api@npm:^9.1.0":
   version: 9.1.0
   resolution: "@metamask/keyring-internal-api@npm:9.1.0"
   dependencies:
@@ -7866,23 +7843,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-client@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@metamask/keyring-snap-client@npm:8.0.0"
-  dependencies:
-    "@metamask/keyring-api": ^21.0.0
-    "@metamask/keyring-utils": ^3.1.0
-    "@metamask/superstruct": ^3.1.0
-    "@types/uuid": ^9.0.8
-    uuid: ^9.0.1
-    webextension-polyfill: ^0.12.0
-  peerDependencies:
-    "@metamask/providers": ^19.0.0
-  checksum: c657778b7494c5a5ba97b4f389ac7c86441010c7fd67135c008c8b67ddba6c97a6ffbac8ca8e4d79a66129e24063eac5fe25d89f8f6d5628037dd9109ec85c0a
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-snap-client@npm:^8.1.0":
+"@metamask/keyring-snap-client@npm:^8.0.0, @metamask/keyring-snap-client@npm:^8.1.0":
   version: 8.1.0
   resolution: "@metamask/keyring-snap-client@npm:8.1.0"
   dependencies:
