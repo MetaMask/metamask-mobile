@@ -7,6 +7,9 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountState: jest.fn(),
       disconnect: jest.fn(),
       reconnectWithNewContext: jest.fn(),
+      getActiveProvider: jest.fn(() => ({
+        ping: jest.fn().mockResolvedValue(undefined),
+      })),
     },
   },
 }));

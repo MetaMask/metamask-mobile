@@ -24,16 +24,17 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
+  [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
 };
 
 /**
  * Translates an error code to a localized message
- * @param error - Error code string, Error object, or any error
+ * @param error - Error code string or Error object
  * @param data - Optional data for interpolation in error messages
  * @returns Localized error message
  */
 export function translatePerpsError(
-  error: string | Error | unknown,
+  error: string | Error,
   data?: Record<string, unknown>,
 ): string {
   // Handle error code strings
