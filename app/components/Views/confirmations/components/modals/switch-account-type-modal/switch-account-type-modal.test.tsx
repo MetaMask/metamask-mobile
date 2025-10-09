@@ -15,6 +15,9 @@ import SwitchAccountTypeModal from './switch-account-type-modal';
 
 import {} from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../hooks/gas/useGasFeeToken');
+
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
   delegationAddress: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
