@@ -47,6 +47,7 @@ async function parseDeeplink({
       case PROTOCOLS.METAMASK:
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS: {
+        // Attempts to replace the metamask protocol with the https protocol so that it is compatible with handleUniversalLink
         const mappedUrl = url.replace(
           `${PROTOCOLS.METAMASK}://`,
           `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
