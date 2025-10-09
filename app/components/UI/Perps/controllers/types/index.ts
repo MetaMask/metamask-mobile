@@ -34,7 +34,7 @@ export interface UserHistoryItem {
 export interface GetUserHistoryParams {
   startTime?: number;
   endTime?: number;
-  accountId?: string;
+  accountId?: CaipAccountId;
 }
 
 // Order type enumeration

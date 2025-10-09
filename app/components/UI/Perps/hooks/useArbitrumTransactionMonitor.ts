@@ -69,7 +69,7 @@ export const useArbitrumTransactionMonitor =
      */
     const detectWithdrawal = useCallback(
       (tx: TransactionMeta): ArbitrumWithdrawal | null => {
-        if (!currentChainId || !selectedAddress) {
+        if (!currentChainId || !selectedAddress || !tx.hash) {
           return null;
         }
 
