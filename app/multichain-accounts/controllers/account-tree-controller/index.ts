@@ -8,6 +8,7 @@ import { forwardSelectedAccountGroupToSnapKeyring } from '../../../core/SnapKeyr
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { AccountGroupId } from '@metamask/account-api';
+import { AccountTreeControllerInitMessenger } from '../../messengers/account-tree-controller-messenger';
 
 /**
  * Initialize the AccountTreeController.
@@ -17,9 +18,10 @@ import { AccountGroupId } from '@metamask/account-api';
  */
 export const accountTreeControllerInit: ControllerInitFunction<
   AccountTreeController,
-  AccountTreeControllerMessenger
+  AccountTreeControllerMessenger,
+  AccountTreeControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, initMessenger, persistedState } = request;
 
   const accountTreeControllerState = persistedState.AccountTreeController ?? {};
 
@@ -44,7 +46,7 @@ export const accountTreeControllerInit: ControllerInitFunction<
   });
 
   // Forward selected accounts every time the selected account group changes.
-  controllerMessenger.subscribe(
+  initMessenger.subscribe(
     'AccountTreeController:selectedAccountGroupChange',
     (groupId: AccountGroupId | '') => {
       // TODO: Move this logic to the SnapKeyring directly.

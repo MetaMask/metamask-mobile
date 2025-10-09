@@ -7,6 +7,7 @@ import {
 import { ControllerInitFunction } from '../../types';
 import Engine from '../../Engine';
 import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
+import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 
 /**
  * Initialize the multichain account service.
@@ -18,7 +19,8 @@ import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/u
 export const multichainAccountServiceInit: ControllerInitFunction<
   MultichainAccountService,
   MultichainAccountServiceMessenger
-> = ({ controllerMessenger }) => {
+  MultichainAccountServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const btcProvider = new BtcAccountProvider(controllerMessenger);
   /// END:ONLY_INCLUDE_IF
@@ -42,7 +44,7 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   });
 
   // TODO: Move this logic to the SnapKeyring directly.
-  controllerMessenger.subscribe(
+  initMessenger.subscribe(
     'MultichainAccountService:multichainAccountGroupUpdated',
     (group) => {
       const { AccountTreeController } = Engine.context;
