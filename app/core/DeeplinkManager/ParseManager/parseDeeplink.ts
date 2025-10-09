@@ -5,7 +5,6 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
-import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
@@ -44,46 +43,38 @@ async function parseDeeplink({
     const wcURL = params?.uri || urlObj.href;
 
     switch (urlObj.protocol.replace(':', '')) {
+      /* eslint-disable no-fallthrough */
+      case PROTOCOLS.METAMASK:
       case PROTOCOLS.HTTP:
-      case PROTOCOLS.HTTPS:
+      case PROTOCOLS.HTTPS: {
+        const mappedUrl = url.replace(
+          `${PROTOCOLS.METAMASK}://`,
+          `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/`,
+        );
+        const { urlObj: mappedUrlObj } = extractURLParams(mappedUrl);
         handleUniversalLink({
           instance,
           handled,
-          urlObj,
+          urlObj: mappedUrlObj,
           browserCallBack,
-          url,
+          url: mappedUrl,
           source: origin,
         });
-
         break;
+      }
       case PROTOCOLS.WC:
         connectWithWC({ handled, wcURL, origin, params });
         break;
-
       case PROTOCOLS.ETHEREUM:
         handled();
         instance._handleEthereumUrl(url, origin).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
         });
         break;
-
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
         handleDappUrl({ instance, handled, urlObj, browserCallBack });
-        break;
-
-      // Specific to the MetaMask app
-      // For ex. go to settings
-      case PROTOCOLS.METAMASK:
-        handleMetaMaskDeeplink({
-          instance,
-          handled,
-          wcURL,
-          origin,
-          params,
-          url,
-        });
         break;
       default:
         return false;
