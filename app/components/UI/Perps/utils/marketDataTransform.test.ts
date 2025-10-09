@@ -4,12 +4,15 @@
 
 import {
   transformMarketData,
-  formatPrice,
   formatChange,
   formatPercentage,
   HyperLiquidMarketData,
 } from './marketDataTransform';
-import { formatVolume } from './formatUtils';
+import {
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_4_SIG_FIGS,
+} from './formatUtils';
 import {
   AllMids,
   PerpsAssetCtx,
@@ -300,106 +303,8 @@ describe('marketDataTransform', () => {
     });
   });
 
-  describe('formatPrice', () => {
-    it('formats zero price correctly', () => {
-      // Arrange
-      const price = 0;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$0.00');
-    });
-
-    it('formats large prices with thousands separator', () => {
-      // Arrange
-      const price = 50000;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$50,000.00');
-    });
-
-    it('formats prices greater than 1000 with two decimal places', () => {
-      // Arrange
-      const price = 1234.5678;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$1,234.57');
-    });
-
-    it('formats prices between 1 and 1000 with two decimal places', () => {
-      // Arrange
-      const price = 123.456;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$123.46');
-    });
-
-    it('formats prices between 0.01 and 1 with four decimal places', () => {
-      // Arrange
-      const price = 0.1234;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$0.1234');
-    });
-
-    it('formats very small prices with six decimal places', () => {
-      // Arrange
-      const price = 0.001234;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$0.001234');
-    });
-
-    it('formats edge case at exactly 1.0', () => {
-      // Arrange
-      const price = 1.0;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$1.00');
-    });
-
-    it('formats edge case at exactly 0.01', () => {
-      // Arrange
-      const price = 0.01;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$0.0100');
-    });
-
-    it('formats edge case at exactly 1000', () => {
-      // Arrange
-      const price = 1000;
-
-      // Act
-      const result = formatPrice(price);
-
-      // Assert
-      expect(result).toBe('$1,000.00');
-    });
-  });
+  // formatPrice function removed - now using formatPerpsFiat with PRICE_RANGES_4_SIG_FIGS
+  // Tests are in formatUtils.test.ts
 
   describe('formatChange', () => {
     it('formats zero change correctly', () => {
@@ -788,13 +693,17 @@ describe('marketDataTransform', () => {
 
     it('handles negative numbers in formatting functions', () => {
       // Arrange & Act & Assert
-      expect(formatPrice(-100)).toBe('-$100.00');
+      expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '-$100',
+      );
       expect(formatVolume(-1000000)).toBe('-$1.00M'); // Now with 2 decimals
     });
 
     it('handles very small numbers close to zero', () => {
       // Arrange & Act & Assert
-      expect(formatPrice(0.0000001)).toBe('$0.000000');
+      expect(
+        formatPerpsFiat(0.0000001, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+      ).toBe('$0.0000001');
       expect(formatVolume(0.1)).toBe('$0.10'); // Now shows 2 decimals
       expect(formatPercentage(0.001)).toBe('+0.00%');
     });
@@ -802,8 +711,12 @@ describe('marketDataTransform', () => {
     // TODO: We probably want a better fallback here
     it('handles NaN and Infinity values with safe fallbacks', () => {
       // Arrange & Act & Assert
-      expect(formatPrice(NaN)).toBe('$0.00');
-      expect(formatPrice(Infinity)).toBe('$0.00');
+      expect(formatPerpsFiat(NaN, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$0.00',
+      );
+      expect(
+        formatPerpsFiat(Infinity, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+      ).toBe('$0.00');
       expect(formatVolume(NaN)).toBe('$---');
       expect(formatVolume(Infinity)).toBe('$---');
       expect(formatChange(NaN)).toBe('$0.00');

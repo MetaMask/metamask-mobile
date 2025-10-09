@@ -90,7 +90,6 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   formatPerpsFiat,
-  formatPrice,
   PRICE_RANGES_DETAILED_VIEW,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
@@ -880,7 +879,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
                         color={TextColor.Default}
                       >
                         {orderForm.limitPrice
-                          ? formatPrice(orderForm.limitPrice)
+                          ? formatPerpsFiat(orderForm.limitPrice, {
+                              ranges: PRICE_RANGES_DETAILED_VIEW,
+                            })
                           : 'Set price'}
                       </Text>
                     </ListItemColumn>
@@ -972,7 +973,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {marginRequired
-                ? formatPrice(marginRequired)
+                ? formatPerpsFiat(marginRequired, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>

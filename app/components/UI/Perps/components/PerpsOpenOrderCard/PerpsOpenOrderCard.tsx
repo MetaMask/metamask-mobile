@@ -18,11 +18,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
-  formatPrice,
   formatPositionSize,
   PRICE_RANGES_DETAILED_VIEW,
   formatPerpsFiat,
   formatOrderCardDate,
+  PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -236,7 +236,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         <View style={styles.headerRight}>
           <View style={styles.headerRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {formatPrice(derivedData.sizeInUSD)}
+              {formatPerpsFiat(derivedData.sizeInUSD, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

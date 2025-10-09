@@ -426,27 +426,31 @@ describe('formatUtils', () => {
   });
 
   describe('formatPositionSize', () => {
-    it('should format very small numbers with 6 decimal places', () => {
-      expect(formatPositionSize(0.001)).toBe('0.001000');
-      expect(formatPositionSize('0.0001')).toBe('0.000100');
-      expect(formatPositionSize(-0.005)).toBe('-0.005000');
+    it('should format very small numbers without trailing zeros', () => {
+      expect(formatPositionSize(0.001)).toBe('0.001');
+      expect(formatPositionSize('0.0001')).toBe('0.0001');
+      expect(formatPositionSize(-0.005)).toBe('-0.005');
+      expect(formatPositionSize(0.00009)).toBe('0.00009'); // Task example
     });
 
-    it('should format small numbers with 4 decimal places', () => {
+    it('should format small numbers without trailing zeros', () => {
       expect(formatPositionSize(0.1234)).toBe('0.1234');
       expect(formatPositionSize('0.9999')).toBe('0.9999');
-      expect(formatPositionSize(-0.5)).toBe('-0.5000');
+      expect(formatPositionSize(-0.5)).toBe('-0.5');
+      expect(formatPositionSize(0.0024)).toBe('0.0024'); // Task example
     });
 
-    it('should format normal numbers with 2 decimal places', () => {
+    it('should format normal numbers without trailing zeros', () => {
       expect(formatPositionSize(1.2345)).toBe('1.23');
       expect(formatPositionSize('100.9876')).toBe('100.99');
       expect(formatPositionSize(-50.123)).toBe('-50.12');
+      expect(formatPositionSize(44)).toBe('44'); // Task example
+      expect(formatPositionSize(0.23)).toBe('0.23'); // Task example
     });
 
     it('should handle edge case at boundaries', () => {
-      expect(formatPositionSize(0.01)).toBe('0.0100'); // exactly at threshold
-      expect(formatPositionSize(1)).toBe('1.00'); // exactly at threshold
+      expect(formatPositionSize(0.01)).toBe('0.01'); // exactly at threshold
+      expect(formatPositionSize(1)).toBe('1'); // exactly at threshold
     });
 
     it('should handle invalid inputs', () => {
@@ -456,13 +460,14 @@ describe('formatUtils', () => {
     });
 
     it('should handle zero', () => {
-      expect(formatPositionSize(0)).toBe('0.000000');
-      expect(formatPositionSize('0')).toBe('0.000000');
+      expect(formatPositionSize(0)).toBe('0');
+      expect(formatPositionSize('0')).toBe('0');
     });
 
-    it('should handle large numbers', () => {
+    it('should handle large numbers without trailing zeros', () => {
       expect(formatPositionSize(1000.567)).toBe('1000.57');
       expect(formatPositionSize('999999.123')).toBe('999999.12');
+      expect(formatPositionSize(1000)).toBe('1000'); // No decimals for whole number
     });
   });
 
