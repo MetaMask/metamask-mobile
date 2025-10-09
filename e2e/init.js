@@ -15,14 +15,10 @@ global.getCurrentTestName = () => currentTestNameRef.value;
  * We're wrapping the test function to store the current test name in the currentTestNameRef.
  */
 function wrapTestFn(testName, testFn) {
-  // Support sync, promise, or async test functions without relying on `this`
-  return async () => {
+  // Support sync, promise, or async test functions; forward all args
+  return (...args) => {
     currentTestNameRef.value = testName;
-    try {
-      return await testFn();
-    } finally {
-      currentTestNameRef.value = undefined;
-    }
+    return testFn(...args);
   };
 }
 
@@ -40,12 +36,20 @@ function patchedIt(testName, testFn, timeout) {
  */
 Object.defineProperties(patchedIt, {
   only: {
-    value: (name, fn, timeout) =>
-      originalIt.only(name, wrapTestFn(name, fn), timeout),
+    value: (name, fn, timeout) => {
+      if (typeof fn === 'function') {
+        return originalIt.only(name, wrapTestFn(name, fn), timeout);
+      }
+      return originalIt.only(name);
+    },
   },
   skip: {
-    value: (name, fn, timeout) =>
-      originalIt.skip(name, wrapTestFn(name, fn), timeout),
+    value: (name, fn, timeout) => {
+      if (typeof fn === 'function') {
+        return originalIt.skip(name, wrapTestFn(name, fn), timeout);
+      }
+      return originalIt.skip(name);
+    },
   },
   each: {
     value:
