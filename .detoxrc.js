@@ -105,7 +105,8 @@ module.exports = {
         avdName: 'emulator',
       },
       // Increased memory and cores for CI stability
-      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on -wipe-data -read-only',      forceAdbInstall: true,
+      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on -wipe-data -read-only',      
+      forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
     'android.emulator': {
