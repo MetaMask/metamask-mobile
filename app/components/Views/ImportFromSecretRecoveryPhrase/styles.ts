@@ -13,6 +13,7 @@ const createStyles = (colors: any) =>
     wrapper: {
       flexGrow: 1,
       paddingHorizontal: 16,
+      paddingBottom: 16,
     },
     importSrpContainer: {
       marginTop: 6,

@@ -1,9 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `AvatarNetwork` from `@metamask/design-system-react-native`
- */
-
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';

@@ -208,6 +208,11 @@ export async function generateDefaultTransactionMetrics(
         transaction_internal_id: id,
         transaction_type: getTransactionTypeValue(type),
       },
+      sensitiveProperties: {
+        from_address: transactionMeta.txParams.from,
+        to_address: transactionMeta.txParams.to,
+        value: transactionMeta.txParams.value,
+      },
     },
     getConfirmationMetricProperties(
       transactionEventHandlerRequest.getState,

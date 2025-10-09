@@ -65,7 +65,7 @@ const createStyles = (colors: any) =>
       marginBottom: 15,
     },
     button: {
-      paddingVertical: 16,
+      paddingTop: 16,
     },
     searchInput: {
       paddingBottom: 16,

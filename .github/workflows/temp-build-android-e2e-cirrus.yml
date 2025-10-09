@@ -1,0 +1,148 @@
+# TEMPORARY Cirrus-specific Android E2E build workflow - builds APKs using Cirrus Ubuntu runners
+# Temporary workflow for testing Cirrus runners vs self-hosted
+
+name: TEMP Build Android E2E APKs (Cirrus)
+
+on:
+  workflow_call:
+    outputs:
+      apk-uploaded:
+        description: 'Whether the APK was successfully uploaded'
+        value: ${{ jobs.build-android-apks-cirrus.outputs.apk-uploaded }}
+      aab-uploaded:
+        description: 'Whether the AAB was successfully uploaded'
+        value: ${{ jobs.build-android-apks-cirrus.outputs.aab-uploaded }}
+      sourcemap-uploaded:
+        description: 'Whether the sourcemap was successfully uploaded'
+        value: ${{ jobs.build-android-apks-cirrus.outputs.sourcemap-uploaded }}
+
+jobs:
+  build-android-apks-cirrus:
+    name: Build Android E2E APKs (Cirrus)
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
+    env:
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
+    outputs:
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Android System Images
+        run: |
+          echo "📱 Installing Android system images for AVD..."
+          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
+          echo "✅ System images installed"
+
+      - name: Setup Android Build Environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
+        with:
+          platform: android
+          setup-simulator: false
+          configure-keystores: true
+          target: qa
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            /home/admin/_work/.gradle/caches
+            /home/admin/_work/.gradle/wrapper
+            android/.gradle
+          key: gradle-cirrus-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-cirrus-${{ runner.os }}-
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
+
+      - name: Build Android E2E APKs
+        run: |
+          echo "🏗 Building Android E2E APKs on Cirrus..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:main:e2e
+        shell: bash
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      - name: Upload Android APK
+        id: upload-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release-cirrus.apk
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android Test APK
+        id: upload-test-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release-androidTest-cirrus.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android AAB
+        id: upload-aab
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release-cirrus.aab
+          path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true
+
+      - name: Upload Android Source Map
+        id: upload-sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.android.bundle-cirrus.map
+          path: sourcemaps/android/index.android.bundle.map
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true

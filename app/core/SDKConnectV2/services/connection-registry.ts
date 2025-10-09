@@ -10,7 +10,6 @@ import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import { decompressPayloadB64 } from '../utils/compression-utils';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -54,7 +53,6 @@ export class ConnectionRegistry {
           connInfo,
           this.keymanager,
           this.RELAY_URL,
-          this.hostapp,
         );
         await conn.resume();
         this.connections.set(conn.id, conn);
@@ -65,8 +63,6 @@ export class ConnectionRegistry {
     });
 
     await Promise.allSettled(promises);
-
-    this.hostapp.syncConnectionList(Array.from(this.connections.values()));
   }
 
   /**
@@ -106,12 +102,7 @@ export class ConnectionRegistry {
       const connReq = this.parseConnectionRequest(url);
       connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
-      conn = await Connection.create(
-        connInfo,
-        this.keymanager,
-        this.RELAY_URL,
-        this.hostapp,
-      );
+      conn = await Connection.create(connInfo, this.keymanager, this.RELAY_URL);
       await conn.connect(connReq.sessionRequest);
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
@@ -145,7 +136,7 @@ export class ConnectionRegistry {
    * @param url The full deeplink URL that triggered the connection.
    * @returns The parsed connection request.
    *
-   * Format: metamask://connect/mwp?p=<encoded_connection_request>&c=1
+   * Format: metamask://connect/mwp?p=<encoded_connection_request>
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
     const parsed = new URL(url);
@@ -159,11 +150,7 @@ export class ConnectionRegistry {
       throw new Error('Payload too large (max 1MB).');
     }
 
-    const compressionFlag = parsed.searchParams.get('c');
-    const jsonString =
-      compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
-
-    const connReq: unknown = JSON.parse(jsonString);
+    const connReq: unknown = JSON.parse(payload);
 
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
@@ -176,7 +163,6 @@ export class ConnectionRegistry {
     return {
       id: connReq.sessionRequest.id,
       metadata: connReq.metadata,
-      expiresAt: connReq.sessionRequest.expiresAt,
     };
   }
 
