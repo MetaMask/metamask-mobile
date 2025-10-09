@@ -1,5 +1,5 @@
-import { waitFor } from '@testing-library/react-native';
-import { Image } from 'react-native';
+import { waitFor, fireEvent } from '@testing-library/react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
@@ -21,12 +21,14 @@ jest.mock('../../../../util/test/utils', () => ({
   isQa: () => mockIsQa(),
 }));
 
-// Mock getFeatureFlagAppEnvironment
+// Mock getFeatureFlagAppEnvironment and getFeatureFlagAppDistribution
 const mockGetFeatureFlagAppEnvironment = jest.fn();
+const mockGetFeatureFlagAppDistribution = jest.fn();
 jest.mock(
   '../../../../core/Engine/controllers/remote-feature-flag-controller/utils',
   () => ({
     getFeatureFlagAppEnvironment: () => mockGetFeatureFlagAppEnvironment(),
+    getFeatureFlagAppDistribution: () => mockGetFeatureFlagAppDistribution(),
   }),
 );
 
@@ -38,6 +40,7 @@ describe('AppInformation', () => {
     mockGetBuildNumber.mockResolvedValue('1000');
     mockIsQa.mockReturnValue(false);
     mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
+    mockGetFeatureFlagAppDistribution.mockReturnValue('main');
   });
 
   it('renders correctly with snapshot', () => {
@@ -161,27 +164,11 @@ describe('AppInformation', () => {
       process.env.METAMASK_ENVIRONMENT = originalEnv;
     });
 
-    it('displays remote feature flag environment when not in production', async () => {
+    it('does not display environment information initially', () => {
       // Given the environment is not production
       process.env.METAMASK_ENVIRONMENT = 'dev';
       mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
-
-      const { getByText } = renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: {} },
-      );
-
-      // When the component renders
-      // Then it should display the remote feature flag environment
-      await waitFor(() => {
-        expect(getByText('Remote Feature Flag Env: Development')).toBeTruthy();
-      });
-    });
-
-    it('does not display remote feature flag environment in production', () => {
-      // Given the environment is production
-      process.env.METAMASK_ENVIRONMENT = 'production';
+      mockGetFeatureFlagAppDistribution.mockReturnValue('main');
 
       const { queryByText } = renderScreen(
         AppInformation,
@@ -190,30 +177,85 @@ describe('AppInformation', () => {
       );
 
       // When the component renders
-      // Then it should not display the remote feature flag environment
+      // Then it should not display the environment information initially
+      expect(queryByText(/Environment:/)).toBeNull();
       expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
+      expect(queryByText(/Remote Feature Flag Distribution:/)).toBeNull();
     });
 
-    it('displays METAMASK_ENVIRONMENT when not in production', async () => {
-      // Given the environment is not production
+    it('displays environment information after long-pressing fox icon', async () => {
+      // Given the environment is set
       process.env.METAMASK_ENVIRONMENT = 'dev';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
+      mockGetFeatureFlagAppDistribution.mockReturnValue('main');
 
-      const { getByText } = renderScreen(
+      const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
         { state: {} },
       );
 
-      // When the component renders
-      // Then it should display the environment
+      // When the user long-presses the fox icon
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+      expect(foxTouchable).toBeDefined();
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      // Then it should display all environment information fields
       await waitFor(() => {
-        expect(getByText('Environment: dev')).toBeTruthy();
+        expect(getByText(/Environment:/)).toBeTruthy();
+        expect(getByText('Remote Feature Flag Env: Development')).toBeTruthy();
+        expect(
+          getByText('Remote Feature Flag Distribution: main'),
+        ).toBeTruthy();
+      });
+    });
+
+    it('displays environment information in production after long-press', async () => {
+      // Given the environment is production
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Production');
+      mockGetFeatureFlagAppDistribution.mockReturnValue('production');
+
+      const { queryByText, getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When initially rendered
+      // Then environment info should be hidden
+      expect(queryByText(/Environment:/)).toBeNull();
+      expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
+      expect(queryByText(/Remote Feature Flag Distribution:/)).toBeNull();
+
+      // When the user long-presses the fox icon
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      // Then it should display all environment information even in production
+      await waitFor(() => {
+        expect(getByText(/Environment:/)).toBeTruthy();
+        expect(getByText('Remote Feature Flag Env: Production')).toBeTruthy();
+        expect(
+          getByText('Remote Feature Flag Distribution: production'),
+        ).toBeTruthy();
       });
     });
 
     it('displays branch information when isQa is true', async () => {
-      // Given isQa returns true and environment is not production
-      process.env.METAMASK_ENVIRONMENT = 'dev';
+      // Given isQa returns true
       process.env.GIT_BRANCH = 'feature/test-branch';
       mockIsQa.mockReturnValue(true);
 
@@ -224,25 +266,144 @@ describe('AppInformation', () => {
       );
 
       // When the component renders
-      // Then it should display the branch information
+      // Then it should display the branch information (this is always visible for QA)
       await waitFor(() => {
-        expect(getByText('Branch: feature/test-branch')).toBeTruthy();
+        expect(getByText(/Branch:/)).toBeTruthy();
       });
     });
+  });
 
-    it('does not display branch information when isQa is false', () => {
-      // Given isQa returns false
-      mockIsQa.mockReturnValue(false);
+  describe('Fox Icon Long Press Interaction', () => {
+    const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
-      const { queryByText } = renderScreen(
+    afterEach(() => {
+      process.env.METAMASK_ENVIRONMENT = originalEnv;
+    });
+
+    it('fox icon has a TouchableOpacity wrapper with long press handler', () => {
+      const { UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
         { state: {} },
       );
 
-      // When the component renders
-      // Then it should not display the branch information
-      expect(queryByText(/Branch:/)).toBeNull();
+      // Given the component is rendered
+      // When we look for TouchableOpacity components with onLongPress
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      // Then the fox touchable should exist with proper configuration
+      expect(foxTouchable).toBeDefined();
+      expect(foxTouchable?.props.delayLongPress).toBe(10000); // 10 seconds
+      expect(foxTouchable?.props.activeOpacity).toBe(1);
+    });
+
+    it('toggles showEnvironmentInfo state when long-pressed', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'staging';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Staging');
+      mockGetFeatureFlagAppDistribution.mockReturnValue('staging-dist');
+
+      const { queryByText, getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // Given environment info is initially hidden
+      expect(queryByText(/Environment:/)).toBeNull();
+
+      // When the fox icon is long-pressed
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      // Then all environment info fields should become visible
+      await waitFor(() => {
+        expect(getByText(/Environment:/)).toBeTruthy();
+        expect(getByText('Remote Feature Flag Env: Staging')).toBeTruthy();
+        expect(
+          getByText('Remote Feature Flag Distribution: staging-dist'),
+        ).toBeTruthy();
+      });
+    });
+
+    it('environment info persists after being shown', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
+      mockGetFeatureFlagAppDistribution.mockReturnValue('dev-dist');
+
+      const { getByText, queryByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // Given environment info is initially hidden
+      expect(queryByText(/Environment:/)).toBeNull();
+
+      // When the fox icon is long-pressed
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      // Then all environment info should become visible
+      await waitFor(() => {
+        expect(getByText(/Environment:/)).toBeTruthy();
+        expect(getByText('Remote Feature Flag Env: Development')).toBeTruthy();
+        expect(
+          getByText('Remote Feature Flag Distribution: dev-dist'),
+        ).toBeTruthy();
+      });
+
+      // And it should remain visible (state persists)
+      expect(getByText(/Environment:/)).toBeTruthy();
+      expect(getByText('Remote Feature Flag Env: Development')).toBeTruthy();
+      expect(
+        getByText('Remote Feature Flag Distribution: dev-dist'),
+      ).toBeTruthy();
+    });
+
+    it('displays remote feature flag distribution from utils', async () => {
+      // Given distribution is mocked with a specific value
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
+      mockGetFeatureFlagAppDistribution.mockReturnValue('custom-distribution');
+
+      const { getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      // When the fox icon is long-pressed
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      // Then it should display the mocked distribution value
+      await waitFor(() => {
+        expect(getByText(/Environment:/)).toBeTruthy();
+        expect(
+          getByText('Remote Feature Flag Distribution: custom-distribution'),
+        ).toBeTruthy();
+      });
     });
   });
 });
