@@ -89,9 +89,7 @@ export function isSameOrigin(a: string, b: string) {
   try {
     const urlA = new URL(a);
     const urlB = new URL(b);
-    if (!urlA || !urlB) {
-      return false;
-    }
+
     if (urlA.origin === urlB.origin) {
       return true;
     }
