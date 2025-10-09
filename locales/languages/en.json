@@ -187,9 +187,7 @@
     "by_continuing": "By continuing, you agree to MetaMask's",
     "terms_of_use": "Terms of use",
     "privacy_notice": "Privacy notice",
-    "and": "and",
-    "you_are_logged_in": "You’re logged in!",
-    "unlock_wallet": "Unlock wallet"
+    "and": "and"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -223,9 +221,11 @@
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
     "setting_security_privacy": "Settings > Security & Privacy"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",

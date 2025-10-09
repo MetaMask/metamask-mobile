@@ -435,7 +435,7 @@ class Onboarding extends PureComponent {
           if (isIOS) {
             // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
             this.props.navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS,
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
               {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
