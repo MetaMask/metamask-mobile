@@ -100,7 +100,6 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
 
   timer9.start();
   await tapPerpsBottomSheetGotItButton(device);
-  await device.pause(150000000000)
   await WalletMainScreen.isTokenVisible('ETH');
   await WalletMainScreen.tapOnToken('ETH');
   timer9.stop();
