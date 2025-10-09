@@ -271,11 +271,12 @@ class TransactionElement extends PureComponent {
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
 
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
-      handleUnifiedSwapsTxHistoryItemClick(
-        this.props.navigation,
-        tx,
-        this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
-      );
+      handleUnifiedSwapsTxHistoryItemClick({
+        navigation: this.props.navigation,
+        evmTxMeta: tx,
+        bridgeTxHistoryItem:
+          this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
+      });
     } else if (tx.type === TransactionType.perpsDeposit) {
       this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
         transactionId: tx.id,
