@@ -56,6 +56,8 @@ export function PredictDepositTest() {
       from: selectedAccount as Hex,
       origin: ORIGIN_METAMASK,
       networkClientId,
+      disableHook: true,
+      disableSequential: true,
       transactions: [
         {
           params: {
