@@ -161,4 +161,17 @@ describe('MainNavigator', () => {
     // Then component should return null (empty container validates return null behavior)
     expect(rendered.toJSON()).toBe(null);
   });
+
+  it('should match snapshot when browser is not infullscreen mode on BrowserTabHome route', () => {
+    // Given browser is in fullscreen mode
+    selectBrowserFullscreen.mockReturnValue(false);
+
+    // When rendering MainNavigator on BrowserTabHome subpath route
+    const component = render(
+      <MainNavigator route={{ name: 'BrowserTabHome' }} />,
+    );
+
+    // Then component should match fullscreen snapshot (returns null)
+    expect(component.toJSON()).toMatchSnapshot();
+  });
 });
