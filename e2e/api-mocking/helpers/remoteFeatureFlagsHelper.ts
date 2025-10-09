@@ -264,6 +264,9 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   {
     walletFrameworkRpcFailoverEnabled: true,
   },
+  {
+    predictEnabled: false,
+  },
 ];
 
 /**
