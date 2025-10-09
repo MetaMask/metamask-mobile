@@ -12,6 +12,7 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -721,18 +722,22 @@ describe('BuildQuote View', () => {
       const denomSymbol =
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
 
-      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       fireEvent.press(getByRoleButton('1'));
       fireEvent.press(getByRoleButton('0'));
       fireEvent.press(getByRoleButton('0'));
       fireEvent.press(getByRoleButton('Done'));
 
-      expect(getByRoleButton(`${denomSymbol}100`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}100`);
 
-      fireEvent.press(getByRoleButton(`${denomSymbol}100`));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       fireEvent.press(getByRoleButton('2'));
 
-      expect(getByRoleButton(`${denomSymbol}2`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}2`);
     });
   });
 
@@ -909,18 +914,22 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
 
-      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       fireEvent.press(getByRoleButton('1'));
       fireEvent.press(getByRoleButton('0'));
       fireEvent.press(getByRoleButton('0'));
       fireEvent.press(getByRoleButton('Done'));
 
-      expect(getByRoleButton(`100 ${symbol}`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`100 ${symbol}`);
 
-      fireEvent.press(getByRoleButton(`100 ${symbol}`));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       fireEvent.press(getByRoleButton('2'));
 
-      expect(getByRoleButton(`2 ${symbol}`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`2 ${symbol}`);
     });
   });
 
