@@ -98,7 +98,7 @@ const browserReducer = (state = initialState, action) => {
           ...state.favicons,
         ].slice(0, AppConstants.FAVICON_CACHE_MAX_SIZE),
       };
-    case 'TOGGLE_FULLSCREEN_BUTTON':
+    case 'TOGGLE_FULLSCREEN':
       return {
         ...state,
         isFullscreen: !state.isFullscreen,
