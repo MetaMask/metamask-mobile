@@ -73,7 +73,6 @@ jobs:
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}
       RAMP_INTERNAL_BUILD: 'true'
-      MM_BRIDGE_ENABLED: 'true'
       BRIDGE_USE_DEV_APIS: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
