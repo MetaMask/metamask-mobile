@@ -44,7 +44,6 @@ import {
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import {
-  convertEnglishWordlistIndicesToCodepoints,
   convertMnemonicToWordlistIndices,
   uint8ArrayToMnemonic,
 } from '../../util/mnemonic';
@@ -809,11 +808,8 @@ class AuthenticationService {
             continue;
           } else if (secret.type === SecretType.Mnemonic) {
             // convert the seed phrase to a mnemonic (string)
-            const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
-              secret.data,
-              wordlist,
-            );
-            const mnemonicToRestore = encodedSrp.toString('utf8');
+            const encodedSrp = uint8ArrayToMnemonic(secret.data, wordlist);
+            const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
             const keyringMetadata = await this.importSeedlessMnemonicToVault(

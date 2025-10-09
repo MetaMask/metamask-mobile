@@ -2641,6 +2641,7 @@ describe('Authentication', () => {
       mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
         Buffer.from('test mnemonic phrase'),
       );
+      mockUint8ArrayToMnemonic.mockReturnValue('test mnemonic phrase');
     });
 
     it('sync seed phrases with private key and mnemonic secrets', async () => {
