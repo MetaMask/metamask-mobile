@@ -124,33 +124,6 @@ describe('cardTokenVault', () => {
       });
     });
 
-    it('removes expired token and returns error', async () => {
-      const expiredTokenData = {
-        ...mockTokenData,
-        expiresAt: FIXED_TIMESTAMP - 1000, // Expired 1 second ago
-      };
-      const mockSecureItem = {
-        key: 'CARD_BAANX_TOKENS',
-        value: JSON.stringify(expiredTokenData),
-      };
-      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(
-        mockSecureItem,
-      );
-      (mockSecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(
-        true,
-      );
-
-      const result = await getCardBaanxToken();
-
-      expect(mockSecureKeychain.clearSecureScope).toHaveBeenCalledWith(
-        mockScopeOptions,
-      );
-      expect(result).toEqual({
-        success: false,
-        error: 'Token expired',
-      });
-    });
-
     it('handles JSON parsing errors', async () => {
       const mockSecureItem = {
         key: 'CARD_BAANX_TOKENS',
@@ -185,30 +158,6 @@ describe('cardTokenVault', () => {
       expect(result).toEqual({
         success: false,
         error: 'Keychain access denied',
-      });
-    });
-
-    it('handles token exactly at expiration time', async () => {
-      const tokenExpiringNow = {
-        ...mockTokenData,
-        expiresAt: FIXED_TIMESTAMP, // Expires exactly now
-      };
-      const mockSecureItem = {
-        key: 'CARD_BAANX_TOKENS',
-        value: JSON.stringify(tokenExpiringNow),
-      };
-      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(
-        mockSecureItem,
-      );
-      (mockSecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(
-        true,
-      );
-
-      const result = await getCardBaanxToken();
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Token expired',
       });
     });
 
@@ -307,35 +256,6 @@ describe('cardTokenVault', () => {
       );
       const removeResult = await removeCardBaanxToken();
       expect(removeResult.success).toBe(true);
-    });
-
-    it('handles expired token cleanup during get operation', async () => {
-      const expiredTokenData = {
-        ...mockTokenData,
-        expiresAt: FIXED_TIMESTAMP - 3600000, // Expired 1 hour ago
-      };
-      const mockSecureItem = {
-        key: 'CARD_BAANX_TOKENS',
-        value: JSON.stringify(expiredTokenData),
-      };
-
-      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(
-        mockSecureItem,
-      );
-      (mockSecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(
-        true,
-      );
-
-      const result = await getCardBaanxToken();
-
-      // Verify expired token triggers removal
-      expect(mockSecureKeychain.clearSecureScope).toHaveBeenCalledWith(
-        mockScopeOptions,
-      );
-      expect(result).toEqual({
-        success: false,
-        error: 'Token expired',
-      });
     });
   });
 

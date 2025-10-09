@@ -360,7 +360,6 @@ describe('CardSDK Context', () => {
       });
 
       expect(mockGetCardBaanxToken).toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith('Token is valid');
     });
 
     it('should not authenticate user when token retrieval fails', async () => {
@@ -404,8 +403,6 @@ describe('CardSDK Context', () => {
         expect(result.current.isAuthenticated).toBe(false);
         expect(result.current.isLoading).toBe(false);
       });
-
-      expect(mockLogger.log).toHaveBeenCalledWith('No valid token data found');
     });
 
     it('should refresh expired token successfully', async () => {
@@ -427,10 +424,6 @@ describe('CardSDK Context', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Token expired, attempting refresh...',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith('Token refresh successful');
       expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
@@ -509,9 +502,6 @@ describe('CardSDK Context', () => {
       });
 
       expect(mockGetCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'SDK not available or Baanx login not enabled, skipping authentication check',
-      );
     });
 
     it('should handle authentication errors gracefully', async () => {

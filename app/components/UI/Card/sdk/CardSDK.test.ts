@@ -1079,14 +1079,20 @@ describe('CardSDK', () => {
   });
 
   describe('exchangeToken', () => {
-    const mockExchangeData = {
+    const mockAuthCodeExchangeData = {
       code: 'auth-code',
       codeVerifier: 'code-verifier',
       grantType: 'authorization_code' as const,
       location: 'us' as CardLocation,
     };
 
-    it('should exchange token successfully', async () => {
+    const mockRefreshTokenExchangeData = {
+      code: 'refresh-token-123',
+      grantType: 'refresh_token' as const,
+      location: 'international' as CardLocation,
+    };
+
+    it('should exchange authorization code successfully', async () => {
       const mockRawResponse = {
         access_token: 'new-access-token',
         token_type: 'Bearer',
@@ -1100,7 +1106,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockRawResponse),
       });
 
-      const result = await cardSDK.exchangeToken(mockExchangeData);
+      const result = await cardSDK.exchangeToken(mockAuthCodeExchangeData);
 
       const expectedResponse: CardExchangeTokenResponse = {
         accessToken: 'new-access-token',
@@ -1116,14 +1122,57 @@ describe('CardSDK', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            code: mockExchangeData.code,
-            code_verifier: mockExchangeData.codeVerifier,
-            grant_type: mockExchangeData.grantType,
+            code: mockAuthCodeExchangeData.code,
+            code_verifier: mockAuthCodeExchangeData.codeVerifier,
+            grant_type: mockAuthCodeExchangeData.grantType,
             redirect_uri: 'https://example.com',
           }),
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
             'x-us-env': 'true',
+            'x-client-key': 'test-api-key',
+            'x-secret-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('should exchange refresh token successfully', async () => {
+      const mockRawResponse = {
+        access_token: 'refreshed-access-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+        refresh_token: 'new-refresh-token',
+        refresh_token_expires_in: 7200,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockRawResponse),
+      });
+
+      const result = await cardSDK.exchangeToken(mockRefreshTokenExchangeData);
+
+      const expectedResponse: CardExchangeTokenResponse = {
+        accessToken: 'refreshed-access-token',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+        refreshToken: 'new-refresh-token',
+        refreshTokenExpiresIn: 7200,
+      };
+
+      expect(result).toEqual(expectedResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/auth/oauth/token'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            grant_type: mockRefreshTokenExchangeData.grantType,
+            refresh_token: mockRefreshTokenExchangeData.code,
+          }),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-us-env': 'false',
             'x-client-key': 'test-api-key',
             'x-secret-key': 'test-api-key',
           }),
@@ -1138,12 +1187,12 @@ describe('CardSDK', () => {
         text: jest.fn().mockResolvedValue('Invalid code'),
       });
 
-      await expect(cardSDK.exchangeToken(mockExchangeData)).rejects.toThrow(
-        CardError,
-      );
+      await expect(
+        cardSDK.exchangeToken(mockAuthCodeExchangeData),
+      ).rejects.toThrow(CardError);
 
       await expect(
-        cardSDK.exchangeToken(mockExchangeData),
+        cardSDK.exchangeToken(mockAuthCodeExchangeData),
       ).rejects.toMatchObject({
         type: CardErrorType.INVALID_CREDENTIALS,
         message: 'Token exchange failed. Please try logging in again.',
@@ -1157,12 +1206,12 @@ describe('CardSDK', () => {
         text: jest.fn().mockResolvedValue('Server error'),
       });
 
-      await expect(cardSDK.exchangeToken(mockExchangeData)).rejects.toThrow(
-        CardError,
-      );
+      await expect(
+        cardSDK.exchangeToken(mockAuthCodeExchangeData),
+      ).rejects.toThrow(CardError);
 
       await expect(
-        cardSDK.exchangeToken(mockExchangeData),
+        cardSDK.exchangeToken(mockAuthCodeExchangeData),
       ).rejects.toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Token exchange failed. Please try again.',
@@ -1207,13 +1256,14 @@ describe('CardSDK', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            code: mockRefreshToken,
-            code_verifier: undefined,
             grant_type: 'refresh_token',
-            redirect_uri: 'https://example.com',
+            refresh_token: mockRefreshToken,
           }),
           headers: expect.objectContaining({
+            'Content-Type': 'application/json',
             'x-us-env': 'false',
+            'x-client-key': 'test-api-key',
+            'x-secret-key': 'test-api-key',
           }),
         }),
       );

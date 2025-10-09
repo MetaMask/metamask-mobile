@@ -78,7 +78,6 @@ export const CardSDKProvider = ({
           throw new Error('Invalid token response from refresh request');
         }
 
-        // Store the new tokens
         await storeCardBaanxToken({
           accessToken: newTokens.accessToken,
           refreshToken: newTokens.refreshToken,
@@ -86,7 +85,6 @@ export const CardSDKProvider = ({
           location,
         });
 
-        Logger.log('Token refresh successful');
         setIsAuthenticated(true);
         setUserCardLocation(location);
       } catch (error) {
@@ -112,28 +110,23 @@ export const CardSDKProvider = ({
 
     // If no token data exists, user needs to authenticate
     if (!accessToken || !refreshToken || !expiresAt || !location) {
-      Logger.log('No valid token data found');
       setIsAuthenticated(false);
       return;
     }
 
     // If token is still valid, user is authenticated
     if (Date.now() < expiresAt) {
-      Logger.log('Token is valid');
       setIsAuthenticated(true);
       setUserCardLocation(location);
       return;
     }
 
-    // Token is expired, attempt to refresh it
-    Logger.log('Token expired, attempting refresh...');
     await attemptTokenRefresh(refreshToken, location);
   }, [attemptTokenRefresh]);
 
   // Check authentication status and handle token refresh
   useEffect(() => {
     const authenticateUser = async () => {
-      Logger.log('Starting authentication check...');
       setIsLoading(true);
 
       try {
@@ -150,9 +143,6 @@ export const CardSDKProvider = ({
     if (sdk?.isBaanxLoginEnabled) {
       authenticateUser();
     } else {
-      Logger.log(
-        'SDK not available or Baanx login not enabled, skipping authentication check',
-      );
       setIsLoading(false);
       setIsAuthenticated(false);
     }

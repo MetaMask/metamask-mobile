@@ -81,14 +81,6 @@ export async function getCardBaanxToken(): Promise<{
       location: 'us' | 'international';
     } = JSON.parse(secureItem.value);
 
-    if (Date.now() >= tokenData.expiresAt) {
-      await removeCardBaanxToken();
-      return {
-        success: false,
-        error: 'Token expired',
-      };
-    }
-
     return {
       success: true,
       tokenData,

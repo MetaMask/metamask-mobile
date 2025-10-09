@@ -673,16 +673,27 @@ export class CardSDK {
     grantType: 'authorization_code' | 'refresh_token';
     location: CardLocation;
   }): Promise<CardExchangeTokenResponse> => {
+    let requestBody = null;
+
+    if (body.grantType === 'authorization_code') {
+      requestBody = {
+        code: body.code,
+        code_verifier: body.codeVerifier,
+        grant_type: body.grantType,
+        redirect_uri: 'https://example.com',
+      };
+    } else {
+      requestBody = {
+        grant_type: body.grantType,
+        refresh_token: body.code,
+      };
+    }
+
     const response = await this.makeRequest(
       '/v1/auth/oauth/token',
       {
         method: 'POST',
-        body: JSON.stringify({
-          code: body.code,
-          code_verifier: body.codeVerifier,
-          grant_type: body.grantType,
-          redirect_uri: 'https://example.com',
-        }),
+        body: JSON.stringify(requestBody),
         headers: {
           'x-secret-key': this.cardBaanxApiKey || '',
         },
