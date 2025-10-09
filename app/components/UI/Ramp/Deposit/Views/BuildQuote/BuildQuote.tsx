@@ -408,7 +408,7 @@ const BuildQuote = () => {
 
   const networkName = selectedCryptoCurrency
     ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
-    : null;
+    : undefined;
 
   const networkImageSource = selectedCryptoCurrency?.chainId
     ? getNetworkImageSource({
@@ -529,7 +529,7 @@ const BuildQuote = () => {
                       badgeElement={
                         networkImageSource ? (
                           <BadgeNetwork
-                            name={networkName || undefined}
+                            name={networkName}
                             imageSource={networkImageSource}
                           />
                         ) : null
