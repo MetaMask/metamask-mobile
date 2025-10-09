@@ -83,25 +83,21 @@ export const initialState = {
               [formatChainIdToCaip(ethChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: true,
                 isGaslessSwapEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: true,
                 isGaslessSwapEnabled: false,
               },
               [SolScope.Mainnet]: {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: true,
                 isGaslessSwapEnabled: false,
               },
               [BtcScope.Mainnet]: {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: true,
                 isGaslessSwapEnabled: false,
               },
             },

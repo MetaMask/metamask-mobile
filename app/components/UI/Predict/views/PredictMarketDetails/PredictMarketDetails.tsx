@@ -519,24 +519,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       edges={['left', 'right', 'bottom']}
       testID="predict-market-details-screen"
     >
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={[
-          tw.style('px-3 pb-8 gap-4'),
-          { paddingTop: insets.top + 12 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {renderHeader()}
-        {singleOutcomeMarket && renderCurrentPrediction()}
-        <PredictDetailsChart
-          data={chartData}
-          timeframes={PRICE_HISTORY_TIMEFRAMES}
-          selectedTimeframe={selectedTimeframe}
-          onTimeframeChange={handleTimeframeChange}
-          isLoading={isFetching}
-          emptyLabel={chartEmptyLabel}
-        />
+      <Box twClassName="flex-1">
+        <Box twClassName="px-3 gap-4" style={{ paddingTop: insets.top + 12 }}>
+          {renderHeader()}
+          {singleOutcomeMarket && renderCurrentPrediction()}
+          <PredictDetailsChart
+            data={chartData}
+            timeframes={PRICE_HISTORY_TIMEFRAMES}
+            selectedTimeframe={selectedTimeframe}
+            onTimeframeChange={handleTimeframeChange}
+            isLoading={isFetching}
+            emptyLabel={chartEmptyLabel}
+          />
+        </Box>
         <ScrollableTabView
           renderTabBar={() => (
             <TabBar
@@ -544,30 +539,36 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               testID={PredictMarketDetailsSelectorsIDs.TAB_BAR}
             />
           )}
-          style={tw.style('mt-2')}
+          style={tw.style('flex-1 mt-2')}
           initialPage={0}
         >
-          <Box
+          <ScrollView
             key="about"
             {...{ tabLabel: 'About' }}
-            twClassName="pt-4"
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+            showsVerticalScrollIndicator={false}
             testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
           >
             {renderAboutSection()}
-          </Box>
-          <Box
+          </ScrollView>
+          <ScrollView
             key="positions"
             {...{ tabLabel: 'Positions' }}
-            twClassName="pt-4"
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+            showsVerticalScrollIndicator={false}
             testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
           >
             {renderPositionsSection()}
-          </Box>
+          </ScrollView>
           {multipleOutcomes && (
-            <Box
+            <ScrollView
               key="outcomes"
               {...{ tabLabel: 'Outcomes' }}
-              twClassName="pt-4"
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('px-3 pt-4 pb-8')}
+              showsVerticalScrollIndicator={false}
               testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
             >
               <Box>
@@ -583,10 +584,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   />
                 ))}
               </Box>
-            </Box>
+            </ScrollView>
           )}
         </ScrollableTabView>
-      </ScrollView>
+      </Box>
       <Box twClassName="px-3 bg-default border-t border-muted">
         {singleOutcomeMarket && renderActionButtons()}
       </Box>
