@@ -19,14 +19,14 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { stack, ...params } = options;
+      const { headerShown, stack, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
         params.loader = ConfirmationLoader.CustomAmount;
       }
 
-      const route = options.headerShown === false ? ROUTE_NO_HEADER : ROUTE;
+      const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
 
       if (stack) {
         navigate(stack, { screen: route, params });

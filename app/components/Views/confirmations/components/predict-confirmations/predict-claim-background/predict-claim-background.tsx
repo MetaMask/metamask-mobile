@@ -8,5 +8,11 @@ export function PredictClaimBackground() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenWidth, screenHeight });
 
-  return <Image source={ClaimBackground} style={styles.image} />;
+  return (
+    <Image
+      source={ClaimBackground}
+      style={styles.image}
+      testID="predict-claim-background"
+    />
+  );
 }

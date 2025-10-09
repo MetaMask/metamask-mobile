@@ -34,7 +34,7 @@ export function PredictClaimFooter() {
   }));
 
   return (
-    <Box style={styles.container}>
+    <Box style={styles.container} testID="predict-claim-footer">
       <Box style={styles.top}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           Winnings from 5 markets
