@@ -10,7 +10,10 @@ import {
   MISSING,
   VALID,
 } from './utils/verifySignature';
-import { DeepLinkModalLinkType , SUPPORTED_ACTIONS } from '../types/deepLink.types';
+import {
+  DeepLinkModalLinkType,
+  SUPPORTED_ACTIONS,
+} from '../types/deepLink.types';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
 import {
@@ -41,6 +44,74 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
 const interstitialWhitelist = [
   `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
 ] as const;
+
+/**
+ * Determines the signature status of a validated URL
+ */
+async function determineSignatureStatus(
+  validatedUrl: URL,
+): Promise<SignatureStatus> {
+  if (hasSignature(validatedUrl)) {
+    try {
+      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      switch (signatureResult) {
+        case VALID:
+          return SignatureStatus.VALID;
+        case INVALID:
+          return SignatureStatus.INVALID;
+        case MISSING:
+        default:
+          return SignatureStatus.MISSING;
+      }
+    } catch (error) {
+      return SignatureStatus.INVALID;
+    }
+  }
+  return SignatureStatus.MISSING;
+}
+
+/**
+ * Resolves the interstitial action based on whitelisting and user interaction
+ */
+async function resolveInterstitialAction(
+  action: SUPPORTED_ACTIONS,
+  validatedUrl: URL,
+  url: string,
+  linkType: () => DeepLinkModalLinkType,
+): Promise<InterstitialState> {
+  if (WHITELISTED_ACTIONS.includes(action)) {
+    return InterstitialState.ACCEPTED;
+  }
+
+  const validatedUrlString = validatedUrl.toString();
+  if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+    return InterstitialState.ACCEPTED;
+  }
+
+  return new Promise<InterstitialState>((resolve) => {
+    const [, actionName] = validatedUrl.pathname.split('/');
+    const sanitizedAction = actionName?.replace(/-/g, ' ');
+    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
+
+    handleDeepLinkModalDisplay(
+      {
+        linkType: linkType(),
+        pageTitle,
+        onContinue: () => resolve(InterstitialState.ACCEPTED),
+        onBack: () => resolve(InterstitialState.REJECTED),
+      },
+      {
+        url,
+        route: mapSupportedActionToRoute(action),
+        urlParams: extractURLParams(url).params,
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+        interstitialAction: undefined,
+      },
+    );
+  });
+}
 
 async function handleUniversalLink({
   instance,
@@ -124,43 +195,12 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
-  const interstitialAction = WHITELISTED_ACTIONS.includes(action)
-    ? InterstitialState.ACCEPTED
-    : await new Promise<InterstitialState>((resolve) => {
-        const [, actionName] = validatedUrl.pathname.split('/');
-        const sanitizedAction = actionName?.replace(/-/g, ' ');
-        const pageTitle: string =
-          capitalize(sanitizedAction?.toLowerCase()) || '';
-
-        const validatedUrlString = validatedUrl.toString();
-        if (
-          interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))
-        ) {
-          resolve(InterstitialState.ACCEPTED);
-          return;
-        }
-
-        handleDeepLinkModalDisplay(
-          {
-            linkType: linkType(),
-            pageTitle,
-            onContinue: () => resolve(InterstitialState.ACCEPTED),
-            onBack: () => resolve(InterstitialState.REJECTED),
-          },
-          {
-            url,
-            route: mapSupportedActionToRoute(action),
-            urlParams: {
-              ...extractURLParams(url).params,
-              hr: extractURLParams(url).params.hr ? '1' : '0', // Convert boolean back to string for analytics
-            },
-            signatureStatus: SignatureStatus.MISSING,
-            interstitialShown: false, // Will be updated when modal is shown
-            interstitialDisabled: false, // Will be updated based on user settings
-            interstitialAction: undefined, // Will be set when user acts
-          },
-        );
-      });
+  const interstitialAction = await resolveInterstitialAction(
+    action,
+    validatedUrl,
+    url,
+    linkType,
+  );
 
   // Universal links
   handled();
@@ -174,28 +214,7 @@ async function handleUniversalLink({
     const { params } = extractURLParams(url);
 
     // Determine signature status
-    let signatureStatus: SignatureStatus;
-    if (hasSignature(validatedUrl)) {
-      try {
-        const signatureResult = await verifyDeeplinkSignature(validatedUrl);
-        switch (signatureResult) {
-          case VALID:
-            signatureStatus = SignatureStatus.VALID;
-            break;
-          case INVALID:
-            signatureStatus = SignatureStatus.INVALID;
-            break;
-          case MISSING:
-          default:
-            signatureStatus = SignatureStatus.MISSING;
-            break;
-        }
-      } catch (error) {
-        signatureStatus = SignatureStatus.INVALID;
-      }
-    } else {
-      signatureStatus = SignatureStatus.MISSING;
-    }
+    const signatureStatus = await determineSignatureStatus(validatedUrl);
 
     // Get modal disabled state from Redux store
     const isModalDisabled = selectDeepLinkModalDisabled(
@@ -212,10 +231,7 @@ async function handleUniversalLink({
     const analyticsContext: DeepLinkAnalyticsContext = {
       url,
       route: mapSupportedActionToRoute(action), // Proper mapping function
-      urlParams: {
-        ...params,
-        hr: params.hr ? '1' : '0', // Convert boolean back to string for analytics
-      },
+      urlParams: params,
       signatureStatus,
       interstitialShown: wasInterstitialShown, // Modal was shown if user accepted or rejected
       interstitialDisabled: isModalDisabled, // Get actual modal disabled state

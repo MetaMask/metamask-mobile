@@ -3,6 +3,8 @@
  * Replaces multiple deep link modal events with single DEEP_LINK_USED event
  */
 
+import { DeeplinkUrlParams } from './deepLink.types';
+
 /**
  * Interstitial states for deep link modal
  */
@@ -78,7 +80,7 @@ export interface DeepLinkAnalyticsContext {
   branchParams?: BranchParams;
 
   /** URL parameters */
-  urlParams: Record<string, string>;
+  urlParams: Partial<DeeplinkUrlParams>;
 
   /** Signature validation result */
   signatureStatus: SignatureStatus;
