@@ -304,7 +304,7 @@ const DeepLinkModal = () => {
 
     dispatch(setDeepLinkModalDisabled(!isChecked));
     setIsChecked((prev) => !prev);
-  }, [isChecked, trackEvent, dispatch]);
+  }, [isChecked, trackEvent, dispatch, params.deepLinkContext]);
 
   const shouldShowCheckbox = linkType === 'private';
 
