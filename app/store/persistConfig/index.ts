@@ -90,7 +90,6 @@ export const ControllerStorage = {
           try {
             const data = await FilesystemStorage.getItem(key);
             if (data) {
-              // Parse the JSON data
               const parsedData = JSON.parse(data);
 
               // Ensure parsedData is an object to prevent destructuring errors
