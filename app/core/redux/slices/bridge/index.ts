@@ -212,12 +212,7 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
 
-    if (
-      hasMinimumRequiredVersion(
-        featureFlags.minimumVersion,
-        process.env.MM_BRIDGE_ENABLED === 'true',
-      )
-    ) {
+    if (hasMinimumRequiredVersion(featureFlags.minimumVersion)) {
       return featureFlags;
     }
 
