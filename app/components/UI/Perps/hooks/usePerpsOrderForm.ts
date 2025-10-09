@@ -76,46 +76,41 @@ export function usePerpsOrderForm(
   // Calculate the maximum possible amount based on available balance and leverage
   const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
 
-  const maxPossibleAmount = useMemo(
-    () =>
-      getMaxAllowedAmountUtils({
-        availableBalance,
-        assetPrice: parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals:
-          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-        leverage: defaultLeverage,
-      }),
-    [
-      availableBalance,
-      currentPrice?.price,
-      marketData?.szDecimals,
-      defaultLeverage,
-    ],
-  );
-
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
-  const initialAmountValue = useMemo(
-    () =>
-      findOptimalAmount({
-        targetAmount:
-          initialAmount ||
-          (maxPossibleAmount < defaultAmount
-            ? maxPossibleAmount.toString()
-            : defaultAmount.toString()),
-        price: parseFloat(currentPrice?.price) || 0,
-        szDecimals:
-          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-        maxAllowedAmount: maxPossibleAmount,
-        minAllowedAmount: defaultAmount,
-      }),
-    [
-      initialAmount,
-      maxPossibleAmount,
-      defaultAmount,
-      currentPrice?.price,
-      marketData?.szDecimals,
-    ],
-  );
+  const initialAmountValue = useMemo(() => {
+    // Don't calculate if price is not available yet to avoid temporary 0 values
+    if (!currentPrice?.price) {
+      return defaultAmount.toString();
+    }
+
+    const tempMaxAmount = getMaxAllowedAmountUtils({
+      availableBalance,
+      assetPrice: parseFloat(currentPrice.price),
+      assetSzDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      leverage: defaultLeverage, // Use default leverage for initial calculation
+    });
+
+    return findOptimalAmount({
+      targetAmount:
+        initialAmount ||
+        (tempMaxAmount < defaultAmount
+          ? tempMaxAmount.toString()
+          : defaultAmount.toString()),
+      price: parseFloat(currentPrice.price),
+      szDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      maxAllowedAmount: tempMaxAmount,
+      minAllowedAmount: defaultAmount,
+    });
+  }, [
+    initialAmount,
+    availableBalance,
+    defaultAmount,
+    currentPrice?.price,
+    marketData?.szDecimals,
+    defaultLeverage,
+  ]);
 
   // Calculate initial balance percentage
   const initialMarginRequired =
@@ -137,6 +132,20 @@ export function usePerpsOrderForm(
     limitPrice: undefined,
     type: initialType,
   });
+
+  // Calculate the maximum possible amount based on available balance and current leverage
+  const maxPossibleAmount = useMemo(() => getMaxAllowedAmountUtils({
+      availableBalance,
+      assetPrice: parseFloat(currentPrice?.price) || 0,
+      assetSzDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      leverage: orderForm.leverage, // Use current leverage instead of default
+    }), [
+    availableBalance,
+    currentPrice?.price,
+    marketData?.szDecimals,
+    orderForm.leverage, // Include current leverage in dependencies
+  ]);
 
   // Optimize order amount to get the optimal USD value for the position size
   const optimizeOrderAmount = useMemo(() => {
