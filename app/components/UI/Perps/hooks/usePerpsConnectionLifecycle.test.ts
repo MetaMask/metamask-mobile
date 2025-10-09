@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { AppState } from 'react-native';
 import Device from '../../../../util/device';
 import { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // Mock dependencies
 jest.mock('react-native', () => ({
@@ -217,9 +218,10 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
-      // Return to foreground - should reconnect
+      // Return to foreground - should reconnect after delay
       act(() => {
         mockAppStateListener?.('active');
+        jest.advanceTimersByTime(PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(2);
     });
@@ -275,9 +277,11 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
-      // Return to foreground - should reconnect
+      // Return to foreground - should reconnect after delay
       act(() => {
         mockAppStateListener?.('active');
+        // Advance timer for the 300ms reconnection delay
+        jest.advanceTimersByTime(300);
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(2);
     });
