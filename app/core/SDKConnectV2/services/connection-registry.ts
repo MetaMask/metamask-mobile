@@ -11,6 +11,7 @@ import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
+import { whenStoreReady } from '../utils/when-store-ready';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -46,6 +47,8 @@ export class ConnectionRegistry {
    * One-time initialization to resume all persisted connections on app cold start.
    */
   private async initialize(): Promise<void> {
+    await whenStoreReady();
+
     const persisted = await this.store.list().catch(() => []);
 
     const promises = persisted.map(async (connInfo) => {
