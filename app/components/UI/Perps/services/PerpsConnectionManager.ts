@@ -8,13 +8,13 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { store } from '../../../../store';
 import Device from '../../../../util/device';
-import Logger from '../../../../util/Logger';
 import {
   trace,
   endTrace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
@@ -112,9 +112,12 @@ class PerpsConnectionManagerClass {
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
-          DevLogger.log(
-            'PerpsConnectionManager: Failed to reconnect after account/network change',
-            error,
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              context:
+                'PerpsConnectionManager.reconnectWithNewContext (account/network change)',
+            },
           );
         });
       }
@@ -767,10 +770,9 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
-      DevLogger.log(
-        'PerpsConnectionManager: Failed to pre-load subscriptions',
-        error,
-      );
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'PerpsConnectionManager.preloadSubscriptions',
+      });
       // Non-critical error - components will still work with on-demand subscriptions
     }
   }

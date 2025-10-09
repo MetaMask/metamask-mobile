@@ -1524,7 +1524,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return markets;
     } catch (error) {
-      DevLogger.log('Error getting markets:', error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'HyperLiquidProvider.getMarkets',
+      });
       return [];
     }
   }
@@ -1563,7 +1565,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         predictedFundings,
       });
     } catch (error) {
-      DevLogger.log('Error getting market data with prices:', error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'HyperLiquidProvider.getMarketDataWithPrices',
+      });
       return [];
     }
   }
