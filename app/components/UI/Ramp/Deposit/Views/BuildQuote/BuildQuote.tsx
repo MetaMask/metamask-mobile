@@ -69,9 +69,6 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
-import { isCaipChainId } from '@metamask/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { toHex } from '@metamask/controller-utils';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -409,19 +406,13 @@ const BuildQuote = () => {
     );
   }, [navigation, paymentMethods, paymentMethodsError]);
 
-  const caipChainId = selectedCryptoCurrency?.chainId
-    ? isCaipChainId(selectedCryptoCurrency.chainId)
-      ? selectedCryptoCurrency.chainId
-      : toEvmCaipChainId(toHex(selectedCryptoCurrency.chainId))
-    : undefined;
+  const networkName = selectedCryptoCurrency
+    ? networkConfigurationsByCaipChainId[selectedCryptoCurrency.chainId]?.name
+    : null;
 
-  const networkName = caipChainId
-    ? networkConfigurationsByCaipChainId[caipChainId]?.name
-    : undefined;
-
-  const networkImageSource = caipChainId
+  const networkImageSource = selectedCryptoCurrency?.chainId
     ? getNetworkImageSource({
-        chainId: caipChainId,
+        chainId: selectedCryptoCurrency.chainId,
       })
     : null;
 
@@ -538,7 +529,7 @@ const BuildQuote = () => {
                       badgeElement={
                         networkImageSource ? (
                           <BadgeNetwork
-                            name={networkName}
+                            name={networkName || undefined}
                             imageSource={networkImageSource}
                           />
                         ) : null
