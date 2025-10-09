@@ -9,6 +9,9 @@ import fs from 'fs';
 import path from 'path';
 import { parseStringPromise } from 'xml2js';
 
+const MAX_TEST_NAME_LENGTH = 80;
+const MAX_FAILURE_MESSAGE_LENGTH = 200;
+
 const platform = process.argv[2] || 'Android';
 const resultsPath = process.argv[3] || path.join(process.cwd(), 'all-test-results');
 
@@ -25,6 +28,7 @@ async function parseJUnitXML(xmlContent) {
     });
 
     // Handle both single testsuite and multiple testsuites wrapped in <testsuites>
+    // Use if-else to prevent double-counting when both structures exist
     let testsuites = [];
     if (result.testsuites?.testsuite) {
       // Multiple testsuites wrapped in <testsuites>
@@ -70,26 +74,19 @@ async function parseJUnitXML(xmlContent) {
           ? testsuite.testcase
           : [testsuite.testcase];
 
+        // Helper to normalize values to array
+        const toArr = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+
         for (const testcase of testcases) {
-          if (testcase.failure) {
-            const testName = testcase.name || 'Unknown Test';
-            let failureMessage = '';
-
-            if (typeof testcase.failure === 'string') {
-              failureMessage = testcase.failure;
-            } else if (testcase.failure._) {
-              failureMessage = testcase.failure._;
-            } else if (testcase.failure.message) {
-              failureMessage = testcase.failure.message;
-            }
-
-            // Clean up and truncate failure message
-            failureMessage = failureMessage
-              .trim()
-              .split('\n')[0]
-              .substring(0, 200);
-
-            suiteResults[category].failedTests.push({ name: testName, message: failureMessage });
+          // Handle both failures and errors
+          const issues = [...toArr(testcase.failure), ...toArr(testcase.error)];
+          for (const issue of issues) {
+            const text = typeof issue === 'string' ? issue : (issue._ ?? issue.message ?? '').trim();
+            suiteResults[category].failedTests.push({
+              name: testcase.name || 'Unknown Test',
+              message: text.split('\n')[0].slice(0, MAX_FAILURE_MESSAGE_LENGTH),
+              kind: toArr(testcase.failure).includes(issue) ? 'failure' : 'error',
+            });
           }
         }
       }
@@ -130,13 +127,23 @@ async function parseAllXMLFiles(dirPath) {
 
   walkDir(dirPath);
 
-  // Parse all XML files
-  for (const filePath of xmlFiles) {
-    try {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      const results = await parseJUnitXML(content);
+  // Parse all XML files in parallel for better performance
+  const parsed = await Promise.allSettled(
+    xmlFiles.map(async (filePath) => {
+      try {
+        const content = await fs.promises.readFile(filePath, 'utf-8');
+        return await parseJUnitXML(content);
+      } catch (e) {
+        console.error(`Error parsing ${filePath}:`, e.message);
+        return {};
+      }
+    })
+  );
 
-      // Merge results from this file into allResults
+  // Merge results from all parsed files
+  for (const result of parsed) {
+    if (result.status === 'fulfilled') {
+      const results = result.value;
       Object.entries(results).forEach(([category, data]) => {
         if (!allResults[category]) {
           allResults[category] = {
@@ -154,8 +161,6 @@ async function parseAllXMLFiles(dirPath) {
         allResults[category].errors += data.errors;
         allResults[category].failedTests.push(...data.failedTests);
       });
-    } catch (error) {
-      console.error(`Error parsing ${filePath}:`, error.message);
     }
   }
 
@@ -195,8 +200,9 @@ async function getJobInfo() {
       const data = await response.json();
       allJobs.push(...data.jobs);
 
-      // Check if there are more pages
-      hasMorePages = data.jobs.length === 100;
+      // Check Link header for next page (proper pagination)
+      const linkHeader = response.headers.get('Link');
+      hasMorePages = linkHeader && linkHeader.includes('rel="next"');
       page++;
     }
 
@@ -477,7 +483,9 @@ async function generateSummary() {
       summary += `\n*Top Failed Tests*\n`;
       uniqueFailures.forEach((test) => {
         // Truncate long test names
-        const truncated = test.name.length > 80 ? test.name.substring(0, 80) + '...' : test.name;
+        const truncated = test.name.length > MAX_TEST_NAME_LENGTH
+          ? test.name.substring(0, MAX_TEST_NAME_LENGTH) + '...'
+          : test.name;
         summary += `:small_red_triangle: ${truncated}\n`;
         if (test.message) {
           summary += `   _${test.message}_\n`;
