@@ -172,7 +172,6 @@ export const usePerpsMeasurement = ({
         name: traceName,
         op,
         id: traceId.current,
-        startTime: Date.now(),
         data: debugContext as Record<string, string | number | boolean>,
       });
       traceStarted.current = true;
@@ -201,7 +200,6 @@ export const usePerpsMeasurement = ({
       endTrace({
         name: traceName,
         id: traceId.current,
-        timestamp: Date.now(),
         data: { success: true },
       });
       traceStarted.current = false;
