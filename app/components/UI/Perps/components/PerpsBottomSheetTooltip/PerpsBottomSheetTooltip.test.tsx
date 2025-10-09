@@ -4,6 +4,10 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
+import {
+  PerpsStreamProvider,
+  PerpsStreamManager,
+} from '../../providers/PerpsStreamManager';
 import PerpsBottomSheetTooltip from './PerpsBottomSheetTooltip';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 
@@ -32,36 +36,100 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   })),
 }));
 
-// Mock usePerpsOrderForm to avoid PerpsStreamProvider requirement
-jest.mock('../../hooks/usePerpsOrderForm', () => ({
-  usePerpsOrderForm: jest.fn(() => ({
-    orderForm: {
-      asset: 'BTC',
-      direction: 'long',
-      amount: '6',
-      leverage: 5,
-      balancePercent: 10,
-      type: 'market',
-      takeProfitPrice: undefined,
-      stopLossPrice: undefined,
-      limitPrice: undefined,
+// Mock usePerpsMarketData to prevent async operations that cause act warnings
+jest.mock('../../hooks/usePerpsMarketData', () => ({
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: {
+      name: 'BTC',
+      szDecimals: 6,
+      maxLeverage: 50,
+      marginTableId: 1,
     },
-    updateOrderForm: jest.fn(),
-    setAmount: jest.fn(),
-    setLeverage: jest.fn(),
-    setDirection: jest.fn(),
-    setAsset: jest.fn(),
-    setTakeProfitPrice: jest.fn(),
-    setStopLossPrice: jest.fn(),
-    setLimitPrice: jest.fn(),
-    setOrderType: jest.fn(),
-    handlePercentageAmount: jest.fn(),
-    handleMaxAmount: jest.fn(),
-    handleMinAmount: jest.fn(),
-    optimizeOrderAmount: jest.fn(),
-    maxPossibleAmount: 1000,
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
   })),
 }));
+
+// Create mock stream manager for tests
+const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
+  // Mock prices stream with minimal required properties
+  prices: {
+    subscribeToSymbols: jest.fn(() => jest.fn()), // Returns an unsubscribe function
+    subscribe: jest.fn(() => jest.fn()),
+    unsubscribe: jest.fn(),
+    prewarm: jest.fn(() =>
+      Promise.resolve(() => {
+        // no-op cleanup
+      }),
+    ),
+    cleanupPrewarm: jest.fn(),
+    clearCache: jest.fn(),
+    disconnect: jest.fn(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+
+  // Mock other stream channels
+  orders: {
+    subscribe: jest.fn(() => jest.fn()),
+    unsubscribe: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    cleanupPrewarm: jest.fn(),
+    clearCache: jest.fn(),
+    disconnect: jest.fn(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+
+  positions: {
+    subscribe: jest.fn(() => jest.fn()),
+    unsubscribe: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    cleanupPrewarm: jest.fn(),
+    clearCache: jest.fn(),
+    disconnect: jest.fn(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+
+  fills: {
+    subscribe: jest.fn(() => jest.fn()),
+    unsubscribe: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    cleanupPrewarm: jest.fn(),
+    clearCache: jest.fn(),
+    disconnect: jest.fn(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+
+  account: {
+    subscribe: jest.fn(() => jest.fn()),
+    unsubscribe: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    cleanupPrewarm: jest.fn(),
+    clearCache: jest.fn(),
+    disconnect: jest.fn(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+
+  marketData: {
+    subscribe: jest.fn(() => jest.fn()),
+    unsubscribe: jest.fn(),
+    refresh: jest.fn(() => Promise.resolve()),
+    prewarm: jest.fn(() => jest.fn()),
+    clearCache: jest.fn(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+});
+
+// Test wrapper with PerpsStreamProvider
+const TestWrapperWithStream = ({ children }: { children: React.ReactNode }) => (
+  <PerpsStreamProvider
+    testStreamManager={
+      createMockStreamManager() as unknown as PerpsStreamManager
+    }
+  >
+    {children}
+  </PerpsStreamProvider>
+);
 
 describe('PerpsBottomSheetTooltip', () => {
   const mockOnClose = jest.fn();
@@ -174,18 +242,20 @@ describe('PerpsBottomSheetTooltip', () => {
 
     const { getByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
-        <PerpsOrderProvider {...params}>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={mockOnClose}
-            contentKey={'fees'}
-            testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
-            data={{
-              metamaskFeeRate: 0.001, // 0.1% MetaMask fee
-              protocolFeeRate: 0.00045, // 0.045% protocol fee for taker
-            }}
-          />
-        </PerpsOrderProvider>
+        <TestWrapperWithStream>
+          <PerpsOrderProvider {...params}>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={mockOnClose}
+              contentKey={'fees'}
+              testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
+              data={{
+                metamaskFeeRate: 0.001, // 0.1% MetaMask fee
+                protocolFeeRate: 0.00045, // 0.045% protocol fee for taker
+              }}
+            />
+          </PerpsOrderProvider>
+        </TestWrapperWithStream>
       </SafeAreaProvider>,
     );
 

@@ -144,10 +144,6 @@ describe('PerpsOrderContext', () => {
       expect(typeof result.current.setAmount).toBe('function');
       expect(typeof result.current.setLeverage).toBe('function');
       expect(typeof result.current.updateOrderForm).toBe('function');
-      expect(typeof result.current.optimizeOrderAmount).toBe('function');
-
-      // Check that maxPossibleAmount is a number
-      expect(typeof result.current.maxPossibleAmount).toBe('number');
     });
 
     it('updates when usePerpsOrderForm returns new values', () => {
@@ -218,12 +214,11 @@ describe('PerpsOrderContext', () => {
       consoleError.mockRestore();
     });
 
-    it('provides access to maxPossibleAmount from the hook', () => {
+    it('provides access to calculations methods and data from the hook', () => {
       const { result } = renderHookWithProvider(() => usePerpsOrderContext());
 
-      expect(result.current.maxPossibleAmount).toBeDefined();
+      expect(result.current.optimizeOrderAmount).toBeDefined();
       expect(result.current.maxPossibleAmount).toBe(1000);
-      expect(typeof result.current.maxPossibleAmount).toBe('number');
     });
   });
 
@@ -283,8 +278,6 @@ describe('PerpsOrderContext', () => {
       expect(contextResult).toHaveProperty('handlePercentageAmount');
       expect(contextResult).toHaveProperty('handleMaxAmount');
       expect(contextResult).toHaveProperty('handleMinAmount');
-      expect(contextResult).toHaveProperty('optimizeOrderAmount');
-      expect(contextResult).toHaveProperty('maxPossibleAmount');
 
       // Verify types are correct
       expect(typeof contextResult.orderForm).toBe('object');
