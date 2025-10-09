@@ -44,6 +44,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.events.type.take_profit': 'Take profit',
       'rewards.events.type.stop_loss': 'Stop loss',
       'rewards.events.type.uncategorized_event': 'Uncategorized event',
+      'perps.market.long': 'Long',
+      'perps.market.short': 'Short',
     };
     return t[key] || key;
   }),

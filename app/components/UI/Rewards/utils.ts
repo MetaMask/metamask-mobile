@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../util/Logger';
+import { strings } from '../../../../locales/i18n';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
@@ -14,25 +15,26 @@ import { getAddressAccountType } from '../../../util/address';
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
 
-export const SOLANA_SIGNUP_NOT_SUPPORTED =
-  'Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.';
+export const SOLANA_SIGNUP_NOT_SUPPORTED = strings(
+  'rewards.solana_signup_not_supported',
+);
 
 export const handleRewardsErrorMessage = (error: unknown) => {
   if (typeof error !== 'object' || error === null) {
-    return 'Something went wrong. Please try again shortly.';
+    return strings('rewards.error_messages.something_went_wrong');
   }
 
   const errorObj = error as { data?: { message?: string }; message?: string };
   const message = errorObj?.data?.message ?? errorObj?.message;
   if (!message) {
-    return 'Something went wrong. Please try again shortly.';
+    return strings('rewards.error_messages.something_went_wrong');
   }
   if (message.includes('already registered')) {
-    return 'This account is already registered with another Rewards profile. Please switch account to continue.';
+    return strings('rewards.error_messages.account_already_registered');
   }
 
   if (message.includes('rejected the request')) {
-    return 'You rejected the request.';
+    return strings('rewards.error_messages.request_rejected');
   }
 
   if (message.includes('No keyring found')) {
@@ -40,14 +42,14 @@ export const handleRewardsErrorMessage = (error: unknown) => {
   }
 
   if (message.includes('Failed to claim reward')) {
-    return 'Failed to claim reward. Please try again shortly.';
+    return strings('rewards.error_messages.failed_to_claim_reward');
   }
 
   if (
     message.includes('not available') ||
     message.includes('Network request failed')
   ) {
-    return 'Service is not available at the moment. Please try again shortly.';
+    return strings('rewards.error_messages.service_not_available');
   }
   return message;
 };

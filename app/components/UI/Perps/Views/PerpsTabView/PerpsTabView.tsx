@@ -30,8 +30,8 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
+import { TraceName } from '../../../../../util/trace';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -45,6 +45,7 @@ import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 
 interface PerpsTabViewProps {}
 
@@ -62,7 +63,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   // Track Perps tab load performance - measures time from tab mount to data ready
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.PERPS_TAB_LOADED,
+    traceName: TraceName.PerpsTabView,
     conditions: [
       !isInitialLoading,
       !!positions,
@@ -98,16 +99,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     },
   });
 
+  const { isDepositInProgress } = usePerpsDepositProgress();
+
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
     }
 
+    if (isDepositInProgress) {
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
-  }, [navigation, isEligible]);
+  }, [navigation, isEligible, isDepositInProgress]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {

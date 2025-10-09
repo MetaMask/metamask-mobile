@@ -299,7 +299,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions",
+                "buttonTestId": "multichain-account-cell-menu",
                 "onButtonClick": [Function],
               }
             }
@@ -489,7 +489,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions",
+                "buttonTestId": "multichain-account-cell-menu",
                 "onButtonClick": [Function],
               }
             }

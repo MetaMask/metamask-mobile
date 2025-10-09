@@ -4,10 +4,12 @@ import {
   fireEvent,
   waitFor,
   userEvent,
+  renderHook,
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { Linking } from 'react-native';
-import Carousel from './';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
+import Carousel, { useFetchCarouselSlides } from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
@@ -20,6 +22,7 @@ import { selectLastSelectedSolanaAccount } from '../../../selectors/accountsCont
 import Routes from '../../../constants/navigation/Routes';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { SolScope } from '@metamask/keyring-api';
+import { setContentPreviewToken } from '../../../actions/notification/helpers';
 
 const makeMockState = () =>
   ({
@@ -64,8 +67,8 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
+jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+  parse: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('./fetchCarouselSlidesFromContentful', () => ({
@@ -210,7 +213,12 @@ describe('Carousel Navigation', () => {
     const { findByTestId } = render(<Carousel />);
     const slide = await findByTestId('carousel-slide-url-slide');
     fireEvent.press(slide);
-    expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+      'https://metamask.io',
+      {
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      },
+    );
   });
 
   it('navigates to buy flow for fund slides', async () => {
@@ -393,5 +401,45 @@ describe('Carousel UI Behavior', () => {
     // Next slide should also be rendered (stacked behind)
     const nextSlide = await findByTestId('carousel-slide-slide-2');
     expect(nextSlide).toBeOnTheScreen();
+  });
+});
+
+describe('useFetchCarouselSlides()', () => {
+  it('fetches initial content and refeches on preview token change', async () => {
+    // Arrange - Act - Assert: Initial Fetch
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [createMockSlide({ id: 'initial-slide' })],
+    });
+    const { result } = renderHook(() => useFetchCarouselSlides());
+    await waitFor(() => {
+      expect(mockFetchCarouselSlides).toHaveBeenCalled();
+      expect(result.current.priorityContentfulSlides).toHaveLength(0);
+      expect(result.current.regularContentfulSlides).toHaveLength(1);
+    });
+
+    // Arrange - Act - Assert: Preview Token Subscription Refetch
+    mockFetchCarouselSlides.mockClear();
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [createMockSlide({ id: 'new-slide' })],
+      regularSlides: [],
+    });
+    setContentPreviewToken('new-preview-token'); // fire the subscription on new token
+    await waitFor(() => {
+      expect(mockFetchCarouselSlides).toHaveBeenCalled();
+      expect(result.current.priorityContentfulSlides).toHaveLength(1);
+      expect(result.current.regularContentfulSlides).toHaveLength(0);
+    });
+  });
+
+  it('does not fetch when feature flag is disabled', () => {
+    jest
+      .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
+      .mockReturnValue(false);
+
+    renderHook(() => useFetchCarouselSlides());
+
+    // Should not fetch when feature is disabled
+    expect(mockFetchCarouselSlides).not.toHaveBeenCalled();
   });
 });

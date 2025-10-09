@@ -13,7 +13,30 @@ import * as PerpsHooks from '../../hooks';
 import PerpsTabControlBar from './PerpsTabControlBar';
 
 // Mock dependencies
-jest.mock('../../providers/PerpsStreamManager');
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    account: {
+      subscribe: jest.fn(() => jest.fn()), // Returns unsubscribe function
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    prices: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     styles: {

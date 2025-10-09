@@ -1,8 +1,9 @@
 import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
-const styleSheet = ({ theme }: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = ({ theme }: { theme: Theme }) => {
+  const { colors } = theme;
+  return StyleSheet.create({
     assetIconWrapper: {
       alignSelf: 'center',
     },
@@ -21,6 +22,10 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     skeletonBalanceValue: {
       marginBottom: 4,
     },
+    activityIndicator: {
+      color: colors.icon.default,
+    },
   });
+};
 
 export default styleSheet;
