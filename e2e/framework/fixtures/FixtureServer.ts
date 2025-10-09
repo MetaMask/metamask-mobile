@@ -153,27 +153,59 @@ class FixtureServer {
       if (!this._server) {
         throw new Error('Failed to start fixture server');
       }
-      this._server.once('error', reject);
-      this._server.once('listening', resolve);
-      this._serverStatus = ServerStatus.STARTED;
+      let onError: ((err: unknown) => void) | null = null;
+      let onListening: (() => void) | null = null;
+      onError = (err: unknown) => {
+        if (onListening) {
+          this._server?.removeListener('listening', onListening);
+        }
+        reject(err);
+      };
+      onListening = () => {
+        if (onError) {
+          this._server?.removeListener('error', onError);
+        }
+        this._serverStatus = ServerStatus.STARTED;
+        resolve(undefined);
+      };
+      this._server.once('error', onError);
+      this._server.once('listening', onListening);
     });
   }
   // Stop the fixture server
   async stop() {
-    if (this._serverStatus === ServerStatus.STOPPED) {
+    logger.debug(`Stopping fixture server on port ${this.port}`);
+    if (this._serverStatus === ServerStatus.STOPPED || !this._server) {
+      logger.debug('The fixture server has already been stopped');
       return;
     }
 
     await new Promise((resolve, reject) => {
-      logger.debug(`Stopping fixture server on port ${this.port}`);
-      if (this._serverStatus === ServerStatus.STOPPED) {
-        throw new Error('Failed to stop fixture server');
+      const serverRef = this._server;
+      if (!serverRef) {
+        this._serverStatus = ServerStatus.STOPPED;
+        resolve(undefined);
+        return;
       }
-      this._server?.close();
-      this._server?.once('error', reject);
-      this._server?.once('close', resolve);
-      this._server = null;
-      this._serverStatus = ServerStatus.STOPPED;
+      let onError: ((err: unknown) => void) | null = null;
+      let onClose: (() => void) | null = null;
+      onError = (err: unknown) => {
+        if (onClose) {
+          serverRef.removeListener('close', onClose);
+        }
+        reject(err);
+      };
+      onClose = () => {
+        if (onError) {
+          serverRef.removeListener('error', onError);
+        }
+        this._server = null;
+        this._serverStatus = ServerStatus.STOPPED;
+        resolve(undefined);
+      };
+      serverRef.once('error', onError);
+      serverRef.once('close', onClose);
+      serverRef.close();
     });
   }
   // Load JSON state into the server
