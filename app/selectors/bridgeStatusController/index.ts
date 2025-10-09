@@ -31,13 +31,14 @@ export const selectBridgeHistoryForAccount = createSelector(
         const txHistoryItem = txHistory[txMetaId];
         const account = txHistoryItem.account;
 
-        const hasExactMatch = addressesSet.has(account);
+        const nonEvmHasMatch =
+          !isEthAddress(account) && addressesSet.has(account);
         const evmHasMatch =
           isEthAddress(account) &&
           (addressesSet.has(account.toLowerCase()) ||
             addressesSet.has(toChecksumHexAddress(account)));
 
-        if (hasExactMatch || evmHasMatch) {
+        if (nonEvmHasMatch || evmHasMatch) {
           acc[txMetaId] = txHistoryItem;
         }
         return acc;
