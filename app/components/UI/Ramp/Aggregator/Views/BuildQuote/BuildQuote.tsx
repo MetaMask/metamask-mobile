@@ -498,27 +498,24 @@ const BuildQuote = () => {
       valueAsNumber: number;
       pressedKey: Keys;
     }) => {
+      let newValue = `${value}`;
+      let newValueAsNumber = valueAsNumber;
+
       if (isKeyboardFreshlyOpened && /^[0-9]$/.test(pressedKey)) {
-        setAmount(pressedKey);
-        setAmountNumber(Number(pressedKey));
-        if (isSell) {
-          setAmountBNMinimalUnit(
-            toTokenMinimalUnit(pressedKey, selectedAsset?.decimals ?? 0) as BN4,
-          );
-        }
-        setIsKeyboardFreshlyOpened(false);
-      } else {
-        setAmount(`${value}`);
-        setAmountNumber(valueAsNumber);
-        if (isSell) {
-          setAmountBNMinimalUnit(
-            toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
-          );
-        }
-        if (isKeyboardFreshlyOpened) {
-          setIsKeyboardFreshlyOpened(false);
-        }
+        newValue = pressedKey;
+        newValueAsNumber = Number(pressedKey);
       }
+
+      setAmount(newValue);
+      setAmountNumber(newValueAsNumber);
+
+      if (isSell) {
+        setAmountBNMinimalUnit(
+          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0) as BN4,
+        );
+      }
+
+      setIsKeyboardFreshlyOpened(false);
     },
     [isSell, selectedAsset?.decimals, isKeyboardFreshlyOpened],
   );
