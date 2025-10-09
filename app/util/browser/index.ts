@@ -28,14 +28,34 @@ export const prefixUrlWithProtocol = (
  * @param defaultProtocol - Protocol string to append to URLs that have none
  * @returns - String corresponding to sanitized input depending if it's a search or url
  */
+/**
+ * Safely decode a URL string, returning the original if decoding fails
+ *
+ * @param url - String to decode
+ * @returns - Decoded URL string or original if decoding fails
+ */
+const safeDecodeUrl = (url: string): string => {
+  try {
+    return decodeURIComponent(url);
+  } catch (error) {
+    // re-assign the url to the original argument
+    // to be later evaluated by regex
+    return url;
+  }
+};
+
 export function processUrlForBrowser(input: string, searchEngine = 'Google') {
   const defaultProtocol = 'https://';
+
+  // Decode the URL first to handle URL-encoded characters
+  const decodedInput = safeDecodeUrl(input);
+
   //Check if it's a url or a keyword
-  if (!input.match(regex.url)) {
+  if (!decodedInput.match(regex.url)) {
     // Add exception for localhost
     if (
-      !input.startsWith('http://localhost') &&
-      !input.startsWith('localhost')
+      !decodedInput.startsWith('http://localhost') &&
+      !decodedInput.startsWith('localhost')
     ) {
       // In case of keywords we default to google search
       let searchUrl =
@@ -94,19 +114,27 @@ export const isTLD = (hostname: string, error: any) =>
 /**
  *
  * List of all protocols that our webview load unconditionally
+ *
  */
-export const protocolAllowList = ['about:', 'http:', 'https:'];
+export const protocolAllowList = [
+  'about:',
+  'http:',
+  'https:',
+  'file:',
+  'wc:',
+  'metamask:',
+  'ethereum:',
+  'dapp:',
+];
 
 /**
  *
  * List of all trusted protocols for OS Linker to handle
  */
 export const trustedProtocolToDeeplink = [
-  'wc:',
-  'metamask:',
-  'ethereum:',
-  'dapp:',
   'market:',
+  // app store deeplink
+  'itms-apps:',
 ];
 
 /**
