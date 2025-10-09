@@ -362,6 +362,14 @@ class PerpsConnectionManagerClass {
       await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
     }
 
+    // Set up monitoring when first entering Perps (refCount 0 -> 1)
+    if (this.connectionRefCount === 0) {
+      this.setupStateMonitoring();
+    }
+
+    // Increment refCount BEFORE any early returns to prevent reference count mismatch
+    this.connectionRefCount++;
+
     // Wait if we're already reconnecting
     if (this.pendingReconnectPromise) {
       DevLogger.log(
@@ -374,13 +382,6 @@ class PerpsConnectionManagerClass {
         return Promise.resolve();
       }
     }
-
-    // Set up monitoring when first entering Perps (refCount 0 -> 1)
-    if (this.connectionRefCount === 0) {
-      this.setupStateMonitoring();
-    }
-
-    this.connectionRefCount++;
     DevLogger.log(
       `PerpsConnectionManager: Connection requested (refCount: ${this.connectionRefCount}, isConnected: ${this.isConnected}, isInitialized: ${this.isInitialized})`,
     );
