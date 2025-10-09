@@ -848,6 +848,7 @@ class Onboarding extends PureComponent {
             onPressContinueWithGoogle={this.onPressContinueWithGoogle}
             onPressContinueWithApple={this.onPressContinueWithApple}
             onPressImport={this.onPressImport}
+            onPressCreate={this.onPressCreate}
           />
         </SafeAreaView>
       </ErrorBoundary>

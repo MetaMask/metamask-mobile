@@ -1,46 +1,57 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect } from 'react';
 
 export default function FastOnboarding(props: {
-  onPressContinueWithGoogle: () => void;
-  onPressContinueWithApple: () => void;
+  onPressContinueWithGoogle: (createWallet: boolean) => void;
+  onPressContinueWithApple: (createWallet: boolean) => void;
   onPressImport: () => void;
+  onPressCreate: () => void;
 }) {
   const { params } =
-    useRoute<RouteProp<{ params: { onboardingType?: string } }, 'params'>>();
-  const navigation = useNavigation();
+    useRoute<
+      RouteProp<
+        { params: { onboardingType?: string; existingUser?: string } },
+        'params'
+      >
+    >();
+  const {
+    onPressContinueWithGoogle,
+    onPressContinueWithApple,
+    onPressImport,
+    onPressCreate,
+  } = props;
 
-  const handleOnboardingDeeplink = useCallback(
-    (onboardingType: string) => {
-      const {
-        onPressContinueWithGoogle,
-        onPressContinueWithApple,
-        onPressImport,
-      } = props;
-      navigation.setParams({ ...params, onboardingType: undefined });
-
+  const handleFastOnboarding = useCallback(
+    (onboardingType: string, existingUser: boolean) => {
       switch (onboardingType) {
         case 'google':
-          onPressContinueWithGoogle();
+          onPressContinueWithGoogle(!existingUser);
           break;
         case 'apple':
-          onPressContinueWithApple();
+          onPressContinueWithApple(!existingUser);
           break;
-        case 'import_srp':
-          onPressImport();
+        case 'srp':
+          if (existingUser) onPressImport();
+          else onPressCreate();
           break;
       }
     },
-    [props, navigation, params],
+    [
+      onPressContinueWithGoogle,
+      onPressContinueWithApple,
+      onPressImport,
+      onPressCreate,
+    ],
   );
 
   useEffect(() => {
     const onboardingType = params?.onboardingType;
+    const existingUser = params?.existingUser;
 
     if (onboardingType) {
-      handleOnboardingDeeplink(onboardingType);
+      handleFastOnboarding(onboardingType, existingUser === 'true');
     }
-  }, [params, handleOnboardingDeeplink]);
+  }, [params, handleFastOnboarding]);
 
   return null;
 }

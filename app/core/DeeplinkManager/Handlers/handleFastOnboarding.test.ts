@@ -17,7 +17,7 @@ describe('handleFastOnboarding', () => {
     } as unknown as NavigationContainerRef);
   });
   describe('valid onboarding types', () => {
-    it.each(['google', 'apple', 'import_srp'] as const)(
+    it.each(['google', 'apple', 'srp'] as const)(
       'navigates to onboarding flow for %s type and returns true',
       (onboardingType) => {
         // Arrange
@@ -33,7 +33,37 @@ describe('handleFastOnboarding', () => {
             screen: Routes.ONBOARDING.NAV,
             params: {
               screen: Routes.ONBOARDING.ONBOARDING,
-              params: { onboardingType },
+              params: {
+                onboardingType,
+                existingUser: '',
+              },
+            },
+          },
+        });
+        expect(result).toBe(true);
+      },
+    );
+
+    it.each(['google', 'apple', 'srp'] as const)(
+      'navigates to onboarding flow for %s type with existingUser true and returns true',
+      (onboardingType) => {
+        // Arrange
+        const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=${onboardingType}&existingUser=true`;
+
+        // Act
+        const result = handleFastOnboarding(deeplink);
+
+        // Assert
+        expect(mockNavigate).toHaveBeenCalledWith({
+          name: Routes.ONBOARDING.ROOT_NAV,
+          params: {
+            screen: Routes.ONBOARDING.NAV,
+            params: {
+              screen: Routes.ONBOARDING.ONBOARDING,
+              params: {
+                onboardingType,
+                existingUser: 'true',
+              },
             },
           },
         });
@@ -43,8 +73,7 @@ describe('handleFastOnboarding', () => {
 
     it('works with additional query parameters', () => {
       // Arrange
-      const deeplink =
-        'https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?foo=bar&type=google&baz=qux';
+      const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?foo=bar&type=google&baz=qux`;
 
       // Act
       const result = handleFastOnboarding(deeplink);
@@ -56,7 +85,7 @@ describe('handleFastOnboarding', () => {
           screen: Routes.ONBOARDING.NAV,
           params: {
             screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'google' },
+            params: { onboardingType: 'google', existingUser: '' },
           },
         },
       });
@@ -77,7 +106,7 @@ describe('handleFastOnboarding', () => {
           screen: Routes.ONBOARDING.NAV,
           params: {
             screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'google' },
+            params: { onboardingType: 'google', existingUser: '' },
           },
         },
       });
@@ -119,7 +148,7 @@ describe('handleFastOnboarding', () => {
           screen: Routes.ONBOARDING.NAV,
           params: {
             screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'google' },
+            params: { onboardingType: 'google', existingUser: '' },
           },
         },
       });

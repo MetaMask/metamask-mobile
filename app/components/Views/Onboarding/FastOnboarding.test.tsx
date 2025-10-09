@@ -25,6 +25,7 @@ describe('FastOnboarding Component', () => {
     onPressContinueWithGoogle: jest.fn(),
     onPressContinueWithApple: jest.fn(),
     onPressImport: jest.fn(),
+    onPressCreate: jest.fn(),
   };
 
   // Helper function to render component with navigation context
@@ -91,68 +92,87 @@ describe('FastOnboarding Component', () => {
     expect(mockProps.onPressContinueWithGoogle).not.toHaveBeenCalled();
     expect(mockProps.onPressContinueWithApple).not.toHaveBeenCalled();
     expect(mockProps.onPressImport).not.toHaveBeenCalled();
-    // setParams should still be called to clear the unknown type
-    expect(mockNavigation.setParams).toHaveBeenCalledWith({
-      onboardingType: undefined,
-    });
-  });
-
-  it('clears onboardingType parameter when handling deeplink', () => {
-    // Arrange
-    const existingParams = { someOtherParam: 'value' };
-    mockRoute.params = { ...existingParams, onboardingType: 'google' };
-
-    // Act
-    renderWithNavigation(<FastOnboarding {...mockProps} />);
-
-    // Assert
-    expect(mockNavigation.setParams).toHaveBeenCalledWith({
-      ...existingParams,
-      onboardingType: undefined,
-    });
   });
 
   describe('handleOnboardingDeeplink function', () => {
-    it.each(['google', 'apple', 'import_srp'] as const)(
-      'handles %s onboarding type correctly',
+    it.each(['google', 'apple'] as const)(
+      'handles %s onboarding type correctly with existingUser false',
       (onboardingType) => {
         // Arrange
-        mockRoute.params = { onboardingType };
+        mockRoute.params = { onboardingType, existingUser: 'false' };
         const expectedHandlerMap = {
           google: mockProps.onPressContinueWithGoogle,
           apple: mockProps.onPressContinueWithApple,
-          import_srp: mockProps.onPressImport,
         };
 
         // Act
         renderWithNavigation(<FastOnboarding {...mockProps} />);
 
         // Assert
+        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledWith(true); // createWallet = !existingUser = true
         expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledTimes(1);
       },
     );
-  });
 
-  it('preserves other route parameters when clearing onboardingType', () => {
-    // Arrange
-    const otherParams = {
-      screen: 'SomeScreen',
-      userId: '123',
-      feature: 'test',
-    };
-    mockRoute.params = {
-      ...otherParams,
-      onboardingType: 'apple',
-    };
+    it.each(['google', 'apple'] as const)(
+      'handles %s onboarding type correctly with existingUser true',
+      (onboardingType) => {
+        // Arrange
+        mockRoute.params = { onboardingType, existingUser: 'true' };
+        const expectedHandlerMap = {
+          google: mockProps.onPressContinueWithGoogle,
+          apple: mockProps.onPressContinueWithApple,
+        };
 
-    // Act
-    renderWithNavigation(<FastOnboarding {...mockProps} />);
+        // Act
+        renderWithNavigation(<FastOnboarding {...mockProps} />);
 
-    // Assert
-    expect(mockNavigation.setParams).toHaveBeenCalledWith({
-      ...otherParams,
-      onboardingType: undefined,
+        // Assert
+        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledWith(false); // createWallet = !existingUser = false
+        expect(expectedHandlerMap[onboardingType]).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it('handles srp onboarding type with existingUser true (calls onPressImport)', () => {
+      // Arrange
+      mockRoute.params = { onboardingType: 'srp', existingUser: 'true' };
+
+      // Act
+      renderWithNavigation(<FastOnboarding {...mockProps} />);
+
+      // Assert
+      expect(mockProps.onPressImport).toHaveBeenCalledTimes(1);
+      expect(mockProps.onPressCreate).not.toHaveBeenCalled();
+      expect(mockProps.onPressContinueWithGoogle).not.toHaveBeenCalled();
+      expect(mockProps.onPressContinueWithApple).not.toHaveBeenCalled();
     });
-    expect(mockProps.onPressContinueWithApple).toHaveBeenCalledTimes(1);
+
+    it('handles srp onboarding type with existingUser false (calls onPressCreate)', () => {
+      // Arrange
+      mockRoute.params = { onboardingType: 'srp', existingUser: 'false' };
+
+      // Act
+      renderWithNavigation(<FastOnboarding {...mockProps} />);
+
+      // Assert
+      expect(mockProps.onPressCreate).toHaveBeenCalledTimes(1);
+      expect(mockProps.onPressImport).not.toHaveBeenCalled();
+      expect(mockProps.onPressContinueWithGoogle).not.toHaveBeenCalled();
+      expect(mockProps.onPressContinueWithApple).not.toHaveBeenCalled();
+    });
+
+    it('handles srp onboarding type with existingUser undefined (calls onPressCreate)', () => {
+      // Arrange
+      mockRoute.params = { onboardingType: 'srp' }; // existingUser undefined
+
+      // Act
+      renderWithNavigation(<FastOnboarding {...mockProps} />);
+
+      // Assert
+      expect(mockProps.onPressCreate).toHaveBeenCalledTimes(1);
+      expect(mockProps.onPressImport).not.toHaveBeenCalled();
+      expect(mockProps.onPressContinueWithGoogle).not.toHaveBeenCalled();
+      expect(mockProps.onPressContinueWithApple).not.toHaveBeenCalled();
+    });
   });
 });
