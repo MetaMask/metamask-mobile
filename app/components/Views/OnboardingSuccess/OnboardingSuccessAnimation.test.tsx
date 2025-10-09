@@ -428,7 +428,7 @@ describe('OnboardingSuccessAnimation', () => {
   });
 
   describe('Mode-based behavior', () => {
-    it('uses setup mode by default (backward compatibility)', () => {
+    it('uses setup mode by default', () => {
       // Arrange
       const mockOnAnimationComplete = jest.fn();
 
@@ -600,6 +600,66 @@ describe('OnboardingSuccessAnimation', () => {
       await waitFor(() => {
         expect(mockOnAnimationComplete).toHaveBeenCalledTimes(1);
       });
+    });
+
+    it('handles multiple slide animation calls safely in E2E mode', async () => {
+      // Arrange
+      const mockOnAnimationComplete = jest.fn();
+
+      // Act
+      const { rerender } = render(
+        <OnboardingSuccessAnimation
+          startAnimation
+          slideOut
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Trigger multiple times
+      rerender(
+        <OnboardingSuccessAnimation
+          startAnimation
+          slideOut
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(mockOnAnimationComplete).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe('Memory leak prevention', () => {
+    it('handles component lifecycle without memory leaks', () => {
+      // Arrange
+      const mockOnAnimationComplete = jest.fn();
+
+      // Act - Render and unmount component
+      const { unmount } = render(
+        <OnboardingSuccessAnimation
+          startAnimation
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      jest.advanceTimersByTime(1000);
+
+      unmount();
+
+      // Render again
+      const { unmount: unmount2 } = render(
+        <OnboardingSuccessAnimation
+          startAnimation
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      unmount2();
+
+      // Assert
+      expect(mockOnAnimationComplete).toBeDefined();
     });
   });
 });

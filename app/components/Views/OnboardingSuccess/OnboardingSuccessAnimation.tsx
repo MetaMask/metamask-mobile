@@ -53,6 +53,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 
   const riveRef = useRef<RiveRef>(null);
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
+  const riveTimeoutId = useRef<NodeJS.Timeout | null>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const [dotsCount, setDotsCount] = useState(isE2E ? 3 : 1);
@@ -75,6 +76,10 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
       clearInterval(dotsIntervalId.current);
       dotsIntervalId.current = null;
     }
+    if (riveTimeoutId.current) {
+      clearTimeout(riveTimeoutId.current);
+      riveTimeoutId.current = null;
+    }
   }, []);
 
   const renderAnimatedDots = useCallback(() => {
@@ -84,36 +89,48 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, [dotsCount]);
 
   const startRiveAnimation = useCallback(() => {
-    if (riveRef.current) {
-      if (isE2E) {
-        // Set static state for E2E tests - no animation delays
-        riveRef.current.setInputState(
-          'OnboardingLoader',
-          'Dark mode',
-          isDarkMode,
-        );
-        riveRef.current.fireState('OnboardingLoader', animationTrigger);
-        return;
-      }
-
-      setTimeout(() => {
-        if (riveRef.current) {
-          try {
-            riveRef.current.setInputState(
-              'OnboardingLoader',
-              'Dark mode',
-              isDarkMode,
-            );
-            riveRef.current.fireState('OnboardingLoader', animationTrigger);
-          } catch (error) {
-            console.error(`Error with trigger '${animationTrigger}':`, error);
-          }
-        }
-      }, 100);
+    if (!riveRef.current) {
+      return;
     }
+
+    if (isE2E) {
+      // Set static state for E2E tests
+      riveRef.current.setInputState(
+        'OnboardingLoader',
+        'Dark mode',
+        isDarkMode,
+      );
+      riveRef.current.fireState('OnboardingLoader', animationTrigger);
+      return;
+    }
+
+    if (riveTimeoutId.current) {
+      clearTimeout(riveTimeoutId.current);
+    }
+
+    riveTimeoutId.current = setTimeout(() => {
+      if (riveRef.current) {
+        try {
+          riveRef.current.setInputState(
+            'OnboardingLoader',
+            'Dark mode',
+            isDarkMode,
+          );
+          riveRef.current.fireState('OnboardingLoader', animationTrigger);
+        } catch (error) {
+          console.error(`Error with trigger '${animationTrigger}':`, error);
+        }
+      }
+      riveTimeoutId.current = null;
+    }, 100);
   }, [isDarkMode, animationTrigger]);
 
   const startDotsAnimation = useCallback(() => {
+    if (dotsIntervalId.current) {
+      clearInterval(dotsIntervalId.current);
+      dotsIntervalId.current = null;
+    }
+
     if (isE2E) {
       setDotsCount(3);
       return;
@@ -125,13 +142,15 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, []);
 
   const startSlideOutAnimation = useCallback(() => {
-    if (!isCompleted) {
-      if (isE2E) {
+    if (isE2E) {
+      if (!isCompleted) {
         setIsCompleted(true);
         _onAnimationComplete();
-        return;
       }
+      return;
+    }
 
+    if (!isCompleted) {
       Animated.timing(slideAnim, {
         toValue: -screenDimensions.screenWidth,
         duration: 800,
