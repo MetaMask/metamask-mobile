@@ -99,6 +99,7 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
+import { regex } from '../../../../../../util/regex';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -501,7 +502,7 @@ const BuildQuote = () => {
       let newValue = `${value}`;
       let newValueAsNumber = valueAsNumber;
 
-      if (isKeyboardFreshlyOpened && /^[0-9]$/.test(pressedKey)) {
+      if (isKeyboardFreshlyOpened && regex.hasOneDigit.test(pressedKey)) {
         newValue = pressedKey;
         newValueAsNumber = Number(pressedKey);
       }
