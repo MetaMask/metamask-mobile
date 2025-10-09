@@ -176,16 +176,23 @@ export function* handleDeeplinkSaga() {
 
     const existingUser: boolean = yield select(selectExistingUser);
     if (!existingUser) {
-      const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink;
-      // try handle fast onboarding if existingUser is false and 'onboarding' present in deeplink
-      if (onboardingDeeplink?.includes('onboarding')) {
-        const handled = handleFastOnboarding(onboardingDeeplink);
+      const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink || '';
+      try {
+        // new URL might throw for invalid url
+        const url = new URL(onboardingDeeplink);
 
-        // if handled, clear pending deeplink and continue
-        if (handled) {
-          AppStateEventProcessor.clearPendingDeeplink();
-          continue;
+        // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+        if (url.pathname.startsWith('/onboarding')) {
+          const handled = handleFastOnboarding(onboardingDeeplink);
+
+          // if handled, clear pending deeplink and continue
+          if (handled) {
+            AppStateEventProcessor.clearPendingDeeplink();
+            continue;
+          }
         }
+      } catch (error) {
+        Logger.error(error as Error, 'Error parsing onboarding deeplink');
       }
     }
 
