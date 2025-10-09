@@ -245,6 +245,15 @@ export const asyncifyMigrations = (
     engine?: { backgroundState?: Record<string, unknown> };
   };
 
+  /**
+   * Loads controller data from individual filesystem storage back into engine.backgroundState
+   * for migrations to process.
+   * 
+   * - Migration 104 moved controller data from redux-persist to individual files
+   * - Migrations 105+ still expect to work with the old engine.backgroundState format
+   * - This function temporarily recreates the old format so migrations can run
+   * - "unpacking" distributed files back into a single object
+   */
   const inflateFromControllers = async (state: unknown) => {
     try {
       const fsState = (await ControllerStorage.getKey()) as
@@ -273,6 +282,16 @@ export const asyncifyMigrations = (
     }
   };
 
+  /**
+   * Saves controller data from engine.backgroundState back to individual filesystem storage
+   * and removes the engine slice from redux state.
+   * 
+   * - After migrations run, we need to save updated controller data back to individual files
+   * - The engine.backgroundState should not persist in redux (it's just temporary for migrations)
+   * - This function "redistributes" the single object back into individual controller files
+   * - Then strips engine.backgroundState from redux to maintain the new architecture
+   * - "repacking" the single object back into distributed files
+   */
   const deflateToControllersAndStrip = async (state: unknown) => {
     try {
       const s = state as StateWithEngine;
@@ -322,8 +341,7 @@ export const asyncifyMigrations = (
         ) {
           onMigrationsComplete(migratedState);
         }
-
-        if (Number(migrationNumber) === lastVersion && lastVersion >= 104) {
+        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&

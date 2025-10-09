@@ -7,8 +7,10 @@ import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
 import {
   ControllerStorage,
-  setupEnginePersistence,
+  createPersistController,
 } from '../../store/persistConfig';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
+import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
@@ -24,7 +26,9 @@ import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
-import { INIT_BG_STATE_KEY, LOG_TAG } from './constants';
+import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
+import { StateConstraint } from '@metamask/base-controller';
+import { EngineContext } from '../Engine';
 
 export class EngineService {
   private engineInitialized = false;
@@ -86,9 +90,9 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      this.updateControllers(Engine as unknown as TypedEngine);
+      this.initializeControllers(Engine as unknown as TypedEngine);
 
-      setupEnginePersistence();
+      this.setupEnginePersistence();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -112,7 +116,8 @@ export class EngineService {
     endTrace({ name: TraceName.EngineInitialization });
   };
 
-  private updateControllers = (engine: TypedEngine) => {
+  private initializeControllers = (engine: TypedEngine) => {
+    // coordination mechanism to prevent race conditions between engine initialization and UI rendering
     if (!engine.context) {
       Logger.error(
         new Error(
@@ -136,6 +141,68 @@ export class EngineService {
       },
       () => !this.engineInitialized,
     );
+  };
+
+  /**
+   * Sets up persistence subscriptions for all engine controllers.
+   * 
+   * This method subscribes to each controller's state change events and automatically:
+   * 1. Updates Redux store with the new controller state
+   * 2. Persists the filtered state to individual filesystem storage files
+   * 
+   * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
+   */
+  private setupEnginePersistence = () => {
+    try {
+      if (UntypedEngine.controllerMessenger) {
+        BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+          const controllerName = eventName.split(':')[0];
+
+          // Skip CronjobController state change events
+          // as they are handled separately in the CronjobControllerStorageManager.
+          // This prevents duplicate updates to the Redux store.
+          if (eventName === 'CronjobController:stateChange') {
+            return;
+          }
+
+          const persistController = createPersistController(200);
+
+          UntypedEngine.controllerMessenger.subscribe(
+            eventName,
+            async (controllerState: StateConstraint) => {
+              try {
+                // Filter out non-persistent fields based on controller metadata
+                const filteredState = getPersistentState(
+                  controllerState,
+                  // @ts-expect-error - EngineContext has stateless controllers, so metadata is not available
+                  UntypedEngine.context[controllerName as keyof EngineContext]?.metadata,
+                );
+
+                ReduxService.store.dispatch({
+                  type: UPDATE_BG_STATE_KEY,
+                  payload: { key: controllerName },
+                });
+
+                await persistController(filteredState, controllerName);
+              } catch (error) {
+                Logger.error(
+                  error as Error,
+                  `Failed to process ${controllerName} state change`,
+                );
+              }
+            },
+          );
+        });
+        Logger.log(
+          'Individual controller persistence and Redux update subscriptions set up successfully',
+        );
+      }
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to set up Engine persistence subscription',
+      );
+    }
   };
 
   /**
@@ -168,7 +235,7 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
-        this.updateControllers(instance);
+        this.initializeControllers(instance);
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {

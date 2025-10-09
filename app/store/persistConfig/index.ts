@@ -7,13 +7,8 @@ import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
-import Engine, { EngineContext } from '../../core/Engine';
-import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
-import { getPersistentState } from '../getPersistentState/getPersistentState';
 import { debounce } from 'lodash';
-import ReduxService from '../../core/redux';
-import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
-import { StateConstraint } from '@metamask/base-controller';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -153,74 +148,31 @@ const MigratedStorage = {
   },
 };
 
-export const setupEnginePersistence = () => {
-  try {
-    if (Engine.controllerMessenger) {
-      BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-        const controllerName = eventName.split(':')[0];
-
-        // Skip CronjobController state change events
-        // as they are handled separately in the CronjobControllerStorageManager.
-        // This prevents duplicate updates to the Redux store.
-        if (eventName === 'CronjobController:stateChange') {
-          return;
-        }
-
-        const persistController = debounce(async (filteredState) => {
-          try {
-            // Save the filtered state to filesystem storage
-            await ControllerStorage.setItem(
-              `persist:${controllerName}`,
-              JSON.stringify(filteredState),
-            );
-
-            Logger.log(`${controllerName} state persisted successfully`);
-          } catch (error) {
-            Logger.error(error as Error, {
-              message: `Failed to persist ${controllerName} state`,
-            });
-          }
-        }, 200);
-
-        Engine.controllerMessenger.subscribe(
-          eventName,
-          // Debounce to prevent excessive filesystem writes during rapid state changes
-          // WARNING: lodash.debounce with async functions can cause race conditions
-          async (controllerState: StateConstraint) => {
-            try {
-              // Filter out non-persistent fields based on controller metadata
-              const filteredState = getPersistentState(
-                controllerState,
-                // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
-                Engine.context[controllerName as keyof EngineContext]?.metadata,
-              );
-
-              ReduxService.store.dispatch({
-                type: UPDATE_BG_STATE_KEY,
-                payload: { key: controllerName },
-              });
-
-              await persistController(filteredState);
-            } catch (error) {
-              Logger.error(
-                error as Error,
-                `Failed to process ${controllerName} state change`,
-              );
-            }
-          },
-        );
-      });
-      Logger.log(
-        'Individual controller persistence and Redux update subscriptions set up successfully',
+/**
+ * Creates a debounced controller persistence function.
+ * 
+ * This utility handles saving controller state to individual filesystem storage files
+ * with automatic debouncing to prevent excessive writes during rapid state changes.
+ * 
+ * @param debounceMs - Milliseconds to debounce persistence operations (default: 200ms)
+ * @returns Debounced persistence function
+ */
+export const createPersistController = (debounceMs: number = 200) =>
+  debounce(async (filteredState: unknown, controllerName: string) => {
+    try {
+      // Save the filtered state to filesystem storage
+      await ControllerStorage.setItem(
+        `persist:${controllerName}`,
+        JSON.stringify(filteredState),
       );
+
+      Logger.log(`${controllerName} state persisted successfully`);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: `Failed to persist ${controllerName} state`,
+      });
     }
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to set up Engine persistence subscription',
-    );
-  }
-};
+  }, debounceMs);
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
