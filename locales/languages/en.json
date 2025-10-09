@@ -5311,6 +5311,9 @@
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
       },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
+      },
       "title": {
         "transaction_fee": "Fees"
       }
