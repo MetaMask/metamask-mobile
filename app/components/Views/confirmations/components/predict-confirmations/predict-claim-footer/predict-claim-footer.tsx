@@ -15,21 +15,28 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import { getNetworkImageSource } from '../../../../../../util/networks';
-import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  getPredictMarketImage,
+  selectPredictClaimDataByTransactionId,
+} from '../predict-temp';
+import { RootState } from '../../../../../../reducers';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useSelector } from 'react-redux';
 
 export function PredictClaimFooter() {
   const { styles } = useStyles(styleSheet, {});
+  const { id: transactionId } = useTransactionMetadataRequest() ?? {};
 
-  const networkAvatars = [
-    MultichainNetwork.Bitcoin,
-    MultichainNetwork.Solana,
-    CHAIN_IDS.POLYGON,
-    CHAIN_IDS.MAINNET,
-    CHAIN_IDS.ARBITRUM,
-  ].map((chainId) => ({
-    imageSource: getNetworkImageSource({ chainId }),
+  const { marketIds } =
+    useSelector((state: RootState) =>
+      selectPredictClaimDataByTransactionId(state, transactionId ?? ''),
+    ) ?? {};
+
+  if (!marketIds) return null;
+
+  const networkAvatars = marketIds.map((marketId) => ({
+    imageSource: getPredictMarketImage(marketId),
     variant: AvatarVariant.Token as const,
   }));
 
@@ -37,7 +44,9 @@ export function PredictClaimFooter() {
     <Box style={styles.container} testID="predict-claim-footer">
       <Box style={styles.top}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          Winnings from 5 markets
+          {strings('confirm.predict_claim.footer_top', {
+            count: marketIds.length,
+          })}
         </Text>
         <AvatarGroup
           avatarPropsList={networkAvatars}
@@ -49,7 +58,7 @@ export function PredictClaimFooter() {
         variant={ButtonVariants.Primary}
         labelTextVariant={TextVariant.BodyLGMedium}
         style={styles.button}
-        label="Claim winnings"
+        label={strings('confirm.predict_claim.button_label')}
         onPress={noop}
         isInverse
       />
@@ -58,7 +67,7 @@ export function PredictClaimFooter() {
         color={TextColor.Alternative}
         style={styles.bottom}
       >
-        Funds will be added to your available balance
+        {strings('confirm.predict_claim.footer_bottom')}
       </Text>
     </Box>
   );

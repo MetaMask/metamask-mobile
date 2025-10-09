@@ -5401,6 +5401,11 @@
       "save": "Save",
       "title": "Edit approval limit"
     },
+    "predict_claim": {
+      "button_label": "Claim winnings",
+      "footer_top": "Winnings from {{count}} markets",
+      "footer_bottom": "Funds will be added to your available balance"
+    },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
