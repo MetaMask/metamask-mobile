@@ -114,7 +114,7 @@ const UnlockedRewards: React.FC = () => {
 
   return (
     <Box
-      twClassName="p-4 gap-4"
+      twClassName="pt-2 pb-6 px-4 gap-4"
       testID={REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS}
     >
       {/* Always show section header */}
