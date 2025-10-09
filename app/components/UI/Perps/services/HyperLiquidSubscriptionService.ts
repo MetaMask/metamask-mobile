@@ -31,7 +31,6 @@ import {
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
 import { TP_SL_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -268,7 +267,7 @@ export class HyperLiquidSubscriptionService {
     const subscriptionClient = this.clientService.getSubscriptionClient();
 
     if (!subscriptionClient) {
-      throw new Error(strings('perps.errors.subscriptionClientNotInitialized'));
+      throw new Error('Subscription client not initialized');
     }
 
     const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -542,9 +541,7 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error(
-              strings('perps.errors.subscriptionClientNotInitialized'),
-            );
+            throw new Error('Subscription client not initialized');
           }
 
           return subscriptionClient.userFills(

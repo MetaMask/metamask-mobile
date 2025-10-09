@@ -20,6 +20,7 @@ import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 
 // simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -48,6 +49,7 @@ class PerpsConnectionManagerClass {
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
+  private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -158,6 +160,42 @@ class PerpsConnectionManagerClass {
       this.isInGracePeriod = false;
       DevLogger.log('PerpsConnectionManager: Grace period cancelled');
     }
+  }
+
+  /**
+   * Clear active connection timeout timer
+   */
+  private clearConnectionTimeout(): void {
+    if (this.connectionTimeoutRef) {
+      clearTimeout(this.connectionTimeoutRef);
+      this.connectionTimeoutRef = null;
+      DevLogger.log('PerpsConnectionManager: Connection timeout cleared');
+    }
+  }
+
+  /**
+   * Start connection timeout timer
+   * If connection takes longer than configured timeout, set error state
+   */
+  private startConnectionTimeout(): void {
+    // Clear any existing timeout
+    this.clearConnectionTimeout();
+
+    const timeoutMs = PERPS_CONSTANTS.CONNECTION_ATTEMPT_TIMEOUT_MS;
+    DevLogger.log(
+      `PerpsConnectionManager: Starting ${timeoutMs}ms connection timeout`,
+    );
+
+    this.connectionTimeoutRef = setTimeout(() => {
+      DevLogger.log(
+        `PerpsConnectionManager: Connection timeout after ${timeoutMs}ms`,
+      );
+      this.isConnecting = false;
+      this.isConnected = false;
+      this.isInitialized = false;
+      this.setError(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
+      this.connectionTimeoutRef = null;
+    }, timeoutMs);
   }
 
   /**
@@ -367,6 +405,9 @@ class PerpsConnectionManagerClass {
     // Clear previous errors when starting connection attempt
     this.clearError();
 
+    // Start connection timeout to prevent hanging indefinitely
+    this.startConnectionTimeout();
+
     this.initPromise = (async () => {
       const traceId = uuidv4();
       const connectionStartTime = performance.now();
@@ -392,7 +433,25 @@ class PerpsConnectionManagerClass {
           traceSpan,
         );
 
-        // Mark as connected - WebSocket connection will be established during preload
+        // Validate connection with WebSocket health check ping before marking as connected
+        // This ensures the WebSocket connection is actually responsive without expensive API calls
+        DevLogger.log(
+          'PerpsConnectionManager: Validating connection with WebSocket health check ping',
+        );
+        const healthCheckStart = performance.now();
+        const provider = Engine.context.PerpsController.getActiveProvider();
+        await provider.ping();
+        setMeasurement(
+          PerpsMeasurementName.PERPS_CONNECTION_HEALTH_CHECK,
+          performance.now() - healthCheckStart,
+          'millisecond',
+          traceSpan,
+        );
+
+        // Clear connection timeout after successful health check
+        this.clearConnectionTimeout();
+
+        // Mark as connected - WebSocket connection validated and ready
         this.isConnected = true;
         this.isConnecting = false;
         // Clear errors on successful connection
@@ -458,6 +517,9 @@ class PerpsConnectionManagerClass {
         this.isConnected = false;
         this.isInitialized = false;
 
+        // Clear connection timeout on error
+        this.clearConnectionTimeout();
+
         // Capture exception with connection context
         captureException(
           error instanceof Error ? error : new Error(String(error)),
@@ -518,6 +580,12 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Force reconnection - cancelling pending operations',
       );
 
+      // Cancel grace period immediately on force reconnect
+      this.cancelGracePeriod();
+
+      // Clear connection timeout if active
+      this.clearConnectionTimeout();
+
       // Clear all pending promises to cancel in-flight operations
       // Note: Actual disconnect happens in performReconnection → Controller.initializeProviders → performInitialization
       this.isConnecting = false;
@@ -567,6 +635,9 @@ class PerpsConnectionManagerClass {
     // Set connecting state immediately to prevent race conditions
     this.isConnecting = true;
 
+    // Start connection timeout to prevent hanging indefinitely
+    this.startConnectionTimeout();
+
     try {
       const traceSpan = trace({
         name: TraceName.PerpsAccountSwitchReconnection,
@@ -615,6 +686,24 @@ class PerpsConnectionManagerClass {
         : PERPS_CONSTANTS.RECONNECTION_DELAY_IOS_MS;
       await wait(reconnectionDelay);
 
+      // Validate connection with WebSocket health check ping before marking as connected
+      // This ensures the WebSocket connection is actually responsive after reconnection without expensive API calls
+      DevLogger.log(
+        'PerpsConnectionManager: Validating reconnection with WebSocket health check ping',
+      );
+      const healthCheckStart = performance.now();
+      const provider = Engine.context.PerpsController.getActiveProvider();
+      await provider.ping();
+      setMeasurement(
+        PerpsMeasurementName.PERPS_RECONNECTION_HEALTH_CHECK,
+        performance.now() - healthCheckStart,
+        'millisecond',
+        traceSpan,
+      );
+
+      // Clear connection timeout after successful health check
+      this.clearConnectionTimeout();
+
       // Mark as connected - account data will be fetched via WebSocket subscriptions during preload
       // No need to explicitly call getAccountState() - preloadSubscriptions() handles account data
       this.isConnected = true;
@@ -662,6 +751,9 @@ class PerpsConnectionManagerClass {
     } catch (error) {
       this.isConnected = false;
       this.isInitialized = false;
+
+      // Clear connection timeout on error
+      this.clearConnectionTimeout();
 
       traceData = {
         success: false,

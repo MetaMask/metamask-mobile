@@ -16,6 +16,8 @@ export const PERPS_ERROR_CODES = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
   // Provider-agnostic order errors
   ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
+  // Connection errors
+  CONNECTION_TIMEOUT: 'CONNECTION_TIMEOUT',
 } as const;
 
 export type PerpsErrorCode =

@@ -2660,6 +2660,58 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Lightweight WebSocket health check using SDK's built-in ready() method
+   * Checks if WebSocket connection is open without making expensive API calls
+   *
+   * @param timeoutMs - Optional timeout in milliseconds (defaults to WEBSOCKET_PING_TIMEOUT_MS)
+   * @throws {Error} If WebSocket connection times out or fails
+   */
+  async ping(timeoutMs?: number): Promise<void> {
+    await this.ensureReady();
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    const timeout = timeoutMs ?? PERPS_CONSTANTS.WEBSOCKET_PING_TIMEOUT_MS;
+
+    DevLogger.log(
+      `HyperLiquid: WebSocket health check ping starting (timeout: ${timeout}ms)`,
+    );
+
+    const controller = new AbortController();
+    let didTimeout = false;
+
+    const timeoutId = setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, timeout);
+
+    try {
+      // Use SDK's built-in ready() method which checks socket.readyState === OPEN
+      // This is much more efficient than creating a subscription just for health check
+      await subscriptionClient.transport.ready(controller.signal);
+
+      DevLogger.log('HyperLiquid: WebSocket health check ping succeeded');
+    } catch (error) {
+      // Check if we timed out first
+      if (didTimeout) {
+        DevLogger.log(
+          `HyperLiquid: WebSocket health check ping timed out after ${timeout}ms`,
+        );
+        throw new Error(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
+      }
+
+      // Otherwise throw the actual error
+      DevLogger.log('HyperLiquid: WebSocket health check ping failed', error);
+      throw ensureError(error);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
    * Get block explorer URL for an address or just the base URL
    * @param address - Optional address to append to the base URL
    * @returns Block explorer URL
