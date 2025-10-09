@@ -24,6 +24,12 @@ import { useConfirmNavigation } from '../../confirmations/hooks/useConfirmNaviga
 import { ConfirmationLoader } from '../../confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
 
+const POLYGON_USDCE_ADDRESS =
+  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
+
+// Update as needed.
+const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
+
 export function PredictDepositTest() {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
@@ -36,7 +42,7 @@ export function PredictDepositTest() {
     ) ?? {};
 
   const transferData = generateTransferData('transfer', {
-    toAddress: '0x13032833b30f3388208cda38971fdc839936b042',
+    toAddress: PROXY_ADDRESS,
     amount: '0x0',
   }) as Hex;
 
@@ -53,13 +59,13 @@ export function PredictDepositTest() {
       transactions: [
         {
           params: {
-            to: '0x13032833b30f3388208cda38971fdc839936b042',
+            to: PROXY_ADDRESS,
             value: '0x1',
           },
         },
         {
           params: {
-            to: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+            to: POLYGON_USDCE_ADDRESS,
             data: transferData,
           },
           type: TransactionType.predictDeposit,
