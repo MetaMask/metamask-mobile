@@ -107,13 +107,6 @@ describe('cardTokenVault', () => {
       expect(mockSecureKeychain.getSecureItem).toHaveBeenCalledWith(
         mockScopeOptions,
       );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'getCardBaanxToken secureItem',
-        mockSecureItem,
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'getCardBaanxToken tokenData valid',
-      );
       expect(result).toEqual({
         success: true,
         tokenData: mockTokenData,
@@ -125,9 +118,6 @@ describe('cardTokenVault', () => {
 
       const result = await getCardBaanxToken();
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'getCardBaanxToken no token found',
-      );
       expect(result).toEqual({
         success: true,
         tokenData: undefined,
@@ -152,9 +142,6 @@ describe('cardTokenVault', () => {
 
       const result = await getCardBaanxToken();
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'getCardBaanxToken tokenData expired, removing token...',
-      );
       expect(mockSecureKeychain.clearSecureScope).toHaveBeenCalledWith(
         mockScopeOptions,
       );
@@ -219,9 +206,6 @@ describe('cardTokenVault', () => {
 
       const result = await getCardBaanxToken();
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'getCardBaanxToken tokenData expired, removing token...',
-      );
       expect(result).toEqual({
         success: false,
         error: 'Token expired',
@@ -260,9 +244,6 @@ describe('cardTokenVault', () => {
 
       expect(mockSecureKeychain.clearSecureScope).toHaveBeenCalledWith(
         mockScopeOptions,
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Card Baanx token removed successfully',
       );
       expect(result).toEqual({
         success: true,

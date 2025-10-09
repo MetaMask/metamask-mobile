@@ -43,6 +43,7 @@ export async function storeCardBaanxToken(params: {
       success: true,
     };
   } catch (error) {
+    Logger.log('Error storing card baanx token:', error);
     return {
       success: false,
       error: (error as Error).message,
@@ -65,10 +66,8 @@ export async function getCardBaanxToken(): Promise<{
 }> {
   try {
     const secureItem = await SecureKeychain.getSecureItem(scopeOptions);
-    Logger.log('getCardBaanxToken secureItem', secureItem);
 
     if (!secureItem) {
-      Logger.log('getCardBaanxToken no token found');
       return {
         success: true,
         tokenData: undefined,
@@ -83,7 +82,6 @@ export async function getCardBaanxToken(): Promise<{
     } = JSON.parse(secureItem.value);
 
     if (Date.now() >= tokenData.expiresAt) {
-      Logger.log('getCardBaanxToken tokenData expired, removing token...');
       await removeCardBaanxToken();
       return {
         success: false,
@@ -91,7 +89,6 @@ export async function getCardBaanxToken(): Promise<{
       };
     }
 
-    Logger.log('getCardBaanxToken tokenData valid');
     return {
       success: true,
       tokenData,
@@ -121,7 +118,6 @@ export async function removeCardBaanxToken(): Promise<TokenResponse> {
       };
     }
 
-    Logger.log('Card Baanx token removed successfully');
     return {
       success: true,
     };
