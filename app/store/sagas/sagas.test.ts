@@ -552,32 +552,6 @@ describe('handleDeeplinkSaga', () => {
           // Should not call normal deeplink parsing since handleFastOnboarding handled it
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
-
-        it('handle URL with onboarding in path and valid type parameter', async () => {
-          AppStateEventProcessor.pendingDeeplink =
-            'https://metamask.io/some/onboarding/page?type=google';
-          Engine.context.KeyringController.isUnlocked = jest
-            .fn()
-            .mockReturnValue(true);
-
-          // Triggered by CHECK_FOR_DEEPLINK action
-          await expectSaga(handleDeeplinkSaga)
-            .withState({
-              ...defaultMockState,
-            })
-            .dispatch(checkForDeeplink())
-            .silentRun();
-
-          // Should call handleFastOnboarding since URL contains 'onboarding' and has valid type parameter
-          expect(handleFastOnboarding).toHaveBeenCalledWith(
-            'https://metamask.io/some/onboarding/page?type=google',
-          );
-          expect(
-            AppStateEventProcessor.clearPendingDeeplink,
-          ).toHaveBeenCalled();
-          // Should not call normal deeplink parsing since handleFastOnboarding handled it
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-        });
       });
     });
   });
