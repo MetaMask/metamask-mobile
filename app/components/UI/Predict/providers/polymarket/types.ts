@@ -139,6 +139,8 @@ export interface PolymarketApiMarket {
   outcomes: string;
   outcomePrices: string;
   closed: boolean;
+  active: boolean;
+  resolvedBy: string;
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
 }
