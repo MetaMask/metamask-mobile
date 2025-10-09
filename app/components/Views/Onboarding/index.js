@@ -888,6 +888,7 @@ class Onboarding extends PureComponent {
           <FoxAnimation
             hasFooter={hasFooter}
             startFoxAnimation={startFoxAnimation}
+            isLoading={loading}
           />
 
           <View>{this.handleSimpleNotification()}</View>

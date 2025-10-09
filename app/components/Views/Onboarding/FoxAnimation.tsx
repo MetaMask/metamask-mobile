@@ -34,9 +34,11 @@ const createStyles = (hasFooter: boolean) =>
 const FoxAnimation = ({
   startFoxAnimation,
   hasFooter,
+  isLoading = false,
 }: {
   startFoxAnimation: boolean;
   hasFooter: boolean;
+  isLoading?: boolean;
 }) => {
   const foxRef = useRef<RiveRef>(null);
   const styles = createStyles(hasFooter);
@@ -56,13 +58,14 @@ const FoxAnimation = ({
     }).start(() => {
       if (foxRef.current) {
         try {
-          foxRef.current.fireState('FoxRaiseUp', 'Start');
+          const trigger = isLoading ? 'Loader' : 'Start';
+          foxRef.current?.fireState('FoxRaiseUp', trigger);
         } catch (error) {
           Logger.error(error as Error, 'Error triggering Fox Rive animation');
         }
       }
     });
-  }, [foxOpacity, foxRef]);
+  }, [foxOpacity, foxRef, isLoading]);
 
   useEffect(() => {
     if (startFoxAnimation) {
