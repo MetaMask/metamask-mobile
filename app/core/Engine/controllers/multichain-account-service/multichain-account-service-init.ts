@@ -18,7 +18,7 @@ import { MultichainAccountServiceInitMessenger } from '../../messengers/multicha
  */
 export const multichainAccountServiceInit: ControllerInitFunction<
   MultichainAccountService,
-  MultichainAccountServiceMessenger
+  MultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
