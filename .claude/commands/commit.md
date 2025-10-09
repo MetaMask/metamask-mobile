@@ -45,20 +45,17 @@ git commit -m "<type>[optional scope]: <description>"
 
 ## Decision Tree
 
-```
-Start → Load & Confirm Guidelines
-  ↓
-Analyze staged files and changes
-  ↓
-Generate conventional commit message
-  ↓
-Execute commit with message
-  ↓
-[Pre-commit Hooks Pass?] ──No──→ Fix ALL issues automatically
-  ↓ Yes                          ↓
-  ↓                       Re-stage modified files
-  ↓                              ↓
-Success → Commit completed ←─────┘
+```mermaid
+flowchart TD
+    A[Start] --> B[Load & Confirm Guidelines]
+    B --> C[Analyze staged files and changes]
+    C --> D[Generate conventional commit message]
+    D --> E[Execute commit with message]
+    E --> F{Pre-commit Hooks Pass?}
+    F -->|Yes| G[Success → Commit completed]
+    F -->|No| H[Fix ALL issues automatically]
+    H --> I[Re-stage modified files]
+    I --> E
 ```
 
 ## Conventional Commit Format

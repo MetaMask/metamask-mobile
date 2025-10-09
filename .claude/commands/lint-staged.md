@@ -42,18 +42,17 @@ yarn lint-staged
 
 ## Decision Tree
 
-```
-Start → Load & Confirm Guidelines
-  ↓
-Run lint-staged on staged files
-  ↓
-[Issues Found?] ──Yes──→ Fix ALL issues automatically
-  ↓ No                          ↓
-  ↓                       Re-run lint-staged
-  ↓                              ↓
-[All Issues Resolved?] ←─────────┘
-  ↓ Yes
-Success → All staged files ready for commit
+```mermaid
+flowchart TD
+    A[Start] --> B[Load & Confirm Guidelines]
+    B --> C[Run lint-staged on staged files]
+    C --> D{Issues Found?}
+    D -->|No| E[Success → All staged files ready for commit]
+    D -->|Yes| F[Fix ALL issues automatically]
+    F --> G[Re-run lint-staged]
+    G --> H{All Issues Resolved?}
+    H -->|No| F
+    H -->|Yes| E
 ```
 
 ## Handling Lint-Staged Issues (Priority #1)
