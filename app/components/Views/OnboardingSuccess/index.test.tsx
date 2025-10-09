@@ -22,12 +22,12 @@ import {
   selectSeedlessOnboardingLoginFlow,
 } from '../../../selectors/seedlessOnboardingController';
 
-// Mock the static image component
+// Mock the OnboardingSuccessAnimation component
 jest.mock('./OnboardingSuccessAnimation', () => {
   const MockReact = jest.requireActual('react');
   return MockReact.forwardRef(() =>
     MockReact.createElement('View', {
-      testID: 'onboarding-success-static-image-mock',
+      testID: 'onboarding-success-animation',
     }),
   );
 });
@@ -461,7 +461,7 @@ describe('OnboardingSuccess', () => {
       mockIsE2EValue = false;
     });
 
-    it('renders static wallet image with correct properties', () => {
+    it('renders OnboardingSuccessAnimation with correct properties', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
@@ -469,9 +469,8 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      const walletImage = getByTestId('wallet-ready-image');
-      expect(walletImage).toBeOnTheScreen();
-      expect(walletImage.props.resizeMode).toBe('contain');
+      const animation = getByTestId('onboarding-success-animation');
+      expect(animation).toBeOnTheScreen();
     });
 
     it('displays wallet ready message with correct text', () => {

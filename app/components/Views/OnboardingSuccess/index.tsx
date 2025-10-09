@@ -8,7 +8,6 @@ import React, {
 import {
   ScrollView,
   View,
-  Image,
   TouchableOpacity,
   Animated,
   Easing,
@@ -33,11 +32,11 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import createStyles from './index.styles';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Logger from '../../../util/Logger';
-import walletReadyImage from '../../../images/wallet_success.png';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import OnboardingSuccessAnimation from './OnboardingSuccessAnimation';
 
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -129,24 +128,21 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     () => (
       <View style={styles.contentWrapper}>
         <View style={styles.imageWrapper}>
-          <Image
-            source={walletReadyImage}
-            style={styles.walletReadyImage}
-            resizeMode="contain"
-            testID="wallet-ready-image"
+          <OnboardingSuccessAnimation
+            startAnimation
+            mode="success"
+            showText={false}
+            onAnimationComplete={() => {
+              // No-op: Animation completion not needed in success mode
+            }}
           />
         </View>
-        <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
+        <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
           {strings('onboarding_success.wallet_ready')}
         </Text>
       </View>
     ),
-    [
-      styles.contentWrapper,
-      styles.imageWrapper,
-      styles.walletReadyImage,
-      styles.textTitle,
-    ],
+    [styles.contentWrapper, styles.imageWrapper, styles.textTitle],
   );
 
   const renderButtons = useCallback(

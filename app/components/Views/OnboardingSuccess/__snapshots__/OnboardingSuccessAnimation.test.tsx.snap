@@ -13,6 +13,7 @@ exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1
       ],
     }
   }
+  testID="onboarding-success-animation"
 >
   <View
     style={
@@ -66,6 +67,7 @@ exports[`OnboardingSuccessAnimation renders animation and text in correct layout
       ],
     }
   }
+  testID="onboarding-success-animation"
 >
   <View
     style={

@@ -72,7 +72,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       padding: 16,
     },
     textTitle: {
-      marginBottom: 16,
+      marginBottom: 32,
       marginHorizontal: 60,
       textAlign: 'center',
     },

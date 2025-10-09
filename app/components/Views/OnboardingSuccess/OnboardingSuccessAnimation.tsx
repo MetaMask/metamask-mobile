@@ -20,12 +20,18 @@ interface OnboardingSuccessAnimationProps {
   startAnimation: boolean;
   onAnimationComplete: () => void;
   slideOut?: boolean;
+  mode?: 'setup' | 'success'; // Auto-configures trigger + showText
+  trigger?: string;
+  showText?: boolean;
 }
 
 const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   startAnimation: _startAnimation,
   onAnimationComplete: _onAnimationComplete,
   slideOut = false,
+  mode = 'setup',
+  trigger,
+  showText,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
@@ -51,6 +57,18 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   const [dotsCount, setDotsCount] = useState(1);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // Determine trigger based on mode or explicit override
+  const animationTrigger = useMemo(() => {
+    if (trigger) return trigger;
+    return mode === 'success' ? 'Only_End' : 'Start'; // Mode-based default
+  }, [mode, trigger]);
+
+  // Determine text visibility based on mode or explicit override
+  const shouldShowText = useMemo(() => {
+    if (showText !== undefined) return showText;
+    return mode === 'setup'; // Mode-based: setup=true, success=false
+  }, [mode, showText]);
+
   const clearTimers = useCallback(() => {
     if (dotsIntervalId.current) {
       clearInterval(dotsIntervalId.current);
@@ -74,14 +92,14 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
               'Dark mode',
               isDarkMode,
             );
-            riveRef.current.fireState('OnboardingLoader', 'Start');
+            riveRef.current.fireState('OnboardingLoader', animationTrigger);
           } catch (error) {
-            console.error('Error starting Rive animation:', error);
+            console.error(`Error with trigger '${animationTrigger}':`, error);
           }
         }
       }, 100);
     }
-  }, [isDarkMode]);
+  }, [isDarkMode, animationTrigger]);
 
   const startDotsAnimation = useCallback(() => {
     dotsIntervalId.current = setInterval(() => {
@@ -125,6 +143,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
 
   return (
     <Animated.View
+      testID="onboarding-success-animation"
       style={[
         styles.animationContainer,
         {
@@ -142,13 +161,15 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
           alignment={Alignment.Center}
         />
       </View>
-      <View style={styles.textWrapper}>
-        <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
-          {`${strings(
-            'onboarding_success.setting_up_wallet_base',
-          )}${renderAnimatedDots()}`}
-        </Text>
-      </View>
+      {shouldShowText && (
+        <View style={styles.textWrapper}>
+          <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
+            {`${strings(
+              'onboarding_success.setting_up_wallet_base',
+            )}${renderAnimatedDots()}`}
+          </Text>
+        </View>
+      )}
     </Animated.View>
   );
 };

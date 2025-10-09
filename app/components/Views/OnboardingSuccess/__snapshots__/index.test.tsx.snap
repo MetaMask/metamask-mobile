@@ -63,17 +63,8 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -82,10 +73,10 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -251,17 +242,8 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -270,10 +252,10 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -439,17 +421,8 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -458,10 +431,10 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -627,17 +600,8 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -646,10 +610,10 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -815,17 +779,8 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -834,10 +789,10 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -1003,17 +958,8 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -1022,10 +968,10 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -1191,17 +1137,8 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -1210,10 +1147,10 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
@@ -1379,17 +1316,8 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               }
             }
           >
-            <Image
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "alignSelf": "center",
-                  "height": 320,
-                  "width": 320,
-                }
-              }
-              testID="wallet-ready-image"
+            <View
+              testID="onboarding-success-animation"
             />
           </View>
           <Text
@@ -1398,10 +1326,10 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               {
                 "color": "#121314",
                 "fontFamily": "Geist Bold",
-                "fontSize": 24,
+                "fontSize": 32,
                 "letterSpacing": 0,
-                "lineHeight": 32,
-                "marginBottom": 16,
+                "lineHeight": 40,
+                "marginBottom": 32,
                 "marginHorizontal": 60,
                 "textAlign": "center",
               }
