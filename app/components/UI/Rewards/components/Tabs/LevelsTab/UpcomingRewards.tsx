@@ -275,7 +275,7 @@ const UpcomingRewards: React.FC = () => {
   };
 
   return (
-    <Box twClassName="p-4 gap-4">
+    <Box twClassName="pt-2 pb-4 px-4 gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={totalUpcomingRewardsCount}
