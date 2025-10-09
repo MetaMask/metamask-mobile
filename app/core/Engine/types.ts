@@ -58,6 +58,7 @@ import {
   MultichainAssetsRatesControllerState,
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
+  CodefiTokenPricesServiceV2,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -705,6 +706,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
+  | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
   | 'PermissionController'
   | 'PerpsController'
@@ -749,6 +751,11 @@ export type ControllerInitRequest<
   ControllerMessengerType extends BaseRestrictedControllerMessenger,
   InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
 > = {
+  /**
+   * The token API service instance.
+   */
+  codefiTokenApiV2: CodefiTokenPricesServiceV2;
+
   /**
    * Controller messenger for the client.
    * Used to generate controller for each controller.
@@ -844,6 +851,7 @@ export interface InitModularizedControllersFunctionRequest {
   getState: () => RootState;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
+  codefiTokenApiV2: CodefiTokenPricesServiceV2;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF

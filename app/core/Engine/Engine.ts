@@ -18,7 +18,6 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
-  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
@@ -46,7 +45,7 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
@@ -197,6 +196,7 @@ import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init'
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
+import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -301,8 +301,6 @@ export class Engine {
       captureException,
     });
 
-    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-
     const smartTransactionsControllerTrackMetaMetricsEvent = (
       params: {
         event: MetaMetricsEventName;
@@ -352,19 +350,7 @@ export class Engine {
       trace: trace as TraceCallback,
     });
 
-    const tokenSearchDiscoveryDataController =
-      new TokenSearchDiscoveryDataController({
-        tokenPricesService: codefiTokenApiV2,
-        swapsSupportedChainIds,
-        fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-        fetchTokens: swapsUtils.fetchTokens,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenSearchDiscoveryDataController',
-          allowedActions: ['CurrencyRateController:getState'],
-          allowedEvents: [],
-        }),
-      });
-
+    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
     const existingControllersByName = {
       SmartTransactionsController: this.smartTransactionsController,
     };
@@ -377,6 +363,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       initialKeyringState,
       qrKeyringScanner: this.qrKeyringScanner,
+      codefiTokenApiV2,
     };
 
     const { controllersByName } = initModularizedControllers({
@@ -401,6 +388,8 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        TokenSearchDiscoveryDataController:
+          tokenSearchDiscoveryDataControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
         BridgeController: bridgeControllerInit,
@@ -475,6 +464,8 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const tokenSearchDiscoveryDataController =
+      controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
     const networkController = controllersByName.NetworkController;
 

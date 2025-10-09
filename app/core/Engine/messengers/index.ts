@@ -60,6 +60,7 @@ import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
 } from './network-controller-messenger';
+import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -215,6 +216,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  TokenSearchDiscoveryDataController: {
+    getMessenger: getTokenSearchDiscoveryDataControllerMessenger,
     getInitMessenger: noop,
   },
   GatorPermissionsController: {
