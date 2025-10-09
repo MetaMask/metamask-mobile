@@ -9,7 +9,7 @@ import {
   selectIsSubmittingTx,
   selectBridgeFeatureFlags,
   selectIsSolanaSwap,
-  selectIsSolanaToEvm,
+  selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
@@ -56,7 +56,7 @@ export const useBridgeQuoteData = ({
   const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
@@ -197,7 +197,7 @@ export const useBridgeQuoteData = ({
     // Increment validation ID for this request
     const validationId = ++currentValidationIdRef.current;
 
-    if (activeQuote && (isSolanaSwap || isSolanaToEvm)) {
+    if (activeQuote && (isSolanaSwap || isSolanaToNonSolana)) {
       try {
         const validationResult = await validateBridgeTx({
           quoteResponse: activeQuote,
@@ -235,7 +235,7 @@ export const useBridgeQuoteData = ({
     } else {
       setBlockaidError(null);
     }
-  }, [activeQuote, isSolanaSwap, isSolanaToEvm, validateBridgeTx]);
+  }, [activeQuote, isSolanaSwap, isSolanaToNonSolana, validateBridgeTx]);
 
   useEffect(() => {
     validateQuote();
