@@ -24,10 +24,8 @@ import {
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
-  displayBridgeButton: boolean | undefined;
   onBuy?: () => void;
   goToSwaps: () => void;
-  goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
   // Asset context for fund flow
@@ -39,7 +37,6 @@ export interface AssetDetailsActionsProps {
   // Optional custom action IDs to avoid test ID conflicts
   buyButtonActionID?: string;
   swapButtonActionID?: string;
-  bridgeButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
 }
@@ -47,16 +44,13 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
   onBuy,
   goToSwaps,
-  goToBridge,
   onSend,
   onReceive,
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
-  bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
 }) => {
@@ -120,17 +114,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           />
         </View>
       )}
-      {displayBridgeButton ? (
-        <View style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={IconName.Bridge}
-            label={strings('asset_overview.bridge')}
-            onPress={goToBridge}
-            isDisabled={!canSignTransactions}
-            testID={bridgeButtonActionID}
-          />
-        </View>
-      ) : null}
       <View style={styles.buttonContainer}>
         <MainActionButton
           iconName={IconName.Send}

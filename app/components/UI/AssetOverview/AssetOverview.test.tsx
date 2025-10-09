@@ -24,12 +24,6 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  ActionButtonType,
-  ActionLocation,
-  ActionPosition,
-} from '../../../util/analytics/actionButtonTracking';
 jest.mock('../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
@@ -179,10 +173,6 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
-
 jest.mock(
   '../../../selectors/featureFlagController/multichainAccounts',
   () => ({
@@ -222,10 +212,6 @@ const assetFromSearch = {
 
 describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
-  const mockTrackEvent = jest.fn();
-  const mockCreateEventBuilder = jest.fn();
-  const mockAddProperties = jest.fn();
-  const mockBuild = jest.fn();
 
   beforeEach(() => {
     // Default mock setup for the hook - return false to continue with EVM flow
@@ -233,23 +219,6 @@ describe('AssetOverview', () => {
     (useSendNonEvmAsset as jest.Mock).mockReturnValue({
       sendNonEvmAsset: mockSendNonEvmAsset,
       isNonEvmAccount: false,
-    });
-
-    // Setup mock chain for createEventBuilder
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: mockAddProperties,
-      build: mockBuild,
-    });
-    mockAddProperties.mockReturnValue({
-      addProperties: mockAddProperties,
-      build: mockBuild,
-    });
-    mockBuild.mockReturnValue({ event: 'test' });
-
-    // Mock useMetrics hook
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
     });
 
     // Default selected internal account to an EVM account so token balance flow uses EVM path
@@ -305,35 +274,6 @@ describe('AssetOverview', () => {
         },
       },
     });
-  });
-
-  it('should track buy button click with correct analytics properties', async () => {
-    // Given: AssetOverview component with buy button enabled
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-
-    // When: user clicks buy button
-    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
-    fireEvent.press(buyButton);
-
-    // Then: should track action button click with correct properties
-    expect(mockCreateEventBuilder).toHaveBeenCalled();
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      action_name: ActionButtonType.BUY,
-      action_position: ActionPosition.BUY,
-      button_label: 'Buy',
-      location: ActionLocation.ASSET_DETAILS,
-    });
-    expect(mockBuild).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'test' });
   });
 
   it('should handle send button press', async () => {
@@ -573,123 +513,6 @@ describe('AssetOverview', () => {
 
     const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     expect(buyButton).toBeNull();
-  });
-
-  it('should not track analytics when buy button is not displayed', async () => {
-    // Given: AssetOverview component with buy button disabled
-    const { queryByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton={false}
-        displaySwapsButton
-        displayBridgeButton
-      />,
-      { state: mockInitialState },
-    );
-
-    // When: trying to find buy button (should not exist)
-    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
-
-    // Then: buy button should not exist and no analytics should be tracked
-    expect(buyButton).toBeNull();
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
-  it('should track buy button analytics for different asset types', async () => {
-    // Given: different asset types
-    const testAssets = [
-      { ...asset, symbol: 'ETH', name: 'Ethereum' },
-      {
-        ...asset,
-        symbol: 'USDC',
-        name: 'USD Coin',
-        address: '0xA0b86a33E6441b8C4C8C0C4C8C0C4C8C0C4C8C0C',
-      },
-      {
-        ...asset,
-        symbol: 'DAI',
-        name: 'Dai Stablecoin',
-        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-      },
-    ];
-
-    testAssets.forEach((testAsset) => {
-      // Reset mocks for each test
-      jest.clearAllMocks();
-
-      // Re-setup mock chain for createEventBuilder
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-      mockAddProperties.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-      mockBuild.mockReturnValue({ event: 'test' });
-
-      (useMetrics as jest.Mock).mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      });
-
-      // When: rendering AssetOverview with different asset
-      const { getByTestId } = renderWithProvider(
-        <AssetOverview
-          asset={testAsset}
-          displayBuyButton
-          displaySwapsButton
-          displayBridgeButton
-        />,
-        { state: mockInitialState },
-      );
-
-      // And: clicking buy button
-      const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
-      fireEvent.press(buyButton);
-
-      // Then: should track analytics with correct properties
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
-        button_label: 'Buy',
-        location: ActionLocation.ASSET_DETAILS,
-      });
-      expect(mockBuild).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'test' });
-    });
-  });
-
-  it('should track analytics with i18n button label', async () => {
-    // Given: AssetOverview component with buy button enabled
-    const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        displayBridgeButton
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-
-    // When: user clicks buy button
-    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
-    fireEvent.press(buyButton);
-
-    // Then: should track with i18n button label
-    expect(mockCreateEventBuilder).toHaveBeenCalled();
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.BUY,
-        location: ActionLocation.ASSET_DETAILS,
-        button_label: expect.any(String), // Should be i18n string
-      }),
-    );
-    expect(mockBuild).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'test' });
   });
 
   it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
