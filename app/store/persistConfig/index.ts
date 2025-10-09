@@ -13,7 +13,13 @@ import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
 
-export const ControllerStorage = {
+/**
+ * Creates a storage object with optional AsyncStorage fallback for migration scenarios.
+ * 
+ * @param enableAsyncStorageFallback - Whether to fall back to AsyncStorage if FilesystemStorage fails
+ * @returns Storage object with getItem, setItem, and removeItem methods
+ */
+const createStorage = (enableAsyncStorageFallback = false) => ({
   async getItem(key: string) {
     try {
       const res = await FilesystemStorage.getItem(key);
@@ -26,7 +32,22 @@ export const ControllerStorage = {
         message: `Failed to get item for ${key}`,
       });
     }
+
+    // Optional AsyncStorage fallback for migration scenarios
+    if (enableAsyncStorageFallback) {
+      try {
+        const res = await AsyncStorage.getItem(key);
+        if (res) {
+          // Using old storage system
+          return res;
+        }
+      } catch (error) {
+        Logger.error(error as Error, { message: 'Failed to run migration' });
+        throw new Error('Failed async storage storage fetch.');
+      }
+    }
   },
+
   async setItem(key: string, value: string) {
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
@@ -36,6 +57,7 @@ export const ControllerStorage = {
       });
     }
   },
+
   async removeItem(key: string) {
     try {
       return await FilesystemStorage.removeItem(key);
@@ -45,6 +67,12 @@ export const ControllerStorage = {
       });
     }
   },
+});
+
+export const ControllerStorage = {
+  // Use the consolidated storage without AsyncStorage fallback
+  ...createStorage(false),
+  
   async getKey(): Promise<Record<string, unknown>> {
     try {
       const backgroundState: Record<string, unknown> = {};
@@ -102,51 +130,8 @@ export const ControllerStorage = {
   },
 };
 
-const MigratedStorage = {
-  async getItem(key: string) {
-    try {
-      const res = await FilesystemStorage.getItem(key);
-      if (res) {
-        // Using new storage system
-        return res;
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to get item for ${key}`,
-      });
-    }
-
-    // Using old storage system, should only happen once
-    try {
-      const res = await AsyncStorage.getItem(key);
-      if (res) {
-        // Using old storage system
-        return res;
-      }
-    } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to run migration' });
-      throw new Error('Failed async storage storage fetch.');
-    }
-  },
-  async setItem(key: string, value: string) {
-    try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to set item for ${key}`,
-      });
-    }
-  },
-  async removeItem(key: string) {
-    try {
-      return await FilesystemStorage.removeItem(key);
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to remove item for ${key}`,
-      });
-    }
-  },
-};
+// Use the consolidated storage WITH AsyncStorage fallback for migration scenarios
+const MigratedStorage = createStorage(true);
 /**
  * Creates a debounced controller persistence function.
  * 

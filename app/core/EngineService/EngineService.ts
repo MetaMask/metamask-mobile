@@ -39,6 +39,12 @@ export class EngineService {
         if (key === INIT_BG_STATE_KEY) {
           // first-time init action
           ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
+        } else {
+          // incremental update action
+          ReduxService.store.dispatch({
+            type: UPDATE_BG_STATE_KEY,
+            payload: { key },
+          });
         }
       });
     }),
@@ -178,10 +184,7 @@ export class EngineService {
                   UntypedEngine.context[controllerName as keyof EngineContext]?.metadata,
                 );
 
-                ReduxService.store.dispatch({
-                  type: UPDATE_BG_STATE_KEY,
-                  payload: { key: controllerName },
-                });
+                this.updateBatcher.add(controllerName);
 
                 await persistController(filteredState, controllerName);
               } catch (error) {
