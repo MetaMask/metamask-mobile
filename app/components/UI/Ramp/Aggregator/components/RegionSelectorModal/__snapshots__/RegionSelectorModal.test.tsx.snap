@@ -647,7 +647,8 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -1508,7 +1509,8 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -2707,7 +2709,8 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3568,7 +3571,8 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -4297,7 +4301,8 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -5060,7 +5065,8 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -5877,7 +5883,8 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -7076,7 +7083,8 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -8275,7 +8283,8 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 0,
+                                      "paddingVertical": 2,
+                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"

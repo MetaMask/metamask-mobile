@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import {
@@ -24,7 +24,11 @@ interface UseSeasonStatusReturn {
  * Custom hook to fetch and manage season status data from the rewards API
  * Uses the RewardsController to get data from the rewards data service
  */
-export const useSeasonStatus = (): UseSeasonStatusReturn => {
+export const useSeasonStatus = ({
+  onlyForExplicitFetch = false,
+}: {
+  onlyForExplicitFetch?: boolean;
+}): UseSeasonStatusReturn => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
   const isLoadingRef = useRef(false);
@@ -68,18 +72,26 @@ export const useSeasonStatus = (): UseSeasonStatusReturn => {
   // Refresh data when screen comes into focus (each time page is visited)
   useFocusEffect(
     useCallback(() => {
+      if (onlyForExplicitFetch) {
+        return;
+      }
       fetchSeasonStatus();
-    }, [fetchSeasonStatus]),
+    }, [fetchSeasonStatus, onlyForExplicitFetch]),
   );
 
-  useInvalidateByRewardEvents(
-    [
-      'RewardsController:accountLinked',
-      'RewardsController:rewardClaimed',
-      'RewardsController:balanceUpdated',
-    ],
-    fetchSeasonStatus,
+  const invalidateEvents = useMemo(
+    () =>
+      onlyForExplicitFetch
+        ? []
+        : [
+            'RewardsController:accountLinked' as const,
+            'RewardsController:rewardClaimed' as const,
+            'RewardsController:balanceUpdated' as const,
+          ],
+    [onlyForExplicitFetch],
   );
+
+  useInvalidateByRewardEvents(invalidateEvents, fetchSeasonStatus);
 
   return {
     fetchSeasonStatus,

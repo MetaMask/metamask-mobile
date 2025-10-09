@@ -313,7 +313,6 @@ describe('RewardsDataService', () => {
     const mockPointsEventsResponse = {
       has_more: true,
       cursor: 'next-cursor-123',
-      total_results: 100,
       results: [
         {
           id: 'event-123',
