@@ -5889,8 +5889,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "Chốt lời",
-        "stop_loss": "Cắt lỗ",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },

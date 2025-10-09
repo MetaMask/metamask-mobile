@@ -17,6 +17,7 @@ export const ImportTokenViewSelectorsIDs = {
   ASSET_SEARCH_CONTAINER: 'add-searched-token-screen',
   SELECT_NETWORK_BUTTON: 'select-network-button',
   CLEAR_SEARCH_BAR: 'clear-search-bar',
+  BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT: 'bottomsheetfooter-button-subsequent',
 };
 
 export const ImportTokenViewSelectorsText = {

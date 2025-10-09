@@ -456,8 +456,6 @@ describe('RewardsController', () => {
           account: CAIP_ACCOUNT_1,
           hasOptedIn: true,
           subscriptionId: 'test',
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: 5.0,
           lastPerpsDiscountRateFetched: Date.now(),
         },
@@ -580,7 +578,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -614,7 +611,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 0,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -710,7 +706,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -1837,7 +1832,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: recentTime,
       };
@@ -1868,7 +1862,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -1904,7 +1897,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'test',
-        lastCheckedAuth: Date.now(),
         perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
@@ -1975,7 +1967,6 @@ describe('RewardsController', () => {
       expect(newAccountState.hasOptedIn).toBe(false);
       expect(newAccountState.perpsFeeDiscount).toBe(2000);
       expect(newAccountState.subscriptionId).toBeNull();
-      expect(newAccountState.lastCheckedAuth).toBeGreaterThan(0);
       expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
         Date.now(),
       );
@@ -2288,82 +2279,6 @@ describe('RewardsController', () => {
       jest.restoreAllMocks();
     });
 
-    it('should perform silent auth when outside grace period', async () => {
-      // Arrange
-      const now = 1000000;
-      const outsideGracePeriod = now - 25 * 60 * 60 * 1000; // 25 hours ago (outside grace period)
-
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        lastCheckedAuth: outsideGracePeriod,
-        perpsFeeDiscount: 0,
-        lastPerpsDiscountRateFetched: null,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      const mockAccount = {
-        address: '0x123',
-        type: 'eip155:eoa' as const,
-        id: 'test-id',
-        scopes: ['eip155:1' as const],
-        options: {},
-        methods: ['personal_sign'],
-        metadata: {
-          name: 'Test Account',
-          keyring: { type: 'HD Key Tree' },
-          importTime: Date.now(),
-        },
-      };
-
-      mockMessenger.call
-        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount (can be called multiple times)
-        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
-        .mockResolvedValueOnce({
-          // login
-          sessionId: 'session123',
-          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
-        });
-
-      // Get the new subscription callback for the recreated controller
-      const newSubscribeCallback = mockMessenger.subscribe.mock.calls
-        .filter(
-          (call) => call[0] === 'AccountsController:selectedAccountChange',
-        )
-        .pop()?.[1];
-
-      // Act - trigger account change
-      if (newSubscribeCallback) {
-        await newSubscribeCallback(mockAccount, mockAccount);
-      }
-
-      // Assert - should attempt authentication outside grace period
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:signPersonalMessage',
-        expect.objectContaining({
-          from: '0x123',
-        }),
-      );
-    });
-
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsSolanaAddress.mockReturnValue(false);
-    });
-
     it('should throw error when session token storage fails', async () => {
       // Arrange
       const mockInternalAccount = {
@@ -2434,17 +2349,12 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x123' as CaipAccountId,
               hasOptedIn: false,
               subscriptionId: null,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: 0,
               lastPerpsDiscountRateFetched: null,
             };
           }
 
           // Now set the properties
-          state.accounts[
-            'eip155:1:0x123' as CaipAccountId
-          ].lastCheckedAuthError = true;
           state.accounts['eip155:1:0x123' as CaipAccountId].hasOptedIn =
             undefined;
           state.accounts['eip155:1:0x123' as CaipAccountId].subscriptionId =
@@ -2455,7 +2365,6 @@ describe('RewardsController', () => {
         const updatedAccountState =
           controller.state.accounts['eip155:1:0x123' as CaipAccountId];
         expect(updatedAccountState).toBeDefined();
-        expect(updatedAccountState.lastCheckedAuthError).toBe(true);
         expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
         expect(updatedAccountState.subscriptionId).toBeNull();
       }
@@ -2985,8 +2894,6 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3061,8 +2968,6 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3192,8 +3097,6 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3320,8 +3223,6 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3329,9 +3230,8 @@ describe('RewardsController', () => {
           'eip155:1:0x123': {
             account: 'eip155:1:0x123',
             subscriptionId: mockSubscriptionId,
-            lastCheckedAuth: Date.now() - 1000,
+
             hasOptedIn: true,
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -3476,8 +3376,6 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3485,18 +3383,16 @@ describe('RewardsController', () => {
           'eip155:1:0x123': {
             account: 'eip155:1:0x123',
             subscriptionId: mockSubscriptionId,
-            lastCheckedAuth: Date.now(),
+
             hasOptedIn: true,
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
           'eip155:1:0x456': {
             account: 'eip155:1:0x456',
             subscriptionId: mockSubscriptionId,
-            lastCheckedAuth: Date.now() - 1000,
+
             hasOptedIn: true,
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -3618,8 +3514,7 @@ describe('RewardsController', () => {
           subscriptionId: 'different-active-sub-id',
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
+
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3629,8 +3524,7 @@ describe('RewardsController', () => {
             subscriptionId: 'different-sub-id', // Different from testSubscriptionId
             account: 'eip155:1:0x456' as CaipAccountId,
             hasOptedIn: true,
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
+
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -3711,8 +3605,7 @@ describe('RewardsController', () => {
           subscriptionId: 'different-active-sub-id',
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
+
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3722,8 +3615,7 @@ describe('RewardsController', () => {
             subscriptionId: testSubscriptionId,
             account: 'eip155:1:0x456' as CaipAccountId,
             hasOptedIn: true,
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
+
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -3798,8 +3690,7 @@ describe('RewardsController', () => {
           subscriptionId: 'different-active-sub-id',
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
+
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3870,8 +3761,7 @@ describe('RewardsController', () => {
           subscriptionId: 'different-active-sub-id',
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
+
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3939,8 +3829,6 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -3988,8 +3876,7 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
           account: 'eip155:1:0x123',
           hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
+
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -4675,10 +4562,10 @@ describe('RewardsController', () => {
         state: {
           activeAccount: {
             account: CAIP_ACCOUNT_1,
-            lastCheckedAuthError: false,
+
             hasOptedIn: true,
             subscriptionId: mockSubscriptionId,
-            lastCheckedAuth: Date.now(),
+
             perpsFeeDiscount: 5.0,
             lastPerpsDiscountRateFetched: Date.now(),
           },
@@ -4705,10 +4592,9 @@ describe('RewardsController', () => {
       const mockSubscriptionId = 'sub-456';
       const mockActiveAccount = {
         account: CAIP_ACCOUNT_1,
-        lastCheckedAuthError: false,
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
+
         perpsFeeDiscount: 10.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -4825,10 +4711,10 @@ describe('RewardsController', () => {
 
       const activeAccountState = {
         account: CAIP_ACCOUNT_1,
-        lastCheckedAuthError: false,
+
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
+
         perpsFeeDiscount: 5.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -4878,8 +4764,7 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
+
         perpsFeeDiscount: 5.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -4921,8 +4806,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: 10.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -4978,8 +4861,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: mockSubscriptionId,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: 7.0,
         lastPerpsDiscountRateFetched: Date.now(),
       };
@@ -5385,8 +5266,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -5395,8 +5274,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -5438,8 +5315,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: 0,
               lastPerpsDiscountRateFetched: null,
             },
@@ -5481,8 +5356,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub456',
-            lastCheckedAuth: 1234567890,
-            lastCheckedAuthError: true,
             perpsFeeDiscount: 10,
             lastPerpsDiscountRateFetched: 9876543210,
           },
@@ -5491,8 +5364,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub456',
-              lastCheckedAuth: 1234567890,
-              lastCheckedAuthError: true,
               perpsFeeDiscount: 10,
               lastPerpsDiscountRateFetched: 9876543210,
             },
@@ -5527,8 +5398,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub789',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -5560,8 +5429,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub1',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -5570,8 +5437,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub1',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -5579,8 +5444,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_2,
               hasOptedIn: false,
               subscriptionId: 'sub2',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: true,
               perpsFeeDiscount: 5,
               lastPerpsDiscountRateFetched: Date.now(),
             },
@@ -5588,8 +5451,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_3,
               hasOptedIn: true,
               subscriptionId: null,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -5634,8 +5495,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -5644,8 +5503,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
               subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -5960,8 +5817,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -5996,8 +5851,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: expect.any(Number),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       });
@@ -6018,8 +5871,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -6055,8 +5906,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
             subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -6098,8 +5947,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             subscriptionId: null, // No active subscription
             hasOptedIn: false,
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -6247,8 +6094,6 @@ describe('RewardsController', () => {
             account: CAIP_ACCOUNT_1,
             subscriptionId: activeSubscriptionId,
             hasOptedIn: true,
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
           },
@@ -7228,8 +7073,6 @@ describe('RewardsController', () => {
               account: CAIP_ACCOUNT_1,
               subscriptionId: 'existing-sub',
               hasOptedIn: true,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -7330,8 +7173,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'candidate-sub-123',
-        lastCheckedAuth: expect.any(Number),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       });
@@ -7882,12 +7723,10 @@ describe('RewardsController', () => {
       expect(account1State).toBeDefined();
       expect(account1State.hasOptedIn).toBe(true);
       expect(account1State.subscriptionId).toBe('sub_123');
-      expect(account1State.lastCheckedAuth).toBeGreaterThan(Date.now() - 100);
 
       expect(account2State).toBeDefined();
       expect(account2State.hasOptedIn).toBe(false);
       expect(account2State.subscriptionId).toBe(null);
-      expect(account2State.lastCheckedAuth).toBeGreaterThan(Date.now() - 100);
     });
 
     it('should handle service errors and rethrow them', async () => {
@@ -8004,8 +7843,7 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x123',
               hasOptedIn: true,
               subscriptionId: 'cached_sub_123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
+
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -8013,8 +7851,6 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x456',
               hasOptedIn: false,
               subscriptionId: null,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -8077,8 +7913,7 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x123',
               hasOptedIn: undefined, // This will force fresh API call
               subscriptionId: 'old_sub_123', // Will be updated to fresh_sub_123
-              lastCheckedAuth: Date.now() - 1000, // Will be updated to current time
-              lastCheckedAuthError: false,
+
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -8104,13 +7939,6 @@ describe('RewardsController', () => {
       expect(updatedAccountState).toBeDefined();
       expect(updatedAccountState.hasOptedIn).toBe(true);
       expect(updatedAccountState.subscriptionId).toBe('fresh_sub_123');
-      expect(updatedAccountState.lastCheckedAuth).toBeGreaterThan(
-        Date.now() - 100,
-      );
-      // Verify that lastCheckedAuth was updated to current time
-      expect(updatedAccountState.lastCheckedAuth).toBeGreaterThan(
-        Date.now() - 1000,
-      );
     });
 
     it('should use cached results in final combination loop', async () => {
@@ -8169,8 +7997,6 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x123',
               hasOptedIn: true,
               subscriptionId: 'cached_sub_123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -8179,8 +8005,6 @@ describe('RewardsController', () => {
               account: 'eip155:1:0x456',
               hasOptedIn: false,
               subscriptionId: null,
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
@@ -8257,8 +8081,6 @@ describe('RewardsController', () => {
           account: 'eip155:1:0x456',
           hasOptedIn: false,
           subscriptionId: null,
-          lastCheckedAuth: 1234567890,
-          lastCheckedAuthError: false,
           perpsFeeDiscount: null,
           lastPerpsDiscountRateFetched: null,
         };
@@ -8282,16 +8104,12 @@ describe('RewardsController', () => {
       expect(activeAccount?.account).toBe('eip155:1:0x456');
       expect(activeAccount?.hasOptedIn).toBe(false);
       expect(activeAccount?.subscriptionId).toBe(null);
-      expect(activeAccount?.lastCheckedAuth).toBeGreaterThan(Date.now() - 1000);
 
       // Verify that the regular account state was also updated
       const account456State = state.accounts['eip155:1:0x456'];
       expect(account456State).toBeDefined();
       expect(account456State.hasOptedIn).toBe(false);
       expect(account456State.subscriptionId).toBe(null);
-      expect(account456State.lastCheckedAuth).toBeGreaterThan(
-        Date.now() - 1000,
-      );
     });
 
     it('should not update activeAccount when it does not match any account being checked', async () => {
@@ -8332,8 +8150,6 @@ describe('RewardsController', () => {
         account: 'eip155:1:0x456',
         hasOptedIn: true,
         subscriptionId: 'old_sub',
-        lastCheckedAuth: 1234567890,
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -8364,7 +8180,6 @@ describe('RewardsController', () => {
       expect(activeAccount?.account).toBe('eip155:1:0x456');
       expect(activeAccount?.hasOptedIn).toBe(true); // Original value preserved
       expect(activeAccount?.subscriptionId).toBe('old_sub'); // Original value preserved
-      expect(activeAccount?.lastCheckedAuth).toBe(1234567890); // Original value preserved
     });
   });
 
@@ -10638,8 +10453,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'test-sub-123',
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -10679,8 +10492,6 @@ describe('RewardsController', () => {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
       };
@@ -11101,6 +10912,467 @@ describe('RewardsController', () => {
         expect(result).toBe(42);
         expect(mockFetchFresh).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('checkOptInStatusAgainstCache', () => {
+    const ADDRESS_1 = '0x1234567890123456789012345678901234567890';
+    const ADDRESS_2 = '0x2345678901234567890123456789012345678901';
+    const ADDRESS_3 = '0x3456789012345678901234567890123456789012';
+    const CAIP_ACCOUNT_1 =
+      'eip155:1:0x1234567890123456789012345678901234567890';
+    const CAIP_ACCOUNT_2 =
+      'eip155:1:0x2345678901234567890123456789012345678901';
+    const CAIP_ACCOUNT_3 =
+      'eip155:1:0x3456789012345678901234567890123456789012';
+
+    const mockInternalAccount1: InternalAccount = {
+      id: 'account-1',
+      address: ADDRESS_1,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 1',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    const mockInternalAccount2: InternalAccount = {
+      id: 'account-2',
+      address: ADDRESS_2,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 2',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    const mockInternalAccount3: InternalAccount = {
+      id: 'account-3',
+      address: ADDRESS_3,
+      scopes: ['eip155:1'],
+      metadata: {
+        name: 'Account 3',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: Date.now(),
+      },
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+    };
+
+    beforeEach(() => {
+      // Mock convertInternalAccountToCaipAccountId to return predictable CAIP IDs
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return CAIP_ACCOUNT_1;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          if (account.address === ADDRESS_3) return CAIP_ACCOUNT_3;
+          return null;
+        });
+    });
+
+    it('should return all cached results when all addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState3: RewardsAccountState = {
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: true,
+        subscriptionId: 'sub-3',
+        perpsFeeDiscount: 1000,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, false, true]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, 'sub-3']);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should return no cached results when no addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual([null, null, null]);
+      expect(result.addressesNeedingFresh).toEqual([
+        ADDRESS_1,
+        ADDRESS_2,
+        ADDRESS_3,
+      ]);
+    });
+
+    it('should return mixed results when some addresses have cached opt-in status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      // Only ADDRESS_1 has cached data, ADDRESS_2 and ADDRESS_3 don't
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+    });
+
+    it('should handle addresses with undefined hasOptedIn status', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: undefined as any, // Explicitly undefined
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, false]);
+      expect(result.cachedSubscriptionIds).toEqual([null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+    });
+
+    it('should handle addresses not found in addressToAccountMap', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2, ADDRESS_3];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        // ADDRESS_2 and ADDRESS_3 are missing from the map
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, null, null]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+    });
+
+    it('should handle empty addresses array', () => {
+      // Arrange
+      const addresses: string[] = [];
+      const addressToAccountMap = new Map();
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([]);
+      expect(result.cachedSubscriptionIds).toEqual([]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should handle case-insensitive address matching', () => {
+      // Arrange
+      const addresses = [ADDRESS_1.toUpperCase(), ADDRESS_2.toLowerCase()];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([true, false]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-1', null]);
+      expect(result.addressesNeedingFresh).toEqual([]);
+    });
+
+    it('should handle convertInternalAccountToCaipAccountId returning null', () => {
+      // Arrange
+      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+      ]);
+
+      // Mock convertInternalAccountToCaipAccountId to return null for ADDRESS_1
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === ADDRESS_1) return null;
+          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          return null;
+        });
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: true,
+        subscriptionId: 'sub-2',
+        perpsFeeDiscount: 750,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_2]: accountState2,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      expect(result.cachedOptInResults).toEqual([null, true]);
+      expect(result.cachedSubscriptionIds).toEqual([null, 'sub-2']);
+      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+    });
+
+    it('should preserve order of results matching input addresses order', () => {
+      // Arrange
+      const addresses = [ADDRESS_3, ADDRESS_1, ADDRESS_2]; // Different order
+      const addressToAccountMap = new Map([
+        [ADDRESS_1.toLowerCase(), mockInternalAccount1],
+        [ADDRESS_2.toLowerCase(), mockInternalAccount2],
+        [ADDRESS_3.toLowerCase(), mockInternalAccount3],
+      ]);
+
+      const accountState1: RewardsAccountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'sub-1',
+        perpsFeeDiscount: 500,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState2: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const accountState3: RewardsAccountState = {
+        account: CAIP_ACCOUNT_3,
+        hasOptedIn: true,
+        subscriptionId: 'sub-3',
+        perpsFeeDiscount: 1000,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [CAIP_ACCOUNT_1]: accountState1,
+            [CAIP_ACCOUNT_2]: accountState2,
+            [CAIP_ACCOUNT_3]: accountState3,
+          },
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = controller.checkOptInStatusAgainstCache(
+        addresses,
+        addressToAccountMap,
+      );
+
+      // Assert
+      // Results should be in the same order as input addresses
+      expect(result.cachedOptInResults).toEqual([true, true, false]);
+      expect(result.cachedSubscriptionIds).toEqual(['sub-3', 'sub-1', null]);
+      expect(result.addressesNeedingFresh).toEqual([]);
     });
   });
 });

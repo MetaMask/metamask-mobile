@@ -145,14 +145,7 @@ export const useRewardOptinSummary = (
   }, [optedInAccounts]);
 
   const coercedLinkedAccounts = useMemo(() => {
-    const firstSubscriptionId = Engine.controllerMessenger.call(
-      'RewardsController:getFirstSubscriptionId',
-    );
-    if (
-      activeAccountSubscriptionId &&
-      firstSubscriptionId &&
-      activeAccountSubscriptionId !== firstSubscriptionId
-    ) {
+    if (activeAccountSubscriptionId) {
       const accountsForSameSubscription = linkedAccounts.filter((account) => {
         const caipAccount = convertInternalAccountToCaipAccountId(account);
         if (!caipAccount) {

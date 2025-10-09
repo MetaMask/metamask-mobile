@@ -67,6 +67,17 @@ async function main() {
     return;
   }
 
+  // Scheduled runs: always build both platforms but do not emit changed files
+  if (githubEventName === 'schedule') {
+    writeOutputs({
+      message: 'Building both platforms (scheduled run)',
+      willBuildAndroid: true,
+      willBuildIos: true,
+      changedFiles: '',
+    });
+    return;
+  }
+
   // Determine the build outputs
   const hasChanges = Boolean(catchAllFiles && String(catchAllFiles).trim().length > 0);
   const isPureIgnore = Boolean(hasIgnoreFiles && hasIgnoreFiles === catchAllFiles);
@@ -103,11 +114,6 @@ async function main() {
     willBuildAndroid = true;
     willBuildIos = true;
     changedFiles = catchAllFiles;
-  }
-
-  // On scheduled runs, do not emit changed files to avoid large payloads
-  if (githubEventName === 'schedule') {
-    changedFiles = '';
   }
 
   writeOutputs({
