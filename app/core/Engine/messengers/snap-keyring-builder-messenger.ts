@@ -65,7 +65,7 @@ export function getSnapKeyringBuilderMessenger(
   messenger: Messenger<AllowedActions, AllowedEvents>,
 ) {
   return messenger.getRestricted({
-    name: 'SnapKeyringBuilder',
+    name: 'SnapKeyring',
     allowedActions: [
       'AccountsController:getAccountByAddress',
       'AccountsController:listMultichainAccounts',
