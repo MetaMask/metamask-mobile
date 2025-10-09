@@ -6950,9 +6950,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^78.0.1":
-  version: 78.0.1
-  resolution: "@metamask/assets-controllers@npm:78.0.1"
+"@metamask/assets-controllers@npm:^79.0.0":
+  version: 79.0.0
+  resolution: "@metamask/assets-controllers@npm:79.0.0"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -6996,7 +6996,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: afe72187e41c62f8aff50616d2ee45c811a38f8529708ac80586dfa7938dd955dcdc634c9e5bfc94ca3d9590308f34e90fbef488f5c536bfaa59fd1b70041d1a
+  checksum: 535fde785d78d1235f481437bcb5f6118c04d607527d9593d7b9e459ccb4fcd2f03ad90b8057a8526b18a790786ce284704ce4a999eb6454ee6a0a6fc5d6f772
   languageName: node
   linkType: hard
 
@@ -33996,7 +33996,7 @@ __metadata:
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^78.0.1
+    "@metamask/assets-controllers": ^79.0.0
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.2.0
     "@metamask/bridge-controller": ^48.0.0
