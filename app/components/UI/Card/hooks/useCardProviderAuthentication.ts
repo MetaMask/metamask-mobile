@@ -43,7 +43,6 @@ const useCardProviderAuthentication = (): {
   error: string | null;
   clearError: () => void;
 } => {
-  const state = generateState();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { sdk, setIsAuthenticated } = useCardSDK();
@@ -62,6 +61,7 @@ const useCardProviderAuthentication = (): {
         throw new Error('Card SDK not initialized');
       }
 
+      const state = generateState();
       const { codeVerifier, codeChallenge } = await generatePKCEPair();
 
       try {
@@ -113,7 +113,7 @@ const useCardProviderAuthentication = (): {
         setLoading(false);
       }
     },
-    [state, sdk, setIsAuthenticated],
+    [sdk, setIsAuthenticated],
   );
 
   return useMemo(

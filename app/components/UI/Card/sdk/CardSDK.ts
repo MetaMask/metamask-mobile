@@ -199,7 +199,7 @@ export class CardSDK {
       this.logDebugInfo('performCardholderRequest', data);
       return data.is || [];
     } catch (error) {
-      Logger.error(
+      Logger.log(
         error as Error,
         'CardSDK: Failed to check if address is a card holder',
       );
@@ -273,7 +273,7 @@ export class CardSDK {
 
       return await response.text();
     } catch (error) {
-      Logger.error(error as Error, 'CardSDK: Failed to get geolocation');
+      Logger.log(error as Error, 'CardSDK: Failed to get geolocation');
       return '';
     }
   };
@@ -510,7 +510,7 @@ export class CardSDK {
         CardErrorType.SERVER_ERROR,
         'Failed to initiate authentication. Please try again.',
       );
-      Logger.error(
+      Logger.log(
         error,
         `CardSDK: Failed to initiate card provider authentication. Status: ${response.status}, Response: ${responseBody}`,
       );
@@ -556,20 +556,24 @@ export class CardSDK {
     if (!response.ok) {
       let responseBody = null;
       try {
-        responseBody = await response.text();
+        responseBody = await response.json();
       } catch {
         // If we can't parse response, continue without it
       }
-
       // Handle specific HTTP status codes
-      if (response.status === 401 || response.status === 403) {
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        response.status === 404
+      ) {
         const error = new CardError(
           CardErrorType.INVALID_CREDENTIALS,
           'Invalid login details',
         );
-        Logger.error(
+        Logger.log(
           error,
-          `CardSDK: Invalid credentials during login. Status: ${response.status}, Response: ${responseBody}`,
+          `CardSDK: Invalid credentials during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
         );
         throw error;
       }
@@ -579,9 +583,10 @@ export class CardSDK {
           CardErrorType.SERVER_ERROR,
           'Server error. Please try again later.',
         );
-        Logger.error(
+        Logger.log(
           error,
-          `CardSDK: Server error during login. Status: ${response.status}, Response: ${responseBody}`,
+          `CardSDK: Server error during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
         );
         throw error;
       }
@@ -590,9 +595,10 @@ export class CardSDK {
         CardErrorType.UNKNOWN_ERROR,
         'Login failed. Please try again.',
       );
-      Logger.error(
+      Logger.log(
         error,
-        `CardSDK: Unknown error during login. Status: ${response.status}, Response: ${responseBody}`,
+        `CardSDK: Unknown error during login. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
       );
       throw error;
     }
@@ -635,9 +641,10 @@ export class CardSDK {
           CardErrorType.INVALID_CREDENTIALS,
           'Authorization failed. Please try logging in again.',
         );
-        Logger.error(
+        Logger.log(
           error,
-          `CardSDK: Authorization failed - invalid credentials. Status: ${response.status}, Response: ${responseBody}`,
+          `CardSDK: Authorization failed - invalid credentials. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
         );
         throw error;
       }
@@ -646,9 +653,10 @@ export class CardSDK {
         CardErrorType.SERVER_ERROR,
         'Authorization failed. Please try again.',
       );
-      Logger.error(
+      Logger.log(
         error,
-        `CardSDK: Authorization failed. Status: ${response.status}, Response: ${responseBody}`,
+        `CardSDK: Authorization failed. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
       );
       throw error;
     }
@@ -694,9 +702,10 @@ export class CardSDK {
           CardErrorType.INVALID_CREDENTIALS,
           'Token exchange failed. Please try logging in again.',
         );
-        Logger.error(
+        Logger.log(
           error,
-          `CardSDK: Token exchange failed - invalid credentials. Status: ${response.status}, Response: ${responseBody}`,
+          `CardSDK: Token exchange failed - invalid credentials. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
         );
         throw error;
       }
@@ -705,9 +714,10 @@ export class CardSDK {
         CardErrorType.SERVER_ERROR,
         'Token exchange failed. Please try again.',
       );
-      Logger.error(
+      Logger.log(
         error,
-        `CardSDK: Token exchange failed. Status: ${response.status}, Response: ${responseBody}`,
+        `CardSDK: Token exchange failed. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
       );
       throw error;
     }

@@ -452,7 +452,7 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.isCardHolder([mockTestAddress]);
       expect(result).toEqual([]);
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(Logger.log).toHaveBeenCalledWith(
         expect.any(Error),
         'CardSDK: Failed to check if address is a card holder',
       );
@@ -464,7 +464,7 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.isCardHolder([mockTestAddress]);
       expect(result).toEqual([]);
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(Logger.log).toHaveBeenCalledWith(
         error,
         'CardSDK: Failed to check if address is a card holder',
       );
@@ -489,7 +489,7 @@ describe('CardSDK', () => {
         mockTestAddress,
       ]);
       expect(result).toEqual([]);
-      expect(Logger.error).toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalled();
     });
 
     it('should construct correct API request with proper parameters', async () => {
@@ -546,7 +546,7 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.getGeoLocation();
       expect(result).toBe('');
-      expect(Logger.error).toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalled();
     });
 
     it('should handle network errors and return empty string', async () => {
@@ -555,7 +555,7 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.getGeoLocation();
       expect(result).toBe('');
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(Logger.log).toHaveBeenCalledWith(
         error,
         'CardSDK: Failed to get geolocation',
       );
@@ -875,7 +875,7 @@ describe('CardSDK', () => {
         message: 'Failed to initiate authentication. Please try again.',
       });
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalled();
     });
 
     it('should handle network error', async () => {
