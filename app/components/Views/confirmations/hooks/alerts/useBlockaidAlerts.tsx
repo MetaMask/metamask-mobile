@@ -89,7 +89,9 @@ export default function useBlockaidAlerts(): Alert[] {
         key: AlertKeys.Blockaid,
         content: (
           <BlockaidAlertContent
-            alertDetails={features}
+            alertDetails={(features ?? []).filter(
+              (feature): feature is string => typeof feature === 'string',
+            )}
             securityAlertResponse={
               securityAlertResponse as SecurityAlertResponse
             }
