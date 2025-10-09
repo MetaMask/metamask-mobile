@@ -16,6 +16,11 @@ import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.types';
 
 /**
+ * Type for URL parameters that can contain string or boolean values
+ */
+type UrlParamValues = Record<string, string | boolean>;
+
+/**
  * Determine app installation status from Branch.io parameters
  * This is the core logic we validated in testing
  * @param params - Branch.io parameters object
@@ -86,7 +91,7 @@ export const detectAppInstallation = async (): Promise<boolean> => {
  * @returns string | undefined - The extracted value or undefined
  */
 const getStringValue = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   key: string,
 ): string | undefined => {
   const value = urlParams[key];
@@ -115,7 +120,7 @@ const addPropertyIfExists = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractCommonProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   addPropertyIfExists(
@@ -142,7 +147,7 @@ const extractCommonProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractSwapProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
@@ -159,7 +164,7 @@ const extractSwapProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractPerpsProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
@@ -182,7 +187,7 @@ const extractPerpsProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractDepositProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
@@ -219,7 +224,7 @@ const extractDepositProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractTransactionProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
@@ -237,7 +242,7 @@ const extractTransactionProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractBuyProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   extractCommonProperties(urlParams, sensitiveProps);
@@ -259,7 +264,7 @@ const extractBuyProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractHomeProperties = (
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
   // HOME route only extracts previewToken, not common transaction properties
@@ -278,7 +283,7 @@ const extractHomeProperties = (
  * @param sensitiveProps - Object to add properties to
  */
 const extractInvalidProperties = (
-  _urlParams: Record<string, string>,
+  _urlParams: UrlParamValues,
   _sensitiveProps: Record<string, string>,
 ): void => {
   // No properties to extract for invalid routes
@@ -289,10 +294,7 @@ const extractInvalidProperties = (
  */
 const routeExtractors: Record<
   DeepLinkRoute,
-  (
-    urlParams: Record<string, string>,
-    sensitiveProps: Record<string, string>,
-  ) => void
+  (urlParams: UrlParamValues, sensitiveProps: Record<string, string>) => void
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
@@ -312,7 +314,7 @@ const routeExtractors: Record<
  */
 export const extractSensitiveProperties = (
   route: DeepLinkRoute,
-  urlParams: Record<string, string>,
+  urlParams: UrlParamValues,
 ): Record<string, string> => {
   try {
     const sensitiveProps: Record<string, string> = {};
@@ -472,7 +474,10 @@ export const createDeepLinkUsedEventBuilder = async (
   const route = extractRouteFromUrl(url);
 
   // Extract sensitive properties
-  const sensitiveProperties = extractSensitiveProperties(route, context.urlParams);
+  const sensitiveProperties = extractSensitiveProperties(
+    route,
+    context.urlParams,
+  );
 
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);

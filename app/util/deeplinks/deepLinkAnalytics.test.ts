@@ -12,7 +12,10 @@ import {
   mapSupportedActionToRoute,
   createDeepLinkUsedEventBuilder,
 } from './deepLinkAnalytics';
-import { SUPPORTED_ACTIONS } from '../../core/DeeplinkManager/types/deepLink.types';
+import {
+  SUPPORTED_ACTIONS,
+  DeeplinkUrlParams,
+} from '../../core/DeeplinkManager/types/deepLink.types';
 import {
   DeepLinkRoute,
   InterstitialState,
@@ -483,7 +486,7 @@ describe('deepLinkAnalytics', () => {
       const context: DeepLinkAnalyticsContext = {
         url: 'https://link.metamask.io/invalid-route?test=param',
         route: DeepLinkRoute.INVALID,
-        urlParams: { test: 'param' },
+        urlParams: { test: 'param' } as Partial<DeeplinkUrlParams>,
         signatureStatus: SignatureStatus.INVALID,
         interstitialShown: false,
         interstitialDisabled: false,
