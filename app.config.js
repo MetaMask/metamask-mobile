@@ -28,9 +28,13 @@ module.exports = {
     'expo-apple-authentication',
   ],
   android: {
-    package: 'io.metamask', // Required for @expo/repack-app Android repacking
+    package:
+      process.env.METAMASK_BUILD_TYPE === 'flask'
+        ? 'io.metamask.flask'
+        : 'io.metamask', // Required for @expo/repack-app Android repacking
   },
   ios: {
+    bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
   },
 };

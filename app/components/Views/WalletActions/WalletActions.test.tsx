@@ -129,7 +129,6 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
-  selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
@@ -447,6 +446,9 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Perps', {
       screen: 'PerpsMarketListView',
+      params: {
+        source: 'main_action_button',
+      },
     });
   });
 

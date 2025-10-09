@@ -6,7 +6,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "padding": 24,
+      "padding": 16,
       "paddingBottom": 48,
     }
   }

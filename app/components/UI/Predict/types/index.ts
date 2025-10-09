@@ -1,8 +1,19 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
+import { Hex } from '@metamask/utils';
+
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
+}
+
+export enum PredictPriceHistoryInterval {
+  ONE_HOUR = '1h',
+  SIX_HOUR = '6h',
+  ONE_DAY = '1d',
+  ONE_WEEK = '1w',
+  ONE_MONTH = '1m',
+  MAX = 'max',
 }
 
 export interface GetPositionsParams {
@@ -48,30 +59,23 @@ export interface OffchainTradeResponse {
   response: unknown;
 }
 
-export type PredictOrderStatus =
-  | 'idle'
-  | 'pending'
-  | 'filled'
-  | 'cancelled'
-  | 'error';
+export enum PredictClaimStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictOrder = {
-  id: string;
-  providerId: string;
+export type PredictClaim = {
+  positionId: string;
   chainId: number;
-  marketId?: string;
-  outcomeId: string;
-  outcomeTokenId: string;
-  isBuy: boolean;
-  size: number;
-  price: number;
-  status: PredictOrderStatus;
-  error?: string;
-  timestamp: number;
-  lastUpdated: number;
-  onchainTradeParams: OnchainTradeParams[];
-  offchainTradeParams?: OffchainTradeParams;
+  status: PredictClaimStatus;
+  txParams: {
+    to: Hex;
+    data: Hex;
+    value: Hex;
+  };
 };
 
 export type PredictMarket = {
@@ -80,6 +84,7 @@ export type PredictMarket = {
   slug: string;
   title: string;
   description: string;
+  endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
@@ -100,6 +105,7 @@ export type PredictCategory =
 
 export type PredictOutcome = {
   id: string;
+  providerId: string;
   marketId: string;
   title: string;
   description: string;
@@ -110,6 +116,7 @@ export type PredictOutcome = {
   groupItemTitle: string;
   negRisk?: boolean;
   tickSize?: string;
+  resolvedBy?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -155,6 +162,25 @@ export interface PredictActivityClaimWinnings {
   // tbd
 }
 
+export interface PredictPriceHistoryPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface GetPriceHistoryParams {
+  marketId: string;
+  providerId?: string;
+  fidelity?: number;
+  interval?: PredictPriceHistoryInterval;
+}
+
+export enum PredictPositionStatus {
+  OPEN = 'open',
+  REDEEMABLE = 'redeemable',
+  WON = 'won',
+  LOST = 'lost',
+}
+
 export type PredictPosition = {
   id: string;
   providerId: string;
@@ -162,44 +188,34 @@ export type PredictPosition = {
   outcomeId: string;
   outcome: string;
   outcomeTokenId: string;
+  currentValue: number;
   title: string;
   icon: string;
   amount: number;
   price: number;
-  status: 'open' | 'redeemable' | 'won' | 'lost';
+  status: PredictPositionStatus;
   size: number;
   outcomeIndex: number;
   realizedPnl?: number;
-  curPrice: number;
-  conditionId: string;
   percentPnl: number;
   cashPnl: number;
-  redeemable: boolean;
+  claimable: boolean;
   initialValue: number;
   avgPrice: number;
-  currentValue: number;
   endDate: string;
+  negRisk?: boolean;
 };
 
-export type PredictNotification = {
-  orderId: string;
-  status: PredictOrderStatus;
-};
-
-export interface BuyParams {
-  market: PredictMarket;
-  outcomeId: string;
-  outcomeTokenId: string;
-  size: number;
+export interface ClaimParams {
+  positions: PredictPosition[];
 }
 
-export interface SellParams {
-  position: PredictPosition;
+export interface GetMarketPriceResponse {
+  price: number;
 }
 
 export type Result<T = void> = {
   success: boolean;
-  id?: string;
   error?: string;
-  value?: T;
+  response?: T;
 };

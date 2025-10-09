@@ -5,8 +5,9 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import { Alert, Image, View } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -22,25 +23,25 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictBuy } from '../../hooks/usePredictBuy';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket, PredictOutcome } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
+
 interface PredictMarketMultipleProps {
   market: PredictMarket;
+  testID?: string;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
+  testID,
 }) => {
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-      reset();
-    },
-  });
 
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
@@ -70,27 +71,25 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     return sum + volume;
   }, 0);
 
-  const isOutcomeTokenLoading = useCallback(
-    (outcomeTokenId: string) =>
-      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
-    [currentOrderParams, loading],
-  );
-
   const handleYes = (outcome: PredictOutcome) => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[0].id,
-      market,
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[0],
+      },
     });
   };
 
   const handleNo = (outcome: PredictOutcome) => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[1].id,
-      market,
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.PLACE_BET,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[1],
+      },
     });
   };
 
@@ -100,150 +99,158 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     label.length > 3 ? `${label.substring(0, 3)}.` : label;
 
   return (
-    <View style={styles.marketContainer}>
-      <Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-2 gap-3"
-        >
-          <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
-            {market.outcomes[0]?.image && (
-              <Box twClassName="w-full h-full">
-                <Image
-                  source={{ uri: market.outcomes[0].image }}
-                  style={tw.style('w-full h-full')}
-                  resizeMode="cover"
-                />
-              </Box>
-            )}
-          </Box>
-          <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
-              style={tw.style('font-medium')}
-            >
-              {market.title}
-            </Text>
-          </Box>
-        </Box>
-
-        {market.outcomes.slice(0, 3).map((outcome) => {
-          const outcomeLabels = outcome.tokens.map((token) => token.title);
-          return (
-            <Box
-              key={`${outcome.id}`}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="py-1 gap-4"
-            >
-              <Box twClassName="flex-1">
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {outcome.groupItemTitle}
-                </Text>
-              </Box>
-
-              <Box>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {getFirstOutcomePrice(
-                    outcome.tokens.map((token) => token.price),
-                  ) ?? '0'}
-                  %
-                </Text>
-              </Box>
-
-              <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  width={ButtonWidthTypes.Full}
-                  label={
-                    <Text
-                      style={tw.style('font-medium')}
-                      color={TextColor.Success}
-                    >
-                      {truncateLabel(outcomeLabels[0])}
-                    </Text>
-                  }
-                  onPress={() => handleYes(outcome)}
-                  style={styles.buttonYes}
-                  disabled={loading}
-                  loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  width={ButtonWidthTypes.Full}
-                  label={
-                    <Text
-                      style={tw.style('font-medium')}
-                      color={TextColor.Error}
-                    >
-                      {truncateLabel(outcomeLabels[1])}
-                    </Text>
-                  }
-                  onPress={() => handleNo(outcome)}
-                  style={styles.buttonNo}
-                  disabled={loading}
-                  loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
-                />
-              </Box>
-            </Box>
-          );
-        })}
-
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="mt-4"
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {market.outcomes.length > 3
-              ? `+${market.outcomes.length - 3} ${
-                  market.outcomes.length - 3 === 1
-                    ? strings('predict.outcomes_singular')
-                    : strings('predict.outcomes_plural')
-                }`
-              : ''}
-          </Text>
+    <TouchableOpacity
+      testID={testID}
+      onPress={() => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: {
+            marketId: market.id,
+          },
+        });
+      }}
+    >
+      <View style={styles.marketContainer}>
+        <Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            twClassName="mb-2 gap-3"
           >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
-            </Text>
-            {market.recurrence && (
+            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+              {market.outcomes[0]?.image && (
+                <Box twClassName="w-full h-full">
+                  <Image
+                    source={{ uri: market.outcomes[0].image }}
+                    style={tw.style('w-full h-full')}
+                    resizeMode="cover"
+                  />
+                </Box>
+              )}
+            </Box>
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.HeadingMD}
+                color={TextColor.Default}
+                style={tw.style('font-medium')}
+              >
+                {market.title}
+              </Text>
+            </Box>
+          </Box>
+
+          {market.outcomes.slice(0, 3).map((outcome) => {
+            const outcomeLabels = outcome.tokens.map((token) => token.title);
+            return (
               <Box
+                key={`${outcome.id}`}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                twClassName="py-1 gap-4"
               >
-                <Icon
-                  name={IconName.Refresh}
-                  size={IconSize.Sm}
-                  color={TextColor.Alternative}
-                  style={tw.style('mr-1')}
-                />
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings(
-                    `predict.recurrence.${market.recurrence.toLowerCase()}`,
-                  )}
-                </Text>
+                <Box twClassName="flex-1">
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {outcome.groupItemTitle}
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {getFirstOutcomePrice(
+                      outcome.tokens.map((token) => token.price),
+                    ) ?? '0'}
+                    %
+                  </Text>
+                </Box>
+
+                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Md}
+                    width={ButtonWidthTypes.Full}
+                    label={
+                      <Text
+                        style={tw.style('font-medium')}
+                        color={TextColor.Success}
+                      >
+                        {truncateLabel(outcomeLabels[0])}
+                      </Text>
+                    }
+                    onPress={() => handleYes(outcome)}
+                    style={styles.buttonYes}
+                  />
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Md}
+                    width={ButtonWidthTypes.Full}
+                    label={
+                      <Text
+                        style={tw.style('font-medium')}
+                        color={TextColor.Error}
+                      >
+                        {truncateLabel(outcomeLabels[1])}
+                      </Text>
+                    }
+                    onPress={() => handleNo(outcome)}
+                    style={styles.buttonNo}
+                  />
+                </Box>
               </Box>
-            )}
+            );
+          })}
+
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="mt-4"
+          >
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {market.outcomes.length > 3
+                ? `+${market.outcomes.length - 3} ${
+                    market.outcomes.length - 3 === 1
+                      ? strings('predict.outcomes_singular')
+                      : strings('predict.outcomes_plural')
+                  }`
+                : ''}
+            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
+              </Text>
+              {market.recurrence && (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Icon
+                    name={IconName.Refresh}
+                    size={IconSize.Sm}
+                    color={TextColor.Alternative}
+                    style={tw.style('mr-1')}
+                  />
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {strings(
+                      `predict.recurrence.${market.recurrence.toLowerCase()}`,
+                    )}
+                  </Text>
+                </Box>
+              )}
+            </Box>
           </Box>
         </Box>
-      </Box>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 

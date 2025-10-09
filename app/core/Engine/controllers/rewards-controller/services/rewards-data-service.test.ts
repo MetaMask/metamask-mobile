@@ -1,5 +1,6 @@
 import {
   InvalidTimestampError,
+  AuthorizationFailedError,
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
@@ -312,7 +313,6 @@ describe('RewardsDataService', () => {
     const mockPointsEventsResponse = {
       has_more: true,
       cursor: 'next-cursor-123',
-      total_results: 100,
       results: [
         {
           id: 'event-123',
@@ -987,12 +987,54 @@ describe('RewardsDataService', () => {
       const mockResponse = {
         ok: false,
         status: 404,
-      } as Response;
+        json: jest.fn().mockResolvedValue({ message: 'Not found' }),
+      } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
         service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
       ).rejects.toThrow('Get season status failed: 404');
+    });
+
+    it('should throw AuthorizationFailedError when rewards authorization fails', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({
+          message: 'Rewards authorization failed',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      let caughtError: unknown;
+      try {
+        await service.getSeasonStatus(mockSeasonId, mockSubscriptionId);
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(caughtError).toBeInstanceOf(AuthorizationFailedError);
+      const authError = caughtError as AuthorizationFailedError;
+      expect(authError.name).toBe('AuthorizationFailedError');
+      expect(authError.message).toBe(
+        'Rewards authorization failed. Please login and try again.',
+      );
+    });
+
+    it('should detect authorization failure when message contains the phrase', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({
+          message:
+            'Some other error: Rewards authorization failed due to expiry',
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
     });
 
     it('should throw error when fetch fails', async () => {
@@ -1793,6 +1835,7 @@ describe('RewardsDataService', () => {
 
     const mockOptInStatusResponse = {
       ois: [true, false, true],
+      sids: ['sub_123', null, 'sub_456'],
     };
 
     it('should successfully get opt-in status for multiple addresses', async () => {
@@ -1828,6 +1871,7 @@ describe('RewardsDataService', () => {
       };
       const singleAddressResponse = {
         ois: [true],
+        sids: ['sub_123'],
       };
 
       const mockResponse = {

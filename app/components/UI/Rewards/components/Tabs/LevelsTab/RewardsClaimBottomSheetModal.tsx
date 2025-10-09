@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import useClaimReward from '../../../hooks/useClaimReward';
 import {
   ClaimRewardDto,
@@ -19,6 +25,7 @@ import {
   Text,
   TextVariant,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -32,6 +39,7 @@ import TextField, {
 } from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 export interface ModalAction {
   label: string;
@@ -44,6 +52,7 @@ interface RewardsClaimBottomSheetModalProps {
   route: {
     params: {
       rewardId: string;
+      seasonRewardId: string;
       rewardType: SeasonRewardType;
       claimUrl?: string;
       isLocked: boolean;
@@ -69,9 +78,11 @@ const RewardsClaimBottomSheetModal = ({
     useRewardsToast();
   const tw = useTailwind();
   const { claimReward, isClaimingReward, claimRewardError } = useClaimReward();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [inputValue, setInputValue] = useState('');
   const {
     rewardId,
+    seasonRewardId,
     rewardType,
     claimUrl,
     isLocked,
@@ -83,6 +94,7 @@ const RewardsClaimBottomSheetModal = ({
     inputPlaceholder,
   } = route.params;
   const navigation = useNavigation();
+  const hasTrackedRewardViewed = useRef(false);
 
   const handleModalClose = useCallback(() => {
     navigation.goBack();
@@ -98,6 +110,20 @@ const RewardsClaimBottomSheetModal = ({
     );
   }, [RewardsToastOptions, showRewardsToast, title]);
 
+  useEffect(() => {
+    if (!hasTrackedRewardViewed.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_REWARD_VIEWED)
+          .addProperties({
+            reward_id: seasonRewardId,
+            reward_name: title,
+          })
+          .build(),
+      );
+      hasTrackedRewardViewed.current = true;
+    }
+  }, [trackEvent, createEventBuilder, seasonRewardId, title]);
+
   const handleClaimReward = useCallback(async () => {
     const claimData = {} as ClaimRewardDto;
 
@@ -107,6 +133,16 @@ const RewardsClaimBottomSheetModal = ({
 
     try {
       await claimReward(rewardId, claimData);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_REWARD_CLAIMED)
+          .addProperties({
+            reward_id: seasonRewardId,
+            reward_name: title,
+          })
+          .build(),
+      );
+
       handleModalClose();
       showToast();
     } catch (error) {
@@ -117,8 +153,12 @@ const RewardsClaimBottomSheetModal = ({
     handleModalClose,
     inputValue,
     rewardId,
+    seasonRewardId,
+    title,
     rewardType,
     showToast,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const confirmAction = useMemo(() => {
@@ -193,7 +233,7 @@ const RewardsClaimBottomSheetModal = ({
 
   const renderTitle = () => (
     <Box twClassName="flex-row items-center justify-between w-full">
-      <Text variant={TextVariant.HeadingLg} twClassName="w-[80%]">
+      <Text variant={TextVariant.HeadingSm} twClassName="w-[80%]">
         {title}
       </Text>
       <Box
@@ -211,7 +251,11 @@ const RewardsClaimBottomSheetModal = ({
 
   const renderDescription = () => (
     <Box twClassName="my-4 w-full">
-      <Text variant={TextVariant.BodyMd} twClassName="text-text-alternative">
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        twClassName="text-text-alternative"
+      >
         {description}
       </Text>
       {claimUrl && (
@@ -221,14 +265,15 @@ const RewardsClaimBottomSheetModal = ({
         >
           <Text
             variant={TextVariant.BodySm}
-            style={tw.style('text-primary-default underline mr-1')}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-primary-default underline mr-1"
           >
             {formatUrl(claimUrl)}
           </Text>
           <Icon
             name={IconName.Export}
             size={IconSize.Sm}
-            style={tw.style('text-primary-default')}
+            twClassName="text-primary-default"
           />
         </TouchableOpacity>
       )}

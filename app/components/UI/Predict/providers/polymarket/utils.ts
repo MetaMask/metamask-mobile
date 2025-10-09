@@ -4,7 +4,9 @@ import { Hex, hexToNumber } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import {
+  OnchainTradeParams,
   PredictMarketStatus,
+  PredictPositionStatus,
   Side,
   type PredictCategory,
   type PredictMarket,
@@ -14,6 +16,8 @@ import { getRecurrence } from '../../utils/format';
 import {
   ClobAuthDomain,
   EIP712Domain,
+  FEE_PERCENTAGE,
+  HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
@@ -41,6 +45,8 @@ import {
 } from './types';
 import { GetMarketsParams } from '../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { SafeFeeAuthorization } from './safe/types';
+import { ethers } from 'ethers';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -546,14 +552,35 @@ export const submitClobOrder = async ({
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
+  feeAuthorization?: SafeFeeAuthorization;
 }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+  let url = `${CLOB_ENDPOINT}/order`;
 
-  const body = JSON.stringify(clobOrder);
+  // TODO: Add feeAuthorization to the body when relayer is ready
+  const body = JSON.stringify({ ...clobOrder });
+  let finalHeaders = { ...headers };
 
-  const response = await fetch(`${CLOB_ENDPOINT}/order`, {
+  // TODO: Remove this and simply update endpoint once we have a
+  // production relayer.
+  const TEST_RELAYER = false;
+  if (TEST_RELAYER) {
+    url = `http://localhost:3000/order`;
+    // For our relayer, we need to replace the underscores with dashes
+    // since underscores are not standardly allowed in headers
+    finalHeaders = {
+      ...finalHeaders,
+      ...Object.entries(headers)
+        .map(([key, value]) => ({
+          [key.replace(/_/g, '-')]: value,
+        }))
+        .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+    };
+  }
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers,
+    headers: finalHeaders,
     body,
   });
 
@@ -574,7 +601,7 @@ export const submitClobOrder = async ({
   }
 
   const responseData = (await response.json()) as OrderResponse;
-  return responseData;
+  return { success: true, response: responseData };
 };
 
 export const parsePolymarketEvents = (
@@ -593,63 +620,51 @@ export const parsePolymarketEvents = (
         ? PredictMarketStatus.CLOSED
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
+      endDate: event.endDate,
       categories: [category],
-      outcomes: event.markets.map((market: PolymarketApiMarket) => {
-        const outcomeTokensIds = market.clobTokenIds
-          ? JSON.parse(market.clobTokenIds)
-          : [];
-        const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
-        const outcomePrices = market.outcomePrices
-          ? JSON.parse(market.outcomePrices)
-          : [];
-        return {
-          id: market.conditionId,
-          marketId: event.id,
-          title: market.question,
-          description: market.description,
-          image: market.icon ?? market.image,
-          groupItemTitle: market.groupItemTitle,
-          status: market.closed
-            ? PredictMarketStatus.CLOSED
-            : PredictMarketStatus.OPEN,
-          volume: market.volumeNum ?? 0,
-          tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
-            id: tokenId,
-            title: outcomes[index],
-            price: parseFloat(outcomePrices[index]),
-          })),
-          negRisk: market.negRisk,
-          tickSize: market.orderPriceMinTickSize.toString(),
-        };
-      }),
+      outcomes: event.markets
+        .filter((market: PolymarketApiMarket) => market.active !== false)
+        .sort((a: PolymarketApiMarket, b: PolymarketApiMarket) => {
+          const aPrice = a.outcomePrices ? JSON.parse(a.outcomePrices)[0] : '0';
+          const bPrice = b.outcomePrices ? JSON.parse(b.outcomePrices)[0] : '0';
+          return parseFloat(bPrice) - parseFloat(aPrice);
+        })
+        .map((market: PolymarketApiMarket) => {
+          const outcomeTokensIds = market.clobTokenIds
+            ? JSON.parse(market.clobTokenIds)
+            : [];
+          const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
+          const outcomePrices = market.outcomePrices
+            ? JSON.parse(market.outcomePrices)
+            : [];
+          return {
+            id: market.conditionId,
+            marketId: event.id,
+            providerId: 'polymarket',
+            title: market.question,
+            description: market.description,
+            image: market.icon ?? market.image,
+            groupItemTitle: market.groupItemTitle,
+            status: market.closed
+              ? PredictMarketStatus.CLOSED
+              : PredictMarketStatus.OPEN,
+            volume: market.volumeNum ?? 0,
+            tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
+              id: tokenId,
+              title: outcomes[index],
+              price: parseFloat(outcomePrices[index]),
+            })),
+            negRisk: market.negRisk,
+            tickSize: market.orderPriceMinTickSize.toString(),
+            resolvedBy: market.resolvedBy,
+          };
+        }),
     }),
   );
   return parsedMarkets;
 };
 
-export const parsePolymarketPositions = ({
-  positions,
-}: {
-  positions: PolymarketPosition[];
-}) => {
-  const parsedPositions = positions.map((position: PolymarketPosition) => ({
-    ...position,
-    id: position.asset,
-    providerId: 'polymarket',
-    // TODO: This is not correct, we need to use the correct market id from the event
-    marketId: position.conditionId,
-    outcomeId: position.conditionId,
-    outcomeTokenId: position.asset,
-    amount: position.size,
-    price: position.curPrice,
-    status: (position.redeemable
-      ? 'redeemable'
-      : 'open') as PredictPosition['status'],
-  }));
-  return parsedPositions;
-};
-
-export const getMarketsFromPolymarketApi = async (
+export const getParsedMarketsFromPolymarketApi = async (
   params?: GetMarketsParams,
 ): Promise<PredictMarket[]> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
@@ -712,19 +727,258 @@ export const getMarketsFromPolymarketApi = async (
   return parsedMarkets;
 };
 
-export const getMarketFromPolymarketApi = async ({
-  conditionId,
+export const getMarketsFromPolymarketApi = async ({
+  conditionIds,
 }: {
-  conditionId: string;
+  conditionIds: string[];
 }) => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(
-    `${GAMMA_API_ENDPOINT}/markets?condition_ids=${conditionId}`,
-  );
+  const queryParams = conditionIds.map((id) => `condition_ids=${id}`).join('&');
+  const response = await fetch(`${GAMMA_API_ENDPOINT}/markets?${queryParams}`);
   if (!response.ok) {
     throw new Error('Failed to get market');
   }
   const responseData = await response.json();
-  const market = responseData[0];
-  return market as PolymarketApiMarket;
+  const market = responseData;
+  return market as PolymarketApiMarket[];
+};
+
+export const getMarketDetailsFromGammaApi = async ({
+  marketId,
+}: {
+  marketId: string;
+}): Promise<PolymarketApiEvent> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+  const response = await fetch(`${GAMMA_API_ENDPOINT}/events/${marketId}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get market details');
+  }
+
+  const responseData = await response.json();
+  return responseData as PolymarketApiEvent;
+};
+
+export const getPredictPositionStatus = ({
+  claimable,
+  cashPnl,
+}: {
+  claimable: boolean;
+  cashPnl: number;
+}) => {
+  if (!claimable) {
+    return PredictPositionStatus.OPEN;
+  }
+  if (cashPnl > 0) {
+    return PredictPositionStatus.WON;
+  }
+  return PredictPositionStatus.LOST;
+};
+
+export const parsePolymarketPositions = async ({
+  positions,
+}: {
+  positions: PolymarketPosition[];
+}) => {
+  const parsedPositions: PredictPosition[] = positions.map(
+    (position: PolymarketPosition) => ({
+      id: position.asset,
+      providerId: 'polymarket',
+      marketId: position.eventId,
+      outcomeId: position.conditionId,
+      outcome: position.outcome,
+      outcomeTokenId: position.asset,
+      outcomeIndex: position.outcomeIndex,
+      negRisk: position.negativeRisk,
+      amount: position.size,
+      price: position.curPrice,
+      status: getPredictPositionStatus({
+        claimable: position.redeemable,
+        cashPnl: position.cashPnl,
+      }),
+      realizedPnl: position.realizedPnl,
+      percentPnl: position.percentPnl,
+      currentValue: position.currentValue,
+      cashPnl: position.cashPnl,
+      initialValue: position.initialValue,
+      avgPrice: position.avgPrice,
+      endDate: position.endDate,
+      title: position.title,
+      icon: position.icon,
+      size: position.size,
+      claimable: position.redeemable,
+    }),
+  );
+
+  return parsedPositions;
+};
+
+export const encodeRedeemPositions = ({
+  collateralToken,
+  parentCollectionId,
+  conditionId,
+  indexSets,
+}: {
+  collateralToken: string;
+  parentCollectionId: string;
+  conditionId: string;
+  indexSets: (bigint | string | number)[];
+}): Hex =>
+  new Interface([
+    'function redeemPositions(address collateralToken, bytes32 parentCollectionId, bytes32 conditionId, uint256[] indexSets)',
+  ]).encodeFunctionData('redeemPositions', [
+    collateralToken,
+    parentCollectionId,
+    conditionId,
+    indexSets,
+  ]) as Hex;
+
+export const encodeRedeemNegRiskPositions = ({
+  conditionId,
+  amounts,
+}: {
+  conditionId: string;
+  // amounts should always have length 2, with the first element being the amount of yes tokens to redeem and the
+  // second element being the amount of no tokens to redeem
+  amounts: (bigint | string | number)[];
+}): Hex =>
+  new Interface([
+    'function redeemPositions(bytes32 _conditionId, uint256[] calldata _amounts)',
+  ]).encodeFunctionData('redeemPositions', [conditionId, amounts]) as Hex;
+
+export function encodeClaim(
+  conditionId: string,
+  negRisk: boolean,
+  amounts?: (bigint | string | number)[],
+): Hex {
+  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+  if (!negRisk) {
+    return encodeRedeemPositions({
+      collateralToken: contractConfig.collateral,
+      parentCollectionId: HASH_ZERO_BYTES32,
+      conditionId,
+      indexSets: [1, 2],
+    });
+  }
+
+  // When negRisk is true, amounts must be provided
+  if (!amounts) {
+    throw new Error('amounts parameter is required when negRisk is true');
+  }
+
+  return encodeRedeemNegRiskPositions({
+    conditionId,
+    amounts,
+  });
+}
+
+export function calculateFeeAmount(order: OrderData): bigint {
+  if (order.side !== UtilsSide.BUY) {
+    return BigInt(0);
+  }
+  return (BigInt(order.makerAmount) * BigInt(FEE_PERCENTAGE)) / BigInt(100);
+}
+
+export const getAllowanceCalls = (params: { address: string }) => {
+  const { address } = params;
+  const chainId = POLYGON_MAINNET_CHAIN_ID;
+  const contractConfig = getContractConfig(chainId);
+  const calls: OnchainTradeParams[] = [];
+
+  const usdcExchange = encodeApprove({
+    spender: contractConfig.exchange,
+    amount: ethers.constants.MaxInt256.toString(),
+  });
+  calls.push({
+    data: usdcExchange,
+    to: contractConfig.collateral,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const usdcNegRisk = encodeApprove({
+    spender: contractConfig.negRiskExchange,
+    amount: ethers.constants.MaxInt256.toString(),
+  });
+
+  calls.push({
+    data: usdcNegRisk,
+    to: contractConfig.collateral,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const usdcAdapter = encodeApprove({
+    spender: contractConfig.negRiskAdapter,
+    amount: ethers.constants.MaxInt256.toString(),
+  });
+  calls.push({
+    data: usdcAdapter,
+    to: contractConfig.collateral,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const conditionalExchange = encodeErc1155Approve({
+    spender: contractConfig.exchange,
+    approved: true,
+  });
+
+  calls.push({
+    data: conditionalExchange,
+    to: contractConfig.conditionalTokens,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const conditionalNegRisk = encodeErc1155Approve({
+    spender: contractConfig.negRiskExchange,
+    approved: true,
+  });
+  calls.push({
+    data: conditionalNegRisk,
+    to: contractConfig.conditionalTokens,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  const conditionalAdapter = encodeErc1155Approve({
+    spender: contractConfig.negRiskAdapter,
+    approved: true,
+  });
+  calls.push({
+    data: conditionalAdapter,
+    to: contractConfig.conditionalTokens,
+    chainId,
+    from: address,
+    value: '0x0',
+  });
+
+  return calls;
+};
+
+export const getMarketPositions = async ({
+  marketId,
+  address,
+}: {
+  marketId: string;
+  address: string;
+}) => {
+  const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+  const response = await fetch(
+    `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
+  );
+  if (!response.ok) {
+    throw new Error('Failed to get market positions');
+  }
+  const responseData = await response.json();
+  const parsedPositions = await parsePolymarketPositions({
+    positions: responseData,
+  });
+  return parsedPositions;
 };

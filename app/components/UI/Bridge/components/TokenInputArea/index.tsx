@@ -1,5 +1,11 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { StyleSheet, ImageSourcePropType, TextInput } from 'react-native';
+import {
+  StyleSheet,
+  ImageSourcePropType,
+  TextInput,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
@@ -25,7 +31,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
   selectIsGaslessSwapEnabled,
@@ -42,6 +47,7 @@ import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
+import { Theme } from '../../../../../util/theme/models';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -57,7 +63,13 @@ export const calculateFontSize = (length: number): number => {
   return 20;
 };
 
-const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
+const createStyles = ({
+  vars,
+  theme,
+}: {
+  vars: { fontSize: number };
+  theme: Theme;
+}) =>
   StyleSheet.create({
     content: {
       paddingVertical: 16,
@@ -78,6 +90,9 @@ const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
     },
     currencyContainer: {
       flex: 1,
+    },
+    maxButton: {
+      color: theme.colors.text.default,
     },
   });
 
@@ -130,6 +145,7 @@ interface TokenInputAreaProps {
   onMaxPress?: () => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const TokenInputArea = forwardRef<
@@ -153,12 +169,12 @@ export const TokenInputArea = forwardRef<
       onMaxPress,
       latestAtomicBalance,
       isSourceToken,
+      style,
     },
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
     const isGaslessSwapEnabled = useSelector((state: RootState) =>
       token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
     );
@@ -255,17 +271,13 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
-    let tokenButtonText = isUnifiedSwapsEnabled
-      ? 'bridge.swap_to'
-      : 'bridge.bridge_to';
+    let tokenButtonText = 'bridge.swap_to';
     if (isSourceToken) {
-      tokenButtonText = isUnifiedSwapsEnabled
-        ? 'bridge.swap_from'
-        : 'bridge.bridge_from';
+      tokenButtonText = 'bridge.swap_from';
     }
 
     return (
-      <Box>
+      <Box style={style}>
         <Box style={styles.content} gap={4}>
           <Box style={styles.row}>
             <Box style={styles.amountContainer}>

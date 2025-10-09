@@ -6,6 +6,7 @@ import {
   ControllerName,
   ControllerInitRequest,
 } from '../types';
+import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 
 /**
  * Build a mock for the ControllerInitRequest.
@@ -22,6 +23,8 @@ export function buildControllerInitRequestMock(
     getGlobalChainId: jest.fn(),
     getState: jest.fn(),
     initMessenger: jest.fn() as unknown as void,
+    qrKeyringScanner: jest.fn() as unknown as QrKeyringDeferredPromiseBridge,
+    removeAccount: jest.fn(),
     persistedState: {},
   };
 }

@@ -24,6 +24,15 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+// Mock route params
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    referral: undefined,
+    isFromDeeplink: false,
+  }),
+}));
+
 // Mock dispatch
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -1078,7 +1087,10 @@ describe('OnboardingStep4', () => {
       );
       fireEvent.press(nextButton);
 
-      expect(mockOptin).toHaveBeenCalledWith({ referralCode: 'TEST123' });
+      expect(mockOptin).toHaveBeenCalledWith({
+        referralCode: 'TEST123',
+        isPrefilled: false,
+      });
     });
 
     it('should show loading state during opt-in', () => {

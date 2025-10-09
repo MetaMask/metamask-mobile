@@ -1,12 +1,14 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
-  OffchainTradeParams,
+  GetPriceHistoryParams,
   PredictActivity,
   PredictCategory,
+  PredictClaim,
   PredictMarket,
-  PredictOrder,
   PredictPosition,
+  PredictPriceHistoryPoint,
   Result,
+  Side,
 } from '../types';
 
 export interface GetMarketsParams {
@@ -29,6 +31,7 @@ export interface GetMarketsParams {
 export interface Signer {
   address: string;
   signTypedMessage: KeyringController['signTypedMessage'];
+  signPersonalMessage: KeyringController['signPersonalMessage'];
 }
 
 export interface BuyOrderParams {
@@ -37,28 +40,89 @@ export interface BuyOrderParams {
   outcomeId: string;
   outcomeTokenId: string;
   size: number;
+  isOnboarded: boolean;
 }
 
 export interface SellOrderParams {
   signer: Signer;
   position: PredictPosition;
+  isOnboarded: boolean;
+}
+
+export interface PlaceOrderParams {
+  outcomeId: string;
+  outcomeTokenId: string;
+  side: Side;
+  size: number;
+  providerId: string;
+}
+
+export interface CalculateBetAmountsParams {
+  providerId: string;
+  outcomeTokenId: string;
+  userBetAmount: number;
+}
+
+export interface CalculateBetAmountsResponse {
+  toWin: number;
+  sharePrice: number;
+}
+
+export interface CalculateCashOutAmountsParams {
+  address: string;
+  providerId: string;
+  marketId: string;
+  outcomeTokenId: string;
+}
+
+export interface CalculateCashOutAmountsResponse {
+  currentValue: number;
+  cashPnl: number;
+  percentPnl: number;
+}
+
+export interface ClaimOrderParams {
+  position: PredictPosition;
+}
+
+export interface GetPositionsParams {
+  address?: string;
+  providerId?: string;
+  limit?: number;
+  offset?: number;
+  claimable?: boolean;
+  marketId?: string;
 }
 
 export interface PredictProvider {
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
+  getPriceHistory(
+    params: GetPriceHistoryParams,
+  ): Promise<PredictPriceHistoryPoint[]>;
 
   // User information
-  getPositions(params: { address: string }): Promise<PredictPosition[]>;
+  getPositions(
+    params: Omit<GetPositionsParams, 'address'> & { address: string },
+  ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
 
   // Order management
-  prepareBuyOrder(params: BuyOrderParams): Promise<PredictOrder>;
-  prepareSellOrder(params: SellOrderParams): Promise<PredictOrder>;
+  placeOrder<T = void>(
+    params: PlaceOrderParams & { signer: Signer },
+  ): Promise<Result<T>>;
 
-  submitOffchainTrade?(params: OffchainTradeParams): Promise<Result>;
-  claimWinnings(/* TBD */): Promise<void>;
+  calculateBetAmounts(
+    params: CalculateBetAmountsParams,
+  ): Promise<CalculateBetAmountsResponse>;
+
+  calculateCashOutAmounts(
+    params: CalculateCashOutAmountsParams,
+  ): Promise<CalculateCashOutAmountsResponse>;
+
+  // Claim management
+  prepareClaim(params: ClaimOrderParams): PredictClaim;
 
   // Eligibility (Geo-Blocking)
   isEligible(): Promise<boolean>;

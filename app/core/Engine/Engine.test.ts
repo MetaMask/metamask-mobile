@@ -207,11 +207,11 @@ describe('Engine', () => {
         currentMigrationVersion,
       },
       PredictController: {
-        activeOrders: {},
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        notifications: [],
+        claimTransactions: {},
+        isOnboarded: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({
