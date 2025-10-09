@@ -2,7 +2,7 @@ import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
-} from '../controllers/PerpsController';
+} from '../controllers/perpsErrorCodes';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**

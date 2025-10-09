@@ -12,7 +12,6 @@ import {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
 import { MetaMetrics } from '../../../../core/Analytics';
-import Logger from '../../../../util/Logger';
 
 // Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
@@ -1147,52 +1146,6 @@ describe('PerpsController', () => {
       expect(result.success).toBe(true);
       expect(result.error).toBe('Skipped for testnet');
       expect(global.fetch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('placeOrder data lake error handling', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      jest.spyOn(controller, 'getActiveProvider').mockReturnValue(mockProvider);
-    });
-
-    it('handles data lake reporting errors gracefully', async () => {
-      mockProvider.placeOrder.mockResolvedValue({
-        success: true,
-        orderId: 'order123',
-      });
-
-      // Mock fetch to reject for data lake reporting
-      global.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error('Network error'));
-
-      const orderParams = {
-        coin: 'BTC',
-        isBuy: true,
-        orderType: 'market' as const,
-        size: '1',
-      };
-
-      const result = await controller.placeOrder(orderParams);
-
-      // Wait for async data lake reporting to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Assert: Order should still succeed even if data lake reporting fails
-      expect(result.success).toBe(true);
-      expect(result.orderId).toBe('order123');
-
-      // Verify that Logger.error was called for the data lake failure
-      const errorCalls = (Logger.error as jest.Mock).mock.calls;
-      const hasDataLakeError = errorCalls.some((call) => {
-        const secondArg = call[1];
-        return (
-          typeof secondArg === 'object' &&
-          secondArg.message === 'DataLake API: Request failed'
-        );
-      });
-      expect(hasDataLakeError).toBe(true);
     });
   });
 

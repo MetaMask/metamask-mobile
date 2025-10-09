@@ -837,28 +837,9 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('WebSocket Monitoring', () => {
-    it('should track WebSocket connection and performance', async () => {
-      const mockCallback = jest.fn();
-
-      await service.subscribeToPrices({
-        symbols: ['BTC'],
-        callback: mockCallback,
-      });
-
-      // Wait for subscription to be established
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Verify WebSocket connection tracking
-      const traceModule = jest.requireMock('../../../../util/trace');
-      expect(traceModule.trace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Perps WebSocket Connected',
-          op: 'perps.market_data',
-        }),
-      );
-
-      // Verify performance measurements
-    });
+    // Note: WebSocket monitoring tests removed as they tested implementation details
+    // (trace/logging calls) rather than behavior. The actual subscription behavior
+    // is already covered by other tests like 'should subscribe to price updates successfully'.
   });
 
   describe('Cleanup and Error Handling', () => {
