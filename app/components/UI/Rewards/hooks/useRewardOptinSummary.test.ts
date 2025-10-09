@@ -9,6 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { convertInternalAccountToCaipAccountId } from '../utils';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -49,6 +50,11 @@ jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(),
 }));
 
+// Mock useMetrics hook
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+}));
+
 describe('useRewardOptinSummary', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -71,6 +77,7 @@ describe('useRewardOptinSummary', () => {
     convertInternalAccountToCaipAccountId as jest.MockedFunction<
       typeof convertInternalAccountToCaipAccountId
     >;
+  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
   const mockAccount1: InternalAccount = {
     id: 'account-1',
@@ -144,6 +151,11 @@ describe('useRewardOptinSummary', () => {
       (account) => `eip155:1:${account.address}`,
     );
 
+    // Mock useMetrics hook
+    mockUseMetrics.mockReturnValue({
+      addTraitsToUser: jest.fn().mockResolvedValue(undefined),
+    } as unknown as ReturnType<typeof useMetrics>);
+
     // Mock RewardsController methods
     mockEngineCall.mockImplementation((method: string, ..._args) => {
       if (method === 'RewardsController:isOptInSupported') {
@@ -151,9 +163,6 @@ describe('useRewardOptinSummary', () => {
       }
       if (method === 'RewardsController:getOptInStatus') {
         return Promise.resolve({ ois: [true, false, true] }); // Default response
-      }
-      if (method === 'RewardsController:getFirstSubscriptionId') {
-        return 'first-subscription-id'; // Default first subscription ID
       }
       if (method === 'RewardsController:getActualSubscriptionId') {
         return 'first-subscription-id'; // Default actual subscription ID
@@ -920,187 +929,9 @@ describe('useRewardOptinSummary', () => {
       );
     });
 
-    it('should return all linked accounts when firstSubscriptionId is null', async () => {
-      // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1) // selectSelectedInternalAccount
-        .mockReturnValueOnce('active-subscription-id'); // selectRewardsActiveAccountSubscriptionId
-
-      const mockResponse: OptInStatusDto = {
-        ois: [true, false, true],
-        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
-      };
-
-      mockEngineCall.mockImplementation((method: string, ..._args) => {
-        if (method === 'RewardsController:isOptInSupported') {
-          return true;
-        }
-        if (method === 'RewardsController:getOptInStatus') {
-          return Promise.resolve(mockResponse);
-        }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
-          return null; // firstSubscriptionId is null
-        }
-        return Promise.resolve();
-      });
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-      await waitForNextUpdate();
-
-      // Assert - should return all linked accounts since firstSubscriptionId is null
-      expect(result.current.linkedAccounts).toHaveLength(2);
-      expect(result.current.linkedAccounts[0]).toMatchObject({
-        ...mockAccount1,
-        hasOptedIn: true,
-      });
-      expect(result.current.linkedAccounts[1]).toMatchObject({
-        ...mockAccount3,
-        hasOptedIn: true,
-      });
-
-      // Should not call getActualSubscriptionId since firstSubscriptionId is null
-      expect(mockEngineCall).not.toHaveBeenCalledWith(
-        'RewardsController:getActualSubscriptionId',
-        expect.anything(),
-      );
-    });
-
-    it('should return all linked accounts when activeAccountSubscriptionId equals firstSubscriptionId', async () => {
-      // Arrange
-      const subscriptionId = 'same-subscription-id';
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1) // selectSelectedInternalAccount
-        .mockReturnValueOnce(subscriptionId); // selectRewardsActiveAccountSubscriptionId
-
-      const mockResponse: OptInStatusDto = {
-        ois: [true, false, true],
-        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
-      };
-
-      mockEngineCall.mockImplementation((method: string, ..._args) => {
-        if (method === 'RewardsController:isOptInSupported') {
-          return true;
-        }
-        if (method === 'RewardsController:getOptInStatus') {
-          return Promise.resolve(mockResponse);
-        }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
-          return subscriptionId; // Same as activeAccountSubscriptionId
-        }
-        return Promise.resolve();
-      });
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-      await waitForNextUpdate();
-
-      // Assert - should return all linked accounts since IDs are the same
-      expect(result.current.linkedAccounts).toHaveLength(2);
-      expect(result.current.linkedAccounts[0]).toMatchObject({
-        ...mockAccount1,
-        hasOptedIn: true,
-      });
-      expect(result.current.linkedAccounts[1]).toMatchObject({
-        ...mockAccount3,
-        hasOptedIn: true,
-      });
-
-      // Should not call getActualSubscriptionId since subscription IDs are the same
-      expect(mockEngineCall).not.toHaveBeenCalledWith(
-        'RewardsController:getActualSubscriptionId',
-        expect.anything(),
-      );
-    });
-
-    it('should filter linked accounts when activeAccountSubscriptionId differs from firstSubscriptionId', async () => {
-      // Arrange
-      const activeSubscriptionId = 'active-subscription-id';
-      const firstSubscriptionId = 'first-subscription-id';
-
-      let selectorCallCount = 0;
-      mockUseSelector.mockReset().mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 3 === 1) return mockAccounts; // selectInternalAccounts
-        if (selectorCallCount % 3 === 2) return mockAccount1; // selectSelectedInternalAccount
-        if (selectorCallCount % 3 === 0) return activeSubscriptionId; // selectRewardsActiveAccountSubscriptionId
-        return null;
-      });
-
-      const mockResponse: OptInStatusDto = {
-        ois: [true, false, true],
-        sids: ['sub_123', null, 'sub_456'], // Account1 and Account3 opted in
-      };
-
-      mockEngineCall.mockImplementation((method: string, ...args) => {
-        if (method === 'RewardsController:isOptInSupported') {
-          return true;
-        }
-        if (method === 'RewardsController:getOptInStatus') {
-          return Promise.resolve(mockResponse);
-        }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
-          return firstSubscriptionId;
-        }
-        if (method === 'RewardsController:getActualSubscriptionId') {
-          const [caipAccountId] = args as [string];
-          // Account1 matches active subscription, Account3 does not
-          if (caipAccountId === `eip155:1:${mockAccount1.address}`) {
-            return activeSubscriptionId;
-          }
-          if (caipAccountId === `eip155:1:${mockAccount3.address}`) {
-            return firstSubscriptionId; // Different from active
-          }
-          return firstSubscriptionId;
-        }
-        return Promise.resolve();
-      });
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-      await waitForNextUpdate();
-
-      // Assert - should only return Account1 since it matches the active subscription
-      expect(result.current.linkedAccounts).toHaveLength(1);
-      expect(result.current.linkedAccounts[0]).toMatchObject({
-        ...mockAccount1,
-        hasOptedIn: true,
-      });
-
-      // Should call getActualSubscriptionId for both linked accounts
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:getActualSubscriptionId',
-        `eip155:1:${mockAccount1.address}`,
-      );
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:getActualSubscriptionId',
-        `eip155:1:${mockAccount3.address}`,
-      );
-    });
-
     it('should return empty array when no accounts match the active subscription', async () => {
       // Arrange
       const activeSubscriptionId = 'active-subscription-id';
-      const firstSubscriptionId = 'first-subscription-id';
 
       let selectorCallCount = 0;
       mockUseSelector.mockReset().mockImplementation(() => {
@@ -1123,12 +954,9 @@ describe('useRewardOptinSummary', () => {
         if (method === 'RewardsController:getOptInStatus') {
           return Promise.resolve(mockResponse);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
-          return firstSubscriptionId;
-        }
         if (method === 'RewardsController:getActualSubscriptionId') {
-          // All accounts return firstSubscriptionId (none match active)
-          return firstSubscriptionId;
+          // All accounts return different subscription ID (none match active)
+          return 'different-subscription-id';
         }
         return Promise.resolve();
       });
@@ -1150,7 +978,6 @@ describe('useRewardOptinSummary', () => {
     it('should handle convertInternalAccountToCaipAccountId returning null', async () => {
       // Arrange
       const activeSubscriptionId = 'active-subscription-id';
-      const firstSubscriptionId = 'first-subscription-id';
 
       let selectorCallCount = 0;
       mockUseSelector.mockReset().mockImplementation(() => {
@@ -1183,15 +1010,12 @@ describe('useRewardOptinSummary', () => {
         if (method === 'RewardsController:getOptInStatus') {
           return Promise.resolve(mockResponse);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
-          return firstSubscriptionId;
-        }
         if (method === 'RewardsController:getActualSubscriptionId') {
           const [caipAccountId] = args as [string];
           if (caipAccountId === `eip155:1:${mockAccount1.address}`) {
             return activeSubscriptionId; // Account1 matches
           }
-          return firstSubscriptionId;
+          return 'different-subscription-id';
         }
         return Promise.resolve();
       });
@@ -1226,7 +1050,6 @@ describe('useRewardOptinSummary', () => {
     it('should handle errors from getActualSubscriptionId calls', async () => {
       // Arrange
       const activeSubscriptionId = 'active-subscription-id';
-      const firstSubscriptionId = 'first-subscription-id';
 
       let selectorCallCount = 0;
       mockUseSelector.mockReset().mockImplementation(() => {
@@ -1249,9 +1072,6 @@ describe('useRewardOptinSummary', () => {
         if (method === 'RewardsController:getOptInStatus') {
           return Promise.resolve(mockResponse);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
-          return firstSubscriptionId;
-        }
         if (method === 'RewardsController:getActualSubscriptionId') {
           const [caipAccountId] = args as [string];
           if (caipAccountId === `eip155:1:${mockAccount1.address}`) {
@@ -1260,7 +1080,7 @@ describe('useRewardOptinSummary', () => {
           if (caipAccountId === `eip155:1:${mockAccount3.address}`) {
             throw new Error('Failed to get actual subscription ID'); // Account3 throws error
           }
-          return firstSubscriptionId;
+          return 'different-subscription-id';
         }
         return Promise.resolve();
       });
