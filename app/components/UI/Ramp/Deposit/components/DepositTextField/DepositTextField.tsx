@@ -5,6 +5,7 @@ import {
   TextInput,
   ViewStyle,
   StyleProp,
+  Pressable,
 } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Label from '../../../../../../component-library/components/Form/Label';
@@ -21,6 +22,7 @@ interface DepositTextFieldProps extends Omit<TextFieldProps, 'size'> {
   label: string | React.ReactNode;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
+  onPress?: () => void;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -43,8 +45,20 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
-  ({ label, error, containerStyle, style, ...textFieldProps }, ref) => {
+  ({ label, error, containerStyle, style, onPress, ...textFieldProps }, ref) => {
     const { styles, theme } = useStyles(styleSheet, {});
+
+    const textFieldComponent = (
+      <TextField
+        size={TextFieldSize.Lg}
+        placeholderTextColor={theme.colors.text.muted}
+        keyboardAppearance={theme.themeAppearance}
+        style={style}
+        ref={ref}
+        isReadonly={!!onPress}
+        {...textFieldProps}
+      />
+    );
 
     return (
       <View style={[styles.field, containerStyle]}>
@@ -55,14 +69,13 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
         ) : (
           <View style={styles.label}>{label}</View>
         )}
-        <TextField
-          size={TextFieldSize.Lg}
-          placeholderTextColor={theme.colors.text.muted}
-          keyboardAppearance={theme.themeAppearance}
-          style={style}
-          ref={ref}
-          {...textFieldProps}
-        />
+        {onPress ? (
+          <Pressable onPress={onPress} style={{ flex: 1 }}>
+            {textFieldComponent}
+          </Pressable>
+        ) : (
+          textFieldComponent
+        )}
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
     );

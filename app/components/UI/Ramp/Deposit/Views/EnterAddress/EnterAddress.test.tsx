@@ -243,10 +243,14 @@ describe('EnterAddress Component', () => {
     expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
-  it('displays selected region in disabled country field', () => {
+  it('displays selected region in country field', () => {
     render(EnterAddress);
     const countryInput = screen.getByTestId('country-input');
+    
+    // Verify the input shows the selected region name
     expect(countryInput.props.value).toBe('United States');
+    
+    // Verify it's readonly (not editable)
     expect(countryInput.props.editable).toBe(false);
   });
 
