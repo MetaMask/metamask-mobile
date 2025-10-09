@@ -77,9 +77,12 @@ export const BridgeDestTokenSelector: React.FC = () => {
   );
 
   // Cleanup debounced function on unmount and dependency changes
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       debouncedTokenPress.cancel();
-    }, [debouncedTokenPress]);
+    },
+    [debouncedTokenPress],
+  );
 
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken | null }) => {

@@ -14,6 +14,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -29,6 +30,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.fillMessage('entropyMessageInput', '1234');
@@ -57,6 +59,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
@@ -76,6 +79,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');

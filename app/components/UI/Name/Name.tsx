@@ -19,7 +19,6 @@ import Identicon from '../Identicon';
 import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
-import { strings } from '../../../../locales/i18n';
 
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
@@ -152,7 +151,7 @@ const Name: React.FC<NameProperties> = ({
           open={isTooltipVisible}
           setOpen={setIsTooltipVisible}
           content={value}
-          title={strings('confirm.label.value')}
+          title={name}
         />
       )}
     </>

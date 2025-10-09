@@ -70,7 +70,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
         with:
           platform: ios
           setup-simulator: false
@@ -104,8 +104,28 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Generate current fingerprint
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
+      - name: Check and restore cached iOS app if Fingerprint is found
+        id: cache-restore
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          restore-keys: |
+            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+            ios-app-
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -138,6 +158,58 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      - name: Repack iOS app with JS updates using @expo/repack-app
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn build:repack:ios
+          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
+        env:
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Cache build artifacts with the pre-build fingerprint
+      - name: Cache build artifacts
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)

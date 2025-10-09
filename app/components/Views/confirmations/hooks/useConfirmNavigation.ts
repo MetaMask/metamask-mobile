@@ -21,7 +21,7 @@ export function useConfirmNavigation() {
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
-        params.loader = ConfirmationLoader.PerpsDeposit;
+        params.loader = ConfirmationLoader.CustomAmount;
       }
 
       if (stack) {

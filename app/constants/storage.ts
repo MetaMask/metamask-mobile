@@ -66,6 +66,8 @@ export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
 
 export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
 
+export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
+
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
@@ -73,3 +75,5 @@ export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATI
 export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
+
+export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;

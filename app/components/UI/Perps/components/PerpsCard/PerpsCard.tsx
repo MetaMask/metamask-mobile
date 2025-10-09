@@ -34,6 +34,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   order,
   onPress,
   testID,
+  source,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -91,11 +92,12 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           params: {
             market,
             initialTab,
+            source,
           },
         });
       }
     }
-  }, [onPress, markets, symbol, navigation, order, position]);
+  }, [onPress, markets, symbol, navigation, order, position, source]);
 
   const memoizedPressHandler = useCallback(() => {
     coordinatedPress(handlePress);

@@ -1,13 +1,12 @@
 import { expect } from 'appwright';
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
 class PerpsTutorialScreen {
-  get device() {
-    return this._device;
-  }
 
   set device(device) {
     this._device = device;
+
   }
 
   get addFundsButton() {
@@ -31,13 +30,11 @@ class PerpsTutorialScreen {
   }
 
   async tapAddFunds() {
-    const btn = await this.addFundsButton;
-    await btn.tap();
-}
+    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
+  }
 
   async tapSkip() {
-    const btn = await this.skipButtonTutorial;
-    await btn.tap();
+    await AppwrightGestures.tap(this.skipButtonTutorial); // Use static tap method with retry logic
   }
 
   async expectFirstScreenVisible() {
@@ -48,7 +45,7 @@ class PerpsTutorialScreen {
   async flowTapContinueTutorial(times = 1) {
     const btn = await this.addFundsButton;
     for (let i = 0; i < times; i++) {
-      await btn.tap();
+      await AppwrightGestures.tap(btn); // Use static tap method with retry logic
     }
   }
 }

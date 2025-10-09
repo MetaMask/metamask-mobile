@@ -1385,7 +1385,6 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    // Should show "All Networks" text when multiple networks are enabled
-    expect(getByText('All Networks')).toBeDefined();
+    expect(getByText('Popular networks')).toBeDefined();
   });
 });

@@ -136,7 +136,6 @@ jest.mock('../../../selectors/accountsController', () => ({
 }));
 
 jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -162,20 +161,23 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
 
-// Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+// Mock useSeasonStatus hook
+jest.mock('./hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
+}));
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
+// Import mocked selectors and hooks for setup
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { useSeasonStatus } from './hooks/useSeasonStatus';
+
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
   >;
+
+const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
+  typeof useSeasonStatus
+>;
 
 describe('RewardsNavigator', () => {
   let store: ReturnType<typeof configureStore>;
@@ -185,8 +187,10 @@ describe('RewardsNavigator', () => {
     jest.clearAllMocks();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
+    mockUseSeasonStatus.mockReturnValue({
+      fetchSeasonStatus: jest.fn(),
+    });
 
     // Create a mock store
     store = configureStore({
@@ -406,6 +410,16 @@ describe('RewardsNavigator', () => {
       expect(true).toBe(true);
     });
 
+    it('calls useSeasonStatus hook with correct parameters', () => {
+      // Act
+      renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
+        onlyForExplicitFetch: false,
+      });
+    });
+
     it('uses selectors for subscription state management', () => {
       // Arrange
       mockSelectRewardsSubscriptionId.mockClear();
@@ -423,6 +437,23 @@ describe('RewardsNavigator', () => {
 
       // Assert - Just verify it renders with default subscription state
       expect(getByTestId('rewards-onboarding-navigator')).toBeDefined();
+    });
+
+    it('integrates useSeasonStatus hook properly', () => {
+      // Arrange
+      const mockFetchSeasonStatus = jest.fn();
+      mockUseSeasonStatus.mockReturnValue({
+        fetchSeasonStatus: mockFetchSeasonStatus,
+      });
+
+      // Act
+      renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
+      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
+        onlyForExplicitFetch: false,
+      });
     });
   });
 });

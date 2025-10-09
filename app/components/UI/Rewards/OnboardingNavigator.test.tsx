@@ -6,7 +6,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { configureStore } from '@reduxjs/toolkit';
 import OnboardingNavigator from './OnboardingNavigator';
 import { OnboardingStep } from '../../../reducers/rewards/types';
-import { setOnboardingActiveStep } from '../../../reducers/rewards';
 
 // Mock dependencies
 jest.mock('./hooks/useGeoRewardsMetadata');
@@ -88,6 +87,19 @@ jest.mock('./components/Onboarding/OnboardingStep4', () => {
   };
 });
 
+// Mock RewardsIntroModal
+jest.mock('./components/Onboarding/RewardsIntroModal', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsIntroModal() {
+    return React.createElement(
+      View,
+      { testID: 'rewards-intro-modal' },
+      React.createElement(Text, null, 'Rewards Intro Modal'),
+    );
+  };
+});
+
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -112,7 +124,6 @@ jest.mock('react-redux', () => {
 
 // Mock selectors
 jest.mock('../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -126,20 +137,13 @@ jest.mock('../../../selectors/accountsController', () => ({
 }));
 
 // Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
   selectOnboardingActiveStep,
   selectOptinAllowedForGeo,
 } from '../../../reducers/rewards/selectors';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -204,7 +208,6 @@ describe('OnboardingNavigator', () => {
     store = createMockStore();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
     mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
     mockSelectOptinAllowedForGeo.mockReturnValue(true);
@@ -241,6 +244,21 @@ describe('OnboardingNavigator', () => {
     );
 
   describe('Initial route determination', () => {
+    it('renders intro modal when activeStep is INTRO_MODAL', async () => {
+      // Arrange
+      mockSelectOnboardingActiveStep.mockReturnValue(
+        OnboardingStep.INTRO_MODAL,
+      );
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('rewards-intro-modal')).toBeOnTheScreen();
+      });
+    });
+
     it('renders intro step when activeStep is INTRO', async () => {
       // Arrange
       mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
@@ -319,93 +337,6 @@ describe('OnboardingNavigator', () => {
       await waitFor(() => {
         expect(getByTestId('rewards-onboarding-intro-step')).toBeOnTheScreen();
       });
-    });
-  });
-
-  describe('Subscription ID handling', () => {
-    it('resets to intro step and navigates when subscription ID is null', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Reset mocks before test
-      mockDispatch.mockClear();
-      mockNavigate.mockClear();
-
-      // Act
-      renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          setOnboardingActiveStep(OnboardingStep.INTRO),
-        );
-        expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboardingIntro');
-      });
-    });
-
-    it('resets to intro step and navigates when subscription ID is undefined', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_3);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Reset mocks before test
-      mockDispatch.mockClear();
-      mockNavigate.mockClear();
-
-      // Act
-      renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          setOnboardingActiveStep(OnboardingStep.INTRO),
-        );
-        expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboardingIntro');
-      });
-    });
-
-    it('does not reset step when subscription ID exists', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
-      mockSelectRewardsSubscriptionId.mockReturnValue('valid-subscription-id');
-
-      // Reset mocks before test
-      mockDispatch.mockClear();
-      mockNavigate.mockClear();
-
-      // Act
-      renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        // Should not dispatch the reset action or navigate
-        expect(mockDispatch).not.toHaveBeenCalledWith(
-          setOnboardingActiveStep(OnboardingStep.INTRO),
-        );
-        expect(mockNavigate).not.toHaveBeenCalledWith('RewardsOnboardingIntro');
-      });
-    });
-  });
-
-  describe('Hook integration', () => {
-    it('uses selectors for state management', () => {
-      // Arrange
-      // Reset mocks
-      mockSelectRewardsActiveAccountHasOptedIn.mockClear();
-      mockSelectRewardsSubscriptionId.mockClear();
-      mockSelectOnboardingActiveStep.mockClear();
-      mockSelectOptinAllowedForGeo.mockClear();
-
-      // Act
-      renderWithNavigation(<OnboardingNavigator />);
-
-      // Force selector calls by re-rendering
-      jest.runAllTimers();
-
-      // Assert
-      expect(mockSelectRewardsSubscriptionId).toHaveBeenCalled();
-      expect(mockSelectOnboardingActiveStep).toHaveBeenCalled();
     });
   });
 

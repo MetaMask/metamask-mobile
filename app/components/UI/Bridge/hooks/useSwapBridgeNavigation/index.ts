@@ -10,7 +10,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
   getNativeAssetForChainId,
-  isSolanaChainId,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { SolScope, EthScope } from '@metamask/keyring-api';
@@ -103,7 +103,7 @@ export const useSwapBridgeNavigation = ({
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
               decimals: bridgeSourceNativeAsset.decimals,
-              chainId: isSolanaChainId(effectiveChainId) // TODO: refactor for other non-evm chains
+              chainId: isNonEvmChainId(effectiveChainId)
                 ? effectiveChainId
                 : formatChainIdToHex(effectiveChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
             }
@@ -111,12 +111,18 @@ export const useSwapBridgeNavigation = ({
 
       const candidateSourceToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
-      const sourceToken = isBridgeEnabledSource
+      let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
 
       if (!sourceToken) {
-        return;
+        // fallback to ETH on mainnet
+        sourceToken = {
+          address: ethers.constants.AddressZero,
+          chainId: EthScope.Mainnet,
+          symbol: 'ETH',
+          decimals: 18,
+        };
       }
 
       const params: BridgeRouteParams = {

@@ -573,8 +573,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                <Image
-                                  onError={[Function]}
+                                <View
                                   source={
                                     {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
@@ -1362,8 +1361,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   ]
                                 }
                               >
-                                <Image
-                                  onError={[Function]}
+                                <View
                                   source={
                                     {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
@@ -2065,8 +2063,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   ]
                                 }
                               >
-                                <Image
-                                  onError={[Function]}
+                                <View
                                   source={
                                     {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",

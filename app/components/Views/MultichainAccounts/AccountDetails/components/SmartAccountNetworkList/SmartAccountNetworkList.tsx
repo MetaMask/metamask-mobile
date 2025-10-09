@@ -1,4 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
+import { BackHandler } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
@@ -13,7 +15,20 @@ interface SmartAccountNetworkListProps {
 
 const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const { network7702List, pending } = useEIP7702Networks(address);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const loadingRows = useMemo(
     () =>

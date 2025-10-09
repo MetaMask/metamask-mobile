@@ -190,7 +190,8 @@ import {
   SignatureControllerEvents,
   SignatureControllerState,
 } from '@metamask/signature-controller';
-import SmartTransactionsController, {
+import {
+  SmartTransactionsController,
   type SmartTransactionsControllerActions,
   type SmartTransactionsControllerEvents,
   SmartTransactionsControllerState,
@@ -324,13 +325,15 @@ import {
   GatorPermissionsController,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
+import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
+import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 
 /**
  * Controllers that area always instantiated
  */
 type RequiredControllers = Omit<
   Controllers,
-  'PPOMController' | 'RewardsDataService'
+  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -338,7 +341,7 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  'PPOMController' | 'RewardsDataService'
+  'PPOMController' | 'RewardsDataService' | 'SnapKeyringBuilder'
 >;
 
 /**
@@ -557,6 +560,7 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
+  SnapKeyringBuilder: SnapKeyringBuilder;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -680,6 +684,7 @@ export type ControllersToInitialize =
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
+  | 'SubjectMetadataController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -687,24 +692,30 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
+  | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
   | 'ApprovalController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
+  | 'KeyringController'
   | 'MultichainNetworkController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
+  | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
-  | 'GatorPermissionsController';
+  | 'GatorPermissionsController'
+  | 'SelectedNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -768,6 +779,25 @@ export type ControllerInitRequest<
    */
   getState: () => RootState;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  /**
+   * Remove an account from all controllers that manage accounts.
+   *
+   * @param address - The address of the account to remove.
+   */
+  removeAccount(address: string): Promise<void>;
+  ///: END:ONLY_INCLUDE_IF
+
+  /**
+   * The initial state of the keyring controller, if applicable.
+   */
+  initialKeyringState?: KeyringControllerState | null;
+
+  /**
+   * QR keyring scanner bridge.
+   */
+  qrKeyringScanner: QrKeyringDeferredPromiseBridge;
+
   /**
    * Required initialization messenger instance.
    * Generated using the callback specified in `getInitMessenger`.
@@ -806,16 +836,25 @@ export type ControllerInitFunctionByControllerName = {
   >;
 };
 
-/**
- * Function to initialize the controllers in the engine.
- */
-export type InitModularizedControllersFunction = (request: {
+export interface InitModularizedControllersFunctionRequest {
   baseControllerMessenger: BaseControllerMessenger;
   controllerInitFunctions: ControllerInitFunctionByControllerName;
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
+  initialKeyringState?: KeyringControllerState | null;
+  qrKeyringScanner: QrKeyringDeferredPromiseBridge;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  removeAccount: (address: string) => Promise<void>;
+  ///: END:ONLY_INCLUDE_IF
   persistedState: ControllerPersistedState;
-}) => {
+}
+
+/**
+ * Function to initialize the controllers in the engine.
+ */
+export type InitModularizedControllersFunction = (
+  request: InitModularizedControllersFunctionRequest,
+) => {
   controllersByName: ControllerByName;
 };

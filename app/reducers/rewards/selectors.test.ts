@@ -32,11 +32,13 @@ import {
   selectUnlockedRewardLoading,
   selectUnlockedRewardError,
   selectSeasonRewardById,
+  selectPointsEvents,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -2049,6 +2051,160 @@ describe('Rewards selectors', () => {
       rerender();
       expect(result.current).toBeDefined();
       expect(result.current?.id).toBe('reward-1');
+    });
+  });
+
+  describe('selectPointsEvents', () => {
+    it('returns null when points events is null', () => {
+      const mockState = { rewards: { pointsEvents: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns empty array when points events is empty', () => {
+      const mockState = { rewards: { pointsEvents: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('returns points events array when available', () => {
+      const mockPointsEvents: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+              type: 'eip155:1/slip44:0',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+            },
+            txHash:
+              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          },
+        },
+        {
+          id: 'event-2',
+          type: 'REFERRAL',
+          timestamp: new Date('2024-01-02T00:00:00Z'),
+          value: 50,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          payload: null,
+        },
+      ];
+      const mockState = { rewards: { pointsEvents: mockPointsEvents } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectPointsEvents));
+      expect(result.current).toEqual(mockPointsEvents);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('event-1');
+      expect(result.current?.[0]?.type).toBe('SWAP');
+      expect(result.current?.[1]?.type).toBe('REFERRAL');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: { pointsEvents: null as PointsEventDto[] | null },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectPointsEvents),
+      );
+      expect(result.current).toBeNull();
+
+      // Change state to have points events
+      const newEvents: PointsEventDto[] = [
+        {
+          id: 'new-event',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 150,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              decimals: 8,
+              type: 'eip155:1/slip44:0',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              name: 'Ethereum',
+              decimals: 18,
+              symbol: 'ETH',
+              type: 'eip155:1/slip44:60',
+            },
+          },
+        },
+      ];
+      mockState = { rewards: { pointsEvents: newEvents } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newEvents);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.id).toBe('new-event');
+    });
+
+    it('returns same reference for same input', () => {
+      const events: PointsEventDto[] = [
+        {
+          id: 'event-1',
+          type: 'SWAP',
+          timestamp: new Date('2024-01-01T00:00:00Z'),
+          value: 100,
+          bonus: null,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+            destAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/erc20:0xA0b86a33E6441b8c4C8C0C0C0C0C0C0C0C0C0C0C',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+          },
+        },
+      ];
+      const state = createMockRootState({ pointsEvents: events });
+
+      const result1 = selectPointsEvents(state);
+      const result2 = selectPointsEvents(state);
+
+      expect(result1).toBe(result2); // Same reference
+      expect(result1).toEqual(result2); // Same value
     });
   });
 });

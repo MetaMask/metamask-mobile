@@ -58,7 +58,7 @@ export const ShareAddressQR = () => {
   const accountGroupName = accountGroup?.metadata.name;
 
   const navigation = useNavigation();
-  const { toBlockExplorer } = useBlockExplorer();
+  const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
 
   const handleOnBack = useCallback(() => {
@@ -135,7 +135,7 @@ export const ShareAddressQR = () => {
           {strings(
             'multichain_accounts.share_address.view_on_explorer_button',
             {
-              explorer: 'Etherscan (Multichain)',
+              explorer: getBlockExplorerName(),
             },
           )}
         </Button>
