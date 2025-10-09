@@ -40,6 +40,7 @@ import {
   setBridgeViewMode,
   selectNoFeeAssets,
   selectIsNonEvmNonEvmBridge,
+  selectIsSelectingRecipient,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -93,6 +94,7 @@ const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -331,14 +333,14 @@ const BridgeView = () => {
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh) {
+    if (isExpired && !willRefresh && !isSelectingRecipient) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation]);
+  }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
 
   const renderBottomContent = () => {
     if (shouldDisplayKeypad && !isLoading) {

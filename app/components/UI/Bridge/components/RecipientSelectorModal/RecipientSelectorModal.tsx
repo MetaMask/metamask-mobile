@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -12,6 +12,7 @@ import {
   selectDestAddress,
   selectDestToken,
   setDestAddress,
+  setIsSelectingRecipient,
 } from '../../../../../core/redux/slices/bridge/index.ts';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
@@ -21,6 +22,7 @@ import {
 import { EthScope } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
+import Engine from '../../../../../core/Engine';
 
 const RecipientSelectorModal: React.FC = () => {
   const navigation = useNavigation();
@@ -34,6 +36,21 @@ const RecipientSelectorModal: React.FC = () => {
 
   const destScope = formatChainIdToCaip(destToken?.chainId || '');
   const isDestEvm = destScope.startsWith(KnownCaipNamespace.Eip155);
+
+  useEffect(() => {
+    // Set selecting recipient state to prevent quote refresh and expired modal
+    dispatch(setIsSelectingRecipient(true));
+
+    // Stop polling when modal opens
+    if (Engine.context.BridgeController?.stopAllPolling) {
+      Engine.context.BridgeController.stopAllPolling();
+    }
+
+    // Reset state when modal closes
+    return () => {
+      dispatch(setIsSelectingRecipient(false));
+    };
+  }, [dispatch]);
 
   const handleClose = () => {
     navigation.navigate(Routes.BRIDGE.ROOT, {
