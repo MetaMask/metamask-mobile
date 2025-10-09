@@ -5,16 +5,23 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictOnboarding from './PredictOnboarding';
 
-// Mock the hook
-jest.mock('../../hooks/usePredictOnboarding', () => ({
-  usePredictOnboarding: jest.fn(),
+// Mock the hooks
+jest.mock('../../hooks/usePredictAccountState', () => ({
+  usePredictAccountState: jest.fn(),
 }));
 
-import { usePredictOnboarding } from '../../hooks/usePredictOnboarding';
+jest.mock('../../hooks/usePredictEnableWallet', () => ({
+  usePredictEnableWallet: jest.fn(),
+}));
 
-const mockUsePredictOnboarding = usePredictOnboarding as jest.MockedFunction<
-  typeof usePredictOnboarding
->;
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import { usePredictEnableWallet } from '../../hooks/usePredictEnableWallet';
+
+const mockUsePredictAccountState =
+  usePredictAccountState as jest.MockedFunction<typeof usePredictAccountState>;
+
+const mockUsePredictEnableWallet =
+  usePredictEnableWallet as jest.MockedFunction<typeof usePredictEnableWallet>;
 
 const initialState = {
   engine: {
@@ -23,7 +30,8 @@ const initialState = {
 };
 
 describe('PredictOnboarding', () => {
-  const mockEnablePredict = jest.fn();
+  const mockEnableWallet = jest.fn();
+  const mockLoadAccountState = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,10 +43,22 @@ describe('PredictOnboarding', () => {
 
   describe('when user is not onboarded', () => {
     beforeEach(() => {
-      mockUsePredictOnboarding.mockReturnValue({
-        isOnboarded: false,
+      mockUsePredictAccountState.mockReturnValue({
+        address: '0x1234',
+        isDeployed: false,
+        hasAllowances: false,
+        balance: 0,
         isLoading: false,
-        enablePredict: mockEnablePredict,
+        isRefreshing: false,
+        error: null,
+        loadAccountState: mockLoadAccountState,
+      });
+
+      mockUsePredictEnableWallet.mockReturnValue({
+        isLoading: false,
+        error: null,
+        isSuccess: false,
+        enableWallet: mockEnableWallet,
       });
     });
 
@@ -48,11 +68,11 @@ describe('PredictOnboarding', () => {
         { state: initialState },
       );
 
-      expect(getByText('Enable Predict')).toBeOnTheScreen();
+      expect(getByText('Deploy Predict Wallet')).toBeOnTheScreen();
       expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
     });
 
-    it('calls enablePredict when button is pressed', () => {
+    it('calls enableWallet when button is pressed', () => {
       const { UNSAFE_getAllByType } = renderWithProvider(
         <PredictOnboarding />,
         { state: initialState },
@@ -64,45 +84,71 @@ describe('PredictOnboarding', () => {
 
       fireEvent.press(enableButton);
 
-      expect(mockEnablePredict).toHaveBeenCalledTimes(1);
+      expect(mockEnableWallet).toHaveBeenCalledTimes(1);
     });
 
-    it('shows loading indicator when enabling predict', () => {
-      mockUsePredictOnboarding.mockReturnValue({
-        isOnboarded: false,
+    it('renders nothing when loading account state', () => {
+      mockUsePredictAccountState.mockReturnValue({
+        address: '0x1234',
+        isDeployed: false,
+        hasAllowances: false,
+        balance: 0,
         isLoading: true,
-        enablePredict: mockEnablePredict,
+        isRefreshing: false,
+        error: null,
+        loadAccountState: mockLoadAccountState,
       });
 
-      const { queryByText } = renderWithProvider(<PredictOnboarding />, {
-        state: initialState,
+      mockUsePredictEnableWallet.mockReturnValue({
+        isLoading: false,
+        error: null,
+        isSuccess: false,
+        enableWallet: mockEnableWallet,
       });
 
-      // The loading indicator should be present (ActivityIndicator)
-      // We can't easily test the ActivityIndicator directly, but we can verify
-      // the component still renders the container
-      expect(queryByText('Enable Predict')).toBeOnTheScreen();
+      const { queryByText, queryByTestId } = renderWithProvider(
+        <PredictOnboarding />,
+        {
+          state: initialState,
+        },
+      );
+
+      // When loading account state, the component returns null
+      expect(queryByTestId('predict-onboarding-card')).not.toBeOnTheScreen();
+      expect(queryByText('Deploy Predict Wallet')).not.toBeOnTheScreen();
     });
   });
 
   describe('when user is already onboarded', () => {
     beforeEach(() => {
-      mockUsePredictOnboarding.mockReturnValue({
-        isOnboarded: true,
+      mockUsePredictAccountState.mockReturnValue({
+        address: '0x1234',
+        isDeployed: true,
+        hasAllowances: true,
+        balance: 0,
         isLoading: false,
-        enablePredict: mockEnablePredict,
+        isRefreshing: false,
+        error: null,
+        loadAccountState: mockLoadAccountState,
+      });
+
+      mockUsePredictEnableWallet.mockReturnValue({
+        isLoading: false,
+        error: null,
+        isSuccess: false,
+        enableWallet: mockEnableWallet,
       });
     });
 
-    it('renders empty container when user is onboarded', () => {
-      const { getByTestId, queryByText } = renderWithProvider(
+    it('renders nothing when user is onboarded', () => {
+      const { queryByTestId, queryByText } = renderWithProvider(
         <PredictOnboarding />,
         { state: initialState },
       );
 
-      // When onboarded, the component renders the container but no content
-      expect(getByTestId('predict-onboarding-card')).toBeOnTheScreen();
-      expect(queryByText('Enable Predict')).not.toBeOnTheScreen();
+      // When onboarded (deployed and has allowances), the component renders null
+      expect(queryByTestId('predict-onboarding-card')).not.toBeOnTheScreen();
+      expect(queryByText('Deploy Predict Wallet')).not.toBeOnTheScreen();
     });
 
     it('does not render enable predict button', () => {
@@ -110,16 +156,29 @@ describe('PredictOnboarding', () => {
         state: initialState,
       });
 
-      expect(queryByText('Enable Predict')).not.toBeOnTheScreen();
+      expect(queryByText('Deploy Predict Wallet')).not.toBeOnTheScreen();
+      expect(queryByText('Enable allowances')).not.toBeOnTheScreen();
     });
   });
 
   describe('component structure', () => {
     it('renders with correct test ID', () => {
-      mockUsePredictOnboarding.mockReturnValue({
-        isOnboarded: false,
+      mockUsePredictAccountState.mockReturnValue({
+        address: '0x1234',
+        isDeployed: false,
+        hasAllowances: false,
+        balance: 0,
         isLoading: false,
-        enablePredict: mockEnablePredict,
+        isRefreshing: false,
+        error: null,
+        loadAccountState: mockLoadAccountState,
+      });
+
+      mockUsePredictEnableWallet.mockReturnValue({
+        isLoading: false,
+        error: null,
+        isSuccess: false,
+        enableWallet: mockEnableWallet,
       });
 
       const { getByTestId } = renderWithProvider(<PredictOnboarding />, {

@@ -67,17 +67,6 @@ export enum PredictClaimStatus {
   ERROR = 'error',
 }
 
-export type PredictClaim = {
-  positionId: string;
-  chainId: number;
-  status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
-};
-
 export type PredictMarket = {
   id: string;
   providerId: string;
@@ -208,6 +197,7 @@ export type PredictPosition = {
 
 export interface ClaimParams {
   positions: PredictPosition[];
+  providerId: string;
 }
 
 export interface GetMarketPriceResponse {
@@ -218,4 +208,15 @@ export type Result<T = void> = {
   success: boolean;
   error?: string;
   response?: T;
+};
+
+export type PredictClaim = {
+  transactionId: string;
+  chainId: number;
+  status: PredictClaimStatus;
+  txParams: {
+    to: Hex;
+    data: Hex;
+    value: Hex;
+  };
 };

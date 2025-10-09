@@ -66,6 +66,8 @@ jest.mock('@react-navigation/native', () => ({
 // Mock hooks with more flexibility
 const mockUsePredictPositions = jest.fn();
 const mockUsePredictClaim = jest.fn();
+const mockUsePredictAccountState = jest.fn();
+const mockUsePredictEnableWallet = jest.fn();
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: (options?: { claimable?: boolean }) =>
@@ -74,6 +76,14 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictClaim', () => ({
   usePredictClaim: () => mockUsePredictClaim(),
+}));
+
+jest.mock('../../hooks/usePredictAccountState', () => ({
+  usePredictAccountState: () => mockUsePredictAccountState(),
+}));
+
+jest.mock('../../hooks/usePredictEnableWallet', () => ({
+  usePredictEnableWallet: () => mockUsePredictEnableWallet(),
 }));
 
 // Mock components
@@ -153,6 +163,26 @@ jest.mock('../../components/PredictPositionEmpty', () => {
   };
 });
 
+jest.mock('../../components/PredictOnboarding/PredictOnboarding', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockPredictOnboarding() {
+      return <View testID="predict-onboarding" />;
+    },
+  };
+});
+
+jest.mock('../../components/PredictBalance/PredictBalance', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockPredictBalance() {
+      return <View testID="predict-balance" />;
+    },
+  };
+});
+
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
   () => {
@@ -188,6 +218,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     TextColor: {
       ErrorDefault: 'ErrorDefault',
+    },
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+      Start: 'flex-start',
+      End: 'flex-end',
+    },
+    BoxJustifyContent: {
+      Between: 'space-between',
+      Center: 'center',
+      Start: 'flex-start',
+      End: 'flex-end',
     },
   };
 });
@@ -308,6 +353,22 @@ describe('PredictTabView', () => {
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
       loading: false,
+    });
+
+    mockUsePredictAccountState.mockReturnValue({
+      address: '0x123',
+      isDeployed: true,
+      hasAllowances: true,
+      balance: 0,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    mockUsePredictEnableWallet.mockReturnValue({
+      isLoading: false,
+      error: null,
+      isSuccess: false,
+      enableWallet: jest.fn(),
     });
   });
 
@@ -458,8 +519,12 @@ describe('PredictTabView', () => {
       renderWithProviders(<PredictTabView />);
 
       expect(screen.getByTestId('markets-won-card')).toBeOnTheScreen();
-      expect(screen.getByTestId('markets-won-count')).toHaveTextContent('1');
-      expect(screen.getByTestId('claimable-amount')).toHaveTextContent('15');
+      expect(screen.getAllByTestId('markets-won-count')[0]).toHaveTextContent(
+        '1',
+      );
+      expect(screen.getAllByTestId('claimable-amount')[0]).toHaveTextContent(
+        '15',
+      );
     });
 
     it('does not render MarketsWonCard when no claimable positions', () => {

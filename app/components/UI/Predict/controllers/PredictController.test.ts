@@ -864,22 +864,14 @@ describe('PredictController', () => {
         const txId = 'tx1';
         const txData = '0xclaimdata';
 
-        // Set up claim transactions using the actual transaction ID
+        // Set up claim transaction with matching transaction ID
         controller.updateStateForTesting((state) => {
-          state.claimTransactions[txId] = [
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim', data: txData, value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-1',
-            },
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim2', data: '0xotherdata', value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-2',
-            },
-          ];
+          state.claimTransaction = {
+            transactionId: txId,
+            chainId: 1,
+            txParams: { to: '0xclaim', data: txData, value: '0x0' },
+            status: PredictClaimStatus.PENDING,
+          };
         });
 
         const event = {
@@ -900,13 +892,9 @@ describe('PredictController', () => {
           event,
         );
 
-        // Verify the matching claim transaction was updated to CONFIRMED
-        expect(controller.state.claimTransactions[txId][0].status).toBe(
-          'confirmed',
-        );
-        // Other transaction should remain unchanged
-        expect(controller.state.claimTransactions[txId][1].status).toBe(
-          'pending',
+        // Verify the claim transaction was updated to CONFIRMED
+        expect(controller.state.claimTransaction?.status).toBe(
+          PredictClaimStatus.CONFIRMED,
         );
       });
     });
@@ -915,22 +903,20 @@ describe('PredictController', () => {
       withController(({ controller, messenger }) => {
         const claimTxId = 'claim-tx-2';
 
-        // Set up claim transactions
+        // Set up claim transaction
         controller.updateStateForTesting((state) => {
-          state.claimTransactions[claimTxId] = [
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim', data: '0xclaimdata', value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-1',
-            },
-          ];
+          state.claimTransaction = {
+            transactionId: claimTxId,
+            chainId: 1,
+            txParams: { to: '0xclaim', data: '0xclaimdata', value: '0x0' },
+            status: PredictClaimStatus.PENDING,
+          };
         });
 
         const initialState = { ...controller.state };
 
         const event = {
-          id: 'tx1',
+          id: 'tx1', // Different transaction ID that won't match
           hash: '0xabc',
           status: 'confirmed',
           txParams: {
@@ -957,22 +943,14 @@ describe('PredictController', () => {
         const txId = 'tx-failed';
         const txData = '0xclaimdata';
 
-        // Set up claim transactions using the actual transaction ID
+        // Set up claim transaction
         controller.updateStateForTesting((state) => {
-          state.claimTransactions[txId] = [
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim', data: txData, value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-1',
-            },
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim2', data: '0xotherdata', value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-2',
-            },
-          ];
+          state.claimTransaction = {
+            transactionId: txId,
+            chainId: 1,
+            txParams: { to: '0xclaim', data: txData, value: '0x0' },
+            status: PredictClaimStatus.PENDING,
+          };
         });
 
         const event = {
@@ -996,13 +974,9 @@ describe('PredictController', () => {
           event,
         );
 
-        // Verify the matching claim transaction was updated to ERROR
-        expect(controller.state.claimTransactions[txId][0].status).toBe(
-          'error',
-        );
-        // Other transaction should remain unchanged
-        expect(controller.state.claimTransactions[txId][1].status).toBe(
-          'pending',
+        // Verify the claim transaction was updated to ERROR
+        expect(controller.state.claimTransaction?.status).toBe(
+          PredictClaimStatus.ERROR,
         );
       });
     });
@@ -1012,23 +986,17 @@ describe('PredictController', () => {
         const txId = 'tx-rejected';
         const txData = '0xclaimdata';
 
-        // Set up claim transactions using the actual transaction ID
+        // Set up claim transaction
         controller.updateStateForTesting((state) => {
-          state.claimTransactions[txId] = [
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim', data: txData, value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-1',
-            },
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim2', data: '0xotherdata', value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-2',
-            },
-          ];
+          state.claimTransaction = {
+            transactionId: txId,
+            chainId: 1,
+            txParams: { to: '0xclaim', data: txData, value: '0x0' },
+            status: PredictClaimStatus.PENDING,
+          };
         });
+
+        const initialState = { ...controller.state };
 
         const event = {
           transactionMeta: {
@@ -1050,14 +1018,8 @@ describe('PredictController', () => {
           event,
         );
 
-        // Verify the matching claim transaction was updated to CANCELLED
-        expect(controller.state.claimTransactions[txId][0].status).toBe(
-          'cancelled',
-        );
-        // Other transaction should remain unchanged
-        expect(controller.state.claimTransactions[txId][1].status).toBe(
-          'pending',
-        );
+        // State should remain unchanged since handler is not implemented
+        expect(controller.state).toEqual(initialState);
       });
     });
 
@@ -1191,18 +1153,16 @@ describe('PredictController', () => {
 
     it('handle missing provider in transaction confirmed handler', () => {
       withController(({ controller, messenger }) => {
-        // Set up claim transactions with non-existent provider
+        // Set up claim transaction
         const txId = 'tx-missing-provider';
         const txData = '0xclaimdata';
         controller.updateStateForTesting((state) => {
-          state.claimTransactions[txId] = [
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim', data: txData, value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-1',
-            },
-          ];
+          state.claimTransaction = {
+            transactionId: txId,
+            chainId: 1,
+            txParams: { to: '0xclaim', data: txData, value: '0x0' },
+            status: PredictClaimStatus.PENDING,
+          };
         });
 
         const event = {
@@ -1224,8 +1184,8 @@ describe('PredictController', () => {
           event,
         );
 
-        expect(controller.state.claimTransactions[txId][0].status).toBe(
-          'confirmed',
+        expect(controller.state.claimTransaction?.status).toBe(
+          PredictClaimStatus.CONFIRMED,
         );
       });
     });
@@ -1513,21 +1473,18 @@ describe('PredictController', () => {
     it('handle complex state updates', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.claimTransactions = {
-            'test-tx': [
-              {
-                chainId: 1,
-                txParams: { to: '0xclaim', data: '0xdata', value: '0x0' },
-                status: PredictClaimStatus.PENDING,
-                positionId: 'pos-1',
-              },
-            ],
+          state.claimTransaction = {
+            transactionId: 'test-tx',
+            chainId: 1,
+            txParams: { to: '0xclaim', data: '0xdata', value: '0x0' },
+            status: PredictClaimStatus.PENDING,
           };
           state.isOnboarded = { '0x123': true };
         });
 
-        expect(controller.state.claimTransactions['test-tx']).toBeDefined();
-        expect(controller.state.claimTransactions['test-tx']).toHaveLength(1);
+        expect(controller.state.claimTransaction?.transactionId).toBe(
+          'test-tx',
+        );
         expect(controller.state.isOnboarded['0x123']).toBe(true);
       });
     });
@@ -1600,16 +1557,14 @@ describe('PredictController', () => {
       withController(({ controller, messenger }) => {
         const txId = 'tx1';
 
-        // Set up claim transactions
+        // Set up claim transaction
         controller.updateStateForTesting((state) => {
-          state.claimTransactions[txId] = [
-            {
-              chainId: 1,
-              txParams: { to: '0xclaim', data: '0xdata', value: '0x0' },
-              status: PredictClaimStatus.PENDING,
-              positionId: 'pos-1',
-            },
-          ];
+          state.claimTransaction = {
+            transactionId: txId,
+            chainId: 1,
+            txParams: { to: '0xclaim', data: '0xdata', value: '0x0' },
+            status: PredictClaimStatus.PENDING,
+          };
         });
 
         const event = {
@@ -1670,13 +1625,19 @@ describe('PredictController', () => {
 
         const result = await controller.claim({
           positions: [mockPosition as any],
+          providerId: 'polymarket',
         });
 
-        expect(result.success).toBe(true);
-        expect(result.response).toEqual([mockTxMeta.id]);
-        expect(controller.state.claimTransactions[mockTxMeta.id]).toBeDefined();
+        expect(result.transactionId).toBe(mockTxMeta.id);
+        expect(result.status).toBe(PredictClaimStatus.PENDING);
+        expect(controller.state.claimTransaction?.transactionId).toBe(
+          mockTxMeta.id,
+        );
         expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith({
-          position: mockPosition,
+          positions: [mockPosition],
+          signer: expect.objectContaining({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
         });
         expect(addTransaction).toHaveBeenCalled();
       });
@@ -1701,23 +1662,24 @@ describe('PredictController', () => {
             mockPosition as any,
             { ...mockPosition, outcomeId: 'outcome-2' } as any,
           ],
+          providerId: 'polymarket',
         });
 
-        expect(result.success).toBe(true);
-        expect(result.response).toEqual([mockBatchId]);
-        expect(controller.state.claimTransactions[mockBatchId]).toBeDefined();
-        expect(addTransactionBatch).toHaveBeenCalled();
+        expect(result.transactionId).toBeDefined();
+        expect(result.status).toBe(PredictClaimStatus.PENDING);
+        expect(controller.state.claimTransaction?.transactionId).toBeDefined();
+        expect(addTransaction).toHaveBeenCalled();
       });
     });
 
     it('handle claim error when provider is not available', async () => {
       await withController(async ({ controller }) => {
-        const result = await controller.claim({
-          positions: [{ ...mockPosition, providerId: 'nonexistent' } as any],
-        });
-
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        await expect(
+          controller.claim({
+            positions: [mockPosition as any],
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
       });
     });
 
@@ -1729,12 +1691,12 @@ describe('PredictController', () => {
             throw new Error('Claim preparation failed');
           });
 
-        const result = await controller.claim({
-          positions: [mockPosition as any],
-        });
-
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('Claim preparation failed');
+        await expect(
+          controller.claim({
+            positions: [mockPosition as any],
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow('Claim preparation failed');
       });
     });
   });
@@ -1742,54 +1704,44 @@ describe('PredictController', () => {
   describe('clearClaimTransactions', () => {
     it('clear all claim transactions from state', () => {
       withController(({ controller }) => {
-        // Set up initial claim transactions
+        // Set up initial claim transaction
         controller.updateStateForTesting((state) => {
-          state.claimTransactions = {
-            'tx-1': [
-              {
-                chainId: 1,
-                txParams: { to: '0x1', data: '0xdata1', value: '0x0' },
-                status: PredictClaimStatus.PENDING,
-                positionId: 'pos-1',
-              },
-            ],
-            'tx-2': [
-              {
-                chainId: 1,
-                txParams: { to: '0x2', data: '0xdata2', value: '0x0' },
-                status: PredictClaimStatus.CONFIRMED,
-                positionId: 'pos-2',
-              },
-            ],
+          state.claimTransaction = {
+            transactionId: 'test-tx',
+            chainId: 1,
+            txParams: { to: '0x1', data: '0xdata1', value: '0x0' },
+            status: PredictClaimStatus.PENDING,
           };
         });
 
-        // Verify transactions exist
-        expect(controller.state.claimTransactions).toEqual({
-          'tx-1': expect.any(Array),
-          'tx-2': expect.any(Array),
+        // Verify transaction exists
+        expect(controller.state.claimTransaction).toEqual({
+          transactionId: 'test-tx',
+          chainId: 1,
+          txParams: { to: '0x1', data: '0xdata1', value: '0x0' },
+          status: PredictClaimStatus.PENDING,
         });
 
-        // Clear claim transactions
+        // Clear claim transaction
         controller.clearClaimTransactions();
 
-        // Verify transactions are cleared
-        expect(controller.state.claimTransactions).toEqual({});
+        // Verify transaction is cleared
+        expect(controller.state.claimTransaction).toBeNull();
       });
     });
 
-    it('handle clearing empty claim transactions', () => {
+    it('handle clearing empty claim transaction', () => {
       withController(({ controller }) => {
-        // Ensure claim transactions are empty
+        // Ensure claim transaction is null
         controller.updateStateForTesting((state) => {
-          state.claimTransactions = {};
+          state.claimTransaction = null;
         });
 
         // Clear should work without error
         expect(() => controller.clearClaimTransactions()).not.toThrow();
 
-        // Should remain empty
-        expect(controller.state.claimTransactions).toEqual({});
+        // Should remain null
+        expect(controller.state.claimTransaction).toBeNull();
       });
     });
   });

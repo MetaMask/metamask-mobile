@@ -3,13 +3,13 @@ import {
   GetPriceHistoryParams,
   PredictActivity,
   PredictCategory,
-  PredictClaim,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
   Side,
 } from '../types';
+import { Hex } from '@metamask/utils';
 
 export interface GetMarketsParams {
   providerId?: string;
@@ -82,7 +82,17 @@ export interface CalculateCashOutAmountsResponse {
 }
 
 export interface ClaimOrderParams {
-  position: PredictPosition;
+  positions: PredictPosition[];
+  signer: Signer;
+}
+
+export interface ClaimOrderResponse {
+  chainId: number;
+  transactionParams: {
+    from: Hex;
+    to: Hex;
+    data: Hex;
+  };
 }
 
 export interface GetPositionsParams {
@@ -92,6 +102,34 @@ export interface GetPositionsParams {
   offset?: number;
   claimable?: boolean;
   marketId?: string;
+}
+
+export interface EnableWalletParams {
+  providerId: string;
+}
+
+export interface GetAccountStateParams {
+  providerId: string;
+}
+
+export interface EnableWalletResponse {
+  chainId: Hex;
+  transactions: {
+    from: Hex;
+    to: Hex;
+    data: Hex;
+  }[];
+}
+
+export interface GetPredictWalletParams {
+  providerId: string;
+}
+
+export interface AccountState {
+  address: string;
+  isDeployed: boolean;
+  hasAllowances: boolean;
+  balance: number;
 }
 
 export interface PredictProvider {
@@ -122,8 +160,16 @@ export interface PredictProvider {
   ): Promise<CalculateCashOutAmountsResponse>;
 
   // Claim management
-  prepareClaim(params: ClaimOrderParams): PredictClaim;
+  prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
 
   // Eligibility (Geo-Blocking)
   isEligible(): Promise<boolean>;
+
+  // Predict wallet management
+  enableWallet(
+    params: EnableWalletParams & { signer: Signer },
+  ): Promise<EnableWalletResponse>;
+  getAccountState(
+    params: GetAccountStateParams & { ownerAddress: string },
+  ): Promise<AccountState>;
 }

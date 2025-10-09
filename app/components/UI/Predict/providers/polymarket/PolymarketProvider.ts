@@ -2,26 +2,28 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { Hex } from '@metamask/utils';
-import { parseUnits } from 'ethers/lib/utils';
+import { numberToHex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { isSmartContractAddress } from '../../../../../util/transactions';
 import {
   GetPriceHistoryParams,
   PredictActivity,
   PredictCategory,
-  PredictClaim,
-  PredictClaimStatus,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
 } from '../../types';
 import {
+  AccountState,
   CalculateBetAmountsParams,
   CalculateBetAmountsResponse,
   CalculateCashOutAmountsParams,
   CalculateCashOutAmountsResponse,
   ClaimOrderParams,
+  ClaimOrderResponse,
+  EnableWalletParams,
+  EnableWalletResponse,
   GetMarketsParams,
   GetPositionsParams,
   PlaceOrderParams,
@@ -33,10 +35,16 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
 } from './constants';
-import { computeSafeAddress, createSafeFeeAuthorization } from './safe/utils';
+import {
+  computeSafeAddress,
+  createSafeFeeAuthorization,
+  getClaimTransaction,
+  getDeployProxyWalletTransaction,
+  getProxyWalletAllowancesTransaction,
+  hasAllowances,
+} from './safe/utils';
 import {
   ApiKeyCreds,
-  CONDITIONAL_TOKEN_DECIMALS,
   OrderArtifactsParams,
   OrderData,
   OrderType,
@@ -49,7 +57,7 @@ import {
   calculateFeeAmount,
   calculateMarketPrice,
   createApiKey,
-  encodeClaim,
+  getBalance,
   getContractConfig,
   getL2Headers,
   getMarketDetailsFromGammaApi,
@@ -75,6 +83,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly providerId = 'polymarket';
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
+  #accountStateByAddress: Map<string, AccountState> = new Map();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
 
@@ -152,10 +161,18 @@ export class PolymarketProvider implements PredictProvider {
 
     const negRisk = marketData[0].negRisk;
 
+    const makerAddress =
+      this.#accountStateByAddress.get(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
+
+    if (!makerAddress) {
+      throw new Error('Maker address not found');
+    }
+
     const order = await buildMarketOrderCreationArgs({
       signer: address,
-      maker: address,
-      signatureType: SignatureType.EOA,
+      maker: makerAddress,
+      signatureType: SignatureType.POLY_GNOSIS_SAFE,
       userMarketOrder: {
         tokenID: tokenId,
         price,
@@ -275,13 +292,25 @@ export class PolymarketProvider implements PredictProvider {
   }: GetPositionsParams): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
+    if (!address) {
+      throw new Error('Address is required');
+    }
+
+    const predictAddress =
+      this.#accountStateByAddress.get(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
+
+    if (!predictAddress) {
+      throw new Error('Predict address not found');
+    }
+
     // NOTE: hardcoded address for testing
     // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
 
     const queryParams = new URLSearchParams({
       limit: limit.toString(),
       offset: offset.toString(),
-      user: address || '',
+      user: predictAddress,
       sortBy: 'CURRENT',
       redeemable: claimable.toString(),
       ...(marketId && { eventId: marketId }),
@@ -371,7 +400,7 @@ export class PolymarketProvider implements PredictProvider {
     const feeAmount = calculateFeeAmount(order);
     let feeAuthorization;
     if (feeAmount > 0n) {
-      const safeAddress = await computeSafeAddress(signer);
+      const safeAddress = await computeSafeAddress(address);
       feeAuthorization = await createSafeFeeAuthorization({
         safeAddress,
         signer,
@@ -393,35 +422,25 @@ export class PolymarketProvider implements PredictProvider {
     } as Result<OrderResponse>;
   }
 
-  public prepareClaim(params: ClaimOrderParams): PredictClaim {
-    const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-    const { position } = params;
-    const amounts: bigint[] = [0n, 0n];
-    amounts[position.outcomeIndex] = BigInt(
-      parseUnits(
-        position.size.toString(),
-        CONDITIONAL_TOKEN_DECIMALS,
-      ).toString(),
-    );
-
-    const negRisk = !!position.negRisk;
-
-    const to = (
-      negRisk ? contractConfig.negRiskAdapter : contractConfig.conditionalTokens
-    ) as Hex;
-    const callData = encodeClaim(position.outcomeId, negRisk, amounts);
-
-    const response: PredictClaim = {
-      positionId: position.id,
+  public async prepareClaim(
+    params: ClaimOrderParams,
+  ): Promise<ClaimOrderResponse> {
+    const { positions, signer } = params;
+    const safeAddress =
+      this.#accountStateByAddress.get(signer.address)?.address ??
+      (await this.getAccountState({ ownerAddress: signer.address })).address;
+    if (!safeAddress) {
+      throw new Error('Safe address not found');
+    }
+    const claimTransaction = await getClaimTransaction({
+      signer,
+      positions,
+      safeAddress,
+    });
+    return {
       chainId: POLYGON_MAINNET_CHAIN_ID,
-      status: PredictClaimStatus.IDLE,
-      txParams: {
-        data: callData,
-        to,
-        value: '0x0',
-      },
+      transactionParams: claimTransaction,
     };
-    return response;
   }
 
   public async isEligible(): Promise<boolean> {
@@ -517,5 +536,59 @@ export class PolymarketProvider implements PredictProvider {
       cashPnl: position.cashPnl,
       percentPnl: position.percentPnl,
     };
+  }
+
+  public async enableWallet(
+    params: EnableWalletParams & { signer: Signer },
+  ): Promise<EnableWalletResponse> {
+    const transactions = [];
+    const { signer } = params;
+
+    const deployTransaction = await getDeployProxyWalletTransaction({ signer });
+
+    if (!deployTransaction) {
+      throw new Error('Failed to get deploy proxy wallet transaction params');
+    }
+    transactions.push(deployTransaction);
+
+    const allowanceTransaction = await getProxyWalletAllowancesTransaction({
+      signer,
+    });
+    transactions.push(allowanceTransaction);
+
+    return {
+      chainId: numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      transactions,
+    };
+  }
+
+  public async getAccountState(params: {
+    ownerAddress: string;
+  }): Promise<AccountState> {
+    const { ownerAddress } = params;
+    const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
+    const address =
+      cachedAddress?.address ?? (await computeSafeAddress(ownerAddress));
+    const [isDeployed, hasAllowancesResult, balance] = await Promise.all([
+      isSmartContractAddress(address, numberToHex(POLYGON_MAINNET_CHAIN_ID)),
+      hasAllowances({ address }),
+      getBalance({ address }),
+    ]);
+
+    const accountState = {
+      address,
+      isDeployed,
+      hasAllowances: hasAllowancesResult,
+      balance,
+    };
+
+    this.#accountStateByAddress.set(ownerAddress, accountState);
+
+    return accountState;
+  }
+
+  public async getBalance(): Promise<number> {
+    // TODO: Implement this
+    return 0;
   }
 }
