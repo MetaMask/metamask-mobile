@@ -62,13 +62,16 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
+import { isCaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -121,7 +124,9 @@ const BuildQuote = () => {
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -404,12 +409,19 @@ const BuildQuote = () => {
     );
   }, [navigation, paymentMethods, paymentMethodsError]);
 
-  const networkName =
-    allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
+  const caipChainId = selectedCryptoCurrency?.chainId
+    ? isCaipChainId(selectedCryptoCurrency.chainId)
+      ? selectedCryptoCurrency.chainId
+      : toEvmCaipChainId(toHex(selectedCryptoCurrency.chainId))
+    : undefined;
 
-  const networkImageSource = selectedCryptoCurrency?.chainId
+  const networkName = caipChainId
+    ? networkConfigurationsByCaipChainId[caipChainId]?.name
+    : undefined;
+
+  const networkImageSource = caipChainId
     ? getNetworkImageSource({
-        chainId: selectedCryptoCurrency.chainId,
+        chainId: caipChainId,
       })
     : null;
 
