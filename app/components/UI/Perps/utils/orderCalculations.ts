@@ -152,7 +152,7 @@ export function findOptimalAmount(params: OptimalAmountParams): string {
       ((positionSizeNum - positionIncrement) * multiplier) / multiplier;
     // If the decremented position size would be 0 or negative, return original amount
     if (decrementedPositionSize <= 0) {
-      return '0';
+      return targetAmount;
     }
 
     positionSizeNum = decrementedPositionSize;
@@ -172,7 +172,7 @@ export function findOptimalAmount(params: OptimalAmountParams): string {
 
     // If the incremented position size would be 0 or negative, return original amount
     if (incrementedPositionSize <= 0) {
-      return '0';
+      return targetAmount;
     }
 
     positionSizeNum = incrementedPositionSize;
