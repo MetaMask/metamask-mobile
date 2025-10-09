@@ -70,6 +70,7 @@ export class Connection {
     const transport = await WebSocketTransport.create({
       url: relayURL,
       kvstore: new KVStore(`mwp/transport/${connInfo.id}`),
+      useSharedConnection: true,
     });
     const sessionstore = new SessionStore(
       new KVStore(`mwp/session-store/${connInfo.id}`),
