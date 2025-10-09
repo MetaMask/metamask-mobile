@@ -13,6 +13,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
+import { ActivityIndicator, TouchableOpacity } from 'react-native';
 
 interface MarketsWonCardProps {
   numberOfMarketsWon?: number;
@@ -20,6 +21,7 @@ interface MarketsWonCardProps {
   unrealizedAmount: number;
   unrealizedPercent: number;
   onClaimPress?: () => void;
+  isLoading?: boolean;
 }
 
 const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
@@ -28,6 +30,7 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
   unrealizedAmount,
   unrealizedPercent,
   onClaimPress,
+  isLoading,
 }) => {
   const formatAmount = (amount: number) => {
     const sign = amount >= 0 ? '+' : '-';
@@ -43,7 +46,7 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
     numberOfMarketsWon !== undefined && numberOfMarketsWon > 0;
 
   return (
-    <Box twClassName="bg-muted rounded-xl py-4 my-4">
+    <Box twClassName="bg-muted rounded-xl py-4 my-4" testID="markets-won-card">
       {/* Won Markets Row - Conditionally shown */}
       {showWonMarketsRow && (
         <>
@@ -57,7 +60,11 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
             >
-              <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-alternative"
+                testID="markets-won-count"
+              >
                 {numberOfMarketsWon === 1
                   ? strings('predict.won_markets_text_singular', {
                       count: numberOfMarketsWon,
@@ -68,25 +75,35 @@ const MarketsWonCard: React.FC<MarketsWonCardProps> = ({
               </Text>
             </Box>
             {totalClaimableAmount !== undefined && onClaimPress && (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="flex-row items-center"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-primary mr-1"
+              <TouchableOpacity onPress={onClaimPress}>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="flex-row items-center"
                 >
-                  {strings('predict.claim_amount_text', {
-                    amount: totalClaimableAmount.toFixed(2),
-                  })}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-              </Box>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary mr-1"
+                    testID="claimable-amount"
+                  >
+                    {strings('predict.claim_amount_text', {
+                      amount: totalClaimableAmount.toFixed(2),
+                    })}
+                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={IconColor.Alternative}
+                    />
+                  ) : (
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Sm}
+                      color={IconColor.Alternative}
+                    />
+                  )}
+                </Box>
+              </TouchableOpacity>
             )}
           </Box>
 

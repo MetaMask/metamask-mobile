@@ -48,13 +48,13 @@ import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
-import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
@@ -85,7 +85,6 @@ interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
-  displayBridgeButton?: boolean;
   networkName?: string;
 }
 
@@ -93,7 +92,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
   networkName,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
@@ -103,6 +101,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
+  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -146,7 +145,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
     sourceToken: {
@@ -190,11 +189,29 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, [selectedNetworkClientId]);
 
   const onReceive = () => {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      initialScreen: QRTabSwitcherScreens.Receive,
-      disableTabber: true,
-      networkName,
-    });
+    // Show QR code for receiving this specific asset
+    if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
+      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: {
+          address: selectedInternalAccountAddress,
+          networkName: networkName || 'Unknown Network',
+          chainId,
+          groupId: selectedAccountGroup.id,
+        },
+      });
+    } else {
+      Logger.error(
+        new Error(
+          'AssetOverview::onReceive - Missing required data for navigation',
+        ),
+        {
+          hasAddress: !!selectedInternalAccountAddress,
+          hasAccountGroup: !!selectedAccountGroup,
+          hasChainId: !!chainId,
+        },
+      );
+    }
   };
 
   const onSend = async () => {
@@ -439,8 +456,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}

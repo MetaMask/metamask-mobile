@@ -34,6 +34,7 @@ enum SUPPORTED_ACTIONS {
   PERPS = ACTIONS.PERPS,
   PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
+  REWARDS = ACTIONS.REWARDS,
   WC = ACTIONS.WC,
 }
 
@@ -202,6 +203,9 @@ async function handleUniversalLink({
   ) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handlePerps(perpsPath);
+  } else if (action === SUPPORTED_ACTIONS.REWARDS) {
+    const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleRewards(rewardsPath);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

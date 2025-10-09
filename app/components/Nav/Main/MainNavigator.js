@@ -47,9 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
-import RewardsNavigator, {
-  RewardsModalStack,
-} from '../../UI/Rewards/RewardsNavigator';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -98,7 +96,11 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import { PredictScreenStack, selectPredictEnabledFlag } from '../../UI/Predict';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -672,7 +674,6 @@ const Webview = () => (
       name="SimpleWebview"
       component={SimpleWebview}
       mode={'modal'}
-      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -1034,13 +1035,24 @@ const MainNavigator = () => {
         </>
       )}
       {isPredictEnabled && (
-        <Stack.Screen
-          name={Routes.PREDICT.ROOT}
-          component={PredictScreenStack}
-          options={{
-            animationEnabled: false,
-          }}
-        />
+        <>
+          <Stack.Screen
+            name={Routes.PREDICT.ROOT}
+            component={PredictScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PREDICT.MODALS.ROOT}
+            component={PredictModalStack}
+            options={{
+              ...clearStackNavigatorOptions,
+              presentation: 'transparentModal',
+              animationEnabled: true,
+            }}
+          />
+        </>
       )}
       <Stack.Screen
         name="SetPasswordFlow"

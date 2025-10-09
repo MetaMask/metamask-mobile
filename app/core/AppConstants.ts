@@ -157,6 +157,8 @@ export default {
       'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
     TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
+    MULTICHAIN_ACCOUNTS:
+      'https://support.metamask.io/configure/accounts/multichain-accounts/',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||

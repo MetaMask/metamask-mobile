@@ -8,6 +8,7 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -30,7 +31,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
-  selectIsEvmSolanaBridge,
+  selectIsEvmNonEvmBridge,
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectDestAddress,
@@ -38,6 +39,7 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectNoFeeAssets,
+  selectIsNonEvmNonEvmBridge,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -50,7 +52,9 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -120,7 +124,8 @@ const BridgeView = () => {
     selectNoFeeAssets(state, destToken?.chainId),
   );
 
-  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
+  const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -148,7 +153,7 @@ const BridgeView = () => {
 
   useInitialSlippage();
 
-  const hasDestinationPicker = isEvmSolanaBridge;
+  const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -179,8 +184,8 @@ const BridgeView = () => {
     !!sourceToken &&
     !!destToken &&
     // Prevent quote fetching when destination address is not set
-    // Destinations address is only needed for EVM <> Solana bridges
-    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
+    // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
+    (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
@@ -314,10 +319,7 @@ const BridgeView = () => {
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    const isSwap = sourceToken?.chainId === destToken?.chainId;
-    return isSwap
-      ? strings('bridge.confirm_swap')
-      : strings('bridge.confirm_bridge');
+    return strings('bridge.confirm_swap');
   };
 
   useEffect(() => {
@@ -399,6 +401,7 @@ const BridgeView = () => {
           )}
           <Button
             variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
@@ -476,10 +479,11 @@ const BridgeView = () => {
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
               <ButtonIcon
-                iconName={IconName.Arrow2Down}
+                iconName={IconName.SwapVertical}
                 onPress={handleSwitchTokens}
                 disabled={!destChainId || !destToken}
                 testID="arrow-button"
+                size={ButtonIconSizes.Lg}
               />
             </Box>
           </Box>
@@ -495,6 +499,7 @@ const BridgeView = () => {
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
             isLoading={isLoading}
+            style={styles.destTokenArea}
           />
         </Box>
 

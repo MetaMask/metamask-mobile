@@ -27,12 +27,12 @@ class NetworkApprovalBottomSheet {
   }
 
   async tapApproveButton(): Promise<void> {
-    await Gestures.tap(this.approvedButton, {
+    await Gestures.waitAndTap(this.approvedButton, {
       elemDescription: 'Approve Button in Network Approval Bottom Sheet',
     });
   }
   async tapCancelButton(): Promise<void> {
-    await Gestures.tap(this.cancelButton, {
+    await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Button in Network Approval Bottom Sheet',
     });
   }

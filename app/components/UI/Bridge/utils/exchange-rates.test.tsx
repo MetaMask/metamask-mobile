@@ -123,7 +123,7 @@ describe('exchange-rates', () => {
         nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
       });
 
-      expect(result).toBe('$0');
+      expect(result).toBe('$0.00');
     });
 
     it('should return zero when amount is undefined', () => {
@@ -137,7 +137,7 @@ describe('exchange-rates', () => {
         nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
       });
 
-      expect(result).toBe('$0');
+      expect(result).toBe('$0.00');
     });
 
     it('should calculate correct fiat value for token amount', () => {
@@ -152,7 +152,7 @@ describe('exchange-rates', () => {
       });
 
       // 1 TOKEN1 = 10 ETH, 1 ETH = $2000, so 1 TOKEN1 = $20000
-      expect(result).toBe('$20000');
+      expect(result).toBe('$20,000.00');
     });
 
     it('should return "< $0.01" for very small fiat values', () => {
@@ -181,7 +181,7 @@ describe('exchange-rates', () => {
       });
 
       // Currency symbol should be included
-      expect(result).toBe('€20000');
+      expect(result).toBe('€20,000.00');
     });
 
     it('should handle undefined market data correctly', () => {
@@ -195,7 +195,7 @@ describe('exchange-rates', () => {
         nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
       });
 
-      expect(result).toBe('$0');
+      expect(result).toBe('$0.00');
     });
 
     it('should handle zero price correctly', () => {
@@ -218,7 +218,7 @@ describe('exchange-rates', () => {
         nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
       });
 
-      expect(result).toBe('$0');
+      expect(result).toBe('$0.00');
     });
 
     describe('Solana token tests', () => {
@@ -234,7 +234,7 @@ describe('exchange-rates', () => {
         });
 
         // 1 SOL = $151.7
-        expect(result).toBe('$151.69999');
+        expect(result).toBe('$151.70');
       });
 
       it('should calculate correct fiat value for SPL token amount', () => {
@@ -249,7 +249,7 @@ describe('exchange-rates', () => {
         });
 
         // 1 USDC = $0.999915
-        expect(result).toBe('$0.99991');
+        expect(result).toBe('$1.00');
       });
 
       it('should handle different currencies for Solana tokens', () => {
@@ -263,7 +263,7 @@ describe('exchange-rates', () => {
           nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
         });
 
-        expect(result).toBe('€151.69999');
+        expect(result).toBe('€151.70');
       });
 
       it('should handle very small amounts for Solana tokens', () => {
@@ -291,7 +291,7 @@ describe('exchange-rates', () => {
           nonEvmMultichainAssetRates: {},
         });
 
-        expect(result).toBe('$0');
+        expect(result).toBe('$0.00');
       });
 
       it('should handle zero rate for Solana tokens', () => {
@@ -312,7 +312,7 @@ describe('exchange-rates', () => {
           nonEvmMultichainAssetRates: zeroRateNonEvmMultichainAssetRates,
         });
 
-        expect(result).toBe('$0');
+        expect(result).toBe('$0.00');
       });
     });
   });

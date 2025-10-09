@@ -16,6 +16,7 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
+import SocialLoginSuccessNewUser from '../../Views/SocialLoginSuccessNewUser';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -70,7 +71,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
-import ReturnToAppToast from '../../Views/ReturnToAppToast';
+import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
@@ -205,8 +206,13 @@ const OnboardingSuccessFlow = () => (
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName="Onboarding">
+  <Stack.Navigator initialRouteName={'Onboarding'}>
     <Stack.Screen name="Onboarding" component={Onboarding} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS}
+      component={SocialLoginSuccessNewUser}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
     <Stack.Screen
       name="AccountBackupStep1"
@@ -543,8 +549,8 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.SDK.RETURN_TO_DAPP_TOAST}
-      component={ReturnToAppToast}
+      name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
+      component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
     />
   </Stack.Navigator>
