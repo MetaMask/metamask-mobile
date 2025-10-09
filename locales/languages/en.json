@@ -5463,6 +5463,7 @@
     "receive_at": "Receive at",
     "recipient": "Recipient",
     "select_recipient": "Select recipient",
+    "external_account": "External account",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
     "insufficient_gas": "Insufficient gas",

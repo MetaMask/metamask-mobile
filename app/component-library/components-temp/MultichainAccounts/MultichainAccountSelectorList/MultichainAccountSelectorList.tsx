@@ -35,6 +35,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useAssetsUpdateAllAccountBalances } from '../../../../components/UI/Assets/hooks';
+import ExternalAccountCell from './ExternalAccountCell';
 
 const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE = 2000; // About 30 items to pre-render - cell size is about 65px
 
@@ -49,6 +50,9 @@ const MultichainAccountSelectorList = ({
   accountSections: accountSectionsProp,
   chainId,
   hideAccountCellMenu = false,
+  showExternalAccountOnEmptySearch = false,
+  onSelectExternalAccount,
+  selectedExternalAddress,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -59,8 +63,10 @@ const MultichainAccountSelectorList = ({
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
-  const [searchText, setSearchText] = useState('');
-  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [searchText, setSearchText] = useState(selectedExternalAddress || '');
+  const [debouncedSearchText, setDebouncedSearchText] = useState(
+    selectedExternalAddress || '',
+  );
   const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
     string | null
   >(null);
@@ -141,11 +147,18 @@ const MultichainAccountSelectorList = ({
   }, [walletSections, debouncedSearchText, matchesSearch]);
 
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
-    if (filteredWalletSections.length === 0) {
-      return [];
-    }
-
     const items: FlattenedMultichainAccountListItem[] = [];
+
+    if (filteredWalletSections.length === 0) {
+      if (showExternalAccountOnEmptySearch) {
+        const address = debouncedSearchText.trim();
+        items.push({
+          type: 'external',
+          data: { address },
+        });
+      }
+      return items;
+    }
 
     filteredWalletSections.forEach((section) => {
       items.push({
@@ -168,7 +181,11 @@ const MultichainAccountSelectorList = ({
     });
 
     return items;
-  }, [filteredWalletSections]);
+  }, [
+    filteredWalletSections,
+    debouncedSearchText,
+    showExternalAccountOnEmptySearch,
+  ]);
 
   // Compute first selected account index for initial positioning only
   const initialSelectedIndex = useMemo(() => {
@@ -237,6 +254,13 @@ const MultichainAccountSelectorList = ({
     [onSelectAccount],
   );
 
+  const handleSelectExternalAccount = useCallback(
+    (address: string) => {
+      onSelectExternalAccount?.(address);
+    },
+    [onSelectExternalAccount],
+  );
+
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
     useCallback(
       ({ item }: { item: FlattenedMultichainAccountListItem }) => {
@@ -260,6 +284,20 @@ const MultichainAccountSelectorList = ({
             );
           }
 
+          case 'external': {
+            const isSelected =
+              item.data.address.toLowerCase() ===
+              selectedExternalAddress?.toLowerCase();
+            return (
+              <ExternalAccountCell
+                address={item.data.address}
+                onPress={() => handleSelectExternalAccount(item.data.address)}
+                chainId={chainId}
+                isSelected={isSelected}
+              />
+            );
+          }
+
           case 'footer': {
             if (!showFooter) return null;
             return (
@@ -278,11 +316,13 @@ const MultichainAccountSelectorList = ({
         selectedIdSet,
         handleSelectAccount,
         handleAccountCreated,
+        handleSelectExternalAccount,
         avatarAccountType,
         showCheckbox,
         showFooter,
         chainId,
         hideAccountCellMenu,
+        selectedExternalAddress,
       ],
     );
 
@@ -293,6 +333,8 @@ const MultichainAccountSelectorList = ({
           return `header-${item.data.walletName}`;
         case 'cell':
           return `account-${item.data.id}`;
+        case 'external':
+          return `external-${item.data.address}`;
         case 'footer':
           return `footer-${item.data.walletName}`;
         default:

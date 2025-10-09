@@ -54,12 +54,19 @@ const RecipientSelectorModal: React.FC = () => {
   );
 
   const handleSelectAccount = (accountGroup: AccountGroupObject) => {
-    const internalAccountId = accountGroup.accounts.find((accountId) => getIsAccountSupported(accountId));
+    const internalAccountId = accountGroup.accounts.find((accountId) =>
+      getIsAccountSupported(accountId),
+    );
     if (internalAccountId) {
       const internalAccount = internalAccountsById[internalAccountId];
       dispatch(setDestAddress(internalAccount.address));
       navigation.goBack();
     }
+  };
+
+  const handleSelectExternalAccount = (address: string) => {
+    dispatch(setDestAddress(address));
+    navigation.goBack();
   };
 
   // Filter account sections to only include accounts that support the destScope
@@ -76,7 +83,9 @@ const RecipientSelectorModal: React.FC = () => {
       // Filter account groups to only include those with accounts supporting destScope
       const filteredGroups = section.data.filter((accountGroup) =>
         // Filter accounts within the group to only those supporting destScope
-        accountGroup.accounts.some((accountId) => getIsAccountSupported(accountId)),
+        accountGroup.accounts.some((accountId) =>
+          getIsAccountSupported(accountId),
+        ),
       );
 
       // Only include the wallet section if it has at least one group with supported accounts
@@ -109,6 +118,19 @@ const RecipientSelectorModal: React.FC = () => {
     return internalAccountId ? accountToGroupMap[internalAccountId] : undefined;
   }, [destAddress, internalAccountsById, accountToGroupMap]);
 
+  // Determine if destAddress is an external address (not in user's accounts)
+  const selectedExternalAddress = useMemo(() => {
+    if (!destAddress) return undefined;
+
+    // Check if the address belongs to any of the user's accounts
+    const isInternalAccount = Object.values(internalAccountsById).some(
+      (account) => account.address.toLowerCase() === destAddress.toLowerCase(),
+    );
+
+    // Only return the address if it's external (not in user's accounts)
+    return isInternalAccount ? undefined : destAddress;
+  }, [destAddress, internalAccountsById]);
+
   return (
     <BottomSheet onClose={handleClose} keyboardAvoidingViewEnabled>
       <BottomSheetHeader onBack={handleClose} onClose={handleClose}>
@@ -123,6 +145,9 @@ const RecipientSelectorModal: React.FC = () => {
         accountSections={filteredAccountSections}
         chainId={destToken?.chainId}
         hideAccountCellMenu
+        showExternalAccountOnEmptySearch
+        onSelectExternalAccount={handleSelectExternalAccount}
+        selectedExternalAddress={selectedExternalAddress}
       />
     </BottomSheet>
   );

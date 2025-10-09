@@ -21,7 +21,8 @@ export interface AccountSection {
 export type FlattenedMultichainAccountListItem =
   | { type: 'cell'; data: AccountGroupObject; walletName: string }
   | { type: 'header'; data: { title: string; walletName: string } }
-  | { type: 'footer'; data: { walletName: string; walletId: AccountWalletId } };
+  | { type: 'footer'; data: { walletName: string; walletId: AccountWalletId } }
+  | { type: 'external'; data: { address: string } };
 
 /**
  * Props for MultichainAccountSelectorList component
@@ -69,6 +70,20 @@ export interface MultichainAccountSelectorListProps
    * Optional boolean to hide the account cell menu
    */
   hideAccountCellMenu?: boolean;
+  /**
+   * Optional boolean to show the external account on empty search
+   */
+  showExternalAccountOnEmptySearch?: boolean;
+  /**
+   * Optional callback to trigger when external account is selected
+   */
+  onSelectExternalAccount?: (address: string) => void;
+  /**
+   * Optional pre-selected external address to show in search and mark as selected.
+   * Should only be provided if the address is NOT in the user's accounts.
+   * The parent component is responsible for determining if an address is external.
+   */
+  selectedExternalAddress?: string;
 }
 
 /**
