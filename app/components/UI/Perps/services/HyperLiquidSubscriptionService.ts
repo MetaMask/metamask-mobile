@@ -10,6 +10,7 @@ import {
 } from '@deeeed/hyperliquid-node20';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import type {
   PriceUpdate,
   Position,
@@ -443,9 +444,12 @@ export class HyperLiquidSubscriptionService {
           resolve();
         })
         .catch((error) => {
-          DevLogger.log(
-            'Failed to establish shared webData2 subscription',
-            error,
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              context:
+                'HyperLiquidSubscriptionService.createWebData2Subscription',
+            },
           );
           reject(error instanceof Error ? error : new Error(String(error)));
         });
@@ -463,7 +467,13 @@ export class HyperLiquidSubscriptionService {
 
     if (totalSubscribers <= 0 && this.sharedWebData2Subscription) {
       this.sharedWebData2Subscription.unsubscribe().catch((error: Error) => {
-        DevLogger.log('Failed to unsubscribe shared webData2', error);
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context:
+              'HyperLiquidSubscriptionService.cleanupSharedWebData2Subscription',
+          },
+        );
       });
       this.sharedWebData2Subscription = undefined;
       this.webData2SubscriptionPromise = undefined;
@@ -497,7 +507,9 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active
     this.ensureSharedWebData2Subscription(accountId).catch((error) => {
-      DevLogger.log(strings('perps.errors.failedToSubscribePosition'), error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'HyperLiquidSubscriptionService.subscribeToPositions',
+      });
     });
 
     return () => {
@@ -567,9 +579,12 @@ export class HyperLiquidSubscriptionService {
           // If cleanup was called before subscription completed, immediately unsubscribe
           if (cancelled) {
             sub.unsubscribe().catch((error: Error) => {
-              DevLogger.log(
-                strings('perps.errors.failedToUnsubscribeOrderFill'),
-                error,
+              Logger.error(
+                error instanceof Error ? error : new Error(String(error)),
+                {
+                  context:
+                    'HyperLiquidSubscriptionService.subscribeToOrderFills.cleanup',
+                },
               );
             });
           } else {
@@ -577,9 +592,11 @@ export class HyperLiquidSubscriptionService {
           }
         })
         .catch((error) => {
-          DevLogger.log(
-            strings('perps.errors.failedToSubscribeOrderFill'),
-            error,
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              context: 'HyperLiquidSubscriptionService.subscribeToOrderFills',
+            },
           );
         });
     }
@@ -590,9 +607,12 @@ export class HyperLiquidSubscriptionService {
 
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
-          DevLogger.log(
-            strings('perps.errors.failedToUnsubscribeOrderFill'),
-            error,
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              context:
+                'HyperLiquidSubscriptionService.subscribeToOrderFills.unsubscribe',
+            },
           );
         });
       }
@@ -620,7 +640,9 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active
     this.ensureSharedWebData2Subscription(accountId).catch((error) => {
-      DevLogger.log(strings('perps.errors.failedToSubscribeOrders'), error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'HyperLiquidSubscriptionService.subscribeToOrders',
+      });
     });
 
     return () => {
@@ -651,7 +673,9 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active (reuses existing connection)
     this.ensureSharedWebData2Subscription(accountId).catch((error) => {
-      DevLogger.log(strings('perps.errors.failedToSubscribeAccount'), error);
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        context: 'HyperLiquidSubscriptionService.subscribeToAccount',
+      });
     });
 
     return () => {
@@ -783,22 +807,18 @@ export class HyperLiquidSubscriptionService {
         if (this.cachedPriceData && this.cachedPriceData.size > 0) {
           this.notifyAllPriceSubscribers();
         }
-
-        // Trace WebSocket connection
-        trace({
-          name: TraceName.PerpsWebSocketConnected,
-          op: TraceOperation.PerpsMarketData,
-          tags: {
-            subscription_type: 'allMids',
-            is_testnet: this.clientService.isTestnetMode(),
-          },
-        });
       })
       .catch((error) => {
         // Clear the promise on error so it can be retried
         this.globalAllMidsPromise = undefined;
 
-        DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context:
+              'HyperLiquidSubscriptionService.ensureGlobalAllMidsSubscription',
+          },
+        );
 
         // Trace WebSocket error
         trace({
@@ -902,21 +922,15 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log(
           `HyperLiquid: Market data subscription established for ${symbol}`,
         );
-        // Trace WebSocket connection for market data
-        trace({
-          name: TraceName.PerpsWebSocketConnected,
-          op: TraceOperation.PerpsMarketData,
-          tags: {
-            subscription_type: 'activeAssetCtx',
-            symbol,
-            is_testnet: this.clientService.isTestnetMode(),
-          },
-        });
       })
       .catch((error) => {
-        DevLogger.log(
-          strings('perps.errors.failedToEstablishMarketData', { symbol }),
-          error,
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context:
+              'HyperLiquidSubscriptionService.ensureActiveAssetSubscription',
+            symbol,
+          },
         );
 
         // Trace WebSocket error
@@ -1017,9 +1031,12 @@ export class HyperLiquidSubscriptionService {
         );
       })
       .catch((error) => {
-        DevLogger.log(
-          `HyperLiquid: Failed to establish L2 book subscription for ${symbol}`,
-          error,
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            context: 'HyperLiquidSubscriptionService.ensureL2BookSubscription',
+            symbol,
+          },
         );
       });
   }
