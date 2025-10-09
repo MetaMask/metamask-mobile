@@ -10,6 +10,7 @@ import {
   getMaxAllowedAmount as getMaxAllowedAmountUtils,
 } from '../utils/orderCalculations';
 import { usePerpsMarketData } from './usePerpsMarketData';
+import { debounce } from 'lodash';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -38,7 +39,7 @@ export interface UsePerpsOrderFormReturn {
 }
 
 /**
- * Hook to manage the perpetual order form state
+ * Hook to manage the perpetual order form state and calculations
  * This hook is protocol-agnostic and handles form state management
  */
 export function usePerpsOrderForm(
@@ -59,11 +60,7 @@ export function usePerpsOrderForm(
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const {
-    marketData,
-    // isLoading: isLoadingMarketData,
-    // error: marketDataError,
-  } = usePerpsMarketData(initialAsset);
+  const { marketData } = usePerpsMarketData(initialAsset);
 
   // Get available balance from live account data
   const availableBalance = parseFloat(
@@ -99,11 +96,25 @@ export function usePerpsOrderForm(
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(
     () =>
-      initialAmount ||
-      (maxPossibleAmount < defaultAmount
-        ? maxPossibleAmount.toString()
-        : defaultAmount.toString()),
-    [initialAmount, maxPossibleAmount, defaultAmount],
+      findOptimalAmount({
+        targetAmount:
+          initialAmount ||
+          (maxPossibleAmount < defaultAmount
+            ? maxPossibleAmount.toString()
+            : defaultAmount.toString()),
+        price: parseFloat(currentPrice?.price) || 0,
+        szDecimals:
+          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+        maxAllowedAmount: maxPossibleAmount,
+        minAllowedAmount: defaultAmount,
+      }),
+    [
+      initialAmount,
+      maxPossibleAmount,
+      defaultAmount,
+      currentPrice?.price,
+      marketData?.szDecimals,
+    ],
   );
 
   // Calculate initial balance percentage
@@ -128,8 +139,8 @@ export function usePerpsOrderForm(
   });
 
   // Optimize order amount to get the optimal USD value for the position size
-  const optimizeOrderAmount = useCallback(
-    (price: number, szDecimals?: number) => {
+  const optimizeOrderAmount = useMemo(() => {
+    const optimizeFunction = (price: number, szDecimals?: number) => {
       setOrderForm((prev) => {
         if (!prev.amount || parseFloat(prev.amount) === 0) {
           return prev;
@@ -140,6 +151,7 @@ export function usePerpsOrderForm(
           price,
           szDecimals,
           maxAllowedAmount: maxPossibleAmount,
+          minAllowedAmount: defaultAmount,
         });
 
         const optimizedAmountNum = parseFloat(optimizedAmount);
@@ -157,8 +169,17 @@ export function usePerpsOrderForm(
 
         return prev;
       });
+    };
+
+    return debounce(optimizeFunction, 100);
+  }, [maxPossibleAmount, defaultAmount]);
+
+  // Cleanup debounced function on unmount
+  useEffect(
+    () => () => {
+      optimizeOrderAmount.cancel();
     },
-    [maxPossibleAmount],
+    [optimizeOrderAmount],
   );
 
   // Update amount only once when the hook first calculates the initial value

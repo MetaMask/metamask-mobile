@@ -97,7 +97,6 @@ import {
 import {
   calculateMarginRequired,
   calculatePositionSize,
-  findOptimalAmount,
 } from '../../utils/orderCalculations';
 import {
   calculateRoEForPrice,
@@ -152,10 +151,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
-
-  // Timeout refs for cleanup
-  const optimizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const keypadOptimizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { account } = usePerpsLiveAccount();
 
@@ -582,10 +577,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
-    // Optimize after setting the amount
-    optimizeTimeoutRef.current = setTimeout(() => {
-      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
-    }, 0);
+    optimizeOrderAmount(assetData.price, marketData?.szDecimals);
   };
 
   const handleMaxPress = () => {
@@ -609,12 +601,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       if (currentAmount > maxPossibleAmount) {
         setAmount(String(maxPossibleAmount));
       }
-
-      // Optimize the amount after keypad input is complete
-      // Use a timeout to ensure the amount has been set first
-      keypadOptimizeTimeoutRef.current = setTimeout(() => {
-        optimizeOrderAmount(assetData.price, marketData?.szDecimals);
-      }, 0);
+      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -625,24 +612,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     optimizeOrderAmount,
     assetData.price,
     marketData?.szDecimals,
-  ]);
-
-  // Optimize initial amount when market data becomes available
-  useEffect(() => {
-    if (
-      !isLoadingMarketData &&
-      marketData &&
-      assetData.price > 0 &&
-      !isInputFocused
-    ) {
-      optimizeOrderAmount(assetData.price, marketData.szDecimals);
-    }
-  }, [
-    isLoadingMarketData,
-    marketData,
-    assetData.price,
-    optimizeOrderAmount,
-    isInputFocused,
   ]);
 
   const handlePlaceOrder = useCallback(async () => {
@@ -866,16 +835,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
               onValueChange={(value) => {
                 inputMethodRef.current = 'slider';
                 const amount = Math.floor(value).toString();
-                setAmount(
-                  amount !== '0'
-                    ? findOptimalAmount({
-                        targetAmount: amount,
-                        price: assetData.price,
-                        szDecimals: marketData?.szDecimals,
-                        maxAllowedAmount: maxPossibleAmount,
-                      })
-                    : amount,
-                );
+
+                setAmount(amount);
+                if (amount !== '0') {
+                  // Now using debounced optimizeOrderAmount for all interactions
+                  optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+                }
               }}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
