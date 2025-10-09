@@ -39,7 +39,6 @@ import {
 } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
-import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
@@ -218,12 +217,7 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
 
-    if (
-      hasMinimumRequiredVersion(
-        featureFlags.minimumVersion,
-        process.env.MM_BRIDGE_ENABLED === 'true',
-      )
-    ) {
+    if (hasMinimumRequiredVersion(featureFlags.minimumVersion)) {
       return featureFlags;
     }
 
@@ -235,10 +229,16 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
-export const selectIsBridgeEnabledSource = createSelector(
+/**
+ * Factory selector that returns a function to check if bridge is enabled for a source chain.
+ * Use this when you need to check multiple chain IDs or when the chain ID is determined after render.
+ * @example
+ * const getIsBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
+ * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
+ */
+export const selectIsBridgeEnabledSourceFactory = createSelector(
   selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
+  (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
 
     return (
@@ -246,6 +246,12 @@ export const selectIsBridgeEnabledSource = createSelector(
       bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
     );
   },
+);
+
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
 );
 
 export const selectIsBridgeEnabledDest = createSelector(
@@ -482,21 +488,6 @@ export const selectIsSubmittingTx = createSelector(
 export const selectIsSelectingRecipient = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSelectingRecipient,
-);
-
-export const selectIsUnifiedSwapsEnabled = createSelector(
-  selectBridgeFeatureFlags,
-  selectChainId,
-  (bridgeFeatureFlags, chainId) => {
-    if (
-      isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
-    ) {
-      return true;
-    }
-    return false;
-  },
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(
