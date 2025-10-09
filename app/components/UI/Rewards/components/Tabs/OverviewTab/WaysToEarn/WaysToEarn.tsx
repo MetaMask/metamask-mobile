@@ -242,7 +242,7 @@ export const WaysToEarn = () => {
   };
 
   return (
-    <Box twClassName="py-4">
+    <Box twClassName="p-4">
       <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
         {strings('rewards.ways_to_earn.title')}
       </Text>
@@ -256,7 +256,7 @@ export const WaysToEarn = () => {
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-auto px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-3 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box
