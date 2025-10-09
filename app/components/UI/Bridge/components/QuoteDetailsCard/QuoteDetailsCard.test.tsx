@@ -102,6 +102,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     name: 'Ethereum',
   }),
   selectSourceAmount: () => '1.0',
+  selectDestAddress: () => undefined,
+  selectIsSwap: () => false,
 }));
 
 // want to make the source token solana and dest token evm
