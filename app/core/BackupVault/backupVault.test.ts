@@ -13,7 +13,6 @@ import {
   getInternetCredentials,
   resetInternetCredentials,
   setInternetCredentials,
-  type SetOptions,
   type Result,
   STORAGE_TYPE,
 } from 'react-native-keychain';
@@ -29,7 +28,7 @@ jest.mock('react-native-keychain', () => ({
       server: string,
       username: string,
       password: string,
-      _?: SetOptions,
+      _?,
     ): Promise<Result> => {
       mockKeychainState[server] = { username, password };
       return {
@@ -41,12 +40,9 @@ jest.mock('react-native-keychain', () => ({
   getInternetCredentials: jest.fn(
     async (server: string) => mockKeychainState[server],
   ),
-  resetInternetCredentials: jest.fn(
-    async (serverOrOptions: { server: string }, _?: SetOptions) => {
-      const server = serverOrOptions.server;
-      delete mockKeychainState[server];
-    },
-  ),
+  resetInternetCredentials: jest.fn(async (server: string) => {
+    delete mockKeychainState[server];
+  }),
 }));
 
 //TODO Mock the react-native-keychain module test the other functions inside backupVault
