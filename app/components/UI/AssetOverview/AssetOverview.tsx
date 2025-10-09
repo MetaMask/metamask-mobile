@@ -467,7 +467,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               address: asset.address,
               chainId,
             }}
-            location={ActionLocation.ASSET_DETAILS}
           />
           <Balance
             asset={asset}

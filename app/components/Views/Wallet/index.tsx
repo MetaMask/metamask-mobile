@@ -586,7 +586,6 @@ const Wallet = ({
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
 
   const onReceive = useCallback(() => {
-    // Track Receive button click
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.RECEIVE,
       action_position: ActionPosition.RECEIVE,
@@ -649,7 +648,6 @@ const Wallet = ({
 
   const onSend = useCallback(async () => {
     try {
-      // Track Send button click
       trackActionButtonClick(trackEvent, createEventBuilder, {
         action_name: ActionButtonType.SEND,
         action_position: ActionPosition.SEND,
