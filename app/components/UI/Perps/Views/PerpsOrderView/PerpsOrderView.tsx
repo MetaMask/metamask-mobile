@@ -40,7 +40,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
-import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
+import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
@@ -57,7 +57,6 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import {
   PerpsOrderProvider,
@@ -262,19 +261,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderAmount: orderForm.amount,
   });
 
-  useEffect(() => {
-    trace({
-      name: TraceName.PerpsOrderView,
-      op: TraceOperation.UIStartup,
-      tags: {
-        screen: 'perps_order_view',
-        market: orderForm.asset,
-        direction: orderForm.direction,
-        orderType: orderForm.type,
-      },
-    });
-  }, [orderForm.asset, orderForm.direction, orderForm.type]);
-
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
     if (!isOrderTypeVisible && shouldOpenLimitPrice) {
@@ -306,7 +292,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Track screen load with unified hook
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.TRADE_SCREEN_LOADED,
+    traceName: TraceName.PerpsOrderView,
     conditions: [!!currentPrice, !!account],
   });
 

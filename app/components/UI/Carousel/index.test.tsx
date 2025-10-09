@@ -7,7 +7,8 @@ import {
   renderHook,
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { Linking } from 'react-native';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -66,8 +67,8 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
+jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+  parse: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('./fetchCarouselSlidesFromContentful', () => ({
@@ -212,7 +213,12 @@ describe('Carousel Navigation', () => {
     const { findByTestId } = render(<Carousel />);
     const slide = await findByTestId('carousel-slide-url-slide');
     fireEvent.press(slide);
-    expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+      'https://metamask.io',
+      {
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      },
+    );
   });
 
   it('navigates to buy flow for fund slides', async () => {

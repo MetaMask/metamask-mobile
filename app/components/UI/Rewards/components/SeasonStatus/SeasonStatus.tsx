@@ -86,26 +86,37 @@ const SeasonStatus: React.FC = () => {
   }, [tiers, currentTier]);
 
   if ((seasonStatusLoading || !currentTier) && !seasonStatusError) {
-    return <Skeleton height={115} width="100%" />;
+    return (
+      <Box twClassName="px-4">
+        <Skeleton height={115} width="100%" />
+      </Box>
+    );
   }
 
   if (seasonStatusError && !seasonStartDate) {
     return (
-      <RewardsErrorBanner
-        title={strings('rewards.season_status_error.error_fetching_title')}
-        description={strings(
-          'rewards.season_status_error.error_fetching_description',
-        )}
-        onConfirm={() => {
-          fetchSeasonStatus();
-        }}
-        confirmButtonLabel={strings('rewards.season_status_error.retry_button')}
-      />
+      <Box twClassName="px-4">
+        <RewardsErrorBanner
+          title={strings('rewards.season_status_error.error_fetching_title')}
+          description={strings(
+            'rewards.season_status_error.error_fetching_description',
+          )}
+          onConfirm={() => {
+            fetchSeasonStatus();
+          }}
+          confirmButtonLabel={strings(
+            'rewards.season_status_error.retry_button',
+          )}
+        />
+      </Box>
     );
   }
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4 w-full">
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      twClassName="gap-4 w-full px-4"
+    >
       {/* Top Row - season name, tier name, and tier image */}
       <Box twClassName="flex-row justify-between items-center -mb-2">
         <Box

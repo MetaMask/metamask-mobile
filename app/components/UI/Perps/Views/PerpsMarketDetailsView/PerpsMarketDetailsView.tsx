@@ -42,8 +42,8 @@ import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { TraceName } from '../../../../../util/trace';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PerpsEventProperties,
@@ -260,7 +260,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+    traceName: TraceName.PerpsPositionDetailsView,
     conditions: [
       !!market,
       !!marketStats,

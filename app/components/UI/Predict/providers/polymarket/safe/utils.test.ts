@@ -228,6 +228,23 @@ describe('safe utils', () => {
       );
     });
 
+    it('handles undeployed Safe contract (nonce returns 0x)', async () => {
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce('0x')
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const feeAuth = await createSafeFeeAuthorization(testParams);
+
+      expect(feeAuth).toHaveProperty('type', 'safe-transaction');
+      expect(feeAuth.authorization.tx).toBeDefined();
+    });
+
     it('calls Safe contract for transaction hash', async () => {
       setupMocksForFeeAuth();
 

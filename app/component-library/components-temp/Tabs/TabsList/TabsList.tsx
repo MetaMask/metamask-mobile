@@ -25,7 +25,15 @@ import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
-    { children, initialActiveIndex = 0, onChangeTab, testID, ...boxProps },
+    {
+      children,
+      initialActiveIndex = 0,
+      onChangeTab,
+      testID,
+      tabsBarProps,
+      tabsListContentTwClassName,
+      ...boxProps
+    },
     ref,
   ) => {
     const tw = useTailwind();
@@ -417,20 +425,21 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ],
     );
 
-    const tabBarProps = useMemo(
+    const tabBarPropsComputed = useMemo(
       () => ({
         tabs,
         activeIndex,
         onTabPress: handleTabPress,
         testID: testID ? `${testID}-bar` : undefined,
+        ...tabsBarProps,
       }),
-      [tabs, activeIndex, handleTabPress, testID],
+      [tabs, activeIndex, handleTabPress, testID, tabsBarProps],
     );
 
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
         {/* Render TabsBar */}
-        <TabsBar {...tabBarProps} />
+        <TabsBar {...tabBarPropsComputed} />
 
         {/* Horizontal ScrollView for tab contents */}
         <ScrollView
@@ -453,7 +462,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           {enabledTabs.map((enabledTab) => (
             <Box
               key={enabledTab.key}
-              style={tw.style('flex-1 px-4', { width: containerWidth })}
+              style={tw.style(
+                `flex-1 px-4 ${tabsListContentTwClassName || ''}`,
+                {
+                  width: containerWidth,
+                },
+              )}
             >
               {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
                 ? enabledTab.content
