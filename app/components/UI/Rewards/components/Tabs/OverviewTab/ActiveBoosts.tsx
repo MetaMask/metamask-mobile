@@ -269,7 +269,7 @@ const ActiveBoosts: React.FC<{
   }
 
   return (
-    <Box twClassName="pt-4 pb-4 gap-4">
+    <Box twClassName="pt-2 pb-4 gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={activeBoosts?.length || null}
