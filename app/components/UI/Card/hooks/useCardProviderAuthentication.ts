@@ -20,7 +20,9 @@ const getErrorMessage = (error: unknown): string => {
       case CardErrorType.API_KEY_MISSING:
         return strings('card.card_authentication.errors.configuration_error');
       case CardErrorType.VALIDATION_ERROR:
-        return error.message; // Use specific validation message
+        return strings(
+          'card.card_authentication.errors.invalid_email_or_password',
+        );
       case CardErrorType.SERVER_ERROR:
         return strings('card.card_authentication.errors.server_error');
       case CardErrorType.UNKNOWN_ERROR:

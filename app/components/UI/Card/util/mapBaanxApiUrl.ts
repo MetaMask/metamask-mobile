@@ -8,15 +8,14 @@ export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
     case 'exp':
     case 'rc':
     case 'pre-release':
-      // Needs to be changed to UAT later. Baanx currently only has DEV env.
+    case 'dev':
+    case 'local':
+      // Needs to be DEV to test the integration with Baanx on nightly build.
       return AppConstants.BAANX_API_URL.DEV;
     case 'production':
     case 'beta':
-      // Needs to be changed to PRD later. Baanx currently only has DEV env.
-      return AppConstants.BAANX_API_URL.DEV;
-    case 'dev':
-    case 'local':
+      return AppConstants.BAANX_API_URL.PRD;
     default:
-      return AppConstants.BAANX_API_URL.DEV;
+      return AppConstants.BAANX_API_URL.PRD;
   }
 };

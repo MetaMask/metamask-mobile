@@ -38,14 +38,14 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
     });
 
-    it('should return DEV URL for production environment', () => {
+    it('should return PRD URL for production environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('production');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return DEV URL for beta environment', () => {
+    it('should return PRD URL for beta environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('beta');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
     it('should return DEV URL for dev environment', () => {
@@ -60,33 +60,33 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   });
 
   describe('default and edge cases', () => {
-    it('should return DEV URL for undefined environment', () => {
+    it('should return PRD URL for undefined environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(undefined);
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return DEV URL for unknown environment', () => {
+    it('should return PRD URL for unknown environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('unknown-env');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return DEV URL for empty string environment', () => {
+    it('should return PRD URL for empty string environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return DEV URL for null environment', () => {
+    it('should return PRD URL for null environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(
         null as unknown as string,
       );
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
-    it('should return DEV URL for numeric environment', () => {
+    it('should return PRD URL for numeric environment', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv(
         123 as unknown as string,
       );
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
   });
 
@@ -94,12 +94,12 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     it('should handle exact case matching for environments', () => {
       // Test exact case matching (the function should be case-sensitive)
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('PRODUCTION');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV); // Should fall to default
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD); // Should fall to default
     });
 
     it('should handle mixed case environments as unknown', () => {
       const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('Beta');
-      expect(result).toBe(mockAppConstants.BAANX_API_URL.DEV); // Should fall to default
+      expect(result).toBe(mockAppConstants.BAANX_API_URL.PRD); // Should fall to default
     });
   });
 
@@ -109,8 +109,8 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       { env: 'exp', expectedUrl: 'DEV' },
       { env: 'rc', expectedUrl: 'DEV' },
       { env: 'pre-release', expectedUrl: 'DEV' },
-      { env: 'production', expectedUrl: 'DEV' },
-      { env: 'beta', expectedUrl: 'DEV' },
+      { env: 'production', expectedUrl: 'PRD' },
+      { env: 'beta', expectedUrl: 'PRD' },
       { env: 'dev', expectedUrl: 'DEV' },
       { env: 'local', expectedUrl: 'DEV' },
     ];
@@ -135,7 +135,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       const result2 = getDefaultBaanxApiBaseUrlForMetaMaskEnv(env);
 
       expect(result1).toBe(result2);
-      expect(result1).toBe(mockAppConstants.BAANX_API_URL.DEV);
+      expect(result1).toBe(mockAppConstants.BAANX_API_URL.PRD);
     });
 
     it('should not modify the input parameter', () => {

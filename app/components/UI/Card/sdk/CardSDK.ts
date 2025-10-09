@@ -528,18 +528,6 @@ export class CardSDK {
   }): Promise<CardLoginResponse> => {
     const { email, password, location } = body;
 
-    // Basic validation
-    if (!email?.trim()) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Email is required');
-    }
-
-    if (!password?.trim()) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Password is required',
-      );
-    }
-
     const response = await this.makeRequest(
       '/v1/auth/login',
       {
@@ -560,6 +548,20 @@ export class CardSDK {
       } catch {
         // If we can't parse response, continue without it
       }
+
+      if (response.status === 422) {
+        const error = new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid email or password, check your credentials and try again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Invalid email or password during login. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
       // Handle specific HTTP status codes
       if (
         response.status === 401 ||

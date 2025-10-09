@@ -5810,6 +5810,7 @@
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
         "password_invalid": "Invalid password",
+        "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",

@@ -250,6 +250,11 @@ describe('useCardProviderAuthentication', () => {
           'card.card_authentication.errors.configuration_error',
       },
       {
+        errorType: CardErrorType.VALIDATION_ERROR,
+        expectedStringKey:
+          'card.card_authentication.errors.invalid_email_or_password',
+      },
+      {
         errorType: CardErrorType.SERVER_ERROR,
         expectedStringKey: 'card.card_authentication.errors.server_error',
       },
@@ -287,7 +292,7 @@ describe('useCardProviderAuthentication', () => {
       },
     );
 
-    it('handles validation error with specific message', async () => {
+    it('handles validation error with localized message', async () => {
       const loginParams = {
         location: 'us' as CardLocation,
         email: 'test@example.com',
@@ -312,7 +317,12 @@ describe('useCardProviderAuthentication', () => {
         }
       });
 
-      expect(result.current.error).toBe('Email format is invalid');
+      expect(mockStrings).toHaveBeenCalledWith(
+        'card.card_authentication.errors.invalid_email_or_password',
+      );
+      expect(result.current.error).toBe(
+        'mocked_card.card_authentication.errors.invalid_email_or_password',
+      );
       expect(result.current.loading).toBe(false);
     });
 

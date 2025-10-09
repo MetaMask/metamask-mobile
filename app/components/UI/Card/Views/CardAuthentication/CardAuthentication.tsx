@@ -86,18 +86,14 @@ const CardAuthentication = () => {
   }, [loginSuccess, loading, error, dispatch]);
 
   const performLogin = async () => {
-    try {
-      await login({
-        location,
-        email,
-        password,
-      });
+    await login({
+      location,
+      email,
+      password,
+    });
 
-      // Set success flag - navigation will be handled by useEffect
-      setLoginSuccess(true);
-    } catch (err) {
-      // Error is already handled by the hook
-    }
+    // Set success flag - navigation will be handled by useEffect
+    setLoginSuccess(true);
   };
 
   const isDisabled = useMemo(

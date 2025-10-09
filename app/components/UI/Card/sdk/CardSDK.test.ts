@@ -90,6 +90,9 @@ describe('CardSDK', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Set up environment variable for API key
+    process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
+
     mockCardFeatureFlag = {
       constants: {
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
@@ -953,48 +956,6 @@ describe('CardSDK', () => {
           }),
         }),
       );
-    });
-
-    it('should validate required email field', async () => {
-      await expect(
-        cardSDK.login({
-          email: '',
-          password: 'password123',
-          location: 'us',
-        }),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.login({
-          email: '',
-          password: 'password123',
-          location: 'us',
-        }),
-      ).rejects.toMatchObject({
-        type: CardErrorType.VALIDATION_ERROR,
-        message: 'Email is required',
-      });
-    });
-
-    it('should validate required password field', async () => {
-      await expect(
-        cardSDK.login({
-          email: 'test@example.com',
-          password: '',
-          location: 'us',
-        }),
-      ).rejects.toThrow(CardError);
-
-      await expect(
-        cardSDK.login({
-          email: 'test@example.com',
-          password: '',
-          location: 'us',
-        }),
-      ).rejects.toMatchObject({
-        type: CardErrorType.VALIDATION_ERROR,
-        message: 'Password is required',
-      });
     });
 
     it('should handle invalid credentials error', async () => {
