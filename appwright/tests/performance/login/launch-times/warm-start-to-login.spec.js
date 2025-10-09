@@ -14,6 +14,7 @@ import BrowserScreen from '../../../../../wdio/screen-objects/BrowserObject/Brow
 import AddressBarScreen from '../../../../../wdio/screen-objects/BrowserObject/AddressBarScreen.js';
 import ExternalWebsitesScreen from '../../../../../wdio/screen-objects/BrowserObject/ExternalWebsitesScreen.js';
 import AccountApprovalModal from '../../../../../wdio/screen-objects/Modals/AccountApprovalModal.js';
+import SettingsScreen from '../../../../../wdio/screen-objects/SettingsScreen.js';
 
 test('Measure Warm Start: Warm Start to Login Screen', async ({
   device,
@@ -26,12 +27,17 @@ test('Measure Warm Start: Warm Start to Login Screen', async ({
   WalletMainScreen.device = device;
   ExternalWebsitesScreen.device = device;
   AccountApprovalModal.device = device;
+  SettingsScreen.device = device;
 
   await login(device);
 
   const timer1 = new TimerHelper(
     'Time since the user open the app again and the login screen appears',
   );
+
+  await WalletMainScreen.tapOnBurgerMenu();
+  await SettingsScreen.tapSecurityAndPrivacy();
+  await SettingsScreen.tapLockOption();
   await AppwrightGestures.backgroundApp(device, 30);
   timer1.start();
   await AppwrightGestures.activateApp(device);
