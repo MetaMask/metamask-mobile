@@ -26,18 +26,6 @@ jest.mock('./MainNavigator', () => {
       return null;
     }
 
-    // Legacy support for existing tests - broader Browser check for backwards compatibility
-    const isOnBrowserRoute = route?.name?.startsWith?.('Browser') || false;
-    const shouldHideTabs =
-      isBrowserFullscreen &&
-      isOnBrowserRoute &&
-      !route?.name?.startsWith('BrowserTabHome');
-
-    // If should hide tabs (legacy), don't render any tabs (simulates hidden tab bar)
-    if (shouldHideTabs) {
-      return React.createElement(View, { testID: 'main-navigator' }, []);
-    }
-
     // Otherwise, render tabs based on rewards flag
     return React.createElement(View, { testID: 'main-navigator' }, [
       React.createElement(View, {
