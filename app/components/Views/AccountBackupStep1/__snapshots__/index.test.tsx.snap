@@ -7,7 +7,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -258,7 +258,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -509,7 +509,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -760,7 +760,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -1011,7 +1011,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
