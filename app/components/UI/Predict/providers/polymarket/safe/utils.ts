@@ -36,7 +36,7 @@ function abiEncodePacked(
         return encoded.slice(130, 130 + 2 * bytesLength);
       }
 
-      let typeMatch = type.match(/^(?:u?int\d*|bytes\d+|address)\[\]$/);
+      let typeMatch = /^(?:u?int\d*|bytes\d+|address)\[\]$/.exec(type);
       if (typeMatch) {
         return encoded.slice(130);
       }
@@ -46,7 +46,7 @@ function abiEncodePacked(
         return encoded.slice(2, 2 + 2 * bytesLength);
       }
 
-      typeMatch = type.match(/^u?int(\d*)$/);
+      typeMatch = /^u?int(\d*)$/.exec(type);
       if (typeMatch) {
         if (typeMatch[1] !== '') {
           const bytesLength = parseInt(typeMatch[1]) / 8;
@@ -112,14 +112,18 @@ const getNonce = async ({
   );
 
   // Call the nonce() function on the Safe contract
-  const nonce = (await query(ethQuery, 'call', [
+  const res = (await query(ethQuery, 'call', [
     {
       to: safeAddress,
       data: new Interface(safeAbi).encodeFunctionData('nonce', []),
     },
-  ])) as bigint;
+  ])) as Hex;
 
-  return nonce;
+  if (res === '0x') {
+    return 0n;
+  }
+
+  return BigInt(res);
 };
 
 const getTransactionHash = async ({
