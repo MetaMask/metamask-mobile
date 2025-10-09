@@ -5,8 +5,6 @@
 import {
   formatRewardsDate,
   formatTimeRemaining,
-  getEventDetails,
-  PerpsEventType,
   formatNumber,
   getIconName,
   formatUrl,
@@ -18,6 +16,8 @@ import {
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import TEST_ADDRESS from '../../../../constants/address';
+import { PerpsEventType } from './eventConstants';
+import { getEventDetails } from './eventDetailsUtils';
 
 const mockGetTimeDifferenceFromNow =
   getTimeDifferenceFromNow as jest.MockedFunction<

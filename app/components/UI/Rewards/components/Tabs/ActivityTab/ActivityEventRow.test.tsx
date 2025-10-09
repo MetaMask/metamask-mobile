@@ -2,7 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { ActivityEventRow } from './ActivityEventRow';
 import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
+import { formatRewardsDate } from '../../../utils/formatUtils';
+import { getEventDetails } from '../../../utils/eventDetailsUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import TEST_ADDRESS from '../../../../../../constants/address';
 
