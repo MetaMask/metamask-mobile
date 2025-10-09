@@ -76,14 +76,14 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const renderMarketsWonCard = useCallback(() => {
     if (claimablePositions.length === 0)
       return (
-        <>
+        <Box twClassName="gap-2">
           <PredictOnboarding />
           <PredictBalance
             balance={balance}
             isLoading={isLoadingAccountState}
             address={address}
           />
-        </>
+        </Box>
       );
 
     const wonPositions = claimablePositions.filter(
@@ -100,7 +100,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     const unrealizedPercent = 3.9;
 
     return (
-      <>
+      <Box twClassName="gap-2">
         <PredictOnboarding />
         <PredictBalance
           balance={balance}
@@ -115,7 +115,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
           onClaimPress={handleClaimPress}
           isLoading={isClaiming}
         />
-      </>
+      </Box>
     );
   }, [
     balance,

@@ -101,26 +101,17 @@ export const usePredictEnableWallet = ({
     setError(null);
     try {
       const { PredictController } = Engine.context;
-      const { transactions, chainId } = await PredictController.enableWallet({
+      const { response } = await PredictController.enableWallet({
         providerId,
       });
 
-      const deployTransaction = transactions[0];
-      const allowanceTransaction = transactions[1];
-
-      const transactionsToExecute = isDeployed
-        ? [allowanceTransaction]
-        : [deployTransaction, allowanceTransaction];
-
-      await executeTransactions({
-        transactions: transactionsToExecute,
-        chainId,
-      });
+      console.log('response', response);
+      setIsLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to enable wallet');
       setIsLoading(false);
     }
-  }, [executeTransactions, isDeployed, providerId]);
+  }, [providerId]);
 
   return {
     isLoading,

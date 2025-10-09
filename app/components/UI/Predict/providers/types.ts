@@ -10,6 +10,7 @@ import {
   Side,
 } from '../types';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export interface GetMarketsParams {
   providerId?: string;
@@ -115,9 +116,9 @@ export interface GetAccountStateParams {
 export interface EnableWalletResponse {
   chainId: Hex;
   transactions: {
-    from: Hex;
     to: Hex;
     data: Hex;
+    type?: TransactionType;
   }[];
 }
 

@@ -17,10 +17,13 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { numberToHex } from '@metamask/utils';
+import { Hex, numberToHex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { addTransaction } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
@@ -29,7 +32,6 @@ import {
   CalculateCashOutAmountsParams,
   CalculateCashOutAmountsResponse,
   EnableWalletParams,
-  EnableWalletResponse,
   GetAccountStateParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -725,13 +727,14 @@ export class PredictController extends BaseController<
   // TODO: We need to change to execute the transactions in the controller
   public async enableWallet(
     params: EnableWalletParams,
-  ): Promise<EnableWalletResponse> {
+  ): Promise<Result<{ batchId: string }>> {
     const provider = this.providers.get(params.providerId);
     if (!provider) {
       throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
-    const { AccountsController, KeyringController } = Engine.context;
+    const { AccountsController, KeyringController, NetworkController } =
+      Engine.context;
 
     try {
       const selectedAddress = AccountsController.getSelectedAccount().address;
@@ -750,8 +753,39 @@ export class PredictController extends BaseController<
         signer,
       });
 
-      return response;
+      const { transactions } = response;
+
+      console.log('response', response);
+
+      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+        response.chainId,
+      );
+
+      console.log('transactions', transactions);
+
+      const { batchId } = await addTransactionBatch({
+        from: signer.address as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        transactions: transactions.map((transaction) => ({
+          params: {
+            data: transaction.data,
+            to: transaction.to,
+            type: transaction.type,
+          },
+        })),
+      });
+
+      return {
+        success: true,
+        response: {
+          batchId,
+        },
+      };
     } catch (error) {
+      console.log('error', error);
       throw new Error(
         error instanceof Error
           ? error.message

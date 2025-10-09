@@ -2,9 +2,12 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { numberToHex } from '@metamask/utils';
+import { Hex, numberToHex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { isSmartContractAddress } from '../../../../../util/transactions';
+import {
+  generateTransferData,
+  isSmartContractAddress,
+} from '../../../../../util/transactions';
 import {
   GetPriceHistoryParams,
   PredictActivity,
@@ -73,6 +76,7 @@ import {
   priceValid,
   submitClobOrder,
 } from './utils';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -544,6 +548,10 @@ export class PolymarketProvider implements PredictProvider {
     const transactions = [];
     const { signer } = params;
 
+    const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+
+    const safeAddress = await computeSafeAddress(signer.address);
+
     const deployTransaction = await getDeployProxyWalletTransaction({ signer });
 
     if (!deployTransaction) {
@@ -556,8 +564,18 @@ export class PolymarketProvider implements PredictProvider {
     });
     transactions.push(allowanceTransaction);
 
+    const depositTransactionCallData = await generateTransferData('transfer', {
+      toAddress: safeAddress,
+      amount: '0x0',
+    });
+    transactions.push({
+      to: contractConfig.collateral as Hex,
+      data: depositTransactionCallData as Hex,
+      type: TransactionType.predictDeposit,
+    });
+
     return {
-      chainId: numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      chainId: CHAIN_IDS.POLYGON,
       transactions,
     };
   }

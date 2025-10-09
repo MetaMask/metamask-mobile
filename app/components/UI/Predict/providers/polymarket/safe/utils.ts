@@ -378,7 +378,6 @@ export const getDeployProxyWalletTransaction = async ({
     });
 
     return {
-      from: signer.address as Hex,
       to: SAFE_FACTORY_ADDRESS as Hex,
       data: calldata,
     };
@@ -553,7 +552,6 @@ export const getProxyWalletAllowancesTransaction = async ({
     txn: safeTxn,
   });
   return {
-    from: signer.address as Hex,
     to: safeAddress as Hex,
     data: callData as Hex,
   };
