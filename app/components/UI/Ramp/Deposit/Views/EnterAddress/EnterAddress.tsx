@@ -38,7 +38,9 @@ import BannerAlert from '../../../../../../component-library/components/Banners/
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal/RegionSelectorModal';
 import { useRegions } from '../../hooks/useRegions';
-import Icon, { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 export interface EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
@@ -183,7 +185,7 @@ const EnterAddress = (): JSX.Element => {
 
   useEffect(() => {
     handleFormDataChange('state')('');
-  }, [selectedRegion]);
+  }, [selectedRegion, handleFormDataChange]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
@@ -367,11 +369,15 @@ const EnterAddress = (): JSX.Element => {
                 returnKeyType="done"
                 testID="country-input"
                 containerStyle={styles.nameInputContainer}
+                isReadonly
                 startAccessory={
                   <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
                 }
                 endAccessory={
-                  <Icon name={IconName.ArrowDown} />
+                  <Icon
+                    name={IconName.ArrowDown}
+                    color={theme.colors.icon.alternative}
+                  />
                 }
                 onPress={() => {
                   navigation.navigate(
