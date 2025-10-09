@@ -6,14 +6,14 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
-import { POLYMARKET_API_DOWN_MOCKS } from '../../api-mocking/mock-responses/polymarket-api-down-mocks';
+import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket-mocks';
 
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const testSpecificMock = async (mockServer: Mockttp) => {
-  await POLYMARKET_API_DOWN_MOCKS(mockServer);
+  await POLYMARKET_API_DOWN(mockServer);
   await setupRemoteFeatureFlagsMock(
     mockServer,
     remoteFeatureFlagPredictEnabled(true),
