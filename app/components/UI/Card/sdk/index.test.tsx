@@ -131,6 +131,11 @@ describe('CardSDK Context', () => {
 
       const providedValue: ICardSDK = {
         sdk: null,
+        isAuthenticated: false,
+        setIsAuthenticated: jest.fn(),
+        isLoading: false,
+        logoutFromProvider: jest.fn(),
+        userCardLocation: 'international' as const,
       };
 
       const TestComponent = () => {
@@ -163,6 +168,11 @@ describe('CardSDK Context', () => {
 
       expect(result.current).toEqual({
         sdk: expect.any(Object),
+        isAuthenticated: expect.any(Boolean),
+        setIsAuthenticated: expect.any(Function),
+        isLoading: expect.any(Boolean),
+        logoutFromProvider: expect.any(Function),
+        userCardLocation: expect.stringMatching(/^(us|international)$/),
       });
       expect(result.current.sdk).toHaveProperty('isCardEnabled', true);
       expect(result.current.sdk).toHaveProperty('supportedTokens', []);

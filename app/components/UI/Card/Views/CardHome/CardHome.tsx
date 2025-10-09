@@ -411,7 +411,7 @@ const CardHome = () => {
                     onPress={changeAssetAction}
                     width={ButtonWidthTypes.Full}
                     loading={isLoadingPriorityToken}
-                    testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+                    testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
                   />
                 </View>
               ) : (
@@ -442,7 +442,7 @@ const CardHome = () => {
           )}
           rightIcon={IconName.ArrowRight}
           onPress={manageSpendingLimitAction}
-          testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
+          testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
         />
       )}
 

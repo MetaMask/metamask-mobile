@@ -40,6 +40,7 @@ const CardAuthentication = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [location, setLocation] = useState<CardLocation>('international');
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const theme = useTheme();
   const { login, loading, error, clearError } = useCardProviderAuthentication();
 
@@ -65,10 +66,24 @@ const CardAuthentication = () => {
         e.preventDefault();
         return;
       }
+
+      dispatch(e.data.action);
     });
 
     return unsubscribe;
-  }, [addListener, loading]);
+  }, [addListener, loading, dispatch]);
+
+  // Navigate to home after successful login when loading is complete
+  useEffect(() => {
+    if (loginSuccess && !loading && !error) {
+      dispatch(
+        NavigationActions.navigate({
+          routeName: Routes.CARD.HOME,
+        }),
+      );
+      setLoginSuccess(false); // Reset the flag
+    }
+  }, [loginSuccess, loading, error, dispatch]);
 
   const performLogin = async () => {
     try {
@@ -78,11 +93,8 @@ const CardAuthentication = () => {
         password,
       });
 
-      dispatch(
-        NavigationActions.navigate({
-          routeName: Routes.CARD.HOME,
-        }),
-      );
+      // Set success flag - navigation will be handled by useEffect
+      setLoginSuccess(true);
     } catch (err) {
       // Error is already handled by the hook
     }
