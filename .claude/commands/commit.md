@@ -19,6 +19,7 @@ Commit staged files with a conventional commit message based on the changes made
    - Write description based on actual changes made in the staged files
    - Include specific details about what functionality was added, fixed, or modified
    - Keep description concise but descriptive of the actual changes
+   - Tell why the change was made as the first commit line (title) then list changes on the next lines (body)
 
 3. **Commit changes**
    - Execute `git commit` with the generated message
