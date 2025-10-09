@@ -71,16 +71,6 @@ jest.mock('react-native', () => {
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
-  // Mock deprecated prop types for third-party packages that haven't been updated
-  originalModule.Text.propTypes = {
-    allowFontScaling: true,
-    style: true,
-  };
-
-  originalModule.ViewPropTypes = {
-    style: true,
-  };
-
   return originalModule;
 });
 
@@ -261,13 +251,6 @@ jest.mock('react-native-branch', () => ({
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
-jest.mock('react-native-qrcode-svg', () => {
-  const React = require('react');
-  return React.forwardRef((props, ref) => {
-    const { View } = require('react-native');
-    return React.createElement(View, { ...props, ref, testID: 'qr-code' });
-  });
-});
 
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
