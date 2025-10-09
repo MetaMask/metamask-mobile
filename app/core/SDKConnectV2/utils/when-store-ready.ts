@@ -1,7 +1,15 @@
 import { store } from '../../../store';
 
-const isStoreReady = (): boolean =>
-  store && typeof store.dispatch === 'function';
+const isStoreReady = () => {
+  try {
+    if (store && typeof store.dispatch === 'function') {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Waits for the Redux store and its dispatch method to be available.

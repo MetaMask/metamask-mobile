@@ -1,5 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
+import {
+  IKeyManager,
+  DEFAULT_SESSION_TTL,
+} from '@metamask/mobile-wallet-protocol-core';
 import {
   ConnectionRequest,
   isConnectionRequest,
@@ -179,7 +182,7 @@ export class ConnectionRegistry {
     return {
       id: connReq.sessionRequest.id,
       metadata: connReq.metadata,
-      expiresAt: connReq.sessionRequest.expiresAt,
+      expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
   }
 
