@@ -3,6 +3,7 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../multichainAccounts/accountTreeController';
 import { RootState } from '../../reducers';
 import { isEthAddress } from '../../util/address';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 export const selectBridgeStatusState = (state: RootState) =>
   state.engine.backgroundState.BridgeStatusController;
@@ -19,20 +20,24 @@ export const selectBridgeHistoryForAccount = createSelector(
     // Handle the case when bridgeStatusState is undefined
     const { txHistory = {} } = bridgeStatusState || {};
 
-    // Convert addresses to lowercase Set for efficient lookup
     const addressesSet = new Set(
-      accountGroupAddresses
-        .filter((address): address is string => address != null)
-        .map((address) => address.toLowerCase()),
+      accountGroupAddresses.filter(
+        (address): address is string => address != null,
+      ),
     );
 
     return Object.keys(txHistory).reduce<Record<string, BridgeHistoryItem>>(
       (acc, txMetaId) => {
         const txHistoryItem = txHistory[txMetaId];
-        const txHistoryItemAccount = isEthAddress(txHistoryItem.account)
-          ? txHistoryItem.account?.toLowerCase()
-          : txHistoryItem.account;
-        if (addressesSet.has(txHistoryItemAccount)) {
+        const account = txHistoryItem.account;
+
+        const hasExactMatch = addressesSet.has(account);
+        const evmHasMatch =
+          isEthAddress(account) &&
+          (addressesSet.has(account.toLowerCase()) ||
+            addressesSet.has(toChecksumHexAddress(account)));
+
+        if (hasExactMatch || evmHasMatch) {
           acc[txMetaId] = txHistoryItem;
         }
         return acc;
