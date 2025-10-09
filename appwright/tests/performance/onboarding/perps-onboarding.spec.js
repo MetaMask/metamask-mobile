@@ -32,7 +32,7 @@ async function screensSetup(device) {
 }
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC */
-test.skip('Perps onboarding + add funds 10 USD ARB.USDC', async ({
+test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {

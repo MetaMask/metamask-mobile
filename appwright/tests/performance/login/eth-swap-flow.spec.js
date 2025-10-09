@@ -12,7 +12,7 @@ import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { login } from '../../../utils/Flows.js';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
-test.skip('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
+test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
