@@ -51,5 +51,3 @@ class PerpsTutorialScreen {
 }
 
 export default new PerpsTutorialScreen();
-
-

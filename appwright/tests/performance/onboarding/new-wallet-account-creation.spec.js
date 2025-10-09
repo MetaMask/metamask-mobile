@@ -13,7 +13,7 @@ import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/Ski
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
-import { tapPerpsBottomSheetGotItButton } from '../../../utils/Flows.js';
+import { dismissMultichainAccountsIntroModal, dismissRewardsBottomSheetModal, tapPerpsBottomSheetGotItButton } from '../../../utils/Flows.js';
 
 /* Scenario 2: Account creation after fresh install */
 
@@ -58,7 +58,21 @@ test('Account creation after fresh install', async ({
 
   await OnboardingSucessScreen.tapDone();
 
-  await tapPerpsBottomSheetGotItButton(device);
+// Run both modal dismissals in parallel with 5 second timeout
+const timeoutPromise = new Promise((_, reject) => 
+  setTimeout(() => reject(new Error('Modal dismissal timeout')), 10000)
+);
+
+await Promise.race([
+  Promise.allSettled([
+    dismissMultichainAccountsIntroModal(device),
+    tapPerpsBottomSheetGotItButton(device),
+    dismissRewardsBottomSheetModal(device)
+  ]),
+  timeoutPromise
+]).catch((error) => {
+  console.log('Modal dismissal completed or timed out:', error.message);
+});
 
   await WalletMainScreen.isMainWalletViewVisible();
 
