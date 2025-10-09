@@ -98,20 +98,25 @@ describe('actionButtonTracking', () => {
   });
 
   describe('ActionPosition enum', () => {
-    it('has correct string values', () => {
-      // Given/When/Then: enum values should match expected strings
-      expect(ActionPosition.BUY).toBe('buy');
-      expect(ActionPosition.SWAP).toBe('swap');
-      expect(ActionPosition.SEND).toBe('send');
-      expect(ActionPosition.RECEIVE).toBe('receive');
+    it('has correct numeric values', () => {
+      // Given/When/Then: enum values should match expected numbers
+      expect(ActionPosition.BUY).toBe(0);
+      expect(ActionPosition.SWAP).toBe(1);
+      expect(ActionPosition.SEND).toBe(2);
+      expect(ActionPosition.RECEIVE).toBe(3);
     });
 
-    it('matches ActionButtonType values', () => {
-      // Given/When/Then: position values should match button type values
-      expect(ActionPosition.BUY).toBe(ActionButtonType.BUY);
-      expect(ActionPosition.SWAP).toBe(ActionButtonType.SWAP);
-      expect(ActionPosition.SEND).toBe(ActionButtonType.SEND);
-      expect(ActionPosition.RECEIVE).toBe(ActionButtonType.RECEIVE);
+    it('has corresponding ActionButtonType values', () => {
+      // Given/When/Then: position values should correspond to button type values
+      expect(ActionPosition.BUY).toBe(0);
+      expect(ActionPosition.SWAP).toBe(1);
+      expect(ActionPosition.SEND).toBe(2);
+      expect(ActionPosition.RECEIVE).toBe(3);
+      // Verify ActionButtonType has corresponding string values
+      expect(ActionButtonType.BUY).toBe('buy');
+      expect(ActionButtonType.SWAP).toBe('swap');
+      expect(ActionButtonType.SEND).toBe('send');
+      expect(ActionButtonType.RECEIVE).toBe('receive');
     });
   });
 
@@ -175,6 +180,8 @@ describe('actionButtonTracking', () => {
         saveDataRecording: false,
         isOptIn: false,
         isEnabled: true,
+        isAnonymous: false,
+        hasProperties: true,
       });
     });
 
@@ -197,7 +204,7 @@ describe('actionButtonTracking', () => {
       // Then: should track with correct properties
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: 'buy',
-        action_position: 'buy',
+        action_position: 0,
         button_label: 'Buy',
         location: 'home',
       });
@@ -222,7 +229,7 @@ describe('actionButtonTracking', () => {
       // Then: should track with correct properties
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: 'swap',
-        action_position: 'swap',
+        action_position: 1,
         button_label: 'Swap',
         location: 'asset details',
       });
@@ -247,7 +254,7 @@ describe('actionButtonTracking', () => {
       // Then: should track with correct properties
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: 'send',
-        action_position: 'send',
+        action_position: 2,
         button_label: 'Send',
         location: 'home',
       });
@@ -272,7 +279,7 @@ describe('actionButtonTracking', () => {
       // Then: should track with correct properties
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: 'receive',
-        action_position: 'receive',
+        action_position: 3,
         button_label: 'Receive',
         location: 'home',
       });
@@ -298,7 +305,7 @@ describe('actionButtonTracking', () => {
       // Then: should include action_id in properties
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: 'buy',
-        action_position: 'buy',
+        action_position: 0,
         button_label: 'Buy',
         location: 'home',
         action_id: 'custom-action-123',
