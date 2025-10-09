@@ -99,8 +99,10 @@ const selectStakedAssets = createDeepEqualSelector(
     currencyRates,
     currentCurrency,
   ) => {
-    const stakedAssets = Object.entries(accountsByChainId).flatMap(
-      ([chainId, chainAccounts]) =>
+    const stakedAssets = Object.entries(accountsByChainId)
+      // Only include mainnet and hoodi
+      .filter(([chainId, _]) => chainId === '0x1' || chainId === '0x88bb0')
+      .flatMap(([chainId, chainAccounts]) =>
         Object.entries(chainAccounts)
           .filter(
             ([_, accountInformation]) =>
@@ -162,7 +164,7 @@ const selectStakedAssets = createDeepEqualSelector(
               stakedAsset,
             };
           }),
-    );
+      );
 
     return stakedAssets;
   },
@@ -188,7 +190,17 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) => chainAssets)
+      .filter((asset) => {
+        // We need to filter out Tron energy and bandwidth from this list
+        if (
+          asset.chainId?.includes('tron:') &&
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
+        ) {
+          return false;
+        }
+        return true;
+      });
 
     const stakedAssetsArray = [];
     for (const asset of assets) {

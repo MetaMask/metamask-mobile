@@ -7,6 +7,20 @@ export enum Side {
   SELL = 'SELL',
 }
 
+export enum PredictPriceHistoryInterval {
+  ONE_HOUR = '1h',
+  SIX_HOUR = '6h',
+  ONE_DAY = '1d',
+  ONE_WEEK = '1w',
+  ONE_MONTH = '1m',
+  MAX = 'max',
+}
+
+export interface GetPositionsParams {
+  address?: string;
+  providerId?: string;
+}
+
 export enum PredictMarketStatus {
   OPEN = 'open',
   CLOSED = 'closed',
@@ -96,6 +110,7 @@ export type PredictMarket = {
   slug: string;
   title: string;
   description: string;
+  endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
@@ -126,6 +141,7 @@ export type PredictOutcome = {
   groupItemTitle: string;
   negRisk?: boolean;
   tickSize?: string;
+  resolvedBy?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -169,6 +185,18 @@ export interface PredictActivityClaimWinnings {
   type: 'claimWinnings';
   timestamp: number;
   // tbd
+}
+
+export interface PredictPriceHistoryPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface GetPriceHistoryParams {
+  marketId: string;
+  providerId?: string;
+  fidelity?: number;
+  interval?: PredictPriceHistoryInterval;
 }
 
 export enum PredictPositionStatus {

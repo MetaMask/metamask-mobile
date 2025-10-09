@@ -93,6 +93,11 @@ export const PerpsEventProperties = {
   NAVIGATION_METHOD: 'navigation_method',
   STATUS: 'status',
   SCREEN_TYPE: 'screen_type',
+  SCREEN_NAME: 'screen_name',
+  ACTION: 'action',
+  RETRY_ATTEMPTS: 'retry_attempts',
+  SHOW_BACK_BUTTON: 'show_back_button',
+  ATTEMPT_NUMBER: 'attempt_number',
 } as const;
 
 /**
@@ -198,8 +203,17 @@ export const PerpsEventValues = {
     LEVERAGE: 'leverage',
     TUTORIAL: 'tutorial',
     WITHDRAWAL: 'withdrawal',
+    TP_SL: 'tp_sl',
+    DEPOSIT_INPUT: 'deposit_input',
+    DEPOSIT_REVIEW: 'deposit_review',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
+  },
+  SCREEN_NAME: {
+    CONNECTION_ERROR: 'connection_error',
+  },
+  ACTION: {
+    CONNECTION_RETRY: 'connection_retry',
   },
 } as const;

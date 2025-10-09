@@ -917,4 +917,91 @@ describe('CardHome Component', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
+
+  it('converts NaN rawTokenBalance to 0 in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: NaN, // This should be converted to 0
+      rawFiatNumber: 1000,
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 0, // NaN should become 0
+        token_fiat_balance_priority: 1000,
+      }),
+    );
+  });
+
+  it('converts NaN rawFiatNumber to 0 in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: NaN, // This should be converted to 0
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 1000,
+        token_fiat_balance_priority: 0, // NaN should become 0
+      }),
+    );
+  });
+
+  it('converts both NaN raw values to 0 in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: NaN, // This should be converted to 0
+      rawFiatNumber: NaN, // This should be converted to 0
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 0, // NaN should become 0
+        token_fiat_balance_priority: 0, // NaN should become 0
+      }),
+    );
+  });
+
+  it('preserves undefined raw values (does not convert to 0) in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      // rawTokenBalance and rawFiatNumber intentionally omitted (undefined)
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: undefined, // undefined should remain undefined
+        token_fiat_balance_priority: undefined, // undefined should remain undefined
+      }),
+    );
+  });
 });

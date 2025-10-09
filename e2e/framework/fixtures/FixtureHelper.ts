@@ -391,6 +391,7 @@ export async function withFixtures(
     languageAndLocale,
     permissions = {},
     endTestfn,
+    skipReactNativeReload = false,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
@@ -511,13 +512,15 @@ export async function withFixtures(
       cleanupErrors.push(cleanupError as Error);
     }
 
-    try {
-      // Force reload React Native to stop any lingering timers
-      await device.reloadReactNative();
-    } catch (cleanupError) {
-      logger.warn('React Native reload failed (non-critical):', cleanupError);
-      // Don't add to cleanupErrors as this is a non-critical cleanup operation
-      // The test should not fail if only React Native reload fails
+    if (!skipReactNativeReload) {
+      try {
+        // Force reload React Native to stop any lingering timers
+        await device.reloadReactNative();
+      } catch (cleanupError) {
+        logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Don't add to cleanupErrors as this is a non-critical cleanup operation
+        // The test should not fail if only React Native reload fails
+      }
     }
 
     try {

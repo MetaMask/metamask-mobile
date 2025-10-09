@@ -103,6 +103,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
+    REWARDS_INTRO_MODAL: 'RewardsIntroModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -116,6 +117,7 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    SOCIAL_LOGIN_SUCCESS: 'SocialLoginSuccessNewUser',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -345,7 +347,7 @@ const Routes = {
     DEFAULT: 'Send',
   },
   SDK: {
-    RETURN_TO_DAPP_TOAST: 'ReturnToDappToast',
+    RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
 };
 

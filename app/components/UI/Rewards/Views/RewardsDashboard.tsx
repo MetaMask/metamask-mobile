@@ -21,13 +21,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RewardsTab } from '../../../../reducers/rewards/types';
 import {
   selectActiveTab,
+  selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
-import {
-  selectRewardsSubscriptionId,
-  selectHideUnlinkedAccountsBanner,
-} from '../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
@@ -151,6 +149,20 @@ const RewardsDashboard: React.FC = () => {
     [dispatch, tabOptions, activeTab],
   );
 
+  const tabsListProps = useMemo(
+    () => ({
+      ref: tabsListRef,
+      initialActiveIndex: getActiveIndex(),
+      onChangeTab: handleTabChange,
+      testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
+      tabsBarProps: {
+        twClassName: 'px-4',
+      },
+      tabsListContentTwClassName: 'px-0',
+    }),
+    [getActiveIndex, handleTabChange],
+  );
+
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
@@ -218,11 +230,11 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <Box
-        twClassName="flex-1 px-4 bg-default gap-4 relative"
+        twClassName="flex-1 bg-default gap-4 relative"
         style={{ marginTop: insets.top }}
       >
         {/* Header row */}
-        <Box twClassName="flex-row  justify-between">
+        <Box twClassName="flex-row justify-between px-4">
           <Text variant={TextVariant.HeadingLg} twClassName="text-default">
             {strings('rewards.main_title')}
           </Text>
@@ -253,12 +265,7 @@ const RewardsDashboard: React.FC = () => {
         <SeasonStatus />
 
         {/* Tab View */}
-        <TabsList
-          ref={tabsListRef}
-          initialActiveIndex={getActiveIndex()}
-          onChangeTab={handleTabChange}
-          testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
-        >
+        <TabsList {...tabsListProps}>
           <RewardsOverview
             key="overview"
             tabLabel={strings('rewards.tab_overview_title')}

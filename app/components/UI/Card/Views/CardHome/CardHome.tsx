@@ -160,8 +160,14 @@ const CardHome = () => {
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
             token_symbol_priority: priorityToken?.symbol,
-            token_raw_balance_priority: rawTokenBalance,
-            token_fiat_balance_priority: rawFiatNumber,
+            token_raw_balance_priority:
+              rawTokenBalance !== undefined && isNaN(rawTokenBalance)
+                ? 0
+                : rawTokenBalance,
+            token_fiat_balance_priority:
+              rawFiatNumber !== undefined && isNaN(rawFiatNumber)
+                ? 0
+                : rawFiatNumber,
           })
           .build(),
       );

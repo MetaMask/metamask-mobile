@@ -172,7 +172,6 @@ export interface GetPointsEventsLastUpdatedDto {
 export interface PaginatedPointsEventsDto {
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
   results: PointsEventDto[];
 }
 
@@ -252,6 +251,12 @@ export interface PerpsEventPayload {
    * Asset information
    */
   asset: EventAssetDto;
+
+  /**
+   * PNL of the position
+   * @example 10.0464
+   */
+  pnl?: string;
 }
 
 /**
@@ -578,7 +583,7 @@ export type PointsEventsDtoState = {
   }[];
   has_more: boolean;
   cursor: string | null;
-  total_results: number;
+  lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -586,8 +591,6 @@ export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
   subscriptionId: string | null;
-  lastCheckedAuth: number;
-  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };

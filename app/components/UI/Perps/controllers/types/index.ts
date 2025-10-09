@@ -341,6 +341,13 @@ export interface OrderFill {
   timestamp: number; // Fill timestamp
   startPosition?: string; // Start position
   success?: boolean; // Whether the order was filled successfully
+  liquidation?: {
+    liquidatedUser: string; // Address of the liquidated user. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
+    markPx: string; // Mark price at liquidation
+    method: string; // Liquidation method (e.g., 'market')
+  };
+  orderType?: 'take_profit' | 'stop_loss' | 'liquidation' | 'regular';
+  detailedOrderType?: string; // Original order type from exchange
 }
 
 // Parameter interfaces - all fully optional for better UX
@@ -351,6 +358,7 @@ export interface GetPositionsParams {
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
+  source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
 }
 
 export interface GetOrderFillsParams {

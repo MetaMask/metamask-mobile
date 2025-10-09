@@ -96,7 +96,7 @@ export const hideWCLoadingState = ({
   if (currentRoute === Routes.SHEET.SDK_LOADING && navigation?.canGoBack()) {
     navigation?.goBack();
   } else if (
-    currentRoute === Routes.SDK.RETURN_TO_DAPP_TOAST &&
+    currentRoute === Routes.SDK.RETURN_TO_DAPP_NOTIFICATION &&
     navigation?.canGoBack()
   ) {
     // also close return to dapp if it wasnt previously closed
