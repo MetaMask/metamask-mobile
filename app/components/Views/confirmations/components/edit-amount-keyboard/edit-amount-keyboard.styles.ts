@@ -11,7 +11,8 @@ const styleSheet = (params: { theme: Theme }) =>
       borderTopLeftRadius: 12,
       borderTopRightRadius: 12,
       padding: 12,
-      paddingBottom: 20,
+      paddingBottom: 16,
+      marginVertical: 12,
     },
     percentageButton: {
       borderRadius: 12,

@@ -40,7 +40,7 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginBottom: isNFT ? 40 : 80,
+      marginBottom: isNFT ? 40 : 60,
     },
     container: {
       backgroundColor: theme.colors.background.default,
