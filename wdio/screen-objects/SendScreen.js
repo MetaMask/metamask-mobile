@@ -100,6 +100,7 @@ class SendScreen {
     } else {
       console.log('Typing address in send address field');
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
+      console.log('element got found', address);
       await AppwrightGestures.typeText(element, address);
     }
   }

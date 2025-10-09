@@ -52,7 +52,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   timer1.start();
   await SendScreen.assetsListIsDisplayed();
   timer1.stop();
-  await SendScreen.typeTokenName('Ethereum\n');
+  await SendScreen.typeTokenName('Link\n');
   console.log('Ethereum typed, so waiting 5 seconds');
   await SendScreen.clickOnFirstTokenBadge();
   timer2.start();
@@ -66,7 +66,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   timer3.start();
   await SendScreen.isSelectAddressScreenDisplayed();
   timer3.stop();
-  await SendScreen.typeAddressInSendAddressField(destinationAddress);
+  await SendScreen.typeAddressInSendAddressField(ethAddress);
   await SendScreen.clickOnReviewButton();
   timer4.start();
   await ConfirmationScreen.isVisible();
@@ -111,7 +111,6 @@ test.only('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   const timer4 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
-  await device.pause(1000000000);
   await WalletActionModal.tapSendButton();
   timer1.start();
   await SendScreen.assetsListIsDisplayed();

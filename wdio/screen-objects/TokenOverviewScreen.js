@@ -30,7 +30,11 @@ class TokenOverviewScreen {
   }
 
   get sendButton() {
-    return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.SEND_BUTTON);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.SEND_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TokenOverviewSelectorsIDs.SEND_BUTTON);
+    }
   }
 
   async isTokenOverviewVisible() {
@@ -62,6 +66,16 @@ class TokenOverviewScreen {
     }
     else {
       await AppwrightGestures.tap(this.sendButton);
+    }
+  }
+
+  async isSendButtonVisible() {
+    if (!this._device) {
+      const element = await this.sendButton;
+      await element.waitForDisplayed();
+    } else {
+      const element = await this.sendButton;
+      expectAppwright(await element).toBeVisible();
     }
   }
 }

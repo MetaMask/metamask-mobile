@@ -14,6 +14,7 @@ import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
+import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -54,8 +55,22 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  await tapPerpsBottomSheetGotItButton(device);
-  await dismissMultichainAccountsIntroModal(device);
+
+  // Run both modal dismissals in parallel with 5 second timeout
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Modal dismissal timeout')), 10000)
+  );
+  
+  await Promise.race([
+    Promise.allSettled([
+      dismissMultichainAccountsIntroModal(device),
+      tapPerpsBottomSheetGotItButton(device),
+      dismissRewardsBottomSheetModal(device)
+    ]),
+    timeoutPromise
+  ]).catch((error) => {
+    console.log('Modal dismissal completed or timed out:', error.message);
+  });
 
   await WalletMainScreen.isMainWalletViewVisible();
 }
@@ -145,6 +160,14 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+  }
+}
+
+export async function dismissRewardsBottomSheetModal(device) {
+  RewardsGTMModal.device = device;
+  const container = await RewardsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await RewardsGTMModal.tapNotNowButton();
   }
 }
 
