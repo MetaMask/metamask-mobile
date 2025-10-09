@@ -61,12 +61,63 @@ export function formatWithSignificantDigits(
 ): { value: number; decimals: number } {
   // Handle special cases
   if (value === 0) {
-    return { value: 0, decimals: minDecimals ?? 0 };
+    // Always show 2 decimals for zero currency values ($0.00 not $0)
+    return { value: 0, decimals: Math.max(minDecimals ?? 2, 2) };
   }
 
   const absValue = Math.abs(value);
 
-  // Use toPrecision for significant digits, then parse back
+  // For numbers >= 1, calculate decimals based on magnitude to achieve target significant figures
+  // This ensures consistent precision across different price ranges:
+  // Examples with 4 significant figures:
+  //   $123,456.78 → $123,456.78 (≥$1000: 2 decimals minimum, 8 sig figs)
+  //   $456.12 → $456.12 (≥$10: 2 decimals minimum, 5 sig figs)
+  //   $56.123 → $56.123 (≥$10: 2 decimals minimum, 5 sig figs)
+  //   $5.123 → $5.123 ($1-$10: 3 decimals = 4 sig figs)
+  //   $2.801 → $2.801 ($1-$10: 3 decimals = 4 sig figs)
+  //   $1.234 → $1.234 ($1-$10: 3 decimals = 4 sig figs)
+  if (absValue >= 1) {
+    let targetDecimals: number;
+
+    if (absValue >= 1000) {
+      // ≥$1000: 2 decimals minimum (currency standard)
+      // Already have 4+ sig figs from integer part (e.g., 123456.78 = 8 sig figs)
+      targetDecimals = 2;
+    } else if (absValue >= 10) {
+      // $10-$1000: 2 decimals minimum (currency standard)
+      // Already have 4+ sig figs from integer part (e.g., 456.12 = 5 sig figs)
+      targetDecimals = 2;
+    } else {
+      // $1-$10: Calculate decimals needed to achieve significantDigits
+      // For $2.80055: 1 integer digit + 3 decimals = 4 sig figs → $2.801
+      // For $5.1234: 1 integer digit + 3 decimals = 4 sig figs → $5.123
+      const integerDigits = Math.floor(Math.log10(absValue)) + 1; // Number of digits before decimal
+      const decimalsNeeded = Math.max(significantDigits - integerDigits, 2); // At least 2 decimals for currency
+      targetDecimals = decimalsNeeded;
+    }
+
+    // Apply explicit minimum decimals constraint if provided (for special cases)
+    if (minDecimals !== undefined && targetDecimals < minDecimals) {
+      targetDecimals = minDecimals;
+    }
+
+    // Apply maximum decimals constraint if specified
+    const finalDecimals =
+      maxDecimals !== undefined
+        ? Math.min(targetDecimals, maxDecimals)
+        : targetDecimals;
+
+    // Round to prevent floating-point artifacts (e.g., 2.820000000000003 → 2.82)
+    const roundedValue = Number(value.toFixed(finalDecimals));
+
+    return {
+      value: roundedValue,
+      decimals: finalDecimals,
+    };
+  }
+
+  // For numbers < 1, use toPrecision to limit to significantDigits
+  // Examples: 0.1234, 0.01234 should show exactly 4 sig figs
   const precisionStr = absValue.toPrecision(significantDigits);
   const precisionNum = parseFloat(precisionStr);
 
@@ -286,16 +337,17 @@ export const PRICE_RANGES_MINIMAL_VIEW: FiatRangeConfig[] = [
 ];
 
 /**
- * Unified price range configuration for 4 significant figures
- * Follows the rule: Display 4 significant numbers (min 2 decimals)
- * Examples: $123,456.78 ; $4,123.45 ; $56.123 ; $1.234 ; $0.1234 ; $0.01234
- * No trailing zeros: $123,456 not $123,456.00
+ * Unified price range configuration for 4 significant figures with currency standard
+ * Follows the rule: Display at least 2 decimals (currency standard), preserve higher precision, strip excess trailing zeros
+ * Examples: $123,456.00 ; $4,123.45 ; $56.123 ; $1.234 ; $0.1234 ; $0.01234
+ * Minimum 2 decimals for currency: $123,456 → $123,456.00 ; $1.23 stays $1.23
+ * Preserve higher precision: $1.234 stays $1.234 (don't round to 2 decimals)
  */
 export const PRICE_RANGES_4_SIG_FIGS: FiatRangeConfig[] = [
   {
     condition: () => true,
     significantDigits: 4,
-    minimumDecimals: 2,
+    minimumDecimals: 2, // Currency standard: minimum 2 decimals
     maximumDecimals: 10, // Allow up to 10 decimals for very small numbers
     threshold: 0.00000001,
   },

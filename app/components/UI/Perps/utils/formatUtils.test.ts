@@ -16,6 +16,7 @@ import {
   formatTransactionDate,
   formatDateSection,
   formatFundingRate,
+  PRICE_RANGES_4_SIG_FIGS,
 } from './formatUtils';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
@@ -251,6 +252,94 @@ describe('formatUtils', () => {
     it('should handle very small numbers', () => {
       expect(formatPrice(0.0001)).toBe('$0.0001');
       expect(formatPrice('0.00001')).toBe('$0.00');
+    });
+  });
+
+  describe('formatPerpsFiat with PRICE_RANGES_4_SIG_FIGS', () => {
+    it('should format large whole numbers with minimum 2 decimals (currency standard)', () => {
+      // Currency standard: minimum 2 decimals for consistency
+      expect(formatPerpsFiat(123456, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$123,456.00',
+      );
+      expect(formatPerpsFiat(121300, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$121,300.00',
+      );
+      expect(formatPerpsFiat(50000, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$50,000.00',
+      );
+    });
+
+    it('should format large numbers with minimum 2 decimals', () => {
+      // Enforce minimum 2 decimals for currency consistency
+      expect(formatPerpsFiat(121308, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$121,308.00',
+      );
+      expect(
+        formatPerpsFiat(123456.78, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+      ).toBe('$123,456.78');
+      expect(
+        formatPerpsFiat(4123.45, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+      ).toBe('$4,123.45');
+    });
+
+    it('should format medium numbers with 4 sig figs', () => {
+      // Task examples
+      expect(formatPerpsFiat(56.123, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$56.123',
+      );
+      expect(formatPerpsFiat(2.875, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$2.875',
+      );
+      expect(formatPerpsFiat(1.234, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$1.234',
+      );
+    });
+
+    it('should format small numbers with 4 sig figs', () => {
+      // Task examples
+      expect(formatPerpsFiat(0.1234, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$0.1234',
+      );
+      expect(
+        formatPerpsFiat(0.01234, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+      ).toBe('$0.01234');
+    });
+
+    it('should preserve precision and enforce minimum 2 decimals', () => {
+      // Preserve higher precision (3+ decimals)
+      expect(formatPerpsFiat(1.234, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$1.234',
+      );
+      // Keep natural 2 decimals
+      expect(formatPerpsFiat(1.23, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$1.23',
+      );
+      // Enforce minimum 2 decimals for currency consistency
+      expect(formatPerpsFiat(10.5, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$10.50',
+      );
+    });
+
+    it('should format zero with currency standard (2 decimals)', () => {
+      // Zero should always show $0.00 for currency
+      expect(formatPerpsFiat(0, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$0.00',
+      );
+    });
+
+    it('should handle edge cases', () => {
+      // Very small numbers
+      expect(
+        formatPerpsFiat(0.0001234, { ranges: PRICE_RANGES_4_SIG_FIGS }),
+      ).toBe('$0.0001234');
+
+      // Numbers just below rounding threshold - enforce minimum 2 decimals
+      expect(formatPerpsFiat(999.99, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$999.99',
+      );
+      expect(formatPerpsFiat(1000, { ranges: PRICE_RANGES_4_SIG_FIGS })).toBe(
+        '$1,000.00',
+      );
     });
   });
 
