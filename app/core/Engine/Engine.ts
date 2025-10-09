@@ -15,7 +15,6 @@ import {
   TokenDetectionController,
   TokenListController,
   TokenRatesController,
-  TokensController,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
@@ -197,6 +196,7 @@ import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
+import { tokensControllerInit } from './controllers/tokens-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -389,6 +389,7 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        TokensController: tokensControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -466,6 +467,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const tokensController = controllersByName.TokensController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
@@ -735,31 +737,6 @@ export class Engine {
         ],
       }),
       state: initialState.NftController,
-    });
-
-    const tokensController = new TokensController({
-      chainId: getGlobalChainId(networkController),
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-      provider: networkController.getProviderAndBlockTracker().provider,
-      state: initialState.TokensController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokensController',
-        allowedActions: [
-          'ApprovalController:addRequest',
-          'NetworkController:getNetworkClientById',
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
-          'AccountsController:listAccounts',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
-          'NetworkController:stateChange',
-          'TokenListController:stateChange',
-          'AccountsController:selectedEvmAccountChange',
-          'KeyringController:accountRemoved',
-        ],
-      }),
     });
 
     const earnController = new EarnController({
