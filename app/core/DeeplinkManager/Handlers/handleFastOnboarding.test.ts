@@ -7,14 +7,14 @@ import { NavigationContainerRef } from '@react-navigation/native';
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
 describe('handleFastOnboarding', () => {
-  let mockNavigate: jest.Mock;
+  let mockReset: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockNavigate = jest.fn();
+    mockReset = jest.fn();
     jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
-      navigate: mockNavigate,
+      reset: mockReset,
     } as unknown as NavigationContainerRef);
   });
 
@@ -37,18 +37,23 @@ describe('handleFastOnboarding', () => {
         // Advance timers by 1000ms to trigger the setTimeout
         jest.advanceTimersByTime(1000);
 
-        expect(mockNavigate).toHaveBeenCalledWith({
-          name: Routes.ONBOARDING.ROOT_NAV,
-          params: {
-            screen: Routes.ONBOARDING.NAV,
-            params: {
-              screen: Routes.ONBOARDING.ONBOARDING,
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.ROOT_NAV,
               params: {
-                onboardingType,
-                existingUser: '',
+                screen: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.ONBOARDING,
+                  params: {
+                    onboardingType,
+                    existingUser: '',
+                  },
+                },
               },
             },
-          },
+          ],
         });
       },
     );
@@ -68,18 +73,23 @@ describe('handleFastOnboarding', () => {
         // Advance timers by 1000ms to trigger the setTimeout
         jest.advanceTimersByTime(1000);
 
-        expect(mockNavigate).toHaveBeenCalledWith({
-          name: Routes.ONBOARDING.ROOT_NAV,
-          params: {
-            screen: Routes.ONBOARDING.NAV,
-            params: {
-              screen: Routes.ONBOARDING.ONBOARDING,
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.ROOT_NAV,
               params: {
-                onboardingType,
-                existingUser: 'true',
+                screen: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.ONBOARDING,
+                  params: {
+                    onboardingType,
+                    existingUser: 'true',
+                  },
+                },
               },
             },
-          },
+          ],
         });
       },
     );
@@ -97,15 +107,20 @@ describe('handleFastOnboarding', () => {
       // Advance timers by 1000ms to trigger the setTimeout
       jest.advanceTimersByTime(1000);
 
-      expect(mockNavigate).toHaveBeenCalledWith({
-        name: Routes.ONBOARDING.ROOT_NAV,
-        params: {
-          screen: Routes.ONBOARDING.NAV,
-          params: {
-            screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'google', existingUser: '' },
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.ONBOARDING,
+                params: { onboardingType: 'google', existingUser: '' },
+              },
+            },
           },
-        },
+        ],
       });
     });
 
@@ -122,15 +137,20 @@ describe('handleFastOnboarding', () => {
       // Advance timers by 1000ms to trigger the setTimeout
       jest.advanceTimersByTime(1000);
 
-      expect(mockNavigate).toHaveBeenCalledWith({
-        name: Routes.ONBOARDING.ROOT_NAV,
-        params: {
-          screen: Routes.ONBOARDING.NAV,
-          params: {
-            screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'google', existingUser: '' },
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.ONBOARDING,
+                params: { onboardingType: 'google', existingUser: '' },
+              },
+            },
           },
-        },
+        ],
       });
     });
   });
@@ -148,7 +168,7 @@ describe('handleFastOnboarding', () => {
       const result = handleFastOnboarding(deeplink);
 
       // Assert
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
   });
@@ -167,15 +187,20 @@ describe('handleFastOnboarding', () => {
       // Advance timers by 1000ms to trigger the setTimeout
       jest.advanceTimersByTime(1000);
 
-      expect(mockNavigate).toHaveBeenCalledWith({
-        name: Routes.ONBOARDING.ROOT_NAV,
-        params: {
-          screen: Routes.ONBOARDING.NAV,
-          params: {
-            screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'google', existingUser: '' },
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.ONBOARDING,
+                params: { onboardingType: 'google', existingUser: '' },
+              },
+            },
           },
-        },
+        ],
       });
     });
 
@@ -192,15 +217,20 @@ describe('handleFastOnboarding', () => {
       // Advance timers by 1000ms to trigger the setTimeout
       jest.advanceTimersByTime(1000);
 
-      expect(mockNavigate).toHaveBeenCalledWith({
-        name: Routes.ONBOARDING.ROOT_NAV,
-        params: {
-          screen: Routes.ONBOARDING.NAV,
-          params: {
-            screen: Routes.ONBOARDING.ONBOARDING,
-            params: { onboardingType: 'apple', existingUser: '' },
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.ONBOARDING,
+                params: { onboardingType: 'apple', existingUser: '' },
+              },
+            },
           },
-        },
+        ],
       });
     });
 

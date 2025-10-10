@@ -32,7 +32,10 @@ function handleFastOnboarding(onboardingDeeplink: string): boolean {
     };
     // delay is needed to avoid race condition with navigation service
     setTimeout(() => {
-      NavigationService.navigation?.navigate(resetRoute.routes[0]);
+      NavigationService.navigation?.reset({
+        index: 0,
+        routes: resetRoute.routes,
+      });
     }, 1000);
     return true;
   } catch {
