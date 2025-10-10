@@ -2,6 +2,7 @@ import {
   getFetchParams,
   shouldShowMaxBalanceLink,
   isSwapsAllowed,
+  formatMaxBalanceAmount,
 } from './index';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { SolScope } from '@metamask/keyring-api';
@@ -243,5 +244,42 @@ describe('isSwapsAllowed', () => {
       });
       expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
     });
+  });
+});
+
+describe('formatMaxBalanceAmount', () => {
+  it('should format ETH balance to max 5 decimals', () => {
+    // Balance with many decimals: 1.234567890123456789 ETH
+    const balance = '1234567890123456789';
+    const result = formatMaxBalanceAmount(balance, 18);
+    expect(result).toBe('1.23457');
+  });
+
+  it('should format USDC balance to max 5 decimals', () => {
+    // Balance: 1.234567 USDC (6 decimals)
+    const balance = '1234567';
+    const result = formatMaxBalanceAmount(balance, 6);
+    expect(result).toBe('1.23457');
+  });
+
+  it('should format WBTC balance to max 5 decimals', () => {
+    // Balance: 1.23456789 WBTC (8 decimals)
+    const balance = '123456789';
+    const result = formatMaxBalanceAmount(balance, 8);
+    expect(result).toBe('1.23457');
+  });
+
+  it('should handle small balances correctly', () => {
+    // Balance: 0.000001 ETH
+    const balance = '1000000000000';
+    const result = formatMaxBalanceAmount(balance, 18);
+    expect(result).toBe('0.000001');
+  });
+
+  it('should handle whole numbers without decimals', () => {
+    // Balance: 5 ETH exactly
+    const balance = '5000000000000000000';
+    const result = formatMaxBalanceAmount(balance, 18);
+    expect(result).toBe('5');
   });
 });

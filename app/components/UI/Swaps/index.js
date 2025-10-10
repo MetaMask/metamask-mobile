@@ -21,7 +21,6 @@ import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
   fromTokenMinimalUnitString,
-  renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
   weiToFiat,
   safeNumberToBN,
@@ -48,6 +47,7 @@ import {
   isSwapsNativeAsset,
   isDynamicToken,
   shouldShowMaxBalanceLink,
+  formatMaxBalanceAmount,
 } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
@@ -661,7 +661,7 @@ function SwapsAmountView({
     if (!sourceToken || !balanceAsUnits) {
       return;
     }
-    const maxAmount = renderFromTokenMinimalUnit(
+    const maxAmount = formatMaxBalanceAmount(
       balanceAsUnits,
       sourceToken.decimals,
     );
