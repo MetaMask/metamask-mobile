@@ -37,12 +37,10 @@ describe('useTokenExchangeRate', () => {
     // Given a token that exists in allTokenMarketData
     const mockMarketDataRate = 1.5;
 
-    // Arrange
     jest.mocked(selectCurrentCurrency).mockReturnValue(mockCurrency);
     jest.mocked(selectTokenMarketData).mockReturnValue({});
     jest.mocked(exchangeRateFromMarketData).mockReturnValue(mockMarketDataRate);
 
-    // Act
     const { result } = renderHook(() =>
       useTokenExchangeRate({
         chainId: mockChainId,
@@ -61,7 +59,6 @@ describe('useTokenExchangeRate', () => {
     const expectedTokenPriceInNativeAsset =
       mockTokenFiatPrice / mockNativeConversionRate; // 100/3000 = 0.0333 ETH
 
-    // Arrange
     jest.mocked(selectCurrentCurrency).mockReturnValue(mockCurrency);
     jest.mocked(selectCurrencyRates).mockReturnValue({
       [mockNativeCurrency]: {
@@ -77,7 +74,6 @@ describe('useTokenExchangeRate', () => {
     jest.mocked(exchangeRateFromMarketData).mockReturnValue(undefined);
     jest.mocked(getTokenExchangeRate).mockResolvedValue(mockTokenFiatPrice);
 
-    // Act
     const { result } = renderHook(() =>
       useTokenExchangeRate({
         chainId: mockChainId,
@@ -85,10 +81,10 @@ describe('useTokenExchangeRate', () => {
       }),
     );
 
-    // Assert - Initially should be loading
+    // Initially should be loading
     expect(result.current.isLoading).toBe(true);
 
-    // Assert - When fetch completes
+    // When fetch completes
     await waitFor(() => {
       expect(result.current.exchangeRate).toBeCloseTo(
         expectedTokenPriceInNativeAsset,
@@ -97,7 +93,7 @@ describe('useTokenExchangeRate', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Assert - Verify API was called with correct params
+    // Verify API was called with correct params
     expect(getTokenExchangeRate).toHaveBeenCalledWith({
       chainId: mockChainId,
       tokenAddress: mockTokenAddress,
@@ -109,7 +105,6 @@ describe('useTokenExchangeRate', () => {
     // Given an API that fails
     const apiError = new Error('API Error');
 
-    // Arrange
     jest.mocked(selectCurrentCurrency).mockReturnValue(mockCurrency);
     jest.mocked(selectCurrencyRates).mockReturnValue({
       [mockNativeCurrency]: {
@@ -129,7 +124,6 @@ describe('useTokenExchangeRate', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
 
-    // Act
     const { result } = renderHook(() =>
       useTokenExchangeRate({
         chainId: mockChainId,
@@ -137,13 +131,13 @@ describe('useTokenExchangeRate', () => {
       }),
     );
 
-    // Assert - When error occurs
+    // When error occurs
     await waitFor(() => {
       expect(result.current.exchangeRate).toBeUndefined();
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Assert - Error was logged
+    // Error was logged
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Failed to fetch token exchange rate:',
       apiError,
@@ -154,14 +148,13 @@ describe('useTokenExchangeRate', () => {
 
   it('should not fetch when chainId or tokenAddress is missing', () => {
     // Given missing required parameters
-    // Arrange
+
     jest.mocked(selectCurrentCurrency).mockReturnValue(mockCurrency);
     jest.mocked(selectTokenMarketData).mockReturnValue({});
     jest.mocked(exchangeRateFromMarketData).mockReturnValue(undefined);
 
     const getTokenExchangeRateSpy = jest.mocked(getTokenExchangeRate);
 
-    // Act
     const { result } = renderHook(() =>
       useTokenExchangeRate({
         chainId: undefined,
@@ -180,7 +173,6 @@ describe('useTokenExchangeRate', () => {
     const mockOverrideCurrency = 'EUR';
     const mockTokenFiatPrice = 90;
 
-    // Arrange
     jest.mocked(selectCurrentCurrency).mockReturnValue(mockCurrency);
     jest.mocked(selectCurrencyRates).mockReturnValue({
       [mockNativeCurrency]: {
@@ -196,7 +188,6 @@ describe('useTokenExchangeRate', () => {
     jest.mocked(exchangeRateFromMarketData).mockReturnValue(undefined);
     jest.mocked(getTokenExchangeRate).mockResolvedValue(mockTokenFiatPrice);
 
-    // Act
     renderHook(() =>
       useTokenExchangeRate({
         chainId: mockChainId,
@@ -205,13 +196,60 @@ describe('useTokenExchangeRate', () => {
       }),
     );
 
-    // Assert - API was called with override currency
+    // API was called with override currency
     await waitFor(() => {
       expect(getTokenExchangeRate).toHaveBeenCalledWith({
         chainId: mockChainId,
         tokenAddress: mockTokenAddress,
         currency: mockOverrideCurrency,
       });
+    });
+  });
+
+  it('should fetch exchange rate for non-EVM chains (Solana) without conversion', async () => {
+    // Given a Solana token (non-EVM chain)
+    const mockSolanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const mockSolanaTokenAddress =
+      'So11111111111111111111111111111111111111112';
+    const mockTokenFiatPrice = 150; // Token is $150 in fiat
+
+    jest.mocked(selectCurrentCurrency).mockReturnValue(mockCurrency);
+    jest.mocked(selectCurrencyRates).mockReturnValue({
+      // No SOL in currencyRates (non-EVM chains don't have native currency here)
+      [mockNativeCurrency]: {
+        conversionRate: mockNativeConversionRate,
+        conversionDate: Date.now(),
+        usdConversionRate: mockNativeConversionRate,
+      },
+    });
+    jest.mocked(selectTokenMarketData).mockReturnValue({});
+    jest
+      .mocked(selectNativeCurrencyByChainId)
+      .mockReturnValue(undefined as unknown as string); // Returns undefined for Solana (non-EVM)
+    jest.mocked(exchangeRateFromMarketData).mockReturnValue(undefined);
+    jest.mocked(getTokenExchangeRate).mockResolvedValue(mockTokenFiatPrice);
+
+    const { result } = renderHook(() =>
+      useTokenExchangeRate({
+        chainId: mockSolanaChainId,
+        tokenAddress: mockSolanaTokenAddress,
+      }),
+    );
+
+    // Initially should be loading
+    expect(result.current.isLoading).toBe(true);
+
+    // When fetch completes, returns fiat price directly (no conversion for non-EVM)
+    await waitFor(() => {
+      expect(result.current.exchangeRate).toBe(mockTokenFiatPrice); // Returns $150 directly, not converted
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // API was called
+    expect(getTokenExchangeRate).toHaveBeenCalledWith({
+      chainId: mockSolanaChainId,
+      tokenAddress: mockSolanaTokenAddress,
+      currency: mockCurrency,
     });
   });
 });

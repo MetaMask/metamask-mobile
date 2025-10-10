@@ -12,6 +12,7 @@ import {
 } from '../../Bridge/utils/exchange-rates';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import { RootState } from '../../../../reducers';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 /**
  * Hook to fetch exchange rate for a token.
@@ -43,7 +44,11 @@ export const useTokenExchangeRate = ({
 
   const currency = currencyOverride ?? currentCurrency;
 
+  // Check if this is a non-EVM chain (e.g., Solana)
+  const isNonEvm = chainId ? isNonEvmChainId(chainId) : false;
+
   // Get the native asset's conversion rate to fiat (e.g., ETH -> USD rate)
+  // Only needed for EVM chains
   const nativeAssetConversionRate =
     nativeCurrency && currencyRates?.[nativeCurrency]?.conversionRate;
 
@@ -57,12 +62,13 @@ export const useTokenExchangeRate = ({
   useEffect(() => {
     const fetchRate = async () => {
       // Skip if we already have rate from marketData or missing required params
-      if (
-        marketDataRate !== undefined ||
-        !chainId ||
-        !tokenAddress ||
-        !nativeAssetConversionRate
-      ) {
+      if (marketDataRate !== undefined || !chainId || !tokenAddress) {
+        return;
+      }
+
+      // For EVM chains, we need the native asset conversion rate
+      // For non-EVM chains, we can fetch directly
+      if (!isNonEvm && !nativeAssetConversionRate) {
         return;
       }
 
@@ -76,11 +82,20 @@ export const useTokenExchangeRate = ({
         });
 
         if (tokenFiatPrice) {
-          // Convert to price relative to native asset
-          // Example: If token is $100 and ETH is $3000, then token = 100/3000 = 0.0333 ETH
-          const tokenPriceInNativeAsset =
-            tokenFiatPrice / nativeAssetConversionRate;
-          setFetchedRate(tokenPriceInNativeAsset);
+          if (isNonEvm) {
+            // For non-EVM chains (Solana, etc.), the API returns fiat price directly
+            // Return as-is, no conversion needed
+            setFetchedRate(tokenFiatPrice);
+          } else if (nativeAssetConversionRate) {
+            // For EVM chains, convert to price relative to native asset
+            // Example: If token is $100 and ETH is $3000, then token = 100/3000 = 0.0333 ETH
+            const tokenPriceInNativeAsset =
+              tokenFiatPrice / nativeAssetConversionRate;
+            setFetchedRate(tokenPriceInNativeAsset);
+          } else {
+            // Should not reach here due to guard above, but handle gracefully
+            setFetchedRate(undefined);
+          }
         } else {
           setFetchedRate(undefined);
         }
@@ -99,6 +114,7 @@ export const useTokenExchangeRate = ({
     currency,
     marketDataRate,
     nativeAssetConversionRate,
+    isNonEvm,
   ]);
 
   // Return marketData rate if available, otherwise return fetched rate

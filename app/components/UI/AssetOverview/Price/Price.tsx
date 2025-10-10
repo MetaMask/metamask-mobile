@@ -49,20 +49,10 @@ const Price = ({
   isLoading,
   timePeriod,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainAssetsRates,
+  multichainAssetsRates: _multichainAssetsRates,
   ///: END:ONLY_INCLUDE_IF
-  isEvmAssetSelected,
+  isEvmAssetSelected: _isEvmAssetSelected,
 }: PriceProps) => {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const assetAddress = asset.address;
-  const isCaipAssetType = assetAddress.startsWith(`${asset.chainId}`);
-  const normalizedCaipAssetTypeAddress = isCaipAssetType
-    ? assetAddress
-    : `${asset.chainId}/token:${asset.address}`;
-  const multichainAssetRates =
-    multichainAssetsRates[normalizedCaipAssetTypeAddress as CaipAssetType];
-  ///: END:ONLY_INCLUDE_IF
-
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
   const distributedPriceData = useMemo(() => {
@@ -91,9 +81,7 @@ const Price = ({
     activeChartIndex >= 0 &&
     distributedPriceData[activeChartIndex]?.[1] !== undefined
       ? distributedPriceData[activeChartIndex][1]
-      : isEvmAssetSelected
-      ? currentPrice
-      : Number(multichainAssetRates?.rate);
+      : currentPrice;
 
   const date: string | undefined =
     activeChartIndex >= 0 &&

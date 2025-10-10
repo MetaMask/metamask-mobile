@@ -351,9 +351,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   // Fetch exchange rate - will use allTokenMarketData if available,
   // otherwise fetch from API for non-imported tokens
+  // For non-EVM, skip hook if multichainAssetRates already has the rate
+  const shouldFetchRate = isNonEvmAsset ? !multichainAssetRates : true;
+
   const { exchangeRate } = useTokenExchangeRate({
-    chainId: currentChainId,
-    tokenAddress: itemAddress,
+    chainId: shouldFetchRate ? currentChainId : undefined,
+    tokenAddress: shouldFetchRate ? itemAddress : undefined,
   });
 
   let balance;
