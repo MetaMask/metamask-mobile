@@ -35,7 +35,11 @@ interface RegionSelectorModalParams {
   regions: DepositRegion[];
   onRegionSelect?: (region: DepositRegion) => void;
   behavior?: {
-    allowUnsupportedRegions?: boolean;
+    /**
+     * Custom filter function to determine if a region is selectable.
+     * If not provided, defaults to checking region.supported
+     */
+    isRegionSelectable?: (region: DepositRegion) => boolean;
     updateGlobalRegion?: boolean;
     trackSelection?: boolean;
   };
@@ -56,12 +60,15 @@ function RegionSelectorModal() {
   const { regions, onRegionSelect, behavior } =
     useParams<RegionSelectorModalParams>();
 
-  const behaviorConfig = {
-    allowUnsupportedRegions: false,
-    updateGlobalRegion: true,
-    trackSelection: true,
-    ...behavior,
-  };
+  const behaviorConfig = useMemo(
+    () => ({
+      isRegionSelectable: (region: DepositRegion) => region.supported,
+      updateGlobalRegion: true,
+      trackSelection: true,
+      ...behavior,
+    }),
+    [behavior],
+  );
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -110,9 +117,8 @@ function RegionSelectorModal() {
   }, []);
 
   const isSelectable = useCallback(
-    (region: DepositRegion) =>
-      region.supported || behaviorConfig.allowUnsupportedRegions,
-    [behaviorConfig.allowUnsupportedRegions],
+    (region: DepositRegion) => behaviorConfig.isRegionSelectable(region),
+    [behaviorConfig],
   );
 
   const handleOnRegionPressCallback = useCallback(
@@ -143,6 +149,7 @@ function RegionSelectorModal() {
       trackEvent,
       isAuthenticated,
       setSelectedRegion,
+      isSelectable,
     ],
   );
 
@@ -190,7 +197,7 @@ function RegionSelectorModal() {
     [
       handleOnRegionPressCallback,
       selectedRegion,
-      behaviorConfig,
+      isSelectable,
       styles.region,
       styles.emoji,
     ],

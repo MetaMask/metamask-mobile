@@ -1829,7 +1829,8 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 0,
+            "paddingVertical": 2,
+            "textAlignVertical": "center",
           }
         }
         testID="deposit-phone-field-test-id"

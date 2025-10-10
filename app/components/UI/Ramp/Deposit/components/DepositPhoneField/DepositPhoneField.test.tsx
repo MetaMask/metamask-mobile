@@ -135,7 +135,7 @@ describe('DepositPhoneField', () => {
         regions: testRegions,
         onRegionSelect: expect.any(Function),
         behavior: {
-          allowUnsupportedRegions: true,
+          isRegionSelectable: expect.any(Function),
           updateGlobalRegion: false,
           trackSelection: false,
         },
@@ -343,7 +343,7 @@ describe('DepositPhoneField', () => {
           regions: testRegions,
           onRegionSelect: expect.any(Function),
           behavior: {
-            allowUnsupportedRegions: true,
+            isRegionSelectable: expect.any(Function),
             updateGlobalRegion: false,
             trackSelection: false,
           },
@@ -372,7 +372,7 @@ describe('DepositPhoneField', () => {
           regions: testRegions,
           onRegionSelect: expect.any(Function),
           behavior: {
-            allowUnsupportedRegions: true,
+            isRegionSelectable: expect.any(Function),
             updateGlobalRegion: false,
             trackSelection: false,
           },
