@@ -55,6 +55,42 @@ jest.mock('../../../../core/Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+// Mock Engine.context for rewards and network
+const mockRewardsController = {
+  getPerpsDiscountForAccount: jest.fn(),
+};
+
+const mockNetworkController = {
+  getNetworkClientById: jest.fn().mockReturnValue({
+    configuration: { chainId: '0x1' },
+  }),
+};
+
+jest.mock('../../../../core/Engine', () => ({
+  Engine: {
+    context: {
+      RewardsController: mockRewardsController,
+      NetworkController: mockNetworkController,
+      TransactionController: {},
+    },
+  },
+}));
+
+// Mock account utilities
+jest.mock('../../../../util/accounts', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
+    address: '0x1234567890123456789012345678901234567890',
+  }),
+}));
+
+// Mock CAIP utilities
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  formatAccountToCaipAccountId: jest
+    .fn()
+    .mockReturnValue('eip155:1:0x1234567890123456789012345678901234567890'),
+}));
+
 describe('PerpsController', () => {
   let controller: PerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
@@ -262,6 +298,126 @@ describe('PerpsController', () => {
       );
       expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
     });
+
+    describe('fee discounts', () => {
+      it('should apply fee discount when placing order with rewards', async () => {
+        // Arrange
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        const mockOrderResult = {
+          success: true,
+          orderId: 'order-123',
+          filledSize: '0.1',
+          averagePrice: '50000',
+        };
+
+        // Mock provider
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return 65% discount
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        // Act
+        const result = await controller.placeOrder(orderParams);
+
+        // Assert
+        expect(result).toEqual(mockOrderResult);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+        // Verify discount is cleared after order placement
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should clear fee discount context even when place order fails', async () => {
+        // Arrange
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        const mockError = new Error('Order placement failed');
+
+        // Mock provider to throw error
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.placeOrder.mockRejectedValue(mockError);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return 65% discount
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        // Act & Assert
+        await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+          'Order placement failed',
+        );
+
+        // Verify discount was set before the error
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        // Verify discount was cleared even after the error (finally block)
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should place order without discount when user has no rewards', async () => {
+        // Arrange
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        const mockOrderResult = {
+          success: true,
+          orderId: 'order-123',
+          filledSize: '0.1',
+          averagePrice: '50000',
+        };
+
+        // Mock provider
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return undefined (no discount)
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(undefined);
+
+        // Act
+        const result = await controller.placeOrder(orderParams);
+
+        // Assert
+        expect(result).toEqual(mockOrderResult);
+        // Verify setUserFeeDiscount was NOT called with a discount value when discount is undefined
+        expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
+        expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+      });
+    });
   });
 
   describe('getMarkets', () => {
@@ -341,6 +497,123 @@ describe('PerpsController', () => {
 
       expect(result).toEqual(mockCloseResult);
       expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
+    });
+
+    describe('fee discounts', () => {
+      it('should apply fee discount when closing position with rewards', async () => {
+        // Arrange
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+          size: '0.5',
+        };
+
+        const mockCloseResult = {
+          success: true,
+          orderId: 'close-order-123',
+          filledSize: '0.5',
+          averagePrice: '50000',
+        };
+
+        // Mock provider
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.closePosition.mockResolvedValue(mockCloseResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return 65% discount
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        // Act
+        const result = await controller.closePosition(closeParams);
+
+        // Assert
+        expect(result).toEqual(mockCloseResult);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
+        // Verify discount is cleared after close
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should clear fee discount context even when close position fails', async () => {
+        // Arrange
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+          size: '0.5',
+        };
+
+        const mockError = new Error('Close position failed');
+
+        // Mock provider to throw error
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.closePosition.mockRejectedValue(mockError);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return 65% discount
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        // Act & Assert
+        await expect(controller.closePosition(closeParams)).rejects.toThrow(
+          'Close position failed',
+        );
+
+        // Verify discount was set before the error
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        // Verify discount was cleared even after the error (finally block)
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should close position without discount when user has no rewards', async () => {
+        // Arrange
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+          size: '0.5',
+        };
+
+        const mockCloseResult = {
+          success: true,
+          orderId: 'close-order-123',
+          filledSize: '0.5',
+          averagePrice: '50000',
+        };
+
+        // Mock provider
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.closePosition.mockResolvedValue(mockCloseResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return undefined (no discount)
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(undefined);
+
+        // Act
+        const result = await controller.closePosition(closeParams);
+
+        // Assert
+        expect(result).toEqual(mockCloseResult);
+        // Verify setUserFeeDiscount was NOT called when discount is undefined
+        expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
+        expect(mockProvider.closePosition).toHaveBeenCalledWith(closeParams);
+      });
     });
   });
 
@@ -1036,6 +1309,123 @@ describe('PerpsController', () => {
       expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(
         updateParams,
       );
+    });
+
+    describe('TP/SL fee discounts', () => {
+      it('should apply fee discount when updating TP/SL with rewards', async () => {
+        // Arrange
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        };
+
+        const mockUpdateResult = {
+          success: true,
+          positionId: 'pos-123',
+        };
+
+        // Mock provider
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.updatePositionTPSL.mockResolvedValue(mockUpdateResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return 65% discount
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        // Act
+        const result = await controller.updatePositionTPSL(updateParams);
+
+        // Assert
+        expect(result).toEqual(mockUpdateResult);
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(
+          updateParams,
+        );
+        // Verify discount is cleared after TP/SL update
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should clear fee discount context even when TP/SL update fails', async () => {
+        // Arrange
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        };
+
+        const mockError = new Error('TP/SL update failed');
+
+        // Mock provider to throw error
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.updatePositionTPSL.mockRejectedValue(mockError);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return 65% discount
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(6500);
+
+        // Act & Assert
+        await expect(
+          controller.updatePositionTPSL(updateParams),
+        ).rejects.toThrow('TP/SL update failed');
+
+        // Verify discount was set before the error
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
+        // Verify discount was cleared even after the error (finally block)
+        expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
+          undefined,
+        );
+      });
+
+      it('should update TP/SL without discount when user has no rewards', async () => {
+        // Arrange
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          stopLossPrice: '45000',
+        };
+
+        const mockUpdateResult = {
+          success: true,
+          positionId: 'pos-123',
+        };
+
+        // Mock provider
+        (controller as any).isInitialized = true;
+        (controller as any).providers = new Map([
+          ['hyperliquid', mockProvider],
+        ]);
+        mockProvider.updatePositionTPSL.mockResolvedValue(mockUpdateResult);
+        mockProvider.setUserFeeDiscount = jest.fn();
+
+        // Mock the private calculateUserFeeDiscount method to return undefined (no discount)
+        jest
+          .spyOn(controller as any, 'calculateUserFeeDiscount')
+          .mockResolvedValue(undefined);
+
+        // Act
+        const result = await controller.updatePositionTPSL(updateParams);
+
+        // Assert
+        expect(result).toEqual(mockUpdateResult);
+        // Verify setUserFeeDiscount was NOT called with a discount value when discount is undefined
+        expect(mockProvider.setUserFeeDiscount).not.toHaveBeenCalledWith(6500);
+        expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(
+          updateParams,
+        );
+      });
     });
 
     it('should calculate maintenance margin', async () => {
