@@ -522,10 +522,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            multichainAssetsRates={multichainAssetsRates}
-            ///: END:ONLY_INCLUDE_IF
-            isEvmAssetSelected={!isNonEvmAsset}
           />
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}

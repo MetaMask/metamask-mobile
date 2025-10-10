@@ -19,10 +19,6 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { CaipAssetType } from '@metamask/utils';
-import { AssetConversion } from '@metamask/snaps-sdk';
-///: END:ONLY_INCLUDE_IF
 
 interface PriceProps {
   asset: TokenI;
@@ -33,10 +29,6 @@ interface PriceProps {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainAssetsRates: Record<CaipAssetType, AssetConversion>;
-  ///: END:ONLY_INCLUDE_IF
-  isEvmAssetSelected: boolean;
 }
 
 const Price = ({
@@ -48,10 +40,6 @@ const Price = ({
   comparePrice,
   isLoading,
   timePeriod,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainAssetsRates: _multichainAssetsRates,
-  ///: END:ONLY_INCLUDE_IF
-  isEvmAssetSelected: _isEvmAssetSelected,
 }: PriceProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
