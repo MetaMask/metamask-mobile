@@ -12,7 +12,6 @@ import {
   NftController,
   NftDetectionController,
   TokenBalancesController,
-  TokenDetectionController,
   TokenRatesController,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
@@ -46,7 +45,7 @@ import SwapsController from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
+import { isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -174,7 +173,6 @@ import { seedlessOnboardingControllerInit } from './controllers/seedless-onboard
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
@@ -196,6 +194,7 @@ import { assetsContractControllerInit } from './controllers/assets-contract-cont
 import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
 import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
+import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -389,6 +388,7 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         TokenListController: tokenListControllerInit,
+        TokenDetectionController: tokenDetectionControllerInit,
         TokensController: tokensControllerInit,
         TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
@@ -469,6 +469,7 @@ export class Engine {
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
     const tokenListController = controllersByName.TokenListController;
+    const tokenDetectionController = controllersByName.TokenDetectionController;
     const tokensController = controllersByName.TokensController;
     const tokenSearchDiscoveryController =
       controllersByName.TokenSearchDiscoveryController;
@@ -755,58 +756,7 @@ export class Engine {
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
-      TokenDetectionController: new TokenDetectionController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenDetectionController',
-          allowedActions: [
-            'AccountsController:getSelectedAccount',
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getNetworkConfigurationByNetworkClientId',
-            'NetworkController:getState',
-            'KeyringController:getState',
-            'PreferencesController:getState',
-            'TokenListController:getState',
-            'TokensController:getState',
-            'TokensController:addDetectedTokens',
-            'AccountsController:getAccount',
-            'TokensController:addTokens',
-            'NetworkController:findNetworkClientIdByChainId',
-          ],
-          allowedEvents: [
-            'KeyringController:lock',
-            'KeyringController:unlock',
-            'PreferencesController:stateChange',
-            'NetworkController:networkDidChange',
-            'TokenListController:stateChange',
-            'TokensController:stateChange',
-            'AccountsController:selectedEvmAccountChange',
-            'TransactionController:transactionConfirmed',
-          ],
-        }),
-        trackMetaMetricsEvent: () =>
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.TOKEN_DETECTED,
-            )
-              .addProperties({
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                chain_id: getDecimalChainId(
-                  getGlobalChainId(networkController),
-                ),
-              })
-              .build(),
-          ),
-        getBalancesInSingleCall:
-          assetsContractController.getBalancesInSingleCall.bind(
-            assetsContractController,
-          ),
-        platform: 'mobile',
-        useAccountsAPI: true,
-        disabled: false,
-        useTokenDetection: () => selectUseTokenDetection(store.getState()),
-        useExternalServices: () => isBasicFunctionalityToggleEnabled(),
-      }),
+      TokenDetectionController: tokenDetectionController,
       NftDetectionController: new NftDetectionController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftDetectionController',
