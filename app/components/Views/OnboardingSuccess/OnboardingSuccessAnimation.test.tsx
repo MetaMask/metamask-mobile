@@ -551,7 +551,7 @@ describe('OnboardingSuccessAnimation', () => {
       // Advance timer partially to set timeout
       jest.advanceTimersByTime(50);
 
-      // Re-render to trigger startRiveAnimation again (should clear existing timeout)
+      // Re-render to trigger startRiveAnimation
       rerender(
         <OnboardingSuccessAnimation
           onAnimationComplete={mockOnAnimationComplete}
@@ -561,7 +561,7 @@ describe('OnboardingSuccessAnimation', () => {
       // Advance timer to complete new timeout
       jest.advanceTimersByTime(100);
 
-      // Assert - Component should handle multiple renders without errors
+      // Assert
       expect(mockOnAnimationComplete).not.toHaveBeenCalled();
     });
 
@@ -572,7 +572,7 @@ describe('OnboardingSuccessAnimation', () => {
         // Mock console.error implementation
       });
 
-      // Create a component that will have a Rive ref that throws an error
+      // Create a component
       const TestComponent = () => {
         const riveRef = React.useRef({
           setInputState: jest.fn().mockImplementation(() => {
@@ -582,7 +582,7 @@ describe('OnboardingSuccessAnimation', () => {
         });
 
         React.useEffect(() => {
-          // Simulate the setTimeout callback with error
+          // Simulate the setTimeout callback
           setTimeout(() => {
             if (riveRef.current) {
               try {
@@ -608,7 +608,7 @@ describe('OnboardingSuccessAnimation', () => {
       // Advance timer to trigger the setTimeout callback
       jest.advanceTimersByTime(100);
 
-      // Assert - Error should be caught and logged
+      // Assert
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error with Rive animation:',
         expect.any(Error),
@@ -630,16 +630,14 @@ describe('OnboardingSuccessAnimation', () => {
         />,
       );
 
-      // Advance timer to set up the riveTimeoutId but not complete it
       jest.advanceTimersByTime(50);
 
-      // Unmount component to trigger clearTimers cleanup
+      // Unmount component
       unmount();
 
-      // Advance remaining timers to ensure cleanup worked
       jest.runAllTimers();
 
-      // Assert - Component should unmount cleanly without errors
+      // Assert - Component should unmount cleanly
       expect(mockOnAnimationComplete).not.toHaveBeenCalled();
     });
   });
