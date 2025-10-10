@@ -1,9 +1,7 @@
-import React, { useCallback } from 'react';
-import { Image, ImageBackground, Text as RNText } from 'react-native';
-
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -17,7 +15,6 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 import {
   setOnboardingActiveStep,
@@ -36,10 +33,12 @@ import {
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../util/address';
+import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import Device from '../../../../../util/device';
 
 /**
  * OnboardingIntroStep Component
@@ -47,24 +46,32 @@ import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
  * Main introduction screen for the rewards onboarding flow.
  * Handles geo validation, account type checking, and navigation to next steps.
  */
-const OnboardingIntroStep: React.FC = () => {
+const OnboardingIntroStep: React.FC<{
+  title: string;
+  description: string;
+  confirmLabel: string;
+}> = ({ title, description, confirmLabel }) => {
   // Navigation and Redux hooks
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
   const optinAllowedForGeoLoading = useSelector(
     selectOptinAllowedForGeoLoading,
   );
+  const internalAccount = useSelector(selectSelectedInternalAccount);
   const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   // Computed state
   const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
+    !subscriptionId &&
+    (candidateSubscriptionId === 'pending' ||
+      candidateSubscriptionId === 'retry');
   const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   // If we don't know of a subscription id, we need to fetch the geo rewards metadata
@@ -82,8 +89,9 @@ const OnboardingIntroStep: React.FC = () => {
       navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
         title: strings(titleKey),
         description: strings(descriptionKey),
+
         confirmAction: {
-          label: strings('rewards.onboarding.not_supported_confirm'),
+          label: strings('rewards.onboarding.not_supported_confirm_go_back'),
           // eslint-disable-next-line no-empty-function
           onPress: () => {
             navigation.goBack();
@@ -96,24 +104,52 @@ const OnboardingIntroStep: React.FC = () => {
   );
 
   /**
-   * Handle retry action for candidateSubscriptionId errors
+   * Shows error modal with retry functionality
    */
-  const handleRetry = useCallback(() => {
-    dispatch(setCandidateSubscriptionId('retry'));
-  }, [dispatch]);
-
-  /**
-   * Handle cancel action for candidateSubscriptionId errors
-   */
-  const handleCancel = useCallback(() => {
-    // Navigate back to wallet view
-    navigation.navigate(Routes.WALLET_VIEW);
-  }, [navigation]);
+  const showRetryErrorModal = useCallback(
+    (titleKey: string, descriptionKey: string, onRetry: () => void) => {
+      navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
+        title: strings(titleKey),
+        description: strings(descriptionKey),
+        confirmAction: {
+          label: strings('rewards.onboarding.not_supported_confirm_retry'),
+          onPress: () => {
+            onRetry();
+            navigation.goBack();
+          },
+          variant: ButtonVariant.Primary,
+        },
+        onCancel: () => {
+          navigation.goBack();
+          navigation.navigate(Routes.WALLET_VIEW);
+        },
+        cancelLabel: strings(
+          'rewards.onboarding.not_supported_confirm_go_back',
+        ),
+      });
+    },
+    [navigation],
+  );
 
   /**
    * Handles the confirm/continue button press
    */
   const handleNext = useCallback(async () => {
+    // Show geo error modal if geo check failed
+    if (
+      optinAllowedForGeoError &&
+      !optinAllowedForGeo &&
+      !optinAllowedForGeoLoading &&
+      !subscriptionId
+    ) {
+      showRetryErrorModal(
+        'rewards.onboarding.geo_check_fail_title',
+        'rewards.onboarding.geo_check_fail_description',
+        fetchGeoRewardsMetadata,
+      );
+      return;
+    }
+
     // Check for geo restrictions
     if (!optinAllowedForGeo) {
       showErrorModal(
@@ -123,10 +159,45 @@ const OnboardingIntroStep: React.FC = () => {
       return;
     }
 
+    // Check for hardware account restrictions
+    if (internalAccount && isHardwareAccount(internalAccount?.address)) {
+      showErrorModal(
+        'rewards.onboarding.not_supported_hardware_account_title',
+        'rewards.onboarding.not_supported_hardware_account_description',
+      );
+      return;
+    }
+
+    // Check if account type is supported for opt-in
+    if (
+      internalAccount &&
+      !Engine.controllerMessenger.call(
+        'RewardsController:isOptInSupported',
+        internalAccount,
+      )
+    ) {
+      showErrorModal(
+        'rewards.onboarding.not_supported_account_type_title',
+        'rewards.onboarding.not_supported_account_type_description',
+      );
+      return;
+    }
+
     // Proceed to next onboarding step
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_2));
     navigation.navigate(Routes.REWARDS_ONBOARDING_1);
-  }, [dispatch, navigation, optinAllowedForGeo, showErrorModal]);
+  }, [
+    dispatch,
+    navigation,
+    optinAllowedForGeo,
+    optinAllowedForGeoError,
+    optinAllowedForGeoLoading,
+    subscriptionId,
+    showErrorModal,
+    showRetryErrorModal,
+    fetchGeoRewardsMetadata,
+    internalAccount,
+  ]);
 
   /**
    * Handles the skip button press
@@ -135,6 +206,9 @@ const OnboardingIntroStep: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasTrackedOnboardingStart = useRef(false);
+
   /**
    * Auto-redirect to dashboard if user is already opted in
    */
@@ -142,8 +216,39 @@ const OnboardingIntroStep: React.FC = () => {
     useCallback(() => {
       if (subscriptionId) {
         navigation.navigate(Routes.REWARDS_DASHBOARD);
+      } else if (!hasTrackedOnboardingStart.current) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,
+          ).build(),
+        );
+        hasTrackedOnboardingStart.current = true;
       }
-    }, [subscriptionId, navigation]),
+    }, [subscriptionId, navigation, trackEvent, createEventBuilder]),
+  );
+
+  /**
+   * Show error modals for geo and auth failures
+   */
+  useFocusEffect(
+    useCallback(() => {
+      // Show auth error modal if auth failed
+      if (candidateSubscriptionIdError && !subscriptionId) {
+        showRetryErrorModal(
+          'rewards.onboarding.auth_fail_title',
+          'rewards.onboarding.auth_fail_description',
+          () => {
+            dispatch(setCandidateSubscriptionId('retry'));
+          },
+        );
+        return;
+      }
+    }, [
+      candidateSubscriptionIdError,
+      subscriptionId,
+      showRetryErrorModal,
+      dispatch,
+    ]),
   );
 
   /**
@@ -158,28 +263,21 @@ const OnboardingIntroStep: React.FC = () => {
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '400' },
+            {
+              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+            },
           ]}
         >
-          {strings('rewards.onboarding.intro_title_1')}
-        </RNText>
-        <RNText
-          style={[
-            tw.style('text-center text-white text-12'),
-            // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '400' },
-          ]}
-        >
-          {strings('rewards.onboarding.intro_title_2')}
+          {title}
         </RNText>
       </Box>
       <Text
         variant={TextVariant.BodyMd}
-        style={tw.style('text-center text-white')}
+        style={tw.style('text-center text-white font-medium')}
       >
-        {strings('rewards.onboarding.intro_description')}
+        {description}
       </Text>
     </Box>
   );
@@ -188,7 +286,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center py-2">
+    <Box twClassName="flex-1 justify-center items-center my-4">
       <Image
         source={intro}
         resizeMode="contain"
@@ -208,7 +306,6 @@ const OnboardingIntroStep: React.FC = () => {
         isLoading={optinAllowedForGeoLoading}
         isDisabled={
           optinAllowedForGeoLoading ||
-          (optinAllowedForGeoError && !optinAllowedForGeo) ||
           candidateSubscriptionIdError ||
           !!subscriptionId
         }
@@ -216,8 +313,8 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
+        <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
+          {confirmLabel}
         </Text>
       </ButtonHero>
       <DSRNButton
@@ -227,7 +324,7 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
       >
-        <Text twClassName="text-white">
+        <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}
         </Text>
       </DSRNButton>
@@ -242,68 +339,17 @@ const OnboardingIntroStep: React.FC = () => {
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[5%]" />
+        {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
 
         {/* Title Section */}
         {renderTitle()}
 
         {/* Image Section */}
         {renderImage()}
-
-        {optinAllowedForGeoError &&
-          !optinAllowedForGeo &&
-          !optinAllowedForGeoLoading &&
-          !subscriptionId && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings(
-                'rewards.geo_rewards_metadata_error.error_fetching_title',
-              )}
-              description={strings(
-                'rewards.geo_rewards_metadata_error.error_fetching_description',
-              )}
-              style={tw.style('mb-4')}
-              actionButtonProps={{
-                size: ButtonSize.Md,
-                style: tw.style('mt-2'),
-                onPress: fetchGeoRewardsMetadata,
-                label: strings(
-                  'rewards.geo_rewards_metadata_error.retry_button',
-                ),
-                variant: ButtonVariants.Primary,
-              }}
-            />
-          )}
-
-        {candidateSubscriptionIdError && !subscriptionId && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('rewards.auth_fail_banner.title')}
-            description={strings('rewards.auth_fail_banner.description')}
-            style={tw.style('w-full mb-4')}
-          >
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="mt-4 gap-2">
-              <DSRNButton
-                variant={ButtonVariant.Tertiary}
-                size={DSRNButtonSize.Lg}
-                onPress={handleCancel}
-              >
-                <Text>{strings('rewards.auth_fail_banner.cta_cancel')}</Text>
-              </DSRNButton>
-              <DSRNButton
-                variant={ButtonVariant.Secondary}
-                size={DSRNButtonSize.Lg}
-                onPress={handleRetry}
-              >
-                <Text>{strings('rewards.auth_fail_banner.cta_retry')}</Text>
-              </DSRNButton>
-            </Box>
-          </BannerAlert>
-        )}
 
         {/* Actions Section */}
         {renderActions()}

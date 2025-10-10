@@ -3,16 +3,19 @@ import Selectors from '../helpers/Selectors';
 import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors';
-import { expect, ScrollDirection } from 'appwright';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import { expect } from 'appwright';
 
 class AccountListComponent {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get accountListContainer() {
@@ -35,8 +38,7 @@ class AccountListComponent {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
-      const element = await this.addAccountButton;
-      await element.tap();
+      await AppwrightGestures.tap(this.addAccountButton); // Use static tapElement method with retry logic
     }
   }
 
@@ -61,20 +63,8 @@ class AccountListComponent {
 
   async tapOnAccountByName(name) {
     let account = await AppwrightSelectors.getElementByText(this.device, name);
-    await AppwrightSelectors.scrollIntoView(this.device, account);
-    await account.tap();
-    /*
-    console.log('account ->', account);
-    try {
-      await account.tap();
-    } catch (error) {
-      console.log('Error tapping on account ->', error);
-      await this.device.pause(10000000);
-      await this.device.scroll();
-      account = await AppwrightSelectors.getElementByText(this.device, name);
-
-      await account.tap();
-    }*/
+    await AppwrightGestures.scrollIntoView(this.device, account); // Use inherited method with retry logic
+    await AppwrightGestures.tap(account); // Tap after scrolling into view
   }
 }
 

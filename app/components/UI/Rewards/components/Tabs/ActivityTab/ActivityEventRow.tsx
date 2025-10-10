@@ -21,6 +21,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import Logger from '../../../../../../util/Logger';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
@@ -49,6 +50,10 @@ export const ActivityEventRow: React.FC<{
 
       return getNetworkImageSource({ chainId });
     } catch (error) {
+      Logger.error(
+        error as Error,
+        'ActivityEventRow: Failed to derive network image source from event payload',
+      );
       return;
     }
   }, [event]);
@@ -118,18 +123,18 @@ export const ActivityEventRow: React.FC<{
           </Box>
         </Box>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-        >
+        <Box flexDirection={BoxFlexDirection.Row}>
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-alternative max-w-[60%]"
+            twClassName="text-alternative flex-1 max-w-[60%]"
           >
             {eventDetails.details}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {formatRewardsDate(new Date(event.timestamp).getTime())}
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative flex-1 text-right"
+          >
+            {formatRewardsDate(new Date(event.timestamp))}
           </Text>
         </Box>
       </Box>

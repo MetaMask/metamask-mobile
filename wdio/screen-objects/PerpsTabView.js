@@ -1,12 +1,15 @@
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
 class PerpsTabView {
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+
   }
 
   get perpsTabButton() {
@@ -22,19 +25,17 @@ class PerpsTabView {
   }
 
   async tapPerpsTab() {
-    const btn = await this.perpsTabButton;
-    await btn.tap();
+    await AppwrightGestures.tap(this.perpsTabButton); // Use static tap method with retry logic
   }
 
   async tapAddFunds() {
-    const btn = await this.addFundsButton;
-    await btn.tap();
+    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
   }
 
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
     await button.isVisible({ timeout: 5000 });
-    await button.tap();
+    await AppwrightGestures.tap(button); // Use static tap method with retry logic
   }
 }
 

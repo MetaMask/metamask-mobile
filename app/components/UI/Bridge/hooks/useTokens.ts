@@ -2,8 +2,10 @@ import { useTokensWithBalance } from './useTokensWithBalance';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useTopTokens } from './useTopTokens';
 import { BridgeToken } from '../types';
-import { isSolanaChainId } from '@metamask/bridge-controller';
-import { normalizeToCaipAssetType } from '../utils';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 
 interface UseTokensProps {
   topTokensChainId?: Hex | CaipChainId;
@@ -23,7 +25,11 @@ export function useTokens({
   topTokensChainId,
   balanceChainIds,
   tokensToExclude,
-}: UseTokensProps): { tokens: BridgeToken[]; pending: boolean } {
+}: UseTokensProps): {
+  allTokens: BridgeToken[];
+  tokensToRender: BridgeToken[];
+  pending: boolean;
+} {
   const tokensWithBalance = useTokensWithBalance({
     chainIds: balanceChainIds,
   });
@@ -36,10 +42,17 @@ export function useTokens({
     address: string;
     chainId: Hex | CaipChainId;
   }) => {
-    // Use the shared utility for Solana normalization to ensure consistent deduplication
-    const normalizedAddress = isSolanaChainId(token.chainId)
-      ? normalizeToCaipAssetType(token.address, token.chainId)
-      : token.address;
+    // Use the shared utility for non-EVM normalization to ensure consistent deduplication
+    const normalizedAddress = isNonEvmChainId(token.chainId)
+      ? formatAddressToAssetId(token.address, token.chainId)
+      : token.address.toLowerCase();
+
+    if (!normalizedAddress) {
+      throw new Error(
+        `Invalid token address: ${token.address} for chain ID: ${token.chainId}`,
+      );
+    }
+
     return `${normalizedAddress}-${token.chainId}`;
   };
 
@@ -60,12 +73,24 @@ export function useTokens({
     });
 
   // Combine tokens with balance and filtered tokens and filter out excluded tokens
-  const tokens = tokensWithBalance
+  const allTokens = tokensWithBalance
     .concat(tokensWithoutBalance)
     .filter((token) => {
       const tokenKey = getTokenKey(token);
       return !excludedTokensSet.has(tokenKey);
     });
 
-  return { tokens, pending };
+  const tokensToRender = tokensWithBalance
+    .concat(
+      topTokens?.filter((token) => {
+        const tokenKey = getTokenKey(token);
+        return !tokensWithBalanceSet.has(tokenKey);
+      }) ?? [],
+    )
+    .filter((token) => {
+      const tokenKey = getTokenKey(token);
+      return !excludedTokensSet.has(tokenKey);
+    });
+
+  return { allTokens, tokensToRender, pending };
 }

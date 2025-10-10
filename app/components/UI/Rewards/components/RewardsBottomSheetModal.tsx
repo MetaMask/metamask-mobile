@@ -16,6 +16,8 @@ import {
   ButtonVariant,
   IconName,
   IconSize,
+  IconColor,
+  ButtonIcon,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -31,6 +33,7 @@ export interface ModalAction {
   onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 interface RewardsBottomSheetModalProps {
@@ -44,7 +47,9 @@ interface RewardsBottomSheetModalProps {
       onCancel?: () => void;
       cancelLabel?: string;
       showCancelButton?: boolean;
+      cancelMode?: 'cta-button' | 'top-right-cross-icon';
       showIcon?: boolean;
+      customIcon?: React.ReactNode;
     };
   };
 }
@@ -61,29 +66,57 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     onCancel,
     cancelLabel = 'Cancel',
     showCancelButton = false,
+    cancelMode = 'cta-button',
     showIcon = true,
+    customIcon,
   } = route.params;
 
   const handleDismiss = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
   const handleCancel = useCallback(() => {
     if (onCancel) {
-      onCancel();
+      closeBottomSheetAndNavigate(onCancel);
     } else {
       handleDismiss();
     }
-  }, [onCancel, handleDismiss]);
+  }, [onCancel, handleDismiss, closeBottomSheetAndNavigate]);
+
+  const handleConfirmAction = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      confirmAction.onPress();
+    });
+  }, [closeBottomSheetAndNavigate, confirmAction]);
 
   const renderIcon = () => {
+    // If custom icon is provided, use it
+    if (customIcon) {
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="mb-4"
+        >
+          {customIcon}
+        </Box>
+      );
+    }
+
+    // Default icon handling
     let iconName = IconName.Danger;
     let iconStyle = 'text-warning-default';
 
     switch (type) {
       case ModalType.Danger:
         iconName = IconName.Danger;
-        iconStyle = 'text-warning-default';
         break;
       case ModalType.Confirmation:
         iconName = IconName.Question;
@@ -133,7 +166,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     >
       {typeof description === 'string' ? (
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           style={tw.style('text-alternative text-center')}
         >
           {description}
@@ -148,11 +181,28 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     // Default actions based on modal type and props
     const hasCancel = showCancelButton || onCancel;
 
-    if (hasCancel) {
+    if (hasCancel && cancelMode === 'cta-button') {
       // Two buttons side by side
       return (
-        <Box twClassName="w-full" flexDirection={BoxFlexDirection.Row}>
-          <Box twClassName="w-1/2 pr-2">
+        <Box
+          twClassName="w-full gap-2 px-2"
+          flexDirection={BoxFlexDirection.Column}
+        >
+          <Box twClassName="w-full">
+            <Button
+              variant={confirmAction.variant || ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleConfirmAction}
+              disabled={confirmAction.disabled}
+              isLoading={confirmAction.isLoading}
+              isDanger={type === ModalType.Danger}
+              twClassName="w-full"
+            >
+              {confirmAction.label}
+            </Button>
+          </Box>
+
+          <Box twClassName="w-full">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -160,18 +210,6 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
               twClassName="w-full"
             >
               {cancelLabel}
-            </Button>
-          </Box>
-          <Box twClassName="w-1/2 pl-2">
-            <Button
-              variant={confirmAction.variant || ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              onPress={confirmAction.onPress}
-              disabled={confirmAction.disabled}
-              isDanger={type === ModalType.Danger}
-              twClassName="w-full"
-            >
-              {confirmAction.label}
             </Button>
           </Box>
         </Box>
@@ -184,7 +222,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         <Button
           variant={confirmAction.variant || ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={confirmAction.onPress}
+          onPress={handleConfirmAction}
           disabled={confirmAction.disabled}
           isDanger={type === ModalType.Danger}
           twClassName="w-full"
@@ -203,6 +241,17 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         justifyContent={BoxJustifyContent.Center}
         twClassName="p-4"
       >
+        {cancelMode === 'top-right-cross-icon' && (
+          <Box twClassName="w-full flex-row justify-end">
+            <ButtonIcon
+              onPress={handleCancel}
+              iconName={IconName.Close}
+              iconProps={{
+                color: IconColor.IconDefault,
+              }}
+            />
+          </Box>
+        )}
         {showIcon && renderIcon()}
         {renderTitle()}
         {renderDescription()}

@@ -178,11 +178,11 @@ export const importWalletWithRecoveryPhrase = async ({
     await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
       description: 'MetaMetrics Opt-In should be visible',
     });
-    if (optInToMetrics) {
-      await MetaMetricsOptIn.tapAgreeButton();
-    } else {
-      await MetaMetricsOptIn.tapNoThanksButton();
+    if (!optInToMetrics) {
+      await MetaMetricsOptIn.tapMetricsCheckbox();
     }
+
+    await MetaMetricsOptIn.tapAgreeButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -250,12 +250,11 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
+  if (!optInToMetrics) {
+    await MetaMetricsOptIn.tapMetricsCheckbox();
   }
 
+  await MetaMetricsOptIn.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {

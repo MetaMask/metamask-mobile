@@ -2,6 +2,7 @@ import React from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAssetFromTheme } from '../../../util/theme';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabEmptyState,
   type TabEmptyStateProps,
@@ -18,6 +19,7 @@ export interface DefiEmptyStateProps extends TabEmptyStateProps {}
 export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
   const defiImage = useAssetFromTheme(emptyStateDefiLight, emptyStateDefiDark);
   const { navigate } = useNavigation();
+  const tw = useTailwind();
 
   const handleExploreDefi = () => {
     // Navigate to explore tokens page in the in-app browser
@@ -32,7 +34,13 @@ export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
 
   return (
     <TabEmptyState
-      icon={<Image source={defiImage} />}
+      icon={
+        <Image
+          source={defiImage}
+          resizeMode="contain"
+          style={tw.style('w-[72px] h-[72px]')}
+        />
+      }
       description={strings('defi_positions.empty_state.description')}
       actionButtonText={strings('defi_positions.empty_state.explore_defi')}
       onAction={handleExploreDefi}

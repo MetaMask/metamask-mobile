@@ -21,6 +21,11 @@ interface UsePredictPositionsOptions {
    * @default true
    */
   refreshOnFocus?: boolean;
+
+  /**
+   * The parameters to load positions for
+   */
+  claimable?: boolean;
 }
 
 interface UsePredictPositionsReturn {
@@ -39,7 +44,12 @@ interface UsePredictPositionsReturn {
 export function usePredictPositions(
   options: UsePredictPositionsOptions = {},
 ): UsePredictPositionsReturn {
-  const { providerId, loadOnMount = true, refreshOnFocus = true } = options;
+  const {
+    providerId,
+    loadOnMount = true,
+    refreshOnFocus = true,
+    claimable = false,
+  } = options;
 
   const { getPositions } = usePredictTrading();
 
@@ -59,27 +69,30 @@ export function usePredictPositions(
       try {
         if (isRefresh) {
           setIsRefreshing(true);
-          setPositions([]);
         } else {
           setIsLoading(true);
+          setPositions([]);
         }
         setError(null);
 
         // Get positions from Predict controller
         const positionsData = await getPositions({
-          address: selectedInternalAccountAddress ?? '',
+          address: selectedInternalAccountAddress,
           providerId,
+          claimable,
         });
         const validPositions = positionsData ?? [];
+
         setPositions(validPositions);
 
         DevLogger.log('usePredictPositions: Loaded positions', {
-          count: validPositions.length,
+          originalCount: validPositions.length,
+          filteredCount: validPositions.length,
           positions: validPositions.map((p) => ({
             size: p.size,
-            conditionId: p.conditionId,
+            outcomeId: p.outcomeId,
             outcomeIndex: p.outcomeIndex,
-            price: p.curPrice,
+            price: p.price,
           })),
         });
       } catch (err) {
@@ -92,7 +105,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
-    [getPositions, selectedInternalAccountAddress, providerId],
+    [getPositions, selectedInternalAccountAddress, providerId, claimable],
   );
 
   // Load positions on mount if enabled
