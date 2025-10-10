@@ -221,6 +221,10 @@
     "remind_later_description2": "Maaari mong i-back up ang iyong mga wallet o tingnan ang iyong Lihim na Parirala sa Pagbawi sa",
     "setting_security_privacy": "Mga Setting > Seguridad at Pagkapribado"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Welcome sa MetaMask",
     "title2": "Pamahalaan ang iyong mga digital na asset",
@@ -389,6 +393,7 @@
     "description": "I-unlock ang MetaMask sa device lang na ito.",
     "description_social_login": "Gamitin ito para sa pagbawi ng wallet mo sa lahat ng device.",
     "description_social_login_update": "Kung naiwala mo ang password na ito, mawawalan ka ng access sa wallet mo at sa lahat ng device. Itago ito sa isang ligtas na lugar.",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "Hindi ito maire-reset ng MetaMask.",
     "subtitle": "Maa-unlock ng password na ito ang iyong MetaMask wallet sa device lang na ito.",
     "password": "Gumawa ng password",
@@ -662,7 +667,14 @@
       "bullet_2_description": "Idinisenyo ang USDC para hindi magpabago-bago, kaya pinapadali nito na magplano, mag-save, at gumastos.",
       "bullet_3_title": "Mas mabilis kaysa sa mga bangko",
       "bullet_3_description": "Magpadala at tumanggap sa ilang minuto, hindi kailangang maghintay sa pagbubukas ng bangko at wala ring internasyonal na mga pagkaantala.",
-      "button": "Magsimula"
+      "button": "Magsimula",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "I-verify ang pagkakakilanlan mo",
@@ -879,7 +891,6 @@
     "refresh_balance": "I-refresh ang Balanse",
     "add_funds": "Magdagdag ng mga pondo",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Mga position mo",
     "loading_positions": "Inilo-load ang mga posisyon...",
     "refreshing_positions": "Nire-refresh ang mga posisyon mo...",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Pumili ng token",
-    "title_pay_eth": "Magbayad gamit ang ETH",
     "native_toggle_wallet": "Magbayad ng bayad sa network gamit ang balanse sa wallet mo.",
     "list_balance": "Bal:",
     "insufficient_balance": "Hindi sapat ang mga pondo",
-    "native_toggle_metamask": "Dadagdagan ng MetaMask ang balanse para makumpleto ang transaksyong ito.",
-    "title_pay_with_other_tokens": "Magbayad gamit ang ibang mga token"
+    "native_toggle_metamask": "Dadagdagan ng MetaMask ang balanse para makumpleto ang transaksyong ito."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ID ng Transaksyon",
@@ -6094,6 +6106,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {
