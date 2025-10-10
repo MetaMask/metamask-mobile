@@ -78,6 +78,9 @@ const TransactionsView = ({
   useCurrencyRatePolling();
   useTokenRatesPolling();
 
+  useCurrencyRatePolling();
+  useTokenRatesPolling();
+
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
   );

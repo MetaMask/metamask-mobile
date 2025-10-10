@@ -539,6 +539,10 @@ enum EVENT_NAME {
   PERPS_RISK_MANAGEMENT = 'Perp Risk Management',
   PERPS_ERROR = 'Perp Error',
 
+  // Full Page Modal Events
+  PERPS_FULL_PAGE_MODAL_VIEWED = 'Perp Full page modal viewed',
+  PERPS_FULL_PAGE_MODAL_TAPPED = 'Perp Full page modal tapped',
+
   // Card
   CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',

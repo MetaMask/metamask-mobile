@@ -196,7 +196,6 @@ const WalletActions = () => {
             isDisabled={!canSignTransactions}
           />
         )}
-
         {isEarnWalletActionEnabled && (
           <ActionListItem
             label={strings('asset_overview.earn_button')}

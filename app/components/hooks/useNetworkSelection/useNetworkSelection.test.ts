@@ -647,6 +647,53 @@ describe('useNetworkSelection', () => {
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
     });
 
+    it('selectPopularNetwork with Solana mainnet logs console.warn when setActiveNetwork fails', async () => {
+      // Arrange
+      jest.clearAllMocks();
+
+      // Mock multichain enabled
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+          return mockPopularNetworkConfigurations;
+        }
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true; // isMultichainAccountsState2Enabled = true
+        }
+        if (selector === selectInternalAccounts) {
+          return [];
+        }
+        return undefined;
+      });
+
+      // Mock setActiveNetwork to throw an error
+      const testError = new Error('Solana network connection failed');
+      mockSetActiveNetwork.mockRejectedValue(testError);
+
+      // Setup engine context mocks
+      Engine.context.MultichainNetworkController.setActiveNetwork =
+        mockSetActiveNetwork;
+
+      const solanaMainnet =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      // Act
+      await result.current.selectPopularNetwork(solanaMainnet);
+
+      // Assert
+      expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
+      expect(mockSetActiveNetwork).toHaveBeenCalledWith(solanaMainnet);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        `Error setting active network: ${testError}`,
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
     it('selectPopularNetwork with EVM network and multichain enabled calls NetworkController', async () => {
       // Mock multichain enabled
       mockUseSelector
