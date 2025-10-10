@@ -388,16 +388,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "maxHeight": 1334,
                                 "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -411,69 +402,65 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                         >
                           <View
                             style={
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
                                 },
-                                false,
-                              ]
-                            }
-                            testID="header"
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Region Not Supported
-                              </Text>
-                            </View>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "padding": 24,
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               }
                             }
                           >
-                            <Text
-                              accessibilityRole="text"
+                            <View
                               style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                                [
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                  },
+                                  false,
+                                ]
                               }
+                              testID="header"
                             >
-                              We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to buy crypto.
-                            </Text>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Region Not Supported
+                                </Text>
+                              </View>
+                            </View>
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "marginVertical": 16,
+                                  "padding": 24,
                                 }
                               }
                             >
@@ -482,95 +469,119 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                🇦🇫
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginLeft": 8,
-                                  }
-                                }
-                              >
-                                Afghanistan
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              onPress={[Function]}
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#4459ff",
                                     "fontFamily": "Geist Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "textDecorationLine": "underline",
-                                  }
-                                }
-                              >
-                                Visit Support Article
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "padding": 24,
-                                "paddingTop": 0,
-                              }
-                            }
-                          >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
                                 }
                               >
-                                Select your region
+                                We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to buy crypto.
                               </Text>
-                            </TouchableOpacity>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "marginVertical": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  🇦🇫
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginLeft": 8,
+                                    }
+                                  }
+                                >
+                                  Afghanistan
+                                </Text>
+                              </View>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textDecorationLine": "underline",
+                                    }
+                                  }
+                                >
+                                  Visit Support Article
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "padding": 24,
+                                  "paddingTop": 0,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#121314",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Select your region
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -975,16 +986,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "maxHeight": 1334,
                                 "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -998,69 +1000,65 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                         >
                           <View
                             style={
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
                                 },
-                                false,
-                              ]
-                            }
-                            testID="header"
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Region Not Supported
-                              </Text>
-                            </View>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "padding": 24,
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               }
                             }
                           >
-                            <Text
-                              accessibilityRole="text"
+                            <View
                               style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                                [
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                  },
+                                  false,
+                                ]
                               }
+                              testID="header"
                             >
-                              We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to sell crypto.
-                            </Text>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Region Not Supported
+                                </Text>
+                              </View>
+                            </View>
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "marginVertical": 16,
+                                  "padding": 24,
                                 }
                               }
                             >
@@ -1069,95 +1067,119 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                🇦🇫
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginLeft": 8,
-                                  }
-                                }
-                              >
-                                Afghanistan
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              onPress={[Function]}
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#4459ff",
                                     "fontFamily": "Geist Regular",
-                                    "fontSize": 14,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "textDecorationLine": "underline",
-                                  }
-                                }
-                              >
-                                Visit Support Article
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "padding": 24,
-                                "paddingTop": 0,
-                              }
-                            }
-                          >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
                                 }
                               >
-                                Select your region
+                                We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to sell crypto.
                               </Text>
-                            </TouchableOpacity>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "marginVertical": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  🇦🇫
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginLeft": 8,
+                                    }
+                                  }
+                                >
+                                  Afghanistan
+                                </Text>
+                              </View>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 14,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textDecorationLine": "underline",
+                                    }
+                                  }
+                                >
+                                  Visit Support Article
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "padding": 24,
+                                  "paddingTop": 0,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#121314",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Select your region
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>

@@ -77,16 +77,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
-            "maxHeight": 0,
             "overflow": "hidden",
-            "paddingBottom": 0,
-            "shadowColor": "#0000001a",
-            "shadowOffset": {
-              "height": 2,
-              "width": 0,
-            },
-            "shadowOpacity": 1,
-            "shadowRadius": 40,
           },
           {
             "transform": [
@@ -101,234 +92,277 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
       <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "padding": 4,
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "maxHeight": 0,
+            "overflow": "hidden",
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
           }
         }
       >
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
-              "borderRadius": 2,
-              "height": 4,
-              "width": 40,
-            }
-          }
-        />
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "padding": 16,
-            "rowGap": 16,
-          }
-        }
-        testID="onboarding-sheet"
-      >
-        <View
-          style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "padding": 4,
             }
           }
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          <View
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc866",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "color": "#121314",
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 2,
+                "height": 4,
+                "width": 40,
               }
             }
-            testID="onboarding-sheet-google-login-button-id"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <SvgMock
-                fill="currentColor"
-                height={24}
-                name="google"
-                width={24}
-              />
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Sign in with Google
-              </Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc866",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "color": "#121314",
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="onboarding-sheet-apple-login-button-id"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <SvgMock
-                fill="currentColor"
-                height={24}
-                name="apple"
-                width={24}
-              />
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Sign in with Apple
-              </Text>
-            </View>
-          </TouchableOpacity>
+          />
         </View>
         <View
           style={
             {
               "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 10,
+              "flexDirection": "column",
               "justifyContent": "center",
+              "padding": 16,
+              "rowGap": 16,
             }
           }
+          testID="onboarding-sheet"
         >
           <View
             style={
               {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
-              }
-            }
-          />
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#b7bbc8",
-                "fontFamily": "Geist Medium",
-                "fontSize": 18,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
               }
             }
           >
-            or
-          </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "color": "#121314",
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="onboarding-sheet-google-login-button-id"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <SvgMock
+                  fill="currentColor"
+                  height={24}
+                  name="google"
+                  width={24}
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Sign in with Google
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "color": "#121314",
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="onboarding-sheet-apple-login-button-id"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <SvgMock
+                  fill="currentColor"
+                  height={24}
+                  name="apple"
+                  width={24}
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Sign in with Apple
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
           <View
             style={
               {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 10,
+                "justifyContent": "center",
               }
             }
-          />
-        </View>
-        <View
-          style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "flex": 1,
+                  "height": 1,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#b7bbc8",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              or
+            </Text>
+            <View
+              style={
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "flex": 1,
+                  "height": 1,
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
+              }
             }
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="onboarding-sheet-import-seed-button-id"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Import using Secret Recovery Phrase
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
             style={
               {
                 "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
+                "marginTop": 24,
               }
             }
-            testID="onboarding-sheet-import-seed-button-id"
           >
             <Text
               accessibilityRole="text"
@@ -336,77 +370,54 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Import using Secret Recovery Phrase
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "marginTop": 24,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 12,
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-                "textAlign": "center",
-              }
-            }
-          >
-            By continuing, you agree to MetaMask's
-             
-            <Text
-              accessibilityRole="text"
-              onPress={[Function]}
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
                   "fontSize": 12,
                   "letterSpacing": 0.25,
                   "lineHeight": 20,
+                  "textAlign": "center",
                 }
               }
-              suppressHighlighting={true}
-              testID="terms-of-use-link"
             >
-              Terms of use
-            </Text>
-             
-            and
-             
-            <Text
-              accessibilityRole="text"
-              onPress={[Function]}
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 12,
-                  "letterSpacing": 0.25,
-                  "lineHeight": 20,
+              By continuing, you agree to MetaMask's
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 12,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  }
                 }
-              }
-              suppressHighlighting={true}
-              testID="privacy-notice-link"
-            >
-              Privacy notice
+                suppressHighlighting={true}
+                testID="terms-of-use-link"
+              >
+                Terms of use
+              </Text>
+               
+              and
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 12,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  }
+                }
+                suppressHighlighting={true}
+                testID="privacy-notice-link"
+              >
+                Privacy notice
+              </Text>
             </Text>
-          </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -491,16 +502,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
-            "maxHeight": 0,
             "overflow": "hidden",
-            "paddingBottom": 0,
-            "shadowColor": "#0000001a",
-            "shadowOffset": {
-              "height": 2,
-              "width": 0,
-            },
-            "shadowOpacity": 1,
-            "shadowRadius": 40,
           },
           {
             "transform": [
@@ -515,234 +517,277 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
       <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "padding": 4,
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "maxHeight": 0,
+            "overflow": "hidden",
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
           }
         }
       >
         <View
           style={
             {
-              "backgroundColor": "#b7bbc866",
-              "borderRadius": 2,
-              "height": 4,
-              "width": 40,
-            }
-          }
-        />
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "padding": 16,
-            "rowGap": 16,
-          }
-        }
-        testID="onboarding-sheet"
-      >
-        <View
-          style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "padding": 4,
             }
           }
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          <View
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc866",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "color": "#121314",
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 2,
+                "height": 4,
+                "width": 40,
               }
             }
-            testID="onboarding-sheet-google-login-button-id"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <SvgMock
-                fill="currentColor"
-                height={24}
-                name="google"
-                width={24}
-              />
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Continue with Google
-              </Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#b7bbc866",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "color": "#121314",
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="onboarding-sheet-apple-login-button-id"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <SvgMock
-                fill="currentColor"
-                height={24}
-                name="apple"
-                width={24}
-              />
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Continue with Apple
-              </Text>
-            </View>
-          </TouchableOpacity>
+          />
         </View>
         <View
           style={
             {
               "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 10,
+              "flexDirection": "column",
               "justifyContent": "center",
+              "padding": 16,
+              "rowGap": 16,
             }
           }
+          testID="onboarding-sheet"
         >
           <View
             style={
               {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
-              }
-            }
-          />
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#b7bbc8",
-                "fontFamily": "Geist Medium",
-                "fontSize": 18,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
               }
             }
           >
-            or
-          </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "color": "#121314",
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="onboarding-sheet-google-login-button-id"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <SvgMock
+                  fill="currentColor"
+                  height={24}
+                  name="google"
+                  width={24}
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Continue with Google
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "color": "#121314",
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="onboarding-sheet-apple-login-button-id"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <SvgMock
+                  fill="currentColor"
+                  height={24}
+                  name="apple"
+                  width={24}
+                />
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Continue with Apple
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
           <View
             style={
               {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 10,
+                "justifyContent": "center",
               }
             }
-          />
-        </View>
-        <View
-          style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "flex": 1,
+                  "height": 1,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#b7bbc8",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              or
+            </Text>
+            <View
+              style={
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "flex": 1,
+                  "height": 1,
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
+              }
             }
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="onboarding-sheet-import-seed-button-id"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Use Secret Recovery Phrase
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
             style={
               {
                 "alignItems": "center",
-                "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
+                "marginTop": 24,
               }
             }
-            testID="onboarding-sheet-import-seed-button-id"
           >
             <Text
               accessibilityRole="text"
@@ -750,77 +795,54 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Use Secret Recovery Phrase
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "marginTop": 24,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 12,
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-                "textAlign": "center",
-              }
-            }
-          >
-            By continuing, you agree to MetaMask's
-             
-            <Text
-              accessibilityRole="text"
-              onPress={[Function]}
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
                   "fontSize": 12,
                   "letterSpacing": 0.25,
                   "lineHeight": 20,
+                  "textAlign": "center",
                 }
               }
-              suppressHighlighting={true}
-              testID="terms-of-use-link"
             >
-              Terms of use
-            </Text>
-             
-            and
-             
-            <Text
-              accessibilityRole="text"
-              onPress={[Function]}
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 12,
-                  "letterSpacing": 0.25,
-                  "lineHeight": 20,
+              By continuing, you agree to MetaMask's
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 12,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  }
                 }
-              }
-              suppressHighlighting={true}
-              testID="privacy-notice-link"
-            >
-              Privacy notice
+                suppressHighlighting={true}
+                testID="terms-of-use-link"
+              >
+                Terms of use
+              </Text>
+               
+              and
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 12,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  }
+                }
+                suppressHighlighting={true}
+                testID="privacy-notice-link"
+              >
+                Privacy notice
+              </Text>
             </Text>
-          </Text>
+          </View>
         </View>
       </View>
     </View>

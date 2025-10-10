@@ -388,16 +388,7 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "maxHeight": 1334,
                                 "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
                               },
                               {
                                 "transform": [
@@ -412,206 +403,226 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
                               }
                             }
                           >
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "paddingTop": 6,
-                              }
-                            }
-                          >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "opacity": 1,
-                                  "position": "relative",
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
                                 }
                               }
                             >
                               <View
-                                accessibilityRole="none"
-                                accessible={true}
                                 style={
                                   {
-                                    "padding": 16,
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
+                                  }
+                                }
+                              />
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "paddingTop": 6,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "borderRadius": 4,
+                                    "opacity": 1,
+                                    "position": "relative",
                                   }
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
+                                      "padding": 16,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "flex": -1,
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
                                       }
                                     }
-                                    testID="listitemcolumn"
                                   >
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={20}
-                                      name="Clock"
+                                    <View
                                       style={
                                         {
-                                          "height": 20,
-                                          "width": 20,
+                                          "flex": -1,
                                         }
                                       }
-                                      width={20}
-                                    />
-                                  </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 16,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                    testID="listitemcolumn"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 18,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
+                                      testID="listitemcolumn"
                                     >
-                                      View order history
-                                    </Text>
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Clock"
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 18,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        View order history
+                                      </Text>
+                                    </View>
                                   </View>
                                 </View>
-                              </View>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "opacity": 1,
-                                  "position": "relative",
-                                }
-                              }
-                            >
-                              <View
-                                accessibilityRole="none"
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                accessibilityRole="button"
                                 accessible={true}
+                                disabled={false}
+                                onPress={[Function]}
                                 style={
                                   {
-                                    "padding": 16,
+                                    "backgroundColor": "#ffffff",
+                                    "borderRadius": 4,
+                                    "opacity": 1,
+                                    "position": "relative",
                                   }
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
+                                      "padding": 16,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "flex": -1,
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
                                       }
                                     }
-                                    testID="listitemcolumn"
                                   >
-                                    <SvgMock
-                                      color="#121314"
-                                      fill="currentColor"
-                                      height={20}
-                                      name="Messages"
+                                    <View
                                       style={
                                         {
-                                          "height": 20,
-                                          "width": 20,
+                                          "flex": -1,
                                         }
                                       }
-                                      width={20}
-                                    />
-                                  </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 16,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                    testID="listitemcolumn"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 18,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
+                                      testID="listitemcolumn"
                                     >
-                                      Contact support
-                                    </Text>
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Messages"
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 18,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Contact support
+                                      </Text>
+                                    </View>
                                   </View>
                                 </View>
-                              </View>
-                            </TouchableOpacity>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
