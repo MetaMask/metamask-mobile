@@ -3,6 +3,7 @@ import { Hex, hexToNumber } from '@metamask/utils';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface, ParamType, defaultAbiCoder } from '@ethersproject/abi';
 import { TransactionControllerInitMessenger } from '../../../Engine/messengers/transaction-controller-messenger';
+import AppConstants from '../../../AppConstants';
 
 export interface Caveat {
   enforcer: Hex;
@@ -127,7 +128,7 @@ export async function signDelegation({
       chainId: String(hexToNumber(chainId)),
       name: DOMAIN_NAME,
       version: '1',
-      verifyingContract: process.env.DELEGATION_MANAGER_ADDRESS as Hex,
+      verifyingContract: AppConstants.DELEGATION_MANAGER_ADDRESS as Hex,
     },
     message: {
       delegate: delegation.delegate.toString(),

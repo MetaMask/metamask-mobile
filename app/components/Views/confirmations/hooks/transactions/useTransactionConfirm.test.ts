@@ -24,6 +24,7 @@ import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networ
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { flushPromises } from '../../../../../util/test/utils';
+import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -37,6 +38,7 @@ jest.mock('../ui/useFullScreenConfirmation');
 jest.mock('../../../../../actions/transaction');
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
+jest.mock('../gas/useGasFeeToken');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -103,6 +105,7 @@ describe('useTransactionConfirm', () => {
   const useFullScreenConfirmationMock = jest.mocked(useFullScreenConfirmation);
   const resetTransactionMock = jest.mocked(resetTransaction);
   const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
+  const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
 
   const isRemoveGlobalNetworkSelectorEnabledMock = jest.mocked(
     isRemoveGlobalNetworkSelectorEnabled,
@@ -127,6 +130,7 @@ describe('useTransactionConfirm', () => {
       id: transactionIdMock,
       chainId: CHAIN_ID_MOCK,
       origin: ORIGIN_METAMASK,
+      txParams: {},
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -344,6 +348,87 @@ describe('useTransactionConfirm', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  describe('handleSmartTransaction', () => {
+    beforeEach(() => {
+      selectShouldUseSmartTransactionMock.mockReturnValue(true);
+      useSelectedGasFeeTokenMock.mockReturnValue({
+        transferTransaction: { data: '0xabc', to: '0xdef', value: '0x0' },
+        gas: '0x5208',
+        maxFeePerGas: '0x1',
+        maxPriorityFeePerGas: '0x2',
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
+    });
+    it('adds batchTransactions and gas properties when smart transaction is enabled', async () => {
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          batchTransactions: [
+            expect.objectContaining({ data: '0xabc', to: '0xdef' }),
+          ],
+          txParams: expect.objectContaining({
+            gas: '0x5208',
+            maxFeePerGas: '0x1',
+            maxPriorityFeePerGas: '0x2',
+          }),
+        }),
+      });
+    });
+
+    it('does nothing if selectedGasFeeToken missing', async () => {
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.not.objectContaining({
+          batchTransactions: expect.any(Array),
+        }),
+      });
+    });
+  });
+
+  describe('handleGasless7702', () => {
+    it('sets isExternalSign when selectedGasFeeToken is present and not smart transaction', async () => {
+      selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+      useSelectedGasFeeTokenMock.mockReturnValue({
+        transferTransaction: { data: '0xabc' },
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: true,
+        }),
+      });
+    });
+
+    it('does nothing if selectedGasFeeToken is missing', async () => {
+      selectShouldUseSmartTransactionMock.mockReturnValue(false);
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+
+      const { result } = renderHook();
+
+      await result.current.onConfirm();
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
+      });
     });
   });
 });
