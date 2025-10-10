@@ -46,7 +46,7 @@ describe('useConfirmNavigation', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      { params: { loader: ConfirmationLoader.CustomAmount } },
+      { loader: ConfirmationLoader.CustomAmount },
     );
   });
 });

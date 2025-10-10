@@ -9,8 +9,6 @@ import {
   TransactionParams,
 } from '@metamask/transaction-controller';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
-import { abiERC20 } from '@metamask/metamask-eth-abis';
-import { Interface } from '@ethersproject/abi';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
@@ -20,6 +18,8 @@ jest.mock('../tokens/useTokenWithBalance');
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890';
 const TO_MOCK = '0x0987654321098765432109876543210987654321';
+const TOKEN_TRANSFER_DATA_MOCK =
+  '0xa9059cbb0000000000000000000000007e5f4552091a69125d5dfcb7b8c2659029395bdf0000000000000000000000000000000000000000000000000000000000000123';
 
 const STATE_MOCK = merge(
   {
@@ -224,32 +224,63 @@ describe('useTransactionRequiredTokens', () => {
     });
   });
 
-  it('returns token transfer token', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          data: new Interface(abiERC20).encodeFunctionData('transfer', [
-            TO_MOCK,
-            '0x123',
-          ]),
-          to: TOKEN_ADDRESS_MOCK,
-        } as TransactionParams,
-      },
-    }).result.current;
-
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        {
-          address: TOKEN_ADDRESS_MOCK,
-          allowUnderMinimum: false,
-          amountHuman: '0.0291',
-          amountRaw: '291',
-          balanceHuman: '2.345',
-          balanceRaw: '23450',
-          decimals: 4,
-          skipIfBalance: false,
+  describe('returns token transfer token', () => {
+    it('if token transfer transaction', () => {
+      const tokens = runHook({
+        transaction: {
+          txParams: {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: TOKEN_ADDRESS_MOCK,
+          } as TransactionParams,
         },
-      ]),
-    );
+      }).result.current;
+
+      expect(tokens).toStrictEqual(
+        expect.arrayContaining([
+          {
+            address: TOKEN_ADDRESS_MOCK,
+            allowUnderMinimum: false,
+            amountHuman: '0.0291',
+            amountRaw: '291',
+            balanceHuman: '2.345',
+            balanceRaw: '23450',
+            decimals: 4,
+            skipIfBalance: false,
+          },
+        ]),
+      );
+    });
+
+    it('if token transfer in nested transaction', () => {
+      const tokens = runHook({
+        transaction: {
+          txParams: {
+            data: '0x1234',
+            to: TO_MOCK,
+          } as TransactionParams,
+          nestedTransactions: [
+            {
+              data: TOKEN_TRANSFER_DATA_MOCK,
+              to: TOKEN_ADDRESS_MOCK,
+            },
+          ],
+        },
+      }).result.current;
+
+      expect(tokens).toStrictEqual(
+        expect.arrayContaining([
+          {
+            address: TOKEN_ADDRESS_MOCK,
+            allowUnderMinimum: false,
+            amountHuman: '0.0291',
+            amountRaw: '291',
+            balanceHuman: '2.345',
+            balanceRaw: '23450',
+            decimals: 4,
+            skipIfBalance: false,
+          },
+        ]),
+      );
+    });
   });
 });
