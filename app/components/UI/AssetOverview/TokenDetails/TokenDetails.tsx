@@ -3,9 +3,11 @@ import {
   CaipAssetId,
   ///: END:ONLY_INCLUDE_IF
   Hex,
+  isCaipAssetType,
+  parseCaipAssetType,
 } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
@@ -33,6 +35,9 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { handleFetch } from '@metamask/controller-utils';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -89,8 +94,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const nonEvmMarketData = multichainAssetRates?.marketData;
   const nonEvmMetadata = {
-    rate: Number(multichainAssetRates?.rate),
-    conversionTime: Number(multichainAssetRates?.conversionTime),
+    rate: multichainAssetRates?.rate
+      ? Number(multichainAssetRates.rate)
+      : undefined,
+    conversionTime: multichainAssetRates?.conversionTime
+      ? Number(multichainAssetRates.conversionTime)
+      : undefined,
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -111,20 +120,92 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     ? evmConversionRate
     : nonEvmMetadata.rate;
 
-  let marketData;
   let tokenMetadata;
+  let cachedMarketData: MarketDataDetails | undefined;
 
   if (
     isAssetFromSearch(asset) &&
     tokenSearchResult?.found &&
     tokenSearchResult.price
   ) {
-    marketData = tokenSearchResult.price;
+    // Search results have market data
+    cachedMarketData = tokenSearchResult.price;
     tokenMetadata = tokenSearchResult.token;
   } else {
     tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
-    marketData = !isNonEvmAsset ? evmMarketData?.marketData : nonEvmMarketData;
+    cachedMarketData = !isNonEvmAsset
+      ? evmMarketData?.marketData
+      : (nonEvmMarketData as MarketDataDetails | undefined);
   }
+
+  // Fetch market data from API if not in cache
+  const [fetchedMarketData, setFetchedMarketData] = useState<
+    Record<string, unknown> | undefined
+  >();
+
+  useEffect(() => {
+    if (cachedMarketData) return;
+
+    const plainTokenAddress = isCaipAssetType(asset.address)
+      ? parseCaipAssetType(asset.address).assetReference
+      : asset.address;
+
+    if (!plainTokenAddress || !asset.chainId) return;
+
+    const isNonEvm = isNonEvmChainId(asset.chainId as string);
+
+    const fetchData = async () => {
+      try {
+        if (isNonEvm) {
+          const assetId = toAssetId(
+            plainTokenAddress,
+            asset.chainId as `${string}:${string}`,
+          );
+          if (!assetId) return;
+
+          const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
+            {
+              assetIds: assetId,
+              includeMarketData: 'true',
+              vsCurrency: currentCurrency.toLowerCase(),
+            },
+          )}`;
+          const response = (await handleFetch(url)) as Record<
+            string,
+            Record<string, unknown>
+          >;
+          setFetchedMarketData(response?.[assetId]);
+        } else {
+          const checksumAddress = safeToChecksumAddress(plainTokenAddress);
+          if (!checksumAddress) return;
+
+          const url = `https://price.api.cx.metamask.io/v2/chains/${parseInt(
+            asset.chainId as string,
+            16,
+          )}/spot-prices?${new URLSearchParams({
+            tokenAddresses: checksumAddress,
+            vsCurrency: currentCurrency.toLowerCase(),
+            includeMarketData: 'true',
+          })}`;
+          const response = (await handleFetch(url)) as Record<
+            string,
+            Record<string, unknown>
+          >;
+          setFetchedMarketData(
+            response?.[checksumAddress.toLowerCase()] ??
+              response?.[checksumAddress],
+          );
+        }
+      } catch (error) {
+        console.error('Failed to fetch market data:', error);
+      }
+    };
+
+    fetchData();
+  }, [asset.address, asset.chainId, cachedMarketData, currentCurrency]);
+
+  const marketData = cachedMarketData ?? fetchedMarketData;
+
   const tokenDetails = useMemo(
     () =>
       getTokenDetails(
@@ -139,8 +220,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const marketDetails = useMemo(() => {
     if (!marketData) return;
 
-    if (!conversionRate || conversionRate < 0) {
-      Logger.log('invalid conversion rate');
+    // For EVM tokens, we need a valid conversion rate
+    // For non-EVM tokens from search/non-imported, conversion rate may not be available yet
+    if (!isNonEvmAsset && (!conversionRate || conversionRate < 0)) {
+      Logger.log('invalid conversion rate for EVM token');
       return;
     }
 
@@ -169,7 +252,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         locale: i18n.locale,
         currentCurrency,
         isEvmAssetSelected: !isNonEvmAsset,
-        conversionRate,
+        conversionRate: conversionRate || 1, // Default to 1 for display if not available
       },
     );
   }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);

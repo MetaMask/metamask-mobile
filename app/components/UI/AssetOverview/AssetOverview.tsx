@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -79,7 +79,12 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
-import { useTokenExchangeRate } from './hooks/useTokenExchangeRate';
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+import {
+  exchangeRateFromMarketData,
+  getTokenExchangeRate,
+} from '../Bridge/utils/exchange-rates';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -348,16 +353,79 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : asset.address;
 
   const currentChainId = chainId as Hex;
+  const allTokenMarketData = useSelector(selectTokenMarketData);
 
   // Fetch exchange rate - will use allTokenMarketData if available,
   // otherwise fetch from API for non-imported tokens
-  // For non-EVM, skip hook if multichainAssetRates already has the rate
+  // For non-EVM, skip if multichainAssetRates already has the rate
   const shouldFetchRate = isNonEvmAsset ? !multichainAssetRates : true;
+  const [fetchedRate, setFetchedRate] = useState<number | undefined>();
 
-  const { exchangeRate } = useTokenExchangeRate({
-    chainId: shouldFetchRate ? currentChainId : undefined,
-    tokenAddress: shouldFetchRate ? itemAddress : undefined,
-  });
+  const marketDataRate =
+    shouldFetchRate && currentChainId && itemAddress
+      ? exchangeRateFromMarketData(
+          currentChainId,
+          itemAddress,
+          allTokenMarketData,
+        )
+      : undefined;
+
+  useEffect(() => {
+    if (
+      !shouldFetchRate ||
+      marketDataRate !== undefined ||
+      !currentChainId ||
+      !itemAddress
+    ) {
+      return;
+    }
+
+    const isNonEvm = isNonEvmChainId(currentChainId);
+    const nativeAssetConversionRate =
+      nativeCurrency &&
+      conversionRateByTicker?.[nativeCurrency]?.conversionRate;
+
+    if (!isNonEvm && !nativeAssetConversionRate) {
+      return;
+    }
+
+    const fetchRate = async () => {
+      try {
+        const tokenFiatPrice = await getTokenExchangeRate({
+          chainId: currentChainId,
+          tokenAddress: itemAddress,
+          currency: currentCurrency,
+        });
+
+        if (tokenFiatPrice) {
+          if (isNonEvm) {
+            setFetchedRate(tokenFiatPrice);
+          } else if (nativeAssetConversionRate) {
+            setFetchedRate(tokenFiatPrice / nativeAssetConversionRate);
+          } else {
+            setFetchedRate(undefined);
+          }
+        } else {
+          setFetchedRate(undefined);
+        }
+      } catch (error) {
+        console.error('Failed to fetch token exchange rate:', error);
+        setFetchedRate(undefined);
+      }
+    };
+
+    fetchRate();
+  }, [
+    shouldFetchRate,
+    currentChainId,
+    itemAddress,
+    currentCurrency,
+    marketDataRate,
+    nativeCurrency,
+    conversionRateByTicker,
+  ]);
+
+  const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
   const minimumDisplayThreshold = 0.00001;
