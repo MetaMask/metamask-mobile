@@ -15,11 +15,7 @@ import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -433,6 +429,7 @@ class Onboarding extends PureComponent {
   };
 
   handlePostSocialLogin = (result, createWallet, provider) => {
+    const isIOS = Platform.OS === 'ios';
     if (this.socialLoginTraceCtx) {
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
       this.socialLoginTraceCtx = null;
@@ -457,11 +454,25 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('ChoosePassword', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+
+          if (isIOS) {
+            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
+            this.props.navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+              {
+                accountName: result.accountName,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              },
+            );
+          } else {
+            // Direct navigation to ChoosePassword for Android
+            this.props.navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: this.onboardingTraceCtx,
+            });
+          }
         }
       } else if (!createWallet) {
         if (result.existingUser) {
@@ -471,11 +482,20 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('Rehydrate', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+          isIOS
+            ? this.props.navigation.navigate(
+                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+                {
+                  [PREVIOUS_SCREEN]: ONBOARDING,
+                  oauthLoginSuccess: true,
+                  onboardingTraceCtx: this.onboardingTraceCtx,
+                },
+              )
+            : this.props.navigation.navigate('Rehydrate', {
+                [PREVIOUS_SCREEN]: ONBOARDING,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              });
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,

@@ -9,6 +9,14 @@ export const OnboardingSelectorIDs = {
   EXISTING_WALLET_BUTTON:
     'wallet-setup-screen-import-from-seed-button-id',
   */
+  SCREEN_TITLE: 'wallet-setup-screen-title-id',
+  SCREEN_DESCRIPTION: 'wallet-setup-screen-description-id',
+  SOCIAL_LOGIN_IOS_NEW_USER_TITLE: 'social-login-ios-user-new-user-title-id',
+  SOCIAL_LOGIN_IOS_NEW_USER_BUTTON: 'social-login-ios-user-new-user-button-id',
+  SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE:
+    'social-login-ios-user-existing-user-title-id',
+  SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON:
+    'social-login-ios-user-existing-user-button-id',
 };
 
 export const OnboardingSelectorText = {

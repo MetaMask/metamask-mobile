@@ -7,6 +7,7 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictMarketList from '../views/PredictMarketList';
 import PredictTabView from '../views/PredictTabView';
+import PredictPlaceBet from '../views/PredictPlaceBet/PredictPlaceBet';
 import { PredictNavigationParamList } from '../types/navigation';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
@@ -32,6 +33,11 @@ const PredictModalStack = () => (
       options={{
         headerShown: false,
       }}
+    />
+
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.PLACE_BET}
+      component={PredictPlaceBet}
     />
   </ModalStack.Navigator>
 );
@@ -59,6 +65,11 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
+      options={{
+        headerLeft: () => null,
+        headerShown: true,
+        title: '',
+      }}
     />
   </Stack.Navigator>
 );

@@ -13,9 +13,6 @@ import {
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 import { selectRemoteFeatureFlags } from '../featureFlagController';
-import featureAnnouncement, {
-  isFilteredFeatureAnnonucementNotification,
-} from '../../util/notifications/notification-states/feature-announcement/feature-announcement';
 
 type NotificationServicesState = NotificationServicesControllerState;
 
@@ -84,20 +81,8 @@ export const getmetamaskNotificationsReadList = createSelector(
 );
 export const getNotificationsList = createDeepEqualSelector(
   selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) => {
-    const notificationList =
-      notificationServicesControllerState.metamaskNotificationsList;
-
-    return notificationList.filter((n) => {
-      // Check announcements
-      if (featureAnnouncement.guardFn(n)) {
-        return isFilteredFeatureAnnonucementNotification(n);
-      }
-
-      // Return rest
-      return true;
-    });
-  },
+  (notificationServicesControllerState: NotificationServicesState) =>
+    notificationServicesControllerState.metamaskNotificationsList,
 );
 
 export const getMetamaskNotificationsUnreadCount = createSelector(

@@ -15,6 +15,9 @@ export const ALLOWLISTED_HOSTS = [
   'portfolio.dev-api.cx.metamask.io',
   'portfolio.uat-api.cx.metamask.io',
   'portfolio.api.cx.metamask.io',
+  'gamma-api.polymarket.com',
+  'clob.polymarket.com',
+  '*.polymarket.com',
 ];
 
 export const ALLOWLISTED_URLS = [

@@ -2,7 +2,7 @@ import migrate from './063';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { TransactionStatus, CHAIN_IDS } from '@metamask/transaction-controller';
 
 const expectedState = {
