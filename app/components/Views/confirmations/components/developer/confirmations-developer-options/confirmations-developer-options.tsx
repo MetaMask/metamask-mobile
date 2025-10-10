@@ -35,7 +35,28 @@ export function ConfirmationsDeveloperOptions() {
     <>
       <PredictDeposit />
       <PredictClaim />
+      <PredictWithdraw />
     </>
+  );
+}
+
+function PredictWithdraw() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleWithdraw = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.predictSell,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Predict Withdraw"
+      description="Trigger a Predict withdraw confirmation."
+      buttonLabel="Withdraw"
+      onPress={handleWithdraw}
+    />
   );
 }
 
