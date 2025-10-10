@@ -3,6 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
+import Routes from '../../../constants/navigation/Routes';
 
 // Mock the MainNavigator component directly
 jest.mock('./MainNavigator', () => {
@@ -22,7 +23,7 @@ jest.mock('./MainNavigator', () => {
     const isBrowserFullscreen = selectBrowserFullscreen();
 
     // Simulate hidding tab bar when browser is in fullscreen mode AND on browser route
-    if (isBrowserFullscreen && route?.name?.startsWith('BrowserTabHome')) {
+    if (isBrowserFullscreen && route?.name?.startsWith(Routes.BROWSER.HOME)) {
       return null;
     }
 
@@ -123,7 +124,7 @@ describe('MainNavigator', () => {
 
     // When rendering MainNavigator on browser route
     const { queryByTestId } = render(
-      <MainNavigator route={{ name: 'BrowserTabHome' }} />,
+      <MainNavigator route={{ name: Routes.BROWSER.HOME }} />,
     );
 
     // Then navbar tabs should not be visible
@@ -155,7 +156,7 @@ describe('MainNavigator', () => {
 
     // When rendering MainNavigator with exact BrowserTabHome route (matches Routes.BROWSER.HOME)
     const rendered = render(
-      <MainNavigator route={{ name: 'BrowserTabHome' }} />,
+      <MainNavigator route={{ name: Routes.BROWSER.HOME }} />,
     );
 
     // Then component should return null (empty container validates return null behavior)
@@ -168,7 +169,7 @@ describe('MainNavigator', () => {
 
     // When rendering MainNavigator on BrowserTabHome subpath route
     const component = render(
-      <MainNavigator route={{ name: 'BrowserTabHome' }} />,
+      <MainNavigator route={{ name: Routes.BROWSER.HOME }} />,
     );
 
     // Then component should match fullscreen snapshot (returns null)
