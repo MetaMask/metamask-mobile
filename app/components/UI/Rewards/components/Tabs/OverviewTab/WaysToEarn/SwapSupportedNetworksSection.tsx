@@ -55,7 +55,7 @@ const SwapSupportedNetworkItem = ({ network }: { network: NetworkConfig }) => (
       </Text>
     </Box>
     {network.boost && (
-      <Box twClassName="bg-muted px-1 py-0.5 rounded">
+      <Box twClassName="bg-muted px-1 rounded">
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {network.boost}
         </Text>

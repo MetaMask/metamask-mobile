@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -69,7 +70,16 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
-const mockUseAssetBalance = jest.fn(() => ({
+interface MockAssetBalanceReturn {
+  balanceFiat: string | undefined;
+  asset: { symbol: string; image: string };
+  mainBalance: string | undefined;
+  secondaryBalance: string | undefined;
+  rawTokenBalance?: number;
+  rawFiatNumber?: number;
+}
+
+const mockUseAssetBalance = jest.fn<MockAssetBalanceReturn, []>(() => ({
   balanceFiat: '$1,000.00',
   asset: {
     symbol: 'USDC',
@@ -77,6 +87,8 @@ const mockUseAssetBalance = jest.fn(() => ({
   },
   mainBalance: '$1,000.00',
   secondaryBalance: '1000 USDC',
+  rawTokenBalance: 1000,
+  rawFiatNumber: 1000,
 }));
 
 const mockUseNavigateToCardPage = jest.fn(() => ({
@@ -112,16 +124,6 @@ jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 
 jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
-}));
-
-// Mock useSupportedTokens so that supported deposit tokens include only USDC & USDT on Linea.
-// Card feature only supports Linea for now, so chainId must match LINEA_MAINNET (59144 decimal).
-jest.mock('../../../Ramp/Deposit/hooks/useSupportedTokens', () => ({
-  __esModule: true,
-  default: () => [
-    { symbol: 'USDC', chainId: 'eip155:59144' },
-    { symbol: 'USDT', chainId: 'eip155:59144' },
-  ],
 }));
 
 jest.mock('../../../../hooks/useMetrics', () => ({
@@ -330,6 +332,8 @@ describe('CardHome Component', () => {
       },
       mainBalance: '$1,000.00',
       secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 1000,
     });
 
     mockUseNavigateToCardPage.mockReturnValue({
@@ -640,7 +644,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -657,7 +661,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -672,7 +676,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -725,6 +729,8 @@ describe('CardHome Component', () => {
       },
       mainBalance: '1000 USDC',
       secondaryBalance: 'Unable to find conversion rate',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 0,
     });
 
     render();
@@ -745,6 +751,8 @@ describe('CardHome Component', () => {
       },
       mainBalance: '1000 USDC',
       secondaryBalance: 'Unable to find conversion rate',
+      rawTokenBalance: 1000,
+      rawFiatNumber: 0,
     });
 
     render();
@@ -763,13 +771,78 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
+  });
 
-    // Trigger a re-render via UI interaction (privacy toggle) and ensure no re-fire
-    mockTrackEvent.mockClear();
-    const toggle = screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON);
-    fireEvent.press(toggle);
+  it('includes raw numeric properties in CARD_HOME_VIEWED event when both balances valid', async () => {
+    render();
     await new Promise((r) => setTimeout(r, 0));
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 1000,
+        token_fiat_balance_priority: 1000,
+      }),
+    );
+  });
+
+  it('fires metric with raw balance 0 for zero balances', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$0.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '0 USDC',
+      secondaryBalance: '$0.00',
+      rawTokenBalance: 0,
+      rawFiatNumber: 0,
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 0,
+        token_fiat_balance_priority: 0,
+      }),
+    );
+  });
+
+  it('fires metric when only main balance is valid (fiat undefined) and includes rawTokenBalance only', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: undefined as unknown as string,
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      // rawFiatNumber intentionally omitted (undefined)
+    });
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    // event fired
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 1000,
+        token_fiat_balance_priority: undefined,
+      }),
+    );
+  });
+
+  it('fires metric when only fiat balance is valid (main undefined) and includes rawFiatNumber only', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: '$1,000.00',
+      // rawTokenBalance omitted
+      rawFiatNumber: 1000,
+    });
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: undefined,
+        token_fiat_balance_priority: 1000,
+      }),
+    );
   });
 
   it('fires CARD_HOME_VIEWED once when only mainBalance is valid (fiat undefined)', async () => {
@@ -778,6 +851,8 @@ describe('CardHome Component', () => {
       asset: { symbol: 'USDC', image: 'usdc-image-url' },
       mainBalance: '1000 USDC',
       secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      // rawFiatNumber omitted
     });
 
     render();
@@ -797,6 +872,8 @@ describe('CardHome Component', () => {
       asset: { symbol: 'USDC', image: 'usdc-image-url' },
       mainBalance: undefined as unknown as string,
       secondaryBalance: '$1,000.00',
+      // rawTokenBalance omitted
+      rawFiatNumber: 1000,
     });
 
     render();
@@ -816,6 +893,7 @@ describe('CardHome Component', () => {
       asset: { symbol: 'USDC', image: 'usdc-image-url' },
       mainBalance: 'TOKENBALANCELOADING',
       secondaryBalance: 'loading',
+      // raw values omitted
     });
 
     render();
@@ -831,11 +909,99 @@ describe('CardHome Component', () => {
       asset: { symbol: 'USDC', image: 'usdc-image-url' },
       mainBalance: undefined as unknown as string,
       secondaryBalance: 'n/a',
+      // raw values omitted
     });
 
     render();
 
     await new Promise((r) => setTimeout(r, 0));
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('converts NaN rawTokenBalance to 0 in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: NaN, // This should be converted to 0
+      rawFiatNumber: 1000,
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 0, // NaN should become 0
+        token_fiat_balance_priority: 1000,
+      }),
+    );
+  });
+
+  it('converts NaN rawFiatNumber to 0 in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: 1000,
+      rawFiatNumber: NaN, // This should be converted to 0
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 1000,
+        token_fiat_balance_priority: 0, // NaN should become 0
+      }),
+    );
+  });
+
+  it('converts both NaN raw values to 0 in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      rawTokenBalance: NaN, // This should be converted to 0
+      rawFiatNumber: NaN, // This should be converted to 0
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: 0, // NaN should become 0
+        token_fiat_balance_priority: 0, // NaN should become 0
+      }),
+    );
+  });
+
+  it('preserves undefined raw values (does not convert to 0) in tracking event', async () => {
+    mockUseAssetBalance.mockReturnValueOnce({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+      // rawTokenBalance and rawFiatNumber intentionally omitted (undefined)
+    });
+
+    render();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_raw_balance_priority: undefined, // undefined should remain undefined
+        token_fiat_balance_priority: undefined, // undefined should remain undefined
+      }),
+    );
   });
 });

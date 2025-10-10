@@ -1,13 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
-import { colors as staticColors } from '../../../../styles/common';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isSelected: boolean };
-}) => {
-  const { theme, vars } = params;
-  const { isSelected } = vars;
+const styleSheet = (params: { theme: Theme; vars: unknown }) => {
+  const { theme } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -15,20 +10,10 @@ const styleSheet = (params: {
       gap: 16,
       paddingTop: 16,
       paddingBottom: 16,
-    },
-    avatarWrapper: {
-      borderRadius: 8,
-      width: 36, // 32 (avatar size) + 2*2 (border width)
-      height: 36, // 32 (avatar size) + 2*2 (border width)
-      borderWidth: 2,
-      borderColor: isSelected ? colors.info.default : staticColors.transparent,
-      justifyContent: 'center',
-      alignItems: 'center',
+      minHeight: 68,
     },
     avatar: {
       borderRadius: 6, // Slightly smaller to account for wrapper border
-      width: 32,
-      height: 32,
       backgroundColor: colors.background.muted,
     },
     accountName: {
@@ -66,6 +51,13 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    mainTouchable: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      minHeight: 36,
     },
   });
 };

@@ -16,11 +16,13 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
         localNodeOptions: [
           {
             type: LocalNodeType.anvil,
             options: {
               ...defaultOptions,
+              port: AnvilPort(),
               blockTime: 2,
             },
           },

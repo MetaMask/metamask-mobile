@@ -251,7 +251,7 @@ class TransactionReview extends PureComponent {
      */
     dappSuggestedGasWarning: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
-    QRState: PropTypes.object,
+    pendingScanRequest: PropTypes.object,
     /**
      * Returns the selected gas type
      * @returns {string}
@@ -692,7 +692,7 @@ class TransactionReview extends PureComponent {
   renderQRDetails() {
     const currentPageInformation = { url: this.getUrlFromBrowser() };
     const {
-      QRState,
+      pendingScanRequest,
       transaction: { from },
       onCancel,
       onConfirm,
@@ -703,7 +703,7 @@ class TransactionReview extends PureComponent {
       <View style={styles.actionViewQRObject}>
         <TransactionHeader currentPageInformation={currentPageInformation} />
         <QRSigningDetails
-          QRState={QRState}
+          pendingScanRequest={pendingScanRequest}
           tighten
           showCancelButton
           showHint={false}

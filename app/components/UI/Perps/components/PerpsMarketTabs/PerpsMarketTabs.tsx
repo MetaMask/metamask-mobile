@@ -43,6 +43,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  activeTabId: externalActiveTabId,
   initialTab,
   nextFundingTime,
   fundingIntervalHours,
@@ -152,12 +153,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
 
-    // Always show statistics tab
-    dynamicTabs.push({
-      id: 'statistics',
-      label: strings('perps.market.statistics'),
-    });
-
     // Only show position tab if there's a position
     if (position) {
       dynamicTabs.push({
@@ -173,6 +168,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         label: strings('perps.market.orders'),
       });
     }
+
+    // Always show statistics tab
+    dynamicTabs.push({
+      id: 'statistics',
+      label: strings('perps.market.statistics'),
+    });
 
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
@@ -255,6 +256,17 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
+
+  // Handle programmatic tab control from external activeTabId prop
+  useEffect(() => {
+    if (externalActiveTabId) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(externalActiveTabId)) {
+        setActiveTabId(externalActiveTabId as PerpsTabId);
+        onActiveTabChange?.(externalActiveTabId);
+      }
+    }
+  }, [externalActiveTabId, tabs, onActiveTabChange]);
 
   // Notify parent when tab changes
   const handleTabChange = useCallback(
@@ -381,15 +393,18 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!selectedTooltip) return null;
 
     return (
-      <Modal visible transparent animationType="none" statusBarTranslucent>
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-          key={selectedTooltip}
-        />
-      </Modal>
+      // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+      <View>
+        <Modal visible transparent animationType="none" statusBarTranslucent>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey={selectedTooltip}
+            testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+            key={selectedTooltip}
+          />
+        </Modal>
+      </View>
     );
   }, [selectedTooltip, handleTooltipClose]);
 
@@ -428,7 +443,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSM}
           color={TextColor.Default}
           style={styles.statisticsTitle}
           testID={PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE}

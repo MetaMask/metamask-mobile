@@ -16,6 +16,7 @@ jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../hooks/useNetworkInfo');
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
 describe('SelectedGasFeeToken', () => {
   const mockUseInsufficientBalanceAlert = jest.mocked(
@@ -208,6 +209,19 @@ describe('SelectedGasFeeToken', () => {
       });
 
       expectModalNotToOpen();
+    });
+
+    it('supports gas fee tokens when not only future native token', () => {
+      const { expectModalToOpen } = setupTest({
+        gaslessSupported: true,
+        isSmartTransaction: true,
+        gasFeeTokens: [
+          { tokenAddress: '0xTokenAddress1', symbol: 'DAI' },
+          { tokenAddress: NATIVE_TOKEN_ADDRESS, symbol: 'ETH' },
+        ] as unknown as GasFeeToken[],
+      });
+
+      expectModalToOpen();
     });
   });
 });

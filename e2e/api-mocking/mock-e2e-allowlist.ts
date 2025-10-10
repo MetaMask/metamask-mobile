@@ -15,6 +15,9 @@ export const ALLOWLISTED_HOSTS = [
   'portfolio.dev-api.cx.metamask.io',
   'portfolio.uat-api.cx.metamask.io',
   'portfolio.api.cx.metamask.io',
+  'gamma-api.polymarket.com',
+  'clob.polymarket.com',
+  '*.polymarket.com',
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -22,6 +25,7 @@ export const ALLOWLISTED_URLS = [
   'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
   'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
+  'https://chainid.network/chains.json',
   // Token SVGs in notifications list
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/shib.svg',

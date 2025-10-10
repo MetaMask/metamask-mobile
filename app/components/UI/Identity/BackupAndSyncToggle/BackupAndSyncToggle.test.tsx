@@ -15,6 +15,11 @@ jest.mock('../../../../components/hooks/useMetrics/useMetrics');
 const { trackEvent } = mockUseMetrics();
 const mockTrackEvent = jest.mocked(trackEvent);
 
+// Mock the remote feature flag module
+jest.mock('../../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: jest.fn(() => false),
+}));
+
 // Mock Engine for MultichainAccountService calls
 jest.mock('../../../../core/Engine', () => ({
   default: {

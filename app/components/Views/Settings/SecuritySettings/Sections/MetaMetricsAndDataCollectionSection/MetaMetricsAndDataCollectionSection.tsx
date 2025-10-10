@@ -33,7 +33,13 @@ import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 
-const MetaMetricsAndDataCollectionSection: React.FC = () => {
+interface MetaMetricsAndDataCollectionSectionProps {
+  hideMarketingSection?: boolean;
+}
+
+const MetaMetricsAndDataCollectionSection: React.FC<
+  MetaMetricsAndDataCollectionSectionProps
+> = ({ hideMarketingSection = false }) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -270,7 +276,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   return (
     <>
       {renderMetaMetricsSection()}
-      {renderDataCollectionSection()}
+      {!hideMarketingSection && renderDataCollectionSection()}
     </>
   );
 };

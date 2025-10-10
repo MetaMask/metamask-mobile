@@ -19,7 +19,6 @@ const styleSheet = (params: {
     },
     list: {
       height: screenHeight * 0.4,
-      paddingHorizontal: 16,
     },
   });
 };

@@ -134,7 +134,7 @@ describe('Footer', () => {
 
   it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isQRSigningInProgress: true,
+      isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,

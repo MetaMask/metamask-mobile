@@ -38,11 +38,29 @@ import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-
 
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
+import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getBridgeControllerMessenger } from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
+import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
+import {
+  getPermissionControllerInitMessenger,
+  getPermissionControllerMessenger,
+} from './permission-controller-messenger';
+import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
+import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
+import {
+  getSnapKeyringBuilderInitMessenger,
+  getSnapKeyringBuilderMessenger,
+} from './snap-keyring-builder-messenger';
+import { getKeyringControllerMessenger } from './keyring-controller-messenger';
+import {
+  getNetworkControllerInitMessenger,
+  getNetworkControllerMessenger,
+} from './network-controller-messenger';
+
 /**
  * The messengers for the controllers that have been.
  */
@@ -75,8 +93,20 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getGasFeeControllerMessenger,
     getInitMessenger: noop,
   },
+  KeyringController: {
+    getMessenger: getKeyringControllerMessenger,
+    getInitMessenger: noop,
+  },
+  NetworkController: {
+    getMessenger: getNetworkControllerMessenger,
+    getInitMessenger: getNetworkControllerInitMessenger,
+  },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PreferencesController: {
+    getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
   SignatureController: {
@@ -116,6 +146,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getNotificationServicesPushControllerMessenger,
     getInitMessenger: noop,
   },
+  SubjectMetadataController: {
+    getMessenger: getSubjectMetadataControllerMessenger,
+    getInitMessenger: noop,
+  },
   WebSocketService: {
     getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
@@ -138,9 +172,21 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
+  SnapKeyringBuilder: {
+    getMessenger: getSnapKeyringBuilderMessenger,
+    getInitMessenger: getSnapKeyringBuilderInitMessenger,
+  },
   ///: END:ONLY_INCLUDE_IF
+  PermissionController: {
+    getMessenger: getPermissionControllerMessenger,
+    getInitMessenger: getPermissionControllerInitMessenger,
+  },
   SeedlessOnboardingController: {
     getMessenger: getSeedlessOnboardingControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SelectedNetworkController: {
+    getMessenger: getSelectedNetworkControllerMessenger,
     getInitMessenger: noop,
   },
   NetworkEnablementController: {
@@ -149,6 +195,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PredictController: {
+    getMessenger: getPredictControllerMessenger,
     getInitMessenger: noop,
   },
   BridgeController: {

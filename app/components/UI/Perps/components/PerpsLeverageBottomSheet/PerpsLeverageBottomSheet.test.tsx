@@ -59,7 +59,25 @@ jest.mock('../../utils/formatUtils', () => ({
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => key),
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    if (key === 'perps.order.leverage_modal.set_leverage' && params?.leverage) {
+      return `Set ${params.leverage}x`;
+    }
+    if (
+      key === 'perps.order.leverage_modal.liquidation_warning' &&
+      params?.direction &&
+      params?.percentage
+    ) {
+      return `You will be liquidated if price ${params.direction} by ${params.percentage}`;
+    }
+    if (key === 'perps.order.leverage_modal.drops') {
+      return 'drops';
+    }
+    if (key === 'perps.order.leverage_modal.rises') {
+      return 'rises';
+    }
+    return key;
+  }),
 }));
 
 // Mock DevLogger
@@ -101,10 +119,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-// Mock usePerpsScreenTracking hook
-jest.mock('../../hooks/usePerpsScreenTracking', () => ({
-  usePerpsScreenTracking: jest.fn(),
-}));
+// usePerpsScreenTracking removed - migrated to usePerpsMeasurement
 
 // Mock BottomSheet components from component library
 jest.mock(

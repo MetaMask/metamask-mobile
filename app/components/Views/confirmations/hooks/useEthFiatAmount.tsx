@@ -4,9 +4,10 @@ import BigNumber from 'bignumber.js';
 import { decEthToConvertedCurrency } from '../../../../util/conversions';
 import { formatCurrency } from '../../../../util/confirm-tx';
 import {
-  selectCurrencyRates,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { RootState } from '../../../../reducers';
 
 interface UseEthFiatAmountOverrides {
   showFiat?: boolean;
@@ -25,12 +26,15 @@ export function useEthFiatAmount(
   ethAmount?: string | BigNumber,
   overrides: UseEthFiatAmountOverrides = {},
   hideCurrencySymbol?: boolean,
+  chainId?: string,
 ): string | undefined {
-  const currentRates = useSelector(selectCurrencyRates);
+  const conversionRate =
+    useSelector((state: RootState) =>
+      selectConversionRateByChainId(state, chainId),
+    ) ?? 0;
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const showFiat = overrides.showFiat;
-  const conversionRate = currentRates?.ETH?.conversionRate;
 
   const formattedFiat = useMemo(
     () => decEthToConvertedCurrency(ethAmount, currentCurrency, conversionRate),

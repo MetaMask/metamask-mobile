@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
@@ -21,6 +22,11 @@ import {
   ImportNewSecretRecoveryPhraseOptions,
   ImportNewSecretRecoveryPhraseReturnType,
 } from '../../../actions/multiSrp';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -28,6 +34,7 @@ const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
 const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(true);
+const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -66,6 +73,11 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
 jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
   isMultichainAccountsState2Enabled: () =>
     mockIsMultichainAccountsState2Enabled(),
+}));
+
+jest.mock('react', () => ({
+  ...jest.requireActual('react'),
+  useContext: jest.fn(),
 }));
 
 const valid12WordMnemonic =
@@ -119,6 +131,20 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+
+    (useContext as jest.Mock).mockImplementation((context) => {
+      if (context === ToastContext) {
+        return {
+          toastRef: {
+            current: {
+              showToast: mockShowToast,
+              closeToast: jest.fn(),
+            },
+          },
+        };
+      }
+      return jest.requireActual('react').useContext(context);
+    });
 
     mockImportNewSecretRecoveryPhrase.mockImplementation(
       (
@@ -329,6 +355,33 @@ describe('ImportNewSecretRecoveryPhrase', () => {
           })
           .build(),
       );
+    });
+  });
+
+  it('displays success toast after successful SRP import', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+
+    await act(async () => {
+      await fireEvent.press(importButton);
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    });
+
+    expect(mockShowToast).toHaveBeenCalledWith({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: 'Wallet 2 imported',
+        },
+      ],
+      iconName: IconName.Check,
+      hasNoTimeout: false,
     });
   });
 

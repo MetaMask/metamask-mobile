@@ -37,6 +37,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
+import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
@@ -396,7 +397,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
     });
 
-    it('renders allowance reset step for USDT on Ethereum mainnet', () => {
+    it('renders allowance reset step for USDT on Ethereum', () => {
       const { getByText, getAllByTestId } = renderWithProvider(
         <EarnLendingDepositConfirmationView />,
         {
@@ -446,7 +447,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
     });
 
-    it("does not render allowance reset step for USDT on Ethereum mainnet when reset isn't required", () => {
+    it("does not render allowance reset step for USDT on Ethereum when reset isn't required", () => {
       const routeParamsWithApproveAction = {
         ...defaultRouteParams,
         params: {
@@ -489,7 +490,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             experience: 'STABLECOIN_LENDING',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDT',
             transaction_value: '5 USDT',
             user_token_balance: undefined,
@@ -584,7 +585,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDT',
@@ -614,7 +615,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             transaction_value: '5 USDT',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -642,7 +643,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDT',
@@ -672,7 +673,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDT',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDT',
@@ -700,7 +701,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             experience: 'STABLECOIN_LENDING',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDC',
             transaction_value: '5 USDC',
             user_token_balance: undefined,
@@ -833,7 +834,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
@@ -863,7 +864,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             transaction_value: '5 USDC',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -898,7 +899,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
@@ -928,7 +929,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
@@ -1009,7 +1010,7 @@ describe('EarnLendingDepositConfirmationView', () => {
           .addProperties({
             action_type: 'deposit',
             token: 'USDC',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             user_token_balance: undefined,
             transaction_value: '5 USDC',
             transaction_id: '456',
@@ -1046,7 +1047,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             selected_provider: 'consensys',
             text: 'Cancel',
             location: 'EarnLendingDepositConfirmationView',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             step: 'Deposit',
           })
           .build(),

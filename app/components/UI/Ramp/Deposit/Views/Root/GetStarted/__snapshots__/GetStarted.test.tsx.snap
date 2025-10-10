@@ -7,7 +7,7 @@ exports[`GetStarted render matches snapshot 1`] = `
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
@@ -340,7 +340,7 @@ exports[`GetStarted renders blank screen when getStarted is true 1`] = `
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={

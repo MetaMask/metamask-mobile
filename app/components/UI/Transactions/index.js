@@ -79,6 +79,9 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    listContentContainer: {
+      paddingBottom: 80,
+    },
     bottomModal: {
       justifyContent: 'flex-end',
       margin: 0,
@@ -556,8 +559,7 @@ class Transactions extends PureComponent {
   };
 
   signQRTransaction = async (tx) => {
-    const { KeyringController, ApprovalController } = Engine.context;
-    await KeyringController.resetQRKeyringState();
+    const { ApprovalController } = Engine.context;
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
@@ -803,6 +805,7 @@ class Transactions extends PureComponent {
                   ? this.footer
                   : this.renderEmpty()
               }
+              contentContainerStyle={styles.listContentContainer}
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}

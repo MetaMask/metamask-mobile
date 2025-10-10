@@ -8,6 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     primaryValue: {
       color: theme.colors.text.default,
+      paddingRight: 4,
       ...fontStyles.normal,
     },
     secondaryValue: {
@@ -33,6 +34,13 @@ const styleSheet = (params: { theme: Theme }) => {
     estimationContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    gasFeeTokenContainer: {
+      flexDirection: 'row',
+    },
+    gasFeeTokenText: {
+      textAlign: 'left',
+      flex: 1,
     },
   });
 };

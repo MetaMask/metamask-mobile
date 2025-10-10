@@ -32,6 +32,19 @@ jest.mock('../../../../util/assets', () => ({
   },
 }));
 
+// Mock the strings function
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const mockStrings: Record<string, string> = {
+      today: 'Today',
+      'notifications.yesterday': 'Yesterday',
+      'perps.today': 'Today',
+      'perps.yesterday': 'Yesterday',
+    };
+    return mockStrings[key] || key;
+  },
+}));
+
 describe('formatUtils', () => {
   describe('formatFundingRate', () => {
     it('displays zero display value when input is undefined', () => {
@@ -649,7 +662,7 @@ describe('formatUtils', () => {
         });
 
       const olderDate = new Date('2022-01-15T12:00:00Z').getTime();
-      expect(formatDateSection(olderDate)).toBe('Jan, 15');
+      expect(formatDateSection(olderDate)).toBe('Jan 15');
     });
 
     it('should handle different months', () => {
@@ -668,7 +681,7 @@ describe('formatUtils', () => {
         });
 
       const julyDate = new Date('2021-07-15T12:00:00Z').getTime();
-      expect(formatDateSection(julyDate)).toBe('Jul, 15');
+      expect(formatDateSection(julyDate)).toBe('Jul 15');
     });
   });
 });

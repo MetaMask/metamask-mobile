@@ -58,8 +58,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
         }
       >
         <View>
-          <Image
-            onError={[Function]}
+          <View
             source={
               {
                 "uri": "",
@@ -230,8 +229,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -389,8 +387,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -544,8 +541,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",
@@ -709,8 +705,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
               }
             >
               <View>
-                <Image
-                  onError={[Function]}
+                <View
                   source={
                     {
                       "uri": "",

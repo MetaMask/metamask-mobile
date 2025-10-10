@@ -318,7 +318,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1157,7 +1157,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2016,7 +2016,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2855,7 +2855,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3740,7 +3740,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
