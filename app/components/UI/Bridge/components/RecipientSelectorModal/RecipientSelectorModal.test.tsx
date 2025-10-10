@@ -14,6 +14,7 @@ import {
   createMockInternalAccountsFromGroups,
 } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountCellIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { Hex } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -104,7 +105,7 @@ describe('RecipientSelectorModal', () => {
       ...createMockState([mockWallet], internalAccounts),
       bridge: {
         destToken: {
-          chainId: '0x1',
+          chainId: '0x1' as Hex,
           symbol: 'ETH',
           name: 'Ethereum',
           decimals: 18,
@@ -115,7 +116,7 @@ describe('RecipientSelectorModal', () => {
         sourceAmount: undefined,
         destAmount: undefined,
         selectedSourceChainIds: undefined,
-        selectedDestChainId: '0x1',
+        selectedDestChainId: '0x1' as Hex,
         slippage: '0.5',
         isSubmittingTx: false,
         bridgeViewMode: undefined,
@@ -233,7 +234,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -244,7 +245,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -261,7 +262,7 @@ describe('RecipientSelectorModal', () => {
       const component = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -272,7 +273,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -290,7 +291,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1', // Ethereum mainnet
+            chainId: '0x1' as Hex, // Ethereum mainnet
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -301,7 +302,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -437,7 +438,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1', // EVM chain
+            chainId: '0x1' as Hex, // EVM chain
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -448,7 +449,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -464,7 +465,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const,
             symbol: 'SOL',
             name: 'Solana',
             decimals: 9,
@@ -475,7 +476,8 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          selectedDestChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -508,7 +510,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText: getByText1 } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -519,7 +521,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -533,7 +535,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText: getByText2 } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -544,7 +546,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -562,7 +564,7 @@ describe('RecipientSelectorModal', () => {
         ...createMockState([], {}),
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -573,7 +575,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -596,7 +598,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -607,7 +609,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
@@ -629,7 +631,7 @@ describe('RecipientSelectorModal', () => {
       const { getByText } = renderRecipientSelectorModal({
         bridge: {
           destToken: {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
@@ -640,7 +642,7 @@ describe('RecipientSelectorModal', () => {
           sourceAmount: undefined,
           destAmount: undefined,
           selectedSourceChainIds: undefined,
-          selectedDestChainId: '0x1',
+          selectedDestChainId: '0x1' as Hex,
           slippage: '0.5',
           isSubmittingTx: false,
           bridgeViewMode: undefined,
