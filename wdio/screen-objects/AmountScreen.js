@@ -74,7 +74,7 @@ class AmountScreen {
         console.log(`iOS: Looking for button with name="${digit}"`);
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
         console.log(`iOS: Found element, checking visibility`);
-        await appwrightExpect(await numberKey).toBeVisible({ timeout: 30000 });
+        await appwrightExpect(numberKey).toBeVisible({ timeout: 30000 });
         console.log('iOS: Tapping number key:', digit);
         await AppwrightGestures.tap(numberKey);
         console.log(`iOS: Successfully tapped digit: ${digit}`);

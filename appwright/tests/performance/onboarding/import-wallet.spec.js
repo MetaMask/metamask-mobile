@@ -17,7 +17,7 @@ import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 import { dissmissAllModals } from '../../../utils/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.setTimeout(150000000)
+test.setTimeout(150000000);
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,

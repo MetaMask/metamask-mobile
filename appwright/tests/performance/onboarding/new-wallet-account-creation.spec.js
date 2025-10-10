@@ -62,7 +62,7 @@ test('Account creation after fresh install', async ({
 
   await WalletMainScreen.isMainWalletViewVisible();
 
-  // await WalletMainScreen.isTokenVisible('SOL'); // skipped since locator is no longer reachable
+  // await WalletMainScreen.isTokenVisible('SOL'); // TODO: skipped since locator is no longer reachable
 
   const screen1Timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
@@ -86,7 +86,7 @@ test('Account creation after fresh install', async ({
 
   screen3Timer.start();
   await WalletMainScreen.isMainWalletViewVisible();
-  // await WalletMainScreen.isTokenVisible('SOL'); // skipped since locator is no longer reachable
+  // await WalletMainScreen.isTokenVisible('SOL'); // TODO: skipped since locator is no longer reachable
   screen3Timer.stop();
   performanceTracker.addTimer(screen1Timer);
   performanceTracker.addTimer(screen2Timer);
