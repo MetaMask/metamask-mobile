@@ -105,7 +105,7 @@ module.exports = {
         avdName: 'emulator',
       },
       // optimized for GitHub Actions CI runners
-      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -no-accel -wipe-data',
+      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -no-accel -read-only -wipe-data',
       gpuMode: 'swiftshader_indirect',
       forceAdbInstall: true,
     },
