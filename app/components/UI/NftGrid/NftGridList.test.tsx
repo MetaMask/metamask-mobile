@@ -5,12 +5,10 @@ import configureMockStore from 'redux-mock-store';
 import NftGridList from './NftGridList';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
-import { useMetrics } from '../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import mockUseMetrics from '../../hooks/useMetrics/useMetrics';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
-const mockTrackEvent = jest.fn();
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock navigation
@@ -27,20 +25,10 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock metrics
-jest.mock('../../hooks/useMetrics');
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mock('../../hooks/useMetrics/useMetrics');
+
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => ({
