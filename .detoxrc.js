@@ -107,10 +107,6 @@ module.exports = {
       bootArgs: '-skin 1080x2340 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -wipe-data -memory 6144 -cores 4 -read-only',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
-      utilBinaryPaths: [
-        '/opt/android-sdk/emulator',
-        '/opt/android-sdk/platform-tools',
-      ],
     },
     'android.emulator': {
       type: 'android.emulator',
