@@ -46,7 +46,6 @@ import SwapsController from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
-import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
@@ -146,7 +145,6 @@ import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
-import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -197,6 +195,7 @@ import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-sear
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
+import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -391,6 +390,7 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         TokenListController: tokenListControllerInit,
         TokensController: tokensControllerInit,
+        TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -470,6 +470,8 @@ export class Engine {
     const currencyRateController = controllersByName.CurrencyRateController;
     const tokenListController = controllersByName.TokenListController;
     const tokensController = controllersByName.TokensController;
+    const tokenSearchDiscoveryController =
+      controllersByName.TokenSearchDiscoveryController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
@@ -550,17 +552,6 @@ export class Engine {
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
-
-    const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
-      {
-        state: initialState.TokenSearchDiscoveryController,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenSearchDiscoveryController',
-          allowedActions: [],
-          allowedEvents: [],
-        }) as TokenSearchDiscoveryControllerMessenger,
-      },
-    );
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({

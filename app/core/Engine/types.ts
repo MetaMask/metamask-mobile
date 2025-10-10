@@ -709,6 +709,7 @@ export type ControllersToInitialize =
   | 'SeedlessOnboardingController'
   | 'TokenListController'
   | 'TokensController'
+  | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
   | 'PermissionController'
