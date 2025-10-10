@@ -112,12 +112,6 @@ jobs:
           "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
           echo "✅ System images installed"
 
-      - name: Set swap space
-        if: ${{ inputs.platform == 'android' }}
-        uses: ./.github/actions/swap
-        with:
-          swap-size-gb: '10'
-
       - name: Set up E2E environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@23026067be2d080028522d6eedde65e23010446a
         with:
@@ -157,6 +151,13 @@ jobs:
             exit 1
           fi
 
+      - name: Enable KVM
+        if: ${{ inputs.platform == 'android' }}
+        run: |
+         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+         sudo udevadm control --reload-rules
+         sudo udevadm trigger --name-match=kvm
+         
       - name: Setup Android artifacts from build job
         if: ${{ inputs.platform == 'android' }}
         run: |
