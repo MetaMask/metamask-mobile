@@ -1291,7 +1291,25 @@ export class PerpsController extends BaseController<
       }
 
       const provider = this.getActiveProvider();
-      const result = await provider.closePosition(params);
+
+      // Calculate fee discount at execution time (same as placeOrder)
+      const feeDiscountBips = await this.calculateUserFeeDiscount(traceSpan);
+
+      // Set discount context in provider for this close operation
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
+      let result: OrderResult;
+      try {
+        result = await provider.closePosition(params);
+      } finally {
+        // Always clear discount context, even on exception
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      }
+
       const completionDuration = performance.now() - startTime;
 
       if (result.success && position) {
