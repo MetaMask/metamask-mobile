@@ -288,7 +288,7 @@ const CardHome = () => {
               txHash: actualTxHash,
               sigHash,
               sigMessage,
-              token: delegationToken.token,
+              token: delegationTokenResponse.token,
             });
 
             Logger.log('delegationResponse', delegationResponse);
