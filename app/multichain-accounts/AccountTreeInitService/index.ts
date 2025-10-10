@@ -1,4 +1,5 @@
 import Engine from '../../core/Engine';
+import { forwardSelectedAccountGroupToSnapKeyring } from '../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 
 export class AccountTreeInitService {
   initializeAccountTree = async (): Promise<void> => {
@@ -6,6 +7,11 @@ export class AccountTreeInitService {
 
     await AccountsController.updateAccounts();
     AccountTreeController.init();
+
+    // Forward initial selected accounts.
+    await forwardSelectedAccountGroupToSnapKeyring(
+      AccountTreeController.getSelectedAccountGroup(),
+    );
   };
 
   clearState = async (): Promise<void> => {

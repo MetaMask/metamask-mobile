@@ -223,6 +223,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1728,7 +1729,7 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async () => {
+  getSnapKeyring = async (): Promise<SnapKeyring> => {
     // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
@@ -1740,7 +1741,7 @@ export class Engine {
         KeyringTypes.snap,
       );
     }
-    return snapKeyring;
+    return snapKeyring as SnapKeyring;
   };
 
   /**
