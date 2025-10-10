@@ -13,7 +13,6 @@ function handleFastOnboarding(onboardingDeeplink: string): boolean {
     if (!ALLOWED_ONBOARDING_TYPES.includes(onboardingType)) {
       return false;
     }
-
     const resetRoute = {
       routes: [
         {
@@ -31,7 +30,10 @@ function handleFastOnboarding(onboardingDeeplink: string): boolean {
         },
       ],
     };
-    NavigationService.navigation?.navigate(resetRoute.routes[0]);
+    // delay is needed to avoid race condition with navigation service
+    setTimeout(() => {
+      NavigationService.navigation?.navigate(resetRoute.routes[0]);
+    }, 1000);
     return true;
   } catch {
     return false;

@@ -1,6 +1,5 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect } from 'react';
-import { InteractionManager } from 'react-native';
 
 export default function FastOnboarding(props: {
   onPressContinueWithGoogle: (createWallet: boolean) => void;
@@ -24,20 +23,18 @@ export default function FastOnboarding(props: {
 
   const handleFastOnboarding = useCallback(
     (onboardingType: string, existingUser: boolean) => {
-      InteractionManager.runAfterInteractions(() => {
-        switch (onboardingType) {
-          case 'google':
-            onPressContinueWithGoogle(!existingUser);
-            break;
-          case 'apple':
-            onPressContinueWithApple(!existingUser);
-            break;
-          case 'srp':
-            if (existingUser) onPressImport();
-            else onPressCreate();
-            break;
-        }
-      });
+      switch (onboardingType) {
+        case 'google':
+          onPressContinueWithGoogle(!existingUser);
+          break;
+        case 'apple':
+          onPressContinueWithApple(!existingUser);
+          break;
+        case 'srp':
+          if (existingUser) onPressImport();
+          else onPressCreate();
+          break;
+      }
     },
     [
       onPressContinueWithGoogle,
@@ -52,9 +49,7 @@ export default function FastOnboarding(props: {
     const existingUser = params?.existingUser;
 
     if (onboardingType) {
-      setTimeout(() => {
-        handleFastOnboarding(onboardingType, existingUser === 'true');
-      }, 2000);
+      handleFastOnboarding(onboardingType, existingUser === 'true');
     }
   }, [params, handleFastOnboarding]);
 
