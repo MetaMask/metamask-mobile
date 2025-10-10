@@ -5,6 +5,7 @@ import { renderScreen } from '../../../../../../../util/test/renderWithProvider'
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { MOCK_REGIONS } from '../../../testUtils';
 
 const mockNavigate = jest.fn();
 const mockUseDepositSDK = jest.fn();
@@ -28,6 +29,15 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+const mockUseParams = jest.fn().mockReturnValue({
+  regions: MOCK_REGIONS,
+});
+
+jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParams(),
 }));
 
 function render(component: React.ComponentType) {
@@ -111,7 +121,9 @@ describe('UnsupportedRegionModal', () => {
     fireEvent.press(changeRegionButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      ...createRegionSelectorModalNavigationDetails(),
+      ...createRegionSelectorModalNavigationDetails({
+        regions: MOCK_REGIONS,
+      }),
     );
   });
 

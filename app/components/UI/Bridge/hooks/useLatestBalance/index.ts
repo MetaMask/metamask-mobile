@@ -5,21 +5,13 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectSelectedInternalAccount,
-  ///: END:ONLY_INCLUDE_IF
-  selectSelectedInternalAccountFormattedAddress,
-} from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
-import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain/multichain';
-import { RootState } from '../../../../../reducers';
+import { isNativeAddress, isNonEvmChainId } from '@metamask/bridge-controller';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
-///: END:ONLY_INCLUDE_IF
+import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -78,14 +70,9 @@ export const useLatestBalance = (token: {
   );
   const previousToken = usePrevious(token);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // Returns native SOL and SPL tokens, contains balance and fiat values
+  // Returns native non-EVM asset and non-EVM tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, selectedAccount?.id),
-  );
-  ///: END:ONLY_INCLUDE_IF
+  const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const chainId = token.chainId;
 
@@ -132,15 +119,14 @@ export const useLatestBalance = (token: {
     }
   }, [token.address, token.decimals, chainId, selectedAddress]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // No need to fetch the balance for non-EVM tokens, use the balance provided by the
   // multichain balances controller
-  const handleSolanaAtomicBalance = useCallback(async () => {
+  const handleNonEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
       token.decimals &&
       chainId &&
-      isSolanaChainId(chainId) &&
+      isNonEvmChainId(chainId) &&
       selectedAddress
     ) {
       const displayBalance = nonEvmTokens.find(
@@ -157,25 +143,16 @@ export const useLatestBalance = (token: {
       }
     }
   }, [token.address, token.decimals, chainId, selectedAddress, nonEvmTokens]);
-  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     if (!isCaipChainId(chainId)) {
       handleFetchEvmAtomicBalance();
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (isCaipChainId(chainId) && isSolanaChainId(chainId)) {
-      handleSolanaAtomicBalance();
+    if (isCaipChainId(chainId) && isNonEvmChainId(chainId)) {
+      handleNonEvmAtomicBalance();
     }
-    ///: END:ONLY_INCLUDE_IF
-  }, [
-    handleFetchEvmAtomicBalance,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    handleSolanaAtomicBalance,
-    ///: END:ONLY_INCLUDE_IF
-    chainId,
-  ]);
+  }, [handleFetchEvmAtomicBalance, handleNonEvmAtomicBalance, chainId]);
 
   if (!token.address || !token.decimals) {
     return undefined;

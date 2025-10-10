@@ -3,7 +3,6 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { toHex } from '@metamask/controller-utils';
 import {
   MOCK_CREDIT_DEBIT_CARD,
   MOCK_USDC_TOKEN,
@@ -61,7 +60,10 @@ import fiatOrderReducer, {
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockInternalAccount,
+} from '../../util/test/accountsControllerTestUtils';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 const MOCK_ADDRESS_1 = '0x4567';
@@ -1071,10 +1073,37 @@ describe('selectors', () => {
       expect(getOrders(state)).toEqual([]);
     });
 
-    it('should return all orders by address across all chains', () => {
+    it('should return all orders by account across all chains', () => {
+      const internalAccount1 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1'),
+        id: 'account1',
+      };
+      const internalAccount2 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2'),
+        id: 'account2',
+      };
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account1'],
+                        metadata: { name: 'Test Group' },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+              },
+            },
             NetworkController: {
               selectedNetworkClientId: 'binance',
               networksMetadata: {
@@ -1100,7 +1129,15 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account1',
+              },
+            },
           },
         },
         fiatOrders: {
@@ -1148,6 +1185,25 @@ describe('selectors', () => {
       const state2 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account2'],
+                        metadata: { name: 'Test Group' },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+              },
+            },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
               networksMetadata: {},
@@ -1164,7 +1220,15 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account2',
+              },
+            },
           },
         },
         fiatOrders: {
@@ -1203,7 +1267,6 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              excludeFromPurchases: true,
               account: MOCK_ADDRESS_2,
             },
             {
@@ -1223,160 +1286,11 @@ describe('selectors', () => {
         'test-1-order-1',
         'test-1-order-3',
       ]);
-      expect(getOrders(state2)).toHaveLength(2);
+      expect(getOrders(state2)).toHaveLength(3);
       expect(getOrders(state2).map((o) => o.id)).toEqual([
         'test-56-order-2',
         'test-1-order-2',
-      ]);
-    });
-
-    it('should return all the orders in a test net', () => {
-      const state1 = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'sepolia',
-              networksMetadata: {},
-              networkConfigurations: {
-                sepolia: {
-                  id: 'sepolia',
-                  rpcUrl: 'https://sepolia.infura.io/v3',
-                  chainId: toHex('11155111'),
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://sepolia-etherscan.com',
-                  },
-                },
-              },
-            },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
-          },
-        },
-        fiatOrders: {
-          orders: [
-            {
-              ...mockOrder1,
-              id: 'test-56-order-1',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-2',
-              network: '56',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-1',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-2',
-              network: '1',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-          ],
-        },
-      });
-
-      const state2 = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'sepolia',
-              networksMetadata: {},
-              networkConfigurations: {
-                sepolia: {
-                  id: 'sepolia',
-                  rpcUrl: 'https://sepolia.infura.io/v3',
-                  chainId: '0xaa36a7',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
-                  },
-                },
-              },
-            },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
-          },
-        },
-        fiatOrders: {
-          orders: [
-            {
-              ...mockOrder1,
-              id: 'test-56-order-1',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-2',
-              network: '56',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-1',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-2',
-              network: '1',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              excludeFromPurchases: true,
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-          ],
-        },
-      });
-
-      expect(getOrders(state1)).toHaveLength(4);
-      expect(getOrders(state1).map((o) => o.id)).toEqual([
-        'test-56-order-1',
-        'test-56-order-3',
-        'test-1-order-1',
         'test-1-order-3',
-      ]);
-      expect(getOrders(state2)).toHaveLength(2);
-      expect(getOrders(state2).map((o) => o.id)).toEqual([
-        'test-56-order-2',
-        'test-1-order-2',
       ]);
     });
 
@@ -1491,10 +1405,37 @@ describe('selectors', () => {
   });
 
   describe('getPendingOrders', () => {
-    it('should return pending orders by address across all chains', () => {
+    it('should return pending orders by account across all chains', () => {
+      const internalAccount1 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1'),
+        id: 'account1',
+      };
+      const internalAccount2 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2'),
+        id: 'account2',
+      };
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account1'],
+                        metadata: { name: 'Test Group' },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+              },
+            },
             NetworkController: {
               selectedNetworkClientId: 'binance',
               networksMetadata: {
@@ -1520,7 +1461,15 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account1',
+              },
+            },
           },
         },
         fiatOrders: {
@@ -1570,6 +1519,25 @@ describe('selectors', () => {
       const state2 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account2'],
+                        metadata: { name: 'Test Group' },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+              },
+            },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
               networksMetadata: {},
@@ -1586,7 +1554,15 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account2',
+              },
+            },
           },
         },
         fiatOrders: {
@@ -1626,7 +1602,6 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              excludeFromPurchases: true,
               account: MOCK_ADDRESS_2,
             },
             {
@@ -1896,10 +1871,37 @@ describe('selectors', () => {
       expect(getCustomOrderIds(state)).toEqual([]);
     });
 
-    it('should return all custom order ids by address across all chains', () => {
+    it('should return all custom order ids by account across all chains', () => {
+      const internalAccount1 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1'),
+        id: 'account1',
+      };
+      const internalAccount2 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2'),
+        id: 'account2',
+      };
       const state = merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account1'],
+                        metadata: { name: 'Test Group' },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+              },
+            },
             NetworkController: {
               selectedNetworkClientId: 'binance',
               networksMetadata: {
@@ -1925,7 +1927,15 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account1',
+              },
+            },
           },
         },
         fiatOrders: {
@@ -2072,89 +2082,36 @@ describe('selectors', () => {
 
   describe('getHasOrders', () => {
     it('should return true if there are orders from any chain', () => {
+      const internalAccount1 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1'),
+        id: 'account1',
+      };
+      const internalAccount2 = {
+        ...createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2'),
+        id: 'account2',
+      };
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'mainnet',
-              networksMetadata: {
-                mainnet: {
-                  status: 'available',
-                  EIPS: {},
-                },
-              },
-              networkConfigurationsByChainId: {
-                '0x1': {
-                  blockExplorerUrls: ['https://etherscan.com'],
-                  chainId: '0x1',
-                  defaultRpcEndpointIndex: 0,
-                  name: 'Ethereum network',
-                  nativeCurrency: 'ETH',
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'mainnet',
-                      type: 'Custom',
-                      url: 'https://mainnet.infura.io/v3',
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account1'],
+                        metadata: { name: 'Test Group' },
+                      },
                     },
-                  ],
+                  },
                 },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
-          },
-        },
-        fiatOrders: {
-          orders: [
-            {
-              ...mockOrder1,
-              id: 'test-56-order-1',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-2',
-              network: '56',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-1',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-2',
-              state: 'PENDING',
-              network: '1',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              excludeFromPurchases: true,
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-          ],
-        },
-      });
-      const state2 = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
             NetworkController: {
               selectedNetworkClientId: 'binance',
               networksMetadata: {
@@ -2165,7 +2122,7 @@ describe('selectors', () => {
               },
               networkConfigurationsByChainId: {
                 '0x38': {
-                  blockExplorerUrls: ['https://bscscan.com'],
+                  blockExplorerUrls: ['https://etherscan.com'],
                   chainId: '0x38',
                   defaultRpcEndpointIndex: 0,
                   name: 'Binance network',
@@ -2180,7 +2137,15 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account1',
+              },
+            },
           },
         },
         fiatOrders: {
@@ -2195,7 +2160,7 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: MOCK_ADDRESS_1,
+              account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
@@ -2212,7 +2177,6 @@ describe('selectors', () => {
             {
               ...mockOrder1,
               id: 'test-1-order-2',
-              state: 'PENDING',
               network: '1',
               account: MOCK_ADDRESS_2,
             },
@@ -2220,12 +2184,102 @@ describe('selectors', () => {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              excludeFromPurchases: true,
+              account: MOCK_ADDRESS_1,
+            },
+          ],
+        },
+      });
+
+      const state2 = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    metadata: { name: 'Test wallet' },
+                    groups: {
+                      'keyring:test-wallet/ethereum': {
+                        id: 'keyring:test-wallet/ethereum',
+                        type: 'single-account',
+                        accounts: ['account2'],
+                        metadata: { name: 'Test Group' },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'keyring:test-wallet/ethereum',
+              },
+            },
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  account1: internalAccount1,
+                  account2: internalAccount2,
+                },
+                selectedAccount: 'account2',
+              },
+            },
+          },
+        },
+        fiatOrders: {
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: MOCK_ADDRESS_1,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
               account: MOCK_ADDRESS_2,
             },
             {
               ...mockOrder1,
               id: 'test-56-order-3',
+              network: '56',
+              account: MOCK_ADDRESS_1,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: MOCK_ADDRESS_1,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: MOCK_ADDRESS_2,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              account: MOCK_ADDRESS_2,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
               network: '1',
               account: MOCK_ADDRESS_1,
             },

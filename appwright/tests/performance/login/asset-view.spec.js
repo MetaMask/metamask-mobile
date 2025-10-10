@@ -61,8 +61,9 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
   await WalletMainScreen.isMainWalletViewVisible();
-  await WalletMainScreen.tapNetworkNavBar();
-  await NetworksScreen.selectNetwork('Ethereum Mainnet');
+
+  //await WalletMainScreen.tapNetworkNavBar();
+  //await NetworksScreen.selectNetwork('Ethereum');
 
   const assetViewScreen = new TimerHelper(
     'Time since the user clicks on the asset view button until the user sees the token overview screen',

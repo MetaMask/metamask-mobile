@@ -113,7 +113,7 @@ class NetworkManager {
    */
   getBaseControlBarText(caipChainId: CaipChainId): DetoxElement {
     return Matchers.getElementByID(
-      `${NetworkManagerSelectorIDs.BASE_CONTROL_BAR_NETWORK_LABEL}-${caipChainId}`,
+      `${WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}-${caipChainId}`,
     );
   }
 
@@ -232,6 +232,31 @@ class NetworkManager {
     } catch (error) {
       throw new Error('All popular networks are not selected');
     }
+  }
+
+  /**
+   * Tap the "Select all popular networks" control.
+   * - If the control is currently in the "not selected" state, this will select all.
+   * - Otherwise, it will tap the "selected" state (toggling to deselect all).
+   */
+  async tapSelectAllPopularNetworks(): Promise<void> {
+    const notSelected = this.selectAllPopularNetworksNotSelected;
+    const isNotSelectedVisible = await Utilities.isElementVisible(
+      notSelected,
+      1000,
+    );
+
+    if (isNotSelectedVisible) {
+      await Gestures.waitAndTap(notSelected, {
+        elemDescription: 'Select All Popular Networks (not selected)',
+      });
+      return;
+    }
+
+    const selected = this.selectAllPopularNetworksSelected;
+    await Gestures.waitAndTap(selected, {
+      elemDescription: 'Select All Popular Networks (selected)',
+    });
   }
 
   /**

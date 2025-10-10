@@ -127,6 +127,7 @@ jest.mock('@react-navigation/native', () => ({
       networkName: mockNetworkName,
       accountName: mockAccount?.metadata?.name || 'Test Account',
       chainId: '0x1',
+      groupId: 'test-group-id',
     },
   }),
 }));
@@ -136,12 +137,30 @@ jest.mock('../../../../../util/address', () => ({
   renderAccountName: jest.fn().mockReturnValue('Test Account'),
 }));
 
+// Mock the selectAccountGroupById selector
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectAccountGroupById: jest.fn().mockReturnValue({
+      id: 'test-group-id',
+      metadata: {
+        name: 'Test Account Group',
+        pinned: false,
+        hidden: false,
+      },
+    }),
+  }),
+);
+
 // Mock useBlockExplorer hook
 jest.mock('../../../../hooks/useBlockExplorer', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     toBlockExplorer: jest.fn(),
-    blockExplorerName: 'Etherscan (Multichain)',
+    getBlockExplorerName: jest.fn().mockReturnValue('Etherscan (Multichain)'),
   }),
 }));
 
@@ -237,7 +256,9 @@ describe('ShareAddressQR', () => {
     const { getByText, getByTestId } = render();
 
     // Assert
-    expect(getByText('Account 1 / Ethereum Mainnet')).toBeOnTheScreen();
+    expect(
+      getByText('Test Account Group / Ethereum Mainnet'),
+    ).toBeOnTheScreen();
     expect(getByTestId('mock-qr-code')).toBeOnTheScreen();
     expect(getByTestId('qr-account-display')).toBeOnTheScreen();
   });
@@ -302,12 +323,15 @@ describe('ShareAddressQR', () => {
   it('navigates to block explorer when View on Etherscan button is pressed', () => {
     // Arrange
     const mockToBlockExplorer = jest.fn();
+    const mockGetBlockExplorerName = jest
+      .fn()
+      .mockReturnValue('Etherscan (Multichain)');
     const useBlockExplorer = jest.requireMock(
       '../../../../hooks/useBlockExplorer',
     ).default;
     useBlockExplorer.mockReturnValue({
       toBlockExplorer: mockToBlockExplorer,
-      blockExplorerName: 'Etherscan (Multichain)',
+      getBlockExplorerName: mockGetBlockExplorerName,
     });
 
     const { getByTestId } = render();

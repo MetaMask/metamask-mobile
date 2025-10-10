@@ -3,6 +3,7 @@ import {
   MultichainWalletSnapClient,
   MultichainWalletSnapFactory,
   SolanaWalletSnapClient,
+  TronWalletSnapClient,
   WalletClientType,
 } from './MultichainWalletSnapClient';
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
@@ -10,6 +11,9 @@ import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { SolScope } from '@metamask/keyring-api';
+import { BitcoinWalletSnapSender } from './BitcoinWalletSnap';
+import { SolanaWalletSnapSender } from './SolanaWalletSnap';
+import { TronWalletSnapSender } from './TronWalletSnap';
 
 const mockSnapKeyring = {
   createAccount: jest.fn(),
@@ -243,6 +247,13 @@ describe('MultichainWalletSnapFactory', () => {
     expect(solanaClient).toBeInstanceOf(SolanaWalletSnapClient);
   });
 
+  it('creates a TronWalletSnapClient', () => {
+    const tronClient = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Tron,
+    );
+    expect(tronClient).toBeInstanceOf(TronWalletSnapClient);
+  });
+
   it('throws if an invalid wallet type is provided', () => {
     expect(() =>
       MultichainWalletSnapFactory.createClient('invalid' as WalletClientType),
@@ -272,6 +283,36 @@ describe('Wallet Client Implementations', () => {
     setSelectedAccount: false,
   };
 
+  class TestBitcoinWalletSnapClient extends BitcoinWalletSnapClient {
+    constructor() {
+      super(mockSnapKeyringOptions);
+    }
+
+    public testGetSnapSender(): Sender {
+      return this.getSnapSender();
+    }
+  }
+
+  class TestSolanaWalletSnapClient extends SolanaWalletSnapClient {
+    constructor() {
+      super(mockSnapKeyringOptions);
+    }
+
+    public testGetSnapSender(): Sender {
+      return this.getSnapSender();
+    }
+  }
+
+  class TestTronWalletSnapClient extends TronWalletSnapClient {
+    constructor() {
+      super(mockSnapKeyringOptions);
+    }
+
+    public testGetSnapSender(): Sender {
+      return this.getSnapSender();
+    }
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -281,12 +322,61 @@ describe('Wallet Client Implementations', () => {
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       expect(bitcoinClient).toBeDefined();
     });
+
+    it('should return Bitcoin client type', () => {
+      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
+      expect(bitcoinClient.getClientType()).toBe(WalletClientType.Bitcoin);
+    });
+
+    it('should return a BitcoinWalletSnapSender instance', () => {
+      const bitcoinClient = new TestBitcoinWalletSnapClient();
+      const sender = bitcoinClient.testGetSnapSender();
+      expect(sender).toBeDefined();
+      expect(sender).toBeInstanceOf(BitcoinWalletSnapSender);
+    });
   });
 
   describe('SolanaWalletSnapClient', () => {
     it('should create a SolanaWalletSnapClient', () => {
       const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
       expect(solanaClient).toBeDefined();
+    });
+
+    it('should return Solana client type', () => {
+      const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
+      expect(solanaClient.getClientType()).toBe(WalletClientType.Solana);
+    });
+
+    it('should return a SolanaWalletSnapSender instance', () => {
+      const solanaClient = new TestSolanaWalletSnapClient();
+      const sender = solanaClient.testGetSnapSender();
+      expect(sender).toBeDefined();
+      expect(sender).toBeInstanceOf(SolanaWalletSnapSender);
+    });
+  });
+
+  describe('TronWalletSnapClient', () => {
+    it('should create a TronWalletSnapClient', () => {
+      const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
+      expect(tronClient).toBeDefined();
+    });
+
+    it('should return Tron client type', () => {
+      const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
+      expect(tronClient.getClientType()).toBe(WalletClientType.Tron);
+    });
+
+    it('should return a TronWalletSnapSender instance', () => {
+      const tronClient = new TestTronWalletSnapClient();
+      const sender = tronClient.testGetSnapSender();
+      expect(sender).toBeDefined();
+      expect(sender).toBeInstanceOf(TronWalletSnapSender);
+    });
+
+    it('should return the correct snap ID and name', () => {
+      const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
+      expect(tronClient.getSnapId()).toBeDefined();
+      expect(tronClient.getSnapName()).toBeDefined();
     });
   });
 });

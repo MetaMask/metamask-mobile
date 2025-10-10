@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Image } from 'react-native';
+import { Image, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -12,17 +12,25 @@ import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const OnboardingStep3: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { colors } = useTheme();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const handleNext = useCallback(async () => {
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));
     navigation.navigate(Routes.REWARDS_ONBOARDING_4);
-  }, [dispatch, navigation]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.REWARDS_ONBOARDING_COMPLETED,
+      ).build(),
+    );
+  }, [dispatch, navigation, trackEvent, createEventBuilder]);
 
   const handleSkip = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));
@@ -35,11 +43,13 @@ const OnboardingStep3: React.FC = () => {
         name="rewards-onboarding-step3-bg"
         fill={colors.background.muted}
         style={tw.style('absolute w-full h-full')}
+        width={screenWidth}
+        height={screenHeight}
       />
 
       <Image
         source={step3Img}
-        style={tw.style('h-80 z-10')}
+        style={tw.style('h-[82%] z-10')}
         testID="step-3-image"
         resizeMode="contain"
       />
