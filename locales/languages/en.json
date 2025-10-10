@@ -5361,7 +5361,8 @@
       "switch_account_type": "Account update",
       "approve": "Approve request",
       "perps_deposit": "Add funds",
-      "predict_deposit": "Add Predict funds"
+      "predict_deposit": "Add Predict funds",
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
