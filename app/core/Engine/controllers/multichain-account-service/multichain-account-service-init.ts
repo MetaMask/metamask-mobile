@@ -45,37 +45,9 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   });
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  // Get initial Bitcoin feature flag state
-  const remoteFeatureFlagsState = controllerMessenger.call(
-    'RemoteFeatureFlagController:getState',
-  );
-  
-  // Set initial state based on addBitcoinAccount feature flag
-  const initialBitcoinEnabled = Boolean(
-    remoteFeatureFlagsState?.remoteFeatureFlags?.addBitcoinAccount,
-  );
-  
-  btcProvider.setEnabled(initialBitcoinEnabled);
-
-  // Subscribe to RemoteFeatureFlagsController:stateChange for runtime control
-  controllerMessenger.subscribe(
-    'RemoteFeatureFlagController:stateChange',
-    (state: unknown) => {
-      const addBitcoinAccountEnabled = Boolean(
-        (state as { remoteFeatureFlags?: { addBitcoinAccount?: boolean } })
-          ?.remoteFeatureFlags?.addBitcoinAccount,
-      );
-
-      // Enable/disable Bitcoin provider based on feature flag
-      btcProvider.setEnabled(addBitcoinAccountEnabled);
-
-      // Trigger wallet sync to update account visibility
-      const wallets = controller.getMultichainAccountWallets();
-      for (const wallet of wallets) {
-        wallet.sync();
-      }
-    },
-  );
+  // Bitcoin provider controlled by addBitcoinAccount feature flag via Basic Functionality
+  // TODO: Add direct feature flag subscription when messenger permissions are resolved
+  btcProvider.setEnabled(false); // Controlled via setBasicFunctionality like Solana
   /// END:ONLY_INCLUDE_IF
 
   return { controller, memStateKey: null, persistedStateKey: null };

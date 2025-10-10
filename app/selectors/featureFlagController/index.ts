@@ -16,5 +16,5 @@ export const selectRemoteFeatureFlags = createSelector(
   },
 );
 
-// Export feature flag selectors
-export { selectIsAddBitcoinAccountEnabled } from './addBitcoinAccount';
+// Note: selectIsAddBitcoinAccountEnabled should be imported directly from './addBitcoinAccount'
+// to avoid circular dependency issues
