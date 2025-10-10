@@ -387,11 +387,11 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
         TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
-        TokensController: tokensControllerInit,
         TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
@@ -470,11 +470,11 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const tokensController = controllersByName.TokensController;
     const tokenBalancesController = controllersByName.TokenBalancesController;
     const tokenRatesController = controllersByName.TokenRatesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
-    const tokensController = controllersByName.TokensController;
     const tokenSearchDiscoveryController =
       controllersByName.TokenSearchDiscoveryController;
     const tokenSearchDiscoveryDataController =
