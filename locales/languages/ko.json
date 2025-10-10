@@ -221,6 +221,10 @@
     "remind_later_description2": "설정 > 보호 및 보안에서 지갑을 백업하거나",
     "setting_security_privacy": "설정 > 보안 & 개인정보 보호"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask에 오신 것을 환영합니다",
     "title2": "디지털 자산을 관리하세요",
@@ -389,6 +393,7 @@
     "description": "이 장치에서만 MetaMask 잠금해제에 사용됩니다.",
     "description_social_login": "이를 모든 기기에서 지갑을 복구하는 데 사용하세요.",
     "description_social_login_update": "이 비밀번호를 잃어버리면 모든 기기에서 지갑에 접근할 수 없게 됩니다. 안전한 곳에 보관하세요.",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask는 비밀번호를 재설정해 드릴 수 없습니다.",
     "subtitle": "이 비밀번호는 이 기기에서 귀하의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
     "password": "비밀번호 생성",
@@ -662,7 +667,14 @@
       "bullet_2_description": "가치가 안정적으로 유지되도록 만들어진 USDC를 사용하면 더 쉽게 계획하고 저축하고 지출할 수 있습니다.",
       "bullet_3_title": "은행보다 빠른 속도",
       "bullet_3_description": "몇 분 만에 송금하고 받을 수 있으며, 은행 업무 시간을 기다릴 필요가 없고, 국제 전신망 문제로 인한 지연이 발생하지 않습니다.",
-      "button": "지금 시작하세요"
+      "button": "지금 시작하세요",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "본인 인증",
@@ -879,7 +891,6 @@
     "refresh_balance": "잔액 새로고침",
     "add_funds": "자금 추가",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "내 포지션",
     "loading_positions": "포지션 불러오는 중...",
     "refreshing_positions": "포지션 새로고침 중...",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "토큰 선택",
-    "title_pay_eth": "ETH로 결제",
     "native_toggle_wallet": "지갑에 있는 잔액으로 네트워크 수수료를 지불하세요.",
     "list_balance": "잔액:",
     "insufficient_balance": "자금 부족",
-    "native_toggle_metamask": "MetaMask가 이 트랜잭션을 완료하기 위해 잔액을 보충하고 있습니다.",
-    "title_pay_with_other_tokens": "다른 토큰으로 결제"
+    "native_toggle_metamask": "MetaMask가 이 트랜잭션을 완료하기 위해 잔액을 보충하고 있습니다."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "트랜잭션 ID",
@@ -5889,8 +5901,8 @@
         "one_time_bonus": "One-time bonus",
         "open_position": "Opened position",
         "close_position": "Closed position",
-        "take_profit": "익절",
-        "stop_loss": "손절",
+        "take_profit": "TP/SL",
+        "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
       }
     },
@@ -6094,6 +6106,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

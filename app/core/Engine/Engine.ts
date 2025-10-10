@@ -92,11 +92,17 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import {
+  SmartTransactionsController,
+  ClientId,
+  MetaMetricsEventName,
+  MetaMetricsEventCategory,
+  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
+  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
+} from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   type TraceCallback,
@@ -105,14 +111,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '@metamask/smart-transactions-controller/dist/constants';
-import {
-  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
-  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
-} from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
@@ -196,6 +194,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
@@ -335,25 +334,20 @@ export class Engine {
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
       clientId: ClientId.Mobile,
-      getNonceLock: (...args) =>
-        this.transactionController.getNonceLock(...args),
-      confirmExternalTransaction: (...args) =>
-        this.transactionController.confirmExternalTransaction(...args),
       trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       state: initialState.SmartTransactionsController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SmartTransactionsController',
         allowedActions: [
           'NetworkController:getNetworkClientById',
           'NetworkController:getState',
+          'TransactionController:getNonceLock',
+          `TransactionController:confirmExternalTransaction`,
+          `TransactionController:getTransactions`,
+          `TransactionController:updateTransaction`,
         ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      getTransactions: (...args) =>
-        this.transactionController.getTransactions(...args),
-      updateTransaction: (...args) =>
-        this.transactionController.updateTransaction(...args),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       trace: trace as TraceCallback,
@@ -637,9 +631,10 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
-      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: initialState },
-      }) as `0x${string}`[],
+      accountsApiChainIds: () =>
+        selectAssetsAccountApiBalancesEnabled({
+          engine: { backgroundState: initialState },
+        }) as `0x${string}`[],
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
 
@@ -914,6 +909,7 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:getState',
             'AccountTrackerController:updateNativeBalances',
             'AccountTrackerController:updateStakedBalances',
           ],
@@ -930,9 +926,10 @@ export class Engine {
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
+        accountsApiChainIds: () =>
+          selectAssetsAccountApiBalancesEnabled({
+            engine: { backgroundState: initialState },
+          }) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1499,7 +1496,7 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async () => {
+  getSnapKeyring = async (): Promise<SnapKeyring> => {
     // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
@@ -1511,7 +1508,7 @@ export class Engine {
         KeyringTypes.snap,
       );
     }
-    return snapKeyring;
+    return snapKeyring as SnapKeyring;
   };
 
   /**

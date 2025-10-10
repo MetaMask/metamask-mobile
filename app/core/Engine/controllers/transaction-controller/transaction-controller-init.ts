@@ -8,11 +8,13 @@ import {
   type PublishBatchHookResult,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import {
+  SmartTransactionsController,
+  SmartTransactionStatuses,
+} from '@metamask/smart-transactions-controller';
 
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';

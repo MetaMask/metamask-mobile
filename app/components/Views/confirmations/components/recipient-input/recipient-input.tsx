@@ -109,6 +109,7 @@ export const RecipientInput = ({
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
         autoFocus={false}
+        testID="recipient-address-input"
       />
     </Box>
   );
