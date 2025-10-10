@@ -137,15 +137,13 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
           alignment={Alignment.Center}
         />
       </View>
-      {true && (
-        <View style={styles.textWrapper}>
-          <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
-            {`${strings(
-              'onboarding_success.setting_up_wallet_base',
-            )}${renderAnimatedDots()}`}
-          </Text>
-        </View>
-      )}
+      <View style={styles.textWrapper}>
+        <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
+          {`${strings(
+            'onboarding_success.setting_up_wallet_base',
+          )}${renderAnimatedDots()}`}
+        </Text>
+      </View>
     </Animated.View>
   );
 };
