@@ -354,9 +354,9 @@ describe('PerpsTabView', () => {
         fireEvent.press(startTradingButton);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -396,9 +396,9 @@ describe('PerpsTabView', () => {
         fireEvent.press(startNewTradeCTA);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
     });
 
     it('should navigate to markets when Start a new trade CTA is pressed by returning user', () => {

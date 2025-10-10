@@ -477,9 +477,7 @@ describe('WalletActions', () => {
     // closeBottomSheetAndNavigate wraps navigation in a callback
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsTutorial',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsTutorial');
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
