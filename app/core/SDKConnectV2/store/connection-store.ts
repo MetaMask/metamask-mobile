@@ -52,7 +52,7 @@ export class ConnectionStore implements IConnectionStore {
       }
 
       return connectionInfo;
-    } catch (error) {
+    } catch {
       // Corrupted data, clean it up
       await this.delete(id)
         .then(() => logger.debug('Deleted corrupted connection', id))
