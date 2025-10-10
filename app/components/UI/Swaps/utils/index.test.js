@@ -269,11 +269,11 @@ describe('formatMaxBalanceAmount', () => {
     expect(result).toBe('1.23457');
   });
 
-  it('should handle small balances correctly', () => {
-    // Balance: 0.000001 ETH
+  it('should handle very small balances with less than notation', () => {
+    // Balance: 0.000001 ETH (smaller than 0.00001 threshold)
     const balance = '1000000000000';
     const result = formatMaxBalanceAmount(balance, 18);
-    expect(result).toBe('0.000001');
+    expect(result).toBe('< 0.00001');
   });
 
   it('should handle whole numbers without decimals', () => {
