@@ -413,8 +413,8 @@ export const MOCK_USE_PAYMENT_METHODS_EMPTY = {
   retryFetchPaymentMethods: jest.fn(),
 };
 
-export const MOCK_USER_DETAILS_US = {
-  id: 'user-id-us',
+export const MOCK_USER_DETAILS_DEFAULT = {
+  id: 'user-id',
   firstName: 'Test',
   lastName: 'User',
   email: 'test@example.com',
@@ -429,35 +429,27 @@ export const MOCK_USER_DETAILS_US = {
       kycSubmittedAt: '2023-01-01',
     },
   } as unknown as NativeTransakUserDetailsKycDetails,
+  createdAt: '2023-01-01',
+  isKycApproved: jest.fn().mockReturnValue(true),
+};
+
+export const MOCK_USER_DETAILS_US = {
+  ...MOCK_USER_DETAILS_DEFAULT,
+  id: 'user-id-us',
   address: {
     addressLine1: '123 Main St',
     addressLine2: '',
-    state: 'NY',
-    city: 'New York',
-    postCode: '10001',
+    state: 'CA',
+    city: 'San Francisco',
+    postCode: '94101',
     country: 'United States',
     countryCode: 'US',
   },
-  createdAt: '2023-01-01',
-  isKycApproved: jest.fn().mockReturnValue(true),
 } as NativeTransakUserDetails;
 
 export const MOCK_USER_DETAILS_FR = {
+  ...MOCK_USER_DETAILS_DEFAULT,
   id: 'user-id-fr',
-  firstName: 'Test',
-  lastName: 'User',
-  email: 'test@example.com',
-  mobileNumber: '0123456789',
-  status: 'active',
-  dob: '1990-01-01',
-  kyc: {
-    l1: {
-      status: 'APPROVED',
-      type: 'BASIC',
-      updatedAt: '2023-01-01',
-      kycSubmittedAt: '2023-01-01',
-    },
-  } as unknown as NativeTransakUserDetailsKycDetails,
   address: {
     addressLine1: '123 Rue de la Paix',
     addressLine2: '',
@@ -467,8 +459,6 @@ export const MOCK_USER_DETAILS_FR = {
     country: 'France',
     countryCode: 'FR',
   },
-  createdAt: '2023-01-01',
-  isKycApproved: jest.fn().mockReturnValue(true),
 } as NativeTransakUserDetails;
 
 export const MOCK_USE_DEPOSIT_USER_RETURN = {
