@@ -3,7 +3,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { selectSmartTransactionsEnabled } from '../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../reducers';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { isSendBundleSupported } from '../../../../../core/RPCMethods/sentinel-api';
+import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
