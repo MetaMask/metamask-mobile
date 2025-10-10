@@ -332,22 +332,22 @@ export const asyncifyMigrations = (
         // Return state without engine slice (kept out of redux)
         const { engine: _engine, ...rest } = s;
         return rest as unknown;
-      } else {
-        // Keep failed controllers in engine.backgroundState to prevent data loss
-        captureException(
-          new Error(
-            `deflateToControllersAndStrip: ${failedControllers} controllers failed to save, preserving their state in redux-persist`,
-          ),
-        );
-
-        return {
-          ...s,
-          engine: {
-            ...s.engine,
-            backgroundState: failedControllerStates,
-          },
-        };
       }
+      
+      // Keep failed controllers in engine.backgroundState to prevent data loss
+      captureException(
+        new Error(
+          `deflateToControllersAndStrip: ${failedControllers} controllers failed to save, preserving their state in redux-persist`,
+        ),
+      );
+
+      return {
+        ...s,
+        engine: {
+          ...s.engine,
+          backgroundState: failedControllerStates,
+        },
+      };
     } catch (error) {
       captureException(
         new Error(
