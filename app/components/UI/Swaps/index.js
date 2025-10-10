@@ -661,12 +661,11 @@ function SwapsAmountView({
     if (!sourceToken || !balanceAsUnits) {
       return;
     }
-    setAmount(
-      fromTokenMinimalUnitString(
-        balanceAsUnits.toString(10),
-        sourceToken.decimals,
-      ),
+    const maxAmount = renderFromTokenMinimalUnit(
+      balanceAsUnits,
+      sourceToken.decimals,
     );
+    setAmount(maxAmount);
   }, [balanceAsUnits, sourceToken]);
 
   const handleSlippageChange = useCallback((value) => {
