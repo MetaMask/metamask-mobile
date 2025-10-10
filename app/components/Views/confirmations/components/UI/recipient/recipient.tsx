@@ -1,13 +1,15 @@
 import React, { useCallback } from 'react';
-
+import { KeyringAccountType } from '@metamask/keyring-api';
 import {
   Box,
   FontWeight,
   Text,
   TextVariant,
   ButtonBase,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -16,11 +18,13 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { btcAccountTypeLabel } from '../../../constants/bitcoin';
 
 export interface RecipientType {
   address: string;
   accountName?: string;
   accountGroupName?: string;
+  accountType?: string;
   contactName?: string;
   walletName?: string;
 }
@@ -45,6 +49,10 @@ export function Recipient({
   const handlePressRecipient = useCallback(() => {
     onPress?.(recipient);
   }, [recipient, onPress]);
+
+  // Only show BTC account type label for BTC tokens
+  const accountTypeLabel =
+    btcAccountTypeLabel[recipient.accountType as KeyringAccountType];
 
   return (
     <ButtonBase
@@ -81,14 +89,26 @@ export function Recipient({
               ? recipient.accountGroupName || recipient.contactName
               : recipient.accountName || recipient.contactName}
           </Text>
-          <Text
-            testID={`recipient-address-${recipient.address}`}
-            variant={TextVariant.BodyMd}
-            style={styles.recipientAddress}
-            numberOfLines={1}
-          >
-            {formatAddress(recipient.address, 'short')}
-          </Text>
+          <Box twClassName="flex-row items-center">
+            <Text
+              testID={`recipient-address-${recipient.address}`}
+              variant={TextVariant.BodyMd}
+              style={styles.recipientAddress}
+              numberOfLines={1}
+            >
+              {formatAddress(recipient.address, 'short')}
+            </Text>
+            {accountTypeLabel && (
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+                twClassName="bg-background-alternative ml-2 mt-1 py-0 px-1 rounded-md"
+                numberOfLines={1}
+              >
+                {accountTypeLabel}
+              </Text>
+            )}
+          </Box>
         </Box>
       </Box>
     </ButtonBase>

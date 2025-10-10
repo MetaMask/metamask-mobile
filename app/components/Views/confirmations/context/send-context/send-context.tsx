@@ -10,9 +10,12 @@ import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isSolanaChainId, isBitcoinChainId } from '@metamask/bridge-controller';
 
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+import {
+  isSolanaAccount,
+  isBtcAccount,
+} from '../../../../../core/Multichain/utils';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
@@ -80,6 +83,9 @@ export const SendContextProvider: React.FC<{
         const isSolanaAsset = updatedAsset?.chainId
           ? isSolanaChainId(updatedAsset.chainId)
           : undefined;
+        const isBtcAsset = updatedAsset?.chainId
+          ? isBitcoinChainId(updatedAsset.chainId)
+          : undefined;
 
         const selectedAccountGroupAccounts = selectedGroup?.accounts.map(
           (accountId) => accounts[accountId],
@@ -95,6 +101,11 @@ export const SendContextProvider: React.FC<{
             isSolanaAccount(account),
           );
           updateFromAccount(solanaAccount);
+        } else if (isBtcAsset) {
+          const btcAccount = selectedAccountGroupAccounts?.find((account) =>
+            isBtcAccount(account),
+          );
+          updateFromAccount(btcAccount);
         }
       }
     },
