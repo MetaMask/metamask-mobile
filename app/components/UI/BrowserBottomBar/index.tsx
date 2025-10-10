@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
-import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabCountIcon from '../Tabs/TabCountIcon';
@@ -14,13 +13,14 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { ThemeColors } from '@metamask/design-tokens';
 
 // NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
 // TODO: test on an android device
 // const HOME_INDICATOR_HEIGHT = 0;
 // const defaultBottomBarPadding = 0;
 
-const createStyles = (colors, tabBarBottomInset = 0) =>
+const createStyles = (colors: ThemeColors, tabBarBottomInset = 0) =>
   StyleSheet.create({
     bottomBar: {
       backgroundColor: colors.background.default,
@@ -55,11 +55,54 @@ const createStyles = (colors, tabBarBottomInset = 0) =>
     },
   });
 
+interface BrowserBottomBarProps {
+  /**
+   * Boolean that determines if you can navigate back
+   */
+  canGoBack?: boolean;
+  /**
+   * Boolean that determines if you can navigate forward
+   */
+  canGoForward?: boolean;
+  /**
+   * Function that allows you to navigate back
+   */
+  goBack?: () => void;
+  /**
+   * Function that allows you to navigate forward
+   */
+  goForward?: () => void;
+  /**
+   * Function that triggers the tabs view
+   */
+  showTabs?: () => void;
+  /**
+   * Function that triggers the change url modal view
+   */
+  showUrlModal?: () => void;
+  /**
+   * Function that redirects to the home screen
+   */
+  goHome?: () => void;
+  /**
+   * Function that toggles the options menu
+   */
+  toggleOptions?: () => void;
+  /**
+   * Function that toggles fullscreen mode
+   */
+  toggleFullscreen?: () => void;
+  /**
+   * Boolean that determines if currently in fullscreen mode
+   */
+  isFullscreen?: boolean;
+}
+
 /**
  * Browser bottom bar that contains icons for navigation
  * tab management, url change and other options
  */
-const BrowserBottomBar = ({
+const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   canGoBack,
   canGoForward,
   goBack,
@@ -77,7 +120,7 @@ const BrowserBottomBar = ({
 
   const styles = createStyles(colors, isFullscreen ? bottomInset : 0);
 
-  const trackSearchEvent = () => {
+  const trackSearchEvent = (): void => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
         .addProperties({
@@ -88,7 +131,7 @@ const BrowserBottomBar = ({
     );
   };
 
-  const trackNavigationEvent = (navigationOption) => {
+  const trackNavigationEvent = (navigationOption: string): void => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_NAVIGATION)
         .addProperties({
@@ -99,27 +142,27 @@ const BrowserBottomBar = ({
     );
   };
 
-  const onSearchPress = () => {
+  const onSearchPress = (): void => {
     showUrlModal?.();
     trackSearchEvent();
   };
 
-  const onBackPress = () => {
+  const onBackPress = (): void => {
     goBack?.();
     trackNavigationEvent('Go Back');
   };
 
-  const onForwardPress = () => {
+  const onForwardPress = (): void => {
     goForward?.();
     trackNavigationEvent('Go Forward');
   };
 
-  const onHomePress = () => {
+  const onHomePress = (): void => {
     goHome?.();
     trackNavigationEvent('Go Home');
   };
 
-  const onToggleFullscreenPress = () => {
+  const onToggleFullscreenPress = (): void => {
     if (isFullscreen) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.BROWSER_CLOSED_FULLSCREEN).build(),
@@ -213,50 +256,6 @@ const BrowserBottomBar = ({
       </TouchableOpacity>
     </ElevatedView>
   );
-};
-
-// PropTypes for type checking
-BrowserBottomBar.propTypes = {
-  /**
-   * Boolean that determines if you can navigate back
-   */
-  canGoBack: PropTypes.bool,
-  /**
-   * Boolean that determines if you can navigate forward
-   */
-  canGoForward: PropTypes.bool,
-  /**
-   * Function that allows you to navigate back
-   */
-  goBack: PropTypes.func,
-  /**
-   * Function that allows you to navigate forward
-   */
-  goForward: PropTypes.func,
-  /**
-   * Function that triggers the tabs view
-   */
-  showTabs: PropTypes.func,
-  /**
-   * Function that triggers the change url modal view
-   */
-  showUrlModal: PropTypes.func,
-  /**
-   * Function that redirects to the home screen
-   */
-  goHome: PropTypes.func,
-  /**
-   * Function that toggles the options menu
-   */
-  toggleOptions: PropTypes.func,
-  /**
-   * Function that toggles fullscreen mode
-   */
-  toggleFullscreen: PropTypes.func,
-  /**
-   * Boolean that determines if currently in fullscreen mode
-   */
-  isFullscreen: PropTypes.bool,
 };
 
 export default React.memo(BrowserBottomBar);
