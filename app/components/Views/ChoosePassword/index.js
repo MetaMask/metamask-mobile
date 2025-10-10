@@ -482,6 +482,7 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
+      // wait for the slideOut animation to complete
       await new Promise((resolve) => {
         this.setState({ shouldSlideOut: true, resolveAnimation: resolve });
       });

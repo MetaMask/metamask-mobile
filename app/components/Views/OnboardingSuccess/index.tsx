@@ -90,7 +90,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <View style={styles.contentWrapper}>
         <View style={styles.imageWrapper}>
           <OnboardingSuccessEndAnimation
-            startAnimation
             onAnimationComplete={() => {
               // No-op: Animation completion not needed in success mode
             }}
