@@ -29,7 +29,7 @@ export function useConfirmNavigation() {
         return;
       }
 
-      navigate(ROUTE, { params });
+      navigate(ROUTE, params);
     },
     [navigate],
   );
