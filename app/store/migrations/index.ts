@@ -110,6 +110,7 @@ import migration104 from './104';
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
 import { RootState } from '../../reducers';
 import { ControllerStorage } from '../persistConfig';
+import { captureException } from '@sentry/react-native';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -287,6 +288,9 @@ export const asyncifyMigrations = (
    * - This function "redistributes" the single object back into individual controller files
    * - Then strips engine.backgroundState from redux to maintain the new architecture
    * - "repacking" the single object back into distributed files
+   * 
+   * CRITICAL: Only strips engine.backgroundState if ALL controllers save successfully.
+   * Failed controllers are preserved to prevent data loss.
    */
   const deflateToControllersAndStrip = async (state: unknown) => {
     try {
@@ -296,6 +300,10 @@ export const asyncifyMigrations = (
         string,
         unknown,
       ][];
+      
+      let failedControllers = 0;
+      const failedControllerStates: Record<string, unknown> = {};
+
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -303,16 +311,51 @@ export const asyncifyMigrations = (
               `persist:${controllerName}`,
               JSON.stringify(controllerState),
             );
-          } catch {
-            // swallow to avoid blocking overall migration
+          } catch (error) {
+            failedControllers++;
+            captureException(
+              new Error(
+                `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
+                  error,
+                )}`,
+              ),
+            );
+
+            // Preserve failed controller state to prevent data loss
+            failedControllerStates[controllerName] = controllerState;
           }
         }),
       );
 
-      // Return state without engine slice (kept out of redux)
-      const { engine: _engine, ...rest } = s;
-      return rest as unknown;
-    } catch {
+      // Only strip engine.backgroundState if ALL controllers saved successfully
+      if (failedControllers === 0) {
+        // Return state without engine slice (kept out of redux)
+        const { engine: _engine, ...rest } = s;
+        return rest as unknown;
+      } else {
+        // Keep failed controllers in engine.backgroundState to prevent data loss
+        captureException(
+          new Error(
+            `deflateToControllersAndStrip: ${failedControllers} controllers failed to save, preserving their state in redux-persist`,
+          ),
+        );
+
+        return {
+          ...s,
+          engine: {
+            ...s.engine,
+            backgroundState: failedControllerStates,
+          },
+        };
+      }
+    } catch (error) {
+      captureException(
+        new Error(
+          `deflateToControllersAndStrip: Critical error during deflation: ${String(
+            error,
+          )}`,
+        ),
+      );
       return state;
     }
   };
