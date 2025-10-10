@@ -210,7 +210,6 @@ jobs:
             echo "🔧 Setting Android emulator environment variables..."
             export ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL=10
             export DETOX_LOGLEVEL=info
-            export DETOX_READ_ONLY_EMU=false
             # Ensure emulator can find the binaries
             export PATH="$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/platform-tools:$PATH"
             echo "✅ Android environment configured"

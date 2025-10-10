@@ -104,9 +104,7 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      // Optimized for GitHub Actions Ubuntu runners (Cirrus Labs large runners)
-      // Skin is required for correct test coordinates
-      bootArgs: '-skin 1080x2340 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -wipe-data -memory 6144 -cores 4',
+      bootArgs: '-skin 1080x2340 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -wipe-data -memory 6144 -cores 4 -read-only',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
       utilBinaryPaths: [
