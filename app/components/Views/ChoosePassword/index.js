@@ -768,7 +768,6 @@ class ChoosePassword extends PureComponent {
         {loading ? (
           <View style={styles.loadingWrapper}>
             <OnboardingSuccessAnimation
-              startAnimation
               slideOut={shouldSlideOut}
               onAnimationComplete={this.handleAnimationComplete}
             />

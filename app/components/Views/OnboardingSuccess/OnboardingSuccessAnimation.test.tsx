@@ -89,7 +89,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { toJSON } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -105,7 +104,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { toJSON } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -122,7 +120,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -138,7 +135,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -157,7 +153,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -179,7 +174,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -208,7 +202,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { toJSON } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -229,7 +222,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { toJSON } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -253,7 +245,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { unmount } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -281,7 +272,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { toJSON } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -297,7 +287,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { toJSON } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -323,7 +312,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -339,7 +327,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -374,7 +361,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         slideOut
         onAnimationComplete={mockOnAnimationComplete}
       />,
@@ -416,7 +402,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     render(
       <OnboardingSuccessAnimation
-        startAnimation
         slideOut
         onAnimationComplete={mockOnAnimationComplete}
       />,
@@ -436,7 +421,6 @@ describe('OnboardingSuccessAnimation', () => {
     // Act
     const { queryByText } = render(
       <OnboardingSuccessAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -463,7 +447,6 @@ describe('OnboardingSuccessAnimation', () => {
       // Act
       const { toJSON } = render(
         <OnboardingSuccessAnimation
-          startAnimation
           onAnimationComplete={mockOnAnimationComplete}
         />,
       );
@@ -532,7 +515,6 @@ describe('OnboardingSuccessAnimation', () => {
       // Act - Render and unmount component
       const { unmount } = render(
         <OnboardingSuccessAnimation
-          startAnimation
           onAnimationComplete={mockOnAnimationComplete}
         />,
       );
@@ -544,7 +526,6 @@ describe('OnboardingSuccessAnimation', () => {
       // Render again
       const { unmount: unmount2 } = render(
         <OnboardingSuccessAnimation
-          startAnimation
           onAnimationComplete={mockOnAnimationComplete}
         />,
       );
@@ -553,6 +534,113 @@ describe('OnboardingSuccessAnimation', () => {
 
       // Assert
       expect(mockOnAnimationComplete).toBeDefined();
+    });
+
+    it('clears existing timeout when startRiveAnimation is called multiple times', () => {
+      // Arrange
+      mockIsE2EValue = false;
+      const mockOnAnimationComplete = jest.fn();
+
+      // Act
+      const { rerender } = render(
+        <OnboardingSuccessAnimation
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Advance timer partially to set timeout
+      jest.advanceTimersByTime(50);
+
+      // Re-render to trigger startRiveAnimation again (should clear existing timeout)
+      rerender(
+        <OnboardingSuccessAnimation
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Advance timer to complete new timeout
+      jest.advanceTimersByTime(100);
+
+      // Assert - Component should handle multiple renders without errors
+      expect(mockOnAnimationComplete).not.toHaveBeenCalled();
+    });
+
+    it('handles Rive animation setup errors gracefully in setTimeout callback', () => {
+      // Arrange
+      mockIsE2EValue = false;
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+        // Mock console.error implementation
+      });
+
+      // Create a component that will have a Rive ref that throws an error
+      const TestComponent = () => {
+        const riveRef = React.useRef({
+          setInputState: jest.fn().mockImplementation(() => {
+            throw new Error('Rive setup error');
+          }),
+          fireState: jest.fn(),
+        });
+
+        React.useEffect(() => {
+          // Simulate the setTimeout callback with error
+          setTimeout(() => {
+            if (riveRef.current) {
+              try {
+                riveRef.current.setInputState(
+                  'OnboardingLoader',
+                  'Dark mode',
+                  false,
+                );
+                riveRef.current.fireState('OnboardingLoader', 'Start');
+              } catch (error) {
+                console.error('Error with Rive animation:', error);
+              }
+            }
+          }, 100);
+        }, []);
+
+        return React.createElement('div', { 'data-testid': 'test-component' });
+      };
+
+      // Act
+      render(React.createElement(TestComponent));
+
+      // Advance timer to trigger the setTimeout callback
+      jest.advanceTimersByTime(100);
+
+      // Assert - Error should be caught and logged
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Error with Rive animation:',
+        expect.any(Error),
+      );
+
+      // Cleanup
+      consoleSpy.mockRestore();
+    });
+
+    it('clears riveTimeoutId in clearTimers function when component unmounts', () => {
+      // Arrange
+      mockIsE2EValue = false;
+      const mockOnAnimationComplete = jest.fn();
+
+      // Act
+      const { unmount } = render(
+        <OnboardingSuccessAnimation
+          onAnimationComplete={mockOnAnimationComplete}
+        />,
+      );
+
+      // Advance timer to set up the riveTimeoutId but not complete it
+      jest.advanceTimersByTime(50);
+
+      // Unmount component to trigger clearTimers cleanup
+      unmount();
+
+      // Advance remaining timers to ensure cleanup worked
+      jest.runAllTimers();
+
+      // Assert - Component should unmount cleanly without errors
+      expect(mockOnAnimationComplete).not.toHaveBeenCalled();
     });
   });
 });

@@ -18,13 +18,11 @@ import onboardingRiveFile from '../../../animations/onboarding_loader.riv';
 import { isE2E } from '../../../util/test/utils';
 
 interface OnboardingSuccessAnimationProps {
-  startAnimation: boolean;
   onAnimationComplete: () => void;
   slideOut?: boolean;
 }
 
 const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
-  startAnimation: _startAnimation,
   onAnimationComplete: _onAnimationComplete,
   slideOut = false,
 }) => {
