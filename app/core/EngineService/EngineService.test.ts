@@ -368,7 +368,7 @@ describe('EngineService', () => {
         cancel: jest.fn(),
         flush: jest.fn(),
       });
-      mockCreatePersistController.mockReturnValue(mockPersistController as any);
+      mockCreatePersistController.mockReturnValue(mockPersistController as unknown as ReturnType<typeof createPersistController>);
       mockGetPersistentState.mockReturnValue({ filtered: 'state' });
 
       // Mock Engine.context for metadata - this will be used by the existing Engine mock
