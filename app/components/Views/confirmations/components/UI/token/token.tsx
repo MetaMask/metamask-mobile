@@ -20,6 +20,7 @@ import BadgeWrapper from '../../../../../../component-library/components/Badges/
 import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
 import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
 
@@ -89,18 +90,9 @@ export function Token({ asset, onPress }: TokenProps) {
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
             >
-              {asset.name || asset.symbol || 'Unknown Token'}
+              {asset.name || asset.symbol}
             </Text>
-            {tokenTypeLabel && (
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                twClassName="bg-background-alternative ml-2 py-0 px-1 rounded-md"
-                numberOfLines={1}
-              >
-                {tokenTypeLabel}
-              </Text>
-            )}
+            <AccountTypeLabel label={tokenTypeLabel} />
           </Box>
           <Text
             variant={TextVariant.BodySm}

@@ -6,7 +6,6 @@ import {
   Text,
   TextVariant,
   ButtonBase,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -19,6 +18,7 @@ import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { btcAccountTypeLabel } from '../../../constants/bitcoin';
+import { AccountTypeLabel } from '../account-type-label';
 
 export interface RecipientType {
   address: string;
@@ -98,16 +98,7 @@ export function Recipient({
             >
               {formatAddress(recipient.address, 'short')}
             </Text>
-            {accountTypeLabel && (
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                twClassName="bg-background-alternative ml-2 mt-1 py-0 px-1 rounded-md"
-                numberOfLines={1}
-              >
-                {accountTypeLabel}
-              </Text>
-            )}
+            <AccountTypeLabel label={accountTypeLabel} />
           </Box>
         </Box>
       </Box>

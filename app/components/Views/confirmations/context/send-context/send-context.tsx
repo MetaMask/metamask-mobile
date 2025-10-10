@@ -20,6 +20,35 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
 
+enum AssetProtocol {
+  EVM = 'EVM',
+  SOLANA = 'SOLANA',
+  BITCOIN = 'BITCOIN',
+}
+
+interface ProtocolConfig {
+  isAssetType: (asset: AssetType | Nft) => boolean;
+  isAccountType: (account: InternalAccount) => boolean;
+}
+
+const PROTOCOL_CONFIG: Record<AssetProtocol, ProtocolConfig> = {
+  [AssetProtocol.EVM]: {
+    isAssetType: (asset) =>
+      asset?.address ? isEvmAddress(asset.address) : false,
+    isAccountType: (account) => isEvmAccountType(account.type),
+  },
+  [AssetProtocol.SOLANA]: {
+    isAssetType: (asset) =>
+      asset?.chainId ? isSolanaChainId(asset.chainId) : false,
+    isAccountType: (account) => isSolanaAccount(account),
+  },
+  [AssetProtocol.BITCOIN]: {
+    isAssetType: (asset) =>
+      asset?.chainId ? isBitcoinChainId(asset.chainId) : false,
+    isAccountType: (account) => isBtcAccount(account),
+  },
+};
+
 export interface SendContextType {
   asset?: AssetType | Nft;
   chainId?: string;
@@ -77,35 +106,19 @@ export const SendContextProvider: React.FC<{
       } else {
         // We don't have accountId in the updated asset - this is a navigation from outside of the send flow
         // Hence we need to update the fromAccount from the selected group
-        const isEvmAsset = updatedAsset?.address
-          ? isEvmAddress(updatedAsset.address)
-          : undefined;
-        const isSolanaAsset = updatedAsset?.chainId
-          ? isSolanaChainId(updatedAsset.chainId)
-          : undefined;
-        const isBtcAsset = updatedAsset?.chainId
-          ? isBitcoinChainId(updatedAsset.chainId)
-          : undefined;
-
         const selectedAccountGroupAccounts = selectedGroup?.accounts.map(
           (accountId) => accounts[accountId],
         );
 
-        if (isEvmAsset) {
-          const evmAccount = selectedAccountGroupAccounts?.find((account) =>
-            isEvmAccountType(account.type),
-          );
-          updateFromAccount(evmAccount);
-        } else if (isSolanaAsset) {
-          const solanaAccount = selectedAccountGroupAccounts?.find((account) =>
-            isSolanaAccount(account),
-          );
-          updateFromAccount(solanaAccount);
-        } else if (isBtcAsset) {
-          const btcAccount = selectedAccountGroupAccounts?.find((account) =>
-            isBtcAccount(account),
-          );
-          updateFromAccount(btcAccount);
+        for (const protocol of Object.values(AssetProtocol)) {
+          const config = PROTOCOL_CONFIG[protocol];
+          if (updatedAsset && config.isAssetType(updatedAsset)) {
+            const account = selectedAccountGroupAccounts?.find((acc) =>
+              config.isAccountType(acc),
+            );
+            updateFromAccount(account);
+            break;
+          }
         }
       }
     },
