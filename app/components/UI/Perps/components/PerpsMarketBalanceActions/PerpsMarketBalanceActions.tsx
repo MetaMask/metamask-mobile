@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Animated, View, ActivityIndicator } from 'react-native';
+import BN from 'bnjs4';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -47,6 +48,7 @@ import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { PerpsProgressBar } from '../PerpsProgressBar';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -110,6 +112,37 @@ const PerpsMarketBalanceActions: React.FC<
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     React.useState(false);
+
+  // State for transaction amount
+  const [transactionAmountWei, setTransactionAmountWei] = useState<
+    string | null
+  >(null);
+
+  // Convert amount to USD display (handles both USD strings and wei)
+  const convertToUSD = (amount: string): string => {
+    try {
+      console.log('Converting amount to USD:', amount);
+
+      // If it's already a USD string (e.g., "$10.32"), return it without decimals
+      if (amount.startsWith('$')) {
+        const numericValue = parseFloat(amount.replace('$', ''));
+        return `$${Math.floor(numericValue)}`;
+      }
+
+      // Otherwise, treat as wei and convert
+      const weiBN = new BN(amount, 16);
+
+      const ethBN = weiBN.div(new BN(10).pow(new BN(18)));
+      const ethValue = ethBN.toNumber();
+
+      const ethPriceUSD = 2000; // Replace with actual ETH price
+      const usdValue = ethValue * ethPriceUSD;
+
+      return `$${Math.floor(usdValue)}`;
+    } catch (error) {
+      return '$0.00';
+    }
+  };
 
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
@@ -232,6 +265,11 @@ const PerpsMarketBalanceActions: React.FC<
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
+        <PerpsProgressBar
+          progressAmount={0}
+          height={4}
+          onTransactionAmountChange={setTransactionAmountWei}
+        />
         {/* Deposit Progress Section */}
         {isDepositInProgress && (
           <Box twClassName="p-4">
@@ -242,10 +280,14 @@ const PerpsMarketBalanceActions: React.FC<
               >
                 {strings('perps.deposit_in_progress')}
               </Text>
-              <ActivityIndicator
-                size="small"
-                color={styles.activityIndicator.color}
-              />
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Inverse}
+              >
+                {transactionAmountWei
+                  ? convertToUSD(transactionAmountWei)
+                  : 'Processing...'}
+              </Text>
             </Box>
           </Box>
         )}
