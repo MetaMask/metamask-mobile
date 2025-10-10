@@ -241,6 +241,7 @@ class ChoosePassword extends PureComponent {
     // Data for slide out completion
     navigationData: null,
     shouldSlideOut: false,
+    resolveAnimation: null,
   };
 
   mounted = true;
@@ -259,20 +260,7 @@ class ChoosePassword extends PureComponent {
   getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
 
   handleAnimationComplete = () => {
-    // Use pending navigation data as fallback for race condition safety
-    const navigationData =
-      this.state.navigationData || this.pendingNavigationData;
-    if (navigationData) {
-      if (navigationData.type === 'reset') {
-        this.props.navigation.reset(navigationData.params);
-      } else if (navigationData.type === 'replace') {
-        this.props.navigation.replace(
-          navigationData.screen,
-          navigationData.params,
-        );
-      }
-      this.pendingNavigationData = null;
-    }
+    if (this.state.resolveAnimation) this.state.resolveAnimation();
   };
 
   headerLeft = () => {
@@ -494,6 +482,10 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
+      await new Promise((resolve) => {
+        this.setState({ shouldSlideOut: true, resolveAnimation: resolve });
+      });
+
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
@@ -505,39 +497,19 @@ class ChoosePassword extends PureComponent {
           Logger.error(error);
         });
 
-        // Store navigation data and trigger slide out atomically
-        const navigationData = {
-          type: 'reset',
-          params: {
-            index: 0,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS,
-                params: { showPasswordHint: true },
-              },
-            ],
-          },
-        };
-
-        this.pendingNavigationData = navigationData;
-
-        this.setState({
-          navigationData,
-          shouldSlideOut: true,
+        this.props.navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS,
+              params: { showPasswordHint: true },
+            },
+          ],
         });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
-        const navigationData = {
-          type: 'replace',
-          screen: 'AccountBackupStep1',
-          params: { seedPhrase },
-        };
-
-        this.pendingNavigationData = navigationData;
-
-        this.setState({
-          navigationData,
-          shouldSlideOut: true,
+        this.props.navigation.replace('AccountBackupStep1', {
+          seedPhrase,
         });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
