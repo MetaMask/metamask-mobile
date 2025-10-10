@@ -1,7 +1,6 @@
-import Matchers from '../../framework/Matchers.ts';
 import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import { SwitchAccountModalSelectorIDs } from '../../selectors/wallet/SwitchAccountModal.selectors.js';
-import { AccountDetailsIds } from '../../selectors/MultichainAccounts/AccountDetails.selectors.ts';
 class SwitchAccountModal {
   get smartAccountLink(): DetoxElement {
     return Matchers.getElementByID(
@@ -21,10 +20,6 @@ class SwitchAccountModal {
     );
   }
 
-  get accountModalBackButton(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
-  }
-
   async tapSwitchAccountButton(): Promise<void> {
     await Gestures.waitAndTap(this.switchAccountButton, {
       checkEnabled: false,
@@ -41,12 +36,6 @@ class SwitchAccountModal {
   async tapSmartAccountBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.smartAccountBackButton, {
       elemDescription: 'Smart Account back button',
-    });
-  }
-
-  async tapAccountModalBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.accountModalBackButton, {
-      elemDescription: 'Account Modal back button',
     });
   }
 }

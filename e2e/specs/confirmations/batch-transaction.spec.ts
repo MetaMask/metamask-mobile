@@ -1,4 +1,4 @@
-import SwitchAccountModal from '../../pages/wallet/SwitchAccountModal';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../framework/Assertions';
 import Browser from '../../pages/Browser/BrowserView';
@@ -7,6 +7,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import RowComponents from '../../pages/Browser/Confirmations/RowComponents';
+import SwitchAccountModal from '../../pages/wallet/SwitchAccountModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import WalletView from '../../pages/wallet/WalletView';
@@ -56,7 +57,7 @@ async function tapSwitchAccountModal() {
 
 async function goBackToWalletPage() {
   await SwitchAccountModal.tapSmartAccountBackButton();
-  await SwitchAccountModal.tapAccountModalBackButton();
+  await AccountDetails.tapBackButton();
   try {
     await AccountListBottomSheet.dismissAccountListModalV2();
   } catch (error) {
