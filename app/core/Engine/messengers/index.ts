@@ -87,6 +87,7 @@ import {
 } from './token-balances-controller-messenger';
 import { getTokenRatesControllerMessenger } from './token-rates-controller-messenger';
 import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
+import { getNftControllerMessenger } from './nft-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -143,6 +144,10 @@ export const CONTROLLER_MESSENGERS = {
   NetworkController: {
     getMessenger: getNetworkControllerMessenger,
     getInitMessenger: getNetworkControllerInitMessenger,
+  },
+  NftController: {
+    getMessenger: getNftControllerMessenger,
+    getInitMessenger: noop,
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,

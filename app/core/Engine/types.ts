@@ -706,6 +706,7 @@ export type ControllersToInitialize =
   | 'GasFeeController'
   | 'KeyringController'
   | 'MultichainNetworkController'
+  | 'NftController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TokenBalancesController'
