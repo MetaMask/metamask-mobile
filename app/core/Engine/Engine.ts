@@ -139,6 +139,7 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
+import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
@@ -293,6 +294,7 @@ export class Engine {
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionController: TransactionControllerInit,
+        TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
@@ -477,6 +479,7 @@ export class Engine {
       TokenBalancesController: tokenBalancesController,
       TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
+      TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
