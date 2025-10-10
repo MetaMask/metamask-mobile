@@ -15,19 +15,12 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -194,19 +187,12 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -373,19 +359,12 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -552,19 +531,12 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -731,19 +703,12 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -910,19 +875,12 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -1089,19 +1047,12 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
@@ -1268,19 +1219,12 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
 >
   <View>
     <View
-      collapsable={false}
       style={
         {
           "flexDirection": "column",
           "flexGrow": 1,
           "justifyContent": "space-between",
-          "opacity": 0,
           "rowGap": 16,
-          "transform": [
-            {
-              "scale": 0.8,
-            },
-          ],
         }
       }
     >
