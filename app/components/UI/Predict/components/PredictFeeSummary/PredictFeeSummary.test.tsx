@@ -3,9 +3,7 @@ import { render } from '@testing-library/react-native';
 import PredictFeeSummary from './PredictFeeSummary';
 
 jest.mock('../../utils/format', () => ({
-  formatPrice: jest.fn(
-    (value, options) => `$${value.toFixed(options?.maximumDecimals ?? 2)}`,
-  ),
+  formatPrice: jest.fn((value, options) => `$${value.toFixed(options?.maximumDecimals ?? 2)}`),
 }));
 
 describe('PredictFeeSummary', () => {
