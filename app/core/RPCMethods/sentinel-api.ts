@@ -26,6 +26,8 @@ export type SentinelNetworkMap = Record<string, SentinelNetwork>;
 
 /**
  * Returns all network data.
+ * The `/networks` endpoint returns the same data regardless of subdomain,
+ * meaning all network subdomains are aliases of the same source.
  */
 async function getAllSentinelNetworkFlags(): Promise<SentinelNetworkMap> {
   const url = `${buildUrl('ethereum-mainnet')}${ENDPOINT_NETWORKS}`;
@@ -66,7 +68,7 @@ export function buildUrl(subdomain: string): string {
 export async function isSendBundleSupported(chainId: Hex): Promise<boolean> {
   const network = await getSentinelNetworkFlags(chainId);
 
-  return network?.sendBundle
+  return Boolean(network?.sendBundle);
 }
 
 /**
@@ -83,7 +85,7 @@ export async function getSendBundleSupportedChains(
   return chainIds.reduce<Record<string, boolean>>((acc, chainId) => {
     const chainIdDecimal = convertHexToDecimal(chainId);
     const network = networkData[chainIdDecimal];
-    acc[chainId] = network?.sendBundle ?? false;
+    acc[chainId] = Boolean(network?.sendBundle);
     return acc;
   }, {});
 }
