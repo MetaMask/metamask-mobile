@@ -17,7 +17,7 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { btcAccountTypeLabel } from '../../../constants/bitcoin';
+import { accountTypeLabel } from '../../../constants/network';
 import { AccountTypeLabel } from '../account-type-label';
 
 export interface RecipientType {
@@ -50,9 +50,8 @@ export function Recipient({
     onPress?.(recipient);
   }, [recipient, onPress]);
 
-  // Only show BTC account type label for BTC tokens
-  const accountTypeLabel =
-    btcAccountTypeLabel[recipient.accountType as KeyringAccountType];
+  const typeLabel =
+    accountTypeLabel[recipient.accountType as KeyringAccountType];
 
   return (
     <ButtonBase
@@ -98,7 +97,7 @@ export function Recipient({
             >
               {formatAddress(recipient.address, 'short')}
             </Text>
-            <AccountTypeLabel label={accountTypeLabel} />
+            <AccountTypeLabel label={typeLabel} />
           </Box>
         </Box>
       </Box>

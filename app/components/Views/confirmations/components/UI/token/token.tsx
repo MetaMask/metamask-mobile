@@ -13,7 +13,7 @@ import { BigNumber } from 'bignumber.js';
 import { KeyringAccountType } from '@metamask/keyring-api';
 
 import I18n from '../../../../../../../locales/i18n';
-import { btcAccountTypeLabel } from '../../../constants/bitcoin';
+import { accountTypeLabel } from '../../../constants/network';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
@@ -36,9 +36,7 @@ export function Token({ asset, onPress }: TokenProps) {
     onPress(asset);
   }, [asset, onPress]);
 
-  // Only show BTC account type label for BTC tokens
-  const tokenTypeLabel =
-    btcAccountTypeLabel[asset.accountType as KeyringAccountType];
+  const typeLabel = accountTypeLabel[asset.accountType as KeyringAccountType];
 
   return (
     <Pressable
@@ -92,7 +90,7 @@ export function Token({ asset, onPress }: TokenProps) {
             >
               {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
-            <AccountTypeLabel label={tokenTypeLabel} />
+            <AccountTypeLabel label={typeLabel} />
           </Box>
           <Text
             variant={TextVariant.BodySm}
