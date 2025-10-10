@@ -234,11 +234,7 @@ export const asyncifyMigrations = (
   inputMigrations: MigrationsList,
   onMigrationsComplete?: (state: unknown) => void,
 ) => {
-  const versions = Object.keys(inputMigrations)
-    .map((v) => Number(v))
-    .filter((v) => Number.isFinite(v))
-    .sort((a, b) => a - b);
-  const lastVersion = versions[versions.length - 1];
+  const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
 
   type StateWithEngine = Record<string, unknown> & {
@@ -248,7 +244,7 @@ export const asyncifyMigrations = (
   /**
    * Loads controller data from individual filesystem storage back into engine.backgroundState
    * for migrations to process.
-   * 
+   *
    * - Migration 104 moved controller data from redux-persist to individual files
    * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
@@ -256,10 +252,10 @@ export const asyncifyMigrations = (
    */
   const inflateFromControllers = async (state: unknown) => {
     try {
-      const fsState = (await ControllerStorage.getKey()) as
+      const fsState = (await ControllerStorage.getAllPersistedState()) as
         | {
-          backgroundState?: Record<string, unknown>;
-        }
+            backgroundState?: Record<string, unknown>;
+          }
         | undefined;
 
       const s = state as StateWithEngine;
@@ -285,7 +281,7 @@ export const asyncifyMigrations = (
   /**
    * Saves controller data from engine.backgroundState back to individual filesystem storage
    * and removes the engine slice from redux state.
-   * 
+   *
    * - After migrations run, we need to save updated controller data back to individual files
    * - The engine.backgroundState should not persist in redux (it's just temporary for migrations)
    * - This function "redistributes" the single object back into individual controller files
@@ -345,7 +341,7 @@ export const asyncifyMigrations = (
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
-            Object.keys(s2.engine.backgroundState).length > 0,
+              Object.keys(s2.engine.backgroundState).length > 0,
           );
           if (hasControllers) {
             return await deflateToControllersAndStrip(migratedState);

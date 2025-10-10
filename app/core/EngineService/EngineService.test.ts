@@ -7,7 +7,10 @@ import NavigationService from '../NavigationService';
 import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
 import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY } from './constants';
-import { ControllerStorage, createPersistController } from '../../store/persistConfig';
+import {
+  ControllerStorage,
+  createPersistController,
+} from '../../store/persistConfig';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
 
@@ -55,7 +58,9 @@ jest.mock('../../store/getPersistentState/getPersistentState', () => ({
 // Mock ControllerStorage and createPersistController
 jest.mock('../../store/persistConfig', () => ({
   ControllerStorage: {
-    getKey: jest.fn(() => Promise.resolve({ backgroundState: {} })),
+    getAllPersistedState: jest.fn(() =>
+      Promise.resolve({ backgroundState: {} }),
+    ),
     setItem: jest.fn(),
     getItem: jest.fn(),
     removeItem: jest.fn(),
@@ -356,9 +361,16 @@ describe('EngineService', () => {
   });
 
   describe('setupEnginePersistence', () => {
-    const mockCreatePersistController = createPersistController as jest.MockedFunction<typeof createPersistController>;
-    const mockGetPersistentState = getPersistentState as jest.MockedFunction<typeof getPersistentState>;
-    let mockPersistController: jest.MockedFunction<(filteredState: unknown, controllerName: string) => Promise<void>>;
+    const mockCreatePersistController =
+      createPersistController as jest.MockedFunction<
+        typeof createPersistController
+      >;
+    const mockGetPersistentState = getPersistentState as jest.MockedFunction<
+      typeof getPersistentState
+    >;
+    let mockPersistController: jest.MockedFunction<
+      (filteredState: unknown, controllerName: string) => Promise<void>
+    >;
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -368,7 +380,11 @@ describe('EngineService', () => {
         cancel: jest.fn(),
         flush: jest.fn(),
       });
-      mockCreatePersistController.mockReturnValue(mockPersistController as unknown as ReturnType<typeof createPersistController>);
+      mockCreatePersistController.mockReturnValue(
+        mockPersistController as unknown as ReturnType<
+          typeof createPersistController
+        >,
+      );
       mockGetPersistentState.mockReturnValue({ filtered: 'state' });
 
       // Mock Engine.context for metadata - this will be used by the existing Engine mock
@@ -391,11 +407,14 @@ describe('EngineService', () => {
       await engineService.start();
 
       // Assert
-      const mockSubscribe = Engine.controllerMessenger.subscribe as jest.MockedFunction<typeof Engine.controllerMessenger.subscribe>;
+      const mockSubscribe = Engine.controllerMessenger
+        .subscribe as jest.MockedFunction<
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Should subscribe to all events except CronjobController:stateChange
       const expectedCallCount = BACKGROUND_STATE_CHANGE_EVENT_NAMES.filter(
-        eventName => eventName !== 'CronjobController:stateChange'
+        (eventName) => eventName !== 'CronjobController:stateChange',
       ).length;
 
       expect(mockSubscribe).toHaveBeenCalledTimes(expectedCallCount);
@@ -428,7 +447,10 @@ describe('EngineService', () => {
       await engineService.start();
 
       // Assert
-      const mockSubscribe = Engine.controllerMessenger.subscribe as jest.MockedFunction<typeof Engine.controllerMessenger.subscribe>;
+      const mockSubscribe = Engine.controllerMessenger
+        .subscribe as jest.MockedFunction<
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Should not subscribe to CronjobController:stateChange (since it's not in our mocked events)
       // Our mocked BACKGROUND_STATE_CHANGE_EVENT_NAMES only includes KeyringController, PreferencesController, NetworkController
@@ -445,11 +467,14 @@ describe('EngineService', () => {
       // Arrange
       await engineService.start();
 
-      const mockSubscribe = Engine.controllerMessenger.subscribe as jest.MockedFunction<typeof Engine.controllerMessenger.subscribe>;
+      const mockSubscribe = Engine.controllerMessenger
+        .subscribe as jest.MockedFunction<
+        typeof Engine.controllerMessenger.subscribe
+      >;
 
       // Find the subscription callback for KeyringController
       const subscriptionCallback = mockSubscribe.mock.calls.find(
-        call => call[0] === 'KeyringController:stateChange'
+        (call) => call[0] === 'KeyringController:stateChange',
       )?.[1] as (controllerState: unknown) => Promise<void>;
 
       expect(subscriptionCallback).toBeDefined();
@@ -479,9 +504,12 @@ describe('EngineService', () => {
 
       await engineService.start();
 
-      const mockSubscribe = Engine.controllerMessenger.subscribe as jest.MockedFunction<typeof Engine.controllerMessenger.subscribe>;
+      const mockSubscribe = Engine.controllerMessenger
+        .subscribe as jest.MockedFunction<
+        typeof Engine.controllerMessenger.subscribe
+      >;
       const subscriptionCallback = mockSubscribe.mock.calls.find(
-        call => call[0] === 'KeyringController:stateChange'
+        (call) => call[0] === 'KeyringController:stateChange',
       )?.[1] as (controllerState: unknown) => Promise<void>;
 
       expect(subscriptionCallback).toBeDefined();
@@ -489,7 +517,9 @@ describe('EngineService', () => {
       const controllerState = { field1: 'value1' };
 
       // Act & Assert - should not throw
-      await expect(subscriptionCallback(controllerState)).resolves.toBeUndefined();
+      await expect(
+        subscriptionCallback(controllerState),
+      ).resolves.toBeUndefined();
 
       // Should log error
       expect(Logger.error).toHaveBeenCalledWith(

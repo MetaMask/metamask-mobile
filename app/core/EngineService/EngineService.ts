@@ -69,7 +69,7 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    const persistedState = await ControllerStorage.getKey();
+    const persistedState = await ControllerStorage.getAllPersistedState();
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -151,11 +151,11 @@ export class EngineService {
 
   /**
    * Sets up persistence subscriptions for all engine controllers.
-   * 
+   *
    * This method subscribes to each controller's state change events and automatically:
    * 1. Updates Redux store with the new controller state
    * 2. Persists the filtered state to individual filesystem storage files
-   * 
+   *
    * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
    */
   private setupEnginePersistence = () => {
@@ -181,7 +181,8 @@ export class EngineService {
                 const filteredState = getPersistentState(
                   controllerState,
                   // @ts-expect-error - EngineContext has stateless controllers, so metadata is not available
-                  UntypedEngine.context[controllerName as keyof EngineContext]?.metadata,
+                  UntypedEngine.context[controllerName as keyof EngineContext]
+                    ?.metadata,
                 );
 
                 this.updateBatcher.add(controllerName);
@@ -219,7 +220,7 @@ export class EngineService {
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const vaultBackupResult = await getVaultFromBackup();
-    const persistedState = await ControllerStorage.getKey();
+    const persistedState = await ControllerStorage.getAllPersistedState();
     const state = persistedState?.backgroundState ?? {};
     const Engine = UntypedEngine;
     await Engine.destroyEngine();

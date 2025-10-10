@@ -15,7 +15,7 @@ const STORAGE_THROTTLE_DELAY = 200;
 
 /**
  * Creates a storage object with optional AsyncStorage fallback for migration scenarios.
- * 
+ *
  * @param enableAsyncStorageFallback - Whether to fall back to AsyncStorage if FilesystemStorage fails
  * @returns Storage object with getItem, setItem, and removeItem methods
  */
@@ -72,8 +72,8 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
 export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),
-  
-  async getKey(): Promise<Record<string, unknown>> {
+
+  async getAllPersistedState(): Promise<Record<string, unknown>> {
     try {
       const backgroundState: Record<string, unknown> = {};
 
@@ -133,10 +133,10 @@ export const ControllerStorage = {
 const MigratedStorage = createStorage(true);
 /**
  * Creates a debounced controller persistence function.
- * 
+ *
  * This utility handles saving controller state to individual filesystem storage files
  * with automatic debouncing to prevent excessive writes during rapid state changes.
- * 
+ *
  * @param debounceMs - Milliseconds to debounce persistence operations (default: 200ms)
  * @returns Debounced persistence function
  */
@@ -187,6 +187,7 @@ const persistConfig = {
     'confirmationMetrics',
     'alert',
     'engine',
+    'qrKeyringScanner',
   ],
   storage: MigratedStorage,
   transforms: [persistUserTransform, persistOnboardingTransform],

@@ -135,6 +135,7 @@ describe('persistConfig', () => {
         'confirmationMetrics',
         'alert',
         'engine',
+        'qrKeyringScanner',
       ]);
     });
 
@@ -197,7 +198,7 @@ describe('persistConfig', () => {
     });
   });
 
-  describe('ControllerStorage.getKey()', () => {
+  describe('ControllerStorage.getAllPersistedState()', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -205,7 +206,7 @@ describe('persistConfig', () => {
     it('returns empty backgroundState for fresh install (no persisted data)', async () => {
       (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(null);
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({ backgroundState: {} });
     });
@@ -222,7 +223,7 @@ describe('persistConfig', () => {
         return null;
       });
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({
         backgroundState: {
@@ -243,7 +244,7 @@ describe('persistConfig', () => {
         return null;
       });
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({
         backgroundState: {
@@ -264,7 +265,7 @@ describe('persistConfig', () => {
         return null;
       });
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({
         backgroundState: {
@@ -282,7 +283,7 @@ describe('persistConfig', () => {
         return null;
       });
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({ backgroundState: {} });
       expect(Logger.error).toHaveBeenCalledWith(
@@ -307,7 +308,7 @@ describe('persistConfig', () => {
         return null;
       });
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({ backgroundState: {} });
       expect(Logger.error).toHaveBeenCalledWith(
@@ -335,7 +336,7 @@ describe('persistConfig', () => {
         return null;
       });
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({ backgroundState: {} });
       expect(Logger.error).toHaveBeenCalledWith(
@@ -352,7 +353,7 @@ describe('persistConfig', () => {
         .spyOn(Promise, 'all')
         .mockRejectedValueOnce(new Error('Promise.all failed'));
 
-      const result = await ControllerStorage.getKey();
+      const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({ backgroundState: {} });
       expect(Logger.error).toHaveBeenCalledWith(
@@ -450,9 +451,7 @@ describe('persistConfig', () => {
     it('should handle persistence errors gracefully', async () => {
       // Arrange
       const persistError = new Error('Storage failed');
-      jest
-        .spyOn(ControllerStorage, 'setItem')
-        .mockRejectedValue(persistError);
+      jest.spyOn(ControllerStorage, 'setItem').mockRejectedValue(persistError);
       const persistController = createPersistController();
       const filteredState = { data: 'test' };
       const controllerName = 'NetworkController';
