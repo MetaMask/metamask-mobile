@@ -11,10 +11,15 @@ describe('handleFastOnboarding', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockNavigate = jest.fn();
     jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       navigate: mockNavigate,
     } as unknown as NavigationContainerRef);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
   describe('valid onboarding types', () => {
     it.each(['google', 'apple', 'srp'] as const)(
@@ -27,6 +32,11 @@ describe('handleFastOnboarding', () => {
         const result = handleFastOnboarding(deeplink);
 
         // Assert
+        expect(result).toBe(true);
+
+        // Advance timers by 1000ms to trigger the setTimeout
+        jest.advanceTimersByTime(1000);
+
         expect(mockNavigate).toHaveBeenCalledWith({
           name: Routes.ONBOARDING.ROOT_NAV,
           params: {
@@ -40,7 +50,6 @@ describe('handleFastOnboarding', () => {
             },
           },
         });
-        expect(result).toBe(true);
       },
     );
 
@@ -54,6 +63,11 @@ describe('handleFastOnboarding', () => {
         const result = handleFastOnboarding(deeplink);
 
         // Assert
+        expect(result).toBe(true);
+
+        // Advance timers by 1000ms to trigger the setTimeout
+        jest.advanceTimersByTime(1000);
+
         expect(mockNavigate).toHaveBeenCalledWith({
           name: Routes.ONBOARDING.ROOT_NAV,
           params: {
@@ -67,7 +81,6 @@ describe('handleFastOnboarding', () => {
             },
           },
         });
-        expect(result).toBe(true);
       },
     );
 
@@ -79,6 +92,11 @@ describe('handleFastOnboarding', () => {
       const result = handleFastOnboarding(deeplink);
 
       // Assert
+      expect(result).toBe(true);
+
+      // Advance timers by 1000ms to trigger the setTimeout
+      jest.advanceTimersByTime(1000);
+
       expect(mockNavigate).toHaveBeenCalledWith({
         name: Routes.ONBOARDING.ROOT_NAV,
         params: {
@@ -89,7 +107,6 @@ describe('handleFastOnboarding', () => {
           },
         },
       });
-      expect(result).toBe(true);
     });
 
     it('uses the first type parameter when multiple are provided', () => {
@@ -100,6 +117,11 @@ describe('handleFastOnboarding', () => {
       const result = handleFastOnboarding(deeplink);
 
       // Assert
+      expect(result).toBe(true);
+
+      // Advance timers by 1000ms to trigger the setTimeout
+      jest.advanceTimersByTime(1000);
+
       expect(mockNavigate).toHaveBeenCalledWith({
         name: Routes.ONBOARDING.ROOT_NAV,
         params: {
@@ -110,7 +132,6 @@ describe('handleFastOnboarding', () => {
           },
         },
       });
-      expect(result).toBe(true);
     });
   });
 
@@ -142,6 +163,10 @@ describe('handleFastOnboarding', () => {
 
       // Assert
       expect(result).toBe(true);
+
+      // Advance timers by 1000ms to trigger the setTimeout
+      jest.advanceTimersByTime(1000);
+
       expect(mockNavigate).toHaveBeenCalledWith({
         name: Routes.ONBOARDING.ROOT_NAV,
         params: {
@@ -163,6 +188,20 @@ describe('handleFastOnboarding', () => {
 
       // Assert
       expect(result).toBe(true);
+
+      // Advance timers by 1000ms to trigger the setTimeout
+      jest.advanceTimersByTime(1000);
+
+      expect(mockNavigate).toHaveBeenCalledWith({
+        name: Routes.ONBOARDING.ROOT_NAV,
+        params: {
+          screen: Routes.ONBOARDING.NAV,
+          params: {
+            screen: Routes.ONBOARDING.ONBOARDING,
+            params: { onboardingType: 'apple', existingUser: '' },
+          },
+        },
+      });
     });
 
     it('return false for invalid URLs', () => {
