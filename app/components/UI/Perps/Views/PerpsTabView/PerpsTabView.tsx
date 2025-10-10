@@ -110,8 +110,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       return;
     }
 
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKETS,
+      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
   }, [navigation, isEligible, isDepositInProgress]);
 

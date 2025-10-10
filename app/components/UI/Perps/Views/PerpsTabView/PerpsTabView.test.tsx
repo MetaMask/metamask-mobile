@@ -17,6 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -543,7 +544,7 @@ describe('PerpsTabView', () => {
       expect(mockLoadPositions).toHaveBeenCalledTimes(0); // Should not be called on render
     });
 
-    it('should navigate to balance modal when manage balance is pressed and user is eligible', () => {
+    it('should navigate to markets list when manage balance is pressed and user is eligible', () => {
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
       ).selectPerpsEligibility;
@@ -570,12 +571,10 @@ describe('PerpsTabView', () => {
         fireEvent.press(manageBalanceButton);
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.MODALS.ROOT,
-        {
-          screen: Routes.PERPS.MODALS.BALANCE_MODAL,
-        },
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+        params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+      });
     });
 
     it('should show geo block modal when manage balance is pressed and user is not eligible', () => {
