@@ -92,7 +92,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
             description: `Account with name "${SECOND_ACCOUNT_NAME}" should be visible`,
           },
         );
-        await AccountListBottomSheet.swipeToDismissAccountsModal(); // the next action taps on the identicon again
+        await AccountListBottomSheet.tapBackButton(); // the next action taps on the identicon again
 
         // Add SRP 2
         await device.disableSynchronization();

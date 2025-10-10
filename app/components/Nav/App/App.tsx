@@ -156,6 +156,7 @@ import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import MultichainAccountSelectorListPage from '../../Views/AccountSelector/MultiChainAccountSelectorListPage';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -680,6 +681,19 @@ const MultichainAccountGroupDetails = () => {
   );
 };
 
+const MultichainAccountSelectorListPageNavigator = () => {
+  const route = useRoute();
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }} mode={'modal'}>
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR_LIST_PAGE}
+        component={MultichainAccountSelectorListPage}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const MultichainAccountDetailsActions = () => {
   const route = useRoute();
 
@@ -948,6 +962,25 @@ const AppFlow = () => {
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
           options={{ animationEnabled: true }}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR_LIST_PAGE}
+          component={MultichainAccountSelectorListPageNavigator}
+          options={{
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}

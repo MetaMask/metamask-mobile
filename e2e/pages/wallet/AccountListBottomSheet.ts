@@ -8,6 +8,7 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/C
 import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { SHEET_HEADER_BACK_BUTTON_ID } from '../../../app/component-library/components/Sheet/SheetHeader/SheetHeader.constants';
 
 class AccountListBottomSheet {
   get accountList(): DetoxElement {
@@ -54,6 +55,10 @@ class AccountListBottomSheet {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
+  }
+
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(SHEET_HEADER_BACK_BUTTON_ID);
   }
 
   createAccountLink(index: number): DetoxElement {
@@ -171,6 +176,12 @@ class AccountListBottomSheet {
     });
   }
 
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Tap on the back button',
+    });
+  }
+
   async tapYesToRemoveImportedAccountAlertButton(): Promise<void> {
     await Gestures.waitAndTap(this.removeAccountAlertText, {
       elemDescription: 'Yes to remove imported account alert button',
@@ -235,8 +246,7 @@ class AccountListBottomSheet {
     // First swipe to dismiss the MultichainAccountActions modal
     await this.swipeToDismissAccountsModal();
 
-    // Second swipe to dismiss the AccountListBottomSheet
-    await this.swipeToDismissAccountsModal();
+    await this.tapBackButton();
   }
 }
 

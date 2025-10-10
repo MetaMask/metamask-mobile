@@ -5,8 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View, ScrollViewProps } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View } from 'react-native';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -35,8 +34,6 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useAssetsUpdateAllAccountBalances } from '../../../../components/UI/Assets/hooks';
-
-const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE = 2000; // About 30 items to pre-render - cell size is about 65px
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -164,6 +161,11 @@ const MultichainAccountSelectorList = ({
 
     return items;
   }, [filteredWalletSections]);
+
+  const cellHeight = 68; // AccountListCell height in pixels
+
+  const MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE =
+    cellHeight * accountSections.length;
 
   // Compute first selected account index for initial positioning only
   const initialSelectedIndex = useMemo(() => {
@@ -340,9 +342,6 @@ const MultichainAccountSelectorList = ({
             getItemType={getItemType}
             keyExtractor={keyExtractor}
             initialScrollIndex={initialSelectedIndex}
-            renderScrollComponent={
-              ScrollView as React.ComponentType<ScrollViewProps>
-            }
             // Performance optimizations
             removeClippedSubviews
             drawDistance={MULTICHAIN_ACCOUNT_SELECTOR_LIST_DRAW_DISTANCE}
