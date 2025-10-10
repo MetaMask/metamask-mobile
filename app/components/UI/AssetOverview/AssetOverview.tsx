@@ -23,7 +23,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import {
@@ -80,6 +79,7 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+import { useTokenExchangeRate } from './hooks/useTokenExchangeRate';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -111,7 +111,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
-  const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const { navigateToSendPage } = useSendNavigation();
 
@@ -349,8 +348,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : asset.address;
 
   const currentChainId = chainId as Hex;
-  const exchangeRate =
-    allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
+
+  // Fetch exchange rate - will use allTokenMarketData if available,
+  // otherwise fetch from API for non-imported tokens
+  const { exchangeRate } = useTokenExchangeRate({
+    chainId: currentChainId,
+    tokenAddress: itemAddress,
+  });
 
   let balance;
   const minimumDisplayThreshold = 0.00001;
