@@ -544,11 +544,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-          <Balance
-            asset={asset}
-            mainBalance={mainBalance}
-            secondaryBalance={secondaryBalance}
-          />
+
+          {balance != null && (
+            <Balance
+              asset={asset}
+              mainBalance={mainBalance}
+              secondaryBalance={secondaryBalance}
+            />
+          )}
+
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
