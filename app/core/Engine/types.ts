@@ -675,6 +675,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
+  | 'AccountTrackerController'
   | 'AssetsContractController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
@@ -705,6 +706,8 @@ export type ControllersToInitialize =
   | 'GasFeeController'
   | 'KeyringController'
   | 'MultichainNetworkController'
+  | 'NftController'
+  | 'NftDetectionController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TokenBalancesController'
