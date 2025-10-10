@@ -89,10 +89,7 @@ const Info = ({ route }: InfoProps) => {
     return <QRInfo />;
   }
 
-  if (
-    transactionMetadata &&
-    hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
-  ) {
+  if (transactionMetadata && hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])) {
     return <PredictDepositInfo />;
   }
 
