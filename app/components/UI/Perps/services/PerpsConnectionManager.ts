@@ -1,5 +1,4 @@
 import { captureException, setMeasurement } from '@sentry/react-native';
-import type { Span } from '@sentry/core';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,12 +8,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { store } from '../../../../store';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
+import { endTrace, TraceName } from '../../../../util/trace';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
@@ -403,12 +397,6 @@ class PerpsConnectionManagerClass {
       let traceData: Record<string, string | number | boolean> | undefined;
 
       try {
-        const traceSpan = trace({
-          name: TraceName.PerpsConnectionEstablishment,
-          id: traceId,
-          op: TraceOperation.PerpsOperation,
-        }) as Span;
-
         DevLogger.log('PerpsConnectionManager: Initializing connection');
 
         // Stage 1: Initialize providers
@@ -419,7 +407,6 @@ class PerpsConnectionManagerClass {
           PerpsMeasurementName.PERPS_PROVIDER_INIT,
           performance.now() - initStart,
           'millisecond',
-          traceSpan,
         );
 
         // Stage 2: Get account state - may fail if still initializing
@@ -452,7 +439,6 @@ class PerpsConnectionManagerClass {
           PerpsMeasurementName.PERPS_ACCOUNT_STATE_FETCH,
           performance.now() - accountStart,
           'millisecond',
-          traceSpan,
         );
 
         this.isConnected = true;
@@ -477,7 +463,6 @@ class PerpsConnectionManagerClass {
           PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
           connectionDuration,
           'millisecond',
-          traceSpan,
         );
 
         DevLogger.log('PerpsConnectionManager: Successfully connected');
@@ -489,7 +474,6 @@ class PerpsConnectionManagerClass {
           PerpsMeasurementName.PERPS_SUBSCRIPTIONS_PRELOAD,
           performance.now() - preloadStart,
           'millisecond',
-          traceSpan,
         );
 
         // Track total connection time including preload (user-perceived performance)
@@ -509,7 +493,6 @@ class PerpsConnectionManagerClass {
           PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
           totalConnectionDuration,
           'millisecond',
-          traceSpan,
         );
 
         traceData = {
@@ -600,12 +583,6 @@ class PerpsConnectionManagerClass {
     this.isConnecting = true;
 
     try {
-      const traceSpan = trace({
-        name: TraceName.PerpsAccountSwitchReconnection,
-        id: traceId,
-        op: TraceOperation.PerpsOperation,
-      }) as Span;
-
       // Stage 1: Clean up existing connections and clear caches
       const cleanupStart = performance.now();
       this.cleanupPreloadedSubscriptions();
@@ -621,7 +598,6 @@ class PerpsConnectionManagerClass {
         PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
         performance.now() - cleanupStart,
         'millisecond',
-        traceSpan,
       );
 
       // Reset connection state (but keep isConnecting = true)
@@ -638,7 +614,6 @@ class PerpsConnectionManagerClass {
         PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
         performance.now() - reinitStart,
         'millisecond',
-        traceSpan,
       );
 
       // Wait for initialization to complete - platform-specific timing for reliability
@@ -678,7 +653,6 @@ class PerpsConnectionManagerClass {
         PerpsMeasurementName.PERPS_NEW_ACCOUNT_FETCH,
         performance.now() - accountStart,
         'millisecond',
-        traceSpan,
       );
 
       this.isConnected = true;
@@ -697,7 +671,6 @@ class PerpsConnectionManagerClass {
         PerpsMeasurementName.PERPS_RECONNECTION_PRELOAD,
         performance.now() - preloadStart,
         'millisecond',
-        traceSpan,
       );
 
       // Track account switch reconnection performance including preload
@@ -717,7 +690,6 @@ class PerpsConnectionManagerClass {
         PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
         reconnectionDuration,
         'millisecond',
-        traceSpan,
       );
 
       traceData = {
