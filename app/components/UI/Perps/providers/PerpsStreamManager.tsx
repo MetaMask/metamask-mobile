@@ -1,4 +1,6 @@
 import React, { createContext, useContext } from 'react';
+import { setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -12,7 +14,9 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -31,6 +35,8 @@ abstract class StreamChannel<T> {
   protected wsSubscription: (() => void) | null = null;
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
+  // Track WebSocket connection timing for first data measurement
+  protected wsConnectionStartTime: number | null = null;
 
   protected notifySubscribers(updates: T) {
     this.subscribers.forEach((subscriber) => {
@@ -112,6 +118,7 @@ abstract class StreamChannel<T> {
       this.wsSubscription = null;
     }
     this.accountAddress = null;
+    this.wsConnectionStartTime = null;
   }
 
   protected getCachedData(): T | null {
@@ -127,6 +134,7 @@ abstract class StreamChannel<T> {
 
     // Reset account context immediately
     this.accountAddress = null;
+    this.wsConnectionStartTime = null;
 
     // Clear the cache
     this.cache.clear();
@@ -369,6 +377,18 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
+        // Validate account context
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
+        if (this.accountAddress && this.accountAddress !== currentAccount) {
+          Logger.error(new Error('OrderStreamChannel: Wrong account context'), {
+            expected: currentAccount,
+            received: this.accountAddress,
+          });
+          return;
+        }
+        this.accountAddress = currentAccount;
+
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
       },
@@ -445,9 +465,50 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       return;
     }
 
+    // Track WebSocket connection start time for first data measurement
+    this.wsConnectionStartTime = performance.now();
+
     // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
+        // Validate account context
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
+        if (this.accountAddress && this.accountAddress !== currentAccount) {
+          Logger.error(
+            new Error('PositionStreamChannel: Wrong account context'),
+            {
+              expected: currentAccount,
+              received: this.accountAddress,
+            },
+          );
+          return;
+        }
+        this.accountAddress = currentAccount;
+
+        // Track first position data from WebSocket (only once per connection)
+        if (this.wsConnectionStartTime !== null) {
+          const firstDataDuration =
+            performance.now() - this.wsConnectionStartTime;
+
+          // Log WebSocket performance measurement with consistent marker
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsWS: First position data received`,
+            {
+              metric: PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA,
+              duration: `${firstDataDuration.toFixed(0)}ms`,
+            },
+          );
+
+          setMeasurement(
+            PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA,
+            firstDataDuration,
+            'millisecond',
+          );
+          // Clear the start time so we only measure once per WebSocket connection
+          this.wsConnectionStartTime = null;
+        }
+
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
       },
@@ -551,6 +612,21 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState) => {
+        // Validate account context
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
+        if (this.accountAddress && this.accountAddress !== currentAccount) {
+          Logger.error(
+            new Error('AccountStreamChannel: Wrong account context'),
+            {
+              expected: currentAccount,
+              received: this.accountAddress,
+            },
+          );
+          return;
+        }
+        this.accountAddress = currentAccount;
+
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);

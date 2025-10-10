@@ -12,6 +12,12 @@ jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
+jest.mock('../../../hooks/gas/useGasFeeToken');
+
+jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
+  useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
@@ -19,7 +25,6 @@ jest.mock('../../../../../../core/Engine', () => ({
       state: {
         keyrings: [],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),

@@ -6,6 +6,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     {
       "flex": 1,
       "paddingHorizontal": 16,
+      "paddingTop": 24,
     }
   }
 >
@@ -233,6 +234,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     {
       "flex": 1,
       "paddingHorizontal": 16,
+      "paddingTop": 24,
     }
   }
 >

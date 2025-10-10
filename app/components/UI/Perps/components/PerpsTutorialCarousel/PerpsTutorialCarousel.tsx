@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -141,7 +141,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
   const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
-    ScrollableTabView & { goToPage: (pageNumber: number) => void }
+    typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
   const hasTrackedViewed = useRef(false);
   const hasTrackedStarted = useRef(false);
@@ -208,10 +208,12 @@ const PerpsTutorialCarousel: React.FC = () => {
     [isDarkMode],
   );
 
-  // Track tutorial viewed on mount
+  // Track tutorial screen viewed on mount
   useEffect(() => {
     if (!hasTrackedViewed.current) {
-      track(MetaMetricsEvents.PERPS_TUTORIAL_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.TUTORIAL,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
       });
@@ -246,7 +248,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Only track if tab actually changed (user swipe)
       if (newTab !== previousTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
           [PerpsEventProperties.PREVIOUS_SCREEN]:
             tutorialScreens[previousTab]?.id || 'unknown',
           [PerpsEventProperties.CURRENT_SCREEN]:
@@ -264,7 +268,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track tutorial started when user moves to second screen
       if (newTab === 1 && !hasTrackedStarted.current) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -294,7 +300,9 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
-      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
@@ -331,7 +339,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track carousel navigation via continue button (immediate, no debounce needed for button clicks)
       if (nextTab !== currentTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
           [PerpsEventProperties.PREVIOUS_SCREEN]:
             tutorialScreens[currentTab]?.id || 'unknown',
           [PerpsEventProperties.CURRENT_SCREEN]:
@@ -349,7 +359,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track tutorial started on first continue
       if (currentTab === 0 && !hasTrackedStarted.current) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -373,7 +385,9 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
-      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,

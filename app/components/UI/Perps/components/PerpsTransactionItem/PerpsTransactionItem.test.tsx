@@ -8,6 +8,38 @@ import {
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
 
+// Mock Redux selector
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+// Mock the multichain accounts selector
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
+// Mock TagBase component
+jest.mock('../../../../../component-library/base-components/TagBase', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    severity,
+  }: {
+    children: React.ReactNode;
+    severity: string;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID={`tag-base-${severity}`}>{children}</View>;
+  },
+  TagSeverity: {
+    Default: 'default',
+    Danger: 'danger',
+  },
+  TagShape: {
+    Pill: 'pill',
+  },
+}));
+
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
@@ -20,6 +52,11 @@ jest.mock('../PerpsTokenLogo', () => ({
       />
     );
   },
+}));
+
+// Mock localization
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
 }));
 
 const mockColors = {
@@ -70,6 +107,11 @@ const mockStyles = StyleSheet.create({
   rightContent: {
     alignItems: 'flex-end',
   },
+  fillTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
 });
 
 const mockTransaction = {
@@ -93,6 +135,9 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
+    isLiquidation: false,
+    isTakeProfit: false,
+    isStopLoss: false,
   },
 };
 
@@ -102,6 +147,15 @@ describe('PerpsTransactionItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock useSelector to return a function that returns the account
+    // Pattern: useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE)
+    const { useSelector } = jest.requireMock('react-redux');
+
+    // useSelector should return a function that, when called with scope, returns the account
+    useSelector.mockReturnValue(() => ({
+      address: '0x123',
+    }));
   });
 
   it('should render transaction item with correct content', () => {
@@ -322,5 +376,154 @@ describe('PerpsTransactionItem', () => {
     expect(
       getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_ITEM),
     ).toBeTruthy();
+  });
+
+  describe('Badge Display', () => {
+    it('should display take profit badge for TP fills', () => {
+      const tpTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          isTakeProfit: true,
+          isStopLoss: false,
+          isLiquidation: false,
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={tpTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(getByText('perps.transactions.order.take_profit')).toBeTruthy();
+      expect(getByTestId('tag-base-default')).toBeTruthy();
+    });
+
+    it('should display stop loss badge for SL fills', () => {
+      const slTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          isTakeProfit: false,
+          isStopLoss: true,
+          isLiquidation: false,
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={slTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(getByText('perps.transactions.order.stop_loss')).toBeTruthy();
+      expect(getByTestId('tag-base-default')).toBeTruthy();
+    });
+
+    it('should display liquidation badge for liquidated fills', () => {
+      const liquidationTransaction = {
+        id: 'test-tx-liquidation',
+        type: 'trade' as const,
+        category: 'position_close' as const,
+        title: 'Closed ETH long',
+        subtitle: '1.5 ETH',
+        timestamp: 1640995200000,
+        asset: 'ETH',
+        fill: {
+          shortTitle: 'Closed long',
+          amount: '-$1000.00',
+          amountNumber: -1000,
+          isPositive: false,
+          size: '1.5',
+          entryPrice: '2000',
+          points: '0',
+          pnl: '-1000',
+          fee: '5.00',
+          feeToken: 'USDC',
+          action: 'Closed',
+          isLiquidation: true,
+          isTakeProfit: false,
+          isStopLoss: false,
+          liquidation: {
+            liquidatedUser: '0x123',
+            markPx: '44900',
+            method: 'market',
+          },
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={liquidationTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(getByText('perps.transactions.order.liquidated')).toBeTruthy();
+      expect(getByTestId('tag-base-danger')).toBeTruthy();
+    });
+
+    it('should not display badge for regular fills', () => {
+      const regularTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          isTakeProfit: false,
+          isStopLoss: false,
+          isLiquidation: false,
+        },
+      };
+
+      const { queryByText, queryByTestId } = render(
+        <PerpsTransactionItem
+          item={regularTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(queryByText('perps.transactions.order.take_profit')).toBeFalsy();
+      expect(queryByText('perps.transactions.order.stop_loss')).toBeFalsy();
+      expect(queryByText('perps.transactions.order.liquidated')).toBeFalsy();
+      expect(queryByTestId(/tag-base/)).toBeFalsy();
+    });
+
+    it('should not display liquidation badge if liquidated user is different', () => {
+      const otherUserLiquidation = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          isTakeProfit: false,
+          isStopLoss: false,
+          isLiquidation: true,
+          liquidation: {
+            liquidatedUser: '0x456', // Different user
+            markPx: '44900',
+            method: 'market',
+          },
+        },
+      };
+
+      const { queryByText } = render(
+        <PerpsTransactionItem
+          item={otherUserLiquidation}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(queryByText('perps.transactions.order.liquidated')).toBeFalsy();
+    });
   });
 });

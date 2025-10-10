@@ -7,7 +7,6 @@ import {
   BackHandler,
   TouchableOpacity,
   TextInput,
-  Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -177,13 +176,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     selectIsSeedlessPasswordOutdated,
   );
 
-  const invalidCredentialsError = () => {
-    if (Platform.OS === 'ios' && isComingFromOauthOnboarding) {
-      return strings('login.invalid_pin');
-    }
-    return strings('login.invalid_password');
-  };
-
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -340,7 +332,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       Logger.error(e as Error);
       setLoading(false);
 
-      setError(invalidCredentialsError());
+      setError(strings('login.invalid_password'));
     }
   };
 
@@ -373,7 +365,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.navigate(Routes.ONBOARDING.ONBOARDING);
+    navigation.goBack();
     OAuthService.resetOauthState();
   };
 
@@ -455,7 +447,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
-        setError(invalidCredentialsError());
+        setError(strings('login.invalid_password'));
         return;
       } else if (
         seedlessError.message ===
@@ -531,7 +523,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     setLoading(false);
 
-    setError(invalidCredentialsError());
+    setError(strings('login.invalid_password'));
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   };
 
@@ -800,22 +792,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              {(Platform.OS === 'android' || !isComingFromOauthOnboarding) && (
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                  style={styles.label}
-                >
-                  {strings('login.password')}
-                </Label>
-              )}
+              <Label
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+                style={styles.label}
+              >
+                {strings('login.password')}
+              </Label>
               <TextField
                 size={TextFieldSize.Lg}
-                placeholder={
-                  Platform.OS === 'ios' && isComingFromOauthOnboarding
-                    ? strings('login.pin_placeholder')
-                    : strings('login.password_placeholder')
-                }
+                placeholder={strings('login.password_placeholder')}
                 placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
@@ -865,18 +851,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 loading={finalLoading}
               />
 
-              {isComingFromOauthOnboarding ? (
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={handleUseOtherMethod}
-                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                  label={strings('login.other_methods')}
-                  loading={finalLoading}
-                  isDisabled={finalLoading}
-                  size={ButtonSize.Lg}
-                />
-              ) : (
+              {!isComingFromOauthOnboarding && (
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
@@ -888,6 +863,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 />
               )}
             </View>
+
+            {isComingFromOauthOnboarding && (
+              <View style={styles.footer}>
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={handleUseOtherMethod}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  label={strings('login.other_methods')}
+                  loading={finalLoading}
+                  isDisabled={finalLoading}
+                  size={ButtonSize.Lg}
+                />
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />

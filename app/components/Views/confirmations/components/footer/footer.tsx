@@ -34,6 +34,7 @@ import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
+import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 
 export const Footer = () => {
   const {
@@ -43,11 +44,8 @@ export const Footer = () => {
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
-
-  const { isQRSigningInProgress, needsCameraPermission } =
-    useQRHardwareContext();
-
   const { onConfirm, onReject } = useConfirmActions();
+  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
@@ -55,6 +53,7 @@ export const Footer = () => {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
+  const isSendReq = REDESIGNED_TRANSFER_TYPES.includes(transactionType);
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -112,7 +111,7 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isQRSigningInProgress) {
+    if (isSigningQRObject) {
       return strings('confirm.qr_get_sign');
     }
 
@@ -157,7 +156,8 @@ export const Footer = () => {
       variant: ButtonVariants.Secondary,
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
-      onPress: () => onReject(providerErrors.userRejectedRequest()),
+      onPress: () =>
+        onReject(providerErrors.userRejectedRequest(), undefined, isSendReq),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {

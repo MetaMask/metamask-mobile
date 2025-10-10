@@ -2,6 +2,7 @@ import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { mockedMinimumAppVersion } from './minimumAppVersion/constants';
 import { mockedEarnFeatureFlagsEnabledState } from '../../components/UI/Earn/__mocks__/earnMockData';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../components/UI/Perps/mocks/remoteFeatureFlagMocks';
+import { mockedPredictFeatureFlagsEnabledState } from '../../components/UI/Predict/mocks/remoteFeatureFlagMocks';
 
 export const mockedState = {
   engine: {
@@ -11,6 +12,7 @@ export const mockedState = {
           ...mockedMinimumAppVersion,
           ...mockedEarnFeatureFlagsEnabledState,
           ...mockedPerpsFeatureFlagsEnabledState,
+          ...mockedPredictFeatureFlagsEnabledState,
           productSafetyDappScanning: true,
         },
         cacheTimestamp: 0,

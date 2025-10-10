@@ -63,9 +63,6 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
     );
   },
 }));
-jest.mock('../hooks/usePerpsDepositStatus', () => ({
-  usePerpsDepositStatus: jest.fn(() => ({ depositInProgress: false })),
-}));
 jest.mock('../hooks/usePerpsConnectionLifecycle', () => ({
   usePerpsConnectionLifecycle: jest.fn(() => ({ hasConnected: false })),
 }));

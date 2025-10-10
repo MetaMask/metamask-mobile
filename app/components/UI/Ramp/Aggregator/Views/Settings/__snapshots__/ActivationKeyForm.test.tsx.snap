@@ -423,7 +423,15 @@ exports[`AddActivationKey renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -578,7 +586,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 38,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -690,7 +699,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 38,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -794,7 +804,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

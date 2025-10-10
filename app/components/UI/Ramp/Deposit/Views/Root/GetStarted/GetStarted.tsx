@@ -96,6 +96,7 @@ const GetStarted: React.FC = () => {
               />
             </View>
           </ScreenLayout.Content>
+
           <ScreenLayout.Content>
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {metamaskUsdEnabled

@@ -17,34 +17,33 @@ import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
-  isSelected: boolean;
   hideMenu?: boolean;
+  startAccessory?: React.ReactNode;
+  onSelectAccount?: () => void;
 }
 
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
-  isSelected,
   hideMenu = false,
+  startAccessory,
+  onSelectAccount,
 }: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, { isSelected });
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
-    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
-      params: { accountGroup },
-    });
+    navigate(...createAccountGroupDetailsNavigationDetails({ accountGroup }));
   }, [navigate, accountGroup]);
 
   const selectBalanceForGroup = useMemo(
@@ -79,41 +78,36 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <View style={styles.avatarWrapper}>
+      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
+        {startAccessory}
         <AvatarAccount
           accountAddress={evmAddress}
           type={avatarAccountType}
           size={AvatarSize.Md}
-          style={styles.avatar}
           testID={AccountCellIds.AVATAR}
         />
-      </View>
-      <View style={styles.accountName}>
-        <Text
-          variant={TextVariant.BodyMDBold}
-          color={TextColor.Default}
-          numberOfLines={1}
-          style={styles.accountNameText}
-          testID={AccountCellIds.ADDRESS}
-        >
-          {accountGroup.metadata.name}
-        </Text>
-        {isSelected && (
-          <Icon
-            name={IconName.CheckBold}
-            size={IconSize.Md}
-            color={TextColor.Primary}
-          />
-        )}
-      </View>
+        <View style={styles.accountName}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            numberOfLines={1}
+            style={styles.accountNameText}
+            testID={AccountCellIds.ADDRESS}
+          >
+            {accountGroup.metadata.name}
+          </Text>
+        </View>
+      </TouchableOpacity>
       <View style={styles.endContainer}>
-        <Text
-          variant={TextVariant.BodyMDBold}
-          color={TextColor.Default}
-          testID={AccountCellIds.BALANCE}
-        >
-          {displayBalance}
-        </Text>
+        <TouchableOpacity onPress={onSelectAccount}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            testID={AccountCellIds.BALANCE}
+          >
+            {displayBalance}
+          </Text>
+        </TouchableOpacity>
         {!hideMenu && (
           <TouchableOpacity
             testID={AccountCellIds.MENU}

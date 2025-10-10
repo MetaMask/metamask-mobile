@@ -60,6 +60,8 @@ const mockGetNavigationOptionsTitle =
     typeof getNavigationOptionsTitle
   >;
 
+// Import hook mocks - useSeasonStatus removed from component
+
 // Mock ErrorBoundary
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -81,11 +83,7 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock hooks
-const mockUseSeasonStatus = jest.fn();
-jest.mock('../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: () => mockUseSeasonStatus(),
-}));
+// Mock hooks - useSeasonStatus hook removed from component
 
 // Mock ReferralDetails component
 jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
@@ -125,6 +123,8 @@ describe('RewardsReferralView', () => {
       }
       return undefined;
     });
+
+    // Setup default hook mock return values - useSeasonStatus removed
   });
 
   describe('rendering', () => {
@@ -148,14 +148,6 @@ describe('RewardsReferralView', () => {
 
       // Assert
       expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
-    });
-
-    it('should wrap content in SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      // Assert
-      expect(getByTestId('safe-area-view')).toBeTruthy();
     });
   });
 
@@ -218,41 +210,6 @@ describe('RewardsReferralView', () => {
     });
   });
 
-  describe('hooks integration', () => {
-    it('should call useSeasonStatus hook', () => {
-      // Act
-      render(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call useSeasonStatus hook on every render', () => {
-      // Act
-      const { rerender } = render(<RewardsReferralView />);
-
-      // Clear previous calls
-      mockUseSeasonStatus.mockClear();
-
-      // Re-render
-      rerender(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('styling', () => {
-    it('should apply correct styles to SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - Check if Tailwind classes are applied correctly
-      expect(safeAreaView.props.style).toBeDefined();
-    });
-  });
-
   describe('error boundary integration', () => {
     it('should pass correct view prop to ErrorBoundary', () => {
       // Act
@@ -306,14 +263,8 @@ describe('RewardsReferralView', () => {
     });
   });
 
-  describe('accessibility', () => {
-    it('should be accessible with screen readers', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - The component should be accessible
-      expect(safeAreaView).toBeTruthy();
-    });
+  describe('hook integration', () => {
+    // useSeasonStatus hook was removed from the component
+    // No hook integration tests needed for this component
   });
 });

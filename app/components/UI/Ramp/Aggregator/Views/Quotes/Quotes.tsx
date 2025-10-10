@@ -81,15 +81,14 @@ function Quotes() {
 
   const {
     selectedPaymentMethodId,
-    selectedChainId,
     appConfig,
     callbackBaseUrl,
     sdkError,
     rampType,
     isBuy,
-    selectedAddress,
     selectedRegion,
     selectedAsset,
+    selectedAddress,
     selectedFiatCurrencyId,
     sdk,
   } = useRampSDK();
@@ -147,20 +146,28 @@ function Quotes() {
   } = useQuotesAndCustomActions(params.amount);
 
   const handleCancelPress = useCallback(() => {
+    const chainId = params.asset?.network?.chainId;
+    if (!chainId) return;
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Quotes Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
         results_count: quotesByPriceWithoutError.length,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Quotes Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
         results_count: quotesByPriceWithoutError.length,
       });
     }
-  }, [quotesByPriceWithoutError.length, isBuy, selectedChainId, trackEvent]);
+  }, [
+    quotesByPriceWithoutError.length,
+    isBuy,
+    params.asset?.network?.chainId,
+    trackEvent,
+  ]);
 
   const handleClosePress = useCallback(
     (bottomSheetDialogRef: React.RefObject<BottomSheetRef>) => {
@@ -181,6 +188,9 @@ function Quotes() {
     setRemainingTime(appConfig.POLLING_INTERVAL);
     fetchQuotes();
 
+    const chainId = params.asset?.network?.chainId;
+    if (!chainId) return;
+
     const payload = {
       payment_method_id: selectedPaymentMethodId as string,
       amount: params.amount,
@@ -192,14 +202,14 @@ function Quotes() {
         ...payload,
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_REQUESTED', {
         ...payload,
         currency_destination: params.fiatCurrency?.symbol,
         currency_source: params.asset?.symbol,
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
       });
     }
   }, [
@@ -208,13 +218,15 @@ function Quotes() {
     fetchQuotes,
     isBuy,
     params,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
   ]);
 
   const handleExpandQuotes = useCallback(() => {
     setIsExpanded(true);
+    const chainId = params.asset?.network?.chainId;
+    if (!chainId) return;
+
     const payload = {
       payment_method_id: selectedPaymentMethodId as string,
       amount: params.amount,
@@ -231,14 +243,14 @@ function Quotes() {
     if (isBuy) {
       trackEvent('ONRAMP_QUOTES_EXPANDED', {
         ...payload,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_EXPANDED', {
         ...payload,
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
         currency_source: params.asset?.symbol,
         currency_destination: params.fiatCurrency?.symbol,
       });
@@ -250,9 +262,9 @@ function Quotes() {
     ordersProviders,
     params.amount,
     params.asset?.symbol,
+    params.asset?.network?.chainId,
     params.fiatCurrency?.symbol,
     pollingCyclesLeft,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
   ]);
@@ -300,27 +312,31 @@ function Quotes() {
       try {
         setIsQuoteLoading(true);
         const provider = customAction.buy.provider;
-        const payload = {
-          region: selectedRegion?.id as string,
-          payment_method_id: selectedPaymentMethodId as string,
-        };
+        const chainId = params.asset?.network?.chainId;
 
-        if (isBuy) {
-          trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
-            ...payload,
-            currency_source: currentFiatCurrency?.symbol as string,
-            currency_destination: selectedAsset?.symbol as string,
-            provider_onramp: provider.name,
-            chain_id_destination: selectedChainId as string,
-          });
-        } else {
-          trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
-            ...payload,
-            currency_destination: currentFiatCurrency?.symbol as string,
-            currency_source: selectedAsset?.symbol as string,
-            provider_offramp: provider.name,
-            chain_id_source: selectedChainId as string,
-          });
+        if (chainId) {
+          const payload = {
+            region: selectedRegion?.id as string,
+            payment_method_id: selectedPaymentMethodId as string,
+          };
+
+          if (isBuy) {
+            trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+              ...payload,
+              currency_source: currentFiatCurrency?.symbol as string,
+              currency_destination: selectedAsset?.symbol as string,
+              provider_onramp: provider.name,
+              chain_id_destination: chainId,
+            });
+          } else {
+            trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
+              ...payload,
+              currency_destination: currentFiatCurrency?.symbol as string,
+              currency_source: selectedAsset?.symbol as string,
+              provider_offramp: provider.name,
+              chain_id_source: chainId,
+            });
+          }
         }
 
         const getUrlMethod = isBuy ? 'getBuyUrl' : 'getSellUrl';
@@ -373,17 +389,16 @@ function Quotes() {
       selectedRegion?.id,
       selectedPaymentMethodId,
       isBuy,
-      selectedAsset?.id,
-      selectedAsset?.symbol,
       selectedFiatCurrencyId,
       params.amount,
       selectedAddress,
       trackEvent,
       currentFiatCurrency?.symbol,
-      selectedChainId,
       callbackBaseUrl,
       navigation,
       renderInAppBrowser,
+      selectedAsset,
+      params.asset?.network?.chainId,
     ],
   );
 
@@ -392,46 +407,50 @@ function Quotes() {
       try {
         setIsQuoteLoading(true);
 
-        const totalFee =
-          (quote.networkFee ?? 0) +
-          (quote.providerFee ?? 0) +
-          (quote.extraFee ?? 0);
+        const chainId = params.asset?.network?.chainId;
+        if (chainId) {
+          const totalFee =
+            (quote.networkFee ?? 0) +
+            (quote.providerFee ?? 0) +
+            (quote.extraFee ?? 0);
 
-        const payload = {
-          refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
-          quote_position: index + 1,
-          results_count: quotesByPriceWithoutError.length,
-          payment_method_id: selectedPaymentMethodId as string,
-          total_fee: totalFee,
-          gas_fee: quote.networkFee ?? 0,
-          processing_fee: quote.providerFee ?? 0,
-          exchange_rate:
-            ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
-          amount: params.amount,
-          is_most_reliable: quote.tags.isMostReliable,
-          is_best_rate: quote.tags.isBestRate,
-          is_recommended:
-            !isExpanded && quote.provider.id === recommendedQuote?.provider.id,
-        };
+          const payload = {
+            refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+            quote_position: index + 1,
+            results_count: quotesByPriceWithoutError.length,
+            payment_method_id: selectedPaymentMethodId as string,
+            total_fee: totalFee,
+            gas_fee: quote.networkFee ?? 0,
+            processing_fee: quote.providerFee ?? 0,
+            exchange_rate:
+              ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
+            amount: params.amount,
+            is_most_reliable: quote.tags.isMostReliable,
+            is_best_rate: quote.tags.isBestRate,
+            is_recommended:
+              !isExpanded &&
+              quote.provider.id === recommendedQuote?.provider.id,
+          };
 
-        if (isBuy) {
-          trackEvent('ONRAMP_PROVIDER_SELECTED', {
-            ...payload,
-            currency_source: params.fiatCurrency?.symbol,
-            currency_destination: params.asset?.symbol,
-            provider_onramp: quote.provider.name,
-            crypto_out: quote.amountOut ?? 0,
-            chain_id_destination: selectedChainId,
-          });
-        } else {
-          trackEvent('OFFRAMP_PROVIDER_SELECTED', {
-            ...payload,
-            currency_destination: params.fiatCurrency?.symbol,
-            currency_source: params.asset?.symbol,
-            provider_offramp: quote.provider.name,
-            fiat_out: quote.amountOut ?? 0,
-            chain_id_source: selectedChainId,
-          });
+          if (isBuy) {
+            trackEvent('ONRAMP_PROVIDER_SELECTED', {
+              ...payload,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
+              provider_onramp: quote.provider.name,
+              crypto_out: quote.amountOut ?? 0,
+              chain_id_destination: chainId,
+            });
+          } else {
+            trackEvent('OFFRAMP_PROVIDER_SELECTED', {
+              ...payload,
+              currency_destination: params.fiatCurrency?.symbol,
+              currency_source: params.asset?.symbol,
+              provider_offramp: quote.provider.name,
+              fiat_out: quote.amountOut ?? 0,
+              chain_id_source: chainId,
+            });
+          }
         }
 
         let buyAction;
@@ -487,10 +506,10 @@ function Quotes() {
       isBuy,
       rampType,
       trackEvent,
-      selectedChainId,
       renderInAppBrowser,
       callbackBaseUrl,
       navigation,
+      params.asset?.network?.chainId,
     ],
   );
 
@@ -633,61 +652,67 @@ function Quotes() {
           quotes_amount_last: amountLast as number,
         };
 
-        if (isBuy) {
-          trackEvent('ONRAMP_QUOTES_RECEIVED', {
-            ...payload,
-            currency_source: params.fiatCurrency?.symbol,
-            currency_destination: params.asset?.symbol,
-            average_crypto_out: averageOut,
-            chain_id_destination: selectedChainId,
-            provider_onramp_list: providerList,
-            provider_onramp_first: providerFirst,
-            provider_onramp_last: providerLast,
-            provider_onramp_most_reliable: providerMostReliable,
-            provider_onramp_best_price: providerBestPrice,
-          });
-        } else {
-          trackEvent('OFFRAMP_QUOTES_RECEIVED', {
-            ...payload,
-            currency_destination: params.fiatCurrency?.symbol,
-            currency_source: params.asset?.symbol,
-            average_fiat_out: averageOut,
-            chain_id_source: selectedChainId,
-            provider_offramp_list: providerList,
-            provider_offramp_first: providerFirst,
-            provider_offramp_last: providerLast,
-            provider_offramp_most_reliable: providerMostReliable,
-            provider_offramp_best_price: providerBestPrice,
-          });
+        const chainId = params.asset?.network?.chainId;
+        if (chainId) {
+          if (isBuy) {
+            trackEvent('ONRAMP_QUOTES_RECEIVED', {
+              ...payload,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
+              average_crypto_out: averageOut,
+              chain_id_destination: chainId,
+              provider_onramp_list: providerList,
+              provider_onramp_first: providerFirst,
+              provider_onramp_last: providerLast,
+              provider_onramp_most_reliable: providerMostReliable,
+              provider_onramp_best_price: providerBestPrice,
+            });
+          } else {
+            trackEvent('OFFRAMP_QUOTES_RECEIVED', {
+              ...payload,
+              currency_destination: params.fiatCurrency?.symbol,
+              currency_source: params.asset?.symbol,
+              average_fiat_out: averageOut,
+              chain_id_source: chainId,
+              provider_offramp_list: providerList,
+              provider_offramp_first: providerFirst,
+              provider_offramp_last: providerLast,
+              provider_offramp_most_reliable: providerMostReliable,
+              provider_offramp_best_price: providerBestPrice,
+            });
+          }
         }
 
         endTrace({ name: TraceName.RampQuoteLoading });
       }
 
-      quotesWithError.forEach((quoteError) => {
-        const payload = {
-          amount: params.amount,
-          payment_method_id: selectedPaymentMethodId as string,
-          error_message: quoteError.message,
-        };
-        if (isBuy) {
-          trackEvent('ONRAMP_QUOTE_ERROR', {
-            ...payload,
-            currency_source: params.fiatCurrency?.symbol,
-            currency_destination: params.asset?.symbol,
-            provider_onramp: quoteError.provider.name,
-            chain_id_destination: selectedChainId,
-          });
-        } else {
-          trackEvent('OFFRAMP_QUOTE_ERROR', {
-            ...payload,
-            currency_destination: params.fiatCurrency?.symbol,
-            currency_source: params.asset?.symbol,
-            provider_offramp: quoteError.provider.name,
-            chain_id_source: selectedChainId,
-          });
-        }
-      });
+      const chainId = params.asset?.network?.chainId;
+      if (chainId) {
+        quotesWithError.forEach((quoteError) => {
+          const payload = {
+            amount: params.amount,
+            payment_method_id: selectedPaymentMethodId as string,
+            error_message: quoteError.message,
+          };
+          if (isBuy) {
+            trackEvent('ONRAMP_QUOTE_ERROR', {
+              ...payload,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
+              provider_onramp: quoteError.provider.name,
+              chain_id_destination: chainId,
+            });
+          } else {
+            trackEvent('OFFRAMP_QUOTE_ERROR', {
+              ...payload,
+              currency_destination: params.fiatCurrency?.symbol,
+              currency_source: params.asset?.symbol,
+              provider_offramp: quoteError.provider.name,
+              chain_id_source: chainId,
+            });
+          }
+        });
+      }
     }
   }, [
     appConfig.POLLING_CYCLES,
@@ -697,11 +722,11 @@ function Quotes() {
     params,
     pollingCyclesLeft,
     rampType,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
     quotesWithError,
     quotesWithoutError,
+    params.asset?.network?.chainId,
   ]);
 
   useEffect(() => {

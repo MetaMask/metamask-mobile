@@ -79,8 +79,8 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
     errorContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
+      width: '100%',
+      alignSelf: 'stretch',
     },
   });
 };

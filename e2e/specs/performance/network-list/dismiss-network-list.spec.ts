@@ -15,6 +15,7 @@ import {
   createUserProfileTests,
   type TestResult,
 } from '../../../utils/PerformanceTestReporter';
+import { NetworkToCaipChainId } from '../../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 describe(SmokePerformance('Network List Load Testing'), () => {
   const reporter = new PerformanceTestReporter('Network List Load Testing');
@@ -74,14 +75,14 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             await WalletView.tapTokenNetworkFilter();
             await Assertions.expectElementToBeVisible(
-              NetworkManager.popularNetworksTab,
+              NetworkManager.popularNetworksContainer,
             );
             console.log('Network list became visible');
 
             const startTime = Date.now();
-            await NetworkManager.tapNetwork('Polygon Mainnet');
+            await NetworkManager.tapNetwork(NetworkToCaipChainId.POLYGON);
             await Assertions.expectElementToNotBeVisible(
-              NetworkManager.popularNetworksTab,
+              NetworkManager.popularNetworksContainer,
             );
             const endTime = Date.now();
             console.log('Network switched and list is not visible');

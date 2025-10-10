@@ -42,7 +42,7 @@ const createStyles = (params: StylesParams) => {
       borderRadius: 16,
     },
     pillContainer: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 100,
       paddingLeft: 8,
       paddingVertical: 8,
@@ -72,7 +72,7 @@ export const TokenButton: React.FC<TokenProps> = ({
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.flexEnd}
         justifyContent={JustifyContent.flexEnd}
-        gap={4}
+        gap={8}
       >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}

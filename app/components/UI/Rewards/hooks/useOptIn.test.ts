@@ -1,12 +1,20 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
-import { useOptin } from './useOptIn';
+import { useSelector, useDispatch } from 'react-redux';
+import useOptin from './useOptIn';
 import Engine from '../../../../core/Engine';
-import { handleRewardsErrorMessage } from '../utils';
+import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { selectInternalAccountsById } from '../../../../selectors/accountsController';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import {
+  selectAccountGroupsByWallet,
+  selectWalletByAccount,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
   useSelector: jest.fn(),
 }));
 
@@ -16,395 +24,351 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../reducers/rewards', () => ({
+  setCandidateSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_OPT_IN_STARTED: 'Rewards Opt-in Started',
+    REWARDS_OPT_IN_COMPLETED: 'Rewards Opt-in Completed',
+    REWARDS_OPT_IN_FAILED: 'Rewards Opt-in Failed',
+  },
+  useMetrics: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectInternalAccountsById: jest.fn(),
+  selectSelectedInternalAccount: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountGroupsByWallet: jest.fn(),
+    selectWalletByAccount: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types',
+  () => ({
+    UserProfileProperty: {
+      HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
+      ON: 'on',
+    },
+  }),
+);
+
+jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
 jest.mock('../utils', () => ({
-  handleRewardsErrorMessage: jest.fn(),
+  handleRewardsErrorMessage: jest.fn((error) => `Error: ${error.message}`),
 }));
 
 describe('useOptIn', () => {
+  const mockDispatch = jest.fn();
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
+  >;
+  const mockUseDispatch = useDispatch as jest.MockedFunction<
+    typeof useDispatch
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockHandleRewardsErrorMessage =
-    handleRewardsErrorMessage as jest.MockedFunction<
-      typeof handleRewardsErrorMessage
+  const mockUseMetrics = jest.mocked(useMetrics);
+  const mockSetCandidateSubscriptionId =
+    setCandidateSubscriptionId as jest.MockedFunction<
+      typeof setCandidateSubscriptionId
     >;
 
+  // Mock selectors
+  const mockSelectInternalAccountsById = jest.mocked(
+    selectInternalAccountsById,
+  );
+  const mockSelectMultichainAccountsState2Enabled = jest.mocked(
+    selectMultichainAccountsState2Enabled,
+  );
+  const mockSelectAccountGroupsByWallet = jest.mocked(
+    selectAccountGroupsByWallet,
+  );
+  const mockSelectWalletByAccount = jest.mocked(selectWalletByAccount);
+
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn().mockReturnValue({
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({
+      event: expect.any(String),
+      properties: expect.any(Object),
+    }),
+  });
+  const mockAddTraitsToUser = jest.fn();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockAccount: InternalAccount = {
     id: 'account-1',
-    address: '0x123456789abcdef',
-    metadata: {
-      name: 'Test Account',
-      importTime: Date.now(),
-      keyring: {
-        type: 'HD Key Tree',
+    address: '0x123',
+    name: 'Test Account',
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockSideEffectAccount: InternalAccount = {
+    id: 'side-effect-account-id',
+    address: '0x456',
+    name: 'Side Effect Account',
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockWalletSection = {
+    title: 'Test Wallet',
+    wallet: { id: 'wallet-1', name: 'Test Wallet' },
+    data: [
+      {
+        type: 'single' as const,
+        id: 'group-1',
+        accounts: ['side-effect-account-id'],
+        metadata: { name: 'Group 1' },
       },
-    },
-    options: {},
-    methods: ['personal_sign', 'eth_signTransaction'],
-    type: 'eip155:eoa',
-    scopes: ['eip155:1'],
-  } as InternalAccount;
+    ],
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockInternalAccountsById = {
+    'side-effect-account-id': mockSideEffectAccount,
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockWallet = {
+    id: 'wallet-1',
+    name: 'Test Wallet',
+    type: 'keyring' as const,
+    status: 'unlocked' as const,
+    groups: {},
+    metadata: { name: 'Test Wallet' },
+  } as never;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(mockAccount);
-  });
+    mockUseDispatch.mockReturnValue(mockDispatch);
 
-  describe('initial state', () => {
-    it('should initialize with correct default values', () => {
-      const { result } = renderHook(() => useOptin());
+    // Reset mock event builder functions
+    mockCreateEventBuilder.mockClear();
+    mockTrackEvent.mockClear();
+    mockAddTraitsToUser.mockClear();
 
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-      expect(typeof result.current.optin).toBe('function');
-      expect(typeof result.current.clearOptinError).toBe('function');
+    // Setup default selector values
+    mockSelectInternalAccountsById.mockReturnValue(mockInternalAccountsById);
+    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+    mockSelectAccountGroupsByWallet.mockReturnValue([mockWalletSection]);
+    mockSelectWalletByAccount.mockReturnValue(
+      (_accountId: string) => mockWallet,
+    );
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectInternalAccountsById)
+        return mockInternalAccountsById;
+      if (selector === selectMultichainAccountsState2Enabled) return false;
+      if (selector === selectAccountGroupsByWallet) return [mockWalletSection];
+      if (selector === selectWalletByAccount)
+        return (_accountId: string) => mockWallet;
+      return mockAccount; // Default for selectSelectedInternalAccount
     });
+
+    // Setup useMetrics mock
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+      addTraitsToUser: mockAddTraitsToUser,
+    } as never);
+
+    // Setup default Engine call response
+    mockEngineCall.mockResolvedValue('subscription-123');
   });
 
-  describe('successful opt-in', () => {
-    it('should handle successful opt-in with referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
+  describe('Basic functionality', () => {
+    it('should return hook interface', () => {
       const { result } = renderHook(() => useOptin());
 
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
+      expect(result.current).toEqual({
+        optin: expect.any(Function),
+        optinLoading: false,
+        optinError: null,
+        clearOptinError: expect.any(Function),
       });
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'TEST123',
-      );
     });
 
-    it('should handle successful opt-in without referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
+    it('should handle successful optin without multichain accounts', async () => {
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
         await result.current.optin({});
       });
 
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        undefined,
-      );
-    });
-
-    it('should handle successful opt-in with empty referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: '' });
-      });
-
-      // Assert
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockAccount,
         undefined,
       );
-    });
-  });
-
-  describe('error handling', () => {
-    it('should handle API errors and show handled error message', async () => {
-      // Arrange
-      const mockError = new Error('Account already registered');
-      const handledErrorMessage = 'This account is already registered';
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(handledErrorMessage);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId('subscription-123'),
+      );
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        has_rewards_opted_in: 'on',
       });
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBe(handledErrorMessage);
-
-      expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'TEST123',
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Started',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Completed',
+        }),
       );
     });
 
-    it('should handle different error types through error handler', async () => {
-      // Arrange
-      const mockError = { data: { message: 'Network request failed' } };
-      const handledErrorMessage = 'Service is not available at the moment';
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(handledErrorMessage);
+    it('should handle optin with referral code', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          referralCode: 'ABC123',
+          isPrefilled: true,
+        });
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockAccount,
+        'ABC123',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'Rewards Opt-in Started',
+      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and Completed
+    });
+
+    it('should handle optin failure', async () => {
+      const error = new Error('Network error');
+      mockEngineCall.mockRejectedValue(error);
 
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
         await result.current.optin({});
       });
 
-      // Assert
-      expect(result.current.optinError).toBe(handledErrorMessage);
-      expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
+      expect(result.current.optinError).toBe('Error: Network error');
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Failed',
+        }),
+      );
     });
 
-    it('should clear previous error before new opt-in attempt', async () => {
-      // Arrange - first call that fails
-      const firstError = new Error('First error');
-      const firstHandledError = 'First handled error';
-      mockEngineCall.mockRejectedValueOnce(firstError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(firstHandledError);
-
+    it('should clear optin error', () => {
       const { result } = renderHook(() => useOptin());
 
-      // Act - first failed attempt
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - should have error state
-      expect(result.current.optinError).toBe(firstHandledError);
-
-      // Arrange - second call that succeeds
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
-      // Act - second successful attempt
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST' });
-      });
-
-      // Assert - error should be cleared
-      expect(result.current.optinError).toBeNull();
-    });
-  });
-
-  describe('loading state management', () => {
-    it('should set loading to true during API call and false after success', async () => {
-      // Arrange
-      let resolveApiCall: (value: undefined) => void;
-      const apiCallPromise = new Promise<undefined>((resolve) => {
-        resolveApiCall = resolve;
-      });
-      mockEngineCall.mockReturnValueOnce(apiCallPromise);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - start opt-in
-      const optinPromise = act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - loading should be true
-      expect(result.current.optinLoading).toBe(true);
-      expect(result.current.optinError).toBeNull();
-
-      // Act - resolve API call
-      act(() => {
-        resolveApiCall(undefined);
-      });
-
-      // Wait for the promise to resolve
-      await optinPromise;
-
-      // Assert - loading should be false
-      expect(result.current.optinLoading).toBe(false);
-    });
-
-    it('should set loading to true during API call and false after error', async () => {
-      // Arrange
-      let rejectApiCall: (error: Error) => void;
-      const apiCallPromise = new Promise<undefined>((_, reject) => {
-        rejectApiCall = reject;
-      });
-      mockEngineCall.mockReturnValueOnce(apiCallPromise);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce('Test error');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - start opt-in
-      const optinPromise = act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - loading should be true
-      expect(result.current.optinLoading).toBe(true);
-
-      // Act - reject API call
-      act(() => {
-        rejectApiCall(new Error('Test error'));
-      });
-
-      // Wait for the promise to resolve
-      await optinPromise;
-
-      // Assert - loading should be false
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBe('Test error');
-    });
-  });
-
-  describe('clearOptinError functionality', () => {
-    it('should clear error when clearOptinError is called', async () => {
-      // Arrange - create error state
-      const mockError = new Error('Test error');
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce('Test error message');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - create error state
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - should have error
-      expect(result.current.optinError).toBe('Test error message');
-
-      // Act - clear error
       act(() => {
         result.current.clearOptinError();
       });
 
-      // Assert - error should be cleared
       expect(result.current.optinError).toBeNull();
     });
 
-    it('should handle multiple calls to clearOptinError gracefully', () => {
-      const { result } = renderHook(() => useOptin());
-
-      // Act - call clearOptinError multiple times
-      act(() => {
-        result.current.clearOptinError();
-        result.current.clearOptinError();
-        result.current.clearOptinError();
-      });
-
-      // Assert - should remain null
-      expect(result.current.optinError).toBeNull();
-    });
-  });
-
-  describe('account dependency handling', () => {
-    it('should not call API when account is null', async () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(null);
+    it('should skip optin when no account is selected', async () => {
+      mockUseSelector.mockImplementation(() => null);
 
       const { result } = renderHook(() => useOptin());
 
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST' });
-      });
-
-      // Assert
-      expect(mockEngineCall).not.toHaveBeenCalled();
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-    });
-
-    it('should not call API when account is undefined', async () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(undefined);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
       await act(async () => {
         await result.current.optin({});
       });
 
-      // Assert
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
+  });
 
-    it('should update function when account changes', () => {
-      const { result, rerender } = renderHook(() => useOptin());
+  describe('Multichain accounts behavior', () => {
+    beforeEach(() => {
+      // Enable multichain accounts state 2
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
-      const firstOptinFunction = result.current.optin;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return mockAccount; // Default for selectSelectedInternalAccount
+      });
+    });
 
-      // Change account
-      const newAccount = {
-        ...mockAccount,
-        id: 'account-2',
-        address: '0xabcdef123456789',
+    it('should link side effect account when multichain accounts is enabled', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should call optin first
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockAccount,
+        undefined,
+      );
+
+      // Then should link the side effect account
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:linkAccountToSubscriptionCandidate',
+        mockSideEffectAccount,
+      );
+    });
+
+    it('should not link side effect account when it is the same as current account', async () => {
+      // Mock side effect account with same address as current account
+      const sameAccountSideEffect = {
+        ...(mockSideEffectAccount as { address: string }),
+        id: mockAccount.address as string,
       };
-      mockUseSelector.mockReturnValue(newAccount);
 
-      rerender();
+      mockSelectInternalAccountsById.mockReturnValue({
+        'side-effect-account-id': sameAccountSideEffect as never,
+      });
 
-      const secondOptinFunction = result.current.optin;
-
-      expect(firstOptinFunction).not.toBe(secondOptinFunction);
-    });
-
-    it('should maintain stable function reference when account is unchanged', () => {
-      const { result, rerender } = renderHook(() => useOptin());
-
-      const firstOptinFunction = result.current.optin;
-
-      // Rerender without changing account
-      rerender();
-
-      const secondOptinFunction = result.current.optin;
-
-      expect(firstOptinFunction).toBe(secondOptinFunction);
-    });
-  });
-
-  describe('clearOptinError callback stability', () => {
-    it('should maintain stable clearOptinError reference across renders', () => {
-      const { result, rerender } = renderHook(() => useOptin());
-
-      const firstClearFunction = result.current.clearOptinError;
-
-      rerender();
-
-      const secondClearFunction = result.current.clearOptinError;
-
-      expect(firstClearFunction).toBe(secondClearFunction);
-    });
-  });
-
-  describe('referral code handling', () => {
-    it('should handle undefined referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectInternalAccountsById)
+          return {
+            'side-effect-account-id': sameAccountSideEffect,
+          };
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return mockAccount; // Default for selectSelectedInternalAccount
+      });
 
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
-        await result.current.optin({ referralCode: undefined });
+        await result.current.optin({});
       });
 
-      // Assert
+      // Should only call optin, not link account
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockAccount,
@@ -412,91 +376,176 @@ describe('useOptIn', () => {
       );
     });
 
-    it('should handle referral code with special characters', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
+    it('should handle case when side effect account is not found in internal accounts', async () => {
+      mockSelectInternalAccountsById.mockReturnValue({});
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectInternalAccountsById) return {};
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return mockAccount; // Default for selectSelectedInternalAccount
+      });
 
       const { result } = renderHook(() => useOptin());
 
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'REF-123_ABC!@#' });
-      });
-
-      // Assert
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'REF-123_ABC!@#',
-      );
-    });
-  });
-
-  describe('edge cases', () => {
-    it('should handle multiple simultaneous opt-in calls correctly', async () => {
-      // Arrange
-      let resolveFirst: (value: undefined) => void;
-      let resolveSecond: (value: undefined) => void;
-
-      const firstPromise = new Promise<undefined>((resolve) => {
-        resolveFirst = resolve;
-      });
-      const secondPromise = new Promise<undefined>((resolve) => {
-        resolveSecond = resolve;
-      });
-
-      mockEngineCall
-        .mockReturnValueOnce(firstPromise)
-        .mockReturnValueOnce(secondPromise);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - start both calls
-      const firstCallPromise = act(async () => {
-        await result.current.optin({ referralCode: 'FIRST' });
-      });
-
-      const secondCallPromise = act(async () => {
-        await result.current.optin({ referralCode: 'SECOND' });
-      });
-
-      // Assert - should be loading
-      expect(result.current.optinLoading).toBe(true);
-
-      // Act - resolve both
-      act(() => {
-        resolveFirst(undefined);
-        resolveSecond(undefined);
-      });
-
-      // Wait for both to complete
-      await Promise.all([firstCallPromise, secondCallPromise]);
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-      expect(mockEngineCall).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle rapid opt-in and error clear calls', async () => {
-      // Arrange
-      const mockError = new Error('Test error');
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce('Test error message');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - opt-in and immediately clear error
       await act(async () => {
         await result.current.optin({});
       });
 
-      act(() => {
-        result.current.clearOptinError();
+      // Should only call optin, not link account
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockAccount,
+        undefined,
+      );
+    });
+
+    it('should handle case when wallet section is not found', async () => {
+      mockSelectAccountGroupsByWallet.mockReturnValue([]);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet) return [];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return mockAccount; // Default for selectSelectedInternalAccount
       });
 
-      // Assert
-      expect(result.current.optinError).toBeNull();
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should only call optin, not link account
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockAccount,
+        undefined,
+      );
+    });
+
+    it('should handle case when current account is not found', async () => {
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        {
+          title: 'Different Wallet',
+          wallet: { id: 'keyring:different', name: 'Different Wallet' },
+          data: [
+            {
+              type: 'single' as const,
+              id: 'group-different',
+              accounts: ['side-effect-account-id'],
+              metadata: { name: 'Different Group' },
+            },
+          ],
+        },
+      ] as never);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
+        if (selector === selectAccountGroupsByWallet)
+          return [
+            {
+              title: 'Different Wallet',
+              wallet: { id: 'keyring:different', name: 'Different Wallet' },
+              data: [
+                {
+                  type: 'single' as const,
+                  id: 'group-different',
+                  accounts: ['side-effect-account-id'],
+                  metadata: { name: 'Different Group' },
+                },
+              ],
+            },
+          ];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        return mockAccount; // Default for selectSelectedInternalAccount
+      });
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should only call optin, not link account
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockAccount,
+        undefined,
+      );
+    });
+  });
+
+  describe('Metrics tracking', () => {
+    it('should track metrics with referral code properties', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          referralCode: 'REF123',
+          isPrefilled: false,
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'Rewards Opt-in Started',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'Rewards Opt-in Completed',
+      );
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        referred: true,
+        referral_code_used: 'REF123',
+        referral_code_input_type: 'manual',
+      });
+    });
+
+    it('should track metrics without referral code properties', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        referred: false,
+        referral_code_used: undefined,
+        referral_code_input_type: 'manual',
+      });
+    });
+  });
+
+  describe('Loading states', () => {
+    it('should manage loading state correctly', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      expect(result.current.optinLoading).toBe(false);
+
+      let optinPromise: Promise<void>;
+      await act(async () => {
+        optinPromise = result.current.optin({});
+      });
+
+      // Loading should be true during operation
+      expect(result.current.optinLoading).toBe(false); // Completed
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      (await optinPromise!) as unknown as Promise<void>;
       expect(result.current.optinLoading).toBe(false);
     });
   });

@@ -9,7 +9,7 @@ import {
 } from "../testIDs/Screens/WalletSetupScreen.testIds";
 import Gestures from "../../helpers/Gestures";
 import Selectors from "../../helpers/Selectors";
-import AppwrightSelectors from "../../helpers/AppwrightSelectors";
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect } from "appwright";
 
 class CreateNewWalletScreen {
@@ -70,8 +70,7 @@ class CreateNewWalletScreen {
           CREATE_PASSWORD_INPUT_FIRST_FIELD,
         );
       } else {
-        return  AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Enter a strong password"]');
-            
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');            
       }
     }
   }

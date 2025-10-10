@@ -21,6 +21,8 @@ exports[`TabsList handles empty children gracefully 1`] = `
         {
           "display": "flex",
           "overflow": "hidden",
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
@@ -92,6 +94,8 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
         {
           "display": "flex",
           "overflow": "hidden",
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
@@ -353,6 +357,8 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
               "flexBasis": "0%",
               "flexGrow": 1,
               "flexShrink": 1,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "width": 750,
             },
           ]
@@ -392,6 +398,8 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
               "flexBasis": "0%",
               "flexGrow": 1,
               "flexShrink": 1,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "width": 750,
             },
           ]
@@ -423,6 +431,8 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
         {
           "display": "flex",
           "overflow": "hidden",
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "position": "relative",
         },
         undefined,
@@ -787,6 +797,8 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
               "flexBasis": "0%",
               "flexGrow": 1,
               "flexShrink": 1,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "width": 750,
             },
           ]
@@ -826,6 +838,8 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
               "flexBasis": "0%",
               "flexGrow": 1,
               "flexShrink": 1,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "width": 750,
             },
           ]
@@ -841,6 +855,8 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
               "flexBasis": "0%",
               "flexGrow": 1,
               "flexShrink": 1,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "width": 750,
             },
           ]

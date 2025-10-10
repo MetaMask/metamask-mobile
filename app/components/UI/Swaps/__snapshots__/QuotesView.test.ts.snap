@@ -421,7 +421,15 @@ exports[`QuotesView should render quote screen 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -794,6 +802,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                         undefined,
                                         undefined,
                                         undefined,
+                                        undefined,
                                       ],
                                     ]
                                   }
@@ -939,6 +948,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                           "textAlign": "center",
                                           "textAlignVertical": "center",
                                         },
+                                        undefined,
                                         undefined,
                                         undefined,
                                         undefined,
@@ -1862,7 +1872,7 @@ exports[`QuotesView should render quote screen 1`] = `
                           <View />
                         </View>
                       </RCTScrollView>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

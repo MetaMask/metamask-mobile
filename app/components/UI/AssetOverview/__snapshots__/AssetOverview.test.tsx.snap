@@ -945,6 +945,7 @@ exports[`AssetOverview should render correctly 1`] = `
         {
           "flex": 1,
           "paddingHorizontal": 16,
+          "paddingTop": 24,
         }
       }
     >
@@ -2130,6 +2131,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         {
           "flex": 1,
           "paddingHorizontal": 16,
+          "paddingTop": 24,
         }
       }
     >
@@ -2175,10 +2177,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
             <View
               useNativeDriver={true}
             >
-              <Image
+              <View
                 fadeIn={true}
-                onError={[Function]}
-                onLoadEnd={[Function]}
                 source={
                   {
                     "uri": "",
@@ -3351,6 +3351,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         {
           "flex": 1,
           "paddingHorizontal": 16,
+          "paddingTop": 24,
         }
       }
     >
@@ -3396,10 +3397,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
             <View
               useNativeDriver={true}
             >
-              <Image
+              <View
                 fadeIn={true}
-                onError={[Function]}
-                onLoadEnd={[Function]}
                 source={
                   {
                     "uri": "",

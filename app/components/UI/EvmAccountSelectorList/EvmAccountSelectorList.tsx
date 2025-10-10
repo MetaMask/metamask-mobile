@@ -420,6 +420,7 @@ const EvmAccountSelectorList = ({
       } = item.data;
 
       const internalAccount = internalAccountsById[id];
+
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = isMultichainAccountsState1Enabled
         ? undefined

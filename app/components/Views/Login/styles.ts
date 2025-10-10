@@ -63,6 +63,10 @@ const styleSheet = (params: { theme: Theme }) => {
       rowGap: 24,
       marginTop: 24,
     },
+    footer: {
+      marginVertical: 40,
+      alignItems: 'center',
+    },
     goBack: {
       marginVertical: 14,
       alignSelf: 'center',

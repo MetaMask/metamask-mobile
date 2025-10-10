@@ -5,6 +5,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../types/token';
+import Logger from '../../../../../util/Logger';
 import { sendMultichainTransactionForReview } from '../../utils/multichain-snaps';
 import { addLeadingZeroIfNeeded, submitEvmTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
@@ -43,17 +44,22 @@ export const useSendActions = () => {
           },
         );
       } else {
-        await sendMultichainTransactionForReview(
-          fromAccount as InternalAccount,
-          {
-            fromAccountId: fromAccount?.id as string,
-            toAddress: toAddress as string,
-            assetId: ((asset as AssetType)?.assetId ??
-              asset?.address) as CaipAssetType,
-            amount: addLeadingZeroIfNeeded(value) as string,
-          },
-        );
-        navigation.navigate(Routes.WALLET_VIEW);
+        try {
+          await sendMultichainTransactionForReview(
+            fromAccount as InternalAccount,
+            {
+              fromAccountId: fromAccount?.id as string,
+              toAddress: toAddress as string,
+              assetId: ((asset as AssetType)?.assetId ??
+                asset?.address) as CaipAssetType,
+              amount: addLeadingZeroIfNeeded(value) as string,
+            },
+          );
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        } catch (error) {
+          // Do nothing on rejection - intentionally ignored
+          Logger.log('Multichain transaction for review rejected: ', error);
+        }
       }
     },
     [

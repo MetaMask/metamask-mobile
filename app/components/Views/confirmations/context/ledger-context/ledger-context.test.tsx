@@ -16,6 +16,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {

@@ -47,6 +47,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.simpleSend:
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
+      case TransactionType.tokenMethodSafeTransferFrom:
         return Transfer;
       case TransactionType.deployContract:
         return ContractDeployment;

@@ -4673,69 +4673,134 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                   }
                                 >
                                   <View
+                                    onLayout={[Function]}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#f3f5f9",
-                                          "borderRadius": 8,
-                                          "justifyContent": "flex-start",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "height": 50,
-                                          "width": 50,
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignSelf": "flex-start",
+                                        "position": "relative",
+                                      }
                                     }
-                                    testID="fallback-nft-with-token-id"
+                                    testID="badge-wrapper-badge"
                                   >
-                                    <Text
+                                    <View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#f3f5f9",
+                                              "borderRadius": 8,
+                                              "justifyContent": "flex-start",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "height": 50,
+                                              "width": 50,
+                                            },
+                                            undefined,
+                                            undefined,
+                                          ]
+                                        }
+                                        testID="fallback-nft-with-token-id"
+                                      >
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "fontSize": 12,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "flex": 1,
+                                                "marginTop": 16,
+                                                "textAlign": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                           #1850
+                                        </Text>
+                                      </View>
+                                    </View>
+                                    <View
                                       style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "Geist Regular",
-                                            "fontSize": 30,
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontSize": 12,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "marginTop": 16,
-                                            "textAlign": "center",
-                                          },
-                                        ]
+                                        {
+                                          "bottom": 5,
+                                          "position": "absolute",
+                                          "right": 5,
+                                        }
                                       }
                                     >
-                                       #1850
-                                    </Text>
+                                      <View
+                                        onLayout={[Function]}
+                                        style={{}}
+                                        testID="badgenetwork"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderColor": "#ffffff",
+                                              "borderRadius": 4,
+                                              "borderWidth": 1,
+                                              "height": 16,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "shadowColor": "#0000001a",
+                                              "shadowOffset": {
+                                                "height": 2,
+                                                "width": 0,
+                                              },
+                                              "shadowOpacity": 1,
+                                              "shadowRadius": 4,
+                                              "width": 16,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 16,
+                                                "width": 16,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
                                   </View>
                                 </View>
                               </View>

@@ -46,25 +46,4 @@ describe('TabBarItem', () => {
 
     expect(getByText('Home')).toBeOnTheScreen();
   });
-
-  it('does not display label text for trade button', () => {
-    const { queryByText } = render(
-      <TabBarItem
-        {...defaultProps}
-        isTradeButton
-        label="This should not show"
-      />,
-    );
-
-    expect(queryByText('This should not show')).toBeNull();
-  });
-
-  it('renders correctly as trade button', () => {
-    const { getByTestId } = render(
-      <TabBarItem {...defaultProps} isTradeButton testID="tab-item" />,
-    );
-
-    // Component should be present and accessible
-    expect(getByTestId('tab-item')).toBeOnTheScreen();
-  });
 });

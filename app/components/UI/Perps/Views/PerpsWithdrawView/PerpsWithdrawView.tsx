@@ -1,4 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { captureException } from '@sentry/react-native';
 import React, {
   useCallback,
   useEffect,
@@ -8,7 +9,6 @@ import React, {
 } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { captureException } from '@sentry/react-native';
 
 import {
   Box,
@@ -39,15 +39,19 @@ import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
+  usePerpsMeasurement,
   usePerpsNetwork,
   usePerpsWithdrawQuote,
   useWithdrawTokens,
 } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
@@ -60,17 +64,17 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
@@ -87,13 +91,10 @@ const PerpsWithdrawView: React.FC = () => {
     useState<PerpsTooltipContentKey | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(true); // Start with keypad open
   const [showPercentageButtons, setShowPercentageButtons] = useState(true); // Show percentage buttons initially
-  const hasTrackedWithdrawView = useRef(false);
   const [withdrawAmountDetailed, setWithdrawAmountDetailed] =
     useState<string>('');
 
   // Hooks
-  const { track: trackEvent } = usePerpsEventTracking();
-  const { startMeasure, endMeasure } = usePerpsPerformance();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { account } = usePerpsLiveAccount();
 
@@ -146,19 +147,24 @@ const PerpsWithdrawView: React.FC = () => {
     return result.toFixed(2);
   }, [withdrawAmountDetailed, formattedQuoteData]);
 
-  // Start measuring screen load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
-  }, [startMeasure]);
+  // Performance tracking: Measure withdrawal screen load time until core data is ready
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
+    conditions: [
+      !!account?.availableBalance,
+      !!destToken,
+      availableBalance !== undefined,
+    ],
+  });
 
-  // Track screen load - only once
-  useEffect(() => {
-    if (!hasTrackedWithdrawView.current) {
-      endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
-      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED);
-      hasTrackedWithdrawView.current = true;
-    }
-  }, [trackEvent, endMeasure]);
+  // Track withdrawal input screen viewed - declarative (main's consolidated event)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
+    },
+  });
 
   useEffect(() => {
     // Start blinking animation
@@ -239,9 +245,6 @@ const PerpsWithdrawView: React.FC = () => {
     if (!hasValidInputs || isSubmittingTx) return;
 
     setIsSubmittingTx(true);
-    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
-      amount: withdrawAmountDetailed,
-    });
 
     // Show processing toast immediately
     showToast(
@@ -273,56 +276,18 @@ const PerpsWithdrawView: React.FC = () => {
         chainIdDecimal,
       });
 
-      // Start performance measurements for transaction submission and confirmation
-      startMeasure(
-        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
-      );
-      startMeasure(
-        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
-      );
-
       const result = await controller.withdraw({
         amount: withdrawAmountDetailed,
         assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
       });
 
-      // Measure withdrawal transaction submission
-      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
-
       if (result.success) {
-        // Measure withdrawal transaction confirmation
-        const confirmationDuration = endMeasure(
-          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
-        );
-
-        // Track withdrawal completed with duration
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
-          amount: withdrawAmountDetailed,
-          completionDuration: confirmationDuration,
-        });
-
-        DevLogger.log('Withdrawal successful, duration:', confirmationDuration);
+        DevLogger.log('Withdrawal successful');
       } else {
-        // End confirmation measurement on failure too
-        endMeasure(
-          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
-        );
-
-        // Track withdrawal failed
-        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
-          errorMessage: result.error || 'Unknown error',
-        });
-
         DevLogger.log('Withdrawal failed:', result.error);
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
-      // End measurements on error
-      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
-      endMeasure(
-        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
-      );
-
       // Capture exception with withdrawal context
       captureException(
         error instanceof Error ? error : new Error(String(error)),
@@ -344,11 +309,6 @@ const PerpsWithdrawView: React.FC = () => {
         },
       );
 
-      // Track withdrawal failed
-      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-      });
-
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {
       setIsSubmittingTx(false);
@@ -356,15 +316,12 @@ const PerpsWithdrawView: React.FC = () => {
   }, [
     hasValidInputs,
     isSubmittingTx,
-    trackEvent,
     showToast,
     PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,
     destToken.chainId,
     destToken.address,
     isTestnet,
-    startMeasure,
-    endMeasure,
     withdrawAmountDetailed,
   ]);
 

@@ -9,14 +9,15 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
+import { RootState } from '../../../../reducers';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
-  swapsIsLive: boolean | undefined;
   onBuy?: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
@@ -24,6 +25,7 @@ export interface AssetDetailsActionsProps {
   onReceive: () => void;
   // Asset context for fund flow
   asset?: {
+    assetId?: string;
     address?: string;
     chainId?: string;
   };
@@ -39,7 +41,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
-  swapsIsLive,
   onBuy,
   goToSwaps,
   goToBridge,
@@ -54,6 +55,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state),
+  );
   const { navigate } = useNavigation();
 
   // Check if FundActionMenu would be empty
@@ -95,7 +99,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconName={IconName.SwapVertical}
             label={strings('asset_overview.swap')}
             onPress={() => goToSwaps()}
-            isDisabled={!canSignTransactions || !swapsIsLive}
+            isDisabled={!isSwapsEnabled}
             testID={swapButtonActionID}
           />
         </View>

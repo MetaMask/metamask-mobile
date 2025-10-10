@@ -47,6 +47,7 @@ export interface ConnectionProps {
   validUntil?: number;
   scheme?: string;
   lastAuthorized?: number; // timestamp of last received activity
+  hideReturnToApp?: boolean;
 }
 
 import packageJSON from '../../../../package.json';
@@ -58,6 +59,7 @@ export class Connection extends EventEmitter2 {
   origin: string;
   host: string;
   navigation?: NavigationContainerRef;
+  hideReturnToApp?: boolean;
   protocolVersion: number;
   originatorInfo?: OriginatorInfo;
   isReady = false;
@@ -133,6 +135,7 @@ export class Connection extends EventEmitter2 {
     socketServerUrl,
     trigger,
     navigation,
+    hideReturnToApp,
     lastAuthorized,
     approveHost,
     getApprovedHosts,
@@ -162,6 +165,7 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
     this.channelId = id;
     this.navigation = navigation;
+    this.hideReturnToApp = hideReturnToApp;
     this.lastAuthorized = lastAuthorized;
     this.reconnect = reconnect || false;
     this.isResumed = false;

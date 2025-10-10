@@ -19,7 +19,7 @@ export interface PerpsErrorContext {
 }
 
 /**
- * Hook for tracking Perps errors with PERPS_ERROR_ENCOUNTERED event
+ * Hook for tracking Perps errors with PERPS_ERROR event
  */
 export function usePerpsErrorTracking() {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -111,7 +111,7 @@ export function usePerpsErrorTracking() {
 
       // Track the error event
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED)
+        createEventBuilder(MetaMetricsEvents.PERPS_ERROR)
           .addProperties(eventProperties)
           .build(),
       );

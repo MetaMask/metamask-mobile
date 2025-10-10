@@ -4,10 +4,6 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
-import {
-  PerpsStreamProvider,
-  PerpsStreamManager,
-} from '../../providers/PerpsStreamManager';
 import PerpsBottomSheetTooltip from './PerpsBottomSheetTooltip';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 
@@ -21,27 +17,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock PerpsStreamManager
-const createMockStreamManager = () => ({
-  prices: {
-    subscribe: jest.fn(() => jest.fn()),
-  },
-  orders: {
-    subscribe: jest.fn(() => jest.fn()),
-  },
-  positions: {
-    subscribe: jest.fn(() => jest.fn()),
-  },
-  fills: {
-    subscribe: jest.fn(() => jest.fn()),
-  },
-  account: {
-    subscribe: jest.fn(() => jest.fn()),
-  },
-  marketData: {
-    subscribe: jest.fn(() => jest.fn()),
-  },
-});
+// Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
+jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000',
+      totalBalance: '1000',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalValue: '1000',
+    },
+    isInitialLoading: false,
+  })),
+}));
 
 describe('PerpsBottomSheetTooltip', () => {
   const mockOnClose = jest.fn();
@@ -154,24 +143,18 @@ describe('PerpsBottomSheetTooltip', () => {
 
     const { getByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
-        <PerpsStreamProvider
-          testStreamManager={
-            createMockStreamManager() as unknown as PerpsStreamManager
-          }
-        >
-          <PerpsOrderProvider {...params}>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={mockOnClose}
-              contentKey={'fees'}
-              testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
-              data={{
-                metamaskFeeRate: 0.001, // 0.1% MetaMask fee
-                protocolFeeRate: 0.00045, // 0.045% protocol fee for taker
-              }}
-            />
-          </PerpsOrderProvider>
-        </PerpsStreamProvider>
+        <PerpsOrderProvider {...params}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={mockOnClose}
+            contentKey={'fees'}
+            testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
+            data={{
+              metamaskFeeRate: 0.001, // 0.1% MetaMask fee
+              protocolFeeRate: 0.00045, // 0.045% protocol fee for taker
+            }}
+          />
+        </PerpsOrderProvider>
       </SafeAreaProvider>,
     );
 

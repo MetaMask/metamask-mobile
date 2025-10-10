@@ -2,6 +2,18 @@ import type { MarkAsReadNotificationsParam } from '@metamask/notification-servic
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
+let previewToken: string | undefined;
+
+export function setContentPreviewToken(newPreviewToken?: string | null) {
+  if (typeof newPreviewToken === 'string') {
+    previewToken = newPreviewToken;
+  }
+}
+
+export function getContentPreviewToken() {
+  return previewToken;
+}
+
 export const assertIsFeatureEnabled = () => {
   if (!isNotificationsFeatureEnabled()) {
     throw new Error(
@@ -106,7 +118,9 @@ export const enableAccounts = async (accounts: string[]) => {
  */
 export const fetchNotifications = async () => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications();
+  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications(
+    getContentPreviewToken(),
+  );
 };
 
 /**

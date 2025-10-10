@@ -102,6 +102,10 @@ jest.mock('../NetworkManager', () => ({
   ],
 }));
 
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
+}));
+
 const mockStore = configureMockStore();
 
 describe('DeFiPositionsControlBar', () => {
@@ -219,7 +223,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    expect(getByText(strings('wallet.all_networks'))).toBeDefined();
+    expect(getByText(strings('wallet.popular_networks'))).toBeDefined();
   });
 
   it('should show current network name when isRemoveGlobalNetworkSelectorEnabled is true and single network enabled', () => {

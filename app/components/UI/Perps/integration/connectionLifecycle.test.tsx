@@ -72,9 +72,6 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
     );
   },
 }));
-jest.mock('../hooks/usePerpsDepositStatus', () => ({
-  usePerpsDepositStatus: jest.fn(),
-}));
 // Mock hooks that use Redux
 jest.mock('../hooks/usePerpsWithdrawStatus', () => ({
   usePerpsWithdrawStatus: jest.fn(() => undefined),

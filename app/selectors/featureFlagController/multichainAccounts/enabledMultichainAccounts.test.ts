@@ -27,6 +27,14 @@ const state2Mock = {
 
 describe('Multichain Accounts Feature Flag', () => {
   describe('selectMultichainAccountsState1Enabled', () => {
+    it('returns true when the flag is undefined', () => {
+      const result = selectMultichainAccountsState1Enabled.resultFunc({
+        // @ts-expect-error testing undefined case
+        enableMultichainAccounts: undefined,
+      });
+      expect(result).toBe(true);
+    });
+
     it('returns false when the feature is not enabled', () => {
       const result = selectMultichainAccountsState1Enabled.resultFunc({
         enableMultichainAccounts: disabledStateMock,
@@ -40,33 +48,27 @@ describe('Multichain Accounts Feature Flag', () => {
       });
       expect(result).toBe(true);
     });
-
-    it('returns true when the feature is enabled for state 2', () => {
-      const result = selectMultichainAccountsState1Enabled.resultFunc({
-        enableMultichainAccounts: state2Mock,
-      });
-      expect(result).toBe(true);
-    });
   });
 
   describe('selectMultichainAccountsState2Enabled', () => {
-    it('returns false when the feature is not enabled', () => {
+    it('returns true when the flag is undefined', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
-        enableMultichainAccounts: disabledStateMock,
+        // @ts-expect-error testing undefined case
+        enableMultichainAccountsState2: undefined,
       });
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
-    it('returns false when the feature is enabled for state 1', () => {
+    it('returns false when the feature is not enabled', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
-        enableMultichainAccounts: state1Mock,
+        enableMultichainAccountsState2: disabledStateMock,
       });
       expect(result).toBe(false);
     });
 
     it('returns true when the feature is enabled for state 2', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
-        enableMultichainAccounts: state2Mock,
+        enableMultichainAccountsState2: state2Mock,
       });
       expect(result).toBe(true);
     });

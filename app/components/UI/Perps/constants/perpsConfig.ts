@@ -21,6 +21,7 @@ export const PERPS_CONSTANTS = {
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
+  FALLBACK_PERCENTAGE_DISPLAY: '--%', // Display when change data is unavailable
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
 } as const;
 
@@ -97,6 +98,35 @@ export const PERFORMANCE_CONFIG = {
   // Max leverage cache duration (milliseconds)
   // How long to cache max leverage values per asset (leverage rarely changes)
   MAX_LEVERAGE_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
+
+  // Rewards cache durations (milliseconds)
+  // How long to cache fee discount data from rewards API
+  FEE_DISCOUNT_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+  // How long to cache points calculation parameters from rewards API
+  POINTS_CALCULATION_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+
+  /**
+   * Performance logging markers for filtering logs during development and debugging
+   * These markers help isolate performance-related logs from general application logs
+   * Usage: Use in DevLogger calls to easily filter specific performance areas
+   * Impact: Development only (uses DevLogger) - zero production performance cost
+   *
+   * Examples:
+   * - Filter Sentry performance logs: `adb logcat | grep PERPSMARK_SENTRY`
+   * - Filter MetaMetrics events: `adb logcat | grep PERPSMARK_METRICS`
+   * - Filter WebSocket performance: `adb logcat | grep PERPSMARK_WS`
+   * - Filter all Perps performance: `adb logcat | grep PERPSMARK_`
+   */
+  LOGGING_MARKERS: {
+    // Sentry performance measurement logs (screen loads, bottom sheets, API timing)
+    SENTRY_PERFORMANCE: 'PERPSMARK_SENTRY',
+
+    // MetaMetrics event tracking logs (user interactions, business analytics)
+    METAMETRICS_EVENTS: 'PERPSMARK_METRICS',
+
+    // WebSocket performance logs (connection timing, data flow, reconnections)
+    WEBSOCKET_PERFORMANCE: 'PERPSMARK_SENTRY_WS',
+  } as const,
 } as const;
 
 /**
@@ -133,6 +163,26 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations
   LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
   SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+} as const;
+
+/**
+ * HyperLiquid order limits based on leverage
+ * From: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/contract-specifications
+ */
+export const HYPERLIQUID_ORDER_LIMITS = {
+  // Market orders
+  MARKET_ORDER_LIMITS: {
+    // $15,000,000 for max leverage >= 25
+    HIGH_LEVERAGE: 15_000_000,
+    // $5,000,000 for max leverage in [20, 25)
+    MEDIUM_HIGH_LEVERAGE: 5_000_000,
+    // $2,000,000 for max leverage in [10, 20)
+    MEDIUM_LEVERAGE: 2_000_000,
+    // $500,000 for max leverage < 10
+    LOW_LEVERAGE: 500_000,
+  },
+  // Limit orders are 10x market order limits
+  LIMIT_ORDER_MULTIPLIER: 10,
 } as const;
 
 /**
@@ -181,3 +231,20 @@ export const FUNDING_RATE_CONFIG = {
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Development-only configuration for testing and debugging
+ * These constants are only active when __DEV__ is true
+ */
+export const DEVELOPMENT_CONFIG = {
+  // Magic number to simulate fee discount state (20% discount)
+  SIMULATE_FEE_DISCOUNT_AMOUNT: 41,
+
+  // Magic number to simulate rewards error state (set order amount to this value)
+  SIMULATE_REWARDS_ERROR_AMOUNT: 42,
+
+  // Magic number to simulate rewards loading state
+  SIMULATE_REWARDS_LOADING_AMOUNT: 43,
+
+  // Future: Add other development helpers as needed
+} as const;

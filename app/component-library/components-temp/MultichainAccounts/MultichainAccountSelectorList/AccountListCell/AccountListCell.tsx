@@ -1,10 +1,11 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 
 import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
+import Checkbox from '../../../../components/Checkbox';
 
 const AccountListCell = memo(
   ({
@@ -12,25 +13,35 @@ const AccountListCell = memo(
     avatarAccountType,
     isSelected,
     onSelectAccount,
+    showCheckbox = false,
   }: AccountListCellProps) => {
-    const { styles } = useStyles(createStyles, {});
+    const showSelectedIndicator = isSelected && !showCheckbox;
+    const { styles } = useStyles(createStyles, {
+      isSelected,
+    });
 
     const handlePress = useCallback(() => {
       onSelectAccount(accountGroup);
     }, [accountGroup, onSelectAccount]);
 
     return (
-      <TouchableOpacity
-        style={styles.accountItem}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <AccountCell
-          accountGroup={accountGroup}
-          avatarAccountType={avatarAccountType}
-          isSelected={isSelected}
-        />
-      </TouchableOpacity>
+      <View style={styles.accountItem}>
+        {showSelectedIndicator && <View style={styles.selectedIndicator} />}
+        <View style={styles.accountCellWrapper}>
+          <AccountCell
+            startAccessory={
+              showCheckbox ? (
+                <View testID={`account-list-cell-checkbox-${accountGroup.id}`}>
+                  <Checkbox isChecked={isSelected} onPress={handlePress} />
+                </View>
+              ) : undefined
+            }
+            accountGroup={accountGroup}
+            avatarAccountType={avatarAccountType}
+            onSelectAccount={handlePress}
+          />
+        </View>
+      </View>
     );
   },
 );

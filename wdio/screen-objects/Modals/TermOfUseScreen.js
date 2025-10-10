@@ -1,7 +1,8 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class TermOfUseScreen {
@@ -12,6 +13,7 @@ class TermOfUseScreen {
 
   set device(device) {
     this._device = device;
+
   }
 
   get container() {
@@ -80,7 +82,7 @@ class TermOfUseScreen {
       await Gestures.waitAndTap(this.checkbox);
     } else {
       const cb = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
-      await cb.tap();
+      await AppwrightGestures.tap(cb); // Use static tap method with retry logic
     }
   }
 
@@ -89,7 +91,7 @@ class TermOfUseScreen {
       await Gestures.waitAndTap(this.scrollEndArrowButton);
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
-      await button.tap();
+      await AppwrightGestures.tap(button); // Use static tap method with retry logic
     }
   }
 
@@ -108,7 +110,7 @@ class TermOfUseScreen {
       await Gestures.tap(this.acceptButton);
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
-      await button.tap();
+      await AppwrightGestures.tap(button); // Use static tap method with retry logic
     }
   }
 }

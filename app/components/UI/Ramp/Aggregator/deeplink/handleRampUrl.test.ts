@@ -62,8 +62,10 @@ describe('handleRampUrl', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY, {
       screen: Routes.RAMP.GET_STARTED,
       params: {
-        chainId: '1',
-        address: '0x123456',
+        screen: Routes.RAMP.GET_STARTED,
+        params: {
+          assetId: 'eip155:1/erc20:0x123456',
+        },
       },
     });
   });
@@ -78,8 +80,10 @@ describe('handleRampUrl', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL, {
       screen: Routes.RAMP.GET_STARTED,
       params: {
-        chainId: '1',
-        address: '0x123456',
+        screen: Routes.RAMP.GET_STARTED,
+        params: {
+          assetId: 'eip155:1/erc20:0x123456',
+        },
       },
     });
   });

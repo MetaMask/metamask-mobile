@@ -3,13 +3,22 @@ import {
   SeasonStatusState,
   SeasonTierDto,
   GeoRewardsMetadata,
+  PointsBoostDto,
+  RewardDto,
+  PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
-import Logger from '../../util/Logger';
+import { CaipAccountId } from '@metamask/utils';
+
+export interface AccountOptInBannerInfoStatus {
+  caipAccountId: CaipAccountId;
+  hide: boolean;
+}
 
 export interface RewardsState {
-  activeTab: 'overview' | 'activity' | 'levels' | null;
+  activeTab: 'overview' | 'activity' | 'levels';
   seasonStatusLoading: boolean;
+  seasonStatusError: string | null;
 
   // Season state
   seasonId: string | null;
@@ -20,6 +29,7 @@ export interface RewardsState {
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
+  referralDetailsError: boolean;
   referralCode: string | null;
   refereeCount: number;
 
@@ -37,20 +47,36 @@ export interface RewardsState {
   onboardingActiveStep: OnboardingStep;
 
   // Candidate subscription state
-  candidateSubscriptionId: string | 'pending' | 'error' | null;
+  candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
 
   // Geolocation state
   geoLocation: string | null;
-  optinAllowedForGeo: boolean;
+  optinAllowedForGeo: boolean | null;
   optinAllowedForGeoLoading: boolean;
+  optinAllowedForGeoError: boolean;
 
   // UI preferences
+  hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
+
+  // Points Boost state
+  activeBoosts: PointsBoostDto[] | null;
+  activeBoostsLoading: boolean;
+  activeBoostsError: boolean;
+
+  // Points Events state
+  pointsEvents: PointsEventDto[] | null;
+
+  // Unlocked Rewards state
+  unlockedRewards: RewardDto[] | null;
+  unlockedRewardLoading: boolean;
+  unlockedRewardError: boolean;
 }
 
 export const initialState: RewardsState = {
   activeTab: 'overview',
   seasonStatusLoading: false,
+  seasonStatusError: null,
 
   seasonId: null,
   seasonName: null,
@@ -59,6 +85,7 @@ export const initialState: RewardsState = {
   seasonTiers: [],
 
   referralDetailsLoading: false,
+  referralDetailsError: false,
   referralCode: null,
   refereeCount: 0,
 
@@ -73,9 +100,21 @@ export const initialState: RewardsState = {
   onboardingActiveStep: OnboardingStep.INTRO,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
-  optinAllowedForGeo: false,
+  optinAllowedForGeo: null,
   optinAllowedForGeoLoading: false,
+  optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
+  hideCurrentAccountNotOptedInBanner: [],
+
+  activeBoosts: null,
+  activeBoostsLoading: false,
+  activeBoostsError: false,
+
+  pointsEvents: null,
+
+  unlockedRewards: null,
+  unlockedRewardLoading: false,
+  unlockedRewardError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -90,7 +129,7 @@ const rewardsSlice = createSlice({
   reducers: {
     setActiveTab: (
       state,
-      action: PayloadAction<'overview' | 'activity' | 'levels' | null>,
+      action: PayloadAction<'overview' | 'activity' | 'levels'>,
     ) => {
       state.activeTab = action.payload;
     },
@@ -99,6 +138,9 @@ const rewardsSlice = createSlice({
       state,
       action: PayloadAction<SeasonStatusState | null>,
     ) => {
+      // Clear error on successful data fetch
+      state.seasonStatusError = null;
+
       // Season state
       state.seasonId = action.payload?.season.id || null;
       state.seasonName = action.payload?.season.name || null;
@@ -149,11 +191,25 @@ const rewardsSlice = createSlice({
     },
 
     setReferralDetailsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.referralCode) {
+        return;
+      }
       state.referralDetailsLoading = action.payload;
     },
 
+    setReferralDetailsError: (state, action: PayloadAction<boolean>) => {
+      state.referralDetailsError = action.payload;
+    },
+
     setSeasonStatusLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.seasonStartDate) {
+        return;
+      }
       state.seasonStatusLoading = action.payload;
+    },
+
+    setSeasonStatusError: (state, action: PayloadAction<string | null>) => {
+      state.seasonStatusError = action.payload;
     },
 
     resetRewardsState: (state) => {
@@ -161,7 +217,6 @@ const rewardsSlice = createSlice({
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
-      Logger.log('setOnboardingActiveStep', action.payload);
       state.onboardingActiveStep = action.payload;
     },
 
@@ -171,8 +226,41 @@ const rewardsSlice = createSlice({
 
     setCandidateSubscriptionId: (
       state,
-      action: PayloadAction<string | 'pending' | 'error' | null>,
+      action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
     ) => {
+      const previousCandidateId = state.candidateSubscriptionId;
+      const newCandidateId = action.payload;
+
+      // Check if candidate ID changed and old value had a value (not null, 'pending', 'error', or 'retry')
+      const hasValidPreviousId =
+        previousCandidateId &&
+        previousCandidateId !== 'pending' &&
+        previousCandidateId !== 'error' &&
+        previousCandidateId !== 'retry';
+
+      const candidateIdChanged =
+        hasValidPreviousId && previousCandidateId !== newCandidateId;
+
+      if (candidateIdChanged) {
+        // Reset UI state to initial values
+        state.seasonId = initialState.seasonId;
+        state.seasonName = initialState.seasonName;
+        state.seasonStartDate = initialState.seasonStartDate;
+        state.seasonEndDate = initialState.seasonEndDate;
+        state.seasonTiers = initialState.seasonTiers;
+        state.referralCode = initialState.referralCode;
+        state.refereeCount = initialState.refereeCount;
+        state.currentTier = initialState.currentTier;
+        state.nextTier = initialState.nextTier;
+        state.nextTierPointsNeeded = initialState.nextTierPointsNeeded;
+        state.balanceTotal = initialState.balanceTotal;
+        state.balanceRefereePortion = initialState.balanceRefereePortion;
+        state.balanceUpdatedAt = initialState.balanceUpdatedAt;
+        state.activeBoosts = initialState.activeBoosts;
+        state.pointsEvents = initialState.pointsEvents;
+        state.unlockedRewards = initialState.unlockedRewards;
+      }
+
       state.candidateSubscriptionId = action.payload;
     },
 
@@ -186,7 +274,7 @@ const rewardsSlice = createSlice({
         state.optinAllowedForGeoLoading = false;
       } else {
         state.geoLocation = null;
-        state.optinAllowedForGeo = false;
+        state.optinAllowedForGeo = null;
         state.optinAllowedForGeoLoading = false;
       }
     },
@@ -195,20 +283,99 @@ const rewardsSlice = createSlice({
       state.optinAllowedForGeoLoading = action.payload;
     },
 
+    setGeoRewardsMetadataError: (state, action: PayloadAction<boolean>) => {
+      state.optinAllowedForGeoError = action.payload;
+    },
+
     setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
       state.hideUnlinkedAccountsBanner = action.payload;
+    },
+
+    setHideCurrentAccountNotOptedInBanner: (
+      state,
+      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+    ) => {
+      const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
+        (item) => item.caipAccountId === action.payload.accountId,
+      );
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        state.hideCurrentAccountNotOptedInBanner[existingIndex].hide =
+          action.payload.hide;
+      } else {
+        // Add new entry
+        state.hideCurrentAccountNotOptedInBanner.push({
+          caipAccountId: action.payload.accountId,
+          hide: action.payload.hide,
+        });
+      }
+    },
+
+    setActiveBoosts: (
+      state,
+      action: PayloadAction<PointsBoostDto[] | null>,
+    ) => {
+      state.activeBoosts = action.payload;
+      state.activeBoostsError = false; // Reset error when successful
+    },
+    setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.activeBoosts?.length) {
+        return;
+      }
+      state.activeBoostsLoading = action.payload;
+    },
+    setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsError = action.payload;
+    },
+    setUnlockedRewards: (state, action: PayloadAction<RewardDto[] | null>) => {
+      state.unlockedRewards = action.payload;
+      state.unlockedRewardError = false; // Reset error when successful
+    },
+    setUnlockedRewardLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.unlockedRewards?.length) {
+        return;
+      }
+      state.unlockedRewardLoading = action.payload;
+    },
+    setUnlockedRewardError: (state, action: PayloadAction<boolean>) => {
+      state.unlockedRewardError = action.payload;
+    },
+    setPointsEvents: (
+      state,
+      action: PayloadAction<PointsEventDto[] | null>,
+    ) => {
+      state.pointsEvents = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
       if (action.payload?.rewards) {
         return {
-          ...action.payload.rewards,
           // Reset non-persistent state (state is persisted via controller)
           ...initialState,
-          // Restore only a few persistent state
+
+          // UI state we want to restore from previous visit
+          seasonId: action.payload.rewards.seasonId,
+          seasonName: action.payload.rewards.seasonName,
+          seasonStartDate: action.payload.rewards.seasonStartDate,
+          seasonEndDate: action.payload.rewards.seasonEndDate,
+          seasonTiers: action.payload.rewards.seasonTiers,
+          referralCode: action.payload.rewards.referralCode,
+          refereeCount: action.payload.rewards.refereeCount,
+          currentTier: action.payload.rewards.currentTier,
+          nextTier: action.payload.rewards.nextTier,
+          nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
+          balanceTotal: action.payload.rewards.balanceTotal,
+          balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
+          balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
+          activeBoosts: action.payload.rewards.activeBoosts,
+          pointsEvents: action.payload.rewards.pointsEvents,
+          unlockedRewards: action.payload.rewards.unlockedRewards,
           hideUnlinkedAccountsBanner:
             action.payload.rewards.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
         };
       }
       return state;
@@ -220,7 +387,9 @@ export const {
   setActiveTab,
   setSeasonStatus,
   setReferralDetails,
+  setReferralDetailsError,
   setSeasonStatusLoading,
+  setSeasonStatusError,
   setReferralDetailsLoading,
   resetRewardsState,
   setOnboardingActiveStep,
@@ -228,7 +397,16 @@ export const {
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
+  setHideCurrentAccountNotOptedInBanner,
+  setActiveBoosts,
+  setActiveBoostsLoading,
+  setActiveBoostsError,
+  setUnlockedRewards,
+  setUnlockedRewardLoading,
+  setUnlockedRewardError,
+  setPointsEvents,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

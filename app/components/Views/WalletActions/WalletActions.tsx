@@ -10,7 +10,6 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
@@ -30,6 +29,8 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
@@ -37,7 +38,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RootState } from '../../../reducers';
-import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
+import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 
@@ -50,13 +51,14 @@ const WalletActions = () => {
 
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const chainId = useSelector(selectChainId);
-  const swapsIsLive = useSelector((state: RootState) =>
-    selectIsSwapsLive(state, chainId),
-  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state),
+  );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -129,7 +131,7 @@ const WalletActions = () => {
   ]);
 
   const onPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
+    let params: { screen: string; params?: { source: string } } | null = null;
     if (isFirstTimePerpsUser) {
       params = {
         screen: Routes.PERPS.TUTORIAL,
@@ -137,12 +139,27 @@ const WalletActions = () => {
     } else {
       params = {
         screen: Routes.PERPS.MARKETS,
+        params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
       };
     }
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.PERPS.ROOT, params);
     });
   }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser]);
+
+  const onPredict = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
+      });
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
@@ -158,14 +175,14 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+        {AppConstants.SWAPS.ACTIVE && (
           <ActionListItem
             label={strings('asset_overview.swap')}
             description={strings('asset_overview.swap_description')}
             iconName={IconName.SwapVertical}
             onPress={goToSwaps}
             testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-            isDisabled={!canSignTransactions || !swapsIsLive}
+            isDisabled={!isSwapsEnabled}
           />
         )}
 
@@ -179,6 +196,7 @@ const WalletActions = () => {
             isDisabled={!canSignTransactions}
           />
         )}
+
         {isEarnWalletActionEnabled && (
           <ActionListItem
             label={strings('asset_overview.earn_button')}
@@ -186,6 +204,17 @@ const WalletActions = () => {
             iconName={IconName.Stake}
             onPress={onEarn}
             testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            isDisabled={!canSignTransactions}
+          />
+        )}
+
+        {isPredictEnabled && (
+          <ActionListItem
+            label={strings('asset_overview.predict_button')}
+            description={strings('asset_overview.predict_description')}
+            iconName={IconName.Speedometer}
+            onPress={onPredict}
+            testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
             isDisabled={!canSignTransactions}
           />
         )}

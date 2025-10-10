@@ -7,8 +7,12 @@ import {
   DepositSDKProvider,
   useDepositSDK,
 } from '.';
-import { DEPOSIT_REGIONS } from '../constants';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_REGIONS,
+  MOCK_CREDIT_DEBIT_CARD,
+} from '../testUtils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import {
@@ -51,7 +55,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       paymentMethod: 'credit_card',
       cryptoAmount: 0.1,
       isBuyOrSell: 'BUY',
-      network: 'mainnet',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       feeDecimal: 0,
       totalFee: 0,
       feeBreakdown: [],
@@ -108,6 +112,8 @@ const mockedState = {
   },
   fiatOrders: {
     selectedRegionDeposit: null,
+    selectedCryptoCurrencyDeposit: null,
+    selectedPaymentMethodDeposit: null,
     getStartedDeposit: false,
   },
 };
@@ -288,7 +294,7 @@ describe('Deposit SDK Context', () => {
   describe('Region Management', () => {
     it('initializes with region from Redux state', () => {
       const testRegion =
-        DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
+        MOCK_REGIONS.find((region) => region.isoCode === 'US') || null;
       const stateWithRegion = {
         ...mockedState,
         fiatOrders: {
@@ -345,7 +351,7 @@ describe('Deposit SDK Context', () => {
       );
 
       const newRegion =
-        DEPOSIT_REGIONS.find((region) => region.isoCode === 'CA') || null;
+        MOCK_REGIONS.find((region) => region.isoCode === 'DE') || null;
 
       act(() => {
         contextValue?.setSelectedRegion(newRegion);
@@ -500,13 +506,64 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
 
       await act(async () => {
-        contextValue?.logoutFromProvider();
+        await contextValue?.logoutFromProvider();
       });
 
-      expect(resetProviderTokenMock).toHaveBeenCalled();
       expect(logoutMock).toHaveBeenCalled();
+      expect(resetProviderTokenMock).toHaveBeenCalled();
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('initializes payment method and crypto currency as null', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      expect(contextValue?.selectedPaymentMethod).toBeNull();
+      expect(contextValue?.selectedCryptoCurrency).toBeNull();
+    });
+
+    it('allows updating payment method and crypto currency', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      const newPaymentMethod = {
+        ...MOCK_CREDIT_DEBIT_CARD,
+        id: 'new-method',
+      };
+      const newCryptoCurrency = { ...MOCK_USDC_TOKEN, symbol: 'NEW' };
+
+      act(() => {
+        contextValue?.setSelectedPaymentMethod(newPaymentMethod);
+        contextValue?.setSelectedCryptoCurrency(newCryptoCurrency);
+      });
+
+      expect(contextValue?.selectedPaymentMethod).toEqual(newPaymentMethod);
+      expect(contextValue?.selectedCryptoCurrency).toEqual(newCryptoCurrency);
     });
 
     it('clears authentication state when calling logoutFromProvider with requireServerInvalidation=false even if SDK logout fails', async () => {

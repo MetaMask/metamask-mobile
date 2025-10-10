@@ -513,6 +513,62 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockSubscriptionClient.userFills).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
     });
+
+    it('should handle order fills with liquidation data', async () => {
+      const mockCallback = jest.fn();
+
+      // Update mock data to include liquidation
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              fills: [
+                {
+                  oid: BigInt(12345),
+                  coin: 'BTC',
+                  side: 'A',
+                  sz: '0.1',
+                  px: '45000',
+                  fee: '5',
+                  time: Date.now(),
+                  closedPnl: '-500',
+                  dir: 'Close Long',
+                  feeToken: 'USDC',
+                  liquidation: {
+                    liquidatedUser: '0x123',
+                    markPx: '44900',
+                    method: 'market',
+                  },
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: '12345',
+          symbol: 'BTC',
+          liquidation: {
+            liquidatedUser: '0x123',
+            markPx: '44900',
+            method: 'market',
+          },
+        }),
+      ]);
+
+      unsubscribe();
+    });
   });
 
   describe('Shared WebData2 Subscription', () => {
