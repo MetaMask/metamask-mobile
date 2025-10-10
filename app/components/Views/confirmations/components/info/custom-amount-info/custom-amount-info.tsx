@@ -68,8 +68,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsFooterVisible(!isKeyboardVisible);
     }, [isKeyboardVisible, setIsFooterVisible]);
 
-    const handleDone = useCallback(() => {
-      updateTokenAmount();
+    const handleDone = useCallback(async () => {
+      await updateTokenAmount();
       setKeyboardVisible(false);
     }, [updateTokenAmount]);
 
