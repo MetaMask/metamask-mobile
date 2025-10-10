@@ -9,13 +9,13 @@ import {
   parseCaipAssetType,
   parseCaipChainId,
 } from '@metamask/utils';
-import { getBlockExplorerName } from '../../util/networks';
-import { getTransactionUrl } from '../../core/Multichain/utils';
+import { getBlockExplorerName } from '../../../../util/networks';
+import { getTransactionUrl } from '../../../../core/Multichain/utils';
 import {
   selectEvmNetworkConfigurationsByChainId,
   createProviderConfig,
-} from '../../selectors/networkController';
-import useBlockExplorer from '../UI/Swaps/utils/useBlockExplorer';
+} from '../../../../selectors/networkController';
+import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
 
 type ExplorerInfo = { name: string; url: string } | undefined;

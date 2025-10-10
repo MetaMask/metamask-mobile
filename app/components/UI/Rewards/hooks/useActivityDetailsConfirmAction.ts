@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { CaipAssetType } from '@metamask/utils';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { useTransactionExplorer } from '../../../hooks/useTransactionExplorer';
+import { useTransactionExplorer } from './useTransactionExplorer';
 import { strings } from '../../../../../locales/i18n';
 import { ModalAction } from '../components/RewardsBottomSheetModal';
 

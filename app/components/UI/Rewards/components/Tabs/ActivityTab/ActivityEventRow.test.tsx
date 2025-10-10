@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { ActivityEventRow } from './ActivityEventRow';
 import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { formatRewardsDate } from '../../../utils/formatUtils';
@@ -18,6 +19,18 @@ jest.mock('../../../utils/formatUtils', () => ({
 jest.mock('../../../utils/eventDetailsUtils', () => ({
   getEventDetails: jest.fn(),
 }));
+
+// Mock selectors
+jest.mock('../../../../../../selectors/networkController', () => ({
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -161,6 +174,7 @@ describe('ActivityEventRow', () => {
     jest.clearAllMocks();
     mockGetEventDetails.mockReturnValue(defaultEventDetails);
     mockFormatRewardsDate.mockReturnValue('Sep 9, 2025');
+    mockUseSelector.mockReturnValue({});
   });
 
   describe('event details display', () => {

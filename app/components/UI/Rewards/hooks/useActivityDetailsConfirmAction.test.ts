@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import { useActivityDetailsConfirmAction } from './useActivityDetailsConfirmAction';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
-jest.mock('../../../hooks/useTransactionExplorer', () => ({
+jest.mock('./useTransactionExplorer', () => ({
   useTransactionExplorer: jest.fn(),
 }));
 
@@ -17,7 +17,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 describe('useActivityDetailsConfirmAction', () => {
   const { useTransactionExplorer } = jest.requireMock(
-    '../../../hooks/useTransactionExplorer',
+    './useTransactionExplorer',
   ) as { useTransactionExplorer: jest.Mock };
 
   beforeEach(() => {
