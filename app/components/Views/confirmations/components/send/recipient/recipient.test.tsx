@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+import { RedesignedSendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/RedesignedSendView.selectors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import { useSendContext } from '../../../context/send-context/send-context';
@@ -170,9 +171,6 @@ describe('Recipient', () => {
   const mockUpdateTo = jest.fn();
   const mockHandleSubmitPress = jest.fn();
   const mockCaptureRecipientSelected = jest.fn();
-  const mockSetRecipientInputMethodManual = jest.fn();
-  const mockSetRecipientInputMethodSelectAccount = jest.fn();
-  const mockSetRecipientInputMethodSelectContact = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -205,12 +203,6 @@ describe('Recipient', () => {
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: mockCaptureRecipientSelected,
-      setRecipientInputMethodManual: mockSetRecipientInputMethodManual,
-      setRecipientInputMethodPasted: jest.fn(),
-      setRecipientInputMethodSelectAccount:
-        mockSetRecipientInputMethodSelectAccount,
-      setRecipientInputMethodSelectContact:
-        mockSetRecipientInputMethodSelectContact,
     });
 
     mockUseSendActions.mockReturnValue({
@@ -226,6 +218,8 @@ describe('Recipient', () => {
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
       isSolanaSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
   });
 
@@ -285,7 +279,6 @@ describe('Recipient', () => {
 
     expect(mockUpdateTo).toHaveBeenCalledWith(selectedAccount.address);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedAccount.address);
-    expect(mockSetRecipientInputMethodSelectAccount).toHaveBeenCalledTimes(1);
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
@@ -297,7 +290,6 @@ describe('Recipient', () => {
 
     expect(mockUpdateTo).toHaveBeenCalledWith(selectedContact.address);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedContact.address);
-    expect(mockSetRecipientInputMethodSelectContact).toHaveBeenCalledTimes(1);
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
@@ -334,7 +326,7 @@ describe('Recipient', () => {
 
     const { getByTestId } = renderWithProvider(<Recipient />);
 
-    fireEvent.press(getByTestId('review-button-send'));
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
 
     expect(mockHandleSubmitPress).toHaveBeenCalledWith('some_dummy_address');
   });
@@ -528,10 +520,6 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: jest.fn(),
-      setRecipientInputMethodManual: jest.fn(),
-      setRecipientInputMethodPasted: jest.fn(),
-      setRecipientInputMethodSelectAccount: jest.fn(),
-      setRecipientInputMethodSelectContact: jest.fn(),
     });
   });
 
@@ -622,7 +610,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId('review-button-send'));
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -659,7 +647,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId('review-button-send'));
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
@@ -696,7 +684,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     // When: pressing Review triggers handleReview, which should early-return
-    fireEvent.press(getByTestId('review-button-send'));
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();

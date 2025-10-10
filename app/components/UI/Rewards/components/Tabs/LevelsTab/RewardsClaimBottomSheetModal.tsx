@@ -145,7 +145,7 @@ const RewardsClaimBottomSheetModal = ({
 
       handleModalClose();
       showToast();
-    } catch (error) {
+    } catch {
       // keep modal open to display error message
     }
   }, [
@@ -233,7 +233,7 @@ const RewardsClaimBottomSheetModal = ({
 
   const renderTitle = () => (
     <Box twClassName="flex-row items-center justify-between w-full">
-      <Text variant={TextVariant.HeadingSm} twClassName="w-[80%]">
+      <Text variant={TextVariant.HeadingLg} twClassName="w-[80%]">
         {title}
       </Text>
       <Box

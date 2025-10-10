@@ -155,6 +155,7 @@ import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -174,6 +175,12 @@ const Stack = createStackNavigator();
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
 const AccountNotFound = () => <AccountStatus type="not_exist" />;
+
+const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
+
+const SocialLoginSuccessExistingUser = () => (
+  <SocialLoginIosUser type="existing" />
+);
 
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
@@ -210,6 +217,11 @@ const OnboardingSuccessFlow = () => (
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName={'Onboarding'}>
     <Stack.Screen name="Onboarding" component={Onboarding} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
+      component={SocialLoginSuccessNewUser}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
     <Stack.Screen
       name="AccountBackupStep1"
@@ -246,6 +258,11 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="AccountStatus"
       component={AccountStatus}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+      component={SocialLoginSuccessExistingUser}
       options={{ headerShown: false }}
     />
     <Stack.Screen

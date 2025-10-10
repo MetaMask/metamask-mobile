@@ -165,7 +165,7 @@ export function usePerpsOrderFees({
 
         // Measure fee discount API call performance
         setMeasurement(
-          PerpsMeasurementName.REWARDS_FEE_DISCOUNT_API_CALL,
+          PerpsMeasurementName.PERPS_REWARDS_FEE_DISCOUNT_API_CALL,
           feeDiscountDuration,
           'millisecond',
         );
@@ -259,7 +259,7 @@ export function usePerpsOrderFees({
 
         // Measure points estimation API call performance
         setMeasurement(
-          PerpsMeasurementName.REWARDS_POINTS_ESTIMATION_API_CALL,
+          PerpsMeasurementName.PERPS_REWARDS_POINTS_ESTIMATION_API_CALL,
           pointsEstimationDuration,
           'millisecond',
         );
