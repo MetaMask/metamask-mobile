@@ -587,11 +587,11 @@ export class PredictController extends BaseController<
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
-          params: TypedMessageParams,
-          version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(params, version),
-        signPersonalMessage: (params: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(params),
+          _params: TypedMessageParams,
+          _version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(_params, _version),
+        signPersonalMessage: (_params: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(_params),
       };
 
       return await provider.placeOrder({ ...params, signer });
@@ -724,7 +724,6 @@ export class PredictController extends BaseController<
     });
   }
 
-  // TODO: We need to change to execute the transactions in the controller
   public async depositWithConfirmation(
     params: PrepareDepositParams,
   ): Promise<Result<{ batchId: string }>> {
@@ -741,11 +740,11 @@ export class PredictController extends BaseController<
       const signer = {
         address: selectedAddress,
         signTypedMessage: (
-          params: TypedMessageParams,
-          version: SignTypedDataVersion,
-        ) => KeyringController.signTypedMessage(params, version),
-        signPersonalMessage: (params: PersonalMessageParams) =>
-          KeyringController.signPersonalMessage(params),
+          _params: TypedMessageParams,
+          _version: SignTypedDataVersion,
+        ) => KeyringController.signTypedMessage(_params, _version),
+        signPersonalMessage: (_params: PersonalMessageParams) =>
+          KeyringController.signPersonalMessage(_params),
       };
 
       const { transactions, chainId } = await provider.prepareDeposit({
