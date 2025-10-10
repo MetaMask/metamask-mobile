@@ -464,8 +464,12 @@ describe('WalletConnect2Session', () => {
       },
     );
 
+    const { selectPerOriginChainId } = jest.requireMock(
+      '../../selectors/selectedNetworkController',
+    );
+
     // Mock initial chain ID
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    selectPerOriginChainId.mockReturnValue('0x1');
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -481,7 +485,7 @@ describe('WalletConnect2Session', () => {
     );
 
     // Change the chain ID
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+    selectPerOriginChainId.mockReturnValue('0x2');
 
     subscriberCallback();
 
@@ -504,7 +508,11 @@ describe('WalletConnect2Session', () => {
       },
     );
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    const { selectPerOriginChainId } = jest.requireMock(
+      '../../selectors/selectedNetworkController',
+    );
+
+    selectPerOriginChainId.mockReturnValue('0x1');
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -521,7 +529,7 @@ describe('WalletConnect2Session', () => {
       'handleChainChange',
     );
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+    selectPerOriginChainId.mockReturnValue('0x2');
 
     subscriberCallback();
 
@@ -543,7 +551,11 @@ describe('WalletConnect2Session', () => {
 
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    const { selectPerOriginChainId } = jest.requireMock(
+      '../../selectors/selectedNetworkController',
+    );
+
+    selectPerOriginChainId.mockReturnValue('0x1');
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -558,7 +570,7 @@ describe('WalletConnect2Session', () => {
       .spyOn(session as any, 'handleChainChange')
       .mockRejectedValueOnce(error);
 
-    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+    selectPerOriginChainId.mockReturnValue('0x2');
 
     subscriberCallback();
 
