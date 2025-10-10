@@ -479,10 +479,10 @@ describe('Smart Transactions utils', () => {
         false,
         controllerMessenger,
       );
-      expect(result).toEqual({ is_smart_transaction: true });
+      expect(result).toEqual({});
     });
 
-    it('returns empty object if smartTransaction is found but statusMetadata is undefined', async () => {
+    it('returns correct object if smartTransaction is found but statusMetadata is undefined', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {};
       (

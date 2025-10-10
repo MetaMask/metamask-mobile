@@ -121,6 +121,9 @@ export const getSmartTransactionMetricsProperties = async (
       controllerMessenger,
     );
   }
+  if (!smartTransaction) {
+    return {};
+  }
   if (!smartTransaction?.statusMetadata) {
     return { is_smart_transaction: true };
   }
