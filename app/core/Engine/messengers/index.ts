@@ -72,6 +72,10 @@ import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
 } from './token-detection-controller-messenger';
+import {
+  getTokenBalancesControllerInitMessenger,
+  getTokenBalancesControllerMessenger,
+} from './token-balances-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -240,6 +244,10 @@ export const CONTROLLER_MESSENGERS = {
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
     getInitMessenger: noop,
+  },
+  TokenBalancesController: {
+    getMessenger: getTokenBalancesControllerMessenger,
+    getInitMessenger: getTokenBalancesControllerInitMessenger,
   },
   TokenDetectionController: {
     getMessenger: getTokenDetectionControllerMessenger,

@@ -707,6 +707,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
+  | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
   | 'TokensController'

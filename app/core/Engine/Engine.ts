@@ -11,7 +11,6 @@ import {
   AccountTrackerController,
   NftController,
   NftDetectionController,
-  TokenBalancesController,
   TokenRatesController,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
@@ -195,6 +194,7 @@ import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
 import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
+import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -387,6 +387,7 @@ export class Engine {
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        TokenBalancesController: tokenBalancesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
         TokensController: tokensControllerInit,
@@ -468,6 +469,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const tokenBalancesController = controllersByName.TokenBalancesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
     const tokensController = controllersByName.TokensController;
@@ -781,38 +783,7 @@ export class Engine {
       NetworkController: networkController,
       PhishingController: phishingController,
       PreferencesController: preferencesController,
-      TokenBalancesController: new TokenBalancesController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenBalancesController',
-          allowedActions: [
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getState',
-            'TokensController:getState',
-            'PreferencesController:getState',
-            'AccountsController:getSelectedAccount',
-            'AccountsController:listAccounts',
-            'AccountTrackerController:getState',
-            'AccountTrackerController:updateNativeBalances',
-            'AccountTrackerController:updateStakedBalances',
-          ],
-          allowedEvents: [
-            'TokensController:stateChange',
-            'PreferencesController:stateChange',
-            'NetworkController:stateChange',
-            'KeyringController:accountRemoved',
-          ],
-        }),
-        // TODO: This is long, can we decrease it?
-        interval: 180000,
-        state: initialState.TokenBalancesController,
-        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
-        queryMultipleAccounts:
-          preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: () =>
-          selectAssetsAccountApiBalancesEnabled({
-            engine: { backgroundState: initialState },
-          }) as `0x${string}`[],
-      }),
+      TokenBalancesController: tokenBalancesController,
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenRatesController',
