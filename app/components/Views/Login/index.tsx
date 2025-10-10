@@ -858,7 +858,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
-                  loading={finalLoading}
                   isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
@@ -871,8 +870,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
                   onPress={handleUseOtherMethod}
-                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                  label={strings('login.forgot_password')}
+                  label={strings('login.other_methods')}
+                  loading={finalLoading}
                   isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
