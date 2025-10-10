@@ -7,10 +7,7 @@ import {
   NativeEventSubscription,
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
-import {
-  NftDetectionController,
-  CodefiTokenPricesServiceV2,
-} from '@metamask/assets-controllers';
+import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
@@ -195,6 +192,7 @@ import { tokenBalancesControllerInit } from './controllers/token-balances-contro
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
 import { accountTrackerControllerInit } from './controllers/account-tracker-controller-init';
 import { nftControllerInit } from './controllers/nft-controller-init';
+import { nftDetectionControllerInit } from './controllers/nft-detection-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -401,6 +399,7 @@ export class Engine {
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
+        NftDetectionController: nftDetectionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -484,6 +483,7 @@ export class Engine {
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
     const nftController = controllersByName.NftController;
+    const nftDetectionController = controllersByName.NftDetectionController;
     const networkController = controllersByName.NetworkController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -709,26 +709,7 @@ export class Engine {
       TokensController: tokensController,
       TokenListController: tokenListController,
       TokenDetectionController: tokenDetectionController,
-      NftDetectionController: new NftDetectionController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NftDetectionController',
-          allowedEvents: [
-            'NetworkController:stateChange',
-            'PreferencesController:stateChange',
-          ],
-          allowedActions: [
-            'ApprovalController:addRequest',
-            'NetworkController:getState',
-            'NetworkController:getNetworkClientById',
-            'PreferencesController:getState',
-            'AccountsController:getSelectedAccount',
-            'NetworkController:findNetworkClientIdByChainId',
-          ],
-        }),
-        disabled: false,
-        addNft: nftController.addNft.bind(nftController),
-        getNftState: () => nftController.state,
-      }),
+      NftDetectionController: nftDetectionController,
       CurrencyRateController: currencyRateController,
       NetworkController: networkController,
       PhishingController: phishingController,

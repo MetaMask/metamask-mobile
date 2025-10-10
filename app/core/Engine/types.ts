@@ -707,6 +707,7 @@ export type ControllersToInitialize =
   | 'KeyringController'
   | 'MultichainNetworkController'
   | 'NftController'
+  | 'NftDetectionController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TokenBalancesController'
