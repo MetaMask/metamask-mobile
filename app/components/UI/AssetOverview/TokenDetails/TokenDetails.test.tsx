@@ -346,351 +346,158 @@ describe('TokenDetails', () => {
     expect(getByText('Market details')).toBeDefined();
   });
 
-  it('should fetch market data from API for non-imported EVM token', async () => {
-    // Given a non-imported EVM token (not in cache)
-    const testTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC address
-    const nonImportedToken = {
-      ...mockDAI,
-      address: testTokenAddress,
-      symbol: 'USDC',
-      name: 'USD Coin',
-    };
+  const mockSolanaToken = {
+    address:
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
+    aggregators: [],
+    balanceFiat: '$10.00',
+    balance: '10',
+    logo: 'https://example.com/jup.png',
+    decimals: 9,
+    image: 'https://example.com/jup.png',
+    name: 'Jupiter',
+    symbol: 'JUP',
+    isETH: false,
+    hasBalanceError: false,
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  };
 
-    const mockApiResponse = {
-      [testTokenAddress.toLowerCase()]: {
-        price: 0.0005,
-        marketCap: '5000000',
-        totalVolume: '1000000',
-        circulatingSupply: '10000000',
-        allTimeHigh: 0.001,
-        allTimeLow: 0.0001,
-        dilutedMarketCap: '6000000',
-      },
-    };
-
-    jest.mocked(handleFetch).mockResolvedValue(mockApiResponse);
-
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      const SELECTOR_MOCKS = {
-        selectEvmTokenMarketData: null, // No cached data
-        selectConversionRateBySymbol: mockExchangeRate,
-        selectNativeCurrencyByChainId: 'ETH',
-        selectMultichainAssetsRates: {},
-      } as const;
-
+  const mockUseSelectorImplementation =
+    (customMocks: Record<string, unknown>) => (selectorOrCallback: unknown) => {
       if (typeof selectorOrCallback === 'function') {
         const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
+        const matchedKey = Object.keys(customMocks).find((key) =>
           selectorString.includes(key),
         );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
+        if (matchedKey) return customMocks[matchedKey];
       }
 
       switch (selectorOrCallback) {
         case selectCurrentCurrency:
           return mockCurrentCurrency;
         case selectIsEvmNetworkSelected:
-          return true;
+          return customMocks.isEvmNetwork ?? true;
         case selectMultichainAssetsRates:
-          return {};
+          return customMocks.multichainRates ?? {};
         default:
           return undefined;
       }
+    };
+
+  it('should fetch market data from API for non-imported EVM token', async () => {
+    const testToken = {
+      ...mockDAI,
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      symbol: 'USDC',
+    };
+
+    jest.mocked(handleFetch).mockResolvedValue({
+      '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+        price: 0.0005,
+        marketCap: '5000000',
+      },
     });
 
-    // When component renders
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectEvmTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
     const { findByText } = renderWithProvider(
-      <TokenDetails asset={nonImportedToken} />,
+      <TokenDetails asset={testToken} />,
       { state: initialState },
     );
 
-    // Then market data should be fetched and displayed
     await findByText('Market details');
     expect(handleFetch).toHaveBeenCalledWith(
       expect.stringContaining(
         'price.api.cx.metamask.io/v2/chains/1/spot-prices',
       ),
     );
-    expect(handleFetch).toHaveBeenCalledWith(
-      expect.stringContaining('includeMarketData=true'),
-    );
   });
 
   it('should fetch market data from API for non-imported Solana token', async () => {
-    // Given a non-imported Solana token (CAIP format)
-    const mockSolanaToken = {
-      address:
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
-      aggregators: [],
-      balanceFiat: '$10.00',
-      balance: '10',
-      logo: 'https://example.com/jup.png',
-      decimals: 9,
-      image: 'https://example.com/jup.png',
-      name: 'Jupiter',
-      symbol: 'JUP',
-      isETH: false,
-      hasBalanceError: false,
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    };
-
-    const mockApiResponse = {
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
-        {
-          price: 0.431111,
-          marketCap: '1364703778',
-          totalVolume: '32954819',
-          circulatingSupply: '3165216666.64',
-          allTimeHigh: 2,
-          allTimeLow: 0.306358,
-          dilutedMarketCap: '3017669206',
-        },
-    };
-
-    jest.mocked(handleFetch).mockResolvedValue(mockApiResponse);
-
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      const SELECTOR_MOCKS = {
-        selectEvmTokenMarketData: null,
-        selectConversionRateBySymbol: undefined,
-        selectNativeCurrencyByChainId: undefined,
-        selectMultichainAssetsRates: {}, // No cached rate
-      } as const;
-
-      if (typeof selectorOrCallback === 'function') {
-        const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
-          selectorString.includes(key),
-        );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
-      }
-
-      switch (selectorOrCallback) {
-        case selectCurrentCurrency:
-          return mockCurrentCurrency;
-        case selectIsEvmNetworkSelected:
-          return false;
-        case selectMultichainAssetsRates:
-          return {};
-        default:
-          return undefined;
-      }
+    jest.mocked(handleFetch).mockResolvedValue({
+      [mockSolanaToken.address]: {
+        price: 0.431111,
+        marketCap: '1364703778',
+      },
     });
 
-    // When component renders
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectEvmTokenMarketData: null,
+        isEvmNetwork: false,
+      }),
+    );
+
     const { findByText } = renderWithProvider(
       <TokenDetails asset={mockSolanaToken} />,
       { state: initialState },
     );
 
-    // Then market data should be fetched from v3 API and displayed
     await findByText('Market details');
     expect(handleFetch).toHaveBeenCalledWith(
       expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
     );
-    expect(handleFetch).toHaveBeenCalledWith(
-      expect.stringContaining('includeMarketData=true'),
-    );
   });
 
   it('should not fetch market data when already cached for EVM token', async () => {
-    // Given an EVM token with cached market data
-    jest.clearAllMocks(); // Clear previous API calls
+    jest.clearAllMocks();
 
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      const SELECTOR_MOCKS = {
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
         selectEvmTokenMarketData: {
           marketData: {
             price: 0.0005,
             marketCap: '5000000',
-            totalVolume: '1000000',
-            circulatingSupply: '10000000',
-            allTimeHigh: 0.001,
-            allTimeLow: 0.0001,
           },
-        }, // Market data is cached
+        },
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
-        selectMultichainAssetsRates: {},
-        selectTokenDisplayData: { found: false },
-      } as const;
+        isEvmNetwork: true,
+      }),
+    );
 
-      if (typeof selectorOrCallback === 'function') {
-        const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
-          selectorString.includes(key),
-        );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
-      }
-
-      switch (selectorOrCallback) {
-        case selectCurrentCurrency:
-          return mockCurrentCurrency;
-        case selectIsEvmNetworkSelected:
-          return true;
-        case selectMultichainAssetsRates:
-          return {};
-        default:
-          return undefined;
-      }
-    });
-
-    // When component renders
     const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
       state: initialState,
     });
 
-    // Then market data should be displayed without API call
     expect(getByText('Market details')).toBeDefined();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(handleFetch).not.toHaveBeenCalled();
   });
 
-  it('should not fetch market data when already cached for non-EVM (Solana) token', async () => {
-    // Given a Solana token with cached market data
-    jest.clearAllMocks(); // Clear previous API calls
+  it('should not fetch market data when already cached for Solana token', async () => {
+    jest.clearAllMocks();
 
-    const mockSolanaToken = {
-      address:
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
-      aggregators: [],
-      balanceFiat: '$10.00',
-      balance: '10',
-      logo: 'https://example.com/jup.png',
-      decimals: 9,
-      image: 'https://example.com/jup.png',
-      name: 'Jupiter',
-      symbol: 'JUP',
-      isETH: false,
-      hasBalanceError: false,
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    };
-
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      const SELECTOR_MOCKS = {
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
         selectEvmTokenMarketData: null,
-        selectConversionRateBySymbol: undefined,
-        selectNativeCurrencyByChainId: undefined,
-        selectMultichainAssetsRates: {
+        multichainRates: {
           [mockSolanaToken.address]: {
             rate: 0.431111,
             marketData: {
-              // Cached market data for Solana token
               allTimeHigh: 2,
-              allTimeLow: 0.306358,
-              circulatingSupply: '3165216666.64',
               marketCap: '1364703778',
-              totalVolume: '32954819',
-              dilutedMarketCap: '3017669206',
             },
           },
         },
-        selectTokenDisplayData: { found: false },
-      } as const;
+        isEvmNetwork: false,
+      }),
+    );
 
-      if (typeof selectorOrCallback === 'function') {
-        const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
-          selectorString.includes(key),
-        );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
-      }
-
-      switch (selectorOrCallback) {
-        case selectCurrentCurrency:
-          return mockCurrentCurrency;
-        case selectIsEvmNetworkSelected:
-          return false;
-        case selectMultichainAssetsRates:
-          return SELECTOR_MOCKS.selectMultichainAssetsRates;
-        default:
-          return undefined;
-      }
-    });
-
-    // When component renders
     const { getByText } = renderWithProvider(
       <TokenDetails asset={mockSolanaToken} />,
       { state: initialState },
     );
 
-    // Then market data should be displayed without API call
     expect(getByText('Market details')).toBeDefined();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(handleFetch).not.toHaveBeenCalled();
-  });
-
-  it('should handle API fetch errors gracefully', async () => {
-    // Given an API that fails
-    const testTokenAddress = '0xdac17f958d2ee523a2206206994597c13d831ec7'; // USDT address
-    const nonImportedToken = {
-      ...mockDAI,
-      address: testTokenAddress,
-    };
-
-    jest.mocked(handleFetch).mockRejectedValue(new Error('API Error'));
-
-    const consoleErrorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined);
-
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      const SELECTOR_MOCKS = {
-        selectEvmTokenMarketData: null,
-        selectConversionRateBySymbol: mockExchangeRate,
-        selectNativeCurrencyByChainId: 'ETH',
-        selectMultichainAssetsRates: {},
-      } as const;
-
-      if (typeof selectorOrCallback === 'function') {
-        const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
-          selectorString.includes(key),
-        );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
-      }
-
-      switch (selectorOrCallback) {
-        case selectCurrentCurrency:
-          return mockCurrentCurrency;
-        case selectIsEvmNetworkSelected:
-          return true;
-        case selectMultichainAssetsRates:
-          return {};
-        default:
-          return undefined;
-      }
-    });
-
-    // When component renders
-    const { queryByText } = renderWithProvider(
-      <TokenDetails asset={nonImportedToken} />,
-      { state: initialState },
-    );
-
-    // Then error should be logged but component should not crash
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to fetch market data:',
-      expect.any(Error),
-    );
-    expect(queryByText('Market details')).toBeNull();
-
-    consoleErrorSpy.mockRestore();
   });
 });

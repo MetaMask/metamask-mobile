@@ -1024,14 +1024,61 @@ describe('AssetOverview', () => {
   });
 
   describe('Exchange Rate Fetching', () => {
+    const SOLANA_ASSET_ID =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
+    const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    const mockSolanaAccount = createMockSnapInternalAccount(
+      'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+      'Solana Account 1',
+      SolAccountType.DataAccount,
+    );
+
+    const createSolanaToken = (balanceFiat: string) => ({
+      address: SOLANA_ASSET_ID,
+      aggregators: [],
+      balanceFiat,
+      balance: '10',
+      logo: 'https://example.com/jup.png',
+      decimals: 9,
+      image: 'https://example.com/jup.png',
+      name: 'Jupiter',
+      symbol: 'JUP',
+      isETH: false,
+      hasBalanceError: false,
+      chainId: SOLANA_CHAIN_ID,
+      isNative: false,
+    });
+
+    const createSolanaState = (customState = {}) => ({
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              selectedAccount: mockSolanaAccount.id,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [mockSolanaAccount.id]: mockSolanaAccount,
+              },
+            },
+          },
+          ...customState,
+        },
+      },
+    });
+
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
     it('should fetch exchange rate from API for non-imported EVM token', async () => {
-      // Given a non-imported EVM token (not in allTokenMarketData)
-      const testTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC
-      const nonImportedToken = {
+      const testTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const testToken = {
         address: testTokenAddress,
         aggregators: [],
         balanceFiat: '$0.00',
@@ -1046,37 +1093,29 @@ describe('AssetOverview', () => {
         chainId: MOCK_CHAIN_ID,
       };
 
-      const mockApiResponse = {
-        [testTokenAddress.toLowerCase()]: {
-          price: 0.0005, // Fiat price in USD
-        },
-      };
+      jest.mocked(handleFetch).mockResolvedValue({
+        [testTokenAddress.toLowerCase()]: { price: 0.0005 },
+      });
 
-      jest.mocked(handleFetch).mockResolvedValue(mockApiResponse);
-
-      const stateWithoutMarketData = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            TokenRatesController: {
-              marketData: {
-                '0x1': {}, // Empty market data (token not imported)
+      const { findByText } = renderWithProvider(
+        <AssetOverview asset={testToken} />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                TokenRatesController: {
+                  marketData: { '0x1': {} },
+                },
               },
             },
           },
         },
-      };
-
-      // When component renders
-      const { findByText } = renderWithProvider(
-        <AssetOverview asset={nonImportedToken} />,
-        { state: stateWithoutMarketData },
       );
 
-      // Then exchange rate should be fetched from API
-      await findByText(nonImportedToken.name);
+      await findByText(testToken.name);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining(
           'price.api.cx.metamask.io/v2/chains/1/spot-prices',
@@ -1087,9 +1126,8 @@ describe('AssetOverview', () => {
       );
     });
 
-    it('should not fetch exchange rate when already cached in allTokenMarketData for EVM token', () => {
-      // Given an EVM token with exchange rate already in cache
-      jest.clearAllMocks(); // Clear previous API calls
+    it('should not fetch exchange rate when already cached for EVM token', () => {
+      jest.clearAllMocks();
 
       const cachedTokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const cachedToken = {
@@ -1107,36 +1145,30 @@ describe('AssetOverview', () => {
         chainId: MOCK_CHAIN_ID,
       };
 
-      const stateWithCachedRate = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            TokenRatesController: {
-              marketData: {
-                '0x1': {
-                  [cachedTokenAddress.toLowerCase()]: {
-                    price: 0.005,
-                    // Include market data so TokenDetails doesn't fetch either
-                    marketCap: 5000000,
-                    totalVolume: 1000000,
-                    circulatingSupply: 10000000,
+      renderWithProvider(<AssetOverview asset={cachedToken} />, {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              TokenRatesController: {
+                marketData: {
+                  '0x1': {
+                    [cachedTokenAddress.toLowerCase()]: {
+                      price: 0.005,
+                      marketCap: 5000000,
+                      totalVolume: 1000000,
+                      circulatingSupply: 10000000,
+                    },
                   },
                 },
               },
             },
           },
         },
-      };
-
-      // When component renders with cached data
-      renderWithProvider(<AssetOverview asset={cachedToken} />, {
-        state: stateWithCachedRate,
       });
 
-      // Then exchange rate API should NOT be called for this token (using cached data)
-      // Note: market data may still be fetched by TokenDetails child component
       const exchangeRateCalls = jest
         .mocked(handleFetch)
         .mock.calls.filter((call) => {
@@ -1150,80 +1182,33 @@ describe('AssetOverview', () => {
       expect(exchangeRateCalls.length).toBe(0);
     });
 
-    it('should not fetch exchange rate when already cached in multichainAssetsRates for Solana token', () => {
-      // Given a Solana token with rate already cached
-      jest.clearAllMocks(); // Clear previous API calls
+    it('should not fetch exchange rate when already cached for Solana token', () => {
+      jest.clearAllMocks();
 
-      const solanaAssetId =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
-      const cachedSolanaToken = {
-        address: solanaAssetId,
-        aggregators: [],
-        balanceFiat: '$10.00',
-        balance: '10',
-        logo: 'https://example.com/jup.png',
-        decimals: 9,
-        image: 'https://example.com/jup.png',
-        name: 'Jupiter',
-        symbol: 'JUP',
-        isETH: false,
-        hasBalanceError: false,
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        isNative: false,
-      };
+      const cachedSolanaToken = createSolanaToken('$10.00');
 
-      const mockSolanaAccount = createMockSnapInternalAccount(
-        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
-        'Solana Account 1',
-        SolAccountType.DataAccount,
-      );
-
-      const solanaStateWithCachedRate = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                selectedAccount: mockSolanaAccount.id,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [mockSolanaAccount.id]: mockSolanaAccount,
-                },
-              },
-            },
-            MultichainAssetsRatesController: {
-              conversionRates: {
-                [solanaAssetId]: {
-                  rate: '0.431111',
-                  conversionTime: Date.now(),
-                  // Include market data so TokenDetails doesn't fetch either
-                  marketData: {
-                    fungible: true as const,
-                    allTimeHigh: '2',
-                    allTimeLow: '0.306358',
-                    circulatingSupply: '3165216666.64',
-                    marketCap: '1364703778',
-                    totalVolume: '32954819',
-                    dilutedMarketCap: '3017669206',
-                  },
+      renderWithProvider(<AssetOverview asset={cachedSolanaToken} />, {
+        state: createSolanaState({
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              [SOLANA_ASSET_ID]: {
+                rate: '0.431111',
+                conversionTime: Date.now(),
+                marketData: {
+                  fungible: true as const,
+                  allTimeHigh: '2',
+                  allTimeLow: '0.306358',
+                  circulatingSupply: '3165216666.64',
+                  marketCap: '1364703778',
+                  totalVolume: '32954819',
+                  dilutedMarketCap: '3017669206',
                 },
               },
             },
           },
-        },
-      };
-
-      // When component renders with cached data
-      renderWithProvider(<AssetOverview asset={cachedSolanaToken} />, {
-        state: solanaStateWithCachedRate,
+        }),
       });
 
-      // Then exchange rate API should NOT be called for this token (using cached data)
-      // Note: market data may still be fetched by TokenDetails child component
       const exchangeRateCalls = jest
         .mocked(handleFetch)
         .mock.calls.filter((call) => {
@@ -1238,67 +1223,17 @@ describe('AssetOverview', () => {
     });
 
     it('should fetch exchange rate from API for non-imported Solana token', async () => {
-      // Given a non-imported Solana token
-      const solanaToken = {
-        address:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
-        aggregators: [],
-        balanceFiat: '$0.00',
-        balance: '10',
-        logo: 'https://example.com/jup.png',
-        decimals: 9,
-        image: 'https://example.com/jup.png',
-        name: 'Jupiter',
-        symbol: 'JUP',
-        isETH: false,
-        hasBalanceError: false,
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        isNative: false,
-      };
+      const solanaToken = createSolanaToken('$0.00');
 
-      const mockApiResponse = {
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
-          {
-            price: 0.431111, // Direct fiat price for Solana
-          },
-      };
+      jest.mocked(handleFetch).mockResolvedValue({
+        [SOLANA_ASSET_ID]: { price: 0.431111 },
+      });
 
-      jest.mocked(handleFetch).mockResolvedValue(mockApiResponse);
-
-      const mockSolanaAccount = createMockSnapInternalAccount(
-        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
-        'Solana Account 1',
-        SolAccountType.DataAccount,
-      );
-
-      const solanaState = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                selectedAccount: mockSolanaAccount.id,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [mockSolanaAccount.id]: mockSolanaAccount,
-                },
-              },
-            },
-          },
-        },
-      };
-
-      // When component renders
       const { findByText } = renderWithProvider(
         <AssetOverview asset={solanaToken} />,
-        { state: solanaState },
+        { state: createSolanaState() },
       );
 
-      // Then exchange rate should be fetched from v3 API
       await findByText(solanaToken.name);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
