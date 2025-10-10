@@ -11,7 +11,6 @@ import {
   AccountTrackerController,
   NftController,
   NftDetectionController,
-  TokenRatesController,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
@@ -195,6 +194,7 @@ import { tokenListControllerInit } from './controllers/token-list-controller-ini
 import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
+import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -388,6 +388,7 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
+        TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
         TokensController: tokensControllerInit,
@@ -470,6 +471,7 @@ export class Engine {
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
     const tokenBalancesController = controllersByName.TokenBalancesController;
+    const tokenRatesController = controllersByName.TokenRatesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
     const tokensController = controllersByName.TokensController;
@@ -784,26 +786,7 @@ export class Engine {
       PhishingController: phishingController,
       PreferencesController: preferencesController,
       TokenBalancesController: tokenBalancesController,
-      TokenRatesController: new TokenRatesController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokenRatesController',
-          allowedActions: [
-            'TokensController:getState',
-            'NetworkController:getNetworkClientById',
-            'NetworkController:getState',
-            'AccountsController:getAccount',
-            'AccountsController:getSelectedAccount',
-          ],
-          allowedEvents: [
-            'TokensController:stateChange',
-            'NetworkController:stateChange',
-            'AccountsController:selectedEvmAccountChange',
-          ],
-        }),
-        tokenPricesService: codefiTokenApiV2,
-        interval: 30 * 60 * 1000,
-        state: initialState.TokenRatesController || { marketData: {} },
-      }),
+      TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: new SwapsController({

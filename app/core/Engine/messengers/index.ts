@@ -76,6 +76,7 @@ import {
   getTokenBalancesControllerInitMessenger,
   getTokenBalancesControllerMessenger,
 } from './token-balances-controller-messenger';
+import { getTokenRatesControllerMessenger } from './token-rates-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -252,6 +253,10 @@ export const CONTROLLER_MESSENGERS = {
   TokenDetectionController: {
     getMessenger: getTokenDetectionControllerMessenger,
     getInitMessenger: getTokenDetectionControllerInitMessenger,
+  },
+  TokenRatesController: {
+    getMessenger: getTokenRatesControllerMessenger,
+    getInitMessenger: noop,
   },
   TokenSearchDiscoveryController: {
     getMessenger: getTokenSearchDiscoveryControllerMessenger,

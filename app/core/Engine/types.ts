@@ -710,6 +710,7 @@ export type ControllersToInitialize =
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
+  | 'TokenRatesController'
   | 'TokensController'
   | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
