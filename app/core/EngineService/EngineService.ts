@@ -181,8 +181,7 @@ export class EngineService {
                 const filteredState = getPersistentState(
                   controllerState,
                   // @ts-expect-error - EngineContext has stateless controllers, so metadata is not available
-                  UntypedEngine.context[controllerName as keyof EngineContext]
-                    ?.metadata,
+                  UntypedEngine.context[controllerName]?.metadata,
                 );
 
                 this.updateBatcher.add(controllerName);

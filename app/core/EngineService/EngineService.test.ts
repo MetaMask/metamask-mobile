@@ -197,7 +197,7 @@ describe('EngineService', () => {
 
   it('should log Engine initialization with state info (existing installation)', async () => {
     // Mock ControllerStorage to return actual state (existing installation)
-    (ControllerStorage.getKey as jest.Mock).mockResolvedValue({
+    (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
       backgroundState: {
         KeyringController: { vault: 'encrypted_vault_data' },
         PreferencesController: { selectedAddress: '0x123' },
@@ -217,7 +217,7 @@ describe('EngineService', () => {
 
   it('should log Engine initialization with empty state (fresh install)', async () => {
     // Mock ControllerStorage to return empty state (fresh install)
-    (ControllerStorage.getKey as jest.Mock).mockResolvedValue({
+    (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
       backgroundState: {},
     });
 
