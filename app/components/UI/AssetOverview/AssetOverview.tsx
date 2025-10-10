@@ -80,10 +80,7 @@ import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNaviga
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
-import {
-  exchangeRateFromMarketData,
-  getTokenExchangeRate,
-} from '../Bridge/utils/exchange-rates';
+import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 interface AssetOverviewProps {
@@ -116,6 +113,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
+  const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const { navigateToSendPage } = useSendNavigation();
 
@@ -353,7 +351,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : asset.address;
 
   const currentChainId = chainId as Hex;
-  const allTokenMarketData = useSelector(selectTokenMarketData);
+  const marketDataRate =
+    allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
 
   // Fetch exchange rate - will use allTokenMarketData if available,
   // otherwise fetch from API for non-imported tokens
@@ -361,22 +360,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const shouldFetchRate = isNonEvmAsset ? !multichainAssetRates : true;
   const [fetchedRate, setFetchedRate] = useState<number | undefined>();
 
-  const marketDataRate =
-    shouldFetchRate && currentChainId && itemAddress
-      ? exchangeRateFromMarketData(
-          currentChainId,
-          itemAddress,
-          allTokenMarketData,
-        )
-      : undefined;
-
   useEffect(() => {
-    if (
-      !shouldFetchRate ||
-      marketDataRate !== undefined ||
-      !currentChainId ||
-      !itemAddress
-    ) {
+    if (marketDataRate !== undefined || !itemAddress) {
       return;
     }
 
@@ -385,6 +370,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       nativeCurrency &&
       conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
+    // Skip EVM chains that don't have a native asset conversion rate
     if (!isNonEvm && !nativeAssetConversionRate) {
       return;
     }
@@ -397,16 +383,17 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           currency: currentCurrency,
         });
 
-        if (tokenFiatPrice) {
-          if (isNonEvm) {
-            setFetchedRate(tokenFiatPrice);
-          } else if (nativeAssetConversionRate) {
-            setFetchedRate(tokenFiatPrice / nativeAssetConversionRate);
-          } else {
-            setFetchedRate(undefined);
-          }
-        } else {
+        if (!tokenFiatPrice) {
           setFetchedRate(undefined);
+          return;
+        }
+
+        // Non-EVM: use the fiat price directly
+        if (isNonEvm) {
+          setFetchedRate(tokenFiatPrice);
+        } else if (nativeAssetConversionRate) {
+          // EVM: convert to native currency rate
+          setFetchedRate(tokenFiatPrice / nativeAssetConversionRate);
         }
       } catch (error) {
         console.error('Failed to fetch token exchange rate:', error);

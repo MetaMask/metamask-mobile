@@ -152,50 +152,31 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
     if (!plainTokenAddress || !asset.chainId) return;
 
-    const isNonEvm = isNonEvmChainId(asset.chainId as string);
-
     const fetchData = async () => {
       try {
-        if (isNonEvm) {
-          const assetId = toAssetId(
-            plainTokenAddress,
-            asset.chainId as `${string}:${string}`,
-          );
-          if (!assetId) return;
+        const isNonEvm = isNonEvmChainId(asset.chainId as string);
 
-          const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
-            {
-              assetIds: assetId,
-              includeMarketData: 'true',
-              vsCurrency: currentCurrency.toLowerCase(),
-            },
-          )}`;
-          const response = (await handleFetch(url)) as Record<
-            string,
-            Record<string, unknown>
-          >;
-          setFetchedMarketData(response?.[assetId]);
-        } else {
-          const checksumAddress = safeToChecksumAddress(plainTokenAddress);
-          if (!checksumAddress) return;
+        // Convert chainId to CAIP format for both EVM and non-EVM chains
+        const caipChainId = isNonEvm
+          ? (asset.chainId as `${string}:${string}`)
+          : formatChainIdToCaip(asset.chainId as Hex);
 
-          const url = `https://price.api.cx.metamask.io/v2/chains/${parseInt(
-            asset.chainId as string,
-            16,
-          )}/spot-prices?${new URLSearchParams({
-            tokenAddresses: checksumAddress,
-            vsCurrency: currentCurrency.toLowerCase(),
+        const assetId = toAssetId(plainTokenAddress, caipChainId);
+        if (!assetId) return;
+
+        // Use v3 API for all chains
+        const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
+          {
+            assetIds: assetId,
             includeMarketData: 'true',
-          })}`;
-          const response = (await handleFetch(url)) as Record<
-            string,
-            Record<string, unknown>
-          >;
-          setFetchedMarketData(
-            response?.[checksumAddress.toLowerCase()] ??
-              response?.[checksumAddress],
-          );
-        }
+            vsCurrency: currentCurrency.toLowerCase(),
+          },
+        )}`;
+        const response = (await handleFetch(url)) as Record<
+          string,
+          Record<string, unknown>
+        >;
+        setFetchedMarketData(response?.[assetId]);
       } catch (error) {
         console.error('Failed to fetch market data:', error);
       }

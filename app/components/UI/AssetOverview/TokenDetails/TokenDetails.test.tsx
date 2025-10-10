@@ -392,7 +392,7 @@ describe('TokenDetails', () => {
     };
 
     jest.mocked(handleFetch).mockResolvedValue({
-      '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
         price: 0.0005,
         marketCap: '5000000',
       },
@@ -414,9 +414,7 @@ describe('TokenDetails', () => {
 
     await findByText('Market details');
     expect(handleFetch).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'price.api.cx.metamask.io/v2/chains/1/spot-prices',
-      ),
+      expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
     );
   });
 
