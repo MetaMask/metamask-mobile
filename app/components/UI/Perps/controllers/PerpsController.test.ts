@@ -1157,6 +1157,10 @@ describe('PerpsController', () => {
     });
 
     it('handles data lake reporting errors gracefully', async () => {
+      // Mock the controller as initialized
+      (controller as any).isInitialized = true;
+      (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
+
       mockProvider.placeOrder.mockResolvedValue({
         success: true,
         orderId: 'order123',
@@ -1184,12 +1188,16 @@ describe('PerpsController', () => {
       expect(result.orderId).toBe('order123');
 
       // Verify that Logger.error was called for the data lake failure
+      // The new implementation uses getErrorContext() which has different structure
       const errorCalls = (Logger.error as jest.Mock).mock.calls;
+
       const hasDataLakeError = errorCalls.some((call) => {
         const secondArg = call[1];
         return (
           typeof secondArg === 'object' &&
-          secondArg.message === 'DataLake API: Request failed'
+          secondArg.context === 'PerpsController.reportOrderToDataLake' &&
+          secondArg.coin === 'BTC' &&
+          secondArg.action === 'open'
         );
       });
       expect(hasDataLakeError).toBe(true);
