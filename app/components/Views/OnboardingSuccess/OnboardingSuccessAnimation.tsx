@@ -5,14 +5,16 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { View, Dimensions, Animated, Easing } from 'react-native';
-import Rive, { RiveRef, Fit, Alignment } from 'rive-react-native';
+import { View, Animated, Easing } from 'react-native';
+import Rive, { Fit, Alignment } from 'rive-react-native';
 import { useTheme } from '../../../util/theme';
 import createStyles from './OnboardingSuccessAnimation.styles.ts';
 import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useScreenDimensions } from './hooks/useScreenDimensions';
+import { useRiveAnimation } from './hooks/useRiveAnimation';
 
 import onboardingRiveFile from '../../../animations/onboarding_loader.riv';
 import { isE2E } from '../../../util/test/utils';
@@ -29,23 +31,20 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
 
-  const screenDimensions = useMemo(() => {
-    const { width, height } = Dimensions.get('window');
-    return {
-      screenWidth: width,
-      screenHeight: height,
-      animationHeight: height * 0.6,
-    };
-  }, []);
+  const screenDimensions = useScreenDimensions();
 
   const styles = useMemo(
     () => createStyles(colors, screenDimensions),
     [colors, screenDimensions],
   );
 
-  const riveRef = useRef<RiveRef>(null);
+  const { riveRef, clearRiveTimer } = useRiveAnimation(isDarkMode, {
+    stateMachineName: 'OnboardingLoader',
+    darkModeInputName: 'Dark mode',
+    startTriggerName: 'Start',
+  });
+
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
-  const riveTimeoutId = useRef<NodeJS.Timeout | null>(null);
   const isCompletedRef = useRef(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -56,57 +55,15 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
       clearInterval(dotsIntervalId.current);
       dotsIntervalId.current = null;
     }
-    if (riveTimeoutId.current) {
-      clearTimeout(riveTimeoutId.current);
-      riveTimeoutId.current = null;
-    }
+    clearRiveTimer();
     isCompletedRef.current = false;
-  }, []);
+  }, [clearRiveTimer]);
 
   const renderAnimatedDots = useCallback(() => {
     const count = Math.max(1, Math.min(3, dotsCount));
     const dots = '.'.repeat(count);
     return dots;
   }, [dotsCount]);
-
-  const startRiveAnimation = useCallback(() => {
-    if (isE2E) {
-      // Set static state for E2E tests
-      if (riveRef.current) {
-        riveRef.current.setInputState(
-          'OnboardingLoader',
-          'Dark mode',
-          isDarkMode,
-        );
-        riveRef.current.fireState('OnboardingLoader', 'Start');
-      }
-      return;
-    }
-
-    if (!riveRef.current) {
-      return;
-    }
-
-    if (riveTimeoutId.current) {
-      clearTimeout(riveTimeoutId.current);
-    }
-
-    riveTimeoutId.current = setTimeout(() => {
-      if (riveRef.current) {
-        try {
-          riveRef.current.setInputState(
-            'OnboardingLoader',
-            'Dark mode',
-            isDarkMode,
-          );
-          riveRef.current.fireState('OnboardingLoader', 'Start');
-        } catch (error) {
-          console.error('Error with Rive animation:', error);
-        }
-      }
-      riveTimeoutId.current = null;
-    }, 100);
-  }, [isDarkMode]);
 
   const startDotsAnimation = useCallback(() => {
     if (dotsIntervalId.current) {
@@ -147,13 +104,12 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   }, [slideAnim, screenDimensions.screenWidth, _onAnimationComplete]);
 
   useEffect(() => {
-    startRiveAnimation();
     startDotsAnimation();
 
     return () => {
       clearTimers();
     };
-  }, [startRiveAnimation, startDotsAnimation, clearTimers]);
+  }, [startDotsAnimation, clearTimers]);
 
   useEffect(() => {
     if (slideOut) {

@@ -1,11 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-
-interface ScreenDimensions {
-  screenWidth: number;
-  screenHeight: number;
-  animationHeight: number;
-}
+import { ScreenDimensions } from './hooks/useScreenDimensions';
 
 const createStyles = (colors: Theme['colors'], dimensions: ScreenDimensions) =>
   StyleSheet.create({
