@@ -5960,7 +5960,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
 
     "onboarding": {
