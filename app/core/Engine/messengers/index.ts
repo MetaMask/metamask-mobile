@@ -66,7 +66,10 @@ import {
   getTokensControllerInitMessenger,
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
-import { getTokenListControllerMessenger } from './token-list-controller-messenger';
+import {
+  getTokenListControllerInitMessenger,
+  getTokenListControllerMessenger,
+} from './token-list-controller-messenger';
 import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
 import {
   getTokenDetectionControllerInitMessenger,
@@ -100,7 +103,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   TokenListController: {
     getMessenger: getTokenListControllerMessenger,
-    getInitMessenger: getTokenListControllerMessenger,
+    getInitMessenger: getTokenListControllerInitMessenger,
   },
   TokensController: {
     getMessenger: getTokensControllerMessenger,
