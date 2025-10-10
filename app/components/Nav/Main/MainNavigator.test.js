@@ -16,6 +16,7 @@ jest.mock('./MainNavigator', () => {
     selectRewardsEnabledFlag,
   } = require('../../../selectors/featureFlagController/rewards');
   const { selectBrowserFullscreen } = require('../../../selectors/browser');
+  const Routes = require('../../../constants/navigation/Routes').default;
 
   // Mock implementation that tests tab visibility based on rewards flag and browser fullscreen state
   return function MockMainNavigator({ route }) {
