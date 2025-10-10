@@ -35,6 +35,12 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import { hasTransactionType } from '../../utils/transaction';
+
+const HIDE_FOOTER_BY_DEFAULT_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 export const Footer = () => {
   const {
@@ -176,7 +182,9 @@ export const Footer = () => {
   ];
 
   const isFooterVisible =
-    isFooterVisibleFlag ?? transactionType !== TransactionType.perpsDeposit;
+    isFooterVisibleFlag ??
+    (!transactionMetadata ||
+      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
 
   if (!isFooterVisible) {
     return null;
