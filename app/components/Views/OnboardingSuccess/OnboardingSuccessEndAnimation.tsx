@@ -101,6 +101,7 @@ const OnboardingSuccessEndAnimation: React.FC<
         <Rive
           ref={riveRef}
           source={onboardingLoaderEndAnimation}
+          stateMachineName="OnboardingLoader"
           style={styles.riveAnimation}
           autoplay
           fit={Fit.Cover}
