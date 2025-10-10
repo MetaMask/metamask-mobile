@@ -8,6 +8,10 @@ import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import useAccountTrackerPolling from './useAccountTrackerPolling';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+} from '../../../selectors/networkController';
 
 // This provider is a step towards making controller polling fully UI based.
 // Eventually, individual UI components will call the use*Polling hooks to
@@ -26,11 +30,30 @@ export const AssetPollingProvider = memo(
 
     const account = useSelector(selectSelectedInternalAccount);
 
+    const networkConfigurations = useSelector(
+      selectEvmNetworkConfigurationsByChainId,
+    );
+
+    const networkClientIds = useMemo(
+      () =>
+        (chainIds ?? [])?.map((chainId) => {
+          const networkConfiguration = networkConfigurations[chainId];
+          const networkClientId =
+            networkConfiguration.rpcEndpoints[
+              networkConfiguration.defaultBlockExplorerUrlIndex ?? 0
+            ].networkClientId;
+
+          return networkClientId;
+        }),
+      [chainIds, networkConfigurations],
+    );
+
     useCurrencyRatePolling(chainParams);
     useTokenRatesPolling(chainParams);
     useTokenDetectionPolling(tokenDetectionParams);
     useTokenListPolling(chainParams);
     useTokenBalancesPolling(chainParams);
+    useAccountTrackerPolling({ networkClientIds });
 
     useMultichainAssetsRatePolling(
       account?.id ? { accountId: account.id } : { accountId: '' },

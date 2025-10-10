@@ -1,6 +1,6 @@
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
+import { BridgeQuoteRequest } from '../../utils/bridge';
 import { useEffect, useRef, useState } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ import {
 } from '../../../../UI/Bridge/utils/quoteUtils';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { useTransactionPayMetrics } from './useTransactionPayMetrics';
+import { RelayPayMethod } from '../../../../../util/transactions/pay-method/relay';
 
 const EXCLUDED_ALERTS = [
   AlertKeys.NoPayTokenQuotes,
@@ -100,6 +101,12 @@ export function useTransactionBridgeQuotes() {
       return [];
     }
 
+    if (
+      sourceAmounts.some((sourceAmount) => sourceAmount.amountHuman === '0')
+    ) {
+      return [];
+    }
+
     return sourceAmounts.map((sourceAmount) => {
       const {
         address: targetTokenAddress,
@@ -145,7 +152,7 @@ export function useTransactionBridgeQuotes() {
       return [];
     }
 
-    return getBridgeQuotes(requests);
+    return await new RelayPayMethod().getQuotes(requests);
   }, [requests, refreshIndex]);
 
   useEffect(() => {
@@ -161,18 +168,6 @@ export function useTransactionBridgeQuotes() {
       isExpired.current = false;
       setLastFetched(Date.now());
     }
-
-    log(
-      'Bridge quotes',
-      quotes?.map((quote) => ({
-        approval: quote.approval,
-        bridgeId: quote.quote?.bridgeId,
-        networkFee: quote.totalMaxNetworkFee?.valueInCurrency,
-        sourceAmount: quote.sentAmount?.valueInCurrency,
-        to: quote.toTokenAmount?.valueInCurrency,
-        trade: quote.trade,
-      })),
-    );
   }, [dispatch, quotes, transactionId]);
 
   return { loading, quotes };

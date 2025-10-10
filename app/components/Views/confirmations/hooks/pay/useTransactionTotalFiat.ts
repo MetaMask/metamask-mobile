@@ -7,7 +7,6 @@ import {
   useTransactionRequiredFiat,
 } from './useTransactionRequiredFiat';
 import { BigNumber } from 'bignumber.js';
-import { TransactionBridgeQuote } from '../../utils/bridge';
 import { useFeeCalculations } from '../gas/useFeeCalculations';
 import { useDeepMemo } from '../useDeepMemo';
 import { useEffect } from 'react';
@@ -15,12 +14,9 @@ import { createProjectLogger } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { noop } from 'lodash';
 import { useTransactionPayFiat } from './useTransactionPayFiat';
+import { PayQuote } from '../../../../../util/transactions/pay-method/relay';
 
 const logger = createProjectLogger('transaction-pay');
-
-type TransactionBridgeQuoteExtended = TransactionBridgeQuote & {
-  requiredFiat: number;
-};
 
 export function useTransactionTotalFiat({
   log: isLoggingEnabled,
@@ -34,26 +30,12 @@ export function useTransactionTotalFiat({
   const { values } = useTransactionRequiredFiat();
   const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
-  const quotesRaw = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
-  );
+  const quotes =
+    useSelector((state: RootState) =>
+      selectTransactionBridgeQuotesById(state, transactionId),
+    ) ?? [];
 
   const { formatFiat: fiatFormatter } = useTransactionPayFiat();
-
-  const quotes: TransactionBridgeQuoteExtended[] = (quotesRaw ?? []).map(
-    (quote) => {
-      const requiredFiat = values.find(
-        (token) =>
-          token.address.toLowerCase() ===
-          quote.quote.destAsset.address.toLowerCase(),
-      )?.amountFiat;
-
-      return {
-        ...quote,
-        requiredFiat: requiredFiat ?? 0,
-      };
-    },
-  );
 
   const result = {
     ...getBridgeFeeTotal(quotes, fiatFormatter),
@@ -74,17 +56,15 @@ export function useTransactionTotalFiat({
 }
 
 function getTotal(
-  quotes: TransactionBridgeQuoteExtended[],
-  requiredFiat: TransactionRequiredFiat[],
+  quotes: PayQuote<unknown>[],
+  _requiredFiat: TransactionRequiredFiat[],
   estimatedGasFeeFiat: string | null,
   format: (value: BigNumber) => string,
 ) {
-  const balanceTotal = requiredFiat
-    .filter((token) => !token.skipIfBalance)
-    .reduce(
-      (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
-      new BigNumber(0),
-    );
+  const balanceTotal = quotes.reduce(
+    (acc, quote) => acc.plus(quote.amount),
+    new BigNumber(0),
+  );
 
   const total = balanceTotal
     .plus(
@@ -100,7 +80,7 @@ function getTotal(
 }
 
 function getTransactionFeeTotal(
-  quotes: TransactionBridgeQuoteExtended[],
+  quotes: PayQuote<unknown>[],
   estimatedGasFeeFiat: string | null,
   format: (value: BigNumber) => string,
 ) {
@@ -118,16 +98,11 @@ function getTransactionFeeTotal(
 }
 
 function getBridgeFeeTotal(
-  quotes: TransactionBridgeQuoteExtended[],
+  quotes: PayQuote<unknown>[],
   format: (value: BigNumber) => string,
 ) {
   const total = quotes.reduce(
-    (acc, quote) =>
-      acc.plus(
-        new BigNumber(quote.sentAmount?.valueInCurrency ?? '0')
-          .minus(quote.requiredFiat)
-          .minus(getQuoteDust(quote)),
-      ),
+    (acc, quote) => acc.plus(quote.fee),
     new BigNumber(0),
   );
 
@@ -138,13 +113,13 @@ function getBridgeFeeTotal(
 }
 
 function getEstimatedNativeTotal(
-  quotes: TransactionBridgeQuoteExtended[],
-  estimatedGasFeeFiat: string | null,
+  quotes: PayQuote<unknown>[],
+  _estimatedGasFeeFiat: string | null,
   format: (value: BigNumber) => string,
 ) {
   const total = new BigNumber(
     getEstimatedNetworkFeeTotal(quotes, format).totalNetworkFeeEstimated,
-  ).plus(estimatedGasFeeFiat ?? '0');
+  );
 
   return {
     totalNativeEstimated: total.toString(10),
@@ -153,11 +128,11 @@ function getEstimatedNativeTotal(
 }
 
 function getEstimatedNetworkFeeTotal(
-  quotes: TransactionBridgeQuoteExtended[],
+  quotes: PayQuote<unknown>[],
   format: (value: BigNumber) => string,
 ) {
   const total = quotes.reduce(
-    (acc, quote) => acc.plus(quote.totalNetworkFee?.valueInCurrency ?? 0),
+    (acc, quote) => acc.plus(quote.networkFee),
     new BigNumber(0),
   );
 
@@ -168,11 +143,11 @@ function getEstimatedNetworkFeeTotal(
 }
 
 function getMaxNetworkFeeTotal(
-  quotes: TransactionBridgeQuoteExtended[],
+  quotes: PayQuote<unknown>[],
   format: (value: BigNumber) => string,
 ) {
   const total = quotes.reduce(
-    (acc, quote) => acc.plus(quote.totalMaxNetworkFee?.valueInCurrency ?? 0),
+    (acc, quote) => acc.plus(quote.networkFee),
     new BigNumber(0),
   );
 
@@ -180,14 +155,4 @@ function getMaxNetworkFeeTotal(
     totalNetworkFeeMax: total.toString(10),
     totalNetworkFeeMaxFormatted: format(total),
   };
-}
-
-function getQuoteDust(quote: TransactionBridgeQuoteExtended): BigNumber {
-  const targetAmount = quote.minToTokenAmount?.valueInCurrency ?? '0';
-
-  if (new BigNumber(targetAmount).isLessThanOrEqualTo(quote.requiredFiat)) {
-    return new BigNumber(0);
-  }
-
-  return new BigNumber(targetAmount).minus(quote.requiredFiat);
 }
