@@ -52,6 +52,8 @@ export const CardSDKProvider = ({
   >('international');
   const [isLoading, setIsLoading] = useState(false);
 
+  const isBaanxLoginEnabled = sdk?.isBaanxLoginEnabled ?? false;
+
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
     if (cardFeatureFlag) {
@@ -140,13 +142,13 @@ export const CardSDKProvider = ({
     };
 
     // Only run authentication check if SDK is available and Baanx login is enabled
-    if (sdk?.isBaanxLoginEnabled) {
+    if (isBaanxLoginEnabled) {
       authenticateUser();
     } else {
       setIsLoading(false);
       setIsAuthenticated(false);
     }
-  }, [sdk?.isBaanxLoginEnabled, handleTokenAuthentication]);
+  }, [isBaanxLoginEnabled, handleTokenAuthentication]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
