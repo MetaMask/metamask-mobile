@@ -1,4 +1,3 @@
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import SwitchAccountModal from '../../pages/wallet/SwitchAccountModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../framework/Assertions';
@@ -6,7 +5,6 @@ import Browser from '../../pages/Browser/BrowserView';
 import ConfirmationUITypes from '../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import RowComponents from '../../pages/Browser/Confirmations/RowComponents';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -41,9 +39,6 @@ async function changeNetworkFromNetworkListModal() {
   await TabBarComponent.tapWallet();
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.changeNetworkTo(LOCAL_CHAIN_NAME);
-  await device.disableSynchronization();
-  await NetworkEducationModal.tapGotItButton();
-  await device.enableSynchronization();
 }
 
 async function checkConfirmationPage() {
@@ -55,8 +50,19 @@ async function checkConfirmationPage() {
 async function tapSwitchAccountModal() {
   await WalletView.tapIdenticon();
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
-  await AccountActionsBottomSheet.tapSwitchToSmartAccount();
+  await SwitchAccountModal.tapSmartAccountLink();
   await SwitchAccountModal.tapSwitchAccountButton();
+}
+
+async function goBackToWalletPage() {
+  await SwitchAccountModal.tapSmartAccountBackButton();
+  await SwitchAccountModal.tapAccountModalBackButton();
+  try {
+    await AccountListBottomSheet.dismissAccountListModalV2();
+  } catch (error) {
+    // Modal might already be dismissed, continue with test
+    console.log('Modal already dismissed or not found, continuing...');
+  }
 }
 
 async function connectTestDappToLocalhost() {
@@ -110,7 +116,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await loginToApp();
 
         // Submit send calls
-        await TabBarComponent.tapWallet();
         await changeNetworkFromNetworkListModal();
         await connectTestDappToLocalhost();
         await TestDApp.tapSendCallsButton();
@@ -149,6 +154,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
+        await goBackToWalletPage();
         // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Switch to standard account');
@@ -156,49 +162,51 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
     );
   });
 
-  // it('upgrades an account', async () => {
-  //   await withFixtures(
-  //     {
-  //       dapps: [
-  //         {
-  //           dappVariant: DappVariants.TEST_DAPP,
-  //         },
-  //       ],
-  //       fixture: new FixtureBuilder().build(),
-  //       restartDevice: true,
-  //       localNodeOptions: [
-  //         {
-  //           type: LocalNodeType.anvil,
-  //           options: localNodeOptions[0].options as AnvilNodeOptions,
-  //         },
-  //       ],
-  //       testSpecificMock,
-  //     },
-  //     async () => {
-  //       await loginToApp();
+  it('upgrades an account', async () => {
+    await withFixtures(
+      {
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: localNodeOptions[0].options as AnvilNodeOptions,
+          },
+        ],
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await device.disableSynchronization();
 
-  //       // Create confirmation to upgrade account
-  //       await TabBarComponent.tapWallet();
-  //       await changeNetworkFromNetworkListModal();
-  //       await tapSwitchAccountModal();
+        // Create confirmation to upgrade account
+        await TabBarComponent.tapWallet();
+        await changeNetworkFromNetworkListModal();
+        await tapSwitchAccountModal();
 
-  //       // Check all expected elements are visible
-  //       await Assertions.expectTextDisplayed('Account update');
-  //       await Assertions.expectTextDisplayed(
-  //         "You're switching to a smart account.",
-  //       );
-  //       await Assertions.expectElementToBeVisible(
-  //         ConfirmationUITypes.ModalConfirmationContainer,
-  //       );
-  //       await checkConfirmationPage();
+        // Check all expected elements are visible
+        await Assertions.expectTextDisplayed('Account update');
+        await Assertions.expectTextDisplayed(
+          "You're switching to a smart account.",
+        );
+        await Assertions.expectElementToBeVisible(
+          ConfirmationUITypes.ModalConfirmationContainer,
+        );
+        await checkConfirmationPage();
 
-  //       // Accept confirmation
-  //       await FooterActions.tapConfirmButton();
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
 
-  //       // Check activity tab
-  //       await TabBarComponent.tapActivity();
-  //       await Assertions.expectTextDisplayed('Upgrade to smart account');
-  //     },
-  //   );
-  // });
+        await goBackToWalletPage();
+        // Check activity tab
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Upgrade to smart account');
+      },
+    );
+  });
 });
