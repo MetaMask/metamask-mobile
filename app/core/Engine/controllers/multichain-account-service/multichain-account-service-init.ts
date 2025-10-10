@@ -49,9 +49,11 @@ export const multichainAccountServiceInit: ControllerInitFunction<
   });
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  // Bitcoin provider controlled by addBitcoinAccount feature flag via Basic Functionality
-  btcProvider.setEnabled(false);
+  // Bitcoin provider enabled by default when bitcoin feature is built
+  // Controlled by Basic Functionality toggle at runtime (same pattern as Solana)
+  btcProvider.setEnabled(true);
   /// END:ONLY_INCLUDE_IF
+
   // TODO: Move this logic to the SnapKeyring directly.
   initMessenger.subscribe(
     'MultichainAccountService:multichainAccountGroupUpdated',
