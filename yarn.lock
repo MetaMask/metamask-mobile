@@ -7017,18 +7017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
-  version: 8.4.0
-  resolution: "@metamask/base-controller@npm:8.4.0"
-  dependencies:
-    "@metamask/messenger": ^0.3.0
-    "@metamask/utils": ^11.8.0
-    immer: ^9.0.6
-  checksum: 170838507ce30cd1820fdcd0be0a11b489bd2421305b4a6a87bf04cbe6a754af9a65628522cb916ed049dd4306be79e5a33e6e1b671a2b5ad778a66f7aa20967
-  languageName: node
-  linkType: hard
-
-"@metamask/base-controller@npm:^8.4.1":
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0, @metamask/base-controller@npm:^8.4.1":
   version: 8.4.1
   resolution: "@metamask/base-controller@npm:8.4.1"
   dependencies:
