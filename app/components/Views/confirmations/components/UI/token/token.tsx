@@ -90,7 +90,7 @@ export function Token({ asset, onPress }: TokenProps) {
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
             >
-              {asset.name || asset.symbol}
+              {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
             <AccountTypeLabel label={tokenTypeLabel} />
           </Box>
