@@ -221,6 +221,10 @@
     "remind_later_description2": "Anda dapat mencadangkan dompet atau melihat Frasa Pemulihan Rahasia di",
     "setting_security_privacy": "Pengaturan > Keamanan dan Privasi"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Selamat datang di MetaMask",
     "title2": "Kelola aset digital Anda",
@@ -389,6 +393,7 @@
     "description": "Buka MetaMask hanya pada perangkat ini.",
     "description_social_login": "Gunakan ini untuk pemulihan dompet di semua perangkat.",
     "description_social_login_update": "Jika kehilangan kata sandi ini, Anda akan kehilangan akses ke dompet di semua perangkat. Simpan di tempat yang aman,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask tidak dapat meresetnya.",
     "subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya pada perangkat ini.",
     "password": "Buat kata sandi",
@@ -662,7 +667,14 @@
       "bullet_2_description": "USDC dirancang untuk tetap stabil, menjadikannya semakin mudah untuk membuat rencana, menabung, dan berbelanja.",
       "bullet_3_title": "Lebih cepat dari bank",
       "bullet_3_description": "Kirim dan terima dalam hitungan menit, tanpa menunggu jam operasional bank atau penundaan internasional.",
-      "button": "Mulai"
+      "button": "Mulai",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Verifikasikan identitas Anda",
@@ -879,7 +891,6 @@
     "refresh_balance": "Segarkan Saldo",
     "add_funds": "Tambahkan dana",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Posisi Anda",
     "loading_positions": "Memuat posisi...",
     "refreshing_positions": "Menyegarkan posisi...",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Pilih token",
-    "title_pay_eth": "Bayar dengan ETH",
     "native_toggle_wallet": "Bayar biaya jaringan menggunakan saldo di dompet Anda.",
     "list_balance": "Saldo:",
     "insufficient_balance": "Dana tidak cukup",
-    "native_toggle_metamask": "MetaMask sedang menambah saldo untuk menyelesaikan transaksi ini.",
-    "title_pay_with_other_tokens": "Bayar dengan token lainnya"
+    "native_toggle_metamask": "MetaMask sedang menambah saldo untuk menyelesaikan transaksi ini."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ID Transaksi",
@@ -6094,6 +6106,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {
