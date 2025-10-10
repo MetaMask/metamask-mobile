@@ -9,16 +9,12 @@ import { useRiveAnimation } from './hooks/useRiveAnimation';
 import onboardingLoaderEndAnimation from '../../../animations/onboarding_loader_end_animation.riv';
 
 interface OnboardingSuccessEndAnimationProps {
-  startAnimation: boolean;
   onAnimationComplete: () => void;
 }
 
 const OnboardingSuccessEndAnimation: React.FC<
   OnboardingSuccessEndAnimationProps
-> = ({
-  startAnimation: _startAnimation,
-  onAnimationComplete: _onAnimationComplete,
-}) => {
+> = ({ onAnimationComplete: _onAnimationComplete }) => {
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
 
