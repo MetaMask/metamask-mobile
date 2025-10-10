@@ -183,7 +183,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization();
 
         // Create confirmation to upgrade account
         await TabBarComponent.tapWallet();
