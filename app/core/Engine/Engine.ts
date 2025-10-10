@@ -198,6 +198,7 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
+import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -400,6 +401,7 @@ export class Engine {
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         TransactionController: TransactionControllerInit,
+        TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -952,6 +954,7 @@ export class Engine {
         state: initialState.TokenRatesController || { marketData: {} },
       }),
       TransactionController: this.transactionController,
+      TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: new SwapsController({
         clientId: AppConstants.SWAPS.CLIENT_ID,
