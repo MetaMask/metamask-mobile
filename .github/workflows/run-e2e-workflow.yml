@@ -120,7 +120,6 @@ jobs:
           android-avd-name: emulator
           configure-keystores: false
 
-
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |
