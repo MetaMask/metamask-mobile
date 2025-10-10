@@ -2,7 +2,6 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
@@ -40,12 +39,10 @@ import {
 import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
-import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -75,8 +72,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
-  const isEligible = useSelector(selectPerpsEligibility);
-
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
   const hasPositions = positions && positions.length > 0;
@@ -98,23 +93,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     },
   });
 
-  const { isDepositInProgress } = usePerpsDepositProgress();
-
   const handleManageBalancePress = useCallback(() => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    if (isDepositInProgress) {
-      return;
-    }
-
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKETS,
       params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
-  }, [navigation, isEligible, isDepositInProgress]);
+  }, [navigation]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
