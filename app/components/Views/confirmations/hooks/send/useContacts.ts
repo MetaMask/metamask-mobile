@@ -7,7 +7,7 @@ import { useSendType } from './useSendType';
 
 export const useContacts = () => {
   const addressBook = useSelector(selectAddressBook);
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType } = useSendType();
 
   const contacts = useMemo(() => {
     const flattenedContacts: RecipientType[] = [];
@@ -26,21 +26,15 @@ export const useContacts = () => {
     });
 
     return flattenedContacts.filter((contact) => {
-      // We cannot use isEvmAccountType and isSolanaAccount here because we are not using the internal accounts
-      // Potentially we may want to have manual validation for the contacts
+      // Only possibility to check if the address is EVM compatible because contacts are only EVM compatible as of now
       if (isEvmSendType) {
         return (
           contact.address.startsWith('0x') && contact.address.length === 42
         );
       }
-      if (isSolanaSendType) {
-        return (
-          !contact.address.startsWith('0x') && contact.address.length >= 32
-        );
-      }
       return true;
     });
-  }, [addressBook, isEvmSendType, isSolanaSendType]);
+  }, [addressBook, isEvmSendType]);
 
   return contacts;
 };
