@@ -50,17 +50,11 @@ export const openActivityDetailsSheet = (
   navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
     title: eventDetails.title,
     description: (
-      <ActivityDetailsSheet
-        event={event}
-        accountName={accountName}
-        confirmAction={confirmAction}
-      />
+      <ActivityDetailsSheet event={event} accountName={accountName} />
     ),
     type: ModalType.Confirmation,
     showIcon: false,
-    ...(confirmAction && {
-      confirmAction,
-    }),
+    confirmAction,
     showCancelButton: false,
   });
 };

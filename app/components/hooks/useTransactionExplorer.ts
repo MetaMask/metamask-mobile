@@ -32,7 +32,7 @@ const getProviderConfigForNetwork = (networkConfig: NetworkConfiguration) => {
  * - For non‑EVM chains: builds URL via getTransactionUrl and derives name from URL
  * - For EVM chains: uses useBlockExplorer hook with .tx() method
  */
-export const useExplorerInfo = (
+export const useTransactionExplorer = (
   assetId?: CaipAssetType,
   txHash?: string,
 ): ExplorerInfo => {
@@ -85,4 +85,4 @@ export const useExplorerInfo = (
   }, [assetId, txHash, evmExplorer]);
 };
 
-export default useExplorerInfo;
+export default useTransactionExplorer;

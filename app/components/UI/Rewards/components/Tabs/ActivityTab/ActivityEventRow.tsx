@@ -26,6 +26,7 @@ import { AvatarSize } from '../../../../../../component-library/components/Avata
 import Logger from '../../../../../../util/Logger';
 import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
 import { TouchableOpacity } from 'react-native';
+import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
@@ -36,6 +37,8 @@ export const ActivityEventRow: React.FC<{
     () => (event ? getEventDetails(event, accountName) : undefined),
     [event, accountName],
   );
+
+  const confirmAction = useActivityDetailsConfirmAction(event);
 
   // Extract network icon from event asset
   const networkImageSource = React.useMemo(() => {
@@ -69,6 +72,7 @@ export const ActivityEventRow: React.FC<{
     openActivityDetailsSheet(navigation, {
       event,
       accountName,
+      confirmAction,
     });
   };
 
