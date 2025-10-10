@@ -9,8 +9,22 @@ import TEST_ADDRESS from '../../../../../../constants/address';
 
 // Mock the utility functions
 jest.mock('../../../utils/formatUtils', () => ({
-  getEventDetails: jest.fn(),
   formatRewardsDate: jest.fn(),
+  formatNumber: jest
+    .fn()
+    .mockImplementation((value) => value?.toString() || '0'),
+}));
+
+jest.mock('../../../utils/eventDetailsUtils', () => ({
+  getEventDetails: jest.fn(),
+}));
+
+// Mock navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
 }));
 
 const mockGetEventDetails = getEventDetails as jest.MockedFunction<

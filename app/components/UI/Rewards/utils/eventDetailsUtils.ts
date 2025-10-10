@@ -14,7 +14,7 @@ import { PerpsEventType } from './eventConstants';
 /**
  * Formats an asset amount with proper decimals
  */
-const formatAssetAmount = (amount: string, decimals: number): string => {
+export const formatAssetAmount = (amount: string, decimals: number): string => {
   const rawAmount = formatUnits(BigInt(amount), decimals);
   return formatNumber(parseFloat(Number(rawAmount).toFixed(3)));
 };
@@ -22,7 +22,7 @@ const formatAssetAmount = (amount: string, decimals: number): string => {
 /**
  * Validates if an asset has all required properties
  */
-const hasValidAsset = (asset: EventAssetDto | undefined): boolean =>
+export const hasValidAsset = (asset: EventAssetDto | undefined): boolean =>
   !isNullOrUndefined(asset?.amount) &&
   !isNullOrUndefined(asset?.decimals) &&
   !isNullOrUndefined(asset?.symbol);
@@ -30,7 +30,7 @@ const hasValidAsset = (asset: EventAssetDto | undefined): boolean =>
 /**
  * Gets the direction text for perps events
  */
-const getPerpsEventDirection = (direction: string) => {
+export const getPerpsEventDirection = (direction: string) => {
   switch (direction) {
     case 'LONG':
       return strings('perps.market.long');
