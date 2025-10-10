@@ -2,7 +2,7 @@ import {
   type AccountActivityServiceMessenger,
   ACCOUNT_ACTIVITY_SERVICE_ALLOWED_ACTIONS,
   ACCOUNT_ACTIVITY_SERVICE_ALLOWED_EVENTS,
-} from '@metamask/backend-platform';
+} from '@metamask/core-backend';
 import type { BaseControllerMessenger } from '../../types';
 
 /**

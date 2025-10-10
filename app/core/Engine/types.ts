@@ -221,13 +221,13 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import {
-  WebSocketService as BackendWebSocketService,
+  BackendWebSocketService,
   AccountActivityService,
   type AccountActivityServiceEvents,
   type AccountActivityServiceActions,
-  type WebSocketServiceActions as BackendWebSocketServiceActions,
-  type WebSocketServiceEvents as BackendWebSocketServiceEvents,
-} from '@metamask/backend-platform';
+  type BackendWebSocketServiceActions,
+  type BackendWebSocketServiceEvents,
+} from '@metamask/core-backend';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';

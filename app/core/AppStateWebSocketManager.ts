@@ -3,7 +3,7 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import { WebSocketService } from '@metamask/backend-platform';
+import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../util/Logger';
 
 /**

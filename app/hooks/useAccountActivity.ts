@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback } from 'react';
 import type {
   Transaction,
   AccountActivityService,
-  WebSocketService,
+  BackendWebSocketService,
   BalanceUpdate,
   WebSocketConnectionInfo,
-} from '@metamask/backend-platform';
+} from '@metamask/core-backend';
 import { Engine } from '../core/Engine/Engine';
 
 export interface AccountActivityState {

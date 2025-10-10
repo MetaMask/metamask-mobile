@@ -1,18 +1,18 @@
 import {
-  WebSocketService,
-  type WebSocketServiceMessenger,
-} from '@metamask/backend-platform';
+  BackendWebSocketService,
+  type BackendWebSocketServiceMessenger,
+} from '@metamask/core-backend';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBackendWebSocketServiceMessenger } from '../../messengers/backend-websocket-service-messenger';
 import { ControllerInitRequest } from '../../types';
 import { backendWebSocketServiceInit } from './backend-websocket-service-init';
 
-jest.mock('@metamask/backend-platform');
+jest.mock('@metamask/core-backend');
 jest.mock('../../../util/Logger');
 
 function buildInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<WebSocketServiceMessenger>
+  ControllerInitRequest<BackendWebSocketServiceMessenger>
 > {
   const baseControllerMessenger = new ExtendedControllerMessenger();
   const requestMock = {
@@ -26,7 +26,7 @@ function buildInitRequestMock(): jest.Mocked<
 }
 
 describe('Backend WebSocket Service Init', () => {
-  const webSocketServiceClassMock = jest.mocked(WebSocketService);
+  const webSocketServiceClassMock = jest.mocked(BackendWebSocketService);
   const mockController = {
     connect: jest.fn(),
   };
@@ -34,7 +34,7 @@ describe('Backend WebSocket Service Init', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     webSocketServiceClassMock.mockImplementation(
-      () => mockController as WebSocketService,
+      () => mockController as BackendWebSocketService,
     );
     mockController.connect.mockResolvedValue(undefined);
   });
@@ -47,7 +47,7 @@ describe('Backend WebSocket Service Init', () => {
     const result = backendWebSocketServiceInit(requestMock);
 
     // Assert
-    expect(result.controller).toBeInstanceOf(WebSocketService);
+    expect(result.controller).toBeInstanceOf(BackendWebSocketService);
   });
 
   it('throws error if controller initialization fails', () => {

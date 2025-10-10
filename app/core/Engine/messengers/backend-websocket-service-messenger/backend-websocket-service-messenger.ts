@@ -1,4 +1,4 @@
-import type { WebSocketServiceMessenger as BackendWebSocketServiceMessenger } from '@metamask/backend-platform';
+import type { BackendWebSocketServiceMessenger } from '@metamask/core-backend';
 import type { BaseControllerMessenger } from '../../types';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { AuthenticationControllerGetBearerToken } from '@metamask/profile-sync-controller/auth';

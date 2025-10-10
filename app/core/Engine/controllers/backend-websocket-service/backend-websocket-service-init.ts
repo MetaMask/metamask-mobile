@@ -1,7 +1,7 @@
 import {
-  WebSocketService,
-  type WebSocketServiceMessenger,
-} from '@metamask/backend-platform';
+  BackendWebSocketService,
+  type BackendWebSocketServiceMessenger,
+} from '@metamask/core-backend';
 import { ControllerInitFunction } from '../../types';
 import { BackendWebSocketServiceInitMessenger } from '../../messengers/backend-websocket-service-messenger/backend-websocket-service-messenger';
 import Logger from '../../../../util/Logger';
@@ -23,12 +23,12 @@ import Logger from '../../../../util/Logger';
  * @returns The initialized service.
  */
 export const backendWebSocketServiceInit: ControllerInitFunction<
-  WebSocketService,
-  WebSocketServiceMessenger,
+  BackendWebSocketService,
+  BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   try {
-    const controller = new WebSocketService({
+    const controller = new BackendWebSocketService({
       messenger: controllerMessenger,
       url:
         process.env.METAMASK_BACKEND_WEBSOCKET_URL ||
@@ -60,7 +60,7 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
         }
       },
         // Enable authentication - core service will handle the authentication logic
-        // Note: This will show a linting error until @metamask/backend-platform is published with the new enableAuthentication option
+        // Note: This will show a linting error until @metamask/core-backend is published with the new enableAuthentication option
         enableAuthentication: true,
     });
 

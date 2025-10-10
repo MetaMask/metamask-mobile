@@ -1,26 +1,26 @@
 import {
   AccountActivityService,
   type AccountActivityServiceMessenger,
-  type WebSocketService,
-} from '@metamask/backend-platform';
+  type BackendWebSocketService,
+} from '@metamask/core-backend';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getAccountActivityServiceMessenger } from '../../messengers/account-activity-service-messenger';
 import { ControllerInitRequest } from '../../types';
 import { accountActivityServiceInit } from './account-activity-service-init';
 
-jest.mock('@metamask/backend-platform');
+jest.mock('@metamask/core-backend');
 jest.mock('../../../util/Logger');
 
 /**
- * Build a mock WebSocketService.
+ * Build a mock BackendWebSocketService.
  *
- * @param partialMock - A partial mock object for the WebSocketService
- * @returns A mock WebSocketService
+ * @param partialMock - A partial mock object for the BackendWebSocketService
+ * @returns A mock BackendWebSocketService
  */
 function buildWebSocketServiceMock(
-  partialMock?: Partial<WebSocketService>,
-): WebSocketService {
+  partialMock?: Partial<BackendWebSocketService>,
+): BackendWebSocketService {
   const defaultMocks = {
     connect: jest.fn(),
     disconnect: jest.fn(),

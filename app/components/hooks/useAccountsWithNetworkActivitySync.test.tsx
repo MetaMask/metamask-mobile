@@ -52,7 +52,7 @@ interface MockEngineInstance {
 
 describe('useAccountsWithNetworkActivitySync', () => {
   let fetchAccountsSpy: jest.SpyInstance;
-  let subscribeSpy: jest.SpyInstance;
+  let publishSpy: jest.SpyInstance;
   let unsubscribeSpy: jest.SpyInstance;
   let store: ReturnType<typeof mockStore>;
   let mockEngineInstance: MockEngineInstance;
@@ -189,9 +189,9 @@ describe('useAccountsWithNetworkActivitySync', () => {
       context: mockEngineInstance.context,
       controllerMessenger: mockEngineInstance.controllerMessenger,
     });
-    subscribeSpy = jest.spyOn(
+    publishSpy = jest.spyOn(
       mockEngineInstance.controllerMessenger,
-      'subscribe',
+      'publish',
     );
     unsubscribeSpy = jest.spyOn(
       mockEngineInstance.controllerMessenger,
@@ -200,7 +200,7 @@ describe('useAccountsWithNetworkActivitySync', () => {
     const { unmount } = renderHook(() => useAccountsWithNetworkActivitySync(), {
       wrapper: getWrapper(store),
     });
-    expect(subscribeSpy).toHaveBeenCalledWith(
+    expect(publishSpy).toHaveBeenCalledWith(
       'TransactionController:transactionConfirmed',
       expect.any(Function),
     );
@@ -242,16 +242,16 @@ describe('useAccountsWithNetworkActivitySync', () => {
       context: mockEngineInstance.context,
       controllerMessenger: mockEngineInstance.controllerMessenger,
     });
-    subscribeSpy = jest.spyOn(
+    publishSpy = jest.spyOn(
       mockEngineInstance.controllerMessenger,
-      'subscribe',
+      'publish',
     );
     renderHook(
       () =>
         useAccountsWithNetworkActivitySync({ onTransactionComplete: false }),
       { wrapper: getWrapper(store) },
     );
-    expect(subscribeSpy).not.toHaveBeenCalled();
+    expect(publishSpy).not.toHaveBeenCalled();
   });
 
   it('manual fetch works', async () => {

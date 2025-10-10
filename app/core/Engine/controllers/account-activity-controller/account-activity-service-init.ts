@@ -1,8 +1,8 @@
 import {
   AccountActivityService,
   type AccountActivityServiceMessenger,
-  type WebSocketService,
-} from '@metamask/backend-platform';
+  type BackendWebSocketService,
+} from '@metamask/core-backend';
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import Logger from '../../../../util/Logger';
 
