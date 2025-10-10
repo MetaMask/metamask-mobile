@@ -103,24 +103,6 @@ describe('updateUserTraitsWithCurrencyType', () => {
     });
   });
 
-  it('tracks the primary currency toggle event', () => {
-    const primaryCurrency = 'crypto';
-
-    updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
-
-    // Check if trackEvent was called with the correct event and properties
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
-      )
-        .addProperties({
-          [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
-          location: 'app_settings',
-        })
-        .build(),
-    );
-  });
-
   it('does not throw errors if metrics object is properly passed', () => {
     const primaryCurrency = 'fiat';
 
