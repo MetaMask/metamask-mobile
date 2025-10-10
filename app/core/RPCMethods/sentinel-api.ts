@@ -66,11 +66,7 @@ export function buildUrl(subdomain: string): string {
 export async function isSendBundleSupported(chainId: Hex): Promise<boolean> {
   const network = await getSentinelNetworkFlags(chainId);
 
-  if (!network?.sendBundle) {
-    return false;
-  }
-
-  return true;
+  return network?.sendBundle
 }
 
 /**
