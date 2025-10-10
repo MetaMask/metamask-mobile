@@ -221,6 +221,10 @@
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
     "setting_security_privacy": "Settings > Security & Privacy"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
     "title2": "Manage your digital assets",
@@ -389,6 +393,7 @@
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
     "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_ios" : "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create password",
@@ -662,7 +667,14 @@
       "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
       "bullet_3_title": "Faster than banks",
       "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
-      "button": "Get started"
+      "button": "Get started",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Verify your identity",
@@ -879,7 +891,6 @@
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Select a token",
-    "title_pay_eth": "Pay with ETH",
     "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
     "list_balance": "Bal:",
     "insufficient_balance": "Insufficient funds",
-    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
-    "title_pay_with_other_tokens": "Pay with other tokens"
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "Transaction ID",
@@ -6126,6 +6138,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

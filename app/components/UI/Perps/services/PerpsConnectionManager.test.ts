@@ -733,4 +733,23 @@ describe('PerpsConnectionManager', () => {
       );
     });
   });
+
+  describe('retry logic for account state', () => {
+    it('should retry getAccountState on initial connection when provider is reinitializing', async () => {
+      const reInitError = new Error('CLIENT_REINITIALIZING');
+      reInitError.message = 'CLIENT_REINITIALIZING';
+
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState
+        .mockRejectedValueOnce(reInitError)
+        .mockResolvedValueOnce({});
+
+      await PerpsConnectionManager.connect();
+
+      expect(mockPerpsController.getAccountState).toHaveBeenCalledTimes(2);
+      expect(mockPerpsController.getAccountState).toHaveBeenNthCalledWith(2, {
+        source: 'initial_connection_retry',
+      });
+    });
+  });
 });
