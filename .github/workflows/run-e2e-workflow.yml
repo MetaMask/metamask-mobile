@@ -151,12 +151,6 @@ jobs:
             exit 1
           fi
 
-      - name: Set swap space
-        if: ${{ inputs.platform == 'android' }}
-        uses: ./.github/actions/swap
-        with:
-          swap-size-gb: '10'
-          
       - name: Enable KVM
         if: ${{ inputs.platform == 'android' }}
         run: |
