@@ -73,6 +73,7 @@ runs:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         # Only run AI analysis for pull_request events
         if [[ "$EVENT_NAME" == "pull_request" ]]; then
