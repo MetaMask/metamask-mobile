@@ -67,6 +67,10 @@ import {
   getNetworkControllerMessenger,
 } from './network-controller-messenger';
 
+import {
+  getDelegationControllerInitMessenger,
+  getDelegationControllerMessenger,
+} from './delegation/delegation-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -226,5 +230,9 @@ export const CONTROLLER_MESSENGERS = {
   GatorPermissionsController: {
     getMessenger: getGatorPermissionsControllerMessenger,
     getInitMessenger: noop,
+  },
+  DelegationController: {
+    getMessenger: getDelegationControllerMessenger,
+    getInitMessenger: getDelegationControllerInitMessenger,
   },
 } as const;

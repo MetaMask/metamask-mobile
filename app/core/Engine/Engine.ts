@@ -186,6 +186,7 @@ import { GatorPermissionsControllerInit } from './controllers/gator-permissions-
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
+import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -429,6 +430,7 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
+        DelegationController: DelegationControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -452,6 +454,7 @@ export class Engine {
     const selectedNetworkController =
       controllersByName.SelectedNetworkController;
     const preferencesController = controllersByName.PreferencesController;
+    const delegationController = controllersByName.DelegationController;
 
     // Initialize and store RewardsDataService
     this.rewardsDataService = new RewardsDataService({
@@ -1050,6 +1053,7 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       RewardsController: rewardsController,
+      DelegationController: delegationController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1817,6 +1821,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      DelegationController,
     } = instance.datamodel.state;
 
     return {
@@ -1875,6 +1880,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      DelegationController,
     };
   },
 

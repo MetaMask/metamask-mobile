@@ -89,6 +89,7 @@ import { SnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import { InitModularizedControllersFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { networkControllerInit } from '../controllers/network-controller-init';
+import { DelegationControllerInit } from '../controllers/delegation/delegation-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -213,6 +214,7 @@ describe('initModularizedControllers', () => {
   const mockKeyringControllerInit = jest.mocked(keyringControllerInit);
   const mockSnapKeyringBuilderInit = jest.mocked(snapKeyringBuilderInit);
   const mockNetworkControllerInit = jest.mocked(networkControllerInit);
+  const mockDelegationControllerInit = jest.mocked(DelegationControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -263,6 +265,7 @@ describe('initModularizedControllers', () => {
           KeyringController: mockKeyringControllerInit,
           SnapKeyringBuilder: mockSnapKeyringBuilderInit,
           NetworkController: mockNetworkControllerInit,
+          DelegationController: mockDelegationControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
