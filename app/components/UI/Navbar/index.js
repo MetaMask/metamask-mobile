@@ -53,7 +53,7 @@ import HeaderBase, {
 } from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
+import { createMultichainAccountSelectorListPageNavigationDetails } from '../../Views/AccountSelector/MultiChainAccountSelectorListPage';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
@@ -1167,7 +1167,9 @@ export function getWalletNavbarOptions(
           ref={accountActionsRef}
           accountName={accountName}
           onPress={() => {
-            navigation.navigate(...createAccountSelectorNavDetails({}));
+            navigation.navigate(
+              ...createMultichainAccountSelectorListPageNavigationDetails({}),
+            );
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={innerStyles.touchAreaSlop}
