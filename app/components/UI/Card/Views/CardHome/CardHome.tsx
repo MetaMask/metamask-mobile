@@ -53,6 +53,12 @@ import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
+import Logger from '../../../../../util/Logger';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import TransactionTypes from '../../../../../core/TransactionTypes';
 
 /**
  * CardHome Component
@@ -66,7 +72,9 @@ import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const { PreferencesController } = Engine.context;
+  const { PreferencesController, KeyringController, TransactionController } =
+    Engine.context;
+  const { sdk } = useCardSDK();
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -226,13 +234,79 @@ const CardHome = () => {
     selectedChainId,
   ]);
 
-  const changeAssetAction = useCallback(() => {
-    if (isAuthenticated) {
-      // open asset bottom sheet
+  const changeAssetAction = useCallback(async () => {
+    if (isAuthenticated && sdk) {
+      const nonce = 'j7MmRN0xNQYp7et0O';
+      const issuedAt = Date.now();
+      const expirationTime = issuedAt + 1000 * 60 * 60 * 24;
+      const sigMessage = `MetaMask Mobile wants you to sign in with your Ethereum account:\n0x9E16319A3895f88e74f3b4deA012516df8a75CdC\n\nProve address ownership\n\nURI: metamask://\nVersion: 1\nChain ID: 59144\nNonce: ${nonce}\nIssued At: ${new Date(
+        issuedAt,
+      ).toISOString()}\nExpiration Time: ${new Date(
+        expirationTime,
+      ).toISOString()}`;
+      const siweHex = '0x' + Buffer.from(sigMessage, 'utf8').toString('hex');
+      try {
+        const delegationToken = await sdk.getDelegationToken();
+        Logger.log('delegationToken', delegationToken);
+        const sigHash = await KeyringController.signPersonalMessage({
+          from: '0x9E16319A3895f88e74f3b4deA012516df8a75CdC',
+          data: siweHex,
+        });
+        // Create approval transaction, adding contract as spender.
+        const spender = '0x9dd23A4a0845f10d65D293776B792af1131c7B30';
+        const tokenAddress = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+        const approveTx = {
+          from: '0x9E16319A3895f88e74f3b4deA012516df8a75CdC',
+          to: tokenAddress,
+          data: sdk.encodeApproveTransaction(spender, '120000'),
+        };
+
+        const { result } = await TransactionController.addTransaction(
+          approveTx,
+          {
+            networkClientId: 'linea-mainnet',
+            origin: TransactionTypes.MMM,
+            type: TransactionType.tokenMethodApprove,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            requireApproval: true,
+          },
+        );
+
+        result
+          .then(async (actualTxHash) => {
+            // Not ideal, but lets use an intervalof 10 secs to wait for the transaction to be executed
+            // do nothing for 10 secs, and only after that submit the delegation
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+
+            const delegationResponse = await sdk.submitDelegation({
+              address: '0x9E16319A3895f88e74f3b4deA012516df8a75CdC',
+              amount: '120000',
+              currency: 'usdc',
+              network: 'linea',
+              txHash: actualTxHash,
+              sigHash,
+              sigMessage,
+              token: delegationToken.token,
+            });
+
+            Logger.log('delegationResponse', delegationResponse);
+          })
+          .catch((error) => {
+            Logger.log('error', error);
+          });
+      } catch (error) {
+        Logger.log('error', error);
+      }
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation]);
+  }, [
+    isAuthenticated,
+    navigation,
+    KeyringController,
+    sdk,
+    TransactionController,
+  ]);
 
   const manageSpendingLimitAction = useCallback(() => {
     if (isAuthenticated) {

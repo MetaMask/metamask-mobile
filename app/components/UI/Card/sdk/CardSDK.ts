@@ -759,6 +759,68 @@ export class CardSDK {
     return tokenResponse;
   };
 
+  getDelegationToken = async (): Promise<{ token: string }> => {
+    const response = await this.makeRequest(
+      '/v1/delegation/token',
+      {
+        method: 'GET',
+      },
+      true,
+      false,
+    );
+
+    if (!response.ok) {
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get delegation token',
+      );
+    }
+
+    const data = await response.json();
+    return data as { token: string };
+  };
+
+  submitDelegation = async (body: {
+    address: string;
+    network: 'linea' | 'ethereum';
+    currency: 'usdc' | 'usdt';
+    amount: string;
+    txHash: string;
+    sigHash: string;
+    sigMessage: string;
+    token: string;
+  }): Promise<{ success: boolean }> => {
+    Logger.log('body - Delegation', body);
+    const response = await this.makeRequest(
+      '/v1/delegation/evm/post-approval',
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+      true,
+      false,
+    );
+
+    if (!response.ok) {
+      const errJson = await response.json();
+      Logger.log('errJson - Delegation', errJson);
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to submit delegation',
+      );
+    }
+
+    const data = await response.json();
+    return data as { success: boolean };
+  };
+
+  encodeApproveTransaction = (spender: string, value: string) => {
+    const approvalInterface = new ethers.utils.Interface([
+      'function approve(address spender, uint256 value)',
+    ]);
+    return approvalInterface.encodeFunctionData('approve', [spender, value]);
+  };
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
     return this.supportedTokens.length > 0
       ? this.mapSupportedTokenToCardToken(this.supportedTokens[0])
