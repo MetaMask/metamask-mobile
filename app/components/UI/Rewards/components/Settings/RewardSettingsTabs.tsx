@@ -127,7 +127,7 @@ const OptOutFooter = memo(() => {
   }, [showOptoutBottomSheet, trackEvent, createEventBuilder]);
 
   return (
-    <Box twClassName="gap-4 flex-col">
+    <Box twClassName="my-4 gap-4 flex-col">
       <Box twClassName="gap-2">
         <Text variant={TextVariant.HeadingSm}>
           {strings('rewards.optout.title')}
@@ -205,7 +205,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
             ListFooterComponent={<OptOutFooter />}
           />
         ) : (
-          <Box twClassName="py-8 items-center">
+          <Box twClassName="py-4 items-center">
             <Text
               variant={TextVariant.BodyMd}
               twClassName="text-alternative text-center"
