@@ -222,6 +222,7 @@ const OnboardingNav = () => (
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
       component={OnboardingSuccess} // Used in SRP flow
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
