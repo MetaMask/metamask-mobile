@@ -113,7 +113,6 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
 
@@ -664,10 +663,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const checkTabPermissions = useCallback(() => {
-      if (isPerDappSelectedNetworkEnabled()) {
-        return;
-      }
-
       if (!(isFocused && !isInTabsView && isTabActive)) {
         return;
       }
@@ -760,9 +755,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-        if (!isPerDappSelectedNetworkEnabled()) {
-          checkTabPermissions();
-        }
+        checkTabPermissions();
       },
       [
         isUrlBarFocused,
@@ -1162,9 +1155,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     useEffect(() => {
-      if (!isPerDappSelectedNetworkEnabled()) {
-        checkTabPermissions();
-      }
+      checkTabPermissions();
     }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
 
     const handleEnsUrl = useCallback(

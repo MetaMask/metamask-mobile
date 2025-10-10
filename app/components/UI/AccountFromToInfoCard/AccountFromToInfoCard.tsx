@@ -21,7 +21,6 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const { internalAccounts, chainId, ticker, transactionState, origin } = props;
@@ -170,11 +169,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     <View style={styles.container}>
       {fromAddress && (
         <AddressFrom
-          chainId={
-            isPerDappSelectedNetworkEnabled()
-              ? transactionState?.chainId
-              : undefined
-          }
+          chainId={transactionState?.chainId}
           asset={selectedAsset}
           from={fromAddress}
           origin={origin}

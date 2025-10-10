@@ -27,7 +27,6 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
-import { isPerDappSelectedNetworkEnabled } from '../networks';
 import { isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
@@ -353,9 +352,7 @@ class SmartTransactionHook {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
-        isPerDappSelectedNetworkEnabled()
-          ? { networkClientId: this.#transactionMeta.networkClientId }
-          : undefined,
+        { networkClientId: this.#transactionMeta.networkClientId },
       );
     } catch (error) {
       return undefined;
