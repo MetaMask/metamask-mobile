@@ -56,21 +56,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.tapDone();
 
 
-  // Run both modal dismissals in parallel with 5 second timeout
-  const timeoutPromise = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('Modal dismissal timeout')), 10000)
-  );
-  
-  await Promise.race([
-    Promise.allSettled([
-      dismissMultichainAccountsIntroModal(device),
-      tapPerpsBottomSheetGotItButton(device),
-      dismissRewardsBottomSheetModal(device)
-    ]),
-    timeoutPromise
-  ]).catch((error) => {
-    console.log('Modal dismissal completed or timed out:', error.message);
-  });
+  await dissmissAllModals(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
 }

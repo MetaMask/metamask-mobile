@@ -202,7 +202,6 @@ class SendScreen {
 
   async clickOnFirstTokenBadge() {
     const firstTokenBadge = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`);
-    // await firstTokenBadge.tap();
     appwrightExpect(firstTokenBadge).toBeVisible();
     await AppwrightGestures.tap(firstTokenBadge);
   }
@@ -227,9 +226,9 @@ class SendScreen {
       await Gestures.tapTextByXpath(tokenName);
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        //const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
-        //const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
-        //await AppwrightGestures.tap(tokenButton);
+        const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
+        const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
+        await AppwrightGestures.tap(tokenButton);
       } else {
         const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${networkName}"]`);
         await AppwrightGestures.tap(networkButton);
