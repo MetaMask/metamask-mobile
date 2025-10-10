@@ -83,9 +83,10 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
 
-    const state = isE2E
-      ? reduxState?.engine?.backgroundState
-      : persistedState?.backgroundState ?? {};
+    const state =
+      (isE2E
+        ? reduxState?.engine?.backgroundState
+        : persistedState?.backgroundState) ?? {};
 
     const Engine = UntypedEngine;
     try {
