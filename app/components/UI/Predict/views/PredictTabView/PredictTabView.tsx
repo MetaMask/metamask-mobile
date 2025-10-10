@@ -8,12 +8,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { default as React, useCallback, useRef } from 'react';
-import { Alert, RefreshControl, View } from 'react-native';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Alert, RefreshControl, ScrollView, View , ActivityIndicator } from 'react-native';
+import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import MarketsWonCard from '../../components/MarketsWonCard';
 import PredictNewButton from '../../components/PredictNewButton';
 import PredictPosition from '../../components/PredictPosition';
+import PredictPositionResolved from '../../components/PredictPositionResolved';
 import PredictPositionEmpty from '../../components/PredictPositionEmpty';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import {
@@ -25,6 +26,7 @@ import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PredictTabViewProps {}
 
@@ -77,10 +79,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     );
 
     const providerIdForCard = wonPositions[0]?.providerId;
+    const availableBalance = 1000.36;
 
     return (
       <MarketsWonCard
-        numberOfMarketsWon={wonPositions.length}
+        availableBalance={availableBalance}
         totalClaimableAmount={totalClaimableAmount}
         onClaimPress={handleClaimPress}
         isLoading={isClaiming}
@@ -95,7 +98,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     selectedInternalAccountAddress,
   ]);
 
-  const renderItem = useCallback(
+  const renderPosition = useCallback(
     ({ item }: { item: PredictPositionType }) => (
       <PredictPosition
         position={item}
@@ -113,38 +116,27 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     [navigation],
   );
 
+  const renderResolvedPosition = useCallback(
+    ({ item }: { item: PredictPositionType }) => (
+      <PredictPositionResolved
+        position={item}
+        onPress={() => {
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+            screen: Routes.PREDICT.MARKET_DETAILS,
+            params: {
+              marketId: item.marketId,
+              headerShown: false,
+            },
+          });
+        }}
+      />
+    ),
+    [navigation],
+  );
+
   const renderLoadingState = () => (
-    <Box style={tw.style('flex-1 px-4 py-4')}>
-      <Skeleton
-        testID="skeleton-loading-1"
-        height={40}
-        width={'100%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-1"
-        height={40}
-        width={'80%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-2"
-        height={40}
-        width={'60%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-3"
-        height={40}
-        width={'40%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
-      <Skeleton
-        testID="skeleton-loading-4"
-        height={40}
-        width={'20%'}
-        style={tw.style('mb-3 rounded-2xl')}
-      />
+    <Box style={tw.style('flex-1 px-4 py-4 justify-center items-center')}>
+      <ActivityIndicator size="large" color={IconColor.Alternative} />
     </Box>
   );
 
@@ -170,23 +162,50 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <FlashList
-        ref={listRef}
-        data={positions}
-        renderItem={renderItem}
-        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
+      <ScrollView
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={() => loadPositions({ isRefresh: true })}
           />
         }
-        removeClippedSubviews
-        decelerationRate={0}
-        ListHeaderComponent={renderMarketsWonCard}
-        ListEmptyComponent={<PredictPositionEmpty />}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
-      />
+      >
+        {renderMarketsWonCard()}
+        <FlashList
+          ref={listRef}
+          data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
+          renderItem={renderPosition}
+          scrollEnabled={false}
+          keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
+          removeClippedSubviews
+          decelerationRate={0}
+          ListEmptyComponent={<PredictPositionEmpty />}
+          ListFooterComponent={
+            positions.length > 0 ? <PredictNewButton /> : null
+          }
+        />
+        {claimablePositions.length > 0 && (
+          <>
+            <Box>
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-alternative mb-4"
+              >
+                {strings('predict.tab.resolved_markets')}
+              </Text>
+            </Box>
+            <FlashList
+              data={claimablePositions.sort(
+                (a, b) =>
+                  new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+              )}
+              renderItem={renderResolvedPosition}
+              scrollEnabled={false}
+              keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
+            />
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 };

@@ -1576,7 +1576,8 @@
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
       "explore": "Browse markets",
-      "new_prediction": "New prediction"
+      "new_prediction": "New prediction",
+      "resolved_markets": "Resolved markets"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
