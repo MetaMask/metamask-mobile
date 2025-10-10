@@ -1012,19 +1012,23 @@ describe('polymarket utils', () => {
     };
 
     const mockClobOrder: ClobOrderObject = {
-      maker: mockAddress,
-      signer: mockAddress,
-      taker: '0x0000000000000000000000000000000000000000',
-      tokenId: 'test-token',
-      makerAmount: '100000000',
-      takerAmount: '50000000',
-      expiration: '0',
-      nonce: '0',
-      feeRateBps: '0',
-      side: Side.BUY,
-      signatureType: SignatureType.EOA,
-      signature: 'mock-signature',
-      salt: 12345,
+      order: {
+        maker: mockAddress,
+        signer: mockAddress,
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: 'test-token',
+        makerAmount: '100000000',
+        takerAmount: '50000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: Side.BUY,
+        signatureType: SignatureType.EOA,
+        signature: 'mock-signature',
+        salt: 12345,
+      },
+      owner: mockAddress,
+      orderType: OrderType.FOK,
     };
 
     const mockOrderResponse: OrderResponse = {
@@ -1050,7 +1054,10 @@ describe('polymarket utils', () => {
         clobOrder: mockClobOrder,
       });
 
-      expect(result).toEqual(mockOrderResponse);
+      expect(result).toEqual({
+        success: true,
+        response: mockOrderResponse,
+      });
       expect(mockFetch).toHaveBeenCalledWith(
         'https://clob.polymarket.com/order',
         {
@@ -1073,7 +1080,8 @@ describe('polymarket utils', () => {
       ).rejects.toThrow('Network error');
     });
 
-    it('includes feeAuthorization in request body when provided', async () => {
+    // TODO: Add this test once we have a production relayer
+    it.skip('includes feeAuthorization in request body when provided', async () => {
       const feeAuthorization = {
         type: 'safe-transaction' as const,
         authorization: {
@@ -1123,7 +1131,8 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('serializes feeAuthorization correctly to JSON', async () => {
+    // TODO: Add this test once we have a production relayer
+    it.skip('serializes feeAuthorization correctly to JSON', async () => {
       const feeAuthorization = {
         type: 'safe-transaction' as const,
         authorization: {
@@ -1203,6 +1212,7 @@ describe('polymarket utils', () => {
         outcomes: [
           {
             id: 'market-1',
+            providerId: 'polymarket',
             marketId: 'event-1',
             title: 'Will it rain?',
             description: 'Weather prediction',
@@ -1521,6 +1531,7 @@ describe('polymarket utils', () => {
       title: `Position ${id}`,
       slug: `position-${id}`,
       size: 100,
+      eventId: 'event-1',
       outcome: 'Yes',
       outcomeIndex: index,
       cashPnl: 10,
@@ -1588,11 +1599,6 @@ describe('polymarket utils', () => {
       const result = await parsePolymarketPositions({
         positions: mockPositions,
       });
-
-      expect(result).toHaveLength(3);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1&condition_ids=condition-1',
-      );
 
       expect(result[0]).toEqual({
         id: 'position-1',
@@ -1674,37 +1680,6 @@ describe('polymarket utils', () => {
       const result = await parsePolymarketPositions({ positions: [] });
       expect(result).toEqual([]);
       expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('handle positions without a matching market', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue([]), // No markets found
-      });
-
-      const result = await parsePolymarketPositions({
-        positions: mockPositions,
-      });
-
-      expect(result[0].marketId).toBe('');
-      expect(result[1].marketId).toBe('');
-    });
-
-    it('handle market data fetch failure gracefully', async () => {
-      mockFetch.mockRejectedValue(new Error('Network error'));
-
-      const result = await parsePolymarketPositions({
-        positions: mockPositions,
-      });
-
-      // Should still return positions with empty marketId when API fails
-      expect(result).toHaveLength(3);
-      expect(result[0].marketId).toBe('');
-      expect(result[1].marketId).toBe('');
-      expect(result[2].marketId).toBe('');
-      expect(result[0].id).toBe('position-1');
-      expect(result[1].id).toBe('position-2');
-      expect(result[2].id).toBe('position-3');
     });
   });
 
@@ -2150,19 +2125,23 @@ describe('polymarket utils', () => {
     };
 
     const mockClobOrder: ClobOrderObject = {
-      maker: mockAddress,
-      signer: mockAddress,
-      taker: '0x0000000000000000000000000000000000000000',
-      tokenId: 'test-token',
-      makerAmount: '100000000',
-      takerAmount: '50000000',
-      expiration: '0',
-      nonce: '0',
-      feeRateBps: '0',
-      side: Side.BUY,
-      signatureType: SignatureType.EOA,
-      signature: 'mock-signature',
-      salt: 12345,
+      order: {
+        maker: mockAddress,
+        signer: mockAddress,
+        taker: '0x0000000000000000000000000000000000000000',
+        tokenId: 'test-token',
+        makerAmount: '100000000',
+        takerAmount: '50000000',
+        expiration: '0',
+        nonce: '0',
+        feeRateBps: '0',
+        side: Side.BUY,
+        signatureType: SignatureType.EOA,
+        signature: 'mock-signature',
+        salt: 12345,
+      },
+      owner: mockAddress,
+      orderType: OrderType.FOK,
     };
 
     it('handle 403 geoblock response with specific error message', async () => {

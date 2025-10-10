@@ -63,9 +63,8 @@ describe('predict controller init', () => {
       eligibility: {},
       lastError: null,
       lastUpdateTimestamp: Date.now(),
-      activeOrders: {},
-      notifications: [],
       claimTransactions: {},
+      isOnboarded: {},
     };
 
     initRequestMock.persistedState = {
