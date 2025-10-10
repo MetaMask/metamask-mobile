@@ -2,7 +2,6 @@ import { unstable_batchedUpdates as batchFunc } from 'react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
-import { EngineContext } from '../Engine/types';
 import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
@@ -180,7 +179,7 @@ export class EngineService {
                 // Filter out non-persistent fields based on controller metadata
                 const filteredState = getPersistentState(
                   controllerState,
-                  // @ts-expect-error - EngineContext has stateless controllers, so metadata is not available
+                  // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
                   UntypedEngine.context[controllerName]?.metadata,
                 );
 
