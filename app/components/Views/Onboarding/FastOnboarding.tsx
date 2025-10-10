@@ -52,7 +52,9 @@ export default function FastOnboarding(props: {
     const existingUser = params?.existingUser;
 
     if (onboardingType) {
-      handleFastOnboarding(onboardingType, existingUser === 'true');
+      setTimeout(() => {
+        handleFastOnboarding(onboardingType, existingUser === 'true');
+      }, 2000);
     }
   }, [params, handleFastOnboarding]);
 
