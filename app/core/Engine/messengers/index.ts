@@ -86,6 +86,7 @@ import {
   getTokenBalancesControllerMessenger,
 } from './token-balances-controller-messenger';
 import { getTokenRatesControllerMessenger } from './token-rates-controller-messenger';
+import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -93,6 +94,10 @@ import { getTokenRatesControllerMessenger } from './token-rates-controller-messe
 export const CONTROLLER_MESSENGERS = {
   AccountsController: {
     getMessenger: getAccountsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AccountTrackerController: {
+    getMessenger: getAccountTrackerControllerMessenger,
     getInitMessenger: noop,
   },
   AccountTreeController: {

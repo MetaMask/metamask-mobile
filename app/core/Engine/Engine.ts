@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
 import {
-  AccountTrackerController,
   NftController,
   NftDetectionController,
   CodefiTokenPricesServiceV2,
@@ -174,7 +173,6 @@ import { predictControllerInit } from './controllers/predict-controller';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
-import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
@@ -196,6 +194,7 @@ import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-d
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
+import { accountTrackerControllerInit } from './controllers/account-tracker-controller-init';
 ///: END:ONLY_INCLUDE_IF
 
 // TODO: Replace "any" with type
@@ -381,6 +380,7 @@ export class Engine {
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
+        AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
         ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
@@ -434,6 +434,7 @@ export class Engine {
     const accountTreeController = controllersByName.AccountTreeController;
     const approvalController = controllersByName.ApprovalController;
     const assetsContractController = controllersByName.AssetsContractController;
+    const accountTrackerController = controllersByName.AccountTrackerController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
@@ -570,36 +571,6 @@ export class Engine {
     if (!isProductSafetyDappScanningEnabled()) {
       phishingController.maybeUpdateState();
     }
-
-    const accountTrackerController = new AccountTrackerController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'AccountTrackerController',
-        allowedActions: [
-          'AccountsController:getSelectedAccount',
-          'AccountsController:listAccounts',
-          'PreferencesController:getState',
-          'NetworkController:getState',
-          'NetworkController:getNetworkClientById',
-        ],
-        allowedEvents: [
-          'AccountsController:selectedEvmAccountChange',
-          'AccountsController:selectedAccountChange',
-        ],
-      }),
-      state: initialState.AccountTrackerController ?? {
-        accountsByChainId: {},
-      },
-      getStakedBalanceForChain:
-        assetsContractController.getStakedBalanceForChain.bind(
-          assetsContractController,
-        ),
-      includeStakedAssets: true,
-      accountsApiChainIds: () =>
-        selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
-      allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
-    });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const authenticationControllerMessenger =
