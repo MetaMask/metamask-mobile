@@ -996,6 +996,33 @@ describe('AssetOverview', () => {
     });
   });
 
+  it('should not render Balance component when balance is undefined', () => {
+    // Given an asset with undefined balance
+    const assetWithNoBalance = {
+      ...asset,
+      balance: undefined as unknown as string,
+    };
+
+    // Override the mock to enable state2 so balance stays undefined
+    const mockModule = jest.requireMock(
+      '../../../selectors/featureFlagController/multichainAccounts',
+    );
+    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
+    mockModule.selectMultichainAccountsState2Enabled = jest
+      .fn()
+      .mockReturnValue(true);
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview asset={assetWithNoBalance} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
+
+    // Restore original mock
+    mockModule.selectMultichainAccountsState2Enabled = originalMock;
+  });
+
   describe('Exchange Rate Fetching', () => {
     beforeEach(() => {
       jest.clearAllMocks();
