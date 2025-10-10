@@ -221,6 +221,10 @@
     "remind_later_description2": "Вы можете создать резервную копию своих кошельков или увидеть свою секретную фразу для восстановления в",
     "setting_security_privacy": "разделе «Настройки» > «Безопасность и конфиденциальность»"
   },
+  "social_login_success": {
+    "title": "You've signed up!",
+    "set_metamask_pin": "Secure your wallet"
+  },
   "onboarding_carousel": {
     "title1": "Добро пожаловать в MetaMask",
     "title2": "Управляйте цифровыми активами",
@@ -389,6 +393,7 @@
     "description": "Разблокирует MetaMask только на этом устройстве.",
     "description_social_login": "Используйте ее для восстановления кошелька на всех устройствах.",
     "description_social_login_update": "Если вы потеряете этот пароль, вы утратите доступ к своему кошельку на всех устройствах. Сохраните его в безопасном месте,",
+    "description_social_login_update_ios": "Use this for wallet recovery on all devices. MetaMask can’t reset it.",
     "description_social_login_update_bold": "MetaMask не может его сбросить.",
     "subtitle": "Этот пароль разблокирует ваш кошелек MetaMask только на этом устройстве.",
     "password": "Создать пароль",
@@ -662,7 +667,14 @@
       "bullet_2_description": "USDC создан для того, чтобы оставаться стабильным, что упрощает планирование, сбережения и траты.",
       "bullet_3_title": "Быстрее, чем банки",
       "bullet_3_description": "Отправляйте и получайте деньги за считанные минуты — без ожидания банковских часов и без задержек международных платежей.",
-      "button": "С чего начать"
+      "button": "С чего начать",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Подтвердите свою личность",
@@ -879,7 +891,6 @@
     "refresh_balance": "Обновить баланс",
     "add_funds": "Внести средства",
     "deposit_in_progress": "Deposit in progress",
-    "deposit_pending_try_again": "Deposit pending. Try again when complete.",
     "your_positions": "Ваши позиции",
     "loading_positions": "Загрузка позиций...",
     "refreshing_positions": "Обновление позиций...",
@@ -2784,12 +2795,13 @@
   },
   "gas_fee_token_modal": {
     "title": "Выбрать токен",
-    "title_pay_eth": "Оплатить с помощью ETH",
     "native_toggle_wallet": "Оплатить комиссию сети с баланса вашего кошелька.",
     "list_balance": "Баланс:",
     "insufficient_balance": "Недостаточно средств",
-    "native_toggle_metamask": "MetaMask пополняет баланс для выполнения этой транзакции.",
-    "title_pay_with_other_tokens": "Оплата другими токенами"
+    "native_toggle_metamask": "MetaMask пополняет баланс для выполнения этой транзакции."
+  },
+  "gas_fee_token_toast": {
+    "message": "You're paying this network fee with "
   },
   "transaction": {
     "transaction_id": "ID транзакции",
@@ -6094,6 +6106,10 @@
     "show_error": {
       "title": "Connection Error",
       "description": "Failed to establish connection. Please try again."
+    },
+    "show_return_to_app": {
+      "title": "Success",
+      "description": "Return to the app to continue."
     }
   },
   "network_connection_banner": {

@@ -15,11 +15,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { StyleSheet } from 'react-native';
 import {
   formatChainIdToCaip,
-  isSolanaChainId,
   formatChainIdToHex,
   StatusTypes,
   Step,
   ActionTypes,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
@@ -35,7 +35,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 const getBridgeActionText = (stepStatus: StatusTypes | null, step: Step) => {
   let destChainId: CaipChainId | Hex | undefined;
   if (step.destChainId) {
-    if (isSolanaChainId(step.destChainId)) {
+    if (isNonEvmChainId(step.destChainId)) {
       destChainId = formatChainIdToCaip(step.destChainId);
     } else {
       destChainId = formatChainIdToHex(step.destChainId);
