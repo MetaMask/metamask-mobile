@@ -59,6 +59,7 @@ import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRa
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -151,6 +152,11 @@ const transactionIconSentFailed = require('../../../images/transaction-icons/sen
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
 const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
 /* eslint-enable import/no-commonjs */
+
+const NEW_TRANSACTION_DETAILS_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 /**
  * View that renders a transaction item part of transactions list
@@ -277,7 +283,7 @@ class TransactionElement extends PureComponent {
         bridgeTxHistoryItem:
           this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       });
-    } else if (tx.type === TransactionType.perpsDeposit) {
+    } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
       this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
         transactionId: tx.id,
       });
@@ -329,16 +335,15 @@ class TransactionElement extends PureComponent {
       selfSent =
         incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     }
-    return `${
-      (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
-            tx.time,
-          )} ${strings(
-            'transactions.from_device_label',
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          )}`
-        : `${toDateFormat(tx.time)}`
-    }`;
+    return `${(!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
+      ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
+        tx.time,
+      )} ${strings(
+        'transactions.from_device_label',
+        // eslint-disable-next-line no-mixed-spaces-and-tabs
+      )}`
+      : `${toDateFormat(tx.time)}`
+      }`;
   };
 
   /**
@@ -477,8 +482,8 @@ class TransactionElement extends PureComponent {
                 {title}
               </ListItem.Title>
               {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-              isBridgeTransaction &&
-              !isBridgeComplete ? (
+                isBridgeTransaction &&
+                !isBridgeComplete ? (
                 <BridgeActivityItemTxSegments
                   bridgeTxHistoryItem={bridgeTxHistoryItem}
                   transactionStatus={this.props.tx.status}
