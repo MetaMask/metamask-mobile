@@ -759,7 +759,7 @@ export class CardSDK {
     return tokenResponse;
   };
 
-  getDelegationToken = async (): Promise<{ token: string }> => {
+  getDelegationToken = async (): Promise<{ token: string; nonce: string }> => {
     const response = await this.makeRequest(
       '/v1/delegation/token',
       {
@@ -770,6 +770,8 @@ export class CardSDK {
     );
 
     if (!response.ok) {
+      const errJson = await response.json();
+      Logger.log('errJson - getDelegationToken', errJson);
       throw new CardError(
         CardErrorType.SERVER_ERROR,
         'Failed to get delegation token',
@@ -777,7 +779,7 @@ export class CardSDK {
     }
 
     const data = await response.json();
-    return data as { token: string };
+    return data as { token: string; nonce: string };
   };
 
   submitDelegation = async (body: {

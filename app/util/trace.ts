@@ -616,7 +616,7 @@ function startSpan<T>(
     attributes,
     name,
     op: op || OP_DEFAULT,
-    parentSpan,
+    // parentSpan,
     startTime,
   };
 
