@@ -466,7 +466,6 @@ describe('OnboardingSuccessAnimation', () => {
       // Act
       render(
         <OnboardingSuccessAnimation
-          startAnimation
           slideOut
           onAnimationComplete={mockOnAnimationComplete}
         />,
@@ -485,7 +484,6 @@ describe('OnboardingSuccessAnimation', () => {
       // Act
       const { rerender } = render(
         <OnboardingSuccessAnimation
-          startAnimation
           slideOut
           onAnimationComplete={mockOnAnimationComplete}
         />,
@@ -494,7 +492,6 @@ describe('OnboardingSuccessAnimation', () => {
       // Trigger multiple times
       rerender(
         <OnboardingSuccessAnimation
-          startAnimation
           slideOut
           onAnimationComplete={mockOnAnimationComplete}
         />,

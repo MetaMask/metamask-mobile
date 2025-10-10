@@ -1,16 +1,16 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { RiveRef } from 'rive-react-native';
+import { ReactTestInstance } from 'react-test-renderer';
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation';
 
 // Mock Rive
-let mockRiveRef: RiveRef | null = null;
+let mockRiveRef: unknown = null;
 jest.mock('rive-react-native', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
   const MockRive = MockReact.forwardRef(
-    (props: { testID?: string; style?: unknown }, ref: React.Ref<RiveRef>) => {
+    (props: { testID?: string; style?: unknown }, ref: React.Ref<unknown>) => {
       MockReact.useImperativeHandle(ref, () => mockRiveRef);
       return MockReact.createElement(View, {
         testID: props.testID || 'mock-rive',
@@ -83,7 +83,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Act
     const { getByTestId } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -100,7 +99,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Act
     const { getByTestId } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -119,14 +117,13 @@ describe('OnboardingSuccessEndAnimation', () => {
     mockRiveRef = {
       setInputState: mockSetInputState,
       fireState: mockFireState,
-    };
+    } as unknown;
 
     const mockOnAnimationComplete = jest.fn();
 
     // Act
     render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -149,7 +146,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Act
     render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -170,14 +166,13 @@ describe('OnboardingSuccessEndAnimation', () => {
     mockRiveRef = {
       setInputState: mockSetInputState,
       fireState: mockFireState,
-    };
+    } as unknown;
 
     const mockOnAnimationComplete = jest.fn();
 
     // Act
     const { rerender } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -188,7 +183,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Re-render
     rerender(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -214,7 +208,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Act
     const { getByTestId } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -231,7 +224,7 @@ describe('OnboardingSuccessEndAnimation', () => {
 
     // Verify animation wrapper styles
     const animationWrapper = animationContainer
-      .children[0] as React.ReactTestInstance;
+      .children[0] as ReactTestInstance;
     expect(animationWrapper.props.style).toEqual(
       expect.objectContaining({
         flex: 1,
@@ -258,7 +251,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Act
     const { getByTestId } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -266,7 +258,7 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Assert
     const animationContainer = getByTestId('onboarding-success-end-animation');
     const animationWrapper = animationContainer
-      .children[0] as React.ReactTestInstance;
+      .children[0] as ReactTestInstance;
 
     // Verify container and wrapper have correct styles
     expect(animationContainer.props.style).toEqual(
@@ -303,7 +295,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Act
     const { unmount } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
@@ -315,7 +306,6 @@ describe('OnboardingSuccessEndAnimation', () => {
     // Render again
     const { unmount: unmount2 } = render(
       <OnboardingSuccessEndAnimation
-        startAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
