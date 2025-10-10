@@ -446,6 +446,16 @@ class PerpsConnectionManagerClass {
           traceSpan,
         );
 
+        // Check if timeout fired during health check - respect timeout decision
+        if (this.error === PERPS_ERROR_CODES.CONNECTION_TIMEOUT) {
+          // Timeout already set error state, bail out early without overriding
+          traceData = {
+            success: false,
+            error: 'Connection timeout during health check',
+          };
+          return; // Skip to finally block for trace cleanup
+        }
+
         // Clear connection timeout after successful health check
         this.clearConnectionTimeout();
 
@@ -698,6 +708,16 @@ class PerpsConnectionManagerClass {
         'millisecond',
         traceSpan,
       );
+
+      // Check if timeout fired during health check - respect timeout decision
+      if (this.error === PERPS_ERROR_CODES.CONNECTION_TIMEOUT) {
+        // Timeout already set error state, bail out early without overriding
+        traceData = {
+          success: false,
+          error: 'Connection timeout during reconnection health check',
+        };
+        return; // Skip to finally block for trace cleanup
+      }
 
       // Clear connection timeout after successful health check
       this.clearConnectionTimeout();
