@@ -144,9 +144,7 @@ import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -196,7 +194,6 @@ const createStyles = ({ colors }: Theme) =>
     walletAccount: { marginTop: 28 },
 
     tabContainer: {
-      paddingHorizontal: 16,
       flex: 1,
     },
     loader: {
@@ -449,9 +446,29 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     enabledNetworksIsSolana,
   ]);
 
+  // Create a key that changes when tab structure changes to force re-render
+  const tabsKey = useMemo(() => {
+    const enabledFeatures = [
+      isPerpsEnabled ? 'perps' : '',
+      isPredictEnabled ? 'predict' : '',
+      defiEnabled ? 'defi' : '',
+      collectiblesEnabled ? 'nfts' : '',
+      enabledNetworksIsSolana ? 'solana' : '',
+    ]
+      .filter(Boolean)
+      .join('-');
+    return `tabs-${enabledFeatures}`;
+  }, [
+    isPerpsEnabled,
+    isPredictEnabled,
+    defiEnabled,
+    collectiblesEnabled,
+    enabledNetworksIsSolana,
+  ]);
+
   return (
     <View style={styles.tabContainer}>
-      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
         {tabsToRender}
       </TabsList>
     </View>
@@ -543,10 +560,8 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-
   // Setup for AssetDetailsActions
-  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+  const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
@@ -563,10 +578,6 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
-  const displayBridgeButton =
-    !isUnifiedSwapsEnabled &&
-    AppConstants.BRIDGE.ACTIVE &&
-    isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
@@ -1293,14 +1304,11 @@ const Wallet = ({
             <AssetDetailsActions
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
-              displayBridgeButton={displayBridgeButton}
-              goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
               onSend={onSend}
               buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
               swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
               sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
               receiveButtonActionID={
                 WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
@@ -1331,11 +1339,9 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-      goToBridge,
       goToSwaps,
       displayBuyButton,
       displaySwapsButton,
-      displayBridgeButton,
       onReceive,
       onSend,
       route.params,

@@ -1,6 +1,11 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { EthAccountType, BtcAccountType } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  BtcAccountType,
+  TrxAccountType,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -100,6 +105,27 @@ export function isNonEvmChainId(chainId: string | Hex | CaipChainId): boolean {
 export function isBtcAccount(account: InternalAccount): boolean {
   const { P2wpkh } = BtcAccountType;
   return Boolean(account && account.type === P2wpkh);
+}
+
+/**
+ * Returns whether an account is a Tron account.
+ *
+ * @param account - The internal account to check.
+ * @returns `true` if the account is of type Eoa, false otherwise.
+ */
+export function isTronAccount(account: InternalAccount): boolean {
+  const { Eoa } = TrxAccountType;
+  return Boolean(account && account.type === Eoa);
+}
+
+/**
+ * Returns whether a chain id is a Tron chain id.
+ *
+ * @param chainId - The chain id to check.
+ * @returns `true` if the chain id is a Tron chain id, `false` otherwise.
+ */
+export function isTronChainId(chainId: string | Hex | CaipChainId): boolean {
+  return Object.values(TrxScope).includes(chainId as TrxScope);
 }
 
 /**

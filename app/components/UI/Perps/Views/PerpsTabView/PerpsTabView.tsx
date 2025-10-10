@@ -30,8 +30,8 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
+import { TraceName } from '../../../../../util/trace';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -46,7 +46,6 @@ import styleSheet from './PerpsTabView.styles';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
-
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -63,7 +62,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   // Track Perps tab load performance - measures time from tab mount to data ready
   usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.PERPS_TAB_LOADED,
+    traceName: TraceName.PerpsTabView,
     conditions: [
       !isInitialLoading,
       !!positions,
@@ -119,9 +118,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
       // Navigate to tutorial for first-time users
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {

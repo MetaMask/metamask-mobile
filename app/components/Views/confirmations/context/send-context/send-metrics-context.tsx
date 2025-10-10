@@ -36,13 +36,13 @@ export interface SendMetricsContextType {
   assetListSize: string;
   amountInputMethod: string;
   amountInputType: string;
+  chainId?: string;
+  chainIdCaip?: string;
   assetFilterMethod: string;
-  recipientInputMethod: string;
   setAmountInputMethod: (value: string) => void;
   setAmountInputType: (value: string) => void;
   setAssetFilterMethod: (value: string) => void;
   setAssetListSize: (value: string) => void;
-  setRecipientInputMethod: (value: string) => void;
 }
 
 export const SendMetricsContext = createContext<SendMetricsContextType>({
@@ -50,13 +50,13 @@ export const SendMetricsContext = createContext<SendMetricsContextType>({
   assetListSize: '',
   amountInputMethod: AmountInputMethod.Manual,
   amountInputType: AmountInputType.Token,
+  chainId: '',
+  chainIdCaip: '',
   assetFilterMethod: AssetFilterMethod.None,
-  recipientInputMethod: RecipientInputMethod.Manual,
   setAmountInputMethod: () => undefined,
   setAmountInputType: () => undefined,
   setAssetFilterMethod: () => undefined,
   setAssetListSize: () => undefined,
-  setRecipientInputMethod: () => undefined,
 });
 
 // If app goes to idle state, `getAddressAccountType` throws an error because app is locked
@@ -80,10 +80,11 @@ export const SendMetricsContextProvider: React.FC<{
     AmountInputMethod.Manual,
   );
   const [amountInputType, setAmountInputType] = useState(AmountInputType.Token);
-  const [recipientInputMethod, setRecipientInputMethod] = useState(
-    RecipientInputMethod.Manual,
-  );
-  const { from } = useSendContext();
+  const { asset, from } = useSendContext();
+  const chainId = asset?.chainId;
+  const chainIdCaip = isEvmAddress(asset?.address || '')
+    ? `eip155:${parseInt(asset?.chainId as string, 16)}`
+    : asset?.chainId;
 
   return (
     <SendMetricsContext.Provider
@@ -95,12 +96,12 @@ export const SendMetricsContextProvider: React.FC<{
         amountInputMethod,
         amountInputType,
         assetFilterMethod,
-        recipientInputMethod,
+        chainId,
+        chainIdCaip,
         setAssetListSize,
         setAmountInputMethod,
         setAmountInputType,
         setAssetFilterMethod,
-        setRecipientInputMethod,
       }}
     >
       {children}
