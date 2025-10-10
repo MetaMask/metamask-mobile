@@ -8,7 +8,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
@@ -122,12 +122,5 @@ describe('NFT Auto detection modal', () => {
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
 
     expect(mockAddTraitsToUser).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE,
-      )
-        .addProperties({ chainId: '0x1' })
-        .build(),
-    );
   });
 });
