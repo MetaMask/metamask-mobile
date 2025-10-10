@@ -8,46 +8,12 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
-import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
-import { isSolanaChainId, isBitcoinChainId } from '@metamask/bridge-controller';
 
-import {
-  isSolanaAccount,
-  isBtcAccount,
-} from '../../../../../core/Multichain/utils';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
-
-enum AssetProtocol {
-  EVM = 'EVM',
-  SOLANA = 'SOLANA',
-  BITCOIN = 'BITCOIN',
-}
-
-interface ProtocolConfig {
-  isAssetType: (asset: AssetType | Nft) => boolean;
-  isAccountType: (account: InternalAccount) => boolean;
-}
-
-const PROTOCOL_CONFIG: Record<AssetProtocol, ProtocolConfig> = {
-  [AssetProtocol.EVM]: {
-    isAssetType: (asset) =>
-      asset?.address ? isEvmAddress(asset.address) : false,
-    isAccountType: (account) => isEvmAccountType(account.type),
-  },
-  [AssetProtocol.SOLANA]: {
-    isAssetType: (asset) =>
-      asset?.chainId ? isSolanaChainId(asset.chainId) : false,
-    isAccountType: (account) => isSolanaAccount(account),
-  },
-  [AssetProtocol.BITCOIN]: {
-    isAssetType: (asset) =>
-      asset?.chainId ? isBitcoinChainId(asset.chainId) : false,
-    isAccountType: (account) => isBtcAccount(account),
-  },
-};
+import { AssetProtocol, PROTOCOL_CONFIG } from '../../constants/protocol';
 
 export interface SendContextType {
   asset?: AssetType | Nft;
