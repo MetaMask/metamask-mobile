@@ -10,7 +10,7 @@ class SwitchAccountModal {
   }
 
   get switchAccountButton(): DetoxElement {
-    return Matchers.getElementByLabel(
+    return Matchers.getElementByID(
       SwitchAccountModalSelectorIDs.SWITCH_ACCOUNT_BUTTON_LOCALHOST,
     );
   }
