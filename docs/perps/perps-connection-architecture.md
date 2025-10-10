@@ -75,7 +75,7 @@ graph TD
 
 **Exposes**: Connection context via `PerpsConnectionContext` that `usePerpsConnection` hook reads from
 
-**Note**: Internally uses `usePerpsConnectionLifecycle` to automatically connect/disconnect based on app state and tab visibility, but this is an implementation detail not exposed to UI components. Account and network change monitoring is handled by the Manager layer via Redux subscriptions, not by the Provider.
+**Note**: Internally uses `usePerpsConnectionLifecycle` to automatically connect/disconnect based on app state and tab visibility (with 300ms stabilization delay on app foreground), but this is an implementation detail not exposed to UI components. Account and network change monitoring is handled by the Manager layer via Redux subscriptions, not by the Provider.
 
 ---
 
@@ -87,7 +87,8 @@ graph TD
 
 - Connection state (`isConnected`, `isConnecting`, `isInitialized`, `error`)
 - Race condition guards (`initPromise`, `pendingReconnectPromise`)
-- Grace period timer (20s delay before disconnect)
+- Grace period timer (`CONNECTION_GRACE_PERIOD_MS` = 20s delay before disconnect)
+- Connection timeout management (30s limit for connection attempts)
 - Reference counting (tracks active provider instances)
 - Stream manager caches
 - Redux store subscription for account/network change monitoring
@@ -96,10 +97,12 @@ graph TD
 
 - Coordinate connect/disconnect based on provider reference counting
 - Monitor Redux for account and network changes, trigger reconnection automatically
-- Handle force flag logic (cancel pending operations vs wait)
-- Implement grace period to prevent flickering disconnects
+- Handle force flag logic (cancel pending operations vs wait, including timeout timers)
+- Implement grace period (20s) to prevent flickering disconnects
+- Enforce connection timeout (30s) to prevent indefinite hanging
 - Clear stream caches during reconnection
 - Delegate actual provider initialization to Controller
+- Validate connection with WebSocket health checks via `provider.ping()` (replaces blocking HTTP calls)
 
 **Does NOT**:
 
@@ -167,6 +170,7 @@ graph TD
 - Make REST API calls for trading operations (place/cancel/edit orders)
 - Make REST API calls for data queries (account state, positions, market info)
 - Establish and maintain WebSocket connection for real-time subscriptions
+- Provide `ping()` for WebSocket health checks (5s timeout) - used by Manager for connection validation
 - Format requests according to exchange protocol
 - Parse responses and normalize data
 - Handle exchange-specific errors
@@ -176,18 +180,19 @@ graph TD
 
 - Know about Redux or React
 - Handle reconnection logic
-- Implement grace periods
+- Implement grace periods or timeouts
 - Manage multiple provider instances
 
 **Communication Methods**:
 
 - **REST API**: Account queries, order placement/cancellation, balance checks, market data
-- **WebSocket**: Real-time price updates, order fill notifications, position changes
+- **WebSocket**: Real-time price updates, order fill notifications, position changes, health checks
 
 **Key Methods**:
 
 - `connect()` - Initialize REST clients and WebSocket connection
 - `disconnect()` - Close WebSocket and cleanup clients
+- `ping()` - WebSocket health check to validate connection responsiveness
 - `placeOrder()`, `cancelOrder()` - Trading via REST API
 - `getAccountState()`, `getPositions()` - Data queries via REST API
 - `subscribeToPrices()`, `subscribeToOrders()` - Real-time updates via WebSocket
@@ -196,28 +201,10 @@ graph TD
 
 ## Design Principles
 
-1. **Manager Orchestrates, Controller Provides Primitives**
-
-   - Manager coordinates "when" and "why" to reconnect
-   - Controller provides "how" to initialize/disconnect providers
-   - Manager never directly touches providers
-
-2. **Provider is Exchange-Agnostic Interface**
-
-   - Controller doesn't know about HyperLiquid specifics
-   - Easy to add new providers (Binance, GMX, etc.)
-   - Provider implements standard interface
-
-3. **UI Layer is Presentation Only**
-
-   - Provider (React) polls state from Manager (singleton)
-   - No business logic in React components
-   - UI decides presentation based on state
-
-4. **Clear Ownership Boundaries**
-   - Each layer owns specific concerns
-   - No cross-layer state management
-   - Dependencies flow downward only
+- **Manager Orchestrates, Controller Provides Primitives**: Manager coordinates "when" and "why" to reconnect; Controller provides "how" to initialize/disconnect providers
+- **Provider is Exchange-Agnostic Interface**: Controller doesn't know about HyperLiquid specifics; easy to add new providers
+- **UI Layer is Presentation Only**: Provider (React) polls state from Manager (singleton); no business logic in React components
+- **Clear Ownership Boundaries**: Each layer owns specific concerns; no cross-layer state management; dependencies flow downward only
 
 ---
 
@@ -264,9 +251,15 @@ interface ReconnectOptions {
 **Only used at Manager layer** - Controls pending operation handling:
 
 - `force: false` (default): Waits for pending operations → safe for automatic reconnects
-- `force: true`: Cancels pending operations → user-initiated retry
+- `force: true`: Cancels pending operations AND clears connection timeout timer → user-initiated retry
 
 **Why Controller doesn't need it**: Manager calls `initializeProviders()` directly which always does full reinitialization with provider disconnect/recreate.
+
+**Additional Effects of force: true**:
+
+- Cancels grace period immediately
+- Clears connection timeout timer
+- Clears all pending promises: `initPromise`, `pendingReconnectPromise`
 
 ---
 
@@ -352,29 +345,30 @@ The Manager's `pendingReconnectPromise` ensures only one reconnection happens at
 
 1. **A → B**: Triggers `reconnectWithNewContext()` → creates `pendingReconnectPromise`
 2. **B → C** (during B reconnection): Calls `reconnectWithNewContext()` again
-3. **Line 484-486**: Returns existing `pendingReconnectPromise` (doesn't start new reconnection)
+3. **Manager**: Returns existing `pendingReconnectPromise` (doesn't start new reconnection)
 4. **When B completes**: Promise is cleared, state is updated
 5. **C change detected**: New reconnection starts with fresh promise
 
 **Result**: The final account (C) will be correctly connected because:
 
-- Each reconnection fetches account address fresh via `walletService.getCurrentAccountId()` at execution time
+- Each reconnection fetches account address fresh at execution time
 - Redux subscription in Manager detects every account change and queues reconnection
 - `pendingReconnectPromise` serializes reconnections to prevent race conditions
 - The last account change always triggers a reconnection after previous one completes
+- Stream caches are cleared immediately on account change to prevent old data from showing
 
 ---
 
 ## When to Use What
 
-| Scenario          | Method                      | Options           | Which Layer Decides                        |
-| ----------------- | --------------------------- | ----------------- | ------------------------------------------ |
-| Initial load      | `connect()`                 | -                 | Manager (via Provider hook)                |
-| User retry button | `reconnectWithNewContext()` | `{ force: true }` | UI → Provider → Manager                    |
-| Account switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) |
-| Network switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) |
-| App background    | `disconnect()`              | -                 | Provider lifecycle hook → Manager          |
-| App foreground    | `connect()`                 | -                 | Provider lifecycle hook → Manager          |
+| Scenario          | Method                      | Options           | Which Layer Decides                        | Notes                                         |
+| ----------------- | --------------------------- | ----------------- | ------------------------------------------ | --------------------------------------------- |
+| Initial load      | `connect()`                 | -                 | Manager (via Provider hook)                | Uses WebSocket ping for validation            |
+| User retry button | `reconnectWithNewContext()` | `{ force: true }` | UI → Provider → Manager                    | Cancels pending operations + timeout timer    |
+| Account switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Clears caches immediately before reconnection |
+| Network switch    | `reconnectWithNewContext()` | default           | Manager (automatic via Redux subscription) | Same as account switch                        |
+| App background    | `disconnect()`              | -                 | Provider lifecycle hook → Manager          | Grace period (20s) before actual disconnect   |
+| App foreground    | `connect()`                 | -                 | Provider lifecycle hook → Manager          | 300ms stabilization delay to prevent races    |
 
 ---
 
