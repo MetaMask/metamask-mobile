@@ -20,6 +20,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
+  renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
   weiToFiat,
   safeNumberToBN,
