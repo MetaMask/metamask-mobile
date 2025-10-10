@@ -1117,12 +1117,10 @@ describe('AssetOverview', () => {
 
       await findByText(testToken.name);
       expect(handleFetch).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'price.api.cx.metamask.io/v2/chains/1/spot-prices',
-        ),
+        expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
       expect(handleFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`tokenAddresses=${testTokenAddress}`),
+        expect.stringContaining('assetIds=eip155%3A1%2Ferc20%3A'),
       );
     });
 
