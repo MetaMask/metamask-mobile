@@ -186,6 +186,7 @@
     "appwright/form-data": "4.0.4",
     "@expo/fingerprint": "^0.15.0",
     "@metamask/bridge-status-controller@^47.2.0": "patch:@metamask/bridge-status-controller@npm%3A47.2.0#./.yarn/patches/@metamask-bridge-status-controller-npm-47.2.0-1c8660e896.patch",
+    "appwright@^0.1.45": "patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch",
     "@scure/bip32": "1.7.0",
     "@metamask/snaps-sdk": "^10.0.0"
   },
@@ -293,7 +294,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^14.0.0",
     "@metamask/token-search-discovery-controller": "^3.1.0",
-    "@metamask/transaction-controller": "^60.4.0",
+    "@metamask/transaction-controller": "^60.6.0",
     "@metamask/tron-wallet-snap": "^1.1.0",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
