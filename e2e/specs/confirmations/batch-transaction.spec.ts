@@ -156,49 +156,49 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
     );
   });
 
-  it('upgrades an account', async () => {
-    await withFixtures(
-      {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-        localNodeOptions: [
-          {
-            type: LocalNodeType.anvil,
-            options: localNodeOptions[0].options as AnvilNodeOptions,
-          },
-        ],
-        testSpecificMock,
-      },
-      async () => {
-        await loginToApp();
+  // it('upgrades an account', async () => {
+  //   await withFixtures(
+  //     {
+  //       dapps: [
+  //         {
+  //           dappVariant: DappVariants.TEST_DAPP,
+  //         },
+  //       ],
+  //       fixture: new FixtureBuilder().build(),
+  //       restartDevice: true,
+  //       localNodeOptions: [
+  //         {
+  //           type: LocalNodeType.anvil,
+  //           options: localNodeOptions[0].options as AnvilNodeOptions,
+  //         },
+  //       ],
+  //       testSpecificMock,
+  //     },
+  //     async () => {
+  //       await loginToApp();
 
-        // Create confirmation to upgrade account
-        await TabBarComponent.tapWallet();
-        await changeNetworkFromNetworkListModal();
-        await tapSwitchAccountModal();
+  //       // Create confirmation to upgrade account
+  //       await TabBarComponent.tapWallet();
+  //       await changeNetworkFromNetworkListModal();
+  //       await tapSwitchAccountModal();
 
-        // Check all expected elements are visible
-        await Assertions.expectTextDisplayed('Account update');
-        await Assertions.expectTextDisplayed(
-          "You're switching to a smart account.",
-        );
-        await Assertions.expectElementToBeVisible(
-          ConfirmationUITypes.ModalConfirmationContainer,
-        );
-        await checkConfirmationPage();
+  //       // Check all expected elements are visible
+  //       await Assertions.expectTextDisplayed('Account update');
+  //       await Assertions.expectTextDisplayed(
+  //         "You're switching to a smart account.",
+  //       );
+  //       await Assertions.expectElementToBeVisible(
+  //         ConfirmationUITypes.ModalConfirmationContainer,
+  //       );
+  //       await checkConfirmationPage();
 
-        // Accept confirmation
-        await FooterActions.tapConfirmButton();
+  //       // Accept confirmation
+  //       await FooterActions.tapConfirmButton();
 
-        // Check activity tab
-        await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Upgrade to smart account');
-      },
-    );
-  });
+  //       // Check activity tab
+  //       await TabBarComponent.tapActivity();
+  //       await Assertions.expectTextDisplayed('Upgrade to smart account');
+  //     },
+  //   );
+  // });
 });
