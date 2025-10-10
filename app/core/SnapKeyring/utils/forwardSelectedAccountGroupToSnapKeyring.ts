@@ -12,7 +12,7 @@ export async function forwardSelectedAccountGroupToSnapKeyring(
   const { AccountTreeController } = Engine.context;
 
   // This logic should be moved to the Snap keyring package and rely on the messaging
-  // system to subsribe to events and use actions to get the currently selected
+  // system to subscribe to events and use actions to get the currently selected
   // accounts from the tree.
   //
   // Though, we decided to do it at client-level for simplicity and because it's a
