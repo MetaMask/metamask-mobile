@@ -228,6 +228,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     extra?: Record<string, unknown>,
   ): Record<string, unknown> {
     return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
       context: `HyperLiquidProvider.${method}`,
       provider: this.protocolId,
       network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',

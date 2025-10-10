@@ -21,6 +21,7 @@ import { selectPerpsNetwork } from '../selectors/perpsController';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+import { ensureError } from '../utils/perpsErrorHandler';
 
 // simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -114,13 +115,10 @@ class PerpsConnectionManagerClass {
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
-          Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              context:
-                'PerpsConnectionManager.reconnectWithNewContext (account/network change)',
-            },
-          );
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            message: 'Error reconnecting with new account/network context',
+          });
         });
       }
 
@@ -215,9 +213,9 @@ class PerpsConnectionManagerClass {
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(error as Error, {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             message: 'Error performing actual disconnection',
-            context: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
           });
         });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS) as unknown as number;
@@ -227,9 +225,9 @@ class PerpsConnectionManagerClass {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(error as Error, {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
             message: 'Error performing actual disconnection',
-            context: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
           });
         });
       }, PERPS_CONSTANTS.CONNECTION_GRACE_PERIOD_MS);
@@ -279,10 +277,9 @@ class PerpsConnectionManagerClass {
               'PerpsConnectionManager: Actual disconnection complete',
             );
           } catch (error) {
-            DevLogger.log(
-              'PerpsConnectionManager: Actual disconnection error',
-              error,
-            );
+            Logger.error(ensureError(error), {
+              feature: PERPS_CONSTANTS.FEATURE_NAME,
+            });
           } finally {
             this.isDisconnecting = false;
             this.disconnectPromise = null;
@@ -863,8 +860,9 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'PerpsConnectionManager.preloadSubscriptions',
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Error pre-loading subscriptions',
       });
       // Non-critical error - components will still work with on-demand subscriptions
     }

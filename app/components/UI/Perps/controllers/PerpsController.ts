@@ -752,6 +752,7 @@ export class PerpsController extends BaseController<
     extra?: Record<string, unknown>,
   ): Record<string, unknown> {
     return {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
       context: `PerpsController.${method}`,
       provider: this.state.activeProvider,
       network: this.state.isTestnet ? 'testnet' : 'mainnet',
