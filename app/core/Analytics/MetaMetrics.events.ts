@@ -478,7 +478,7 @@ enum EVENT_NAME {
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
   // NFT auto detection events
-  NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
+  NFT_AUTO_DETECTION_ENABLED = 'Nft Autodetection Enabled',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
   // Backup and sync
