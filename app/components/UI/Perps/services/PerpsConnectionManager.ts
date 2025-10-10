@@ -1,4 +1,5 @@
 import { captureException, setMeasurement } from '@sentry/react-native';
+import type { Span } from '@sentry/core';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,7 +9,12 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { store } from '../../../../store';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
-import { endTrace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  TraceName,
+  trace,
+  TraceOperation,
+} from '../../../../util/trace';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
@@ -397,107 +403,125 @@ class PerpsConnectionManagerClass {
       let traceData: Record<string, string | number | boolean> | undefined;
 
       try {
-        DevLogger.log('PerpsConnectionManager: Initializing connection');
+        const result = await trace(
+          {
+            name: TraceName.PerpsConnectionEstablishment,
+            id: traceId,
+            op: TraceOperation.PerpsOperation,
+          },
+          async (context) => {
+            const span = context as Span | undefined;
+            DevLogger.log('PerpsConnectionManager: Initializing connection');
 
-        // Stage 1: Initialize providers
-        const initStart = performance.now();
-        await Engine.context.PerpsController.initializeProviders();
-        this.isInitialized = true;
-        setMeasurement(
-          PerpsMeasurementName.PERPS_PROVIDER_INIT,
-          performance.now() - initStart,
-          'millisecond',
-        );
+            // Stage 1: Initialize providers
+            const initStart = performance.now();
+            await Engine.context.PerpsController.initializeProviders();
+            this.isInitialized = true;
+            setMeasurement(
+              PerpsMeasurementName.PERPS_PROVIDER_INIT,
+              performance.now() - initStart,
+              'millisecond',
+              span,
+            );
 
-        // Stage 2: Get account state - may fail if still initializing
-        const accountStart = performance.now();
-        try {
-          await Engine.context.PerpsController.getAccountState({
-            source: 'initial_connection',
-          });
-        } catch (error) {
-          // If it's a CLIENT_REINITIALIZING error, wait and retry once
-          if (
-            error instanceof Error &&
-            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING
-          ) {
+            // Stage 2: Get account state - may fail if still initializing
+            const accountStart = performance.now();
+            try {
+              await Engine.context.PerpsController.getAccountState({
+                source: 'initial_connection',
+              });
+            } catch (error) {
+              // If it's a CLIENT_REINITIALIZING error, wait and retry once
+              if (
+                error instanceof Error &&
+                error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING
+              ) {
+                DevLogger.log(
+                  'PerpsConnectionManager: Provider reinitializing, retrying...',
+                  {
+                    error: error.message,
+                  },
+                );
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                await Engine.context.PerpsController.getAccountState({
+                  source: 'initial_connection_retry',
+                });
+              } else {
+                throw error;
+              }
+            }
+            setMeasurement(
+              PerpsMeasurementName.PERPS_ACCOUNT_STATE_FETCH,
+              performance.now() - accountStart,
+              'millisecond',
+              span,
+            );
+
+            this.isConnected = true;
+            this.isConnecting = false;
+            // Clear errors on successful connection
+            this.clearError();
+
+            // Track WebSocket connection establishment performance (pure connection)
+            const connectionDuration = performance.now() - connectionStartTime;
+
+            // Log connection performance measurement with consistent marker
             DevLogger.log(
-              'PerpsConnectionManager: Provider reinitializing, retrying...',
+              `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection established`,
               {
-                error: error.message,
+                metric:
+                  PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
+                duration: `${connectionDuration.toFixed(0)}ms`,
               },
             );
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            await Engine.context.PerpsController.getAccountState({
-              source: 'initial_connection_retry',
-            });
-          } else {
-            throw error;
-          }
-        }
-        setMeasurement(
-          PerpsMeasurementName.PERPS_ACCOUNT_STATE_FETCH,
-          performance.now() - accountStart,
-          'millisecond',
-        );
 
-        this.isConnected = true;
-        this.isConnecting = false;
-        // Clear errors on successful connection
-        this.clearError();
-
-        // Track WebSocket connection establishment performance (pure connection)
-        const connectionDuration = performance.now() - connectionStartTime;
-
-        // Log connection performance measurement with consistent marker
-        DevLogger.log(
-          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection established`,
-          {
-            metric:
+            setMeasurement(
               PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
-            duration: `${connectionDuration.toFixed(0)}ms`,
-          },
-        );
+              connectionDuration,
+              'millisecond',
+              span,
+            );
 
-        setMeasurement(
-          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT,
-          connectionDuration,
-          'millisecond',
-        );
+            DevLogger.log('PerpsConnectionManager: Successfully connected');
 
-        DevLogger.log('PerpsConnectionManager: Successfully connected');
+            // Stage 3: Pre-load positions and orders subscriptions to populate cache
+            const preloadStart = performance.now();
+            await this.preloadSubscriptions();
+            setMeasurement(
+              PerpsMeasurementName.PERPS_SUBSCRIPTIONS_PRELOAD,
+              performance.now() - preloadStart,
+              'millisecond',
+              span,
+            );
 
-        // Stage 3: Pre-load positions and orders subscriptions to populate cache
-        const preloadStart = performance.now();
-        await this.preloadSubscriptions();
-        setMeasurement(
-          PerpsMeasurementName.PERPS_SUBSCRIPTIONS_PRELOAD,
-          performance.now() - preloadStart,
-          'millisecond',
-        );
+            // Track total connection time including preload (user-perceived performance)
+            const totalConnectionDuration =
+              performance.now() - connectionStartTime;
 
-        // Track total connection time including preload (user-perceived performance)
-        const totalConnectionDuration = performance.now() - connectionStartTime;
+            // Log connection with preload performance measurement
+            DevLogger.log(
+              `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection with preload completed`,
+              {
+                metric:
+                  PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
+                duration: `${totalConnectionDuration.toFixed(0)}ms`,
+              },
+            );
 
-        // Log connection with preload performance measurement
-        DevLogger.log(
-          `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Connection with preload completed`,
-          {
-            metric:
+            setMeasurement(
               PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
-            duration: `${totalConnectionDuration.toFixed(0)}ms`,
+              totalConnectionDuration,
+              'millisecond',
+              span,
+            );
+
+            return {
+              success: true,
+            };
           },
         );
 
-        setMeasurement(
-          PerpsMeasurementName.PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD,
-          totalConnectionDuration,
-          'millisecond',
-        );
-
-        traceData = {
-          success: true,
-        };
+        traceData = result;
       } catch (error) {
         this.isConnecting = false;
         this.isConnected = false;
@@ -583,118 +607,136 @@ class PerpsConnectionManagerClass {
     this.isConnecting = true;
 
     try {
-      // Stage 1: Clean up existing connections and clear caches
-      const cleanupStart = performance.now();
-      this.cleanupPreloadedSubscriptions();
+      const result = await trace(
+        {
+          name: TraceName.PerpsAccountSwitchReconnection,
+          id: traceId,
+          op: TraceOperation.PerpsOperation,
+        },
+        async (context) => {
+          const span = context as Span | undefined;
+          // Stage 1: Clean up existing connections and clear caches
+          const cleanupStart = performance.now();
+          this.cleanupPreloadedSubscriptions();
 
-      // Clear all cached data from StreamManager to reset UI immediately
-      const streamManager = getStreamManagerInstance();
-      streamManager.prices.clearCache();
-      streamManager.positions.clearCache();
-      streamManager.orders.clearCache();
-      streamManager.account.clearCache();
-      streamManager.marketData.clearCache();
-      setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
-        performance.now() - cleanupStart,
-        'millisecond',
-      );
+          // Clear all cached data from StreamManager to reset UI immediately
+          const streamManager = getStreamManagerInstance();
+          streamManager.prices.clearCache();
+          streamManager.positions.clearCache();
+          streamManager.orders.clearCache();
+          streamManager.account.clearCache();
+          streamManager.marketData.clearCache();
+          setMeasurement(
+            PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
+            performance.now() - cleanupStart,
+            'millisecond',
+            span,
+          );
 
-      // Reset connection state (but keep isConnecting = true)
-      this.isConnected = false;
-      this.isInitialized = false;
-      this.hasPreloaded = false;
-      // Clear previous errors when starting reconnection attempt
-      this.clearError();
+          // Reset connection state (but keep isConnecting = true)
+          this.isConnected = false;
+          this.isInitialized = false;
+          this.hasPreloaded = false;
+          // Clear previous errors when starting reconnection attempt
+          this.clearError();
 
-      // Stage 2: Force the controller to reinitialize with new context
-      const reinitStart = performance.now();
-      await Engine.context.PerpsController.reconnectWithNewContext();
-      setMeasurement(
-        PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
-        performance.now() - reinitStart,
-        'millisecond',
-      );
+          // Stage 2: Force the controller to reinitialize with new context
+          const reinitStart = performance.now();
+          await Engine.context.PerpsController.reconnectWithNewContext();
+          setMeasurement(
+            PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
+            performance.now() - reinitStart,
+            'millisecond',
+            span,
+          );
 
-      // Wait for initialization to complete - platform-specific timing for reliability
-      const reconnectionDelay = Device.isAndroid()
-        ? PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS
-        : PERPS_CONSTANTS.RECONNECTION_DELAY_IOS_MS;
-      await wait(reconnectionDelay);
+          // Wait for initialization to complete - platform-specific timing for reliability
+          const reconnectionDelay = Device.isAndroid()
+            ? PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS
+            : PERPS_CONSTANTS.RECONNECTION_DELAY_IOS_MS;
+          await wait(reconnectionDelay);
 
-      // Stage 3: Trigger connection with new account - wrap in try/catch to handle initialization errors
-      const accountStart = performance.now();
-      try {
-        await Engine.context.PerpsController.getAccountState({
-          source: 'account_switch',
-        });
-      } catch (error) {
-        // If it's a CLIENT_NOT_INITIALIZED or CLIENT_REINITIALIZING error, wait and retry once
-        if (
-          error instanceof Error &&
-          (error.message === PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED ||
-            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING)
-        ) {
+          // Stage 3: Trigger connection with new account - wrap in try/catch to handle initialization errors
+          const accountStart = performance.now();
+          try {
+            await Engine.context.PerpsController.getAccountState({
+              source: 'account_switch',
+            });
+          } catch (error) {
+            // If it's a CLIENT_NOT_INITIALIZED or CLIENT_REINITIALIZING error, wait and retry once
+            if (
+              error instanceof Error &&
+              (error.message === PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED ||
+                error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING)
+            ) {
+              DevLogger.log(
+                'PerpsConnectionManager: Waiting for initialization to complete',
+                {
+                  error: error.message,
+                },
+              );
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              await Engine.context.PerpsController.getAccountState({
+                source: 'account_switch_retry',
+              });
+            } else {
+              throw error;
+            }
+          }
+          setMeasurement(
+            PerpsMeasurementName.PERPS_NEW_ACCOUNT_FETCH,
+            performance.now() - accountStart,
+            'millisecond',
+            span,
+          );
+
+          this.isConnected = true;
+          this.isInitialized = true;
+          // Clear errors on successful reconnection
+          this.clearError();
+
           DevLogger.log(
-            'PerpsConnectionManager: Waiting for initialization to complete',
+            'PerpsConnectionManager: Successfully reconnected with new context',
+          );
+
+          // Stage 4: Pre-load subscriptions again with new account
+          const preloadStart = performance.now();
+          await this.preloadSubscriptions();
+          setMeasurement(
+            PerpsMeasurementName.PERPS_RECONNECTION_PRELOAD,
+            performance.now() - preloadStart,
+            'millisecond',
+            span,
+          );
+
+          // Track account switch reconnection performance including preload
+          const reconnectionDuration =
+            performance.now() - reconnectionStartTime;
+
+          // Log account switch reconnection performance measurement
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Account switch reconnection completed`,
             {
-              error: error.message,
+              metric:
+                PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
+              duration: `${reconnectionDuration.toFixed(0)}ms`,
             },
           );
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          await Engine.context.PerpsController.getAccountState({
-            source: 'account_switch_retry',
-          });
-        } else {
-          throw error;
-        }
-      }
-      setMeasurement(
-        PerpsMeasurementName.PERPS_NEW_ACCOUNT_FETCH,
-        performance.now() - accountStart,
-        'millisecond',
-      );
 
-      this.isConnected = true;
-      this.isInitialized = true;
-      // Clear errors on successful reconnection
-      this.clearError();
-
-      DevLogger.log(
-        'PerpsConnectionManager: Successfully reconnected with new context',
-      );
-
-      // Stage 4: Pre-load subscriptions again with new account
-      const preloadStart = performance.now();
-      await this.preloadSubscriptions();
-      setMeasurement(
-        PerpsMeasurementName.PERPS_RECONNECTION_PRELOAD,
-        performance.now() - preloadStart,
-        'millisecond',
-      );
-
-      // Track account switch reconnection performance including preload
-      const reconnectionDuration = performance.now() - reconnectionStartTime;
-
-      // Log account switch reconnection performance measurement
-      DevLogger.log(
-        `${PERFORMANCE_CONFIG.LOGGING_MARKERS.WEBSOCKET_PERFORMANCE} PerpsConn: Account switch reconnection completed`,
-        {
-          metric:
+          setMeasurement(
             PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
-          duration: `${reconnectionDuration.toFixed(0)}ms`,
+            reconnectionDuration,
+            'millisecond',
+            span,
+          );
+
+          return {
+            success: true,
+          };
         },
       );
 
-      setMeasurement(
-        PerpsMeasurementName.PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION,
-        reconnectionDuration,
-        'millisecond',
-      );
-
-      traceData = {
-        success: true,
-      };
+      traceData = result;
     } catch (error) {
       this.isConnected = false;
       this.isInitialized = false;
