@@ -29,14 +29,19 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
 
 /**
  * Translates an error code to a localized message
- * @param error - Error code string or Error object
+ * @param error - Error code string, Error object, or any other value
  * @param data - Optional data for interpolation in error messages
  * @returns Localized error message
  */
 export function translatePerpsError(
-  error: string | Error,
+  error: unknown,
   data?: Record<string, unknown>,
 ): string {
+  // Handle null or undefined
+  if (error === null || error === undefined) {
+    return strings('perps.errors.unknownError');
+  }
+
   // Handle error code strings
   if (typeof error === 'string' && error in ERROR_CODE_TO_I18N_KEY) {
     const i18nKey = ERROR_CODE_TO_I18N_KEY[error as PerpsErrorCode];
@@ -58,7 +63,7 @@ export function translatePerpsError(
     return error;
   }
 
-  // Default fallback
+  // Handle objects, numbers, and other types
   return strings('perps.errors.unknownError');
 }
 
