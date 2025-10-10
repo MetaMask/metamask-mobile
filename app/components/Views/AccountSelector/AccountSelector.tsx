@@ -9,7 +9,6 @@ import React, {
 } from 'react';
 
 // External dependencies.
-import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import BottomSheet, {
@@ -20,7 +19,6 @@ import Engine from '../../../core/Engine';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
-import { useAccounts } from '../../hooks/useAccounts';
 import {
   ButtonSize,
   ButtonVariants,
@@ -30,8 +28,6 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
@@ -70,22 +66,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
-  const {
-    onSelectAccount,
-    checkBalanceError,
-    disablePrivacyMode,
-    navigateToAddAccountActions,
-    isEvmOnly,
-  } = routeParams || {};
+  const { navigateToAddAccountActions } = routeParams || {};
 
   const reloadAccounts = useSelector(
     (state: RootState) => state.accounts.reloadAccounts,
   );
-  const privacyMode = useSelector(selectPrivacyMode);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  // const accountGroups = useSelector(selectAccountGroups);
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const {
@@ -99,34 +86,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     if (isAccountSyncingInProgress) {
       return accountOperationLoadingMessage;
     }
-
-    if (isMultichainAccountsState2Enabled) {
-      return strings('multichain_accounts.add_wallet');
-    }
-
-    return strings('account_actions.add_account_or_hardware_wallet');
-  }, [
-    isAccountSyncingInProgress,
-    accountOperationLoadingMessage,
-    isMultichainAccountsState2Enabled,
-  ]);
-
-  // Memoize useAccounts parameters to prevent unnecessary recalculations
-  const accountsParams = useMemo(
-    () => ({
-      checkBalanceError,
-      isLoading: reloadAccounts,
-    }),
-    [checkBalanceError, reloadAccounts],
-  );
-
-  const {
-    accounts: allAccounts,
-    ensByAccountAddress,
-    evmAccounts,
-  } = useAccounts(accountsParams);
-
-  const accounts = isEvmOnly ? evmAccounts : allAccounts;
+    return strings('multichain_accounts.add_wallet');
+  }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
 
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
@@ -140,25 +101,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  const _onSelectAccount = useCallback(
-    (address: string) => {
-      Engine.setSelectedAddress(address);
-      sheetRef.current?.onCloseBottomSheet();
-      onSelectAccount?.(address);
-
-      // Track Event: "Switched Account"
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-          .addProperties({
-            source: 'Wallet Tab',
-            number_of_accounts: accounts?.length,
-          })
-          .build(),
-      );
-    },
-    [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
-  );
-
   const _onSelectMultichainAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
@@ -170,38 +112,27 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
           .addProperties({
             source: 'Wallet Tab',
-            number_of_accounts: accounts?.length,
           })
           .build(),
       );
     },
-    [accounts?.length, trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder],
   );
 
   const handleAddAccount = useCallback(() => {
-    if (isMultichainAccountsState2Enabled) {
-      setScreen(AccountSelectorScreens.MultichainAddWalletActions);
-    } else {
-      setScreen(AccountSelectorScreens.AddAccountActions);
-    }
-  }, [isMultichainAccountsState2Enabled]);
+    setScreen(AccountSelectorScreens.MultichainAddWalletActions);
+  }, []);
 
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
-
-  const onRemoveImportedAccount = useCallback(
-    ({ nextActiveAddress }: { nextActiveAddress: string }) => {
-      nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
-    },
-    [],
-  );
 
   // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
     () => screen === AccountSelectorScreens.AccountSelector,
     [screen],
   );
+
   useEffect(() => {
     if (isAccountSelector) {
       trace({
@@ -234,15 +165,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             gap={8}
           >
             {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
-            <Text
-              variant={
-                isMultichainAccountsState2Enabled
-                  ? TextVariant.BodyMDBold
-                  : TextVariant.BodyMD
-              }
-            >
-              {buttonLabel}
-            </Text>
+            <Text variant={TextVariant.BodyMDBold}>{buttonLabel}</Text>
           </Box>
         ),
         size: ButtonSize.Lg,
@@ -251,36 +174,21 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       },
     ],
-    [
-      handleAddAccount,
-      isMultichainAccountsState2Enabled,
-      buttonLabel,
-      isAccountSyncingInProgress,
-    ],
+    [handleAddAccount, buttonLabel, isAccountSyncingInProgress],
   );
 
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        {isMultichainAccountsState2Enabled && selectedAccountGroup ? (
-          <MultichainAccountSelectorList
-            onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={[selectedAccountGroup]}
-            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-          />
-        ) : (
-          <EvmAccountSelectorList
-            onSelectAccount={_onSelectAccount}
-            onRemoveImportedAccount={onRemoveImportedAccount}
-            accounts={accounts}
-            ensByAccountAddress={ensByAccountAddress}
-            isRemoveAccountEnabled
-            privacyMode={privacyMode && !disablePrivacyMode}
-            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-          />
-        )}
+        <MultichainAccountSelectorList
+          onSelectAccount={_onSelectMultichainAccount}
+          selectedAccountGroups={
+            selectedAccountGroup ? [selectedAccountGroup] : []
+          }
+          testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+          setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+        />
         <BottomSheetFooter
           buttonPropsArray={addAccountButtonProps}
           style={styles.sheet}
@@ -288,15 +196,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       </Fragment>
     ),
     [
-      isMultichainAccountsState2Enabled,
       selectedAccountGroup,
       _onSelectMultichainAccount,
-      accounts,
-      _onSelectAccount,
-      ensByAccountAddress,
-      onRemoveImportedAccount,
-      privacyMode,
-      disablePrivacyMode,
       styles.sheet,
       addAccountButtonProps,
     ],
