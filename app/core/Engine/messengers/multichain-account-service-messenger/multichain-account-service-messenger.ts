@@ -18,7 +18,6 @@ import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
-import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
 
 type Actions =
@@ -31,14 +30,12 @@ type Actions =
   | KeyringControllerAddNewKeyringAction
   | KeyringControllerGetKeyringsByTypeAction
   | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | NetworkControllerFindNetworkClientIdByChainIdAction;
 
 type Events =
   | KeyringControllerStateChangeEvent
   | AccountsControllerAccountAddedEvent
-  | AccountsControllerAccountRemovedEvent
-  | { type: 'RemoteFeatureFlagController:stateChange'; payload: [unknown] };
+  | AccountsControllerAccountRemovedEvent;
 
 export type MultichainAccountServiceMessenger = ReturnType<
   typeof getMultichainAccountServiceMessenger
@@ -60,7 +57,6 @@ export function getMultichainAccountServiceMessenger(
       'KeyringController:stateChange',
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
-      'RemoteFeatureFlagController:stateChange',
     ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',
@@ -73,7 +69,6 @@ export function getMultichainAccountServiceMessenger(
       'KeyringController:getKeyringsByType',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
-      'RemoteFeatureFlagController:getState',
     ],
   });
 }
