@@ -43,18 +43,22 @@ export class ConnectionStore implements IConnectionStore {
 
       // Expiration check
       if (connectionInfo.expiresAt < Date.now()) {
-        await this.delete(id).catch(() => {
-          logger.error('Failed to delete expired connection:', id);
-        });
+        await this.delete(id)
+          .then(() => logger.debug('Deleted expired connection', id))
+          .catch(() =>
+            logger.error('Failed to delete expired connection:', id),
+          );
         return null;
       }
 
       return connectionInfo;
-    } catch (error) {
+    } catch {
       // Corrupted data, clean it up
-      await this.delete(id).catch(() => {
-        logger.error('Failed to delete corrupted connection:', id);
-      });
+      await this.delete(id)
+        .then(() => logger.debug('Deleted corrupted connection', id))
+        .catch(() =>
+          logger.error('Failed to delete corrupted connection:', id),
+        );
       return null;
     }
   }

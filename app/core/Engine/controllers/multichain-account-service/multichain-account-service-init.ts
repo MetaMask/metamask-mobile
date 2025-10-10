@@ -6,6 +6,9 @@ import {
   AccountProviderWrapper,
 } from '@metamask/multichain-account-service';
 import { ControllerInitFunction } from '../../types';
+import Engine from '../../Engine';
+import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
+import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 
 /**
  * Initialize the multichain account service.
@@ -16,8 +19,9 @@ import { ControllerInitFunction } from '../../types';
  */
 export const multichainAccountServiceInit: ControllerInitFunction<
   MultichainAccountService,
-  MultichainAccountServiceMessenger
-> = ({ controllerMessenger }) => {
+  MultichainAccountServiceMessenger,
+  MultichainAccountServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   // Create Bitcoin provider wrapped for feature flag control
   const btcProvider = new AccountProviderWrapper(
@@ -46,9 +50,22 @@ export const multichainAccountServiceInit: ControllerInitFunction<
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   // Bitcoin provider controlled by addBitcoinAccount feature flag via Basic Functionality
-  // TODO: Add direct feature flag subscription when messenger permissions are resolved
-  btcProvider.setEnabled(false); // Controlled via setBasicFunctionality like Solana
+  btcProvider.setEnabled(false);
   /// END:ONLY_INCLUDE_IF
+  // TODO: Move this logic to the SnapKeyring directly.
+  initMessenger.subscribe(
+    'MultichainAccountService:multichainAccountGroupUpdated',
+    (group) => {
+      const { AccountTreeController } = Engine.context;
+
+      // If the current group gets updated, then maybe there are more accounts being "selected"
+      // now, so we have to forward them to the Snap keyring too!
+      if (AccountTreeController.getSelectedAccountGroup() === group.id) {
+        // eslint-disable-next-line no-void
+        void forwardSelectedAccountGroupToSnapKeyring(group.id);
+      }
+    },
+  );
 
   return { controller, memStateKey: null, persistedStateKey: null };
 };
