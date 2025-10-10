@@ -45,7 +45,6 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
 import { useRegions } from '../../hooks/useRegions';
 import { usePaymentMethods } from '../../hooks/usePaymentMethods';
-import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 import SdkErrorAlert from '../../components/SdkErrorAlert/SdkErrorAlert';
 import TruncatedError from '../../components/TruncatedError/TruncatedError';
 
@@ -112,15 +111,12 @@ const BuildQuote = () => {
     selectedRegion,
     selectedPaymentMethod,
     selectedCryptoCurrency,
+    selectedWalletAddress,
   } = useDepositSDK();
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [error, setError] = useState<string | null>();
-
-  const isAccountTokenCompatible = useAccountTokenCompatible(
-    selectedCryptoCurrency,
-  );
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting();
@@ -188,14 +184,21 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedRegion && !selectedRegion.supported) {
+      if (
+        !isFetchingRegions &&
+        selectedRegion &&
+        !selectedRegion.supported &&
+        regions
+      ) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails(),
+            ...createUnsupportedRegionModalNavigationDetails({
+              regions,
+            }),
           );
         });
       }
-    }, [selectedRegion, navigation]),
+    }, [isFetchingRegions, selectedRegion, regions, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
@@ -210,7 +213,7 @@ const BuildQuote = () => {
     if (!selectedCryptoCurrency || !selectedPaymentMethod) {
       return;
     }
-    if (!isAccountTokenCompatible) {
+    if (!selectedWalletAddress) {
       handleNavigateToIncompatibleAccountTokenModal();
       return;
     }
@@ -345,7 +348,6 @@ const BuildQuote = () => {
       setIsLoading(false);
     }
   }, [
-    isAccountTokenCompatible,
     handleNavigateToIncompatibleAccountTokenModal,
     trackEvent,
     amountAsNumber,
@@ -359,6 +361,7 @@ const BuildQuote = () => {
     routeAfterAuthentication,
     navigateToVerifyIdentity,
     shouldRouteImmediately,
+    selectedWalletAddress,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -382,6 +385,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
     );
@@ -392,6 +396,7 @@ const BuildQuote = () => {
       return;
     }
 
+    setError(null);
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,

@@ -17,6 +17,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -32,6 +33,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         const futureDate = new Date(Date.now() + 5_000).toISOString();
@@ -54,6 +56,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT5S');
@@ -74,6 +77,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         // Intentionally scheduling an event for 1 hour into the future, so it
@@ -109,6 +113,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         const pastDate = new Date(Date.now() - 5_000).toISOString();

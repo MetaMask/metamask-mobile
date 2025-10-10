@@ -382,7 +382,15 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -395,7 +403,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
-                            "paddingBottom": 16,
                             "paddingHorizontal": 16,
                           }
                         }
@@ -710,7 +717,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         </View>
                       </RCTScrollView>
                       <View />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

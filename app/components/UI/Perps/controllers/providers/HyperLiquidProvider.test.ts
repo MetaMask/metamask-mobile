@@ -3448,6 +3448,55 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
+      describe('discount applied to orders', () => {
+        it('applies discount to builder fee in placeOrder', async () => {
+          // Arrange: Set 65% discount (6500 basis points)
+          provider.setUserFeeDiscount(6500);
+
+          // Act
+          await provider.placeOrder({
+            coin: 'BTC',
+            isBuy: true,
+            size: '0.001',
+            orderType: 'market',
+          });
+
+          // Assert: Verify exchangeClient.order called with discounted fee
+          // 100 * (1 - 0.65) = 35
+          expect(
+            mockClientService.getExchangeClient().order,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              builder: expect.objectContaining({
+                f: 35,
+              }),
+            }),
+          );
+        });
+
+        it('applies discount to builder fee in updatePositionTPSL', async () => {
+          // Arrange: Set 65% discount
+          provider.setUserFeeDiscount(6500);
+
+          // Act
+          await provider.updatePositionTPSL({
+            coin: 'BTC',
+            takeProfitPrice: '50000',
+          });
+
+          // Assert: Verify discounted fee (35 instead of 100)
+          expect(
+            mockClientService.getExchangeClient().order,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              builder: expect.objectContaining({
+                f: 35,
+              }),
+            }),
+          );
+        });
+      });
+
       describe('calculateFees with fee discount', () => {
         beforeEach(() => {
           // Reset mocks for fee discount tests
@@ -4442,6 +4491,61 @@ describe('HyperLiquidProvider', () => {
         provider as unknown as ProviderWithPrivateMethods;
       const result = testableProvider.isFeeCacheValid('0xnonexistent');
       expect(result).toBe(false);
+    });
+
+    it('should transform fill data with liquidation information', async () => {
+      // Mock fill with liquidation data
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 123,
+            coin: 'BTC',
+            side: 'A',
+            sz: '0.1',
+            px: '45000',
+            fee: '5',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '-500',
+            dir: 'Close Long',
+            liquidation: {
+              liquidatedUser: '0x123',
+              markPx: '44900',
+              method: 'market',
+            },
+          },
+        ]),
+      });
+
+      const fills = await provider.getOrderFills();
+
+      expect(fills[0].liquidation).toEqual({
+        liquidatedUser: '0x123',
+        markPx: '44900',
+        method: 'market',
+      });
+    });
+
+    it('should handle fills without liquidation data', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue([
+          {
+            oid: 124,
+            coin: 'ETH',
+            side: 'B',
+            sz: '1.0',
+            px: '3000',
+            fee: '3',
+            feeToken: 'USDC',
+            time: Date.now(),
+            closedPnl: '100',
+            dir: 'Open Long',
+          },
+        ]),
+      });
+
+      const fills = await provider.getOrderFills();
+      expect(fills[0].liquidation).toBeUndefined();
     });
   });
 });

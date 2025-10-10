@@ -36,11 +36,8 @@ export const Default = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    chainId: '0x1' as const,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -51,11 +48,8 @@ export const NoBuyButton = Template.bind(
   {
     displayBuyButton: false,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    chainId: '0x1' as const,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -66,26 +60,8 @@ export const NoSwapsButton = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: false,
-    displayBridgeButton: true,
-    chainId: '0x1' as const,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
-    onSend: () => null,
-    onReceive: () => null,
-  },
-);
-
-export const NoBridgeButton = Template.bind(
-  {},
-  {
-    displayBuyButton: true,
-    displaySwapsButton: true,
-    displayBridgeButton: false,
-    chainId: '0x1' as const,
-    onBuy: () => null,
-    goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -96,11 +72,8 @@ export const NoButtons = Template.bind(
   {
     displayBuyButton: false,
     displaySwapsButton: false,
-    displayBridgeButton: false,
-    chainId: '0x1' as const,
     onBuy: () => null,
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },
@@ -111,11 +84,8 @@ export const FundActionMenuNavigation = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: true,
-    displayBridgeButton: true,
-    chainId: '0x1' as const,
     // No onBuy prop - will navigate to FundActionMenu
     goToSwaps: () => null,
-    goToBridge: () => null,
     onSend: () => null,
     onReceive: () => null,
   },

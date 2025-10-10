@@ -8,6 +8,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
@@ -101,6 +102,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             twClassName="text-text-default"
             testID={REWARDS_VIEW_SELECTORS.TIER_NAME}
           >
@@ -117,6 +119,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
               {strings('rewards.upcoming_rewards.points_needed', {
@@ -171,7 +174,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   isLoading,
 }) => (
   <Box>
-    <Box twClassName="flex-row items-center gap-2 items-center">
+    <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.upcoming_rewards.title')}
       </Text>
@@ -272,7 +275,7 @@ const UpcomingRewards: React.FC = () => {
   };
 
   return (
-    <Box twClassName="py-4 gap-4">
+    <Box twClassName="p-4 gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={totalUpcomingRewardsCount}

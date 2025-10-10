@@ -350,7 +350,11 @@ export const useDepositRouting = () => {
               }
 
               if (selectedPaymentMethod?.isManualBankTransfer) {
-                const order = await createOrder(quote, selectedWalletAddress);
+                const order = await createOrder(
+                  quote,
+                  selectedWalletAddress,
+                  selectedPaymentMethod.id,
+                );
 
                 if (!order) {
                   throw new Error('Missing order');
@@ -472,6 +476,7 @@ export const useDepositRouting = () => {
       fetchUserDetails,
       selectedRegion?.isoCode,
       selectedPaymentMethod?.isManualBankTransfer,
+      selectedPaymentMethod?.id,
       handleNewOrder,
       navigateToBankDetailsCallback,
       navigateToWebviewModalCallback,

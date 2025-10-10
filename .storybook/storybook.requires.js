@@ -129,6 +129,7 @@ const getStories = () => {
     "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
     "./app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx": require("../app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx"),
+    "./app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx": require("../app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx"),
     "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),
     "./app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx": require("../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx"),
     "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),

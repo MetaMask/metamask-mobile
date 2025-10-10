@@ -32,7 +32,7 @@ jobs:
   trade-android-smoke:
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -40,7 +40,7 @@ jobs:
       platform: android
       test_suite_tag: "SmokeTrade"
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 1
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 

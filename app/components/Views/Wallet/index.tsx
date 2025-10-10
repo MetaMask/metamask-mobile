@@ -14,7 +14,6 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
-  ScrollView,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -142,14 +141,10 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
-import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -184,6 +179,8 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
+import NftGrid from '../../UI/NftGrid';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -197,7 +194,6 @@ const createStyles = ({ colors }: Theme) =>
     walletAccount: { marginTop: 28 },
 
     tabContainer: {
-      paddingHorizontal: 16,
       flex: 1,
     },
     loader: {
@@ -322,7 +318,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     [navigation],
   );
 
-  const collectibleContractsTabProps = useMemo(
+  const nftsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
@@ -414,7 +410,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (defiEnabled && !enabledNetworksIsSolana) {
+    if (enabledNetworksIsSolana) {
+      return tabs;
+    }
+
+    if (defiEnabled) {
       tabs.push(
         <DeFiPositionsList
           {...defiPositionsTabProps}
@@ -423,12 +423,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (collectiblesEnabled && !enabledNetworksIsSolana) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
+    } else if (collectiblesEnabled) {
       tabs.push(
-        <CollectibleContracts
-          {...collectibleContractsTabProps}
-          key={collectibleContractsTabProps.key}
-        />,
+        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
       );
     }
 
@@ -443,13 +442,33 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
-    collectibleContractsTabProps,
+    nftsTabProps,
+    enabledNetworksIsSolana,
+  ]);
+
+  // Create a key that changes when tab structure changes to force re-render
+  const tabsKey = useMemo(() => {
+    const enabledFeatures = [
+      isPerpsEnabled ? 'perps' : '',
+      isPredictEnabled ? 'predict' : '',
+      defiEnabled ? 'defi' : '',
+      collectiblesEnabled ? 'nfts' : '',
+      enabledNetworksIsSolana ? 'solana' : '',
+    ]
+      .filter(Boolean)
+      .join('-');
+    return `tabs-${enabledFeatures}`;
+  }, [
+    isPerpsEnabled,
+    isPredictEnabled,
+    defiEnabled,
+    collectiblesEnabled,
     enabledNetworksIsSolana,
   ]);
 
   return (
     <View style={styles.tabContainer}>
-      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
         {tabsToRender}
       </TabsList>
     </View>
@@ -541,10 +560,8 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-
   // Setup for AssetDetailsActions
-  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+  const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
@@ -560,29 +577,59 @@ const Wallet = ({
   ///: END:ONLY_INCLUDE_IF
 
   const displayBuyButton = true;
-  const displaySwapsButton =
-    AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
-  const displayBridgeButton =
-    !isUnifiedSwapsEnabled &&
-    AppConstants.BRIDGE.ACTIVE &&
-    isBridgeAllowed(chainId);
+  const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
 
   const onReceive = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
-      navigate(
-        ...createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-        }),
-      );
-    } else {
-      navigate(Routes.QR_TAB_SWITCHER, {
-        initialScreen: QRTabSwitcherScreens.Receive,
+      if (selectedAccountGroupId) {
+        navigate(
+          ...createAddressListNavigationDetails({
+            groupId: selectedAccountGroupId as AccountGroupId,
+            title: `${strings(
+              'multichain_accounts.address_list.receiving_address',
+            )}`,
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error(
+            'Wallet::onReceive - Missing selectedAccountGroupId for state2',
+          ),
+        );
+      }
+    } else if (
+      selectedInternalAccount?.address &&
+      selectedAccountGroupId &&
+      chainId
+    ) {
+      // Show address QR code for receiving funds
+      navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: {
+          address: selectedInternalAccount.address,
+          networkName: providerConfig?.nickname || 'Unknown Network',
+          chainId,
+          groupId: selectedAccountGroupId,
+        },
       });
+    } else {
+      Logger.error(
+        new Error('Wallet::onReceive - Missing required data for navigation'),
+        {
+          hasAddress: !!selectedInternalAccount?.address,
+          hasGroupId: !!selectedAccountGroupId,
+          hasChainId: !!chainId,
+        },
+      );
     }
-  }, [isMultichainAccountsState2Enabled, navigate, selectedAccountGroupId]);
+  }, [
+    isMultichainAccountsState2Enabled,
+    navigate,
+    selectedAccountGroupId,
+    selectedInternalAccount,
+    chainId,
+    providerConfig,
+  ]);
 
   const onSend = useCallback(async () => {
     try {
@@ -879,6 +926,11 @@ const Wallet = ({
    * Show multichain accounts intro modal if state 2 is enabled and never showed before
    */
   useMultichainAccountsIntroModal();
+
+  /**
+   * Show rewards intro modal if ff is enabled and never showed before
+   */
+  useRewardsIntroModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -1221,7 +1273,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <ScrollView
+      <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
@@ -1252,15 +1304,11 @@ const Wallet = ({
             <AssetDetailsActions
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
-              displayBridgeButton={displayBridgeButton}
-              chainId={chainId}
-              goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
               onSend={onSend}
               buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
               swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
               sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
               receiveButtonActionID={
                 WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
@@ -1278,7 +1326,7 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
-      </ScrollView>
+      </View>
     ),
     [
       styles.banner,
@@ -1291,17 +1339,14 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-      goToBridge,
       goToSwaps,
       displayBuyButton,
       displaySwapsButton,
-      displayBridgeButton,
       onReceive,
       onSend,
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
-      chainId,
     ],
   );
   const renderLoader = useCallback(

@@ -46,6 +46,7 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
+
   navigation.setOptions(
     getPerpsTransactionsDetailsNavbar(
       navigation,

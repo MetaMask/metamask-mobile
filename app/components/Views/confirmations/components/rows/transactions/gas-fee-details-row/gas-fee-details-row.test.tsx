@@ -12,6 +12,7 @@ import { toHex } from '@metamask/controller-utils';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useInsufficientBalanceAlert } from '../../../../hooks/alerts/useInsufficientBalanceAlert';
+import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
@@ -31,6 +32,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 jest.mock('../../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
+jest.mock('../../../../../../hooks/useHideFiatForTestnet');
 
 const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   amount: toHex(10000),
@@ -63,6 +65,7 @@ describe('GasFeesDetailsRow', () => {
   const mockUseInsufficientBalanceAlert = jest.mocked(
     useInsufficientBalanceAlert,
   );
+  const mockUseHideFiatForTestnet = jest.mocked(useHideFiatForTestnet);
 
   beforeEach(() => {
     useConfirmationMetricEventsMock.mockReturnValue({
@@ -74,6 +77,7 @@ describe('GasFeesDetailsRow', () => {
       isSmartTransaction: false,
     });
     mockUseInsufficientBalanceAlert.mockReturnValue([]);
+    mockUseHideFiatForTestnet.mockReturnValue(false);
   });
 
   it('contains required text', async () => {
@@ -188,5 +192,21 @@ describe('GasFeesDetailsRow', () => {
 
     expect(getByText('USDC')).toBeDefined();
     expect(getByText('$0.34')).toBeDefined();
+  });
+
+  it('shows native amount when is a testnet', async () => {
+    mockUseHideFiatForTestnet.mockReturnValue(true);
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
+      NETWORKS_CHAIN_ID.SEPOLIA;
+
+    const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
+      state: clonedStakingDepositConfirmationState,
+    });
+
+    expect(getByText('0.0001')).toBeDefined();
+    expect(getByText('ETH')).toBeDefined();
   });
 });

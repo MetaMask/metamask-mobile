@@ -212,6 +212,7 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         notifications: [],
+        claimTransactions: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({

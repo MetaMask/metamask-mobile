@@ -412,11 +412,11 @@ async function main() {
 
   try {
     if (IS_IOS) {
-      console.log('🍎 Running iOS tests on GitHub Actions');
-      await runYarn(`test:e2e:ios-gha:${METAMASK_BUILD_TYPE}:prod`, args, extraEnv);
+      console.log('🍎 Running iOS tests on GitHub Actions for build type: ', METAMASK_BUILD_TYPE);
+      await runYarn(`test:e2e:ios:github:${METAMASK_BUILD_TYPE}:release`, args, extraEnv);
     } else {
-      console.log('🤖 Running Android tests on GitHub Actions');
-      await runYarn('test:e2e:android:run:github:qa-release', args, extraEnv);
+      console.log('🤖 Running Android tests on GitHub Actions for build type: ', METAMASK_BUILD_TYPE);
+      await runYarn(`test:e2e:android:github:${METAMASK_BUILD_TYPE}:release`, args, extraEnv);
     }
   } catch (err) {
     console.error(err.message || String(err));
