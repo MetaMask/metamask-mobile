@@ -22,11 +22,13 @@ import Badge, {
 } from '../../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../../../../util/Logger';
+import { RewardsActivityListSelectorsIDs } from '../../../../../../../e2e/selectors/Rewards/RewardsActivityList.selectors';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
   accountName: string | undefined;
-}> = ({ event, accountName }) => {
+  testID?: string;
+}> = ({ event, accountName, testID }) => {
   const eventDetails = React.useMemo(
     () => (event ? getEventDetails(event, accountName) : undefined),
     [event, accountName],
@@ -67,6 +69,7 @@ export const ActivityEventRow: React.FC<{
       justifyContent={BoxJustifyContent.Between}
       twClassName="w-full"
       gap={3}
+      testID={testID}
     >
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
@@ -103,16 +106,23 @@ export const ActivityEventRow: React.FC<{
             alignItems={BoxAlignItems.End}
             gap={1}
           >
-            <Text>{eventDetails.title}</Text>
+            <Text
+              testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_TITLE}-${testID}`}
+            >
+              {eventDetails.title}
+            </Text>
           </Box>
 
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.End}
           >
-            <Text>{`${event.value > 0 ? '+' : ''}${event.value}`}</Text>
+            <Text
+              testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_VALUE}-${testID}`}
+            >{`${event.value > 0 ? '+' : ''}${event.value}`}</Text>
             {event.bonus?.bips && (
               <Text
+                testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_BONUS}-${testID}`}
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
                 twClassName="ml-1"
@@ -125,12 +135,14 @@ export const ActivityEventRow: React.FC<{
 
         <Box flexDirection={BoxFlexDirection.Row}>
           <Text
+            testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_DETAILS}-${testID}`}
             variant={TextVariant.BodySm}
             twClassName="text-alternative flex-1 max-w-[60%]"
           >
             {eventDetails.details}
           </Text>
           <Text
+            testID={`${RewardsActivityListSelectorsIDs.ACTIVITY_EVENT_ROW_DATE}-${testID}`}
             variant={TextVariant.BodySm}
             twClassName="text-alternative flex-1 text-right"
           >

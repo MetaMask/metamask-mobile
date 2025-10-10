@@ -27,6 +27,10 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
   }
 
+  get tabBarRewardsButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
+  }
+
   async tapBrowser(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
@@ -85,6 +89,21 @@ class TabBarComponent {
       {
         timeout: 10000,
         description: 'Tap Activity Button',
+      },
+    );
+  }
+
+  async tapRewards(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarRewardsButton, {
+          delay: 2500,
+        });
+        // await Assertions.expectElementToBeVisible(RewardsView.title);
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Rewards Button',
       },
     );
   }

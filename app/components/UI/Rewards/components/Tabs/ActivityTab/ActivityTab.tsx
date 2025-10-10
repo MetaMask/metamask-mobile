@@ -25,6 +25,7 @@ import { setActiveTab } from '../../../../../../actions/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
 import { NameType } from '../../../../Name/Name.types';
+import { RewardsActivityListSelectorsIDs } from '../../../../../../../e2e/selectors/Rewards/RewardsActivityList.selectors';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -105,7 +106,15 @@ export const ActivityTab: React.FC = () => {
   const accountNames = useAccountNames(accountNameRequests || []);
 
   const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
-    <ActivityEventRow event={item} accountName={accountNames?.[index]} />
+    <Box>
+      <ActivityEventRow
+        event={item}
+        accountName={accountNames?.[index]}
+        testID={`${
+          RewardsActivityListSelectorsIDs.ACTIVITY_ROW
+        }-${item.type.toLowerCase()}-${index}`}
+      />
+    </Box>
   );
 
   const renderFooter = () => {
