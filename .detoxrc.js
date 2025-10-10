@@ -24,7 +24,7 @@ module.exports = {
       config: 'e2e/jest.e2e.config.js',
     },
     jest: {
-      setupTimeout: 220000,
+      setupTimeout: 300000, // Increased from 220s to 300s (5 min) for emulator boot on new runners
       teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
     },
     retries: 1,
@@ -104,10 +104,15 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      // Increased memory and cores for CI stability
-      bootArgs: '-skin 1080x2340 -memory 6144 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on -wipe-data -read-only',      
+      // Optimized for GitHub Actions Ubuntu runners (Cirrus Labs large runners)
+      // Skin is required for correct test coordinates
+      bootArgs: '-skin 1080x2340 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -wipe-data -memory 6144 -cores 4',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
+      utilBinaryPaths: [
+        '/opt/android-sdk/emulator',
+        '/opt/android-sdk/platform-tools',
+      ],
     },
     'android.emulator': {
       type: 'android.emulator',

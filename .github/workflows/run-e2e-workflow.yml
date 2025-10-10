@@ -120,6 +120,7 @@ jobs:
           android-avd-name: emulator
           configure-keystores: false
 
+
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |
@@ -203,6 +204,17 @@ jobs:
 
           export TEST_SUITE_TAG="$test_suite_tag"
           echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
+
+          # Android-specific environment tuning for emulator stability
+          if [[ "$platform" == "android" ]]; then
+            echo "🔧 Setting Android emulator environment variables..."
+            export ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL=10
+            export DETOX_LOGLEVEL=info
+            export DETOX_READ_ONLY_EMU=false
+            # Ensure emulator can find the binaries
+            export PATH="$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+            echo "✅ Android environment configured"
+          fi
 
           # Run tests (Detox/Jest handle retries internally)
           echo "🚀 Starting E2E tests..."
