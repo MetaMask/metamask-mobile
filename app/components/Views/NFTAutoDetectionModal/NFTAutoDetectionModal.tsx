@@ -52,14 +52,6 @@ const NFTAutoDetectionModal = () => {
         }),
       };
       addTraitsToUser(traits);
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE)
-          .addProperties({
-            chainId,
-          })
-          .build(),
-      );
     } else {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE)
