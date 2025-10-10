@@ -25,7 +25,7 @@ export const validateBitcoinAddress = (
 } => {
   if (!isBtcMainnetAddress(toAddress)) {
     return {
-      error: 'invalidAddress',
+      error: strings('send.invalid_address'),
     };
   }
 
