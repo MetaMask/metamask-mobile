@@ -214,6 +214,7 @@ describe('useAccounts', () => {
         {
           accountGroupName: 'Group 1',
           accountName: 'Account 1',
+          accountType: 'eip155:eoa',
           address: '0x1234567890123456789012345678901234567890',
           walletName: 'Wallet 1',
         },
@@ -274,6 +275,7 @@ describe('useAccounts', () => {
         {
           accountGroupName: 'Group 2',
           accountName: 'Solana Account 1',
+          accountType: 'solana:data-account',
           address: 'Sol1234567890123456789012345678901234567890',
           walletName: 'Wallet 1',
         },
@@ -317,6 +319,7 @@ describe('useAccounts', () => {
         {
           accountGroupName: 'Group 3',
           accountName: 'Bitcoin Account 1',
+          accountType: 'bip122:p2wpkh',
           address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
           walletName: 'Wallet 1',
         },
@@ -377,6 +380,7 @@ describe('useAccounts', () => {
         {
           accountGroupName: 'Group 4',
           accountName: 'Tron Account 1',
+          accountType: 'tron:eoa',
           address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
           walletName: 'Wallet 1',
         },
@@ -596,12 +600,14 @@ describe('useAccounts', () => {
           {
             accountGroupName: 'Group 1',
             accountName: 'Account 1',
+            accountType: 'eip155:eoa',
             address: '0x1234567890123456789012345678901234567890',
             walletName: 'Wallet 1',
           },
           {
             accountGroupName: 'Group 3',
             accountName: 'Account 2',
+            accountType: 'eip155:eoa',
             address: '0x9876543210987654321098765432109876543210',
             walletName: 'Wallet 2',
           },
