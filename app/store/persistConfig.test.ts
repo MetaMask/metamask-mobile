@@ -117,6 +117,7 @@ describe('persistConfig', () => {
         'accounts',
         'confirmationMetrics',
         'alert',
+        'qrKeyringScanner',
       ]);
     });
 
