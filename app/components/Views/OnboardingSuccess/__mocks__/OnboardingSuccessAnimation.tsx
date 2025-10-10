@@ -6,9 +6,6 @@ interface OnboardingSuccessAnimationProps {
   startAnimation: boolean;
   onAnimationComplete: () => void;
   slideOut?: boolean;
-  mode?: 'setup' | 'success';
-  trigger?: string;
-  showText?: boolean;
 }
 
 const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
@@ -38,9 +35,12 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
     }
   }, [slideOut, onAnimationComplete]);
 
-  React.useEffect(() => () => {
+  React.useEffect(
+    () => () => {
       completedRef.current = false;
-    }, []);
+    },
+    [],
+  );
 
   return (
     <Box testID="mock-onboarding-success-animation">

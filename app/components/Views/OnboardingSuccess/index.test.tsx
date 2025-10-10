@@ -22,12 +22,12 @@ import {
   selectSeedlessOnboardingLoginFlow,
 } from '../../../selectors/seedlessOnboardingController';
 
-// Mock the OnboardingSuccessAnimation component
-jest.mock('./OnboardingSuccessAnimation', () => {
+// Mock the OnboardingSuccessEndAnimation component
+jest.mock('./OnboardingSuccessEndAnimation', () => {
   const MockReact = jest.requireActual('react');
   return MockReact.forwardRef(() =>
     MockReact.createElement('View', {
-      testID: 'onboarding-success-animation',
+      testID: 'onboarding-success-end-animation',
     }),
   );
 });
@@ -466,7 +466,7 @@ describe('OnboardingSuccess', () => {
       mockIsE2EValue = false;
     });
 
-    it('renders OnboardingSuccessAnimation with correct properties', () => {
+    it('renders OnboardingSuccessEndAnimation with correct properties', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccessComponent
           onDone={jest.fn()}
@@ -474,7 +474,7 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      const animation = getByTestId('onboarding-success-animation');
+      const animation = getByTestId('onboarding-success-end-animation');
       expect(animation).toBeOnTheScreen();
     });
 

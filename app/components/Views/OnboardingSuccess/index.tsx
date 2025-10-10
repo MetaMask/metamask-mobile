@@ -36,7 +36,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import OnboardingSuccessAnimation from './OnboardingSuccessAnimation';
+import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation';
 
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -128,10 +128,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     () => (
       <View style={styles.contentWrapper}>
         <View style={styles.imageWrapper}>
-          <OnboardingSuccessAnimation
+          <OnboardingSuccessEndAnimation
             startAnimation
-            mode="success"
-            showText={false}
             onAnimationComplete={() => {
               // No-op: Animation completion not needed in success mode
             }}

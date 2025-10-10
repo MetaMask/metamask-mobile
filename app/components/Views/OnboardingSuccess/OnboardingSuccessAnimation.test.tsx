@@ -429,131 +429,22 @@ describe('OnboardingSuccessAnimation', () => {
     mockAnimatedTiming.mockRestore();
   });
 
-  describe('Mode-based behavior', () => {
-    it('uses setup mode by default', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
+  it('always displays setting up wallet text', () => {
+    // Arrange
+    const mockOnAnimationComplete = jest.fn();
 
-      // Act
-      const { toJSON } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
+    // Act
+    const { queryByText } = render(
+      <OnboardingSuccessAnimation
+        startAnimation
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
+    );
 
-      // Assert
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('accepts success mode prop', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
-
-      // Act
-      const { toJSON } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          mode="success"
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
-
-      // Assert
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('accepts custom trigger prop', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
-
-      // Act
-      const { toJSON } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          trigger="Only_End"
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
-
-      // Assert
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('accepts showText prop override', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
-
-      // Act
-      const { toJSON } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          showText={false}
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
-
-      // Assert
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('shows text in setup mode by default', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
-
-      // Act
-      const { queryByText } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          mode="setup"
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
-
-      // Assert
-      expect(
-        queryByText(/onboarding_success.setting_up_wallet_base/),
-      ).toBeTruthy();
-    });
-
-    it('hides text in success mode by default', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
-
-      // Act
-      const { queryByText } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          mode="success"
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
-
-      // Assert
-      expect(
-        queryByText(/onboarding_success.setting_up_wallet_base/),
-      ).toBeNull();
-    });
-
-    it('overrides mode-based text visibility with showText prop', () => {
-      // Arrange
-      const mockOnAnimationComplete = jest.fn();
-
-      // Act
-      const { queryByText } = render(
-        <OnboardingSuccessAnimation
-          startAnimation
-          mode="success"
-          showText
-          onAnimationComplete={mockOnAnimationComplete}
-        />,
-      );
-
-      // Assert
-      expect(
-        queryByText(/onboarding_success.setting_up_wallet_base/),
-      ).toBeTruthy();
-    });
+    // Assert - Text should always be visible
+    expect(
+      queryByText(/onboarding_success.setting_up_wallet_base/),
+    ).toBeTruthy();
   });
 
   describe('E2E test behavior', () => {

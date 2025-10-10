@@ -21,18 +21,12 @@ interface OnboardingSuccessAnimationProps {
   startAnimation: boolean;
   onAnimationComplete: () => void;
   slideOut?: boolean;
-  mode?: 'setup' | 'success'; // Auto-configures trigger + showText
-  trigger?: string;
-  showText?: boolean;
 }
 
 const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   startAnimation: _startAnimation,
   onAnimationComplete: _onAnimationComplete,
   slideOut = false,
-  mode = 'setup',
-  trigger,
-  showText,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
@@ -58,18 +52,6 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const [dotsCount, setDotsCount] = useState(isE2E ? 3 : 1);
-
-  // Determine trigger based on mode or explicit override
-  const animationTrigger = useMemo(() => {
-    if (trigger) return trigger;
-    return mode === 'success' ? 'Only_End' : 'Start'; // Mode-based default
-  }, [mode, trigger]);
-
-  // Determine text visibility based on mode or explicit override
-  const shouldShowText = useMemo(() => {
-    if (showText !== undefined) return showText;
-    return mode === 'setup'; // Mode-based: setup=true, success=false
-  }, [mode, showText]);
 
   const clearTimers = useCallback(() => {
     if (dotsIntervalId.current) {
@@ -98,7 +80,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
           'Dark mode',
           isDarkMode,
         );
-        riveRef.current.fireState('OnboardingLoader', animationTrigger);
+        riveRef.current.fireState('OnboardingLoader', 'Start');
       }
       return;
     }
@@ -119,14 +101,14 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
             'Dark mode',
             isDarkMode,
           );
-          riveRef.current.fireState('OnboardingLoader', animationTrigger);
+          riveRef.current.fireState('OnboardingLoader', 'Start');
         } catch (error) {
-          console.error(`Error with trigger '${animationTrigger}':`, error);
+          console.error('Error with Rive animation:', error);
         }
       }
       riveTimeoutId.current = null;
     }, 100);
-  }, [isDarkMode, animationTrigger]);
+  }, [isDarkMode]);
 
   const startDotsAnimation = useCallback(() => {
     if (dotsIntervalId.current) {
@@ -201,7 +183,7 @@ const OnboardingSuccessAnimation: React.FC<OnboardingSuccessAnimationProps> = ({
           alignment={Alignment.Center}
         />
       </View>
-      {shouldShowText && (
+      {true && (
         <View style={styles.textWrapper}>
           <Text variant={TextVariant.HeadingLG} style={styles.textTitle}>
             {`${strings(

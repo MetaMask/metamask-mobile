@@ -64,7 +64,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -243,7 +243,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -422,7 +422,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -601,7 +601,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -780,7 +780,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -959,7 +959,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -1138,7 +1138,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
@@ -1317,7 +1317,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
             }
           >
             <View
-              testID="onboarding-success-animation"
+              testID="onboarding-success-end-animation"
             />
           </View>
           <Text
