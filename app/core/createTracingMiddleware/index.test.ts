@@ -5,6 +5,7 @@ import type {
   PendingJsonRpcResponse,
 } from '@metamask/utils';
 import { default as createTracingMiddleware, MESSAGE_TYPE } from './index';
+import { TraceContext } from '../../util/trace';
 
 const REQUEST_MOCK = {
   id: 'testId',
@@ -15,11 +16,11 @@ const NEXT_MOCK = jest.fn();
 
 jest.mock('../../util/trace', () => ({
   ...jest.requireActual('../../util/trace'),
-  trace: jest.fn().mockResolvedValue({}),
+  trace: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('createTracingMiddleware', () => {
-  let request: JsonRpcRequest<JsonRpcParams> & { traceContext?: unknown };
+  let request: JsonRpcRequest<JsonRpcParams> & { traceContext?: TraceContext };
   beforeEach(() => {
     jest.clearAllMocks();
     request = { ...REQUEST_MOCK };

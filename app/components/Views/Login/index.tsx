@@ -123,7 +123,7 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: unknown;
+  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {
@@ -222,7 +222,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         name: TraceName.OnboardingPasswordLoginAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtxFromRoute,
-      });
+      }) as TraceContext;
     }
   }, [route.params?.onboardingTraceCtx]);
 
@@ -539,7 +539,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         op: TraceOperation.OnboardingError,
         tags: { errorMessage: loginErrorMessage },
         parentContext: onboardingTraceCtxFromRoute,
-      });
+      }) as TraceContext;
       endTrace({ name: TraceName.OnboardingPasswordLoginError });
     }
 

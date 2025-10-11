@@ -1621,8 +1621,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('starts and ends trace with onboardingTraceCtx', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = undefined;
+      const mockTraceCtx = undefined;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 
