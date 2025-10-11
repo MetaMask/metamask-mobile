@@ -98,6 +98,11 @@ jest.mock('@metamask/bridge-controller', () => ({
   }),
 }));
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(() => ({ traceId: 'mock-trace-id' })),
+}));
+
 describe('getNetworkName', () => {
   it('returns network name from network configurations when available', () => {
     const chainId = toHex('1') as Hex;
