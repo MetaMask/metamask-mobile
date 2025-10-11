@@ -33,3 +33,4 @@ export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
 
 export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';
+export const isExp = process.env.METAMASK_ENVIRONMENT === 'exp';
