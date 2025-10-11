@@ -1626,7 +1626,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         traceId: 'test-trace-id',
       } as unknown as Span;
       const mockTraceCtx = {
-        traceId: 'setup-attempt-trace-id',
+        traceId: 'password-setup-trace-id',
       } as unknown as Span;
 
       mockTrace.mockReturnValue(mockTraceCtx);
