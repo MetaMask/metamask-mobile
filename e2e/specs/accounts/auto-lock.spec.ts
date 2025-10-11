@@ -12,8 +12,7 @@ import TestHelpers from '../../helpers.js';
 import { logger } from '../../framework/logger';
 import { loginToApp } from '../../viewHelper';
 
-const isIOS = device.getPlatform() === 'ios';
-(isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {
+describe(Regression('Auto-Lock'), () => {
   it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await withFixtures(
       {
@@ -41,6 +40,9 @@ const isIOS = device.getPlatform() === 'ios';
       },
       async () => {
         await loginToApp();
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet view should be visible',
+        });
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToAutoLockSection();
