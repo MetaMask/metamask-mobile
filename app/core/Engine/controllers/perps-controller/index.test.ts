@@ -101,6 +101,8 @@ describe('perps controller init', () => {
       },
       withdrawInProgress: false,
       lastWithdrawResult: null,
+      withdrawalRequests: [],
+      depositRequests: [],
     };
 
     initRequestMock.persistedState = {
