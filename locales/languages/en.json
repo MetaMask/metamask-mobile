@@ -1614,7 +1614,13 @@
     "won_markets_text_plural": "Won {{count}} markets",
     "claim_amount_text": "Claim ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Receive"
@@ -5934,7 +5940,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
 
     "onboarding": {
