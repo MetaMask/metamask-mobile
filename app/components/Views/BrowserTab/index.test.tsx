@@ -42,6 +42,7 @@ const mockInitialState = {
     tabs: [],
     favicons: [],
     visitedDappsByHostname: {},
+    isFullscreen: false,
   },
   engine: {
     backgroundState: {

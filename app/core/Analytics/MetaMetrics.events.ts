@@ -158,6 +158,8 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
+  BROWSER_OPENED_FULLSCREEN = 'Opened Fullscreen Browser Mode',
+  BROWSER_CLOSED_FULLSCREEN = 'Exited Fullscreen Browser Mode',
   DAPP_VIEWED = 'Dapp Viewed',
 
   // Security & Privacy Settings
@@ -766,6 +768,8 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
+  BROWSER_OPENED_FULLSCREEN: generateOpt(EVENT_NAME.BROWSER_OPENED_FULLSCREEN),
+  BROWSER_CLOSED_FULLSCREEN: generateOpt(EVENT_NAME.BROWSER_CLOSED_FULLSCREEN),
   DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   TOOLTIP_OPENED: generateOpt(EVENT_NAME.TOOLTIP_OPENED),
   // Security & Privacy Settings
