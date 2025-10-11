@@ -69,6 +69,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
+import { useDepositUser } from '../../hooks/useDepositUser';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -89,7 +90,10 @@ const BuildQuote = () => {
     isFetching: isFetchingRegions,
     error: regionsError,
     retryFetchRegions,
+    userRegionLocked,
   } = useRegions();
+
+  const { userDetails } = useDepositUser();
 
   const {
     cryptoCurrencies,
@@ -175,14 +179,14 @@ const BuildQuote = () => {
   }, []);
 
   const handleRegionPress = useCallback(() => {
-    if (regionsError || !regions || regions.length === 0) {
+    if (regionsError || !regions || regions.length === 0 || userRegionLocked) {
       return;
     }
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({ regions }),
     );
-  }, [navigation, regions, regionsError]);
+  }, [navigation, regions, regionsError, userRegionLocked]);
 
   useFocusEffect(
     useCallback(() => {
@@ -421,9 +425,24 @@ const BuildQuote = () => {
       navigation.setParams({
         shouldRouteImmediately: false,
       });
+
+      if (
+        userDetails?.address?.countryCode &&
+        selectedRegion?.isoCode !== userDetails?.address?.countryCode
+      ) {
+        setIsLoading(false);
+        return;
+      }
+
       handleOnPressContinue();
     }
-  }, [shouldRouteImmediately, handleOnPressContinue, navigation]);
+  }, [
+    shouldRouteImmediately,
+    handleOnPressContinue,
+    navigation,
+    selectedRegion?.isoCode,
+    userDetails?.address?.countryCode,
+  ]);
 
   return (
     <ScreenLayout>
