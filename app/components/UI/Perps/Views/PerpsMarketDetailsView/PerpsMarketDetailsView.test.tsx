@@ -9,6 +9,15 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
+import { Linking } from 'react-native';
+
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
 
 // Mock @consensys/native-ramps-sdk to provide missing enum
 jest.mock('@consensys/native-ramps-sdk', () => ({
@@ -1184,7 +1193,7 @@ describe('PerpsMarketDetailsView', () => {
     });
   });
 
-  describe('notification tooltip functionality', () => {
+  describe('Notification tooltip functionality', () => {
     it('renders tooltip when flags are true and from successful order', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
       mockRouteParams.monitoringIntent = {
@@ -1361,6 +1370,63 @@ describe('PerpsMarketDetailsView', () => {
           PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET,
         ),
       ).toBeNull();
+    });
+  });
+
+  describe('TradingView link functionality', () => {
+    it('opens TradingView URL when link is pressed', async () => {
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Find and press the Trading View link
+      const tradingViewLink = getByText('Trading View.');
+      fireEvent.press(tradingViewLink);
+
+      // Verify Linking.openURL was called with correct URL
+      await waitFor(() => {
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          'https://www.tradingview.com/',
+        );
+      });
+    });
+
+    it('handles error when opening TradingView URL fails', async () => {
+      // Mock console.error to avoid test output pollution
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      // Mock Linking.openURL to reject
+      (Linking.openURL as jest.Mock).mockRejectedValueOnce(
+        new Error('Failed to open URL'),
+      );
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Find and press the Trading View link
+      const tradingViewLink = getByText('Trading View.');
+      fireEvent.press(tradingViewLink);
+
+      // Wait for the error to be logged
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Failed to open Trading View URL:',
+          expect.any(Error),
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

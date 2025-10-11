@@ -13,7 +13,6 @@ import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
-import PerpsBalanceModal from '../Views/PerpsBalanceModal';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 
@@ -33,10 +32,6 @@ const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
       component={PerpsQuoteExpiredModal}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.BALANCE_MODAL}
-      component={PerpsBalanceModal}
     />
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.GTM_MODAL}
