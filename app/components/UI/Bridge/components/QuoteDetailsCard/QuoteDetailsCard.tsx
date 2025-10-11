@@ -29,11 +29,14 @@ import {
   selectDestToken,
   selectSourceToken,
   selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
 import { useRewardsIconAnimation } from '../../hooks/useRewardsIconAnimation';
 import Rive, { Alignment, Fit } from 'rive-react-native';
+import { formatAddress } from '../../../../../util/address';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
@@ -45,7 +48,7 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard = () => {
+const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -64,6 +67,8 @@ const QuoteDetailsCard = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const destAddress = useSelector(selectDestAddress);
+  const isSwap = useSelector(selectIsSwap);
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -85,6 +90,12 @@ const QuoteDetailsCard = () => {
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
+    });
+  };
+
+  const handleRecipientPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL,
     });
   };
 
@@ -264,6 +275,44 @@ const QuoteDetailsCard = () => {
             },
           }}
         />
+
+        {!isSwap && (
+          <KeyValueRow
+            field={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={4}
+                >
+                  <TouchableOpacity
+                    onPress={handleRecipientPress}
+                    activeOpacity={0.6}
+                    testID="recipient-selector-button"
+                    style={styles.slippageButton}
+                  >
+                    <Text variant={TextVariant.BodyMDMedium}>
+                      {strings('bridge.recipient')}
+                    </Text>
+                    <Icon
+                      name={IconName.Edit}
+                      size={IconSize.Sm}
+                      color={IconColor.Muted}
+                    />
+                  </TouchableOpacity>
+                </Box>
+              ),
+            }}
+            value={{
+              label: {
+                text: destAddress
+                  ? formatAddress(destAddress, 'short')
+                  : strings('bridge.select_recipient'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
 
         {activeQuote?.minToTokenAmount && (
           <KeyValueRow
