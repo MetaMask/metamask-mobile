@@ -11,10 +11,10 @@ import {
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import {
   getInternetCredentials,
-  Options,
   resetInternetCredentials,
-  Result,
   setInternetCredentials,
+  type Result,
+  STORAGE_TYPE,
 } from 'react-native-keychain';
 
 let mockKeychainState: Record<string, { username: string; password: string }> =
@@ -28,21 +28,21 @@ jest.mock('react-native-keychain', () => ({
       server: string,
       username: string,
       password: string,
-      _?: Options,
+      _?,
     ): Promise<Result> => {
       mockKeychainState[server] = { username, password };
       return {
         service: 'service',
-        storage: 'storage',
+        storage: 'storage' as STORAGE_TYPE,
       };
     },
   ),
   getInternetCredentials: jest.fn(
     async (server: string) => mockKeychainState[server],
   ),
-  resetInternetCredentials: jest.fn(
-    async (server: string, _?: Options) => delete mockKeychainState[server],
-  ),
+  resetInternetCredentials: jest.fn(async (server: string) => {
+    delete mockKeychainState[server];
+  }),
 }));
 
 //TODO Mock the react-native-keychain module test the other functions inside backupVault
