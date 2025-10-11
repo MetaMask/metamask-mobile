@@ -46,6 +46,7 @@ import XDC from './xdc.png';
 import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
 import AAVE from './aave-token-round.png';
 import HEMI from './hemi.png';
+import PLASMA from './plasma-native.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron.png';
 /// END:ONLY_INCLUDE_IF
@@ -104,4 +105,5 @@ export default {
   XDC,
   'MEGAETH-MAINNET': MEGAETH_MAINNET,
   HEMI,
+  XPL: PLASMA,
 };
