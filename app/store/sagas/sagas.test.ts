@@ -511,23 +511,18 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               ...defaultMockState,
-              onboarding: { completedOnboarding: true },
               user: { existingUser: true }, // existing user = true
             })
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          // Should not call handleFastOnboarding for existing users
-          expect(handleFastOnboarding).not.toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
-          expect(
-            AppStateEventProcessor.clearPendingDeeplink,
-          ).toHaveBeenCalled();
+          // Should not call SharedDeeplinkManager.parse as completed onboarding is false
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
 
       describe('when existing user is false', () => {
-        it('handle onboarding deeplink with google type', async () => {
+        it('handle onboarding deeplink when completed onboarding is false', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://metamask.io/onboarding?type=google';
           Engine.context.KeyringController.isUnlocked = jest
@@ -538,18 +533,32 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               ...defaultMockState,
+              onboarding: { existingUser: false },
             })
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          // Should call handleFastOnboarding with the deeplink
-          expect(handleFastOnboarding).toHaveBeenCalledWith(
-            'https://metamask.io/onboarding?type=google',
-          );
-          expect(
-            AppStateEventProcessor.clearPendingDeeplink,
-          ).toHaveBeenCalled();
-          // Should not call normal deeplink parsing since handleFastOnboarding handled it
+          // Should call handleFastOnboarding with the deeplink even completed onboarding is false
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+        });
+
+        it('not handle onboarding deeplink when pathname is not /onboarding', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://metamask.io/invalidonboarding?type=google';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Should call handleFastOnboarding with the deeplink even completed onboarding is false
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });

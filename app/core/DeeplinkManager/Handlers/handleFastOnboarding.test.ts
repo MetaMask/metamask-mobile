@@ -1,42 +1,45 @@
 import handleFastOnboarding from './handleFastOnboarding';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
-import AppConstants from '../../AppConstants';
+import ReduxService, { ReduxStore } from '../../redux';
 import { NavigationContainerRef } from '@react-navigation/native';
-
-const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
 describe('handleFastOnboarding', () => {
   let mockReset: jest.Mock;
+  let mockNavigate: jest.Mock;
+  let mockGetState: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     mockReset = jest.fn();
+    mockNavigate = jest.fn();
+    mockGetState = jest.fn();
+
+    // Mock NavigationService
     jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       reset: mockReset,
+      navigate: mockNavigate,
     } as unknown as NavigationContainerRef);
-  });
 
-  afterEach(() => {
-    jest.useRealTimers();
+    // Mock ReduxService
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: mockGetState,
+    } as unknown as ReduxStore);
   });
   describe('valid onboarding types', () => {
     it.each(['google', 'apple', 'srp'] as const)(
       'navigates to onboarding flow for %s type and returns true',
       (onboardingType) => {
         // Arrange
-        const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=${onboardingType}`;
+        const deeplink = `?type=${onboardingType}`;
+        mockGetState.mockReturnValue({ user: { existingUser: false } });
 
         // Act
-        const result = handleFastOnboarding(deeplink);
+        const result = handleFastOnboarding({ onboardingPath: deeplink });
 
         // Assert
         expect(result).toBe(true);
-
-        // Advance timers by 1000ms to trigger the setTimeout
-        jest.advanceTimersByTime(1000);
-
+        expect(mockGetState).toHaveBeenCalled();
         expect(mockReset).toHaveBeenCalledWith({
           index: 0,
           routes: [
@@ -58,55 +61,17 @@ describe('handleFastOnboarding', () => {
       },
     );
 
-    it.each(['google', 'apple', 'srp'] as const)(
-      'navigates to onboarding flow for %s type with existingUser true and returns true',
-      (onboardingType) => {
-        // Arrange
-        const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=${onboardingType}&existingUser=true`;
-
-        // Act
-        const result = handleFastOnboarding(deeplink);
-
-        // Assert
-        expect(result).toBe(true);
-
-        // Advance timers by 1000ms to trigger the setTimeout
-        jest.advanceTimersByTime(1000);
-
-        expect(mockReset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.ROOT_NAV,
-              params: {
-                screen: Routes.ONBOARDING.NAV,
-                params: {
-                  screen: Routes.ONBOARDING.ONBOARDING,
-                  params: {
-                    onboardingType,
-                    existingUser: 'true',
-                  },
-                },
-              },
-            },
-          ],
-        });
-      },
-    );
-
-    it('works with additional query parameters', () => {
+    it('handles additional query parameters and existingUser param', () => {
       // Arrange
-      const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?foo=bar&type=google&baz=qux`;
+      const deeplink = `?foo=bar&type=google&existingUser=true&baz=qux`;
+      mockGetState.mockReturnValue({ user: { existingUser: false } });
 
       // Act
-      const result = handleFastOnboarding(deeplink);
+      const result = handleFastOnboarding({ onboardingPath: deeplink });
 
       // Assert
       expect(result).toBe(true);
-
-      // Advance timers by 1000ms to trigger the setTimeout
-      jest.advanceTimersByTime(1000);
-
+      expect(mockGetState).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [
@@ -116,141 +81,97 @@ describe('handleFastOnboarding', () => {
               screen: Routes.ONBOARDING.NAV,
               params: {
                 screen: Routes.ONBOARDING.ONBOARDING,
-                params: { onboardingType: 'google', existingUser: '' },
+                params: { onboardingType: 'google', existingUser: 'true' },
               },
             },
           },
         ],
       });
     });
+  });
 
-    it('uses the first type parameter when multiple are provided', () => {
+  describe('existing user scenarios', () => {
+    it('navigates to WALLET.HOME when existingUser is true', () => {
       // Arrange
-      const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=google&type=apple`;
+      const deeplink = `?type=google&existingUser=true&foo=bar`;
+      mockGetState.mockReturnValue({ user: { existingUser: true } });
 
       // Act
-      const result = handleFastOnboarding(deeplink);
+      const result = handleFastOnboarding({ onboardingPath: deeplink });
 
       // Assert
       expect(result).toBe(true);
-
-      // Advance timers by 1000ms to trigger the setTimeout
-      jest.advanceTimersByTime(1000);
-
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.ONBOARDING,
-                params: { onboardingType: 'google', existingUser: '' },
-              },
-            },
-          },
-        ],
-      });
+      expect(mockGetState).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockReset).not.toHaveBeenCalled();
     });
   });
 
   describe('invalid or missing type parameter', () => {
     it.each([
-      `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding`,
-      `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?foo=bar`,
-      `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=`,
-      `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type&foo=bar`,
-      `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=invalid`,
-      `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=facebook`,
+      `?`,
+      `?foo=bar`,
+      `?type=`,
+      `?type&foo=bar`,
+      `?type=invalid`,
+      `?type=facebook`,
     ])('returns false and does not navigate for: %s', (deeplink) => {
+      // Arrange
+      mockGetState.mockReturnValue({ user: { existingUser: false } });
+
       // Act
-      const result = handleFastOnboarding(deeplink);
+      const result = handleFastOnboarding({ onboardingPath: deeplink });
 
       // Assert
+      expect(mockGetState).not.toHaveBeenCalled();
       expect(mockReset).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
   });
 
-  describe('URL parsing edge cases', () => {
-    it('handles custom protocol URLs', () => {
+  describe('ReduxService error handling', () => {
+    it('throws error when ReduxService.store.getState throws an error', () => {
       // Arrange
-      const deeplink = 'metamask://onboarding?type=google';
-
-      // Act
-      const result = handleFastOnboarding(deeplink);
-
-      // Assert
-      expect(result).toBe(true);
-
-      // Advance timers by 1000ms to trigger the setTimeout
-      jest.advanceTimersByTime(1000);
-
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.ONBOARDING,
-                params: { onboardingType: 'google', existingUser: '' },
-              },
-            },
-          },
-        ],
+      const deeplink = `/onboarding?type=google`;
+      mockGetState.mockImplementation(() => {
+        throw new Error('Redux store error');
       });
-    });
 
-    it('handles URLs with fragments', () => {
-      // Arrange
-      const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=apple#section`;
-
-      // Act
-      const result = handleFastOnboarding(deeplink);
-
-      // Assert
-      expect(result).toBe(true);
-
-      // Advance timers by 1000ms to trigger the setTimeout
-      jest.advanceTimersByTime(1000);
-
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.ONBOARDING,
-                params: { onboardingType: 'apple', existingUser: '' },
-              },
-            },
-          },
-        ],
-      });
-    });
-
-    it('return false for invalid URLs', () => {
       // Act & Assert
-      expect(() => handleFastOnboarding('not-a-valid-url')).not.toThrow();
-      expect(handleFastOnboarding('not-a-valid-url')).toBe(false);
+      expect(() => handleFastOnboarding({ onboardingPath: deeplink })).toThrow(
+        'Redux store error',
+      );
+    });
+  });
+
+  describe('URL parsing edge cases', () => {
+    it('handles empty string and malformed paths', () => {
+      // Arrange
+      const emptyPath = '';
+      const malformedPath = '//onboarding?type=apple';
+      mockGetState.mockReturnValue({ user: { existingUser: false } });
+
+      // Act & Assert
+      expect(handleFastOnboarding({ onboardingPath: emptyPath })).toBe(false);
+      expect(handleFastOnboarding({ onboardingPath: malformedPath })).toBe(
+        true,
+      );
+      expect(mockGetState).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('navigation service edge cases', () => {
-    it('handles null navigation service gracefully', () => {
+    it('return false when navigation service has missing methods', () => {
       // Arrange
       jest
         .spyOn(NavigationService, 'navigation', 'get')
         .mockReturnValue(null as unknown as NavigationContainerRef);
-      const deeplink = `https://${MM_IO_UNIVERSAL_LINK_HOST}/onboarding?type=google`;
+      const deeplink = `/onboarding?type=google`;
+      mockGetState.mockReturnValue({ user: { existingUser: false } });
 
       // Act & Assert
-      expect(() => handleFastOnboarding(deeplink)).not.toThrow();
+      expect(handleFastOnboarding({ onboardingPath: deeplink })).toBe(false);
     });
   });
 });

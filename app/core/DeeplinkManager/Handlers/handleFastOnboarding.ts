@@ -1,18 +1,25 @@
+import getRedirectPathsAndParams from '../../../components/UI/Ramp/utils/getRedirectPathAndParams';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../NavigationService';
+import ReduxService from '../../redux';
 
 const ALLOWED_ONBOARDING_TYPES = ['google', 'apple', 'srp'];
 
-function handleFastOnboarding(onboardingDeeplink: string): boolean {
-  try {
-    const url = new URL(onboardingDeeplink);
+function handleFastOnboarding(params: { onboardingPath: string }): boolean {
+  const { onboardingPath } = params;
+  const [, pathParams] = getRedirectPathsAndParams(onboardingPath);
+  const onboardingType = pathParams?.type || '';
+  const paramExistingUser = pathParams?.existingUser || '';
 
-    const onboardingType = url.searchParams.get('type') || '';
-    const existingUser = url.searchParams.get('existingUser') || '';
+  const navigation = NavigationService.navigation;
+  if (!ALLOWED_ONBOARDING_TYPES.includes(onboardingType) || !navigation) {
+    return false;
+  }
+  const isExistingUser = ReduxService.store.getState().user.existingUser;
 
-    if (!ALLOWED_ONBOARDING_TYPES.includes(onboardingType)) {
-      return false;
-    }
+  if (isExistingUser) {
+    navigation.navigate(Routes.WALLET.HOME);
+  } else {
     const resetRoute = {
       routes: [
         {
@@ -23,24 +30,19 @@ function handleFastOnboarding(onboardingDeeplink: string): boolean {
               screen: Routes.ONBOARDING.ONBOARDING,
               params: {
                 onboardingType,
-                existingUser,
+                existingUser: paramExistingUser,
               },
             },
           },
         },
       ],
     };
-    // delay is needed to avoid race condition with navigation service
-    setTimeout(() => {
-      NavigationService.navigation?.reset({
-        index: 0,
-        routes: resetRoute.routes,
-      });
-    }, 1000);
-    return true;
-  } catch {
-    return false;
+    navigation.reset({
+      index: 0,
+      routes: resetRoute.routes,
+    });
   }
+  return true;
 }
 
 export default handleFastOnboarding;

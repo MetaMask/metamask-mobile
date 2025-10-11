@@ -34,7 +34,6 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { selectExistingUser } from '../../reducers/user';
-import handleFastOnboarding from '../../core/DeeplinkManager/Handlers/handleFastOnboarding';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -175,25 +174,21 @@ export function* handleDeeplinkSaga() {
     }
 
     const existingUser: boolean = yield select(selectExistingUser);
-    if (!existingUser) {
-      const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink || '';
-      try {
-        // new URL might throw for invalid url
-        const url = new URL(onboardingDeeplink);
+    const onboardingDeeplink = AppStateEventProcessor.pendingDeeplink || '';
+    try {
+      // new URL might throw for invalid url
+      const url = new URL(onboardingDeeplink);
 
-        // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
-        if (url.pathname.startsWith('/onboarding')) {
-          const handled = handleFastOnboarding(onboardingDeeplink);
-
-          // if handled, clear pending deeplink and continue
-          if (handled) {
-            AppStateEventProcessor.clearPendingDeeplink();
-            continue;
-          }
-        }
-      } catch (error) {
-        Logger.error(error as Error, 'Error parsing onboarding deeplink');
+      // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
+      if (!existingUser && url.pathname.startsWith('/onboarding')) {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(onboardingDeeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }, 200);
       }
+    } catch (error) {
+      Logger.error(error as Error, 'Error parsing onboarding deeplink');
     }
 
     const { KeyringController } = Engine.context;
