@@ -221,9 +221,11 @@
     "remind_later_description2": "Maaari mong i-back up ang iyong mga wallet o tingnan ang iyong Lihim na Parirala sa Pagbawi sa",
     "setting_security_privacy": "Mga Setting > Seguridad at Pagkapribado"
   },
-  "social_login_success": {
-    "title": "You've signed up!",
-    "set_metamask_pin": "Secure your wallet"
+  "social_login_ios_user": {
+    "new_user_title": "You've signed up!",
+    "new_user_button": "Secure your wallet",
+    "existing_user_title": "You’re logged in!",
+    "existing_user_button": "Unlock wallet"
   },
   "onboarding_carousel": {
     "title1": "Welcome sa MetaMask",
@@ -1611,7 +1613,13 @@
     "won_markets_text_plural": "Nanalo ang {{count}} na market",
     "claim_amount_text": "I-claim ang ${{amount}}",
     "unrealized_pnl_label": "Unrealized P&L",
-    "unrealized_pnl_value": "{{amount}} ({{percent}})"
+    "unrealized_pnl_value": "{{amount}} ({{percent}})",
+    "unavailable": {
+      "title": "Unavailable in your region",
+      "description": "Predictions aren't available in your region due to legal restrictions.",
+      "link": "See Polymarket terms",
+      "button": "Got it"
+    }
   },
   "receive": {
     "title": "Tumanggap"
@@ -3084,6 +3092,7 @@
     "tx_review_lending_deposit": "Deposito sa Pagpapautang",
     "tx_review_lending_withdraw": "Pag-withdraw sa Pagpapautang",
     "tx_review_perps_deposit": "Pinondohang Perps account",
+    "tx_review_predict_deposit": "Funded Predict account",
     "sent_ether": "Nagpadala ng Ether",
     "self_sent_ether": "Nagpadala ka sa sarili mo ng Ether",
     "received_ether": "Nakatanggap ng Ether",
@@ -5288,7 +5297,8 @@
       "transfer": "Kahilingan sa paglilipat",
       "switch_account_type": "Pag-update ng account",
       "approve": "Aprubahan ang kahilingan",
-      "perps_deposit": "Magdagdag ng mga pondo"
+      "perps_deposit": "Magdagdag ng mga pondo",
+      "predict_deposit": "Add Predict funds"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -5306,6 +5316,9 @@
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Isu-swap namin ang iyong mga token para maging USDC sa HyperEVM, ang network na ginagamit ng Perps. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
+      },
+      "predict_deposit": {
+        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Mga Bayarin"
@@ -5524,7 +5537,9 @@
     "account_not_found": "Hindi nahanap ang wallet",
     "account_not_found_description": "Hindi namin mahanap ang wallet para sa \"{{accountName}}\". Gusto mo bang gumawa ng bago gamit ang login na ito?",
     "create_new_wallet": "Gumawa ng bagong wallet",
-    "use_different_login_method": "Gumamit ng ibang paraan ng pag-log in"
+    "use_different_login_method": "Gumamit ng ibang paraan ng pag-log in",
+    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
+    "unlock_wallet": "Unlock wallet"
   },
   "error_sheet": {
     "still_there_title": "Nariyan ka pa ba?",
@@ -5904,7 +5919,15 @@
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
         "uncategorized_event": "Uncategorized event"
-      }
+      },
+      "date": "Date",
+      "account": "Account",
+      "bonus": "Bonus",
+      "details": "Details",
+      "points": "Points",
+      "points_base": "Base",
+      "points_boost": "Boost",
+      "points_total": "Total"
     },
     "onboarding": {
       "not_supported_region_title": "Hindi sinusuportahan ang rehiyon",
@@ -6078,7 +6101,8 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Pinondohang perps account",
+      "perps_deposit": "Funded Perps account",
+      "predict_deposit": "Funded Predict account",
       "default": "Mga detalye ng transaksyon"
     },
     "label": {
@@ -6094,6 +6118,7 @@
       "bridge_loading": "Mag-bridge",
       "default": "Transaksyon",
       "perps_deposit": "Magdagdag ng pondo",
+      "predict_deposit": "Add funds",
       "swap": "Ipagpalit ang mga token",
       "swap_approval": "Aprubahan ang mga token"
     }
