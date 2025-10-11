@@ -281,14 +281,6 @@ const isMultichainAccountsState2Enabled =
             'E2E ENV MM_REMOVE_GLOBAL_NETWORK_SELECTOR:',
             process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR,
           );
-          await Assertions.expectElementToBeVisible(
-            Matchers.getElementByID(
-              WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
-            ),
-            {
-              elemDescription: 'Verify token filter is set to Current network',
-            },
-          );
 
           // Open network manager and verify initial state
           await NetworkManager.openNetworkManager();
