@@ -419,8 +419,7 @@ export function maskObject(
     const shouldIterateSubMask =
       maskKey !== AllProperties &&
       Boolean(maskKey) &&
-      typeof maskKey === 'object' &&
-      !Array.isArray(maskKey);
+      typeof maskKey === 'object';
     const shouldPrintType = maskKey === undefined || maskKey === false;
 
     if (shouldPrintValue) {
