@@ -212,6 +212,7 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         claimTransaction: null,
+        depositTransaction: null,
         isOnboarded: {},
       },
       GatorPermissionsController: {

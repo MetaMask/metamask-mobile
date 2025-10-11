@@ -67,6 +67,14 @@ export enum PredictClaimStatus {
   ERROR = 'error',
 }
 
+export enum PredictDepositStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
+
 export type PredictMarket = {
   id: string;
   providerId: string;
@@ -219,4 +227,11 @@ export type PredictClaim = {
     data: Hex;
     value: Hex;
   };
+};
+
+export type PredictDeposit = {
+  batchId: string;
+  chainId: number;
+  status: PredictDepositStatus;
+  providerId: string;
 };

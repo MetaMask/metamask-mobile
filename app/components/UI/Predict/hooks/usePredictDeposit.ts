@@ -1,60 +1,65 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
-import { Alert } from 'react-native';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { createSelector } from 'reselect';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
 
 interface UsePredictDepositParams {
   providerId?: string;
-  onSuccess?: () => void;
 }
 
 export const usePredictDeposit = ({
   providerId = 'polymarket',
-  onSuccess,
 }: UsePredictDepositParams = {}) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isSuccess] = useState(false);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  useEffect(() => {
-    if (error) {
-      Alert.alert('Error', error);
-    }
-  }, [error]);
+  const selectDepositTransaction = createSelector(
+    (state: RootState) => state.engine.backgroundState.PredictController,
+    (predictState) => predictState.depositTransaction,
+  );
+  const depositTransaction = useSelector(selectDepositTransaction);
 
-  useEffect(() => {
-    if (isSuccess) {
-      Alert.alert('Success', 'Wallet enabled successfully');
-      onSuccess?.();
-    }
-  }, [isSuccess, onSuccess]);
+  const completed = useMemo(() => {
+    if (!depositTransaction) return false;
+    return depositTransaction.status === 'confirmed';
+  }, [depositTransaction]);
+
+  const pending = useMemo(() => {
+    if (!depositTransaction) return false;
+    return depositTransaction.status === 'pending';
+  }, [depositTransaction]);
+
+  const loading = useMemo(() => pending, [pending]);
+
+  const error = useMemo(() => {
+    if (!depositTransaction) return false;
+    return depositTransaction.status === 'error';
+  }, [depositTransaction]);
 
   const deposit = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.PREDICT.ROOT,
       });
-      const { PredictController } = Engine.context;
-      await PredictController.depositWithConfirmation({
+
+      Engine.context.PredictController.depositWithConfirmation({
         providerId,
+      }).catch((err) => {
+        console.error('Failed to initialize deposit:', err);
       });
-      setIsLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to enable wallet');
-      setIsLoading(false);
+      console.error('Failed to proceed with deposit:', err);
     }
   }, [navigateToConfirmation, providerId]);
 
   return {
-    isLoading,
-    error,
-    isSuccess,
     deposit,
+    loading,
+    completed,
+    error,
   };
 };

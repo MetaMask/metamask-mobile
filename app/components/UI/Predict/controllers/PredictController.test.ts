@@ -7,7 +7,7 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { PredictClaimStatus, Side } from '../types';
+import { PredictClaimStatus, PredictDepositStatus, Side } from '../types';
 import {
   getDefaultPredictControllerState,
   PredictController,
@@ -998,8 +998,6 @@ describe('PredictController', () => {
           };
         });
 
-        const initialState = { ...controller.state };
-
         const event = {
           transactionMeta: {
             id: txId,
@@ -1020,8 +1018,10 @@ describe('PredictController', () => {
           event,
         );
 
-        // State should remain unchanged since handler is not implemented
-        expect(controller.state).toEqual(initialState);
+        // State should be updated with CANCELLED status
+        expect(controller.state.claimTransaction?.status).toBe(
+          PredictClaimStatus.CANCELLED,
+        );
       });
     });
 
@@ -1975,6 +1975,299 @@ describe('PredictController', () => {
           expect.objectContaining({
             transactions: [],
           }),
+        );
+      });
+    });
+  });
+
+  describe('clearDepositTransaction', () => {
+    it('clear deposit transaction from state', () => {
+      withController(({ controller }) => {
+        // Set up initial deposit transaction
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = {
+            batchId: 'batch-123',
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
+          };
+        });
+
+        // Verify transaction exists
+        expect(controller.state.depositTransaction).toEqual({
+          batchId: 'batch-123',
+          chainId: 137,
+          status: PredictDepositStatus.PENDING,
+          providerId: 'polymarket',
+        });
+
+        // Clear deposit transaction
+        controller.clearDepositTransaction();
+
+        // Verify transaction is cleared
+        expect(controller.state.depositTransaction).toBeNull();
+      });
+    });
+
+    it('handle clearing empty deposit transaction', () => {
+      withController(({ controller }) => {
+        // Ensure deposit transaction is null
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = null;
+        });
+
+        // Clear should work without error
+        expect(() => controller.clearDepositTransaction()).not.toThrow();
+
+        // Should remain null
+        expect(controller.state.depositTransaction).toBeNull();
+      });
+    });
+  });
+
+  describe('deposit transaction event handlers', () => {
+    it('update deposit transaction status to CONFIRMED on transactionConfirmed with batchId', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'deposit-batch-1';
+
+        // Set up deposit transaction with matching batch ID
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = {
+            batchId,
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
+          };
+        });
+
+        const event = {
+          batchId,
+          id: 'tx-in-batch-1',
+          hash: '0xabc',
+          status: 'confirmed',
+          txParams: {
+            from: '0x1',
+            to: '0xToken',
+            data: '0xapprove',
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // Verify the deposit transaction was updated to CONFIRMED
+        expect(controller.state.depositTransaction?.status).toBe(
+          PredictDepositStatus.CONFIRMED,
+        );
+      });
+    });
+
+    it('update deposit transaction status to ERROR on transactionFailed with batchId', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'deposit-batch-failed';
+
+        // Set up deposit transaction
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = {
+            batchId,
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
+          };
+        });
+
+        const event = {
+          transactionMeta: {
+            batchId,
+            id: 'tx-failed',
+            hash: '0xabc',
+            status: 'failed',
+            error: { message: 'Transaction failed' },
+            txParams: {
+              from: '0x1',
+              to: '0xToken',
+              data: '0xapprove',
+              value: '0x0',
+            },
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionFailed',
+          // @ts-ignore
+          event,
+        );
+
+        // Verify the deposit transaction was updated to ERROR
+        expect(controller.state.depositTransaction?.status).toBe(
+          PredictDepositStatus.ERROR,
+        );
+      });
+    });
+
+    it('update deposit transaction status to CANCELLED on transactionRejected with batchId', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'deposit-batch-rejected';
+
+        // Set up deposit transaction
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = {
+            batchId,
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
+          };
+        });
+
+        const event = {
+          transactionMeta: {
+            batchId,
+            id: 'tx-rejected',
+            hash: '0xdef',
+            status: 'rejected',
+            txParams: {
+              from: '0x1',
+              to: '0xToken',
+              data: '0xapprove',
+              value: '0x0',
+            },
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionRejected',
+          // @ts-ignore
+          event,
+        );
+
+        // Verify the deposit transaction was updated to CANCELLED
+        expect(controller.state.depositTransaction?.status).toBe(
+          PredictDepositStatus.CANCELLED,
+        );
+      });
+    });
+
+    it('not modify deposit state when different batchId', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'deposit-batch-1';
+
+        // Set up deposit transaction
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = {
+            batchId,
+            chainId: 137,
+            status: PredictDepositStatus.PENDING,
+            providerId: 'polymarket',
+          };
+        });
+
+        const initialState = { ...controller.state };
+
+        const event = {
+          batchId: 'different-batch-id',
+          id: 'tx-other',
+          hash: '0xabc',
+          status: 'confirmed',
+          txParams: {
+            from: '0x1',
+            to: '0xToken',
+            data: '0xapprove',
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // State should remain unchanged
+        expect(controller.state).toEqual(initialState);
+      });
+    });
+
+    it('update deposit transaction in depositWithConfirmation', async () => {
+      const mockBatchId = 'batch-store-test';
+
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: mockBatchId,
+      });
+
+      await withController(async ({ controller }) => {
+        // Ensure depositTransaction is null initially
+        expect(controller.state.depositTransaction).toBeNull();
+
+        await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Verify depositTransaction was stored with correct structure
+        expect(controller.state.depositTransaction).toEqual({
+          batchId: mockBatchId,
+          chainId: 137,
+          status: PredictDepositStatus.PENDING,
+          providerId: 'polymarket',
+        });
+      });
+    });
+
+    it('clear previous deposit transaction when starting new deposit', async () => {
+      const oldBatchId = 'old-batch';
+      const newBatchId = 'new-batch';
+
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0xapprove' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: newBatchId,
+      });
+
+      await withController(async ({ controller }) => {
+        // Set up old deposit transaction
+        controller.updateStateForTesting((state) => {
+          state.depositTransaction = {
+            batchId: oldBatchId,
+            chainId: 137,
+            status: PredictDepositStatus.CONFIRMED,
+            providerId: 'polymarket',
+          };
+        });
+
+        // Start new deposit
+        await controller.depositWithConfirmation({
+          providerId: 'polymarket',
+        });
+
+        // Verify old transaction was replaced with new one
+        expect(controller.state.depositTransaction?.batchId).toBe(newBatchId);
+        expect(controller.state.depositTransaction?.status).toBe(
+          PredictDepositStatus.PENDING,
         );
       });
     });

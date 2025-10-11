@@ -25,6 +25,7 @@ import { usePredictClaim } from '../../hooks/usePredictClaim';
 import PredictDeposit from '../../components/PredictDeposit/PredictDeposit';
 import PredictBalance from '../../components/PredictBalance/PredictBalance';
 import { usePredictAccountState } from '../../hooks/usePredictAccountState';
+import { usePredictDepositStatus } from '../../hooks/usePredictDepositStatus';
 
 interface PredictTabViewProps {}
 
@@ -57,6 +58,12 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     loadAccountState,
     address,
   } = usePredictAccountState();
+  usePredictDepositStatus({
+    onSuccess: () => {
+      loadAccountState();
+      loadPositions({ isRefresh: true });
+    },
+  });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();

@@ -43,6 +43,8 @@ import {
   GetPriceHistoryParams,
   PredictClaim,
   PredictClaimStatus,
+  PredictDeposit,
+  PredictDepositStatus,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
@@ -90,6 +92,9 @@ export type PredictControllerState = {
   // Claim management
   claimTransaction: PredictClaim | null;
 
+  // Deposit management
+  depositTransaction: PredictDeposit | null;
+
   // Persisted data
   // --------------
   // Setup
@@ -104,6 +109,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   claimTransaction: null,
+  depositTransaction: null,
   isOnboarded: {},
 });
 
@@ -115,6 +121,7 @@ const metadata = {
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   claimTransaction: { persist: false, anonymous: false },
+  depositTransaction: { persist: false, anonymous: false },
   isOnboarded: { persist: true, anonymous: false },
 };
 
@@ -262,25 +269,33 @@ export class PredictController extends BaseController<
   private async handleTransactionConfirmed(
     _txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
   ): Promise<void> {
+    const batchId = _txMeta.batchId;
     const txId = _txMeta.id;
+    const id = batchId ?? txId;
 
-    if (!txId) {
+    if (!id) {
       return;
     }
 
+    // Check claim transaction (single tx)
     const claimTransaction = this.state.claimTransaction;
-
-    if (claimTransaction?.transactionId !== txId) {
+    if (claimTransaction?.transactionId === id) {
+      this.update((state) => {
+        if (!state.claimTransaction) return;
+        state.claimTransaction.status = PredictClaimStatus.CONFIRMED;
+      });
       return;
     }
 
-    this.update((state) => {
-      if (!state.claimTransaction) {
-        return;
-      }
-      state.claimTransaction.status = PredictClaimStatus.CONFIRMED;
-    });
-    return;
+    // Check deposit transaction (batch)
+    const depositTransaction = this.state.depositTransaction;
+    if (depositTransaction?.batchId === id) {
+      this.update((state) => {
+        if (!state.depositTransaction) return;
+        state.depositTransaction.status = PredictDepositStatus.CONFIRMED;
+      });
+      return;
+    }
   }
 
   /**
@@ -289,25 +304,33 @@ export class PredictController extends BaseController<
   private handleTransactionFailed(
     _event: TransactionControllerTransactionFailedEvent['payload'][0],
   ): void {
+    const batchId = _event.transactionMeta.batchId;
     const txId = _event.transactionMeta.id;
+    const id = batchId ?? txId;
 
-    if (!txId) {
+    if (!id) {
       return;
     }
 
+    // Check claim transaction
     const claimTransaction = this.state.claimTransaction;
-
-    if (!claimTransaction) {
+    if (claimTransaction?.transactionId === id) {
+      this.update((state) => {
+        if (!state.claimTransaction) return;
+        state.claimTransaction.status = PredictClaimStatus.ERROR;
+      });
       return;
     }
 
-    this.update((state) => {
-      if (!state.claimTransaction) {
-        return;
-      }
-      state.claimTransaction.status = PredictClaimStatus.ERROR;
-    });
-    return;
+    // Check deposit transaction
+    const depositTransaction = this.state.depositTransaction;
+    if (depositTransaction?.batchId === id) {
+      this.update((state) => {
+        if (!state.depositTransaction) return;
+        state.depositTransaction.status = PredictDepositStatus.ERROR;
+      });
+      return;
+    }
   }
 
   /**
@@ -316,7 +339,33 @@ export class PredictController extends BaseController<
   private handleTransactionRejected(
     _event: TransactionControllerTransactionRejectedEvent['payload'][0],
   ): void {
-    // TODO: Implement transaction submission tracking
+    const batchId = _event.transactionMeta.batchId;
+    const txId = _event.transactionMeta.id;
+    const id = batchId ?? txId;
+
+    if (!id) {
+      return;
+    }
+
+    // Check claim transaction
+    const claimTransaction = this.state.claimTransaction;
+    if (claimTransaction?.transactionId === id) {
+      this.update((state) => {
+        if (!state.claimTransaction) return;
+        state.claimTransaction.status = PredictClaimStatus.CANCELLED;
+      });
+      return;
+    }
+
+    // Check deposit transaction
+    const depositTransaction = this.state.depositTransaction;
+    if (depositTransaction?.batchId === id) {
+      this.update((state) => {
+        if (!state.depositTransaction) return;
+        state.depositTransaction.status = PredictDepositStatus.CANCELLED;
+      });
+      return;
+    }
   }
 
   /**
@@ -736,6 +785,11 @@ export class PredictController extends BaseController<
       Engine.context;
 
     try {
+      // Clear any previous deposit transaction
+      this.update((state) => {
+        state.depositTransaction = null;
+      });
+
       const selectedAddress = AccountsController.getSelectedAccount().address;
       const signer = {
         address: selectedAddress,
@@ -764,6 +818,18 @@ export class PredictController extends BaseController<
         transactions,
       });
 
+      // Store deposit transaction for tracking (mirrors claim pattern)
+      const predictDeposit: PredictDeposit = {
+        batchId,
+        chainId: parseInt(chainId, 16),
+        status: PredictDepositStatus.PENDING,
+        providerId: params.providerId,
+      };
+
+      this.update((state) => {
+        state.depositTransaction = predictDeposit;
+      });
+
       return {
         success: true,
         response: {
@@ -777,6 +843,12 @@ export class PredictController extends BaseController<
           : PREDICT_ERROR_CODES.ENABLE_WALLET_FAILED,
       );
     }
+  }
+
+  public clearDepositTransaction(): void {
+    this.update((state) => {
+      state.depositTransaction = null;
+    });
   }
 
   public async getAccountState(
