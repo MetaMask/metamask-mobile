@@ -240,13 +240,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   });
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-  // This should be removed once we implement mockAll
-  await device.disableSynchronization();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
-  // This should be removed once we implement mockAll
-  await device.enableSynchronization();
-
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
@@ -260,6 +253,7 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
+
   await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal

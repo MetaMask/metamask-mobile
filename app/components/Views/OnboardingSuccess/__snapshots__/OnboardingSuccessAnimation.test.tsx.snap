@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OnboardingSuccessAnimation displays Rive animation with correct props 1`] = `
+<View
+  collapsable={false}
+  style={
+    {
+      "testID": "animation-container",
+      "transform": [
+        {
+          "translateX": 0,
+        },
+      ],
+    }
+  }
+  testID="onboarding-success-animation"
+>
+  <View
+    style={
+      {
+        "testID": "animation-wrapper",
+      }
+    }
+  >
+    <RiveView
+      alignment="Center"
+      autoplay={true}
+      source="mock-rive-file"
+      style={
+        {
+          "testID": "rive-animation",
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "testID": "text-wrapper",
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "testID": "text-title",
+        }
+      }
+      variant="HeadingLG"
+    >
+      onboarding_success.setting_up_wallet_base.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`OnboardingSuccessAnimation renders animation and text in correct layout structure 1`] = `
+<View
+  collapsable={false}
+  style={
+    {
+      "testID": "animation-container",
+      "transform": [
+        {
+          "translateX": 0,
+        },
+      ],
+    }
+  }
+  testID="onboarding-success-animation"
+>
+  <View
+    style={
+      {
+        "testID": "animation-wrapper",
+      }
+    }
+  >
+    <RiveView
+      alignment="Center"
+      autoplay={true}
+      source="mock-rive-file"
+      style={
+        {
+          "testID": "rive-animation",
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "testID": "text-wrapper",
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "testID": "text-title",
+        }
+      }
+      variant="HeadingLG"
+    >
+      onboarding_success.setting_up_wallet_base.
+    </Text>
+  </View>
+</View>
+`;

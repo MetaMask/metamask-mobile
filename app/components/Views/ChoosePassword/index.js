@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActivityIndicator,
   Alert,
   View,
   StyleSheet,
@@ -68,8 +67,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import fox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import OnboardingSuccessAnimation from '../OnboardingSuccess/OnboardingSuccessAnimation';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -240,6 +238,10 @@ class ChoosePassword extends PureComponent {
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
+    // Data for slide out completion
+    navigationData: null,
+    shouldSlideOut: false,
+    resolveAnimation: null,
   };
 
   mounted = true;
@@ -256,6 +258,10 @@ class ChoosePassword extends PureComponent {
   };
 
   getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
+
+  handleAnimationComplete = () => {
+    if (this.state.resolveAnimation) this.state.resolveAnimation();
+  };
 
   headerLeft = () => {
     const { navigation } = this.props;
@@ -475,6 +481,11 @@ class ChoosePassword extends PureComponent {
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+
+      // wait for the slideOut animation to complete
+      await new Promise((resolve) => {
+        this.setState({ shouldSlideOut: true, resolveAnimation: resolve });
+      });
 
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
@@ -710,7 +721,8 @@ class ChoosePassword extends PureComponent {
   };
 
   renderContent = () => {
-    const { isSelected, password, confirmPassword, loading } = this.state;
+    const { isSelected, password, confirmPassword, loading, shouldSlideOut } =
+      this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     let canSubmit;
     if (this.getOauth2LoginSuccess()) {
@@ -728,36 +740,10 @@ class ChoosePassword extends PureComponent {
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={fox}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.text.default} />
-            <View style={styles.loadingTextContainer}>
-              <Text
-                variant={TextVariant.HeadingLG}
-                color={colors.text.default}
-                adjustsFontSizeToFit
-                numberOfLines={1}
-              >
-                {strings(
-                  previousScreen === ONBOARDING
-                    ? 'create_wallet.title'
-                    : 'secure_your_wallet.creating_password',
-                )}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={colors.text.alternative}
-              >
-                {strings('create_wallet.subtitle')}
-              </Text>
-            </View>
+            <OnboardingSuccessAnimation
+              slideOut={shouldSlideOut}
+              onAnimationComplete={this.handleAnimationComplete}
+            />
           </View>
         ) : (
           <KeyboardAwareScrollView
