@@ -286,7 +286,7 @@ const isMultichainAccountsState2Enabled =
               WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
             ),
             {
-              description: 'Verify token filter is set to Current network',
+              elemDescription: 'Verify token filter is set to Current network',
             },
           );
 
