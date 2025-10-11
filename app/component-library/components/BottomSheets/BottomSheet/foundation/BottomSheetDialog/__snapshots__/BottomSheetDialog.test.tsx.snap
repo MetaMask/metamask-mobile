@@ -33,16 +33,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
           "borderTopLeftRadius": 24,
           "borderTopRightRadius": 24,
           "borderWidth": 1,
-          "maxHeight": 5,
           "overflow": "hidden",
-          "paddingBottom": 3,
-          "shadowColor": "#0000001a",
-          "shadowOffset": {
-            "height": 2,
-            "width": 0,
-          },
-          "shadowOpacity": 1,
-          "shadowRadius": 40,
         },
         {
           "transform": [
@@ -57,22 +48,42 @@ exports[`BottomSheetDialog should render correctly 1`] = `
     <View
       style={
         {
-          "alignItems": "center",
-          "alignSelf": "stretch",
-          "padding": 4,
+          "backgroundColor": "#ffffff",
+          "borderTopLeftRadius": 24,
+          "borderTopRightRadius": 24,
+          "maxHeight": 5,
+          "overflow": "hidden",
+          "paddingBottom": 3,
+          "shadowColor": "#0000001a",
+          "shadowOffset": {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 1,
+          "shadowRadius": 40,
         }
       }
     >
       <View
         style={
           {
-            "backgroundColor": "#b7bbc866",
-            "borderRadius": 2,
-            "height": 4,
-            "width": 40,
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "padding": 4,
           }
         }
-      />
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#b7bbc866",
+              "borderRadius": 2,
+              "height": 4,
+              "width": 40,
+            }
+          }
+        />
+      </View>
     </View>
   </View>
 </View>
