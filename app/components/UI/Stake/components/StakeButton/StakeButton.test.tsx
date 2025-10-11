@@ -8,8 +8,6 @@ import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
@@ -72,7 +70,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useMetrics/useMetrics');
 
 // Mock the environment variables
 jest.mock('../../../../../util/environment', () => ({
@@ -84,20 +82,6 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: jest.fn(),
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
