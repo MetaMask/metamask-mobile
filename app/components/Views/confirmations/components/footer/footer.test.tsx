@@ -22,6 +22,7 @@ import {
   transactionIdMock,
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -241,6 +242,26 @@ describe('Footer', () => {
     expect(
       queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeNull();
+  });
+
+  it('renders predict claim footer if transaction type matches', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: merge({}, stakingDepositConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type: TransactionType.predictClaim,
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+
+    expect(getByTestId('predict-claim-footer')).toBeDefined();
   });
 
   describe('Confirm Alert Modal', () => {
