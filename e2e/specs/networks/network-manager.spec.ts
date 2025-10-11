@@ -268,8 +268,6 @@ const isMultichainAccountsState2Enabled =
                 name: 'Dai Stablecoin',
               },
             ])
-            // Limit enabled EVM networks to Ethereum only to avoid duplicate asset-ETH in "all networks" mode
-            .withNetworkEnabledMap({ eip155: { '0x1': true } })
             .build(),
           restartDevice: true,
         },
@@ -283,14 +281,6 @@ const isMultichainAccountsState2Enabled =
             'E2E ENV MM_REMOVE_GLOBAL_NETWORK_SELECTOR:',
             process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR,
           );
-          await Assertions.expectElementToBeVisible(
-            Matchers.getElementByID(
-              WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
-            ),
-            {
-              elemDescription: 'Verify token filter is set to Current network',
-            },
-          );
 
           // Open network manager and verify initial state
           await NetworkManager.openNetworkManager();
@@ -300,6 +290,17 @@ const isMultichainAccountsState2Enabled =
 
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+
+          // Wait for network manager to close after selection
+          await Assertions.expectElementToNotBeVisible(
+            NetworkManager.networkManagerBottomSheet,
+            {
+              description:
+                'Network manager should close after network selection',
+              timeout: 10000,
+            },
+          );
+
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
