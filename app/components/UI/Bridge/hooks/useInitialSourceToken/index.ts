@@ -9,9 +9,7 @@ import { BridgeToken } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
-import { CaipChainId, Hex } from '@metamask/utils';
 import {
-  getNativeAssetForChainId,
   isNonEvmChainId,
   formatChainIdToCaip,
   formatChainIdToHex,
@@ -23,26 +21,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
 import { useEffect } from 'react';
-
-export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
-  const nativeAsset = getNativeAssetForChainId(chainId);
-
-  // getNativeAssetForChainId returns zero address for non-EVM chains, we need the CAIP assetId to get balances properly for native asset
-  const address = isNonEvmChainId(chainId)
-    ? nativeAsset.assetId
-    : nativeAsset.address;
-
-  const nativeSourceTokenFormatted: BridgeToken = {
-    address,
-    name: nativeAsset.name ?? '',
-    symbol: nativeAsset.symbol,
-    image: 'iconUrl' in nativeAsset ? nativeAsset.iconUrl || '' : '',
-    decimals: nativeAsset.decimals,
-    chainId,
-  };
-
-  return nativeSourceTokenFormatted;
-};
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 
 /**
  *
