@@ -185,6 +185,7 @@ export function* handleDeeplinkSaga() {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
+      AppStateEventProcessor.clearPendingDeeplink();
     }
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
