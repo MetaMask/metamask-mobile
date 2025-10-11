@@ -1,0 +1,147 @@
+name: Sentry Performance Reporting
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dummy-test-job:
+    name: 'Dummy Test Job for Sentry Reporting'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Record job start time
+        id: start-time
+        run: echo "start_time=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install Sentry SDK
+        run: |
+          # Create a temporary directory for Sentry SDK to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install @sentry/node --no-audit --no-fund
+          
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+
+      - name: Setup job info
+        id: job-info
+        env:
+          JOB_NAME: 'Dummy Test Job for Sentry Reporting'
+        run: |
+          echo "job_name=${JOB_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Dummy work simulation
+        run: |
+          echo "🚀 Starting dummy test job..."
+          echo "📊 This job tests Sentry reporting integration"
+          sleep 3
+          echo "✅ Dummy work completed successfully"
+
+      - name: Report job performance to Sentry
+        if: always()
+        env:
+          SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          WORKFLOW: ${{ github.workflow }}
+          JOB_ID: ${{ github.job }}
+          JOB_NAME: ${{ steps.job-info.outputs.job_name }}
+          RUN_ID: ${{ github.run_id }}
+          ATTEMPT: ${{ github.run_attempt }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          START_TIME: ${{ steps.start-time.outputs.start_time }}
+        run: |
+          # Compute end time and duration
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          
+          echo "Job started at: $START_TIME"
+          echo "Job ended at: $END_TIME"
+          echo "Job duration: $DURATION seconds"
+          
+          # Create Node.js script to send performance transaction
+          cat > sentry_report.js << 'EOF'
+          const Sentry = require('@sentry/node');
+          
+          // Initialize Sentry
+          Sentry.init({
+            dsn: process.env.SENTRY_DSN,
+            environment: 'ci',
+            release: process.env.SHA,
+            tracesSampleRate: 1.0
+          });
+          
+          async function reportPerformance() {
+            const startTime = parseInt(process.env.START_TIME) * 1000; // Convert to milliseconds
+            const endTime = parseInt(process.env.END_TIME) * 1000;
+            const duration = parseInt(process.env.DURATION) * 1000;
+            
+            // Use the new API for creating transactions
+            await Sentry.startSpan({
+              name: process.env.JOB_NAME || process.env.JOB_ID,
+              op: 'github.actions.job',
+              startTime: startTime,
+              endTime: endTime,
+              attributes: {
+                'workflow': process.env.WORKFLOW,
+                'job': process.env.JOB_ID,
+                'job_name': process.env.JOB_NAME,
+                'run_id': process.env.RUN_ID,
+                'run_attempt': process.env.ATTEMPT,
+                'branch': process.env.BRANCH,
+                'sha': process.env.SHA,
+                'event_name': process.env.GITHUB_EVENT_NAME,
+                'actor': process.env.GITHUB_ACTOR,
+                'duration_seconds': process.env.DURATION,
+                'start_time': process.env.START_TIME,
+                'end_time': process.env.END_TIME
+              }
+            }, async (span) => {
+              // Set tags using the new API
+              Sentry.setTag('workflow', process.env.WORKFLOW);
+              Sentry.setTag('job', process.env.JOB_ID);
+              Sentry.setTag('job_name', process.env.JOB_NAME);
+              Sentry.setTag('run_id', process.env.RUN_ID);
+              Sentry.setTag('run_attempt', process.env.ATTEMPT);
+              Sentry.setTag('branch', process.env.BRANCH);
+              Sentry.setTag('sha', process.env.SHA);
+              Sentry.setTag('event_name', process.env.GITHUB_EVENT_NAME);
+              Sentry.setTag('actor', process.env.GITHUB_ACTOR);
+              
+              console.log('✅ Performance transaction sent to Sentry');
+              console.log(`Transaction: ${process.env.JOB_NAME}`);
+              console.log(`Duration: ${process.env.DURATION} seconds`);
+              
+              // Simulate the work duration
+              await new Promise(resolve => setTimeout(resolve, 100));
+            });
+            
+            // Wait a bit for the transaction to be sent
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+          
+          reportPerformance().catch(console.error);
+          EOF
+          
+          # Set additional environment variables for the script
+          export END_TIME="$END_TIME"
+          export DURATION="$DURATION"
+          export GITHUB_EVENT_NAME="${{ github.event_name }}"
+          export GITHUB_ACTOR="${{ github.actor }}"
+          
+          # Run the Node.js script from workspace directory
+          cd ${{ github.workspace }}
+          node sentry_report.js
