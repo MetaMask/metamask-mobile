@@ -6,9 +6,11 @@ import {
 } from '../../util/trace';
 
 let UIStartupSpan: TraceContext;
+let hasInitialized = false;
 
 const getUIStartupSpan = (startTime?: number) => {
-  if (!UIStartupSpan) {
+  if (!hasInitialized) {
+    hasInitialized = true;
     UIStartupSpan = trace({
       name: TraceName.UIStartup,
       startTime,
