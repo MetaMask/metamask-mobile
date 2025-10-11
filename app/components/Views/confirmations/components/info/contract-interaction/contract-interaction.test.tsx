@@ -26,6 +26,8 @@ jest.mock('../../rows/account-network-info-row', () => ({
 jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
+jest.mock('../../../hooks/useAutomaticGasFeeTokenSelect');
+
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
 }));
