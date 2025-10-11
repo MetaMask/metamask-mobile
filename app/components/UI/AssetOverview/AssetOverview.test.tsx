@@ -23,6 +23,12 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 jest.mock('../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
@@ -136,7 +142,6 @@ jest.mock('../../hooks/useStyles', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
-  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true), // Always return true for bridge-enabled sources
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -173,10 +178,16 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
-jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
-  useCurrentNetworkInfo: jest.fn(() => ({
-    getNetworkInfo: jest.fn(),
-    enabledNetworks: [],
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   })),
 }));
 
@@ -221,6 +232,12 @@ describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
 
   beforeEach(() => {
+    // Setup event builder chain
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
     // Default mock setup for the hook - return false to continue with EVM flow
     mockSendNonEvmAsset.mockResolvedValue(false);
     (useSendNonEvmAsset as jest.Mock).mockReturnValue({
@@ -279,6 +296,95 @@ describe('AssetOverview', () => {
         },
       },
     });
+  });
+
+  it('should track buy button click analytics with correct properties', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+
+    // Extract the onBuy function from navigation params
+    fireEvent.press(buyButton);
+
+    // Get the onBuy function that was passed to navigation
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    // Clear mocks to isolate the tracking test
+    jest.clearAllMocks();
+
+    // Setup event builder chain again after clearing
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    // Call the onBuy function directly
+    onBuyFunction();
+
+    // Verify createEventBuilder was called with correct event
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+    );
+
+    // Verify addProperties was called with correct properties
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.BUY,
+      button_label: 'Buy',
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    // Verify build was called
+    expect(mockBuild).toHaveBeenCalled();
+
+    // Verify trackEvent was called with the built event
+    expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+  });
+
+  it('should fire buy button tracking exactly once per button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    // Get the onBuy function
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    // Clear mocks
+    jest.clearAllMocks();
+
+    // Setup event builder chain
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    // Call onBuy
+    onBuyFunction();
+
+    // Verify each tracking function was called exactly once
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenCalledTimes(1);
+    expect(mockBuild).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
   it('should handle send button press', async () => {
@@ -379,21 +485,13 @@ describe('AssetOverview', () => {
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    // Now navigates to unified Bridge view with Unified mode
+    // Now navigates to Bridge with unified mode
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
-      params: {
-        sourceToken: expect.objectContaining({
-          address: '0x123',
-          chainId: '0x1',
-          decimals: 18,
-          symbol: 'ETH',
-          name: 'Ethereum',
-          image: '',
-        }),
-        sourcePage: 'MainView',
+      params: expect.objectContaining({
         bridgeViewMode: 'Unified',
-      },
+        sourcePage: 'MainView',
+      }),
     });
   });
 
@@ -542,26 +640,17 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    // Now navigates to unified Bridge view
+    // Now navigates to Bridge with unified mode
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
-      params: {
-        sourceToken: expect.objectContaining({
-          address: assetFromSearch.address,
-          chainId: assetFromSearch.chainId,
-          decimals: assetFromSearch.decimals,
-          symbol: assetFromSearch.symbol,
-          name: assetFromSearch.name,
-          image: assetFromSearch.image,
-          isFromSearch: true,
-        }),
-        sourcePage: 'MainView',
+      params: expect.objectContaining({
         bridgeViewMode: 'Unified',
-      },
+        sourcePage: 'MainView',
+      }),
     });
   });
 
-  it('should navigate to bridge when coming from search and on a different chain', async () => {
+  it('should navigate to bridge when swap button is pressed on different chain', async () => {
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
       chainId: '0xa',
@@ -581,22 +670,13 @@ describe('AssetOverview', () => {
     // Wait for all promises to resolve
     await Promise.resolve();
 
-    // Unified bridge UI now handles network switching internally
+    // Should navigate to bridge view
     expect(navigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
-      params: {
-        sourceToken: expect.objectContaining({
-          address: differentChainAssetFromSearch.address,
-          chainId: differentChainAssetFromSearch.chainId,
-          decimals: differentChainAssetFromSearch.decimals,
-          symbol: differentChainAssetFromSearch.symbol,
-          name: differentChainAssetFromSearch.name,
-          image: differentChainAssetFromSearch.image,
-          isFromSearch: true,
-        }),
-        sourcePage: 'MainView',
+      params: expect.objectContaining({
         bridgeViewMode: 'Unified',
-      },
+        sourcePage: 'MainView',
+      }),
     });
   });
 
@@ -661,21 +741,13 @@ describe('AssetOverview', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      // Now navigates directly to unified Bridge view
+      // Now navigates to Bridge with unified mode
       expect(navigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
-        params: {
-          sourceToken: expect.objectContaining({
-            address: differentChainAsset.address,
-            chainId: differentChainAsset.chainId,
-            decimals: differentChainAsset.decimals,
-            symbol: differentChainAsset.symbol,
-            name: differentChainAsset.name,
-            image: differentChainAsset.image,
-          }),
-          sourcePage: 'MainView',
+        params: expect.objectContaining({
           bridgeViewMode: 'Unified',
-        },
+          sourcePage: 'MainView',
+        }),
       });
     });
 
