@@ -107,7 +107,7 @@ describe('OnboardingSuccessEndAnimation', () => {
     expect(getByTestId('onboarding-success-end-animation')).toBeTruthy();
   });
 
-  it('calls Rive methods in E2E mode when riveRef is available', () => {
+  it('skips animation setup in E2E mode', () => {
     // Arrange
     mockIsE2EValue = true;
     const mockSetInputState = jest.fn();
@@ -128,13 +128,9 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    // Assert
-    expect(mockSetInputState).toHaveBeenCalledWith(
-      'OnboardingLoader',
-      'Dark mode',
-      false,
-    );
-    expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
+    // Assert - In E2E mode, no Rive methods should be called
+    expect(mockSetInputState).not.toHaveBeenCalled();
+    expect(mockFireState).not.toHaveBeenCalled();
   });
 
   it('handles early return when riveRef is null in non-E2E mode', () => {
