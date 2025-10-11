@@ -26,7 +26,6 @@ import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
 import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
-import handleFastOnboarding from '../../core/DeeplinkManager/Handlers/handleFastOnboarding';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
@@ -119,11 +118,6 @@ jest.mock('../../core/DeeplinkManager/Handlers/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 
-jest.mock('../../core/DeeplinkManager/Handlers/handleFastOnboarding', () => ({
-  __esModule: true,
-  default: jest.fn().mockReturnValue(true),
-}));
-
 // (AppStateEventListener mock defined above)
 
 jest.mock('../../core/SDKConnect/SDKConnect', () => ({
@@ -150,7 +144,7 @@ jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
 
 const defaultMockState = {
   onboarding: { completedOnboarding: false },
-  user: { existingUser: false },
+  user: { existingUser: true },
   engine: { backgroundState: {} },
   confirmation: {},
   navigation: {},
@@ -275,7 +269,7 @@ describe('startAppServices', () => {
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },
-        user: { existingUser: false },
+        user: { existingUser: true },
       })
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
@@ -341,7 +335,6 @@ describe('initializeSDKServices', () => {
 describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (handleFastOnboarding as jest.Mock).mockReturnValue(true);
   });
 
   describe('without deeplink', () => {
@@ -350,7 +343,7 @@ describe('handleDeeplinkSaga', () => {
       await expectSaga(handleDeeplinkSaga)
         .withState({
           onboarding: { completedOnboarding: false },
-          user: { existingUser: false },
+          user: { existingUser: true },
           engine: { backgroundState: {} },
           confirmation: {},
           navigation: {},
@@ -384,7 +377,7 @@ describe('handleDeeplinkSaga', () => {
         await expectSaga(handleDeeplinkSaga)
           .withState({
             onboarding: { completedOnboarding: false },
-            user: { existingUser: false },
+            user: { existingUser: true },
             engine: { backgroundState: {} },
             confirmation: {},
             navigation: {},
@@ -417,7 +410,7 @@ describe('handleDeeplinkSaga', () => {
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
             .withState({
-              user: { existingUser: false },
+              user: { existingUser: true },
             })
             .dispatch(setCompletedOnboarding(false))
             .silentRun();
@@ -443,7 +436,7 @@ describe('handleDeeplinkSaga', () => {
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
             .withState({
-              user: { existingUser: false },
+              user: { existingUser: true },
             })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
@@ -470,7 +463,7 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               onboarding: { completedOnboarding: true },
-              user: { existingUser: false },
+              user: { existingUser: true },
               engine: { backgroundState: {} },
               confirmation: {},
               navigation: {},
@@ -511,12 +504,10 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               ...defaultMockState,
-              user: { existingUser: true }, // existing user = true
             })
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          // Should not call SharedDeeplinkManager.parse as completed onboarding is false
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
@@ -533,12 +524,11 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               ...defaultMockState,
-              onboarding: { existingUser: false },
+              user: { existingUser: false },
             })
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          // Should call handleFastOnboarding with the deeplink even completed onboarding is false
           expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
         });
 
@@ -553,12 +543,11 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               ...defaultMockState,
-              onboarding: { existingUser: false },
+              user: { existingUser: false },
             })
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          // Should call handleFastOnboarding with the deeplink even completed onboarding is false
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
       });
