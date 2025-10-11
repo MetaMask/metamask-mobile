@@ -16,6 +16,7 @@ export const useRiveAnimation = (
   const riveTimeoutId = useRef<NodeJS.Timeout | null>(null);
 
   const clearRiveTimer = useCallback(() => {
+    if (isE2E) return;
     if (riveTimeoutId.current) {
       clearTimeout(riveTimeoutId.current);
       riveTimeoutId.current = null;
@@ -23,21 +24,7 @@ export const useRiveAnimation = (
   }, []);
 
   const startRiveAnimation = useCallback(() => {
-    if (isE2E) {
-      // Set static state for E2E tests
-      if (riveRef.current) {
-        riveRef.current.setInputState(
-          config.stateMachineName,
-          config.darkModeInputName,
-          isDarkMode,
-        );
-        riveRef.current.fireState(
-          config.stateMachineName,
-          config.startTriggerName,
-        );
-      }
-      return;
-    }
+    if (isE2E) return;
 
     if (!riveRef.current) {
       return;
@@ -68,6 +55,8 @@ export const useRiveAnimation = (
   }, [isDarkMode, config]);
 
   useEffect(() => {
+    if (isE2E) return;
+
     startRiveAnimation();
 
     return () => {
