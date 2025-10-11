@@ -9,10 +9,13 @@ import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
   CardAuthorizeResponse,
+  CardDetailsResponse,
   CardError,
   CardErrorType,
   CardExchangeTokenRawResponse,
   CardExchangeTokenResponse,
+  CardExternalWalletDetail,
+  CardExternalWalletDetailsResponse,
   CardLocation,
   CardLoginInitiateResponse,
   CardLoginResponse,
@@ -758,6 +761,79 @@ export class CardSDK {
 
     return tokenResponse;
   };
+
+  getCardDetails = async (): Promise<CardDetailsResponse> => {
+    const response = await this.makeRequest(
+      '/v1/card/status',
+      { method: 'GET' },
+      true,
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new CardError(
+          CardErrorType.NO_CARD,
+          'User has no card. Request a card first.',
+        );
+      }
+
+      const errorResponse = await response.json();
+      Logger.log(errorResponse, 'Failed to get card details.');
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get card details. Please try again.',
+      );
+    }
+
+    return (await response.json()) as CardDetailsResponse;
+  };
+
+  getCardExternalWalletDetails =
+    async (): Promise<CardExternalWalletDetailsResponse> => {
+      Logger.log('getCardExternalWalletDetails');
+      const promises = [
+        this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
+        this.makeRequest(
+          '/v1/wallet/external/priority',
+          { method: 'GET' },
+          true,
+        ),
+      ];
+
+      const responses = await Promise.all(promises);
+
+      if (!responses[0].ok || !responses[1].ok) {
+        const errorResponse = await responses[0].json();
+        Logger.log(
+          errorResponse,
+          'Failed to get card external wallet details.',
+        );
+        throw new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to get card external wallet details. Please try again.',
+        );
+      }
+
+      const externalWalletDetails = await responses[0].json();
+      const priorityWalletDetails = await responses[1].json();
+
+      const combinedDetails = externalWalletDetails.map(
+        (wallet: CardExternalWalletDetail) => {
+          const priorityWallet = priorityWalletDetails.find(
+            (p: CardExternalWalletDetail) =>
+              p?.address?.toLowerCase() === wallet?.address?.toLowerCase(),
+          );
+          return {
+            ...wallet,
+            walletAddress: wallet.address,
+            priority: priorityWallet?.priority ?? 0,
+            id: priorityWallet?.id ?? 0,
+          };
+        },
+      );
+
+      return combinedDetails as CardExternalWalletDetailsResponse;
+    };
 
   private getFirstSupportedTokenOrNull(): CardToken | null {
     return this.supportedTokens.length > 0

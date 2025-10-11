@@ -286,6 +286,12 @@ import type {
   RewardsControllerEvents,
   RewardsControllerActions,
 } from './controllers/rewards-controller/types';
+import { CardController } from './controllers/card-controller/CardController';
+import type {
+  CardControllerState,
+  CardControllerEvents,
+  CardControllerActions,
+} from './controllers/card-controller/types';
 import {
   PredictController,
   PredictControllerState,
@@ -424,6 +430,7 @@ type GlobalActions =
   | PredictControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
+  | CardControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -487,6 +494,7 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
+  | CardControllerEvents
   | AccountTreeControllerEvents;
 
 /**
@@ -570,6 +578,7 @@ export type Controllers = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   RewardsController: RewardsController;
+  CardController: CardController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
@@ -642,6 +651,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   RewardsController: RewardsControllerState;
+  CardController: CardControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   GatorPermissionsController: GatorPermissionsControllerState;
 };
@@ -714,6 +724,7 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
+  | 'CardController'
   | 'GatorPermissionsController'
   | 'SelectedNetworkController';
 

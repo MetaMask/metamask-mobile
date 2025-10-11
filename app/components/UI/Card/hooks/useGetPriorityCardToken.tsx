@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import {
+  AllowanceState,
+  CardTokenAllowance,
+  CardExternalWalletDetail,
+} from '../types';
 import { Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
@@ -25,6 +29,7 @@ import {
 } from '../../../../core/redux/slices/card';
 import Engine from '../../../../core/Engine';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import { ethers } from 'ethers';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -102,6 +107,91 @@ const fetchAllowances = async (
 };
 
 /**
+ * Maps CardExternalWalletDetail from API to CardTokenAllowance format
+ * @param {CardExternalWalletDetail} walletDetail - The wallet detail from API
+ * @param {CardSDK} sdk - The Card SDK instance to get supported token info
+ * @returns {CardTokenAllowance | null} - Mapped token allowance or null if invalid
+ */
+const mapWalletDetailToCardToken = (
+  walletDetail: CardExternalWalletDetail,
+  sdk: CardSDK,
+): CardTokenAllowance | null => {
+  try {
+    Logger.log('mapWalletDetailToCardToken: Mapping wallet detail:', {
+      walletAddress: walletDetail.address,
+      currency: walletDetail.currency,
+      balance: walletDetail.balance,
+      allowance: walletDetail.allowance,
+    });
+
+    // Find matching supported token by symbol (currency field contains token symbol)
+    const supportedToken = sdk.supportedTokens.find(
+      (token) =>
+        token.symbol?.toLowerCase() === walletDetail.currency?.toLowerCase(),
+    );
+
+    if (!supportedToken) {
+      Logger.log(
+        'mapWalletDetailToCardToken: No matching supported token found for currency:',
+        walletDetail.currency,
+        'Available supported tokens:',
+        sdk.supportedTokens.map((t) => t.symbol),
+      );
+      return null;
+    }
+
+    Logger.log('mapWalletDetailToCardToken: Found matching token:', {
+      symbol: supportedToken.symbol,
+      address: supportedToken.address,
+      name: supportedToken.name,
+    });
+
+    // Parse allowance string to BigNumber, handling decimal values
+    let allowanceBigNumber: ethers.BigNumber;
+    try {
+      const allowanceString = String(walletDetail.allowance || '0');
+      // Convert decimal to integer if needed
+      const allowanceFloat = parseFloat(allowanceString);
+      if (isNaN(allowanceFloat) || allowanceFloat < 0) {
+        allowanceBigNumber = ethers.BigNumber.from('0');
+      } else {
+        // Floor the float to get integer value
+        const allowanceInt = Math.floor(allowanceFloat);
+        allowanceBigNumber = ethers.BigNumber.from(allowanceInt.toString());
+      }
+    } catch (error) {
+      Logger.log('mapWalletDetailToCardToken: Error parsing allowance:', error);
+      allowanceBigNumber = ethers.BigNumber.from('0');
+    }
+
+    // Determine allowance state
+    const allowanceState = allowanceBigNumber.gt(0)
+      ? AllowanceState.Enabled
+      : AllowanceState.NotEnabled;
+
+    const cardTokenAllowance: CardTokenAllowance = {
+      ...supportedToken,
+      address: supportedToken.address || '', // Use token contract address, not user wallet address
+      decimals: supportedToken.decimals ?? 18, // Default to 18 if not provided
+      name: supportedToken.name ?? null,
+      symbol: supportedToken.symbol ?? null,
+      allowance: allowanceBigNumber,
+      allowanceState,
+      chainId: LINEA_CHAIN_ID,
+      isStaked: false, // API doesn't provide staking info, default to false
+    };
+
+    return cardTokenAllowance;
+  } catch (error) {
+    Logger.log(
+      'mapWalletDetailToCardToken: Error mapping wallet detail:',
+      error,
+    );
+    return null;
+  }
+};
+
+/**
  * React hook to fetch and determine the priority card token for a given user address.
  *
  * This hook implements a caching strategy where if the priority token was fetched less than 5 minutes ago,
@@ -119,13 +209,39 @@ const fetchAllowances = async (
  * - error: any error encountered while fetching
  * - priorityToken: the cached or newly fetched priority token
  */
-export const useGetPriorityCardToken = () => {
+interface UseGetPriorityCardTokenParams {
+  dataSource?: 'on-chain' | 'api';
+}
+
+export const useGetPriorityCardToken = (
+  params?: UseGetPriorityCardTokenParams,
+) => {
+  const dataSource = params?.dataSource || 'on-chain';
   const dispatch = useDispatch();
   const { TokensController, NetworkController } = Engine.context;
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingAddToken, setIsLoadingAddToken] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
+
+  // Ref to prevent multiple concurrent fetches and track current data source
+  const fetchingRef = useRef<{
+    inProgress: boolean;
+    dataSource: string;
+    lastFetchTime: number;
+    lastFetchKey: string; // Unique key to identify each fetch request
+  }>({
+    inProgress: false,
+    dataSource: '',
+    lastFetchTime: 0,
+    lastFetchKey: '',
+  });
+
+  // Track previous data source to detect changes (e.g., logout switching from API to on-chain)
+  const previousDataSourceRef = useRef<string>(dataSource);
+
+  // Add a minimum interval between fetches to prevent rapid switching
+  const MIN_FETCH_INTERVAL = 1000; // 1 second
 
   // Extract controller state
   const allTokenBalances = useSelector(selectAllTokenBalances);
@@ -176,14 +292,71 @@ export const useGetPriorityCardToken = () => {
         BigNumber(balances[tokenAddress as Hex]).gt(0),
     );
 
-  // Fetch priority token function
-  const fetchPriorityToken: () => Promise<CardTokenAllowance | null> =
-    useCallback(async () => {
-      setIsLoading(true);
-      setError(false);
-
+  // Fetch priority token from API
+  const fetchPriorityTokenFromApi =
+    useCallback(async (): Promise<CardTokenAllowance | null> => {
       if (!sdk || !selectedAddress) {
-        setIsLoading(false);
+        return null;
+      }
+
+      try {
+        trace({
+          name: TraceName.Card,
+          op: TraceOperation.CardGetPriorityToken,
+        });
+
+        const walletDetails = await sdk.getCardExternalWalletDetails();
+
+        if (!walletDetails || walletDetails.length === 0) {
+          Logger.log('fetchPriorityTokenFromApi: No wallet details found');
+          return null;
+        }
+
+        Logger.log(
+          'fetchPriorityTokenFromApi: Available wallet details:',
+          walletDetails.map((w) => ({
+            currency: w.currency,
+            priority: w.priority,
+            balance: w.balance,
+            allowance: w.allowance,
+          })),
+        );
+
+        // Find the priority token (lowest priority number = highest precedence)
+        const priorityWallet = walletDetails.reduce((prev, current) =>
+          current.priority < prev.priority ? current : prev,
+        );
+
+        Logger.log('fetchPriorityTokenFromApi: Selected priority token:', {
+          currency: priorityWallet.currency,
+          priority: priorityWallet.priority,
+          balance: priorityWallet.balance,
+          allowance: priorityWallet.allowance,
+        });
+
+        const mappedToken = mapWalletDetailToCardToken(priorityWallet, sdk);
+
+        endTrace({
+          name: TraceName.Card,
+        });
+
+        return mappedToken;
+      } catch (fetchError) {
+        Logger.log(
+          'fetchPriorityTokenFromApi: Error fetching from API:',
+          fetchError,
+        );
+        endTrace({
+          name: TraceName.Card,
+        });
+        throw fetchError;
+      }
+    }, [sdk, selectedAddress]);
+
+  // Fetch priority token from on-chain data
+  const fetchPriorityTokenFromOnChain =
+    useCallback(async (): Promise<CardTokenAllowance | null> => {
+      if (!sdk || !selectedAddress) {
         return null;
       }
 
@@ -341,24 +514,209 @@ export const useGetPriorityCardToken = () => {
       }
     }, [sdk, selectedAddress, getBalancesForChain, dispatch]);
 
+  // Internal fetch function that accepts data source parameter
+  const internalFetchPriorityToken = useCallback(
+    async (currentDataSource: string): Promise<CardTokenAllowance | null> => {
+      const now = Date.now();
+      const fetchKey = `${currentDataSource}-${now}-${Math.random()}`;
+
+      Logger.log(
+        'useGetPriorityCardToken: Fetch requested for',
+        currentDataSource,
+        'key:',
+        fetchKey,
+      );
+
+      // Prevent concurrent fetches for the same data source
+      if (
+        fetchingRef.current.inProgress &&
+        fetchingRef.current.dataSource === currentDataSource
+      ) {
+        Logger.log(
+          'useGetPriorityCardToken: Fetch already in progress for',
+          currentDataSource,
+          'current key:',
+          fetchingRef.current.lastFetchKey,
+        );
+        return priorityToken;
+      }
+
+      // Prevent rapid successive fetches (but allow if data source changed)
+      if (
+        now - fetchingRef.current.lastFetchTime < MIN_FETCH_INTERVAL &&
+        fetchingRef.current.dataSource === currentDataSource
+      ) {
+        Logger.log(
+          'useGetPriorityCardToken: Skipping fetch due to rate limiting for',
+          currentDataSource,
+        );
+        return priorityToken;
+      }
+
+      // Set fetch state
+      fetchingRef.current.inProgress = true;
+      fetchingRef.current.dataSource = currentDataSource;
+      fetchingRef.current.lastFetchTime = now;
+      fetchingRef.current.lastFetchKey = fetchKey;
+
+      setIsLoading(true);
+      setError(false);
+
+      try {
+        let result: CardTokenAllowance | null = null;
+
+        if (currentDataSource === 'api') {
+          Logger.log('useGetPriorityCardToken: Fetching from API');
+          result = await fetchPriorityTokenFromApi();
+        } else {
+          Logger.log('useGetPriorityCardToken: Fetching from on-chain');
+          result = await fetchPriorityTokenFromOnChain();
+        }
+
+        // Only update cache if this fetch is still relevant (data source and key match)
+        if (
+          fetchingRef.current.dataSource === currentDataSource &&
+          fetchingRef.current.lastFetchKey === fetchKey &&
+          selectedAddress
+        ) {
+          Logger.log(
+            'useGetPriorityCardToken: Updating cache for',
+            currentDataSource,
+            'key:',
+            fetchKey,
+          );
+          dispatch(
+            setCardPriorityToken({
+              address: selectedAddress,
+              token: result,
+            }),
+          );
+          dispatch(
+            setCardPriorityTokenLastFetched({
+              address: selectedAddress,
+              lastFetched: new Date(),
+            }),
+          );
+        } else {
+          Logger.log(
+            'useGetPriorityCardToken: Skipping cache update - fetch superseded',
+            {
+              currentDataSource,
+              fetchKey,
+              currentKey: fetchingRef.current.lastFetchKey,
+            },
+          );
+        }
+
+        return result;
+      } catch (err) {
+        const normalizedError =
+          err instanceof Error ? err : new Error(String(err));
+        Logger.error(
+          normalizedError,
+          `useGetPriorityCardToken::error fetching priority token from ${currentDataSource}`,
+        );
+        setError(true);
+        return null;
+      } finally {
+        // Only reset fetch state if this is still the current fetch
+        if (
+          fetchingRef.current.dataSource === currentDataSource &&
+          fetchingRef.current.lastFetchKey === fetchKey
+        ) {
+          fetchingRef.current.inProgress = false;
+        }
+        setIsLoading(false);
+      }
+    },
+    [
+      priorityToken,
+      selectedAddress,
+      fetchPriorityTokenFromApi,
+      fetchPriorityTokenFromOnChain,
+      dispatch,
+    ],
+  );
+
+  // External fetch function that always uses current dataSource
+  const fetchPriorityToken = useCallback(
+    async (): Promise<CardTokenAllowance | null> =>
+      await internalFetchPriorityToken(dataSource),
+    [dataSource, internalFetchPriorityToken],
+  );
+
+  // Separate effect to handle data source changes and fetching
   useEffect(() => {
-    if (!selectedAddress) {
+    if (!selectedAddress || !sdk) {
       return;
     }
 
-    // If cache is valid and we have a priority token, don't fetch
-    if (cacheIsValid && priorityToken !== null) {
+    // Check if we're already fetching for this data source
+    if (
+      fetchingRef.current.inProgress &&
+      fetchingRef.current.dataSource === dataSource
+    ) {
+      Logger.log('useGetPriorityCardToken: Already fetching for', dataSource);
       return;
     }
 
-    // Cache is stale or we don't have a priority token, fetch new data
-    fetchPriorityToken();
+    // Check if data source changed (e.g., logout switching from API to on-chain)
+    const dataSourceChanged = previousDataSourceRef.current !== dataSource;
+    if (dataSourceChanged) {
+      Logger.log(
+        'useGetPriorityCardToken: Data source changed from',
+        previousDataSourceRef.current,
+        'to',
+        dataSource,
+      );
+      previousDataSourceRef.current = dataSource;
+    }
+
+    Logger.log(
+      'useGetPriorityCardToken: Effect triggered - checking fetch conditions',
+      {
+        dataSource,
+        selectedAddress: selectedAddress.slice(0, 6) + '...',
+        cacheIsValid,
+        hasPriorityToken: priorityToken !== null,
+        dataSourceChanged,
+        currentFetchState: fetchingRef.current,
+      },
+    );
+
+    // For API data source, always fetch fresh data (no caching)
+    if (dataSource === 'api') {
+      Logger.log('useGetPriorityCardToken: API mode - fetching fresh data');
+      internalFetchPriorityToken(dataSource);
+      return;
+    }
+
+    // For on-chain data source, use cache strategy BUT force fetch if data source changed
+    // If cache is valid and we have a priority token AND data source didn't change, don't fetch
+    if (cacheIsValid && priorityToken !== null && !dataSourceChanged) {
+      Logger.log('useGetPriorityCardToken: On-chain mode - using cached data');
+      return;
+    }
+
+    // Cache is stale, we don't have a priority token, or data source changed - fetch new data
+    const reason = dataSourceChanged
+      ? 'data source changed (likely logout)'
+      : !priorityToken
+      ? 'no priority token'
+      : 'cache is stale';
+    Logger.log(
+      'useGetPriorityCardToken: On-chain mode - fetching fresh data, reason:',
+      reason,
+    );
+    internalFetchPriorityToken(dataSource);
   }, [
     selectedAddress,
+    dataSource,
     cacheIsValid,
     priorityToken,
-    fetchPriorityToken,
     lastFetched,
+    sdk,
+    internalFetchPriorityToken,
   ]);
 
   // Add priorityToken to the TokenListController if it exists

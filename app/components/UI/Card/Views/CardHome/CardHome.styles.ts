@@ -35,9 +35,13 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flexGrow: 1,
+      marginVertical: 16,
     },
     defaultHorizontalPadding: {
       paddingHorizontal: 16,
+    },
+    defaultHorizontalMargin: {
+      marginHorizontal: 16,
     },
     cardBalanceContainer: {
       marginTop: 16,
@@ -91,6 +95,15 @@ const createStyles = (theme: Theme) =>
     },
     halfWidthButton: {
       width: '50%',
+    },
+    skeletonHeaderPadding: {
+      paddingTop: 20,
+    },
+    skeletonMarginTop: {
+      marginTop: 8,
+    },
+    skeletonCenterAlign: {
+      alignSelf: 'center',
     },
   });
 

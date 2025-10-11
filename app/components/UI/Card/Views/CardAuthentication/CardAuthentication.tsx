@@ -29,6 +29,7 @@ import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardAuthentication.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
+import { useCardController } from '../../hooks/useCardController';
 import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
 import { NavigationActions } from '@react-navigation/compat';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -42,7 +43,12 @@ const CardAuthentication = () => {
   const [location, setLocation] = useState<CardLocation>('international');
   const [loginSuccess, setLoginSuccess] = useState(false);
   const theme = useTheme();
-  const { login, loading, error, clearError } = useCardProviderAuthentication();
+
+  // Get refresh authentication function from card controller hook
+  const { refreshAuthentication } = useCardController();
+  const { login, loading, error, clearError } = useCardProviderAuthentication(
+    refreshAuthentication,
+  );
 
   const styles = createStyles(theme);
 

@@ -1110,12 +1110,10 @@ export function getWalletNavbarOptions(
                     hitSlop={innerStyles.touchAreaSlop}
                   />
                 </View>
-                {isCardholder ? (
-                  <CardButton
-                    onPress={handleCardPress}
-                    touchAreaSlop={innerStyles.touchAreaSlop}
-                  />
-                ) : null}
+                <CardButton
+                  onPress={handleCardPress}
+                  touchAreaSlop={innerStyles.touchAreaSlop}
+                />
                 <ButtonIcon
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}

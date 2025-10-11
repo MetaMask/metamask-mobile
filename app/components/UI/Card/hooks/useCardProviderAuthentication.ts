@@ -35,7 +35,9 @@ const getErrorMessage = (error: unknown): string => {
   return strings('card.card_authentication.errors.unknown_error');
 };
 
-const useCardProviderAuthentication = (): {
+const useCardProviderAuthentication = (
+  onAuthenticationSuccess?: () => Promise<void>,
+): {
   login: (params: {
     location: CardLocation;
     email: string;
@@ -47,7 +49,7 @@ const useCardProviderAuthentication = (): {
 } => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { sdk, setIsAuthenticated } = useCardSDK();
+  const { sdk } = useCardSDK();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -105,7 +107,11 @@ const useCardProviderAuthentication = (): {
         });
 
         setError(null);
-        setIsAuthenticated(true);
+
+        // Notify parent component of successful authentication
+        if (onAuthenticationSuccess) {
+          await onAuthenticationSuccess();
+        }
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
@@ -115,7 +121,7 @@ const useCardProviderAuthentication = (): {
         setLoading(false);
       }
     },
-    [sdk, setIsAuthenticated],
+    [sdk, onAuthenticationSuccess],
   );
 
   return useMemo(

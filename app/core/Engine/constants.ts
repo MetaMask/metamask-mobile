@@ -80,6 +80,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SeedlessOnboardingController:stateChange',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
+  'CardController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

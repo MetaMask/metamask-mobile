@@ -182,6 +182,7 @@ import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
+import { cardControllerInit } from './controllers/card-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
@@ -429,6 +430,7 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
+        CardController: cardControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -447,6 +449,7 @@ export class Engine {
     const perpsController = controllersByName.PerpsController;
     const predictController = controllersByName.PredictController;
     const rewardsController = controllersByName.RewardsController;
+    const cardController = controllersByName.CardController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
     const selectedNetworkController =
@@ -1050,6 +1053,7 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       RewardsController: rewardsController,
+      CardController: cardController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1817,6 +1821,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      CardController,
     } = instance.datamodel.state;
 
     return {
@@ -1875,6 +1880,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      CardController,
     };
   },
 

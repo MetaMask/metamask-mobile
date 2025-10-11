@@ -49,6 +49,7 @@ import {
   getMultichainAccountServiceMessenger,
 } from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
+import { getCardControllerMessenger } from './card-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
 import {
@@ -221,6 +222,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  CardController: {
+    getMessenger: getCardControllerMessenger,
     getInitMessenger: noop,
   },
   GatorPermissionsController: {
